@@ -34,7 +34,8 @@ SOURCES += \
     IImageRenderService.cpp \
     IRemoteVGView.cpp \
     Hooks/GetProfileExtractor.cpp \
-    Regions/IRegion.cpp
+    Regions/IRegion.cpp \
+    InputEvents.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -73,7 +74,8 @@ HEADERS += \
     Hooks/GetImageRenderService.h \
     IRemoteVGView.h \
     Hooks/GetProfileExtractor.h \
-    Regions/IRegion.h
+    Regions/IRegion.h \
+    InputEvents.h
 
 unix {
     target.path = /usr/lib

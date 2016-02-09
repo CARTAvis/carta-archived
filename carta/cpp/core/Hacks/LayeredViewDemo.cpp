@@ -6,6 +6,7 @@
 #include "core/Globals.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/Regions/IRegion.h"
+#include "InteractiveShapes.h"
 #include <QPainter>
 #include <QImage>
 #include <QTimer>
@@ -265,161 +266,11 @@ private:
 
 namespace editable
 {
-
-class IInteractive {
-public:
-    virtual void
-    handleHoverEvent( Carta::Lib::InputEvents::HoverEvent & ev ) = 0;
-
-    virtual void
-    handleDragStartEvent( Carta::Lib::InputEvents::DragStartEvent & ev ) = 0;
-
-};
-
-class InteractiveShapeBase // : public QObject
-{
-//    Q_OBJECT
-    CLASS_BOILERPLATE( InteractiveShapeBase );
-
-public:
-
-    void * m_userData = nullptr;
-    void *
-    getUserData() const
-    {
-        return m_userData;
-    }
-
-    void
-    setUserData( void * value )
-    {
-        m_userData = value;
-    }
-
-    bool m_isSelected = false;
-    bool
-    getIsSelected() const
-    {
-        return m_isSelected;
-    }
-
-    void
-    setIsSelected( bool value )
-    {
-        m_isSelected = value;
-    }
-
-    bool m_canDelete = false;
-    bool
-    getCanDelete() const
-    {
-        return m_canDelete;
-    }
-
-    void
-    setCanDelete( bool value )
-    {
-        m_canDelete = value;
-    }
-
-    QString m_cursor;
-    QString
-    getCursor() const
-    {
-        return m_cursor;
-    }
-
-    void
-    setCursor( const QString & value )
-    {
-        m_cursor = value;
-    }
-
-    bool m_isHovered = false;
-    bool
-    getIsHovered() const
-    {
-        return m_isHovered;
-    }
-
-    void
-    setIsHovered( bool value )
-    {
-        m_isHovered = value;
-    }
-
-    bool m_isActive = true;
-    bool
-    isActive() const { return m_isActive; }
-
-    void
-    setIsActive( bool flag ) { m_isActive = flag; }
-
-    virtual Carta::Lib::VectorGraphics::VGList
-    getVGList() { return Carta::Lib::VectorGraphics::VGList(); }
-
-//    virtual double
-//    getDistance( const QPointF & /*pt*/ ) { return 1e9; }
-
-    virtual bool
-    isPointInside( const QPointF & pt )
-    {
-        Q_UNUSED( pt );
-        return false;
-    }
-
-    bool m_isMovable = false;
-    bool
-    getIsMovable() const
-    {
-        return m_isMovable;
-    }
-
-    void
-    setIsMovable( bool value )
-    {
-        m_isMovable = value;
-    }
-
-    virtual void
-    handleDragStart( const QPointF & pt ) { Q_UNUSED( pt ); }
-
-    virtual void
-    handleDrag( const QPointF & pt )
-    {
-        Q_UNUSED( pt );
-    }
-
-    virtual void
-    handleDragDone( const QPointF & pt ) { Q_UNUSED( pt ); }
-
-    bool m_inEditMode = false;
-    bool
-    isInEditMode() const { return m_inEditMode; }
-
-    void
-    setEditMode( bool flag )
-    {
-        bool oldFlag = m_inEditMode;
-        m_inEditMode = flag;
-        if ( oldFlag != flag ) {
-            do_editModeChanged();
-        }
-    }
-
-    /// reimplement this if your shape needs to know whether edit mode changed
-    /// default implementation does nothing
-    virtual void
-    do_editModeChanged()
-    {
-        ;
-    }
-};
-
-class InteractiveShapesController;
+//class InteractiveShapesController;
 class EditableRegionsController;
 
-class EditableControlPoint : public InteractiveShapeBase
+class EditableControlPoint
+    : public InteractiveShapeBase
 {
     CLASS_BOILERPLATE( EditableControlPoint );
 
@@ -487,10 +338,6 @@ public:
         m_pos = pt;
         m_cb( true );
     }
-
-//    virtual void do_editModeChanged() override
-//    {
-//    }
 
 private:
 
@@ -716,7 +563,7 @@ public:
         // apply the offset to the shadow
         m_shadowPolygon.translate( offset );
         syncShadowToCPs();
-    }
+    } // handleDrag
 
     virtual void
     handleDragDone( const QPointF & pt ) override
@@ -736,9 +583,10 @@ public:
 
         // update the region
         m_polygonRegion-> setqpolyf( m_shadowPolygon );
-    }
+    } // handleDragDone
 
-    void syncShadowToCPs();
+    void
+    syncShadowToCPs();
 
 private:
 
@@ -758,208 +606,6 @@ private:
     QPolygonF m_shadowPolygon;
 
     std::vector < EditableControlPoint::SharedPtr > m_cps;
-};
-
-/// can
-class InteractiveShapesController : public QObject
-{
-    Q_OBJECT
-    CLASS_BOILERPLATE( InteractiveShapesController );
-
-public:
-
-    InteractiveShapesController( QObject * parent = nullptr ) : QObject( parent ) { }
-
-    /// add a shape
-    void
-    addShape( InteractiveShapeBase::SharedPtr editableShape )
-    {
-        m_shapes.push_back( editableShape );
-    }
-
-    /// get rid of all shapes
-    void
-    reset()
-    {
-        m_shapes.resize( 0 );
-    }
-
-    /// get the current VGlist
-    Carta::Lib::VectorGraphics::VGList
-    vgList()
-    {
-        Carta::Lib::VectorGraphics::VGComposer comp;
-        for ( auto & shape : m_shapes ) {
-            if ( shape && shape-> isActive() ) {
-                comp.appendList( shape-> getVGList() );
-            }
-        }
-        return comp.vgList();
-    }
-
-    /// deliver hover event
-    void
-    interpretHoverEvent( const QPointF & pt )
-    {
-        Q_UNUSED( pt );
-
-        // find the shape under the mouse
-        InteractiveShapeBase::SharedPtr currShape = findActiveShape( pt );
-
-        bool change = false;
-
-        // reset all hovered flags
-        for ( auto & shape : m_shapes ) {
-            // skip deleted shapes
-            if ( ! shape ) { continue; }
-
-            // skip inactive shapes
-            if ( ! shape-> isActive() ) { continue; }
-
-            // if this is our shape, set its flag
-            bool newFlag = shape == currShape;
-            bool oldFlag = shape-> getIsHovered();
-            if ( newFlag != oldFlag ) {
-                shape-> setIsHovered( newFlag );
-                change = true;
-            }
-        }
-
-        m_stateChanged = change;
-    } // interpretHoverEvent
-
-    void
-    interpretDragStartEvent( const QPointF & pt )
-    {
-        m_draggedShape = findActiveShape( pt );
-        if ( m_draggedShape ) {
-            m_draggedShape-> handleDragStart( pt );
-        }
-    }
-
-    /// deliver drag event
-    void
-    interpretDragEvent( const QPointF & pt )
-    {
-        if ( ! m_draggedShape ) {
-            return;
-        }
-        m_draggedShape-> handleDrag( pt );
-    }
-
-    /// deliver drag done event
-    void
-    interpretDragDoneEvent( const QPointF & pt )
-    {
-        if ( m_draggedShape ) {
-            m_draggedShape-> handleDragDone( pt );
-        }
-        m_draggedShape = nullptr;
-    }
-
-    InteractiveShapeBase::SharedPtr m_draggedShape = nullptr;
-
-    /// deliver tap event
-    void
-    interpretTapEvent( const QPointF & pt )
-    {
-        Q_UNUSED( pt );
-
-        // we don't care about taps...
-    }
-
-    /// deliver tap event
-    void
-    interpretTouchEvent( const QPointF & pt )
-    {
-        // find the shape under the mouse
-        InteractiveShapeBase::SharedPtr currShape = findActiveShape( pt );
-
-        bool change = false;
-
-        // reset all hovered flags
-        for ( auto & shape : m_shapes ) {
-            // skip deleted shapes
-            if ( ! shape ) { continue; }
-
-            // skip inactive shapes
-            if ( ! shape-> isActive() ) { continue; }
-
-            // if this is our shape, set its flag
-            bool newFlag = shape == currShape;
-            bool oldFlag = shape-> getIsSelected();
-            if ( newFlag != oldFlag ) {
-                shape-> setIsSelected( newFlag );
-                change = true;
-            }
-        }
-
-        m_stateChanged = change;
-    } // interpretTapEvent
-
-    /// deliver double tap event
-    void
-    interpretDoubleTapEvent( const QPointF & pt )
-    {
-        // find the shape under the mouse
-        InteractiveShapeBase::SharedPtr currShape = findActiveShape( pt );
-
-        bool change = false;
-
-        // update edit flags
-        for ( auto & shape : m_shapes ) {
-            // skip deleted shapes
-            if ( ! shape ) { continue; }
-
-            // skip inactive shapes
-            if ( ! shape-> isActive() ) { continue; }
-
-            // if this is our shape, set its flag
-            bool newFlag = shape == currShape;
-            bool oldFlag = shape-> isInEditMode();
-            if ( newFlag != oldFlag ) {
-                shape-> setEditMode( newFlag );
-                change = true;
-            }
-        }
-
-        m_stateChanged = change;
-    } // interpretDoubleTapEvent
-
-    bool
-    hasStateChanged() { return m_stateChanged; }
-
-    virtual
-    ~InteractiveShapesController() { }
-
-    /// find shape under point
-    InteractiveShapeBase::SharedPtr
-    findActiveShape( const QPointF & pt )
-    {
-        InteractiveShapeBase::SharedPtr currShape = nullptr;
-
-//        for ( auto & shape : m_shapes ) {
-        for ( auto i = m_shapes.rbegin() ; i != m_shapes.rend() ; ++i ) {
-            auto & shape = * i;
-
-            // skip deleted shapes
-            if ( ! shape ) { continue; }
-
-            // skip inactive shapes
-            if ( ! shape-> isActive() ) { continue; }
-            if ( shape-> isPointInside( pt ) ) {
-                currShape = shape;
-                break;
-            }
-        }
-        return currShape;
-    } // findActiveShape
-
-private:
-
-    bool m_stateChanged = true;
-
-    std::vector < InteractiveShapeBase::SharedPtr > m_shapes;
 };
 
 typedef Carta::Lib::Regions::RegionBase RegionSet;
@@ -1116,47 +762,9 @@ public:
     }
 
     void
-    interpretHoverEvent( const QPointF & pt )
+    handleEvent( Carta::Lib::InputEvents::JsonEvent & ev )
     {
-        m_editableShapesController-> interpretHoverEvent( pt );
-
-        // set the new VG flag if appropriate
-    }
-
-    void
-    interpretTapEvent( const QPointF & pt )
-    {
-        m_editableShapesController-> interpretTapEvent( pt );
-    }
-
-    void
-    interpretTouchEvent( const QPointF & pt )
-    {
-        m_editableShapesController-> interpretTouchEvent( pt );
-    }
-
-    void
-    interpretDragStartEvent( const QPointF & pt )
-    {
-        m_editableShapesController-> interpretDragStartEvent( pt );
-    }
-
-    void
-    interpretDragEvent( const QPointF & pt )
-    {
-        m_editableShapesController-> interpretDragEvent( pt );
-    }
-
-    void
-    interpretDragDoneEvent( const QPointF & pt )
-    {
-        m_editableShapesController-> interpretDragDoneEvent( pt );
-    }
-
-    void
-    interpretDoubleTapEvent( const QPointF & pt )
-    {
-        m_editableShapesController-> interpretDoubleTapEvent( pt );
+        m_editableShapesController-> handleEvent( ev );
     }
 
     virtual
@@ -1304,74 +912,15 @@ private:
     virtual void
     onInputEvent( Carta::Lib::InputEvent & ev ) override
     {
-        bool eventHandled = false;
-
-        if ( ! eventHandled ) {
-            Carta::Lib::InputEvents::HoverEvent hover( ev );
-            if ( hover.isValid() ) {
-                m_editableRegionsController-> interpretHoverEvent( hover.pos() );
-                eventHandled = true;
-            }
-        }
-
-        if ( ! eventHandled ) {
-            Carta::Lib::InputEvents::TouchEvent touch( ev );
-            if ( touch.isValid() ) {
-                m_editableRegionsController-> interpretTouchEvent( touch.pos() );
-                eventHandled = true;
-            }
-        }
-
-        if ( ! eventHandled ) {
-            Carta::Lib::InputEvents::TapEvent touch( ev );
-            if ( touch.isValid() ) {
-                m_editableRegionsController-> interpretTapEvent( touch.pos() );
-                eventHandled = true;
-            }
-        }
-
-        if ( ! eventHandled ) {
-            Carta::Lib::InputEvents::DragStartEvent eev( ev );
-            if ( eev.isValid() ) {
-                m_editableRegionsController-> interpretDragStartEvent( eev.pos() );
-                eventHandled = true;
-            }
-        }
-
-        if ( ! eventHandled ) {
-            Carta::Lib::InputEvents::DragEvent eev( ev );
-            if ( eev.isValid() ) {
-                m_editableRegionsController-> interpretDragEvent( eev.pos() );
-                eventHandled = true;
-            }
-        }
-
-        if ( ! eventHandled ) {
-            Carta::Lib::InputEvents::DragDoneEvent eev( ev );
-            if ( eev.isValid() ) {
-                m_editableRegionsController-> interpretDragDoneEvent( eev.pos() );
-                eventHandled = true;
-            }
-        }
-
-        if ( ! eventHandled ) {
-            Carta::Lib::InputEvents::DoubleTapEvent eev( ev );
-            if ( eev.isValid() ) {
-                m_editableRegionsController-> interpretDoubleTapEvent( eev.pos() );
-                eventHandled = true;
-            }
-        }
-
-        if ( ! eventHandled ) {
-            qWarning() << "RegionEditorLayer cannot handle input event" << ev.type();
-        }
+        // deliver the event to editable regions controller
+        m_editableRegionsController-> handleEvent( ev );
 
         // check if we need to update vg
         if ( m_editableRegionsController-> hasNewVG() ) {
             setVG( m_editableRegionsController-> vgList() );
         }
 
-        // check if we need to let the region set model know about updated regions
+        // was the region set updated? if yes, let the region set model signal the update
         if ( m_editableRegionsController-> wasRegionSetUpdated() ) {
             // set the source ID to us, so we can ignore this update
             m_regionSetModel-> scheduleUpdateSignal( m_sourceId );
@@ -1525,15 +1074,17 @@ EditableCircle::controlPointCB( bool movingCenter, bool final )
     }
 } // controlPointCB
 
-void EditablePolygon::syncShadowToCPs() {
+void
+EditablePolygon::syncShadowToCPs()
+{
     // make missing control points if necessary
-    while( int(m_cps.size()) < m_shadowPolygon.size()) {
+    while ( int ( m_cps.size() ) < m_shadowPolygon.size() ) {
         int index = m_cps.size();
         auto cb = [this, index] ( bool final ) {
             controlPointCB( index, final );
         };
         auto cp = std::make_shared < EditableControlPoint > ( cb );
-        cp-> setIsActive( false);
+        cp-> setIsActive( false );
         m_cps.push_back( cp );
         m_erc.editableShapesController().addShape( cp );
     }
@@ -1550,11 +1101,11 @@ void EditablePolygon::syncShadowToCPs() {
     //            }
     //        }
 
-    CARTA_ASSERT( m_shadowPolygon.size() == int(m_cps.size()));
+    CARTA_ASSERT( m_shadowPolygon.size() == int ( m_cps.size() ) );
     for ( int index = 0 ; index < m_shadowPolygon.size() ; index++ ) {
         m_cps[index]->setPos( m_shadowPolygon[index] );
     }
-}
+} // syncShadowToCPs
 
 void
 EditablePolygon::do_editModeChanged()
@@ -1566,7 +1117,6 @@ EditablePolygon::do_editModeChanged()
     for ( auto & pt : m_cps ) {
         pt-> setIsActive( isInEditMode() );
     }
-
 } // do_editModeChanged
 
 void
@@ -1577,9 +1127,10 @@ EditablePolygon::controlPointCB( int index, bool final )
         poly[index] = m_cps[index]-> pos();
     }
 
-    if( final) {
-        m_polygonRegion->setqpolyf(m_shadowPolygon);
+    if ( final ) {
+        m_polygonRegion->setqpolyf( m_shadowPolygon );
     }
+
 //    auto poly = m_polygonRegion-> qpolyf();
 //    if ( index >= 0 && index < poly.size() ) {
 //        poly[index] = m_cps[index]-> pos();

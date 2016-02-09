@@ -77,7 +77,13 @@ qx.Class.define( "skel.hacks.inputHandler.Drag", {
                     //this.m_vgView.sendInputEvent( {type: "tap", x: mouseX, y: mouseY} );
                     return;
                 } else {
-                    this.m_vgView.sendInputEvent( {type: "dragdone", x: mouseX, y: mouseY} );
+                    //this.m_vgView.sendInputEvent( {type: "dragdone", x: mouseX, y: mouseY} );
+                    this.m_vgView.sendInputEvent( {
+                        type: "drag2",
+                        phase: "end",
+                        x: mouseX,
+                        y: mouseY
+                    });
                     return;
                 }
             }
@@ -117,13 +123,29 @@ qx.Class.define( "skel.hacks.inputHandler.Drag", {
                 return;
             }
             if( ! this.m_dragging) {
+                //this.m_vgView.sendInputEvent( {
+                //    type: "dragstart",
+                //    x: this.m_lastMouseDownPt.x,
+                //    y: this.m_lastMouseDownPt.y
+                //} );
                 this.m_vgView.sendInputEvent( {
-                    type: "dragstart",
+                    type: "drag2",
+                    phase: "start",
                     x: this.m_lastMouseDownPt.x,
                     y: this.m_lastMouseDownPt.y
                 } );
             }
-            this.m_vgView.sendInputEvent( {type: "drag", x: mouseX, y: mouseY} );
+            //this.m_vgView.sendInputEvent( {
+            //    type: "drag",
+            //    x: mouseX,
+            //    y: mouseY
+            //} );
+            this.m_vgView.sendInputEvent( {
+                type: "drag2",
+                phase: "progress",
+                x: mouseX,
+                y: mouseY
+            } );
             this.m_dragging = true;
         },
         _reset      : function()
