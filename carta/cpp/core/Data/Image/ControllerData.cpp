@@ -124,6 +124,12 @@ void ControllerData::_colorChanged(){
             QColor nanColor = m_dataSource->_getNanColor();
             m_stateColor->_setNanColor( nanColor.red(), nanColor.green(), nanColor.blue() );
         }
+
+        int redBorder = m_stateColor->_getBorderRed();
+        int blueBorder = m_stateColor->_getBorderBlue();
+        int greenBorder = m_stateColor->_getBorderGreen();
+        int alphaAmount = m_stateColor->_getBorderTransparency();
+        m_dataGrid->_setBorderColor( QColor(redBorder, greenBorder, blueBorder, alphaAmount) );
         emit colorStateChanged();
     }
 }

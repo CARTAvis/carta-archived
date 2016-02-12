@@ -240,6 +240,49 @@ void Colormap::_initializeCallbacks(){
             return result;
         });
 
+    addCommandCallback( "setBorderAlpha", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+                QString result;
+                std::set<QString> keys = {Util::ALPHA};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+
+                bool validAlpha = false;
+                double alphaValue = dataValues[Util::ALPHA].toInt(&validAlpha );
+                if ( validAlpha ){
+                    result = setBorderAlpha( alphaValue );
+                }
+                else {
+                    result = "Border color alpha value must be in [0,255]: "+params;
+                }
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "setBorderColor", [=] (const QString & /*cmd*/,
+                                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+
+            bool validRed = false;
+            double redValue = dataValues[Util::RED].toInt(&validRed );
+
+            bool validBlue = false;
+            double blueValue = dataValues[Util::BLUE].toInt(&validBlue );
+
+            bool validGreen = false;
+            double greenValue = dataValues[Util::GREEN].toInt(&validGreen);
+
+            if ( validRed && validBlue && validGreen ){
+                result = setBorderColor( redValue, greenValue, blueValue );
+            }
+            else {
+                result = "Border color values must be in [0,255]: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setColorMix", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
                 QString result = _commandSetColorMix( params );
@@ -335,6 +378,24 @@ void Colormap::_initializeCallbacks(){
                 return result;
             });
 
+    addCommandCallback( "setDefaultBorder", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {ColorState::BORDER_DEFAULT};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString defaultBorderStr = dataValues[*keys.begin()];
+            bool validBool = false;
+            bool useDefaultBorder = Util::toBool( defaultBorderStr, &validBool );
+            QString result;
+            if ( validBool ){
+                setBorderDefault( useDefaultBorder );
+            }
+            else {
+                result = "Please specify true/false for use default border: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setDefaultNan", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {ColorState::NAN_DEFAULT};
@@ -372,6 +433,13 @@ void Colormap::_initializeCallbacks(){
         });
 }
 
+bool Colormap::isBorderDefault() const {
+    bool borderDefault = false;
+    if ( m_stateColors.size() > 0 ){
+        borderDefault = m_stateColors[0]->_isBorderDefault();
+    }
+    return borderDefault;
+}
 
 bool Colormap::_isGlobal() const {
     bool global = true;
@@ -461,6 +529,57 @@ QString Colormap::removeLink( CartaObject* cartaObject ){
     return result;
 }
 
+QString Colormap::setBorderAlpha( int alphaValue ){
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    if ( isBorderDefault() ){
+        setBorderDefault( false );
+    }
+    for ( int i = 0; i < stateColorCount; i++ ){
+        result = m_stateColors[i]->_setBorderAlpha( alphaValue );
+        if ( !result.isEmpty()){
+            break;
+        }
+    }
+    if ( result.isEmpty() ){
+        _colorStateChanged();
+    }
+    return result;
+}
+
+
+QString Colormap::setBorderColor( int redValue, int greenValue, int blueValue){
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    if ( isBorderDefault() ){
+        setBorderDefault( false );
+    }
+    for ( int i = 0; i < stateColorCount; i++ ){
+        result = m_stateColors[i]->_setBorderColor( redValue, greenValue, blueValue );
+        if ( !result.isEmpty()){
+            break;
+        }
+    }
+    if ( result.isEmpty() ){
+        _colorStateChanged();
+    }
+    return result;
+}
+
+QString Colormap::setBorderDefault( bool borderDefault ) {
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    for ( int i = 0; i < stateColorCount; i++ ){
+        m_stateColors[i]->_setBorderDefault( borderDefault );
+    }
+    if ( stateColorCount == 0 ){
+        result = "There were no color maps to for border default.";
+    }
+    else {
+        _colorStateChanged();
+    }
+    return result;
+}
 
 QString Colormap::setColorMap( const QString& colorMapStr ){
     int stateColorCount = m_stateColors.size();

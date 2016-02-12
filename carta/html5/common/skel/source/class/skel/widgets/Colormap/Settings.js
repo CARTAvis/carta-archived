@@ -38,10 +38,12 @@ qx.Class.define("skel.widgets.Colormap.Settings", {
             this.m_colormapPage = new skel.widgets.Colormap.PageColorMap();
             this.m_transformPage = new skel.widgets.Colormap.PageTransform();
             this.m_nanPage = new skel.widgets.Colormap.PageNan();
+            this.m_borderPage = new skel.widgets.Colormap.PageBorderBackground();
             
             this.m_tabView.add( this.m_colormapPage );
             this.m_tabView.add( this.m_transformPage );
             this.m_tabView.add( this.m_nanPage );
+            this.m_tabView.add( this.m_borderPage );
         },
         
         /**
@@ -52,6 +54,7 @@ qx.Class.define("skel.widgets.Colormap.Settings", {
             this.m_colormapPage.setControls( controls );
             this.m_transformPage.setControls( controls );
             this.m_nanPage.setControls( controls );
+            this.m_borderPage.setControls( controls );
         },
         
         
@@ -64,6 +67,7 @@ qx.Class.define("skel.widgets.Colormap.Settings", {
             this.m_colormapPage.setId( id );
             this.m_transformPage.setId( id );
             this.m_nanPage.setId( id );
+            this.m_borderPage.setId( id );
         },
         
         m_id : null,
@@ -72,6 +76,7 @@ qx.Class.define("skel.widgets.Colormap.Settings", {
         
         m_colormapPage : null,
         m_nanPage : null,
-        m_transformPage : null
+        m_transformPage : null,
+        m_borderPage : null
     }
 });

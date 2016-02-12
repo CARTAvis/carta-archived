@@ -75,6 +75,7 @@ DataGrid::DataGrid( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_wcsGridRenderer( nullptr){
     m_errorMargin = 0.000001;
+    m_borderColor = QColor( 0, 255, 0, 255 );
 
     _initializeSingletons();
     _initializeDefaultState();
@@ -366,6 +367,10 @@ void DataGrid::_resetGridRenderer(){
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines2,
                                            gridPen);
 
+        //Border
+        QPen borderPen( m_borderColor );
+        m_wcsGridRenderer->setPen( Carta::Lib::IWcsGridRenderService::Element::MarginDim, borderPen );
+
         //Ticks
         bool showTick = m_state.getValue<bool>( SHOW_TICKS );
         m_wcsGridRenderer->setTicksVisible( showTick );
@@ -400,12 +405,6 @@ void DataGrid::_resetGridRenderer(){
                                     labelPen );
         m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
                                     labelPen );
-
-        //Controls the background color of the margin around the plot.
-        QPen marginDimPen( QColor( 0,0,0,64) );
-        marginDimPen.setWidth(1);
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::MarginDim,
-                                    marginDimPen);
 
         QPen shadowPen( QColor( 0,0,0,64));
         shadowPen.setWidth(3);
@@ -560,6 +559,13 @@ bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
         m_state.flushState();
     }
     return axisTypesChanged;
+}
+
+void DataGrid::_setBorderColor( QColor borderColor ){
+    if ( m_borderColor != borderColor ){
+        m_borderColor = borderColor;
+        _resetGridRenderer();
+    }
 }
 
 QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,
