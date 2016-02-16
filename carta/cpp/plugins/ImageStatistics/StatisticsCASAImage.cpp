@@ -4,7 +4,7 @@
 #include "casacore/measures/Measures/MDirection.h"
 #include "casacore/coordinates/Coordinates/DirectionCoordinate.h"
 #include "casacore/coordinates/Coordinates/SpectralCoordinate.h"
-#include "casacore/images/Images/GaussianBeam.h"
+#include "casacore/components/ComponentModels/GaussianBeam.h"
 
 #include <QDebug>
 

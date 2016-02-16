@@ -9,5 +9,5 @@
         "CasaCore to do the work."
     ],
     "about"      : "Part of carta. Written by Pavol",
-    "depends"    : [ "casaCasaCore-121515"]
+    "depends"    : [ "casaCore-2.10.2016"]
 }

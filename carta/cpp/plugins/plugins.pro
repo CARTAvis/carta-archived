@@ -1,15 +1,15 @@
 TEMPLATE = subdirs
 #CONFIG += ordered
 
-SUBDIRS += casaCore-2.0.1
-#SUBDIRS += casaCasaCore-121515
+SUBDIRS += casaCore-2.10.2016
+#SUBDIRS += casaCore-2.0.1
 SUBDIRS += CasaImageLoader
 SUBDIRS += Colormaps1
 SUBDIRS += Histogram
 SUBDIRS += WcsPlotter
 SUBDIRS += ConversionSpectral
 SUBDIRS += ConversionIntensity
-SUBDIRS += ImageAnalysis
+SUBDIRS += ImageAnalysis-2.10.2016
 SUBDIRS += ImageStatistics
 SUBDIRS += RegionCASA
 

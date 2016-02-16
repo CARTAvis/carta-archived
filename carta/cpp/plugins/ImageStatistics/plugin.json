@@ -7,5 +7,5 @@
         "Provides basic image and region statistics."
     ],
     "about"      : "Based on the NRAO's Image Analysis Statistics",
-    "depends"    : [ "casaCasaCore-121515","ImageAnalysis"]
+    "depends"    : [ "casaCore-2.10.2016","ImageAnalysis-2.10.2016"]
 }
