@@ -67,6 +67,7 @@ private:
     QStringList _setAxesColor( int redAmount, int greenAmount, int blueAmount, bool* axesColorChanged );
     QString _setAxesThickness( int thickness, bool* thicknessChanged );
     QString _setAxesTransparency( int transparency, bool* transparencyChanged );
+    void _setBorderColor( QColor borderColor );
     QString _setCoordinateSystem( const QString& coordSystem, bool* coordChanged );
     QString _setFontFamily( const QString& fontFamily, bool* familyChanged );
     QString _setFontSize( int fontSize, bool* sizeChanged );
@@ -146,6 +147,7 @@ private:
     static Themes* m_themes;
     static LabelFormats* m_formats;
     double m_errorMargin;
+    QColor m_borderColor;
 
 	DataGrid( const DataGrid& other);
 	DataGrid& operator=( const DataGrid& other );

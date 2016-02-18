@@ -40,6 +40,8 @@ public:
      */
     virtual casa::LatticeBase * getCasaImage() = 0;
 
+    virtual casa::ImageInfo getImageInfo() const = 0;
+
 //    virtual casa::ImageInterface<casa::Float> * getCasaIIfloat() = 0;
 
 
@@ -64,6 +66,7 @@ public:
     {
         return m_unit;
     }
+
 
     virtual std::shared_ptr<Carta::Lib::Image::ImageInterface>
     getPermuted(const std::vector<int> & indices ) override{
@@ -206,15 +209,9 @@ public:
         return m_casaII;
     }
 
-//    virtual casa::ImageInterface<casa::Float> * getCasaIIfloat() override
-//    {
-//        if( m_pixelType != PixelType::Real32) {
-//            return nullptr;
-//        } else {
-//            return static_cast<
-//        }
-//    }
-
+    casa::ImageInfo getImageInfo() const {
+               return m_casaII->imageInfo();
+           }
 
     virtual
     ~CCImage() { }

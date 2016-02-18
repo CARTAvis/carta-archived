@@ -9,6 +9,7 @@
 #include <Data/Image/IPercentIntensityMap.h>
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/RegionInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 
 #include <QString>
@@ -39,6 +40,7 @@ namespace Carta {
 namespace Data {
 class ColorState;
 class ControllerData;
+class DataSource;
 class DisplayControls;
 class DrawStackSynchronizer;
 class GridControls;
@@ -53,6 +55,7 @@ class Controller: public QObject, public Carta::State::CartaObject,
 
     friend class Animator;
     friend class Colormap;
+    friend class Profiler;
 
     Q_OBJECT
 
@@ -96,9 +99,16 @@ public:
     /**
      * Close the given image.
      * @param name an identifier for the image to close.
+     * @return - an error message if the image was not successfully closed.
      */
     QString closeImage( const QString& name );
 
+    /**
+     * Close the given region.
+     * @param regionId - an identifier for a region.
+     * @return - an error message if the region was not successfully closed.
+     */
+    QString closeRegion( const QString& regionId );
 
     /**
       * Get the image pixel that is currently centered.
@@ -135,7 +145,24 @@ public:
      */
     QStringList getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system ) const;
 
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getDataSources();
+
+    /**
+     * Return a list of images that have been loaded.
+     * @return - a list of loaded images.
+     */
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
+
+    /**
+     * Return the data source of the selected image.
+     * @return - the data source of the selected image.
+     */
+    std::shared_ptr<DataSource> getDataSource();
+
+    /**
+     * Return all data sources.
+     * @return - the list of all visible data sources.
+     */
+    std::vector< std::shared_ptr<DataSource> > getDataSources();
 
     /**
      * Return a shared pointer to the contour controls.
@@ -144,6 +171,9 @@ public:
     std::shared_ptr<ContourControls> getContourControls();
 
     /**
+     * Return the current frame for the the axis of the indicated type.
+     * @param axisType - an identifier for the type of axis.
+     * @return the current index withen the axis.
      */
     int getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;
 
@@ -163,7 +193,7 @@ public:
     /**
      * Get the image dimensions.
      */
-    std::vector<int> getImageDimensions( );
+    std::vector<int> getImageDimensions( ) const;
 
     /**
      * Returns an identifier for the data source at the given index.
@@ -171,6 +201,13 @@ public:
      * @return an identifier for the image.
      */
     QString getImageName(int index) const;
+
+    /**
+     * Return a list of indices indicating the current frames of the selected
+     * image.
+     * @return - a list consisting of the current frames of the current image.
+     */
+    std::vector<int> getImageSlice() const;
 
     /**
      * Returns the intensity corresponding to a given percentile in the current frame.
@@ -212,13 +249,6 @@ public:
     double getPercentile( int frameLow, int frameHigh, double intensity ) const;
 
     /**
-     * Return the pipeline being used to draw the image.
-     * @return a Carta::Lib::PixelPipeline::CustomizablePixelPipeline being used to draw the
-     *      image.
-     */
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> getPipeline() const;
-
-    /**
      * Return the pixel coordinates corresponding to the given world coordinates.
      * @param ra the right ascension (in radians) of the world coordinates.
      * @param dec the declination (in radians) of the world coordinates.
@@ -240,6 +270,12 @@ public:
      * @return the units of the pixels, or blank if units could not be obtained.
      */
     QString getPixelUnits() const;
+
+    /**
+     * Return a list of information about loaded regions.
+     * @return - a list of region information.
+     */
+    std::vector<Carta::Lib::RegionInfo> getRegions() const;
 
     /**
      * Return the index of the image that is currently at the top of the stack.
@@ -470,7 +506,7 @@ signals:
       * changed.
       * @param controller this Controller.
       */
-    void channelChanged( Controller* controller );
+    void frameChanged( Controller* controller, Carta::Lib::AxisInfo::KnownType axis);
 
     /**
      * Notification that the image clip values have changed.
@@ -490,6 +526,13 @@ signals:
      *  @param controller this Controller.
      */
     void dataChanged(Controller* controller );
+
+    /**
+     *  Notification that the region/selection managed by this controller has
+     *  changed.
+     *  @param controller this Controller.
+     */
+    void dataChangedRegion( Controller* controller );
 
 
     /// Return the result of SaveFullImage() after the image has been rendered
@@ -543,16 +586,23 @@ private:
 
     class Factory;
 
+    /// Add a region to the stack from a file.
+    bool _addDataRegion(const QString& fileName );
+
+    /// Add an image to the stack from a file.
+    bool _addDataImage( const QString& fileName );
+
     //Clear the color map.
     void _clearColorMap();
-    //Clear data sources
-    void _clearData();
+
     //Clear image statistics.
     void _clearStatistics();
 
-    std::vector<int> _getFrameIndices( ) const;
+
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
+
+    std::vector<int> _getFrameIndices( ) const;
 
     //Get the data index
     int _getIndex( const QString& fileName) const;
@@ -574,7 +624,7 @@ private:
     void _initializeSelections();
     void _loadView( bool newClips, int dataIndex );
 
-    QString _makeRegion( const QString& regionType );
+    //QString _makeRegion( const QString& regionType );
 
     void _removeData( int index );
 
@@ -586,7 +636,7 @@ private:
     //the index of the layer in the subset that should draw the grid or -1 if there
     //is no such index.
     void _render( QList<std::shared_ptr<ControllerData> > datas, int gridIndex );
-    void _saveRegions();
+    void _saveStateRegions();
 
     /**
      * Set whether or not the selected layers should be using the global
@@ -653,7 +703,7 @@ private:
     std::shared_ptr<ColorState> m_stateColor;
 
 
-    QList<Region* > m_regions;
+    QList<std::shared_ptr<Region> > m_regions;
 
     //Holds image that are loaded and selections on the data.
     Carta::State::StateInterface m_stateData;

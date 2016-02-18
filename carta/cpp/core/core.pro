@@ -68,25 +68,37 @@ HEADERS += \
     Data/Layout/LayoutNodeLeaf.h \
     Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
+    Data/Plotter/Plot2DManager.h \
+    Data/Plotter/PlotStyles.h \
+    Data/Plotter/LineStyles.h \
+    Data/Plotter/LegendLocations.h \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
-    Data/Region.h \
-    Data/Region.h \
-    Data/RegionRectangle.h \
+    Data/Profile/CurveData.h \
+    Data/Profile/IntensityUnits.h \
+    Data/Profile/Profiler.h \
+    Data/Profile/SpectralUnits.h \
+    Data/Region/Region.h \
+    Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
     Data/Snapshot/Snapshots.h \
     Data/Snapshot/Snapshot.h \
     Data/Snapshot/SnapshotsFile.h \
+    Data/Statistics/Statistics.h \
     Data/Util.h \
-    GrayColormap.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
     GrayColormap.h \
     ImageRenderService.h \
     ImageSaveService.h \
-    Histogram/HistogramGenerator.h \
-    Histogram/HistogramSelection.h \
-    Histogram/HistogramPlot.h \
+    Plot2D/Plot.h \
+    Plot2D/Plot2DGenerator.h \
+    Plot2D/Plot2DSelection.h \
+    Plot2D/Plot2D.h \
+    Plot2D/Plot2DLine.h \
+    Plot2D/Plot2DHistogram.h \
+    Plot2D/Plot2DProfile.h \
+    ProfileExtractor.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
     Algorithms/quantileAlgorithms.h \
@@ -164,20 +176,34 @@ SOURCES += \
     Data/Layout/LayoutNodeComposite.cpp \
     Data/Layout/LayoutNodeLeaf.cpp \
     Data/Layout/NodeFactory.cpp \
+    Data/Plotter/Plot2DManager.cpp \
+    Data/Plotter/LegendLocations.cpp \
+    Data/Plotter/PlotStyles.cpp \
+    Data/Plotter/LineStyles.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
-    Data/Region.cpp \
-    Data/RegionRectangle.cpp \
+    Data/Profile/CurveData.cpp \
+    Data/Profile/IntensityUnits.cpp \
+    Data/Profile/Profiler.cpp \
+    Data/Profile/SpectralUnits.cpp \
+    Data/Region/Region.cpp \
+    Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
+    Data/Statistics/Statistics.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
-    Histogram/HistogramGenerator.cpp \
-    Histogram/HistogramSelection.cpp \
-    Histogram/HistogramPlot.cpp \
+    Plot2D/Plot.cpp \
+    Plot2D/Plot2DGenerator.cpp \
+    Plot2D/Plot2D.cpp \
+    Plot2D/Plot2DLine.cpp \
+    Plot2D/Plot2DHistogram.cpp \
+    Plot2D/Plot2DProfile.cpp \
+    Plot2D/Plot2DSelection.cpp \
+    ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     ImageRenderService.cpp \

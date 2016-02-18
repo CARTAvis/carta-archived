@@ -145,7 +145,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             this.m_id = id;
             this.m_mapCombo.setId( id );
             var path = skel.widgets.Path.getInstance();
-            var dataPath = this.m_id + path.SEP + "data";
+            var dataPath = this.m_id + path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB( this._colormapDataCB.bind( this));
             this._colormapDataCB();

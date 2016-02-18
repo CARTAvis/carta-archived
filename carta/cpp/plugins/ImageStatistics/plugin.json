@@ -1,0 +1,11 @@
+{
+    "api"        : "1",
+    "name"       : "ImageStatistics",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Provides basic image and region statistics."
+    ],
+    "about"      : "Based on the NRAO's Image Analysis Statistics",
+    "depends"    : [ "casaCore-2.10.2016","ImageAnalysis-2.10.2016"]
+}

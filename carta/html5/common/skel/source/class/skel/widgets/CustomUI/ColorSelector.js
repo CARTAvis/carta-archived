@@ -205,8 +205,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     break;
                     
                 case "input-field-set":
-                    //control = new qx.ui.container.Composite();
-                    control = new qx.ui.groupbox.GroupBox("Details");
+                    control = new qx.ui.container.Composite();
+                    //control = new qx.ui.groupbox.GroupBox("Details");
                     var controlLayout = new qx.ui.layout.VBox();
                     controlLayout.setSpacing(2);
                     control.setLayout(controlLayout);
@@ -218,7 +218,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
            
                 case "rgb-spinner-composite":
                     var layout = new qx.ui.layout.Grid();
-                    control = new qx.ui.groupbox.GroupBox("");
+                    //control = new qx.ui.groupbox.GroupBox("");
+                    control = new qx.ui.container.Composite();
                     control.setLayout( layout );
                   
                     var redLabel = new qx.ui.basic.Label( this.tr("Red:"));
@@ -234,8 +235,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     control.add( this.getChildControl( "rgb-spinner-blue"), {row:2, column:1});
                     break;
                 case "preset-field-set":
-                    //control = new qx.ui.container.Composite();
-                    control = new qx.ui.groupbox.GroupBox( "Presets");
+                    control = new qx.ui.container.Composite();
+                    //control = new qx.ui.groupbox.GroupBox( "Presets");
                     control.setLayout(new qx.ui.layout.Grow());
                     control.add(this.getChildControl("preset-grid"));
                     break;
@@ -263,8 +264,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     break;
                 
                     case "visual-pane":
-                        //control = new qx.ui.container.Composite();
-                        control = new qx.ui.groupbox.GroupBox("Visual");
+                        control = new qx.ui.container.Composite();
+                        //control = new qx.ui.groupbox.GroupBox("Visual");
                         control.setLayout(new qx.ui.layout.HBox(2));
                         control.add(this.getChildControl("hue-saturation-pane"));
                         control.add(this.getChildControl("brightness-pane"));

@@ -77,7 +77,7 @@ class tAxis(unittest.TestCase):
         animatorTypeStokes = self._getAnimatorType(driver, "StokesAnimatorType")
 
         #Open the image settings tab
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
 
         #Click on the Axes/Border tab to display controls for permuting axes
         self._clickGridAxesTab( driver )

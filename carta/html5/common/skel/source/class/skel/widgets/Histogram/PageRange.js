@@ -27,7 +27,7 @@ qx.Class.define("skel.widgets.Histogram.PageRange", {
             this.setMargin( 1, 1, 1, 1 );
             this._setLayout(new qx.ui.layout.HBox(2));
            
-            this.m_rangeSettings = new skel.widgets.Histogram.HistogramRange();
+            this.m_rangeSettings = new skel.widgets.CustomUI.ZoomControlsWidget("histogram");
             this.m_clipSettings = new skel.widgets.Histogram.HistogramClip();
             
             this.add( this.m_rangeSettings );

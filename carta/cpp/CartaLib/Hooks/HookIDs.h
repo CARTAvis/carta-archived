@@ -21,10 +21,14 @@ enum class UniqueHookIDs {
     LoadAstroImage_ID,
     HistogramHook_ID,
     ColormapsScalarHook_ID,
+    ConversionIntensityHook_ID,
+    ConversionSpectralHook_ID,
     LoadPlugin_ID,
+    LoadRegion_ID,
     GetWcsGridRendererHook_ID,
     GetInitialFileList_ID,
     GetImageRenderService_ID,
+    ImageStatisticsHook_ID,
 
     /// experimental, soon to be removed:
     PreRender_ID,

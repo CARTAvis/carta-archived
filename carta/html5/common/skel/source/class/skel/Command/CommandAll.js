@@ -42,9 +42,13 @@ qx.Class.define("skel.Command.CommandAll", {
         index++;
         this.m_cmds[index] = skel.Command.Animate.CommandAnimations.getInstance();
         index++;
+        this.m_cmds[index] = skel.Command.Settings.SettingsProfile.getInstance();
+        index++;
         this.m_cmds[index] = skel.Command.Settings.SettingsHistogram.getInstance();
         index++;
         this.m_cmds[index] = skel.Command.Settings.SettingsColor.getInstance();
+        index++;
+        this.m_cmds[index] = skel.Command.Settings.SettingsStatistics.getInstance();
         index++;
         this.m_cmds[index] = skel.Command.Popup.CommandPopup.getInstance();
         index++;

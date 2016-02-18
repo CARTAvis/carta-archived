@@ -91,7 +91,7 @@ class tColorMap(unittest.TestCase):
         print "Old map name=",oldMapName
         
         #Open the stack tab
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
         Util.clickTab( driver, "Stack" )
         
         #Change to manual selection

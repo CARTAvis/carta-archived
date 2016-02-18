@@ -8,7 +8,8 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
 #include <vector>
-#include "CartaLib/Hooks/HistogramResult.h"
+
+#include "HistogramResult.h"
 
 namespace Carta
 {
@@ -35,7 +36,7 @@ public:
      */
      struct Params {
 
-            Params( std::vector<std::shared_ptr<Image::ImageInterface>> p_dataSource,
+            Params( std::shared_ptr<Image::ImageInterface> p_dataSource,
                     int p_binCount, int p_minChannel, int p_maxChannel, double p_minFrequency, double p_maxFrequency,
                     const QString& p_rangeUnits, double p_minIntensity, double p_maxIntensity){
                 dataSource = p_dataSource;
@@ -49,7 +50,7 @@ public:
                 rangeUnits = p_rangeUnits;
             }
 
-            std::vector<std::shared_ptr<Image::ImageInterface>> dataSource;
+            std::shared_ptr<Image::ImageInterface> dataSource;
             int binCount;
             int minChannel;
             int maxChannel;

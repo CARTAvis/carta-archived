@@ -20,6 +20,7 @@ class DataLoader;
 class Histogram;
 class Colormap;
 class Layout;
+class Profiler;
 class Statistics;
 class Snapshots;
 class ViewPlugins;
@@ -142,6 +143,8 @@ private:
     void _clearColormaps( int startIndex, int upperBound );
     void _clearControllers( int startIndex, int upperBound );
     void _clearHistograms( int startIndex, int upperBound );
+    void _clearProfilers( int startIndex, int upperBound );
+    void _clearStatistics( int startIndex, int upperBound );
 
     /**
      * Given the plugin and the index of the plugin among plugins of its type, find the index of the plugin
@@ -166,10 +169,12 @@ private:
     QString _makeAnimator( int index );
     QString _makeLayout();
     QString _makePluginList();
+    QString _makeColorMap( int index );
     QString _makeController( int index );
     QString _makeHistogram( int index );
-    QString _makeColorMap( int index );
+    QString _makeProfile( int index );
     QString _makeSnapshots();
+    QString _makeStatistics( int index );
 
     void _makeDataLoader();
 
@@ -206,8 +211,10 @@ private:
     //Histogram
     QList<Histogram* >m_histograms;
 
+    QList<Profiler* > m_profilers;
+
     //Statistics
-    //QList<Statistics* > m_statistics;
+    QList<Statistics* > m_statistics;
 
     static bool m_registered;
     Layout* m_layout;

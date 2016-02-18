@@ -312,7 +312,8 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
                 var contextMenu = new qx.ui.menu.Menu();
                 
                 //Close button
-                var closeCmd = new skel.Command.Data.CommandDataCloseImage( items[i].file );
+                var path = skel.widgets.Path.getInstance();
+                var closeCmd = new skel.Command.Data.CommandDataClose( items[i].file, path.IMAGE_DATA, path.CLOSE_IMAGE, null );
                 var closeButton = new qx.ui.menu.Button( "Close");
                 closeButton.addListener( "execute", function(){
                     this.doAction( true, function(){} );

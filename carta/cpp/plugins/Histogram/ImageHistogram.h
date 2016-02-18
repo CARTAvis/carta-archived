@@ -1,6 +1,4 @@
-
-#ifndef IMAGE_HISTOGRAM_H_
-#define IMAGE_HISTOGRAM_H_
+#pragma once
 
 #include <casacore/casa/vector.h>
 #include "IImageHistogram.h"
@@ -26,7 +24,8 @@ public:
 
     virtual std::vector< std::pair<double,double> > getData() const Q_DECL_OVERRIDE;
     virtual QString getName() const Q_DECL_OVERRIDE;
-    virtual QString getUnits() const Q_DECL_OVERRIDE;
+    virtual QString getUnitsX() const Q_DECL_OVERRIDE;
+    virtual QString getUnitsY() const Q_DECL_OVERRIDE;
 
     virtual bool compute() Q_DECL_OVERRIDE;
 
@@ -78,5 +77,3 @@ private:
 	double m_intensityMax;
 	int m_binCount;
 };
-
-#endif /* IMAGE_HISTOGRAM_H_ */

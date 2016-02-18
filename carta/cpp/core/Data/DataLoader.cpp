@@ -33,8 +33,8 @@ public:
 
 QString DataLoader::fakeRootDirName = "RootDirectory";
 const QString DataLoader::CLASS_NAME = "DataLoader";
-const QString DataLoader::ROOT_NAME = "name";
 const QString DataLoader::DIR = "dir";
+const QString DataLoader::CRTF = ".crtf";
 
 bool DataLoader::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
@@ -70,7 +70,7 @@ QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
     if ( securityRestricted ){
         QString baseName = getRootDir( sessionId );
         QString displayName = rootDirName.replace( baseName, DataLoader::fakeRootDirName);
-        rootObj.insert(ROOT_NAME, displayName);
+        rootObj.insert(Util::NAME, displayName);
     }
 
     QJsonDocument document(rootObj);
@@ -94,20 +94,40 @@ QString DataLoader::getRootDir(const QString& /*sessionId*/) const {
     return Globals::instance()-> platform()-> getCARTADirectory().append("Images");
 }
 
-QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
-    QString sessionId( "");
-    QString rootDir = getRootDir( sessionId );
+QString DataLoader::getShortName( const QString& longName ) const {
+    QString rootDir = getRootDir( "" );
     int rootLength = rootDir.length();
+    QString shortName;
+    if ( longName.contains( rootDir)){
+        shortName = longName.right( longName.size() - rootLength - 1);
+    }
+    else {
+        int lastSlashIndex = longName.lastIndexOf( QDir::separator() );
+        if ( lastSlashIndex >= 0 ){
+            shortName = longName.right( longName.size() - lastSlashIndex - 1);
+        }
+    }
+    return shortName;
+}
+
+QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
     QStringList shortNames;
     for ( int i = 0; i < longNames.size(); i++ ){
-        QString shortName = longNames[i].right( longNames[i].size() - rootLength - 1);
+        QString shortName = getShortName( longNames[i] );
         shortNames.append( shortName );
     }
     return shortNames;
 }
 
+
 QString DataLoader::getLongName( const QString& shortName, const QString& sessionId ) const {
-    return getRootDir( sessionId) + QDir::separator() + shortName;
+    QString longName = shortName;
+    QString potentialLongName = getRootDir( sessionId) + QDir::separator() + shortName;
+    QFile file( potentialLongName );
+    if ( file.exists() ){
+        longName = potentialLongName;
+    }
+    return longName;
 }
 
 void DataLoader::_initCallbacks(){
@@ -147,7 +167,7 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
     }
 
     QString lastPart = rootDir.absolutePath();
-    rootObj.insert( ROOT_NAME, lastPart );
+    rootObj.insert( Util::NAME, lastPart );
 
     QJsonArray dirArray;
     QDirIterator dit(rootDir.absolutePath(), QDir::NoFilter);
@@ -168,7 +188,7 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
             }
         }
         else if (dit.fileInfo().isFile()) {
-            if (fileName.endsWith(".fits")) {
+            if (fileName.endsWith(".fits") || fileName.endsWith( CRTF )) {
                 _makeFileNode(dirArray, fileName);
             }
         }
@@ -180,14 +200,14 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
 void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
-    obj.insert(ROOT_NAME, fileValue);
+    obj.insert( Util::NAME, fileValue);
     parentArray.append(obj);
 }
 
 void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileName ) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
-    obj.insert(ROOT_NAME, fileValue);
+    obj.insert( Util::NAME, fileValue);
     QJsonArray arry;
     obj.insert(DIR, arry);
     parentArray.append(obj);

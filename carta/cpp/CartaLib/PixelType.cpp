@@ -3,6 +3,7 @@
  **/
 
 #include "PixelType.h"
+#include "CartaLib.h"
 #include <QString>
 
 namespace Carta {
@@ -62,6 +63,33 @@ toStr( Image::PixelType t )
     default :
         return "???";
 
+        break;
+    }
+}
+
+
+size_t Image::pixelType2size(const Image::PixelType & type){
+    switch ( type ){
+    case Image::PixelType::Byte :
+        return PixelType2CType<Image::PixelType::Byte>::size;
+        break;
+    case Image::PixelType::Int16 :
+        return PixelType2CType<Image::PixelType::Int16>::size;
+        break;
+    case Image::PixelType::Int32 :
+        return PixelType2CType<Image::PixelType::Int32>::size;
+        break;
+    case Image::PixelType::Int64 :
+        return PixelType2CType<Image::PixelType::Int64>::size;
+        break;
+    case Image::PixelType::Real32 :
+        return PixelType2CType<Image::PixelType::Real32>::size;
+        break;
+    case Image::PixelType::Real64 :
+        return PixelType2CType<Image::PixelType::Real64>::size;
+        break;
+    default :
+        CARTA_ASSERT_ALWAYS_X( false, "Bad type conversion");
         break;
     }
 }

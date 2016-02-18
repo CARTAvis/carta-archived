@@ -17,7 +17,7 @@ namespace Data {
 const QString DataContours::CLASS_NAME = "DataContours";
 const QString DataContours::CONTOURS = "contours";
 const QString DataContours::CONTOUR_DRAW = "contourDraw";
-const QString DataContours::SET_NAME = "name";
+
 
 
 class DataContours::Factory : public Carta::State::CartaObjectFactory {
@@ -77,7 +77,7 @@ std::vector<double> DataContours::getLevels() const {
 }
 
 QString DataContours::getName() const {
-    return m_state.getValue<QString>( SET_NAME );
+    return m_state.getValue<QString>( Util::NAME );
 }
 
 std::vector<QPen> DataContours::getPens() const {
@@ -107,7 +107,7 @@ void DataContours::_initializeDefaultState(){
     int contourCount = m_contours.size();
     m_state.insertArray( CONTOURS, contourCount );
     m_state.insertValue<bool>( CONTOUR_DRAW, true );
-    m_state.insertValue<QString>(SET_NAME, "");
+    m_state.insertValue<QString>( Util::NAME, "");
 
     m_state.flushState();
 }
@@ -284,9 +284,9 @@ QString DataContours::setLineStyle( std::vector<double>& levels, const QString& 
 QString DataContours::setName( const QString& name ){
     QString result;
     if ( !name.isEmpty() && name.length() > 0 ){
-        QString oldName = m_state.getValue<QString>(SET_NAME );
+        QString oldName = m_state.getValue<QString>( Util::NAME );
         if ( oldName != name ){
-            m_state.setValue<QString>( SET_NAME, name );
+            m_state.setValue<QString>( Util::NAME, name );
         }
     }
     else {

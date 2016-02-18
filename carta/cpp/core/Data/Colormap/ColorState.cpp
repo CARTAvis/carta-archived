@@ -14,6 +14,8 @@ namespace Carta {
 namespace Data {
 
 const QString ColorState::CLASS_NAME = "ColorState";
+const QString ColorState::BORDER_COLOR = "borderColor";
+const QString ColorState::BORDER_DEFAULT = "borderDefault";
 const QString ColorState::COLOR_MAP_NAME = "colorMapName";
 const QString ColorState::COLORED_OBJECT = "coloredObject";
 const QString ColorState::REVERSE = "reverse";
@@ -52,6 +54,26 @@ ColorState::ColorState( const QString& path, const QString& id):
     _initializeDefaultState( m_state );
     _initializeStatics();
     _setErrorMargin();
+}
+
+int ColorState::_getBorderGreen() const {
+    QString greenLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::GREEN );
+    return m_state.getValue<int>( greenLookup );
+}
+
+int ColorState::_getBorderRed() const {
+    QString redLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::RED );
+    return m_state.getValue<int>( redLookup );
+}
+
+int ColorState::_getBorderBlue() const {
+    QString blueLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::BLUE );
+    return m_state.getValue<int>( blueLookup );
+}
+
+int ColorState::_getBorderTransparency() const {
+    QString alphaLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::ALPHA );
+    return m_state.getValue<int>( alphaLookup );
 }
 
 QString ColorState::_getColorMap() const {
@@ -111,6 +133,7 @@ void ColorState::_initializeDefaultState( Carta::State::StateInterface& state ){
     state.insertValue<bool>(INVERT, false );
     state.insertValue<bool>(GLOBAL, true );
     state.insertValue<bool>(NAN_DEFAULT, true );
+    state.insertValue<bool>(BORDER_DEFAULT, true );
 
     state.insertValue<double>(GAMMA, 1.0 );
     state.insertValue<double>(SCALE_1, 0.0 );
@@ -140,6 +163,17 @@ void ColorState::_initializeDefaultState( Carta::State::StateInterface& state ){
     QString alphaLookup = Carta::State::UtilState::getLookup( NAN_COLOR, Util::ALPHA );
     state.insertValue<int>( alphaLookup, 255 );
 
+    //Border color
+    state.insertObject( BORDER_COLOR );
+    redLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::RED );
+    state.insertValue<int>( redLookup, 0 );
+    blueLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::BLUE );
+    state.insertValue<int>( blueLookup, 0 );
+    greenLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::GREEN );
+    state.insertValue<int>( greenLookup, 0 );
+    alphaLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::ALPHA );
+    state.insertValue<int>( alphaLookup, 255 );
+
 }
 
 
@@ -158,6 +192,10 @@ void ColorState::_initializeStatics(){
 
 bool ColorState::_isGlobal() const {
     return m_state.getValue<bool>( GLOBAL );
+}
+
+bool ColorState::_isBorderDefault() const {
+    return m_state.getValue<bool>( BORDER_DEFAULT );
 }
 
 bool ColorState::_isNanDefault() const {
@@ -189,6 +227,8 @@ void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
     otherState.setValue<bool>( REVERSE, reversed );
     bool nanDefault = _isNanDefault();
     otherState.setValue<bool>( NAN_DEFAULT, nanDefault );
+    bool borderDefault = _isBorderDefault();
+    otherState.setValue<bool>( BORDER_DEFAULT, borderDefault );
 
     //Color Mix
     QString redKey = Carta::State::UtilState::getLookup( COLOR_MIX, Util::RED );
@@ -216,6 +256,72 @@ void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
     otherState.setValue<double>(GAMMA, gamma );
     QString dataTransform = m_state.getValue<QString>( TRANSFORM_DATA );
     otherState.setValue<QString>(TRANSFORM_DATA, dataTransform);
+
+    //Border color
+    redKey = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::RED );
+    red = m_state.getValue<int>(redKey);
+    greenKey = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::GREEN );
+    green = m_state.getValue<int>( greenKey );
+    blueKey = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::BLUE );
+    blue = m_state.getValue<int>( blueKey );
+    QString alphaKey = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::ALPHA );
+    int alpha = m_state.getValue<int>( alphaKey );
+    otherState.setValue<int>( redKey, red );
+    otherState.setValue<int>( greenKey, green );
+    otherState.setValue<int>( blueKey, blue );
+    otherState.setValue<int>( alphaKey, alpha );
+}
+
+QString ColorState::_setBorderAlpha( int alphaValue ){
+    QString result;
+    const QString USER_ID = "Border background";
+    bool alphaChanged = _setColor( Util::ALPHA, BORDER_COLOR, USER_ID, alphaValue, result );
+    if ( alphaChanged ){
+        m_state.flushState();
+        emit colorStateChanged();
+    }
+    return result;
+}
+
+
+QString ColorState::_setBorderColor( int redValue, int greenValue, int blueValue){
+    QString result;
+    const QString USER_ID = "Border background";
+    bool greenChanged = _setColor( Util::GREEN, BORDER_COLOR, USER_ID, greenValue, result );
+    bool redChanged = _setColor( Util::RED, BORDER_COLOR, USER_ID, redValue, result );
+    bool blueChanged = _setColor( Util::BLUE, BORDER_COLOR, USER_ID, blueValue, result );
+    if ( redChanged || blueChanged || greenChanged ){
+        emit colorStateChanged();
+    }
+    return result;
+}
+
+void ColorState::_setBorderDefault( bool useDefault ){
+    bool oldBorderDefault = m_state.getValue<bool>( BORDER_DEFAULT );
+    if ( useDefault != oldBorderDefault ){
+        m_state.setValue<bool>( BORDER_DEFAULT, useDefault );
+        _setBorderColor( 0, 0, 0);
+        _setBorderAlpha( 255 );
+        m_state.flushState();
+        emit colorStateChanged();
+    }
+}
+
+bool ColorState::_setColor( const QString& key, const QString& majorKey, const QString& userId,
+        int colorAmount, QString& errorMsg ){
+    bool colorChanged = false;
+    if ( colorAmount<0 || colorAmount > 255 ){
+        errorMsg = errorMsg + userId + " "+key + " must be in [0,255]. ";
+    }
+    else {
+        QString valueKey = Carta::State::UtilState::getLookup( majorKey, key );
+        double oldColorAmount = m_state.getValue<int>( valueKey );
+        if ( colorAmount != oldColorAmount ){
+            m_state.setValue<int>(valueKey, colorAmount );
+            colorChanged = true;
+        }
+    }
+    return colorChanged;
 }
 
 
@@ -319,30 +425,17 @@ void ColorState::_setInvert( bool invert ){
 
 QString ColorState::_setNanColor( int redValue, int greenValue, int blueValue){
     QString result;
-    bool greenChanged = _setNanColor( Util::GREEN, greenValue, result );
-    bool redChanged = _setNanColor( Util::RED, redValue, result );
-    bool blueChanged = _setNanColor( Util::BLUE, blueValue, result );
+    const QString USER_ID = "Nan color";
+    bool greenChanged = _setColor( Util::GREEN, NAN_COLOR, USER_ID, greenValue, result );
+    bool redChanged = _setColor( Util::RED, NAN_COLOR, USER_ID, redValue, result );
+    bool blueChanged = _setColor( Util::BLUE, NAN_COLOR, USER_ID, blueValue, result );
     if ( redChanged || blueChanged || greenChanged ){
         emit colorStateChanged();
     }
     return result;
 }
 
-bool ColorState::_setNanColor( const QString& key, int colorAmount, QString& errorMsg ){
-    bool colorChanged = false;
-    if ( colorAmount<0 || colorAmount > 255 ){
-        errorMsg = errorMsg + "Nan color "+key + " must be in [0,255]. ";
-    }
-    else {
-        QString nanKey = Carta::State::UtilState::getLookup( NAN_COLOR, key );
-        double oldColorAmount = m_state.getValue<int>( nanKey );
-        if ( colorAmount != oldColorAmount ){
-            m_state.setValue<int>(nanKey, colorAmount );
-            colorChanged = true;
-        }
-    }
-    return colorChanged;
-}
+
 
 void ColorState::_setNanDefault( bool useDefault ){
     bool oldNanDefault = m_state.getValue<bool>( NAN_DEFAULT );

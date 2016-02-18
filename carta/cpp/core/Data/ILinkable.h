@@ -2,8 +2,7 @@
  * Interface implemented by classes that can be linked to an image view.
  */
 
-#ifndef ILINKABLE_H_
-#define ILINKABLE_H_
+#pragma once
 
 #include "State/ObjectManager.h"
 
@@ -48,6 +47,3 @@ public:
 };
 }
 }
-
-
-#endif /* ILINKABLE_H_ */

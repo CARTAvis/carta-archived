@@ -19,17 +19,20 @@ qx.Class.define("skel.widgets.Path", {
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
         this.FONTS = this.BASE_PATH + "Fonts";
+        this.INTENSITY_UNITS = this.BASE_PATH + "IntensityUnits";
         this.LABEL_FORMATS = this.BASE_PATH + "LabelFormats";
         this.LAYER_COMPOSITION_MODES = this.BASE_PATH + "LayerCompositionModes";
         this.LAYOUT = this.BASE_PATH + "Layout";
         this.LAYOUT_PLUGIN = this.LAYOUT  + this.SEP + "plugins";
+        this.LINE_STYLES = this.BASE_PATH + "LineStyles";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.PREFERENCES_SAVE = this.BASE_PATH + "PreferencesSave";
-        this.REGION = this.BASE_PATH + "region" + this.SEP;
+        this.REGION = this.BASE_PATH + this.REGION_DATA + this.SEP;
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
+        this.SPECTRAL_UNITS = this.BASE_PATH + "SpectralUnits";
         this.THEMES = this.BASE_PATH + "Themes";
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
@@ -54,12 +57,14 @@ qx.Class.define("skel.widgets.Path", {
         CLIP_VALUE : "setClipValue",
         CLIPS : "",
         CLOSE_IMAGE : "closeImage",
+        CLOSE_REGION : "closeRegion",
         COLORMAP_PLUGIN : "Colormap",
         COLORMAPS : "",
         CONTOUR_GENERATE_MODES : "",
         CONTOUR_LINE_STYLES : "",
         CONTOUR_SPACING_MODES : "",
         COORDINATE_SYSTEMS : "",
+        DATA : "data",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
         ERROR_HANDLER : "",
@@ -68,11 +73,14 @@ qx.Class.define("skel.widgets.Path", {
         HIDDEN : "Hidden",
         HIDE_IMAGE : "hideImage",
         HISTOGRAM_PLUGIN : "Histogram",
+        IMAGE_DATA : "image",
+        INTENSITY_UNITS : "",
         LABEL_FORMATS : "",
         LAYER_COMPOSITION_MODES : "",
         LAYOUT : "",
         LAYOUT_MANAGER : "Layout",
         LAYOUT_PLUGIN : "",
+        LINE_STYLES : "",
         MOUSE : "mouse",
         MOUSE_DOWN : "mouseDown",
         MOUSE_DOWN_SHIFT : "mouseDownShift",
@@ -83,12 +91,15 @@ qx.Class.define("skel.widgets.Path", {
         PLUGINS : "ViewPlugins",
         PREFERENCES : "",
         PREFERENCES_SAVE : "",
+        PROFILE : "Profiler",
         REGION : "",
+        REGION_DATA : "region",
         SEP : "/",
         SEP_COMMAND : ":",
         SETTINGS : "",
         SHOW_IMAGE : "showImage",
         SNAPSHOTS : "",
+        SPECTRAL_UNITS : "",
         STATE_LAYOUT : "Layout",
         STATE_SESSION : "Session",
         STATE_PREFERENCES : "Preferences",

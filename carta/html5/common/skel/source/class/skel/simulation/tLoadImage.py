@@ -18,12 +18,13 @@ class tLoadImage(unittest.TestCase):
         Util.setUp(self, browser)
 
     # Test that an image can be loaded and then closed.
-    def stest_load_image(self):
+    def test_load_image(self):
         driver = self.driver
         timeout = selectBrowser._getSleep()
 
         # Load a specific image.
         imageWindow = Util.load_image(self, driver, "Default")
+        time.sleep( timeout )
 
         # Click on the Data->Close->Image button to close the image.
         ActionChains(driver).double_click( imageWindow ).perform()
@@ -39,15 +40,25 @@ class tLoadImage(unittest.TestCase):
 
         # Load a specific image.
         imageWindow = Util.load_image(self, driver, "aH.fits")
+        time.sleep( timeout )
         Util.load_image( self, driver, "aJ.fits")
+        time.sleep( timeout )
         Util.load_image( self, driver, "N15693D.fits")
+        time.sleep( timeout )
         Util.load_image( self, driver, "Orion.cont.image.fits")
+        time.sleep( timeout )
         Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
         Util.load_image( self, driver, "TWHydra_CO2_1line.image.fits")
+        time.sleep( timeout )
         Util.load_image( self, driver, "br1202_wide.image")
+        time.sleep( timeout )
         Util.load_image( self, driver, "TWHydra_CO3_2line.image")
+        time.sleep( timeout )
         Util.load_image( self, driver, "TWHydra_cont1.3mm.image")
+        time.sleep( timeout )
         Util.load_image( self, driver, "v2.0_ds2_l000_13pca_map20.fits")
+        time.sleep( timeout )
 
         #Find the image animator and verify that there are 9 images loaded
         upperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))

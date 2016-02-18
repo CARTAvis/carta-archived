@@ -27,16 +27,6 @@ bool LayoutNode::containsNode( const QString& nodeId ) const {
 }
 
 
-void LayoutNode::clear(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    QString id = getId();
-    if ( id.trimmed().length() > 0 ){
-        objMan->removeObject( id );
-    }
-}
-
-
-
 LayoutNode* LayoutNode::findAncestor( const QStringList& /*nodeIds*/, QString& /*childId*/ ){
     return nullptr;
 }
@@ -94,7 +84,6 @@ QString LayoutNode::toString() const {
 }
 
 LayoutNode::~LayoutNode(){
-    clear();
 }
 }
 }

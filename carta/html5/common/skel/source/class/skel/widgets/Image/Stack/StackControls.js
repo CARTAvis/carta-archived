@@ -155,7 +155,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         _registerControlsData : function(){
             var path = skel.widgets.Path.getInstance();
-            var dataPath = this.m_id + path.SEP + "data";
+            var dataPath = this.m_id + path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB(this._controlsDataChangedCB.bind(this));
             this._controlsDataChangedCB();

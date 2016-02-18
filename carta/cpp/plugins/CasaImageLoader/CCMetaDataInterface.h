@@ -35,6 +35,10 @@ public:
     virtual QStringList
     otherInfo( TextFormat format ) override;
 
+    //Return the casacore coordinate system.
+    //Needed to parse CASA regions of an image.
+    std::shared_ptr<casa::CoordinateSystem> getCoordinateSystem() const;
+
 protected:
     Carta::Lib::HtmlString m_title;
     std::shared_ptr<casa::CoordinateSystem> m_casaCS;
