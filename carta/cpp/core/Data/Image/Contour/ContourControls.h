@@ -116,6 +116,16 @@ public:
     QString setLevelMin( double value );
 
     /**
+     * Set the minimum and maximum contour level.
+     * @param minValue - the minimum contour level.
+     * @param maxValue - the maximum contour level.
+     * @return - an error message if the contour bounds could not be set; an empty string
+     *      otherwise.
+     */
+    //Note:  If the generate mode is "minimum" the maximum value will not be set.
+    QString setLevelMinMax( double minValue, double maxValue );
+
+    /**
      * Update the contour levels within the given contour set.
      * @param contourName - the name of a contour set.
      * @param levels - an updated list of contour levels.
@@ -188,6 +198,7 @@ private:
     DataContours* _getContour( const QString& setName );
     std::vector<double> _getLevels( double minLevel, double maxLevel ) const;
     std::vector<double> _getLevelsMinMax(double max, QString& error ) const;
+    double _getStepSize( double max, double min, int count ) const;
 
     void _initializeDefaultState();
     void _initializeCallbacks();

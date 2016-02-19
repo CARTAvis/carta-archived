@@ -431,6 +431,24 @@ void Colormap::_initializeCallbacks(){
             Util::commandPostProcess( result );
             return result;
         });
+
+    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {Util::TAB_INDEX};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString tabIndexStr = dataValues[Util::TAB_INDEX];
+            bool validIndex = false;
+            int tabIndex = tabIndexStr.toInt( &validIndex );
+            if ( validIndex ){
+                result = setTabIndex( tabIndex );
+            }
+            else {
+                result = "Please check that the tab index is a number: " + params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 }
 
 bool Colormap::isBorderDefault() const {
@@ -660,14 +678,17 @@ QString Colormap::setDataTransform( const QString& transformString){
 
 void Colormap::_setColorStates( Controller* controller ){
     std::vector< std::shared_ptr<ColorState> > selectedColorStates = controller->getSelectedColorStates();
-    m_stateColors.clear();
     int stateColorCount = selectedColorStates.size();
-    for ( int i = 0; i < stateColorCount; i++ ){
-        m_stateColors.push_back( selectedColorStates[i] );
-    }
+    if ( stateColorCount > 0 ){
+        m_stateColors.clear();
 
-    //Update the state the client is listening to.
-    _colorStateChanged();
+        for ( int i = 0; i < stateColorCount; i++ ){
+            m_stateColors.push_back( selectedColorStates[i] );
+        }
+
+        //Update the state the client is listening to.
+        _colorStateChanged();
+    }
 }
 
 void Colormap::setGlobal( bool global ){
@@ -746,7 +767,25 @@ QString Colormap::setSignificantDigits( int digits ){
     return result;
 }
 
-
+QString Colormap::setTabIndex( int index ){
+    QString result;
+    if ( index >= 0 ){
+        int stateColorCount = m_stateColors.size();
+        for ( int i = 0; i < stateColorCount; i++ ){
+            result = m_stateColors[i]->_setTabIndex( index );
+            if ( !result.isEmpty() ){
+                break;
+            }
+        }
+        if ( result.isEmpty()){
+            _colorStateChanged();
+        }
+    }
+    else {
+        result = "Image settings tab index must be nonnegative: "+ QString::number(index);
+    }
+    return result;
+}
 
 void Colormap::_updateIntensityBounds( double minIntensity, double maxIntensity ){
     double oldMinIntensity = m_stateData.getValue<double>( INTENSITY_MIN );

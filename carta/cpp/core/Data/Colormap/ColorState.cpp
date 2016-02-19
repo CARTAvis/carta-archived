@@ -174,6 +174,8 @@ void ColorState::_initializeDefaultState( Carta::State::StateInterface& state ){
     alphaLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::ALPHA );
     state.insertValue<int>( alphaLookup, 255 );
 
+    //Default Tab
+    state.insertValue<int>( Util::TAB_INDEX, 0 );
 }
 
 
@@ -270,6 +272,9 @@ void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
     otherState.setValue<int>( greenKey, green );
     otherState.setValue<int>( blueKey, blue );
     otherState.setValue<int>( alphaKey, alpha );
+
+    int tabIndex = m_state.getValue<int>( Util::TAB_INDEX );
+    otherState.setValue<int>( Util::TAB_INDEX, tabIndex );
 }
 
 QString ColorState::_setBorderAlpha( int alphaValue ){
@@ -467,6 +472,21 @@ QString ColorState::_setSignificantDigits( int digits ){
             _setErrorMargin();
             emit colorStateChanged();
         }
+    }
+    return result;
+}
+
+QString ColorState::_setTabIndex( int index ){
+    QString result;
+    if ( index >= 0 ){
+        int oldIndex = m_state.getValue<int>( Util::TAB_INDEX );
+        if ( index != oldIndex ){
+            m_state.setValue<int>( Util::TAB_INDEX, index );
+            emit colorStateChanged();
+        }
+    }
+    else {
+        result = "Colormap settings tab index must be nonnegative: "+ QString::number(index);
     }
     return result;
 }

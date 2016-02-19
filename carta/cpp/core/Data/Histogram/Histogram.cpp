@@ -435,6 +435,8 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<QString>(FREQUENCY_UNIT, m_channelUnits->getDefaultUnit());
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
     m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
+    //Default Tab
+    m_state.insertValue<int>( Util::TAB_INDEX, 0 );
     m_state.flushState();
 
 }
@@ -801,6 +803,24 @@ void Histogram::_initializeCallbacks(){
         QString result = _set2DFootPrint( params );
         return result;
     });
+
+    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {Util::TAB_INDEX};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString tabIndexStr = dataValues[Util::TAB_INDEX];
+            bool validIndex = false;
+            int tabIndex = tabIndexStr.toInt( &validIndex );
+            if ( validIndex ){
+                result = setTabIndex( tabIndex );
+            }
+            else {
+                result = "Please check that the tab index is a number: " + params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     addCommandCallback( "setUseClipBuffer", [=] (const QString & /*cmd*/,
                const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1776,6 +1796,22 @@ QString Histogram::setGraphStyle( const QString& styleStr ){
     }
     return result;
 }
+
+QString Histogram::setTabIndex( int index ){
+    QString result;
+    if ( index >= 0 ){
+        int oldIndex = m_state.getValue<int>( Util::TAB_INDEX );
+        if ( index != oldIndex ){
+            m_state.setValue<int>( Util::TAB_INDEX, index );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Histogram tab index must be nonnegative: "+ QString::number(index);
+    }
+    return result;
+}
+
 
 
 QString Histogram::setUseClipBuffer( bool useBuffer ){

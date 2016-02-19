@@ -119,6 +119,7 @@ public:
      static const QString BLUE;
      static const QString NAME;
      static const QString PEN_WIDTH;
+     static const QString TAB_INDEX;
      static const QString TYPE;
      static const QString UNITS;
      static const QString VISIBLE;

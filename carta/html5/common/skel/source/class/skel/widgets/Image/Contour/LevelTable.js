@@ -175,7 +175,7 @@ qx.Class.define("skel.widgets.Image.Contour.LevelTable", {
                 this.m_tableModel.setData( rowArray );
                 this.m_table.setTableModel( this.m_tableModel );
                 var selectModel = this.m_table.getSelectionModel();
-                selectModel.setSelectionInterval( 0, 0 );
+                selectModel.setSelectionInterval( 0, this.m_levels.length - 1 );
             }
         },
         

@@ -115,6 +115,15 @@ bool GeneratorState::isGenerateMethodMinimum() const {
     return minMethod;
 }
 
+bool GeneratorState::isGenerateMethodPercentile() const {
+    QString method = m_state.getValue<QString>(GENERATE_MODE );
+    bool percentMethod = false;
+    if ( method == ContourGenerateModes::MODE_PERCENTILE ){
+        percentMethod = true;
+    }
+    return percentMethod;
+}
+
 void GeneratorState::setDashedNegative( bool useDash ){
     int oldDashed = m_state.getValue<bool>( DASHED_NEGATIVE );
     if ( oldDashed != useDash ){
@@ -175,7 +184,13 @@ QString GeneratorState::setLevelMax( double value ){
     if ( minValue <= value ){
         double oldMax = m_state.getValue<double>( RANGE_MAX );
         if ( qAbs( oldMax - value ) > ERROR_MARGIN ){
-            m_state.setValue<double>( RANGE_MAX, value );
+            result = _isValidBoundForMode( value );
+            if ( result.isEmpty() ){
+                m_state.setValue<double>( RANGE_MAX, value );
+            }
+            else {
+                result = "Maximum value "+result;
+            }
         }
     }
     else {
@@ -187,12 +202,18 @@ QString GeneratorState::setLevelMax( double value ){
 QString GeneratorState::setLevelMin( double value ){
     QString result;
     //If the method used to generate levels  is percentiles, the
-    //value must be in [0,1].
+    //value must be in [0,100].
     double maxValue = m_state.getValue<double>( RANGE_MAX );
     if ( value <= maxValue ){
         double oldMin = m_state.getValue<double>( RANGE_MIN );
         if ( qAbs( oldMin - value ) > ERROR_MARGIN ){
-            m_state.setValue<double>( RANGE_MIN, value );
+            result = _isValidBoundForMode( value );
+            if ( result.isEmpty() ){
+                m_state.setValue<double>( RANGE_MIN, value );
+            }
+            else {
+                result = "Minimum value "+result;
+            }
         }
     }
     else {
@@ -200,6 +221,59 @@ QString GeneratorState::setLevelMin( double value ){
     }
     return result;
 }
+
+QString GeneratorState::_isValidBoundForMode( double value ) const {
+    QString result;
+    if ( isGenerateMethodPercentile() ){
+        if ( value < 0 ){
+            result="must be at least 0.";
+        }
+        else if ( value > 100 ){
+            result = "must be at most 100";
+        }
+    }
+    return result;
+}
+
+QString GeneratorState::setLevelMinMax( double minValue, double maxValue ){
+    QString result;
+    //If the method used to generate levels  is percentiles, the
+    //value must be in [0,100].
+
+
+    //First set the minimum level.
+    double oldMin = m_state.getValue<double>( RANGE_MIN );
+    result = _isValidBoundForMode( minValue );
+    if ( result.isEmpty() ){
+        if ( qAbs( oldMin - minValue ) > ERROR_MARGIN ){
+            m_state.setValue<double>( RANGE_MIN, minValue );
+        }
+    }
+    else {
+        result = "Minimum value "+result;
+    }
+
+    //Only set the maximum if the method is not minimum.
+    if ( !isGenerateMethodPercentile() ){
+        if ( minValue > maxValue ){
+            result = "The minimum contour level must be less than or equal to the maximum.";
+        }
+        else {
+            double oldMax = m_state.getValue<double>( RANGE_MAX );
+            result = _isValidBoundForMode( maxValue );
+            if ( result.isEmpty() ){
+                if ( qAbs( oldMax - maxValue ) > ERROR_MARGIN ){
+                    m_state.setValue<double>( RANGE_MAX, maxValue );
+                }
+            }
+            else {
+                result = result + "Maximum value "+result;
+            }
+        }
+    }
+    return result;
+}
+
 
 
 

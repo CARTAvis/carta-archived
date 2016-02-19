@@ -707,8 +707,25 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
         const std::vector<int>& frames ){
     int displayAxisCount = displayAxisTypes.size();
     CARTA_ASSERT( displayAxisCount == 2 );
-    bool axisXChanged = _setDisplayAxis( displayAxisTypes[0], &m_axisIndexX );
-    bool axisYChanged = _setDisplayAxis( displayAxisTypes[1], &m_axisIndexY );
+    bool axisXChanged = false;
+    bool axisYChanged = false;
+    //We could have an image with two linear display axes.  In this case, we can't
+    //distinguish by the type of axis as we do below.
+    if ( displayAxisTypes[0] == AxisInfo::KnownType::LINEAR &&
+            displayAxisTypes[1] == AxisInfo::KnownType::LINEAR ){
+        if ( m_axisIndexX != 0 ){
+            m_axisIndexX = 0;
+            axisXChanged = true;
+        }
+        if ( m_axisIndexY != 1 ){
+            m_axisIndexY = 1;
+            axisYChanged = true;
+        }
+    }
+    else {
+        axisXChanged = _setDisplayAxis( displayAxisTypes[0], &m_axisIndexX );
+        axisYChanged = _setDisplayAxis( displayAxisTypes[1], &m_axisIndexY );
+    }
     if ( axisXChanged || axisYChanged ){
         m_permuteImage = _getPermutedImage();
         _resetPan();

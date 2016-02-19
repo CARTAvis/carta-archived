@@ -680,6 +680,9 @@ QString GridControls::setShowAxis( bool showAxis ){
     bool axisChanged = false;
     QString result = m_dataGrid->_setShowAxis( showAxis, & axisChanged );
     if ( axisChanged ){
+        if ( !showAxis ){
+            setShowGridLines( false );
+        }
         _updateGrid();
     }
     return result;

@@ -515,7 +515,7 @@ void ControllerData::_renderingDone(
     /// \todo we should make sure the jobId matches the last submitted job...
 
     m_qimage = image;
-    Carta::Lib::VectorGraphics::VGComposer comp( gridVG );
+    Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
 
     if ( _isContourDraw()){
         // where does 0.5, 0.5 map to?
@@ -539,13 +539,15 @@ void ControllerData::_renderingDone(
                 double m31 = p1.x() - m11 * 0.5;
                 double m32 = p1.y() - m22 * 0.5;
                 tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
-                Carta::Lib::VectorGraphics::VGComposer contourComp;
-                contourComp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
-                contourComp.appendList( contourVG);
-                comp.appendList( contourComp.vgList() );
+
+                comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
+                comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
+                comp.appendList( contourVG);
+                comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
             }
         }
     }
+    comp.appendList( gridVG);
     m_vectorGraphics = comp.vgList();
 
     // schedule a repaint with the connector

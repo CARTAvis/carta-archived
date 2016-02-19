@@ -314,6 +314,14 @@ public:
      */
     QString setSignificantDigits( int digits );
 
+    /**
+     * Set the index of the settings tab that should be selected.
+     * @param index - the index of the selected settings tab.
+     * @return - an error message if there was a problem setting the tab index; an empty string
+     *      otherwise.
+     */
+    QString setTabIndex( int index );
+
     virtual ~Histogram();
     const static QString CLASS_NAME;
 
