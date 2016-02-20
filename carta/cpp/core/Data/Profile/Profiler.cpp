@@ -37,7 +37,6 @@ const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
-const QString Profiler::TAB_INDEX = "tabIndex";
 
 
 class Profiler::Factory : public Carta::State::CartaObjectFactory {
@@ -370,7 +369,7 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<bool>( LEGEND_LINE, true );
 
     //Default Tab
-    m_state.insertValue<int>( TAB_INDEX, 2 );
+    m_state.insertValue<int>( Util::TAB_INDEX, 2 );
 
     m_state.flushState();
 }
@@ -517,9 +516,9 @@ void Profiler::_initializeCallbacks(){
     addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {TAB_INDEX};
+        std::set<QString> keys = {Util::TAB_INDEX};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString tabIndexStr = dataValues[TAB_INDEX];
+        QString tabIndexStr = dataValues[Util::TAB_INDEX];
         bool validIndex = false;
         int tabIndex = tabIndexStr.toInt( &validIndex );
         if ( validIndex ){
@@ -845,9 +844,9 @@ void Profiler::setLegendShow( bool showLegend ){
 QString Profiler::setTabIndex( int index ){
     QString result;
     if ( index >= 0 ){
-        int oldIndex = m_state.getValue<int>( TAB_INDEX );
+        int oldIndex = m_state.getValue<int>( Util::TAB_INDEX );
         if ( index != oldIndex ){
-            m_state.setValue<int>( TAB_INDEX, index );
+            m_state.setValue<int>( Util::TAB_INDEX, index );
             m_state.flushState();
         }
     }

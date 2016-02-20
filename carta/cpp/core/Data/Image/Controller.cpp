@@ -177,8 +177,8 @@ bool Controller::_addDataImage(const QString& fileName) {
 
         m_selectImage->setIndex(targetIndex);
         if ( isStackSelectAuto() ){
-            std::vector<int> selectedLayers(1);
-            selectedLayers[0] = targetIndex;
+            QStringList selectedLayers;
+            selectedLayers.append( fileName );
             _setLayersSelected( selectedLayers );
         }
 
@@ -1117,13 +1117,12 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "setLayersSelected", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        bool error = false;
-        std::vector<int> vals = Util::string2VectorInt( params, &error, ";" );
-        if ( error ){
+        QStringList names = params.split(";");
+        if ( names.size() == 0 ){
             result = "Please specify the layers to select as nonnegative integers";
         }
         else {
-            result = setLayersSelected( vals );
+            result = setLayersSelected( names );
         }
         Util::commandPostProcess( result );
         return result;
@@ -1209,6 +1208,24 @@ void Controller::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {Util::TAB_INDEX};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString tabIndexStr = dataValues[Util::TAB_INDEX];
+        bool validIndex = false;
+        int tabIndex = tabIndexStr.toInt( &validIndex );
+        if ( validIndex ){
+            result = setTabIndex( tabIndex );
+        }
+        else {
+            result = "Please check that the tab index is a number: " + params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
 }
 
 
@@ -1233,6 +1250,8 @@ void Controller::_initializeState(){
     m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
+    //Default Tab
+    m_state.insertValue<int>( Util::TAB_INDEX, 0 );
     m_state.flushState();
 
     //Now the data state.
@@ -1350,7 +1369,7 @@ void Controller::_renderAll(){
 }
 
 void Controller::_renderSingle( int dIndex ){
-    if ( dIndex >= 0 && dIndex >= m_datas.size() ){
+    if ( dIndex >= 0 && dIndex < m_datas.size() ){
         QList<std::shared_ptr<ControllerData> > datas;
         datas.append( m_datas[dIndex] );
         int topIndex = _getIndexCurrent();
@@ -1583,6 +1602,7 @@ void Controller::_scheduleFrameReload( bool newClips ){
         if ( m_reloadFrameQueued ) {
             return;
         }
+
         int selectIndex=m_selectImage->getIndex();
         m_stackDraw->setSelectIndex( selectIndex);
         QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
@@ -1646,9 +1666,10 @@ void Controller::setFrameImage( int val) {
         if ( oldIndex != val ){
             m_selectImage->setIndex(val);
             if ( isStackSelectAuto() ){
-                std::vector<int> indices(1);
-                indices[0] = val;
-                _setLayersSelected( indices );
+                QStringList names;
+                QString name = getImageName( val );
+                names.append( name );
+                _setLayersSelected( names );
             }
             int dataIndex = _getIndexCurrent();
             if ( 0 <= dataIndex ){
@@ -1667,6 +1688,8 @@ void Controller::setFrameImage( int val) {
                 m_gridControls->_resetState( gridState );
             }
             _updateCursorText( true );
+
+            //_scheduleFrameReload( false );
             emit dataChanged( this );
 
         }
@@ -1729,7 +1752,7 @@ QString Controller::setImageOrder( const std::vector<int>& indices ){
     if ( imageReordered ){
         m_datas = reorderedList;
         if ( selectedIndex != newSelectedIndex ){
-            this->setFrameImage( newSelectedIndex );
+            //this->setFrameImage( newSelectedIndex );
         }
         _renderAll();
     }
@@ -1765,7 +1788,7 @@ QString Controller::setImageVisibility( int dataIndex, bool visible ){
     return result;
 }
 
-QString Controller::setLayersSelected( const std::vector<int> indices ){
+QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     bool selectModeAuto = isStackSelectAuto();
     if ( !selectModeAuto ){
@@ -1777,54 +1800,43 @@ QString Controller::setLayersSelected( const std::vector<int> indices ){
     return result;
 }
 
-QString Controller::_setLayersSelected( const std::vector<int> indices ){
+
+
+QString Controller::_setLayersSelected( const QStringList names ){
     int dataCount = m_datas.size();
-    //Note: we could to a careful check of the indices here to make sure
-    //the are all nonnegative, and not outside of the required bounds, but
-    //that would be slower so we just do a rudimentary check that the size
-    //is okay.
     QString result;
-    std::vector<int> sortedLayers = indices;
-    std::sort( sortedLayers.begin(), sortedLayers.end());
-    int selectIndex = 0;
-    int indexCount = indices.size();
-    int selectedIndex = indexCount;
-    if ( indexCount > 0 ){
-        selectedIndex = sortedLayers[0];
-    }
-    std::vector<int> oldSelects;
-    bool selectStateChanged = false;
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isSelected() ){
-            oldSelects.push_back( i );
-        }
-        if ( i != selectedIndex ){
-            bool stateChange = m_datas[i]->_setSelected( false );
+    int nameCount = names.size();
+    if ( nameCount > 0 ){
+        bool selectStateChanged = false;
+        //Go through the data and select those with names matching those
+        //passed in.
+        for ( int i = 0; i < dataCount; i++ ){
+            QString imageName = getImageName( i );
+            bool selected = false;
+            for ( QString name : names ){
+                if ( m_datas[i]->_isMatchPartial( name )){
+                    selected = true;
+                    break;
+                }
+            }
+            //Found one of the images that should be selected.
+            bool stateChange = m_datas[i]->_setSelected( selected );
             if ( stateChange ){
-                selectStateChanged = true;
+               selectStateChanged = true;
+            }
+            bool stackAutoSelect = m_state.getValue<bool>(STACK_SELECT_AUTO);
+            if ( selected && !stackAutoSelect ){
+                setFrameImage( i );
             }
         }
-        else {
-            bool stateChange = m_datas[i]->_setSelected( true );
-            if ( stateChange ){
-                selectStateChanged = true;
-            }
-            selectIndex++;
-            if ( selectIndex < indexCount ){
-                selectedIndex = sortedLayers[selectIndex];
-            }
+
+        if ( selectStateChanged ){
+            saveState();
+            emit colorChanged( this );
         }
     }
-    if ( selectIndex != indexCount){
-        result = "Invalid selection indices";
-    }
-    if ( !result.isEmpty( )){
-        //Set the selections back the way they were
-        setLayersSelected( oldSelects );
-    }
-    else if ( selectStateChanged ){
-        saveState();
-        emit colorChanged( this );
+    else {
+        result = "Please specify the names of the layers to select.";
     }
     return result;
 }
@@ -1918,6 +1930,22 @@ QString Controller::setCompositionMode( const QString& compMode ){
     }
     return result;
 }
+
+QString Controller::setTabIndex( int index ){
+    QString result;
+    if ( index >= 0 ){
+        int oldIndex = m_state.getValue<int>( Util::TAB_INDEX );
+        if ( index != oldIndex ){
+            m_state.setValue<int>( Util::TAB_INDEX, index );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Image settings tab index must be nonnegative: "+ QString::number(index);
+    }
+    return result;
+}
+
 
 void Controller::setZoomLevel( double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);

@@ -101,12 +101,14 @@ QString ContourControls::deleteContourSet( const QString& contourSetName ){
        if ( (*it)->getName() == contourSetName ){
            foundSet = true;
            //Reset the draw contour if it is the one we are removing.
-           if ( m_drawContours->getName() == contourSetName ){
-               if ( m_dataContours.size() > 1 ){
-                   m_drawContours = (*m_dataContours.begin());
-               }
-               else {
-                   m_drawContours.reset();
+           if ( m_drawContours ){
+               if ( m_drawContours->getName() == contourSetName ){
+                   if ( m_dataContours.size() > 1 ){
+                       m_drawContours = (*m_dataContours.begin());
+                   }
+                   else {
+                       m_drawContours.reset();
+                   }
                }
            }
            m_percentIntensityMap->removeContourSet( (*it) );
@@ -170,10 +172,6 @@ QString ContourControls::_generateMinimum( const QString& contourSetName ){
     double step = m_generatorState->getSpacingInterval();
     int count = m_generatorState->getLevelCount();
     double maxLevel = minLevel + step * (count - 1);
-    QString spacingMode = m_generatorState->getSpacingMethod();
-    if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
-        maxLevel = minLevel + qPow( step, (count-1) );
-    }
     std::vector<double> levels = _getLevelsMinMax( maxLevel, result );
     if ( result.isEmpty() && levels.size() > 0 ){
         _addContourSet( levels, contourSetName );
@@ -187,25 +185,31 @@ QString ContourControls::_generateMinimum( const QString& contourSetName ){
 QString ContourControls::_generatePercentile( const QString& contourSetName ){
     QString result;
     if ( m_percentIntensityMap != nullptr ){
-        double maxLevel = m_generatorState->getRangeMax();;
-        //First get the levels as percentiles.
-        std::vector<double> percentileLevels = _getLevelsMinMax( maxLevel, result );
-        //Map the percentiles to intensities
-        if ( result.isEmpty() ){
-            int percentCount = percentileLevels.size();
-            std::vector<double> levels( percentCount );
-            bool validIntensities = false;
-            for ( int i = 0; i < percentCount; i++ ){
-                validIntensities = m_percentIntensityMap->getIntensity( percentileLevels[i], &levels[i] );
-                if ( !validIntensities ){
-                    break;
+        double minLevel = m_generatorState->getRangeMin();
+        double maxLevel = m_generatorState->getRangeMax();
+        if ( minLevel < 0 || maxLevel > 100 ){
+            result = "Contour min and max percentiles must be in [0,100].";
+        }
+        else {
+            //First get the levels as percentiles.
+            std::vector<double> percentileLevels = _getLevelsMinMax( maxLevel, result );
+            //Map the percentiles to intensities
+            if ( result.isEmpty() ){
+                int percentCount = percentileLevels.size();
+                std::vector<double> levels( percentCount );
+                bool validIntensities = false;
+                for ( int i = 0; i < percentCount; i++ ){
+                    validIntensities = m_percentIntensityMap->getIntensity( percentileLevels[i]/100, &levels[i] );
+                    if ( !validIntensities ){
+                        break;
+                    }
                 }
-            }
-            if ( !validIntensities ){
-               result = "Could not generate contour based on percentiles";
-            }
-            else {
-                _addContourSet( levels, contourSetName );
+                if ( !validIntensities ){
+                   result = "Could not generate contour based on percentiles";
+                }
+                else {
+                    _addContourSet( levels, contourSetName );
+                }
             }
         }
     }
@@ -215,47 +219,52 @@ QString ContourControls::_generatePercentile( const QString& contourSetName ){
     return result;
 }
 
+double ContourControls::_getStepSize( double max, double min, int count ) const{
+    double step = max - min;
+    if ( count > 2 ){
+        step = step / (count - 1);
+    }
+    return step;
+}
 
 std::vector<double> ContourControls::_getLevels( double minLevel, double maxLevel ) const {
     int count = m_generatorState->getLevelCount();
-    double step = maxLevel - minLevel;
-    if ( count > 2 ){
-        step = step / (count - 1 );
-    }
     QString spacingMode = m_generatorState->getSpacingMethod();
     std::vector<double> levels;
-    bool logAvailable = false;
-    if (  step > 0 && step != 1 ){
-        logAvailable = false;
-    }
-    if ( spacingMode != ContourSpacingModes::MODE_LOGARITHM || logAvailable ){
+    if ( spacingMode != ContourSpacingModes::MODE_LOGARITHM ){
+        double step = _getStepSize( maxLevel, minLevel, count );
         for ( int i = 0; i < count; i++ ){
             double increment = i * step;
             double level = minLevel + increment;
-            if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
-                level = qLn(level) / qLn( step );
-            }
             levels.push_back( level );
+        }
+    }
+    //Logarithmic levels.
+    else {
+        //Map the min and max to a power interval.
+        double powMin = qExp( minLevel );
+        double powMax = qExp( maxLevel );
+        if ( powMin > 0 && powMax > 0 ){
+            double step = _getStepSize( powMax, powMin, count );
+            if ( step > 0 && !std::isinf( step) ){
+                for ( int i = 0; i < count; i++ ){
+                    double increment = i * step;
+                    double level = powMin + increment;
+                    level = qLn(level);
+                    levels.push_back( level );
+                }
+            }
         }
     }
     return levels;
 }
 
-std::vector<double> ContourControls::_getLevelsMinMax( double max, QString& error ) const {
+std::vector<double> ContourControls::_getLevelsMinMax( double max , QString& error) const {
     double minLevel = m_generatorState->getRangeMin();
     double maxLevel = max;
-    QString spacingMode = m_generatorState->getSpacingMethod();
-    std::vector<double> levels;
-    bool validRange = true;
-    if ( spacingMode == ContourSpacingModes::MODE_LOGARITHM ){
-        if ( minLevel <= 0 ){
-            validRange = false;
-            error = "Logarithm is not defined on the interval ["+QString::number( minLevel)+
-                    ","+QString::number( maxLevel )+"].";
-        }
-    }
-    if ( validRange ){
-        levels = _getLevels( minLevel, maxLevel );
+    std::vector<double> levels = _getLevels( minLevel, maxLevel );
+    if ( levels.size() == 0 ){
+        error = "No contour levels could be generated with the given parameters.";
     }
     return levels;
 }
@@ -315,21 +324,25 @@ void ContourControls::_initializeCallbacks(){
                 result = setSpacingInterval( spaceInterval );
             }
             if ( result.isEmpty() ){
+                //Set the min and the max.
                 double levelMin = dataValues[GeneratorState::LEVEL_MIN].toDouble(&validDouble);
                 if ( validDouble ){
-                    result = setLevelMin( levelMin );
-                    if ( result.isEmpty() ){
+                    if ( !m_generatorState->isGenerateMethodMinimum() ){
                         double levelMax = dataValues[GeneratorState::LEVEL_MAX].toDouble(&validDouble);
-                        //Note the maximum level only needs to be specified if we are NOT using minimum
-                        bool minMethod = m_generatorState->isGenerateMethodMinimum();
-                        if ( validDouble && !minMethod ){
-                            result = setLevelMax( levelMax );
-                        }
-                        if ( result.isEmpty() ){
-                            //If the are all valid, generate the contour set.
-                            result = generateContourSet( contourSetName );
+                        if ( validDouble ){
+                            result = setLevelMinMax( levelMin, levelMax );
                         }
                     }
+                    else {
+                        result = setLevelMin( levelMin );
+                    }
+                    if ( result.isEmpty() ){
+                        //If the are all valid, generate the contour set.
+                        result = generateContourSet( contourSetName );
+                    }
+                }
+                else {
+                    result = "The minimum contour level must be numeric.";
                 }
             }
             Util::commandPostProcess( result );
@@ -486,10 +499,10 @@ void ContourControls::_initializeCallbacks(){
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString setName = dataValues[CONTOUR_SET_NAME];
             QString levelStr = dataValues[LEVEL_LIST];
-            bool validLevels = false;
-            std::vector<double> levels = Util::string2VectorDouble( levelStr, &validLevels, LEVEL_SEPARATOR );
+            bool error = false;
+            std::vector<double> levels = Util::string2VectorDouble( levelStr, &error, LEVEL_SEPARATOR );
             QString result;
-            if ( validLevels ){
+            if ( !error ){
                 result = setLevels( setName, levels);
             }
             else {
@@ -560,9 +573,9 @@ void ContourControls::_initializeCallbacks(){
             if ( validDouble ){
                 QString setName = dataValues[CONTOUR_SET_NAME ];
                 QString levelStr = dataValues[LEVEL_LIST];
-                bool validLevels = false;
-                std::vector<double> levels = Util::string2VectorDouble( levelStr, &validLevels, LEVEL_SEPARATOR );
-                if ( validLevels ){
+                bool error = false;
+                std::vector<double> levels = Util::string2VectorDouble( levelStr, &error, LEVEL_SEPARATOR );
+                if ( !error ){
                     result = setThickness( setName, levels, thickness );
                 }
                 else {
@@ -724,6 +737,11 @@ QString ContourControls::setLevelMax( double value ){
 
 QString ContourControls::setLevelMin( double value ){
     QString result = m_generatorState->setLevelMin( value );
+    return result;
+}
+
+QString ContourControls::setLevelMinMax( double minValue, double maxValue ){
+    QString result = m_generatorState->setLevelMinMax( minValue, maxValue );
     return result;
 }
 

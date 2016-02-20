@@ -334,7 +334,10 @@ void DataGrid::_initializeSingletons( ){
 }
 
 bool DataGrid::_isGridVisible() const {
-    return m_state.getValue<bool>(SHOW_GRID_LINES );
+    bool gridLines =  m_state.getValue<bool>(SHOW_GRID_LINES );
+    bool axes = m_state.getValue<bool>( SHOW_AXIS );
+    bool gridVisible = gridLines || axes;
+    return gridVisible;
 }
 
 

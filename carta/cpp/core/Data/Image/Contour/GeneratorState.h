@@ -84,6 +84,14 @@ public:
     bool isGenerateMethodMinimum() const;
 
     /**
+     * Returns true if the method used to generate contour levels is percentile based; false
+     * otherwise.
+     * @return - true if the method used to generate contour levels is percentage based;
+     *      false otherwise.
+     */
+    bool isGenerateMethodPercentile() const;
+
+    /**
      * Set whether or not negative contours should be dashed.
      * @param useDash - true if negative contours should be dashed; false if they
      *      should be solid lines.
@@ -129,6 +137,14 @@ public:
      */
     QString setLevelMin( double value );
 
+    /**
+     * Set the smallest and largest contour levels.
+     * @param minValue - the smallest contour level.
+     * @param maxValue - the largest contour level.
+     * @return - an error message if the contour bounds could not be set; an empty string
+     *      otherwise.
+     */
+    QString setLevelMinMax( double minValue, double maxValue );
 
 
     /**
@@ -160,6 +176,11 @@ private:
 
     void _initializeDefaultState();
     void _initializeSingletons( );
+
+    //Checks the value to determine whether it is valid for the stored method of
+    //generating contour levels.  For example, a percentile method should only take
+    //values in [0,100].  An error message is returned if the value is not valid.
+    QString _isValidBoundForMode( double value ) const;
 
     void _updateState( const std::shared_ptr<GeneratorState>& other );
 

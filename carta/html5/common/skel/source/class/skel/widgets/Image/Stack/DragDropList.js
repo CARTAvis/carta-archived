@@ -44,7 +44,6 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
             this.m_listContainer = new qx.ui.container.Composite();
             this.m_listContainer.setLayout( new qx.ui.layout.Basic() );
             this._add( this.m_listContainer );
-            
             this._initList( width );
             this._initDragIndicator( width );
         },
@@ -236,6 +235,47 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
             }
             return indices;
         },
+        
+        /**
+         * Return the text displayed by the list item at the given index.
+         * @param index {Number} - the index of a list item.
+         * @return {String} - the text displayed by the list item or null if there is
+         *      no such list item.
+         */
+        getText : function( index ){
+            var text = null;
+            var children = this.m_list.getChildren();
+            if ( index >= 0 && children.length > index ){
+                text = children[index].getLabel();
+            }
+            return text;
+        },
+        
+        /**
+         * Returns true if the list of previously selected items is different from
+         * the list of new selected items.
+         * @param all {Array} - the list of all items.
+         * @param oldSel {Array} - the old list of selected items.
+         * @param newSel {Array} - the new list of selected items.
+         * @return {boolean} - true if the new and old selections are different; false
+         *      if there has been no change to the selected items.
+         */
+        _isSelectionChanged : function( all, oldSel, newSel ){
+            var changed = false;
+            if ( oldSel.length != newSel.length ){
+                changed = true;
+            }
+            else {
+                for ( var i = 0; i < oldSel.length; i++ ){
+                    var index = all.indexOf( oldSel[i]);
+                    if ( index != newSel[i]){
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            return changed;
+        },
 
         /**
          * Reorder the list.
@@ -299,11 +339,20 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
          * @param items {Array} - a list of strings.
          */
         setListItems : function( items ){
+            
             this.m_list.removeAll();
             var dataCount = items.length;
             var selectedItems = [];
             for ( var i = 0; i < dataCount; i++ ){
-                var listItem = new qx.ui.form.ListItem( items[i].file );
+                var colorStr = "";
+                if ( items[i].mask.mode == "Plus"){
+                    var colorArray = [];
+                    colorArray[0] = items[i].mask.red;
+                    colorArray[1] = items[i].mask.green;
+                    colorArray[2] = items[i].mask.blue;
+                    colorStr = qx.util.ColorUtil.rgbToHexString( colorArray );
+                }
+                var listItem = new skel.widgets.Image.Stack.ListItemIcon( items[i].file, colorStr);
                 this.m_list.add( listItem );
                 var visible = items[i].visible;
                 if ( items[i].selected ){
@@ -345,7 +394,11 @@ qx.Class.define("skel.widgets.Image.Stack.DragDropList", {
             for ( var i = 0; i < selectedItems.length; i++ ){
                 selectedChildren.push( children[selectedItems[i]] );
             }
-            this.m_list.setSelection( selectedChildren );
+            var oldSelection = this.m_list.getSortedSelection();
+            var selectionChanged = this._isSelectionChanged( children, oldSelection, selectedChildren );
+            if ( selectionChanged ){
+                this.m_list.setSelection( selectedChildren );
+            }
         },
 
         m_list : null,

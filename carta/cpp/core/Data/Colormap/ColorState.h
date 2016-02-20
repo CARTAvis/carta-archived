@@ -193,6 +193,14 @@ private:
      */
     QString _setSignificantDigits( int digits );
 
+    /**
+     * Set the index of the tab that should be selected.
+     * @param index - the index of the tab that should be selected.
+     * @return an error message if the tab index could not be set; an empty string
+     *  otherwise.
+     */
+    QString _setTabIndex( int index );
+
 
     static bool m_registered;
     const static QString COLOR_MAP_NAME;

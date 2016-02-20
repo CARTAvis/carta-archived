@@ -429,9 +429,9 @@ public:
 
     /**
      * Set the indices of the selected data sources.
-     * @param indices - a list of indices of selected data sources.
+     * @param layers - a list of identifiers for layers that should be selected.
      */
-    QString setLayersSelected( const std::vector<int> indices );
+    QString setLayersSelected( const QStringList layerNames );
 
     /**
      * Set the color to use for the mask.
@@ -469,6 +469,14 @@ public:
      * @param automatic - true for automatic selection; false for manual selection.
      */
     void setStackSelectAuto( bool automatic );
+
+    /**
+     * Store the index of the settings tab that was selected.
+     * @param index - the index of the settings tab that was selected.
+     * @return - an error message if the index could not be set; otherwise, an
+     *  empty string.
+     */
+    QString setTabIndex( int index );
 
 
     /**
@@ -658,7 +666,7 @@ private:
      * @param val  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
-    QString _setLayersSelected( const std::vector<int> indices );
+    QString _setLayersSelected( const QStringList indices );
 
 
     void _updateCursor( int mouseX, int mouseY );
