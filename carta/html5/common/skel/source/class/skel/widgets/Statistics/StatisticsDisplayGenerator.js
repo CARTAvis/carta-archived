@@ -31,7 +31,7 @@ qx.Mixin.define("skel.widgets.Statistics.StatisticsDisplayGenerator", {
             var text = new qx.ui.form.TextField();
             skel.widgets.TestID.addTestId( text, key + "Stat");
             text.setValue( value );
-            text.setEnabled( false );
+            text.setReadOnly( true );
             content.add( text, {row:rowIndex, column:colIndex} );
         },
         

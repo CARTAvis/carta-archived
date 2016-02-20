@@ -466,10 +466,10 @@ void Layout::setLayoutDeveloper(){
     //LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
 
     //right->setChildFirst( histLeaf );
-    //LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
-    //right->setChildFirst( statLeaf );
-    LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
-    right->setChildFirst( profLeaf );
+    LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
+    right->setChildFirst( statLeaf );
+    //LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
+    //right->setChildFirst( profLeaf );
     right->setChildSecond( rightBottom );
 
     m_layoutRoot->setHorizontal( true );

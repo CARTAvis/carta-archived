@@ -971,7 +971,7 @@ void ViewManager::setDeveloperView(){
     _clearHistograms( 1, m_histograms.size() );
     _clearAnimators( 1, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
-    _clearStatistics( 0, m_statistics.size());
+    _clearStatistics( 1, m_statistics.size());
     _clearProfilers( 1, m_profilers.size() );
     _clearControllers( 1, m_controllers.size() );
 
@@ -979,9 +979,9 @@ void ViewManager::setDeveloperView(){
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_controllers[0]);
-    //m_statistics[0]->addLink( m_controllers[0]);
+    m_statistics[0]->addLink( m_controllers[0]);
     //m_colormaps[0]->addLink( m_controllers[0]);
-    m_profilers[0]->addLink( m_controllers[0]);
+    //m_profilers[0]->addLink( m_controllers[0]);
     //m_colormaps[0]->addLink( m_histograms[0]);
     _refreshState();
 }
