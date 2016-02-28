@@ -43,7 +43,7 @@ class CoordinateSystems;
 
 class DataSource : public QObject {
 
-friend class ControllerData;
+friend class LayerData;
 friend class Histogram;
 friend class Profiler;
 

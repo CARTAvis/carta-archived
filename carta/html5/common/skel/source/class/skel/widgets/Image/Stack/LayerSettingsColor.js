@@ -6,7 +6,7 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
+qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
     extend : qx.ui.core.Widget,
 
     /**
@@ -17,6 +17,10 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
         this.m_connector = mImport("connector");
         this.m_serverUpdate = false;
         this._init( );
+    },
+    
+    statics : {
+        TYPE : "color"
     },
 
     members : {
@@ -66,6 +70,14 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             return colorArray;
         },
         
+        /**
+         * Return an identifier for the type of layer settings.
+         * @return - an identifier for the type of layer settings.
+         */
+        getType : function(){
+            return skel.widgets.Image.Stack.LayerSettingsColor.TYPE;
+        },
+        
         
         /*
          * Initializes the UI.
@@ -96,6 +108,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             transContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
             this._add( transContainer );
         },
+        
         
         /**
          * Initialize the preset colors.
@@ -128,6 +141,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this._add( presetContainer );
         },
         
+        
         /**
          * Initialize the color preview.
          */
@@ -139,6 +153,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this.m_preview.setHeight( 20 );
             this._add( this.m_preview );
         },
+        
         
         /**
          * Returns true if the user has selected blue.
@@ -152,6 +167,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             return blueSelected;
         },
         
+        
         /**
          * Returns true if the user has selected green.
          * @return {boolean} - true if the user has selected green; false otherwise.
@@ -164,6 +180,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             return greenSelected;
         },
         
+        
         /**
          * Returns true if the user has selected red.
          * @return {boolean} - true if the user has selected red; false otherwise.
@@ -175,6 +192,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             }
             return redSelected;
         },
+        
         
         /**
          * Return true if the user has selected white.
@@ -261,33 +279,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this.m_presetNone.setDecorator( this.m_BORDER_NONE );
         },
         
-        /**
-         * Update the selected states of the presets based on the
-         * RGB color values.
-         */
-        _updatePresets : function(){
-            var colorArray = this._getColorAsRGB();
-            var red = colorArray[0];
-            var green = colorArray[1];
-            var blue = colorArray[2];
-            if ( red == 255 && green == 0 && blue == 0 ){
-                this._presetRedSelected();
-            }
-            else if ( red == 0 && green == 255 && blue == 0 ){
-                this._presetGreenSelected();
-            }
-            else if ( red == 0 && green == 0 && blue == 255 ){
-                this._presetBlueSelected();
-            }
-            else if ( red == 255 && green == 255 && blue == 255 ){
-                this._presetNoneSelected();
-            }
-            else {
-                this._presetsNotSelected();
-            }
-            this._setPreviewColor();
-        },
-        
+
         /**
          * Notification that the RGB value of the color mask
          * has changed.
@@ -328,26 +320,9 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             else {
                 this._presetNoneSelected();
             }
-            this.m_transparency.setValue( mask.alpha );
-            this._setControlsEnabled( mask.alphaSupport, mask.colorSupport );
             this.m_serverUpdate = false;
         },
-        
-        /**
-         * Enable/disable mask controls based on the type of filter being applied.
-         * @param enabledTransparency {boolean} - true if a filter supporting transparency
-         *      is being applied; false, otherwise.
-         * @param enabledColor {boolean} - true if a filter supporting color is being
-         *      applied; false, otherwise.
-         */
-        _setControlsEnabled : function( enabledTransparency, enabledColor ){
-            this.m_presetRed.setEnabled( enabledColor );
-            this.m_presetGreen.setEnabled( enabledColor );
-            this.m_presetBlue.setEnabled( enabledColor );
-            this.m_presetNone.setEnabled( enabledColor );
-           
-            this.m_transparency.setEnabled( enabledTransparency );
-        },
+       
         
         /**
          * Set the id of the server-side object that handles mask information.
@@ -370,6 +345,34 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this.m_preview.setBackgroundColor( hexStr );
             this.m_preview.setOpacity( alphaNorm );
         },
+        
+        /**
+         * Update the selected states of the presets based on the
+         * RGB color values.
+         */
+        _updatePresets : function(){
+            var colorArray = this._getColorAsRGB();
+            var red = colorArray[0];
+            var green = colorArray[1];
+            var blue = colorArray[2];
+            if ( red == 255 && green == 0 && blue == 0 ){
+                this._presetRedSelected();
+            }
+            else if ( red == 0 && green == 255 && blue == 0 ){
+                this._presetGreenSelected();
+            }
+            else if ( red == 0 && green == 0 && blue == 255 ){
+                this._presetBlueSelected();
+            }
+            else if ( red == 255 && green == 255 && blue == 255 ){
+                this._presetNoneSelected();
+            }
+            else {
+                this._presetsNotSelected();
+            }
+            this._setPreviewColor();
+        },
+        
         
         
         m_connector : null,

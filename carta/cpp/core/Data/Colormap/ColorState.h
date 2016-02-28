@@ -27,7 +27,8 @@ class TransformsData;
 class ColorState : public QObject, public Carta::State::CartaObject {
 
     friend class Colormap;
-    friend class ControllerData;
+    friend class Layer;
+    friend class LayerData;
 
     Q_OBJECT
 

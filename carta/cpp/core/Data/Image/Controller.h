@@ -39,7 +39,8 @@ namespace Carta {
 namespace Carta {
 namespace Data {
 class ColorState;
-class ControllerData;
+class Layer;
+class LayerData;
 class DataSource;
 class DisplayControls;
 class DrawStackSynchronizer;
@@ -196,11 +197,11 @@ public:
     std::vector<int> getImageDimensions( ) const;
 
     /**
-     * Returns an identifier for the data source at the given index.
-     * @param index the index of a data source.
-     * @return an identifier for the image.
+     * Returns an identifier for the layer at the given index.
+     * @param index the index of a data layer.
+     * @return an identifier for the layer.
      */
-    QString getImageName(int index) const;
+    QString getLayerId( int index ) const;
 
     /**
      * Return a list of indices indicating the current frames of the selected
@@ -374,8 +375,10 @@ public:
 
     /**
      * Save the state of this controller.
+     * @param flush - true if the state should be flushed to the client; false otherwise
+     *      (for example, when the state change came from the client).
      */
-    void saveState();
+    void saveState( bool flush = true );
 
     /**
      * Set whether or not clip values should be recomputed when the frame changes.
@@ -462,6 +465,14 @@ public:
      *      top layer should be pan/zoomed.
      */
     void setPanZoomAll( bool panZoomAll );
+
+    /**
+     * Group/ungroup the selected layers.
+     * @param grouped - true if the selected layers should be grouped; false if they
+     *  are grouped and should be ungrouped.
+     * @return - an error message if the group/ungroup message could not be performed.
+     */
+    QString setSelectedLayersGrouped( bool grouped );
 
     /**
      * Set whether or not selection of layers in the stack should be based on the
@@ -558,7 +569,7 @@ private slots:
 
     void _colorMapChanged();
 
-    void _contourSetAdded( ControllerData* cData, const QString& setName );
+    void _contourSetAdded( Layer* cData, const QString& setName );
     void _contourSetRemoved( const QString setName );
     void _contoursChanged();
 
@@ -600,6 +611,8 @@ private:
     /// Add an image to the stack from a file.
     bool _addDataImage( const QString& fileName );
 
+    bool _addGroup( const QString& groupState );
+
     //Clear the color map.
     void _clearColorMap();
 
@@ -621,7 +634,7 @@ private:
     int _getIndexCurrent( ) const;
 
     //Get the actual index of the passed in data.
-    int _getIndexData( ControllerData* cd ) const;
+    int _getIndexData( Layer* cd ) const;
 
 
     QString _getPreferencesId() const;
@@ -643,7 +656,9 @@ private:
     //Helper function to render a subset of layers in the stack.  The grid index is
     //the index of the layer in the subset that should draw the grid or -1 if there
     //is no such index.
-    void _render( QList<std::shared_ptr<ControllerData> > datas, int gridIndex );
+    void _render( QList<std::shared_ptr<Layer> > datas, int gridIndex );
+
+    //Save region state.
     void _saveStateRegions();
 
     /**
@@ -666,16 +681,16 @@ private:
      * @param val  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
-    QString _setLayersSelected( const QStringList indices );
+    QString _setLayersSelected( const QStringList indices, bool flush = true );
 
 
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
     void _updateDisplayAxes( int targetIndex );
     void _updatePan( double centerX , double centerY,
-            std::shared_ptr<ControllerData> data);
+            std::shared_ptr<Layer> data);
     void _updateZoom( double centerX, double centerY, double zoomFactor,
-             std::shared_ptr<ControllerData> data );
+             std::shared_ptr<Layer> data );
 
     static bool m_registered;
 
@@ -706,7 +721,7 @@ private:
 
 
     //Data available to and managed by this controller.
-    QList<shared_ptr<ControllerData> > m_datas;
+    QList<shared_ptr<Layer> > m_datas;
 
     std::shared_ptr<ColorState> m_stateColor;
 

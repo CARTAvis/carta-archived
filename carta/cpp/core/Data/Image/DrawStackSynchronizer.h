@@ -22,7 +22,7 @@ namespace Carta {
 namespace Carta {
 namespace Data {
 
-class ControllerData;
+class Layer;
 
 
 class DrawStackSynchronizer: public QObject {
@@ -49,7 +49,7 @@ public:
      * Set the potential data that are layers in the stack if they are visible.
      * @param layers- a list of potential stack layers.
      */
-    void setLayers( QList< std::shared_ptr<ControllerData> > layers);
+    void setLayers( QList< std::shared_ptr<Layer> > layers);
 
     /**
      * Set the top index in the stack.
@@ -80,12 +80,12 @@ private slots:
 
 private:
 
-    void _render( QList<std::shared_ptr<ControllerData> >& datas,
+    void _render( QList<std::shared_ptr<Layer> >& datas,
             std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs, int gridIndex );
 
     //Data View
     std::unique_ptr<Carta::Lib::LayeredRemoteVGView> m_view;
-    QList< std::shared_ptr<ControllerData> > m_layers;
+    QList< std::shared_ptr<Layer> > m_layers;
     bool m_repaintFrameQueued;
 
     int m_renderCount;

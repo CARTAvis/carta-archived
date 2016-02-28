@@ -922,7 +922,7 @@ QStringList ScriptFacade::getImageNames( const QString& controlId ) {
                 resultList = QStringList("");
             }
             for ( int i = 0; i < imageCount; i++ ) {
-                resultList.append( controller->getImageName( i ) );
+                resultList.append( controller->getLayerId( i ) );
             }
         }
         else {

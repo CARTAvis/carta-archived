@@ -25,7 +25,7 @@ class GeneratorState;
 class DataContours : public QObject, public Carta::State::CartaObject {
 
 friend class ContourControls;
-friend class ControllerData;
+friend class LayerData;
 
 Q_OBJECT
 

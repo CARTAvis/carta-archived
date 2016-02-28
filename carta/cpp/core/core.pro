@@ -41,7 +41,9 @@ HEADERS += \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
-    Data/Image/ControllerData.h \
+    Data/Image/LayerGroup.h \
+    Data/Image/Layer.h \
+    Data/Image/LayerData.h \
     Data/Image/Contour/Contour.h \
     Data/Image/Contour/ContourControls.h \
     Data/Image/Contour/ContourGenerateModes.h \
@@ -145,7 +147,9 @@ SOURCES += \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
-    Data/Image/ControllerData.cpp \
+    Data/Image/LayerData.cpp \
+    Data/Image/Layer.cpp \
+    Data/Image/LayerGroup.cpp \
     Data/Image/Contour/Contour.cpp \
     Data/Image/Contour/ContourControls.cpp \
     Data/Image/Contour/ContourGenerateModes.cpp \

@@ -1,5 +1,5 @@
 #include "DrawStackSynchronizer.h"
-#include "Data/Image/ControllerData.h"
+#include "Data/Image/Layer.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "CartaLib/IRemoteVGView.h"
 
@@ -30,7 +30,7 @@ void DrawStackSynchronizer::_repaintFrameNow(){
 
 
 
-void DrawStackSynchronizer::_render( QList<std::shared_ptr<ControllerData> >& datas,
+void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
         std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs, int topIndex ){
     int dataCount = datas.size();
     m_renderCount = 0;
@@ -98,7 +98,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint(){
     QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
 }
 
-void DrawStackSynchronizer::setLayers( QList< std::shared_ptr<ControllerData> > layers){
+void DrawStackSynchronizer::setLayers( QList< std::shared_ptr<Layer> > layers){
     m_layers = layers;
 }
 
