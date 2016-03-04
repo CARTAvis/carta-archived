@@ -1,5 +1,5 @@
 # File: common_config.pri
-# Description: this file contains pointers to all third party software 
+# Description: this file contains pointers to all third party software
 # packages required to build plugins
 
 # you can edit these:
@@ -8,7 +8,7 @@
 CASACOREDIR=../../ThirdParty/casacore-2.10.2016
 ASTLIBDIR = ../../ThirdParty/ast-8.0.2
 WCSLIBDIR=../../ThirdParty/wcslib
-CFITSIODIR=../../ThirdParty/cfitsio-3360-shared
+CFITSIODIR=../../ThirdParty/cfitsio-shared
 IMAGEANALYSISDIR=../../ThirdParty/imageanalysis-2.10.2016
 
 # don't edit these:
