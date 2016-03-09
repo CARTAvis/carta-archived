@@ -24,6 +24,7 @@ QMAKE_EXTRA_COMPILERS += copy_files
 
 unix:macx {
     LIBSTOCOPY += $$files($${PWD}/libs/*.dylib)
+    QMAKE_LFLAGS += -undefined dynamic_lookup
 }
 else{
     LIBSTOCOPY += $$files($${PWD}/libs/*.so)

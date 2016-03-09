@@ -51,6 +51,7 @@ MYFILES = plugin.json
 
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
+    QMAKE_LFLAGS += -undefined dynamic_lookup
 }
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so

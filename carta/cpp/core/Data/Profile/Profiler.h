@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cmath>
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"

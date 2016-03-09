@@ -6,6 +6,7 @@
 
 #include <QString>
 #include <State/StateInterface.h>
+#include <cmath>
 
 #include <QPen>
 
