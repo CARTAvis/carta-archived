@@ -441,10 +441,7 @@ AstGridPlotter::plot()
     // locale so that we can switch back afterwards and minimise impact
     // on the rest of the application.
     
-    char *old_locale, *saved_locale;
-    old_locale = setlocale(LC_NUMERIC, NULL);
-    saved_locale = strdup(old_locale);
-    setlocale(LC_NUMERIC, "C");
+    std::string oldLocale = setlocale(LC_NUMERIC, "C");
 
     // get rid of any ast errors from previous calls, just in case
     astClearStatus;
@@ -587,8 +584,7 @@ AstGridPlotter::plot()
     
     // Restore previous numeric locale
     
-    setlocale (LC_NUMERIC, saved_locale);
-    free(saved_locale);
+    setlocale(LC_NUMERIC, oldLocale.c_str());
 
     return true;
 } // plot
