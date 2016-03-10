@@ -73,7 +73,6 @@ private:
 
     const static QString REGION_TYPE;
     const static QString CORNERS;
-    const static QString REGION_ID;
     const static QString REGION_POLYGON;
     const static QString REGION_ELLIPSE;
     const static QString XCOORD;

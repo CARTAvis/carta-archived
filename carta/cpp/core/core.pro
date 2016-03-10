@@ -42,6 +42,7 @@ HEADERS += \
     Data/Settings.h \
     Data/Image/Controller.h \
     Data/Image/LayerGroup.h \
+    Data/Image/Stack.h \
     Data/Image/Layer.h \
     Data/Image/LayerData.h \
     Data/Image/Contour/Contour.h \
@@ -150,6 +151,7 @@ SOURCES += \
     Data/Image/LayerData.cpp \
     Data/Image/Layer.cpp \
     Data/Image/LayerGroup.cpp \
+    Data/Image/Stack.cpp \
     Data/Image/Contour/Contour.cpp \
     Data/Image/Contour/ContourControls.cpp \
     Data/Image/Contour/ContourGenerateModes.cpp \

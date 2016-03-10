@@ -103,6 +103,11 @@ private:
      */
     void _replicateTo( Carta::State::StateInterface& other );
 
+    /**
+     * Reset the state.
+     * @param stateStr - a string representation for the new state.
+     */
+    void _resetState( const QString& stateStr );
 
     /**
      * Copy the state of this ColorState into the other state.

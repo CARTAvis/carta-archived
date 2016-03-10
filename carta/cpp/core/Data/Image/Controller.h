@@ -10,7 +10,6 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/RegionInfo.h"
-#include "CartaLib/VectorGraphics/VGList.h"
 
 #include <QString>
 #include <QList>
@@ -32,7 +31,6 @@ namespace Carta {
         namespace NdArray {
             class RawViewInterface;
         }
-        class LayeredRemoteVGView;
     }
 }
 
@@ -40,16 +38,14 @@ namespace Carta {
 namespace Data {
 class ColorState;
 class Layer;
-class LayerData;
+class Stack;
 class DataSource;
 class DisplayControls;
-class DrawStackSynchronizer;
 class GridControls;
 class ContourControls;
 class Settings;
 class Region;
 class RegionRectangle;
-class Selection;
 
 class Controller: public QObject, public Carta::State::CartaObject,
     public IPercentIntensityMap {
@@ -194,14 +190,14 @@ public:
     /**
      * Get the image dimensions.
      */
-    std::vector<int> getImageDimensions( ) const;
+    //std::vector<int> getImageDimensions( ) const;
 
     /**
      * Returns an identifier for the layer at the given index.
      * @param index the index of a data layer.
      * @return an identifier for the layer.
      */
-    QString getLayerId( int index ) const;
+    //QString getLayerId( int index ) const;
 
     /**
      * Return a list of indices indicating the current frames of the selected
@@ -378,7 +374,7 @@ public:
      * @param flush - true if the state should be flushed to the client; false otherwise
      *      (for example, when the state change came from the client).
      */
-    void saveState( bool flush = true );
+    //void saveState( bool flush = true );
 
     /**
      * Set whether or not clip values should be recomputed when the frame changes.
@@ -411,24 +407,25 @@ public:
      * @param compMode - the type of composition mode to apply.
      * @return an error message if there was a problem recognizing the composition mode.
      */
-    QString setCompositionMode( const QString& compMode );
+    QString setCompositionMode( const QString& id, const QString& compMode );
 
 
     /**
      * Specify a new image order.
+     * @param groupId - an identifier for the group where the images will be reordered.
      * @param imageIndices - a list specifying a new order for the images in
      *      a layer.
      * @return an error message if the new image order could not be set;
      *      otherwise, an empty string.
      */
-    QString setImageOrder( const std::vector<int>& imageIndices );
+    QString setImageOrder( const QString& groupId, const std::vector<int>& imageIndices );
 
     /**
      * Show/hide a particular layer in the stack.
-     * @param dataIndex - the index of a layer in the stack.
+     * @param id - the identifier for a layer in the stack.
      * @param visible - true if the layer should be visible; false otherwise.
      */
-    QString setImageVisibility( int dataIndex, bool visible );
+    QString setImageVisibility( /*int dataIndex*/const QString& id, bool visible );
 
     /**
      * Set the indices of the selected data sources.
@@ -446,7 +443,7 @@ public:
      */
     //Note: Mask color will not take affect unless a composition mode that supports
     //a color filter has been set.
-    QStringList setMaskColor( int redAmount, int greenAmount, int blueAmount );
+    QStringList setMaskColor( const QString& id, int redAmount, int greenAmount, int blueAmount );
 
     /**
      * Set the transparency of the layer.
@@ -456,7 +453,7 @@ public:
      */
     //Note: Layer transparency will not take affect unless a composition mode which supports
     //transparency has been set.
-    QString setMaskAlpha( int alphaAmount );
+    QString setMaskAlpha( const QString& id, int alphaAmount );
 
     /**
      * Set whether or not a pan/zoom operation should affect all layers in the stack
@@ -580,17 +577,8 @@ private slots:
     //Refresh the view based on the latest data selection information.
     //The parameter newClips is set if the clip values have changed and need to be recomputed.
     void _loadView( bool newClips = false );
-
-    /**
-     * The view has been resized.
-     */
-    void _viewResize();
-
-    /**
-     * Schedule a frame reload event.
-     * @param newClips - set when the clip values have changed and will need to be recomputed.
-     */
-    void _scheduleFrameReload( bool newClips = false );
+    void _loadViewQueued( bool newClips );
+    void _notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis );
 
 
     // Asynchronous result from saveFullImage().
@@ -611,7 +599,7 @@ private:
     /// Add an image to the stack from a file.
     bool _addDataImage( const QString& fileName );
 
-    bool _addGroup( const QString& groupState );
+    //bool _addGroup( const QString& groupState );
 
     //Clear the color map.
     void _clearColorMap();
@@ -623,40 +611,15 @@ private:
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
-    std::vector<int> _getFrameIndices( ) const;
-
-    //Get the data index
-    int _getIndex( const QString& fileName) const;
-
-    //Get the actual data index of the selection with the given index.  This method
-    //takes into account that some images may be hidden, i.e., temporarily not seen
-    //on the stack.
-    int _getIndexCurrent( ) const;
-
-    //Get the actual index of the passed in data.
-    int _getIndexData( Layer* cd ) const;
-
 
     QString _getPreferencesId() const;
 
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
-    void _initializeSelections();
-    void _loadView( bool newClips, int dataIndex );
+
 
     //QString _makeRegion( const QString& regionType );
-
-    void _removeData( int index );
-
-    //Render all images in the stack
-    void _renderAll();
-    //Render a single image in the stack at the given index
-    void _renderSingle( int dIndex );
-    //Helper function to render a subset of layers in the stack.  The grid index is
-    //the index of the layer in the subset that should draw the grid or -1 if there
-    //is no such index.
-    void _render( QList<std::shared_ptr<Layer> > datas, int gridIndex );
 
     //Save region state.
     void _saveStateRegions();
@@ -678,7 +641,7 @@ private:
     /**
      * Make a frame selection.
      * @param axisType - the axis for which a frame is being set.
-     * @param val  a frame index for the axis.
+     * @param frameIndex  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
     QString _setLayersSelected( const QStringList indices, bool flush = true );
@@ -686,11 +649,7 @@ private:
 
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
-    void _updateDisplayAxes( int targetIndex );
-    void _updatePan( double centerX , double centerY,
-            std::shared_ptr<Layer> data);
-    void _updateZoom( double centerX, double centerY, double zoomFactor,
-             std::shared_ptr<Layer> data );
+    void _updateDisplayAxes( /*int targetIndex*/ );
 
     static bool m_registered;
 
@@ -706,22 +665,16 @@ private:
     static const QString CENTER;
     static const QString POINTER_MOVE;
     static const QString STACK_SELECT_AUTO;
-    static const QString VIEW;
-    static const QString ZOOM;
 
-    //Data Selections
-    Selection* m_selectImage;
-    std::vector<Selection*> m_selects;
+    static const QString ZOOM;
 
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;
-    std::unique_ptr<DrawStackSynchronizer> m_stackDraw;
 
     std::unique_ptr<Settings> m_settings;
 
-
     //Data available to and managed by this controller.
-    QList<shared_ptr<Layer> > m_datas;
+    std::unique_ptr<Stack> m_stack;
 
     std::shared_ptr<ColorState> m_stateColor;
 
@@ -734,8 +687,6 @@ private:
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
-
-    bool m_reloadFrameQueued;
 
     Controller(const Controller& other);
     Controller& operator=(const Controller& other);

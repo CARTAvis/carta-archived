@@ -218,6 +218,7 @@ void ColorState::_replicateTo( ColorState* otherState ){
     }
 }
 
+
 void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
     QString colorMapName = m_state.getValue<QString>(COLOR_MAP_NAME );
     otherState.setValue<QString>(COLOR_MAP_NAME, colorMapName );
@@ -275,6 +276,10 @@ void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
 
     int tabIndex = m_state.getValue<int>( Util::TAB_INDEX );
     otherState.setValue<int>( Util::TAB_INDEX, tabIndex );
+}
+
+void ColorState::_resetState( const QString& stateStr ){
+    m_state.setState( stateStr );
 }
 
 QString ColorState::_setBorderAlpha( int alphaValue ){

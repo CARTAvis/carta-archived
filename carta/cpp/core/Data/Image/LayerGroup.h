@@ -12,31 +12,41 @@ namespace Carta {
 
 namespace Data {
 
-class LayerCompositionModes;
-
 class LayerGroup : public Layer {
-
-friend class Controller;
-friend class DrawStackSynchronizer;
 
 Q_OBJECT
 
 public:
 
-
     static const QString CLASS_NAME;
-
+    static const QString COMPOSITION_MODE;
 
     virtual ~LayerGroup();
 
+signals:
+    void frameChanged(  Carta::Lib::AxisInfo::KnownType axis);
+
+    void viewLoad( bool newClips );
+
 
 protected:
+
+    /**
+     * Add a contour set.
+     * @param contour - the contour set to add.
+     */
+    virtual void _addContourSet( std::shared_ptr<DataContours> contour );
+
+    virtual bool _addData(const QString& fileName /*, std::shared_ptr<ColorState> state*/);
+
+    virtual bool _addGroup( /*const QString& state*/ );
 
     /**
      * Remove the color map.
      */
     virtual void _clearColorMap() Q_DECL_OVERRIDE;
 
+    virtual bool _closeData( const QString& id ) Q_DECL_OVERRIDE;
 
     /**
      * Respond to a change in display axes.
@@ -46,17 +56,22 @@ protected:
     virtual void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes,
             const std::vector<int>& frames ) Q_DECL_OVERRIDE;
 
-    /**
-     * Return the current pan center.
-     * @return the centered image location.
-     */
-    virtual QPointF _getCenter() const Q_DECL_OVERRIDE;
+    virtual Carta::Lib::AxisInfo::KnownType _getAxisType( int index ) const Q_DECL_OVERRIDE;
+    virtual Carta::Lib::AxisInfo::KnownType _getAxisXType() const Q_DECL_OVERRIDE;
+    virtual Carta::Lib::AxisInfo::KnownType _getAxisYType() const Q_DECL_OVERRIDE;
+    virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const Q_DECL_OVERRIDE;
+    virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const Q_DECL_OVERRIDE;
+
+    virtual QPointF _getCenterPixel() const Q_DECL_OVERRIDE;
 
     /**
      * Return the mode used to composed the layer.
      * @return - a string identifier for the composition mode.
      */
     virtual QString _getCompositionMode() const Q_DECL_OVERRIDE;
+
+    virtual std::shared_ptr<DataContours> _getContour( const QString& name );
+
 
     /**
      * Return the coordinates at pixel (x, y) in the given coordinate system.
@@ -91,7 +106,7 @@ protected:
      * @return - the data source of the image.
      */
     virtual std::shared_ptr<DataSource> _getDataSource() Q_DECL_OVERRIDE;
-
+    virtual std::vector< std::shared_ptr<DataSource> > _getDataSources() Q_DECL_OVERRIDE;
 
     /**
      * Return the image size for the given coordinate index.
@@ -105,7 +120,7 @@ protected:
      * Return the number of dimensions in the image.
      * @return the number of image dimensions.
      */
-    virtual int _getDimensions() const Q_DECL_OVERRIDE;
+    virtual int _getDimension() const Q_DECL_OVERRIDE;
 
 
     /**
@@ -122,6 +137,7 @@ protected:
       * Returns the underlying image.
       */
     virtual std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage() Q_DECL_OVERRIDE;
+    virtual std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > _getImages() Q_DECL_OVERRIDE;
 
     /**
      * Returns the location on the image corresponding to a screen point in
@@ -131,6 +147,7 @@ protected:
      * @return the corresponding location on the image.
      */
     virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const Q_DECL_OVERRIDE;
+    virtual int _getIndexCurrent( ) const;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -188,6 +205,7 @@ protected:
     virtual QString _getPixelValue( double x, double y,
             const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
 
+    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() Q_DECL_OVERRIDE;
 
     /**
      * Returns the location on the screen corresponding to a location in image coordinates.
@@ -197,12 +215,14 @@ protected:
      */
     virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const Q_DECL_OVERRIDE;
 
+    int _getStackSize() const;
+    int _getStackSizeVisible() const;
+
     /**
      * Return the state of this layer.
      * @return - a string representation of the layer state.
      */
     virtual QString _getStateString() const Q_DECL_OVERRIDE;
-
 
     /**
      * Return the zoom factor for this image.
@@ -211,17 +231,23 @@ protected:
     virtual double _getZoom() const Q_DECL_OVERRIDE;
 
 
-    virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
+    virtual void _gridChanged( const Carta::State::StateInterface& state ) Q_DECL_OVERRIDE;
 
     /**
-        * Return a QImage representation of this data.
-        * @param frames - a list of frames to load, one for each of the known axis types.
-        * @param autoClip true if clips should be automatically generated; false otherwise.
-        * @param clipMinPercentile the minimum clip value.
-        * @param clipMaxPercentile the maximum clip value.
-        */
+     * Return a QImage representation of this data.
+     * @param frames - a list of frames to load, one for each of the known axis types.
+     * @param autoClip true if clips should be automatically generated; false otherwise.
+     * @param clipMinPercentile the minimum clip value.
+     * @param clipMaxPercentile the maximum clip value.
+     */
     virtual void _load( vector<int> frames, bool autoClip, double clipMinPercentile,
                double clipMaxPercentile ) Q_DECL_OVERRIDE;
+
+    /**
+     * Remove the contour set from this layer.
+     * @param contourSet - the contour set to remove from the layer.
+     */
+    virtual void _removeContourSet( std::shared_ptr<DataContours> contourSet ) Q_DECL_OVERRIDE;
 
     /**
      * Generate a new QImage.
@@ -231,7 +257,7 @@ protected:
     virtual void _render( const std::vector<int>& frames,
             const Carta::Lib::KnownSkyCS& cs, bool topOfStack ) Q_DECL_OVERRIDE;
 
-
+    void _render( QList<std::shared_ptr<Layer> > datas, int gridIndex );
 
     /**
      * Center the image.
@@ -239,7 +265,7 @@ protected:
     virtual void _resetPan() Q_DECL_OVERRIDE;
 
     /**
-         * Reset the prefereence state of this layer.
+         * Reset the preference state of this layer.
          * @param restoreState - the new layer state.
          */
     virtual void _resetState( const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
@@ -249,12 +275,28 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
+
+    /**
+     * Save a copy of the full image in the current image view.
+     * @param saveName the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @param frames - list of image frames.
+     * @return an error message if there was a problem saving the image.
+     */
+    virtual QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames );
+
+    /**
+     * Reset the color map information for this data.
+     * @param colorState - stored information about the color map.
+     */
+    virtual void _setColorMapGlobal( std::shared_ptr<ColorState> colorState ) Q_DECL_OVERRIDE;
+
     /**
      * Set the mode used to compose this layer.
      * @param compositionMode - the mode used to compose this layer.
      * @param errorMsg - a error message if the composition mode was not successfully set.
      */
-    virtual bool _setCompositionMode( const QString& compositionMode,
+    virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg ) Q_DECL_OVERRIDE;
 
     /**
@@ -263,6 +305,11 @@ protected:
      */
     virtual void _setId( const QString& id ) Q_DECL_OVERRIDE;
 
+    virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
+
+    virtual bool _setMaskColor( const QString& id, int redAmount,
+                int greenAmount, int blueAmount );
+
     /**
      * Set this data source selected.
      * @param selected - true if the data source is selected; false otherwise.
@@ -270,10 +317,20 @@ protected:
      */
     virtual bool _setSelected( const QStringList& names ) Q_DECL_OVERRIDE;
 
+
     /**
      * Reset the default mask color.
      */
     virtual void _setMaskColorDefault() Q_DECL_OVERRIDE;
+
+    /**
+     * Set the opacity of the mask.
+     * @param alphaAmount - the transparency level in [0,255] with 255 being opaque.
+     * @param result - an error message if there was a problem setting the mask opacity or
+     *      an empty string otherwise.
+     * @return - true if the mask opacity was changed; false otherwise.
+     */
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount);
 
     /**
      * Reset the default mask transparency.
@@ -286,6 +343,12 @@ protected:
      * @param imgY the y-coordinate of the center.
      */
     virtual void _setPan( double imgX, double imgY ) Q_DECL_OVERRIDE;
+
+    /**
+     * Show/hide this layer.
+     * @param visible - true to show the layer; false to hide it.
+     */
+    virtual bool _setVisible( const QString& id, bool visible ) Q_DECL_OVERRIDE;
 
     /**
      * Set the zoom factor for this image.
@@ -302,6 +365,16 @@ protected:
      */
     virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
 
+    /**
+     *  Constructor.
+     */
+    LayerGroup( const QString& path, const QString& id );
+    LayerGroup(const QString& className, const QString& path, const QString& id);
+
+    static const QString LAYERS;
+
+    QList<std::shared_ptr<Layer> > m_children;
+
 
 protected slots:
 
@@ -312,27 +385,19 @@ private:
 
     void _addLayer( std::shared_ptr<Layer> layer );
 
-
     //Get a default name based on the id of the group.
     QString _getDefaultName( const QString& id ) const;
 
+    int _getIndex( const QString& fileName) const;
 
     void _initializeState();
 
-
-    /**
-     *  Constructor.
-     */
-    LayerGroup( const QString& path, const QString& id );
+    void _removeData( int index );
 
     class Factory;
     static bool m_registered;
-    static const QString COMPOSITION_MODE;
+
     static const QString GROUP;
-
-
-    QList<std::shared_ptr<Layer> > m_children;
-
 
     LayerGroup(const LayerGroup& other);
     LayerGroup& operator=(const LayerGroup& other);

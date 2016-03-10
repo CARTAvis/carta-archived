@@ -31,7 +31,6 @@ public:
     }
 };
 
-const QString Layout::ID = "id";
 const QString Layout::LAYOUT = "Layout";
 const QString Layout::LAYOUT_NODE = "layoutNode";
 const QString Layout::LAYOUT_ROWS = "rows";
@@ -215,9 +214,9 @@ void Layout::_initializeCommands(){
 
     addCommandCallback( "addWindow", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = { ID, POSITION };
+            std::set<QString> keys = { Util::ID, POSITION };
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QStringList windowIds = dataValues[ID].split( ' ');
+            QStringList windowIds = dataValues[Util::ID].split( ' ');
             QString result = addWindow( windowIds, dataValues[POSITION] );
             Util::commandPostProcess( result );
             return result;
@@ -225,9 +224,9 @@ void Layout::_initializeCommands(){
 
     addCommandCallback( "removeWindow", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = { ID };
+            std::set<QString> keys = { Util::ID };
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString result = _removeWindow( dataValues[ID] );
+            QString result = _removeWindow( dataValues[Util::ID] );
             Util::commandPostProcess( result );
             return result;
         });

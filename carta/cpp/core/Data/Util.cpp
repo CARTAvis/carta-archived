@@ -17,6 +17,7 @@ const QString Util::PREFERENCES = "preferences";
 const QString Util::RED = "red";
 const QString Util::BLUE = "blue";
 const QString Util::GREEN = "green";
+const QString Util::ID = "id";
 const QString Util::NAME = "name";
 const QString Util::PEN_WIDTH = "width";
 const QString Util::TAB_INDEX = "tabIndex";

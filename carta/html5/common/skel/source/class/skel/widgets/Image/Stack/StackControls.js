@@ -77,8 +77,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             if ( val ){
                 try {
                     var controls = JSON.parse( val );
-                    this.m_datas = controls.data;
-                    this.m_imageTree._updateTree( controls.data );
+                    this.m_datas = controls.layers;
+                    this.m_imageTree._updateTree( controls.layers );
                     this._updateSettings();
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
@@ -167,10 +167,19 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         _registerControlsData : function(){
             var path = skel.widgets.Path.getInstance();
-            var dataPath = this.m_id + path.SEP + path.DATA;
-            this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
-            this.m_sharedVarData.addCB(this._controlsDataChangedCB.bind(this));
-            this._controlsDataChangedCB();
+            var cmd = this.m_id + path.SEP_COMMAND + "registerStack";
+            var params = "";
+            this.m_connector.sendCommand( cmd, params, this._registrationCallback( this));
+        },
+        
+        /**
+         * Callback for when the registration is complete and an id is available.
+         * @param anObject {skel.widgets.Image.Stack.StackControls}.
+         */
+        _registrationCallback : function( anObject ){
+            return function( id ){
+                anObject._setStackId( id );
+            };
         },
         
         /**
@@ -242,6 +251,16 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             var cmd = this.m_id + path.SEP_COMMAND + "setStackSelectAuto";
             this.m_connector.sendCommand( cmd, params, function(){});
         },
+        
+        /**
+         * Set the identifier for the server-side object managing the stack.
+         * @param id {String} - the server-side id of the object managing the stack.
+         */
+        _setStackId : function( id ){
+                this.m_sharedVarData = this.m_connector.getSharedVar( id );
+                this.m_sharedVarData.addCB(this._controlsDataChangedCB.bind(this));
+                this._controlsDataChangedCB();
+        },
 
         /**
          * Send a command to the server to get the stack control id.
@@ -303,7 +322,9 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 }
             }
             var settings = this.m_imageTree.getSelectedSettings();
-            this.m_maskControls.setSettings( settings );
+            if ( settings !== null ){
+                this.m_maskControls.setSettings( settings );
+            }
         },
         
 

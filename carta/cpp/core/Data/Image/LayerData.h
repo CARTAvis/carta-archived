@@ -50,6 +50,7 @@ class DataSource;
 class LayerData : public Layer {
 
 friend class Controller;
+friend class LayerGroup;
 friend class DrawStackSynchronizer;
 
 Q_OBJECT
@@ -73,6 +74,11 @@ protected:
     virtual void _addContourSet( std::shared_ptr<DataContours> contour );
 
     /**
+        * Remove the color map.
+        */
+       virtual void _clearColorMap();
+
+    /**
          * Return a list of information about the axes to display.
          * @return a list showing information about which axes should be displayed and how
          *  they should be displayed.
@@ -94,11 +100,10 @@ protected:
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const Q_DECL_OVERRIDE;
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const Q_DECL_OVERRIDE;
 
-    /**
-     * Return the current pan center.
-     * @return the centered image location.
-     */
-    virtual QPointF _getCenter() const Q_DECL_OVERRIDE;
+    virtual QPointF _getCenterPixel() const Q_DECL_OVERRIDE;
+
+    virtual std::shared_ptr<ColorState> _getColorState() Q_DECL_OVERRIDE;
+
 
     /**
          * Return the contour set with the indicated name.
@@ -148,6 +153,8 @@ protected:
      */
     virtual std::shared_ptr<DataSource> _getDataSource() Q_DECL_OVERRIDE;
 
+    virtual std::vector< std::shared_ptr<DataSource> > _getDataSources() Q_DECL_OVERRIDE;
+
     /**
      * Return the image size for the given coordinate index.
      * @param coordIndex an index of a coordinate of the image.
@@ -160,7 +167,7 @@ protected:
      * Return the number of dimensions in the image.
      * @return the number of image dimensions.
      */
-    virtual int _getDimensions() const Q_DECL_OVERRIDE;
+    virtual int _getDimension() const Q_DECL_OVERRIDE;
 
 
     /**
@@ -179,6 +186,7 @@ protected:
       * Returns the underlying image.
       */
      virtual std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage() Q_DECL_OVERRIDE;
+     //virtual std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > _getImages() Q_DECL_OVERRIDE;
 
 
      /**
@@ -234,6 +242,8 @@ protected:
      */
     virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const Q_DECL_OVERRIDE;
 
+    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() Q_DECL_OVERRIDE;
+
     /**
          * Return the state of this layer.
          * @return - a string representation of the layer state.
@@ -269,6 +279,17 @@ protected:
      * Reset the zoom to the original value.
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
+
+
+    /**
+     * Save a copy of the full image in the current image view.
+     * @param saveName the full path where the file is to be saved.
+     * @param scale the scale (zoom level) of the saved image.
+     * @param frames - list of image frames.
+     * @return an error message if there was a problem saving the image.
+     */
+    virtual QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames );
+
 
     /**
         * Returns whether or not the data was successfully loaded.
@@ -345,7 +366,13 @@ protected:
          */
     virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
 
+    /**
+     * Reset the color map information for this data.
+     * @param colorState - stored information about the color map.
+     */
+    virtual void _setColorMapGlobal( std::shared_ptr<ColorState> colorState ) Q_DECL_OVERRIDE;
 
+    virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
 
     /**
      * Set the opacity of the mask.
@@ -354,7 +381,7 @@ protected:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    virtual bool _setMaskAlpha( int alphaAmount, QString& result );
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount );
 
     virtual void _setMaskAlphaDefault();
 
@@ -367,8 +394,8 @@ protected:
      *      mask color; an empty string otherwise.
      * @return - true if the mask color was changed; false otherwise.
      */
-    virtual bool _setMaskColor( int redAmount,
-            int greenAmount, int blueAmount, QStringList& result );
+    virtual bool _setMaskColor( const QString& id, int redAmount,
+            int greenAmount, int blueAmount );
 
     virtual void _setMaskColorDefault();
 
@@ -390,12 +417,13 @@ protected:
     virtual void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
                 double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) Q_DECL_OVERRIDE;
 
+
+    virtual void _updateColor() Q_DECL_OVERRIDE;
+
     /**
      * Resize the view of the image.
      */
     virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
-
-    virtual void _updateColor() Q_DECL_OVERRIDE;
 
 
 
@@ -451,6 +479,7 @@ private:
 
      /// image-and-grid-service result synchronizer
     std::unique_ptr<DrawSynchronizer> m_drawSync;
+    std::shared_ptr<ColorState> m_stateColor;
 
     LayerData(const LayerData& other);
     LayerData& operator=(const LayerData& other);

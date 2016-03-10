@@ -26,22 +26,16 @@ class RawViewInterface;
 }
 }
 namespace Core {
-namespace ImageRenderService {
-class Service;
-}
 namespace ImageSaveService {
 class ImageSaveService;
 }
 }
 
 
-
 namespace Data {
 
 class ColorState;
-class DrawSynchronizer;
 class DataContours;
-class DataGrid;
 class DataSource;
 class LayerCompositionModes;
 
@@ -49,6 +43,7 @@ class Layer : public QObject, public Carta::State::CartaObject {
 
     friend class Controller;
     friend class LayerGroup;
+    friend class Stack;
     friend class DrawStackSynchronizer;
 
     Q_OBJECT
@@ -81,12 +76,14 @@ protected:
      * Add a contour set.
      * @param contour - the contour set to add.
      */
-    virtual void _addContourSet( std::shared_ptr<DataContours> contour );
+    virtual void _addContourSet( std::shared_ptr<DataContours> contour ) = 0;
 
     /**
      * Remove the color map.
      */
     virtual void _clearColorMap();
+
+    virtual bool _closeData( const QString& id );
 
     /**
      * Respond to a change in display axes.
@@ -96,17 +93,19 @@ protected:
     virtual void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes,
             const std::vector<int>& frames ) = 0;
 
-    virtual Carta::Lib::AxisInfo::KnownType _getAxisType( int index ) const;
-    virtual Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
-    virtual Carta::Lib::AxisInfo::KnownType _getAxisYType() const;
-    virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
-    virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
+    virtual Carta::Lib::AxisInfo::KnownType _getAxisType( int index ) const = 0;
+    virtual Carta::Lib::AxisInfo::KnownType _getAxisXType() const = 0;
+    virtual Carta::Lib::AxisInfo::KnownType _getAxisYType() const = 0;
+    virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const = 0;
+    virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const = 0;
+
+    virtual QPointF _getCenterPixel() const = 0;
 
     /**
-     * Return the current pan center.
-     * @return the centered image location.
+     * Return stored information about the color map.
+     * @return - information about the color map.
      */
-    virtual QPointF _getCenter() const = 0;
+    virtual std::shared_ptr<ColorState> _getColorState();
 
     /**
      * Return the mode used to composed the layer.
@@ -119,7 +118,7 @@ protected:
      * @return - the corresponding contour set with the designated name or a nullptr
      *  if no such set exists.
      */
-    virtual std::shared_ptr<DataContours> _getContour( const QString& name );
+    virtual std::shared_ptr<DataContours> _getContour( const QString& name ) = 0;
 
     /**
      * Return all contour sets for this particular layer.
@@ -161,6 +160,8 @@ protected:
      */
     virtual std::shared_ptr<DataSource> _getDataSource() = 0;
 
+    virtual std::vector< std::shared_ptr<DataSource> > _getDataSources() = 0;
+
 
     /**
      * Return the image size for the given coordinate index.
@@ -173,7 +174,7 @@ protected:
      * Return the number of dimensions in the image.
      * @return the number of image dimensions.
      */
-    virtual int _getDimensions() const = 0;
+    virtual int _getDimension() const = 0;
 
 
     /**
@@ -197,6 +198,7 @@ protected:
      * Returns the underlying image.
      */
     virtual std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage() = 0;
+    virtual std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > _getImages();
 
     /**
      * Returns the location on the image corresponding to a screen point in
@@ -206,6 +208,7 @@ protected:
      * @return the corresponding location on the image.
      */
     virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const = 0;
+
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -281,6 +284,8 @@ protected:
      */
     virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const = 0;
 
+    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() = 0;
+
 
     /**
      * Return the state of this layer.
@@ -304,6 +309,12 @@ protected:
     virtual bool _isContourDraw() const;
 
     /**
+     * Returns true if this data is selected; false otherwise.
+     * @return true if this data is selected; false otherwise.
+     */
+    bool _isSelected() const;
+
+    /**
      * Return a QImage representation of this data.
      * @param frames - a list of frames to load, one for each of the known axis types.
      * @param autoClip true if clips should be automatically generated; false otherwise.
@@ -317,7 +328,7 @@ protected:
      * Remove the contour set from this layer.
      * @param contourSet - the contour set to remove from the layer.
      */
-    virtual void _removeContourSet( std::shared_ptr<DataContours> contourSet );
+    virtual void _removeContourSet( std::shared_ptr<DataContours> contourSet ) = 0;
 
 
     /**
@@ -328,12 +339,10 @@ protected:
     virtual void _render( const std::vector<int>& frames,
             const Carta::Lib::KnownSkyCS& cs, bool topOfStack ) = 0;
 
-
     /**
      * Center the image.
      */
-    virtual void _resetPan() = 0;
-
+    virtual void _resetPan( ) = 0;
 
     /**
      * Reset the prefereence state of this layer.
@@ -350,14 +359,21 @@ protected:
     /**
      * Reset the zoom to the original value.
      */
-    virtual void _resetZoom() = 0;
+    virtual void _resetZoom( ) = 0;
+
+    /**
+     * Reset the color map information for this data.
+     * @param colorState - stored information about the color map.
+     */
+    virtual void _setColorMapGlobal( std::shared_ptr<ColorState> colorState ) = 0;
 
     /**
      * Set the mode used to compose this layer.
+     * @param id - the identifier for the layer group where the composition mode will change.
      * @param compositionMode - the mode used to compose this layer.
      * @param errorMsg - a error message if the composition mode was not successfully set.
      */
-    virtual bool _setCompositionMode( const QString& compositionMode,
+    virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg );
 
     /**
@@ -372,6 +388,9 @@ protected:
      * @param id - the layer identifier.
      */
     virtual void _setId( const QString& id );
+    virtual QString _setImageOrder( const QString& groupId, const std::vector<int>& indices );
+
+    virtual bool _setLayersGrouped( bool grouped ) = 0;
 
     /**
      * Set the color to use for the mask.
@@ -382,8 +401,8 @@ protected:
      *      mask color; an empty string otherwise.
      * @return - true if the mask color was changed; false otherwise.
      */
-    virtual bool _setMaskColor( int redAmount,
-            int greenAmount, int blueAmount, QStringList& result );
+    virtual bool _setMaskColor( const QString& id, int redAmount,
+            int greenAmount, int blueAmount ) = 0;
 
     /**
      * Set the mask color back to its default value.
@@ -397,7 +416,7 @@ protected:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    virtual bool _setMaskAlpha( int alphaAmount, QString& result );
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount ) = 0;
 
     /**
      * Set the mask transparency back to its default value.
@@ -420,6 +439,12 @@ protected:
     virtual bool _setSelected( const QStringList& selectNames );
 
     /**
+     * Show/hide this layer.
+     * @param visible - true to show the layer; false to hide it.
+     */
+    virtual bool _setVisible( const QString& id, bool visible );
+
+    /**
      * Set the zoom factor for this image.
      * @param zoomFactor the zoom multiplier.
      */
@@ -430,25 +455,22 @@ protected:
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) = 0;
 
     virtual void _updateColor();
+
     /**
      * Resize the view of the image.
      */
     virtual void _viewResize( const QSize& newSize ) = 0;
-
 
     /**
      *  Constructor.
      */
     Layer( const QString& className, const QString& path, const QString& id );
 
-    static const QString LAYER_ID;
     static const QString LAYER_NAME;
     static const QString GROUP;
     static const QString LAYER;
-
     static const QString SELECTED;
 
-    std::shared_ptr<ColorState> m_stateColor;
     QImage m_qimage;
     Carta::Lib::VectorGraphics::VGList m_vectorGraphics;
     static LayerCompositionModes* m_compositionModes;
@@ -456,21 +478,12 @@ protected:
 protected slots:
     virtual void _colorChanged();
 
-
-
 private slots:
     // Asynchronous result from saveFullImage().
     void _saveImageResultCB( bool result );
 
 
 private:
-
-
-    /**
-     * Return stored information about the color map.
-     * @return - information about the color map.
-     */
-    std::shared_ptr<ColorState> _getColorState();
 
     QString _getLayerName() const;
 
@@ -497,13 +510,6 @@ private:
     bool _isMatch( const QString& name ) const;
 
     /**
-     * Returns true if this data is selected; false otherwise.
-     * @return true if this data is selected; false otherwise.
-     */
-    bool _isSelected() const;
-
-
-    /**
      * Returns true if this layer is not hidden; false otherwise.
      * @return true if the layer is visible; false otherwise.
      */
@@ -522,20 +528,7 @@ private:
      * @param frames - list of image frames.
      * @return an error message if there was a problem saving the image.
      */
-    QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames );
-
-    /**
-     * Reset the color map information for this data.
-     * @param colorState - stored information about the color map.
-     */
-    void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
-
-    /**
-     * Show/hide this layer.
-     * @param visible - true to show the layer; false to hide it.
-     */
-    void _setVisible( bool visible );
-
+    virtual QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames ) = 0;
 
     /// Saves images
     Carta::Core::ImageSaveService::ImageSaveService *m_saveService;

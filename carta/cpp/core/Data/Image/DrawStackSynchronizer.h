@@ -27,7 +27,7 @@ class Layer;
 
 class DrawStackSynchronizer: public QObject {
 
-    friend class Controller;
+    friend class Stack;
 
     Q_OBJECT
 

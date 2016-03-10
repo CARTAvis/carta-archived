@@ -117,6 +117,7 @@ public:
      static const QString RED;
      static const QString GREEN;
      static const QString BLUE;
+     static const QString ID;
      static const QString NAME;
      static const QString PEN_WIDTH;
      static const QString TAB_INDEX;

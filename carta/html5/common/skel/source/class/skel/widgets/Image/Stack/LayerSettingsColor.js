@@ -72,7 +72,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
         
         /**
          * Return an identifier for the type of layer settings.
-         * @return - an identifier for the type of layer settings.
+         * @return {String} - an identifier for the type of layer settings.
          */
         getType : function(){
             return skel.widgets.Image.Stack.LayerSettingsColor.TYPE;

@@ -349,11 +349,10 @@ void ViewManager::_initCallbacks(){
     //Callback for adding a data source to a Controller.
     addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString ID( "id");
         const QString DATA( "data");
-        std::set<QString> keys = {ID,DATA};
+        std::set<QString> keys = {Util::ID,DATA};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        loadFile( dataValues[ID], dataValues[DATA]);
+        loadFile( dataValues[Util::ID], dataValues[DATA]);
         return "";
     });
 
