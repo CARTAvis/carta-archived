@@ -83,6 +83,12 @@ qx.Class.define("skel.widgets.Window.WindowFactory",{
                 else if ( pluginId == path.HISTOGRAM_PLUGIN ){
                     window = new skel.widgets.Window.DisplayWindowHistogram( index, detached );
                 }
+                else if ( pluginId == path.STATISTICS ){
+                    window = new skel.widgets.Window.DisplayWindowStatistics( index, detached );
+                }
+                else if ( pluginId == path.PROFILE ){
+                    window = new skel.widgets.Window.DisplayWindowProfile( index, detached );
+                }
                 else {
                     window = new skel.widgets.Window.DisplayWindowGenericPlugin( pluginId, index, detached );
                 }

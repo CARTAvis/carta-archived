@@ -15,8 +15,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
      * Constructor.
      */
     construct : function(index, detached) {
-        console.log( "DisplayWindowImage constructed", index, detached);
-        window.imgwin = this;
         this.base(arguments, skel.widgets.Path.getInstance().CASA_LOADER, index, detached );
         this.m_links = [];
         this.m_viewContent = new qx.ui.container.Composite();
@@ -96,6 +94,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         getDatas : function(){
             return this.m_datas;
+        },
+        
+        /**
+         * Return a list of regions in the image.
+         * @return {Array} - a list of regions in the image.
+         */
+        getRegions : function(){
+            return this.m_regions;
         },
         
         /**
@@ -289,13 +295,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 try {
                     var winObj = JSON.parse( val );
                     this.m_datas = [];
+                    this.m_regions = [];
                     //Add close menu buttons for all the images that are loaded.
                     var dataObjs = winObj.data;
+                    var regionObjs = winObj.regions;
                     var visibleData = false;
                     if ( dataObjs ){
                         for ( var j = 0; j < dataObjs.length; j++ ){
                             if ( dataObjs[j].visible ){
                                 visibleData = true;
+                                break;
                             }
                         }
                     }
@@ -311,6 +320,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         //No images to show so set the view hidden.
                         if ( this.m_view !== null ){
                             this.m_view.setVisibility( "hidden" );
+                        }
+                    }
+                    if ( regionObjs ){
+                        for ( i = 0; i < regionObjs.length; i++ ){
+                            var regionId = regionObjs[i].id;
+                            var regionType = regionObjs[i].regionType;
+                            var vertices = regionObjs[i].corners;
+                            this.m_regions[i] = new skel.widgets.Image.Region( regionId, regionType, vertices );
                         }
                     }
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
@@ -340,7 +357,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
             var path = skel.widgets.Path.getInstance();
-            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +"data" );
+            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +path.DATA );
             this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
             this._sharedVarDataCB();
             this._initStatistics();
@@ -369,6 +386,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_renderButton : null,
         m_drawCanvas : null,
         m_datas : [],
+        m_regions : [],
         m_sharedVarData : null,
        
         m_view : null,

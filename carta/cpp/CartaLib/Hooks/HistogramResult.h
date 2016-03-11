@@ -4,24 +4,19 @@
 #pragma once
 #include <QString>
 #include <vector>
+#include "Plot2DResult.h"
 
 namespace Carta{
 namespace Lib{
 
 namespace Hooks {
 
-class HistogramResult {
+class HistogramResult : public Plot2DResult {
   
 
   public:
-  	HistogramResult( const QString name="", const QString units="",
+  	HistogramResult( const QString name="", const QString unitsX="", const QString unitsY="",
   		std::vector<std::pair<double,double>> data = std::vector<std::pair<double,double>>());
-
-  	/**
-     * Returns the (intensity,count) pairs representing the histogram data.
-     * @return a vector containing (intensity,count) pairs.
-     */
-    std::vector<std::pair<double,double>> getData() const;
 
     /**
      * Returns the minimum frequency for a range selection.
@@ -35,17 +30,7 @@ class HistogramResult {
      */
     double getFrequencyMax() const;
 
-  	/**
-  	 * Returns a user-friendly name for the data displayed in the histogram.
-  	 * @return a user friendly name for the histogram data.
-  	 */
-    QString getName() const;
 
-    /**
-     * Returns the intensity (x-units) of the data.
-     * @return the intensity units.
-     */
-    QString getUnits() const;
 
     /**
      * Sets the frequency range for a channels in the cube.
@@ -54,14 +39,11 @@ class HistogramResult {
      */
     void setFrequencyBounds( double minFreq, double maxFreq );
 
-    ~HistogramResult(){}
+    virtual ~HistogramResult(){}
 
   private:
-      QString m_name;
-      QString m_units;
       double m_frequencyMin;
       double m_frequencyMax;
-      std::vector<std::pair<double,double>> m_data;
 };
 }
 }

@@ -399,7 +399,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
     //qDebug() << pixelAxis << "-->" << coord << "," << coord2;
     //qDebug() << "   "
     //         << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
-
+    
     AxisInfo & aInfo = m_axisInfos[pixelAxis];
 
     // default will be unknown axis

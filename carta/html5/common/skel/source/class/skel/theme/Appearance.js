@@ -56,6 +56,20 @@ qx.Theme.define( "skel.theme.Appearance", {
                 };
             }
         },
+        
+        "fakeButton": {
+            style: function( states )
+            {
+                return {
+                    margin         : [ 2, 2, 2, 2 ],
+                    padding        : [ 2, 2, 2, 2 ],
+                    textColor : "black",
+                    backgroundColor: "dialogBackground",
+                    decorator      : "button"
+
+                };
+            }
+        },
 
         "invisible-button": {
             style: function( states )

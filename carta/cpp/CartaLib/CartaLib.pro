@@ -14,8 +14,13 @@ SOURCES += \
     HtmlString.cpp \
     LinearMap.cpp \
     Hooks/ColormapsScalar.cpp \
+    Hooks/ConversionIntensityHook.cpp \
+    Hooks/ConversionSpectralHook.cpp \
     Hooks/Histogram.cpp \
     Hooks/HistogramResult.cpp \
+    Hooks/ImageStatisticsHook.cpp \
+    Hooks/LoadRegion.cpp \
+    Hooks/Plot2DResult.cpp \
     IImage.cpp \
     PixelType.cpp \
     Slice.cpp \
@@ -27,6 +32,7 @@ SOURCES += \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
     PWLinear.cpp \
+    StatInfo.cpp \
     VectorGraphics/VGList.cpp \
     VectorGraphics/BetterQPainter.cpp \
     Algorithms/ContourConrec.cpp \
@@ -34,7 +40,8 @@ SOURCES += \
     ContourSet.cpp \
     Algorithms/LineCombiner.cpp \
     IImageRenderService.cpp \
-    IRemoteVGView.cpp
+    IRemoteVGView.cpp \
+    RegionInfo.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -42,9 +49,14 @@ HEADERS += \
     HtmlString.h \
     LinearMap.h \
     Hooks/ColormapsScalar.h \
+    Hooks/ConversionIntensityHook.h \
+    Hooks/ConversionSpectralHook.h \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \
     Hooks/HookIDs.h \
+    Hooks/ImageStatisticsHook.h \
+    Hooks/LoadRegion.h \
+    Hooks/Plot2DResult.h \
     IPlugin.h \
     IImage.h \
     PixelType.h \
@@ -60,6 +72,7 @@ HEADERS += \
     PixelPipeline/IPixelPipeline.h \
     PixelPipeline/CustomizablePixelPipeline.h \
     PWLinear.h \
+    StatInfo.h \
     VectorGraphics/VGList.h \
     Hooks/GetWcsGridRenderer.h \
     Hooks/LoadPlugin.h \
@@ -73,7 +86,8 @@ HEADERS += \
     Hooks/Initialize.h \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
-    IRemoteVGView.h
+    IRemoteVGView.h \
+    RegionInfo.h
 
 unix {
     target.path = /usr/lib

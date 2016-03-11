@@ -54,6 +54,11 @@ signals:
 
 private:
 
+    int _getBorderGreen() const;
+    int _getBorderRed() const;
+    int _getBorderBlue() const;
+    int _getBorderTransparency() const;
+
     /**
      * Return the name of the color map.
      * @return - the name of the color map.
@@ -75,7 +80,7 @@ private:
     void _initializeDefaultState( Carta::State::StateInterface& state );
     void _initializeStatics();
 
-
+    bool _isBorderDefault() const;
     bool _isGlobal() const;
     bool _isNanDefault() const;
 
@@ -103,7 +108,9 @@ private:
      * @param other - the ColorState that should be a copy of this one.
      */
     void _replicateTo( ColorState* cState );
-
+    void _setBorderDefault( bool defaultVal );
+    QString _setBorderAlpha( int alphaValue );
+    QString _setBorderColor( int redValue, int greenValue, int blueValue );
 
     /**
      * Set the name of the current color map.
@@ -166,16 +173,17 @@ private:
 
     QString _setNanColor( int redValue, int greenValue, int blueValue );
 
-    bool _setNanColor( const QString& key, int colorAmount, QString& errorMsg );
+    bool _setColor( const QString& key, const QString& majorKey, const QString& userId,
+            int colorAmount, QString& errorMsg );
 
     void _setNanDefault( bool defaultNan );
+
     /**
      * Reverse the current colormap.
      * @param reverse - true if the colormap should be reversed; false otherwise.
      * @return error information if the color map was not successfully reversed.
      */
     void _setReverse( bool reverse );
-
 
     /**
      * Set the number of significant digits to use/display in colormap calculations.
@@ -184,6 +192,14 @@ private:
      *      empty string otherwise.
      */
     QString _setSignificantDigits( int digits );
+
+    /**
+     * Set the index of the tab that should be selected.
+     * @param index - the index of the tab that should be selected.
+     * @return an error message if the tab index could not be set; an empty string
+     *  otherwise.
+     */
+    QString _setTabIndex( int index );
 
 
     static bool m_registered;
@@ -199,6 +215,8 @@ private:
     const static QString SCALE_1;
     const static QString SCALE_2;
     const static QString GAMMA;
+    const static QString BORDER_COLOR;
+    const static QString BORDER_DEFAULT;
     const static QString NAN_COLOR;
     const static QString NAN_DEFAULT;
     const static QString SIGNIFICANT_DIGITS;

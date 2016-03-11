@@ -109,7 +109,6 @@ bool ImageHistogram<T>::compute( ){
 		}
 	}
 	else {
-	    qDebug() << "m_histogram maker was null";
 		success = false;
 	}
 	return success;
@@ -144,12 +143,14 @@ void ImageHistogram<T>::_filterByChannels( const casa::ImageInterface<T>* image 
 
                 casa::Slicer channelSlicer( startPos, endPos, stride, casa::Slicer::endIsLast );
                 casa::ImageInterface<T>* img = new casa::SubImage<T>( *(image), channelSlicer );
-                m_histogramMaker->setNewLattice( *(img) );
+                delete m_histogramMaker;
+                m_histogramMaker = new casa::LatticeHistograms<casa::Float>( *img );
 			}
 		}
 	}
 	else {
-	    m_histogramMaker->setNewLattice( *(image) );
+	    delete m_histogramMaker;
+	    m_histogramMaker = new casa::LatticeHistograms<casa::Float>( *image );
 	}
 }
 
@@ -321,7 +322,12 @@ QString ImageHistogram<T>::getName() const {
 }
 
 template<class T>
-QString ImageHistogram<T>::getUnits() const {
+QString ImageHistogram<T>::getUnitsX() const {
+    return "pixels";
+}
+
+template<class T>
+QString ImageHistogram<T>::getUnitsY() const {
     const casa::Unit pixelUnit = ImageHistogram::m_image->units();
     return pixelUnit.getName().c_str();
 }

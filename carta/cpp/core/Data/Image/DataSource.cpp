@@ -57,7 +57,7 @@ int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceF
     int frameIndex = 0;
     if (m_image ){
         AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( sourceFrameIndex );
-        int axisIndex = _getAxisIndex( axisType );
+        int axisIndex = Util::getAxisIndex( m_image, axisType );
         //The image doesn't have this particular axis.
         if ( axisIndex >=  0 ) {
             //The image has the axis so make the frame bounded by the image size.
@@ -92,20 +92,6 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
     return types;
 }
 
-int DataSource::_getAxisIndex( AxisInfo::KnownType axisType ) const {
-    int index = -1;
-    CoordinateFormatterInterface::SharedPtr cf(
-                           m_image-> metaData()-> coordinateFormatter()-> clone() );
-    int axisCount = cf->nAxes();
-    for ( int i = 0; i < axisCount; i++ ){
-        AxisInfo axisInfo = cf->axisInfo( i );
-        if ( axisInfo.knownType() == axisType ){
-            index = i;
-            break;
-        }
-    }
-    return index;
-}
 
 AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
     AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
@@ -287,7 +273,7 @@ QPointF DataSource::_getScreenPt( QPointF imagePt, bool* valid ) const {
 int DataSource::_getFrameCount( AxisInfo::KnownType type ) const {
     int frameCount = 1;
     if ( m_image ){
-        int axisIndex = _getAxisIndex( type );
+        int axisIndex = Util::getAxisIndex( m_image, type );
 
         std::vector<int> imageShape  = m_image->dims();
         int imageDims = imageShape.size();
@@ -346,7 +332,7 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 
 bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
     bool intensityFound = false;
-    int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL );
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
         Carta::Lib::NdArray::TypedView<double> view( rawData, false );
@@ -381,7 +367,7 @@ QColor DataSource::_getNanColor() const {
 
 double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
-    int spectralIndex = _getAxisIndex( AxisInfo::KnownType::SPECTRAL);
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL);
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
         u_int64_t totalCount = 0;
@@ -705,7 +691,7 @@ void DataSource::_setColorNan( double red, double green, double blue ){
 bool DataSource::_setDisplayAxis( AxisInfo::KnownType axisType, int* axisIndex ){
     bool displayAxisChanged = false;
     if ( m_image ){
-        int newXAxisIndex = _getAxisIndex(axisType);
+        int newXAxisIndex = Util::getAxisIndex(m_image, axisType);
         int imageSize = m_image->dims().size();
         if ( newXAxisIndex >= 0 && newXAxisIndex < imageSize ){
             if ( newXAxisIndex != *axisIndex ){
@@ -721,15 +707,33 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
         const std::vector<int>& frames ){
     int displayAxisCount = displayAxisTypes.size();
     CARTA_ASSERT( displayAxisCount == 2 );
-    bool axisXChanged = _setDisplayAxis( displayAxisTypes[0], &m_axisIndexX );
-    bool axisYChanged = _setDisplayAxis( displayAxisTypes[1], &m_axisIndexY );
+    bool axisXChanged = false;
+    bool axisYChanged = false;
+    //We could have an image with two linear display axes.  In this case, we can't
+    //distinguish by the type of axis as we do below.
+    if ( displayAxisTypes[0] == AxisInfo::KnownType::LINEAR &&
+            displayAxisTypes[1] == AxisInfo::KnownType::LINEAR ){
+        if ( m_axisIndexX != 0 ){
+            m_axisIndexX = 0;
+            axisXChanged = true;
+        }
+        if ( m_axisIndexY != 1 ){
+            m_axisIndexY = 1;
+            axisYChanged = true;
+        }
+    }
+    else {
+        axisXChanged = _setDisplayAxis( displayAxisTypes[0], &m_axisIndexX );
+        axisYChanged = _setDisplayAxis( displayAxisTypes[1], &m_axisIndexY );
+    }
     if ( axisXChanged || axisYChanged ){
         m_permuteImage = _getPermutedImage();
         _resetPan();
         _resizeQuantileCache();
-        std::vector<int> mFrames = _fitFramesToImage( frames );
-        _updateRenderedView( mFrames );
+
     }
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    _updateRenderedView( mFrames );
 }
 
 void DataSource::_setNanDefault( bool nanDefault ){

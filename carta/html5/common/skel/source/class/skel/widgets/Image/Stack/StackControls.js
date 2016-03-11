@@ -60,7 +60,12 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                     var controls = JSON.parse( val );
                     this.m_datas = controls.data;
                     this.m_imageList.setListItems( controls.data );
-                   
+                    for ( var i = 0; i < controls.data.length; i++ ){
+                        if ( controls.data[i].selected ){
+                            this.m_maskControls.setControls( controls.data[i].mask );
+                            break;
+                        }
+                    }
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
                 }
@@ -155,7 +160,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         _registerControlsData : function(){
             var path = skel.widgets.Path.getInstance();
-            var dataPath = this.m_id + path.SEP + "data";
+            var dataPath = this.m_id + path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB(this._controlsDataChangedCB.bind(this));
             this._controlsDataChangedCB();
@@ -197,7 +202,11 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             if ( ! this.m_autoSelectCheck.getValue() ){
                 var indices = this.m_imageList.getSelectedIndices();
                 if ( indices.length > 0 ){
-                    var params = indices.join(";");
+                    var names = [];
+                    for ( var i = 0; i < indices.length; i++ ){
+                        names[i] = this.m_imageList.getText(indices[i]);
+                    }
+                    var params = names.join( ";");
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id + path.SEP_COMMAND + "setLayersSelected";
                     this.m_connector.sendCommand( cmd, params, function(){});

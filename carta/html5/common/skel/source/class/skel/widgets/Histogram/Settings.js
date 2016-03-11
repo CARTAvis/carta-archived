@@ -8,6 +8,7 @@
 
 qx.Class.define("skel.widgets.Histogram.Settings", {
     extend : qx.ui.core.Widget, 
+    include : skel.widgets.MTabMixin,
 
     /**
      * Constructor.
@@ -29,15 +30,17 @@ qx.Class.define("skel.widgets.Histogram.Settings", {
             if ( val ){
                 try {
                     var hist = JSON.parse( val );
-                    if ( this.m_rangePage !== null ){
-                        this.m_rangePage.histUpdate( hist );
+                    if ( this.m_pages[this.m_INDEX_RANGE] !== null ){
+                        this.m_pages[this.m_INDEX_RANGE].histUpdate( hist );
                     }
-                    if ( this.m_displayPage !== null ){
-                        this.m_displayPage.histUpdate( hist );
+                    if ( this.m_pages[this.m_INDEX_DISPLAY] !== null ){
+                        this.m_pages[this.m_INDEX_DISPLAY].histUpdate( hist );
                     }
-                    if ( this.m_selectPage !== null ){
-                        this.m_selectPage.histUpdate( hist );
+                    if ( this.m_pages[this.m_INDEX_SELECT] !== null ){
+                        this.m_pages[this.m_INDEX_SELECT].histUpdate( hist );
                     }
+                    var tabIndex = hist.tabIndex;
+                    this._selectTab( tabIndex );
                 }
                 catch ( err ){
                     console.log( "Problem updating hist: "+val );
@@ -54,11 +57,11 @@ qx.Class.define("skel.widgets.Histogram.Settings", {
             if ( val ){
                 try {
                     var hist = JSON.parse( val );
-                    if ( this.m_rangePage !== null ){
-                        this.m_rangePage.histDataUpdate( hist );
+                    if ( this.m_pages[this.m_INDEX_RANGE] !== null ){
+                        this.m_pages[this.m_INDEX_RANGE].histDataUpdate( hist );
                     }
-                    if ( this.m_selectPage !== null ){
-                        this.m_selectPage.histDataUpdate( hist );
+                    if ( this.m_pages[this.m_INDEX_SELECT] !== null ){
+                        this.m_pages[this.m_INDEX_SELECT].histDataUpdate( hist );
                     }
                 }
                 catch( err ){
@@ -76,16 +79,18 @@ qx.Class.define("skel.widgets.Histogram.Settings", {
             this._setLayout( new qx.ui.layout.VBox(1));
 
             this.m_tabView = new qx.ui.tabview.TabView();
+            this.m_tabListenId = this.m_tabView.addListener( "changeSelection", this._sendTabIndex, this );
             this.m_tabView.setContentPadding( 2, 2, 2, 2 );
             this._add( this.m_tabView );
             
-            this.m_displayPage = new skel.widgets.Histogram.PageDisplay();
-            this.m_rangePage = new skel.widgets.Histogram.PageRange();
-            this.m_selectPage = new skel.widgets.Histogram.PageSelection();
+            this.m_pages = [];
+            this.m_pages[this.m_INDEX_DISPLAY] = new skel.widgets.Histogram.PageDisplay();
+            this.m_pages[this.m_INDEX_RANGE] = new skel.widgets.Histogram.PageRange();
+            this.m_pages[this.m_INDEX_SELECT] = new skel.widgets.Histogram.PageSelection();
             
-            this.m_tabView.add( this.m_rangePage );
-            this.m_tabView.add( this.m_displayPage );
-            this.m_tabView.add( this.m_selectPage );
+            for ( var i = 0; i < this.m_pages.length; i++ ){
+                this.m_tabView.add( this.m_pages[i] );
+            }
         },
         
         /**
@@ -95,7 +100,7 @@ qx.Class.define("skel.widgets.Histogram.Settings", {
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._histogramChangedCB.bind(this));
-            var dataPath = this.m_id + path.SEP + "data";
+            var dataPath = this.m_id + path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB( this._histogramDataCB.bind( this));
             this._histogramChangedCB();
@@ -110,21 +115,17 @@ qx.Class.define("skel.widgets.Histogram.Settings", {
          */
         setId : function( id ){
             this.m_id = id;
-            this.m_displayPage.setId( id );
-            this.m_rangePage.setId( id );
-            this.m_selectPage.setId( id );
+            for ( var i = 0; i < this.m_pages.length; i++ ){
+                this.m_pages[i].setId( id );
+            }
             this._registerHistogram();
         },
         
-        m_id : null,
-        m_connector : null,
         m_sharedVar : null,
         m_sharedVarData : null,
         
-        m_tabView : null,
-        
-        m_rangePage : null,
-        m_displayPage : null,
-        m_selectPage : null
+        m_INDEX_DISPLAY : 0,
+        m_INDEX_RANGE : 1,
+        m_INDEX_SELECT : 2
     }
 });

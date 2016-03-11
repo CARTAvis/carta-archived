@@ -1,27 +1,30 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/ControllerData.h"
+#include "Data/Image/DataSource.h"
 #include "Data/Image/DrawStackSynchronizer.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Grid/GridControls.h"
 #include "Data/Image/Contour/ContourControls.h"
 #include "Data/Image/Contour/DataContours.h"
-#include "ControllerData.h"
+
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
-#include "DataSource.h"
-
 #include "Data/Error/ErrorManager.h"
+
+#include "Data/Region/Region.h"
+#include "Data/Region/RegionFactory.h"
 #include "Data/Selection.h"
-#include "Data/Region.h"
-#include "Data/RegionRectangle.h"
+
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/IRemoteVGView.h"
+#include "CartaLib/Hooks/LoadRegion.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
-
+#include "Globals.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QList>
@@ -121,6 +124,19 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 }
 
 bool Controller::addData(const QString& fileName) {
+    //Decide on the type of data we are adding based on the file
+    //suffix.
+    bool result = false;
+    if ( fileName.endsWith( DataLoader::CRTF) ){
+        result = _addDataRegion( fileName );
+    }
+    else {
+        result = _addDataImage( fileName );
+    }
+    return result;
+}
+
+bool Controller::_addDataImage(const QString& fileName) {
     //Find the location of the data, if it already exists.
     int targetIndex = _getIndex( fileName );
 
@@ -158,12 +174,15 @@ bool Controller::addData(const QString& fileName) {
             int frameCount = m_datas[targetIndex]->_getFrameCount( type );
             m_selects[i]->setUpperBound( frameCount );
         }
+
         m_selectImage->setIndex(targetIndex);
         if ( isStackSelectAuto() ){
-            std::vector<int> selectedLayers(1);
-            selectedLayers[0] = targetIndex;
+            QStringList selectedLayers;
+            selectedLayers.append( fileName );
             _setLayersSelected( selectedLayers );
         }
+
+        _updateDisplayAxes( targetIndex );
 
         saveState();
 
@@ -172,7 +191,7 @@ bool Controller::addData(const QString& fileName) {
 
         //Notify others there has been a change to the data.
         emit dataChanged( this );
-        _updateDisplayAxes( targetIndex );
+
     }
     else {
         QString error = "Unable to load image: "+fileName+".  Please check the file is a supported image format.";
@@ -182,6 +201,38 @@ bool Controller::addData(const QString& fileName) {
     return successfulLoad;
 }
 
+bool Controller::_addDataRegion(const QString& fileName) {
+    int selectIndex = getSelectImageIndex();
+    bool regionLoaded = false;
+    if ( selectIndex >= 0 ){
+
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_datas[selectIndex]->_getImage();
+        auto result = Globals::instance()-> pluginManager()
+                                -> prepare <Carta::Lib::Hooks::LoadRegion>(fileName, image );
+        auto lam = [=] ( const Carta::Lib::Hooks::LoadRegion::ResultType &data ) {
+            int regionCount = data.size();
+            for ( int i = 0; i < regionCount; i++ ){
+               if ( data[i] ){
+                   std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
+                   regionPtr -> _setUserId( fileName, i );
+                   m_regions.push_back( regionPtr );
+               }
+            }
+        };
+        try {
+            result.forEach( lam );
+            emit dataChangedRegion( this );
+            regionLoaded = true;
+            _saveStateRegions();
+        }
+        catch( char*& error ){
+            QString errorStr( error );
+            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+            hr->registerError( errorStr );
+        }
+    }
+    return regionLoaded;
+}
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
@@ -229,13 +280,6 @@ void Controller::clear(){
     unregisterView();
 }
 
-void Controller::_clearData(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    for ( std::shared_ptr<ControllerData> source : m_datas ){
-        QString id = source->getId();
-        objMan->removeObject( id );
-    }
-}
 
 void Controller::_clearStatistics(){
     m_stateMouse.setValue<QString>( CURSOR, "" );
@@ -253,6 +297,16 @@ QString Controller::closeImage( const QString& name ){
             break;
         }
     }
+    if ( targetIndex == - 1 ){
+        //See if there is a partial match.  The user may have browsed to
+        //a different directory and opened an image.
+        for ( int i = 0; i < dataCount; i++ ){
+            if ( m_datas[i]->_isMatchPartial( name )){
+                targetIndex = i;
+                break;
+            }
+        }
+    }
     if ( targetIndex >= 0 ){
         _removeData( targetIndex );
         m_stackDraw->setLayers( m_datas );
@@ -260,6 +314,32 @@ QString Controller::closeImage( const QString& name ){
     }
     else {
         result = "Could not find data to remove for name="+name;
+    }
+    return result;
+}
+
+QString Controller::closeRegion( const QString& regionId ){
+    bool regionRemoved = false;
+    QString result;
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    //Note that more than one region could be removed, if there are
+    //serveral regions that start with the passed in id.
+    int regionCount = m_regions.size();
+    for ( int i = regionCount - 1; i >= 0; i-- ){
+        bool match = m_regions[i]->_isMatch( regionId );
+        if ( match ){
+            QString id = m_regions[i]->getId();
+            objMan->removeObject( id );
+            m_regions.removeAt( i );
+            regionRemoved = true;
+        }
+    }
+    if ( regionRemoved ){
+        _saveStateRegions();
+        emit dataChanged( this );
+    }
+    else {
+        result = "Could not find region to remove for id="+regionId;
     }
     return result;
 }
@@ -330,9 +410,10 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     }
     else {
         int dataCount = m_datas.size();
+        std::vector<int> frames = _getFrameIndices();
         for ( int i = 0; i < dataCount; i++ ){
             if ( m_datas[i] != nullptr ){
-                std::vector<int> frames = _getFrameIndices();
+
                 m_datas[i]->_displayAxesChanged( displayAxisTypes, frames );
             }
         }
@@ -407,18 +488,43 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
     return result;
 }
 
-std::vector< std::shared_ptr <Carta::Lib::Image::ImageInterface> > Controller::getDataSources(){
-    //For right now, we are only going to do a histogram of a single image.
+std::shared_ptr<DataSource> Controller::getDataSource(){
+    int index = _getIndexCurrent();
+    std::shared_ptr<DataSource> source( nullptr );
+    if ( index >= 0 && index < m_datas.size() ){
+        source = m_datas[index]->_getDataSource();
+    }
+    return source;
+}
+
+std::vector< std::shared_ptr<DataSource> > Controller::getDataSources() {
+    std::vector< std::shared_ptr<DataSource> > dataSources;
+    int dataCount = m_datas.size();
+    //Return the images in stack order.
+    int startIndex = _getIndexCurrent();
+    for ( int i = 0; i < dataCount; i++ ){
+        int dIndex = (startIndex + i) % dataCount;
+        if ( m_datas[dIndex]->_isVisible() ){
+            dataSources.push_back( m_datas[dIndex]->_getDataSource() );
+        }
+    }
+    return dataSources;
+}
+
+std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::getImages() {
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_datas.size();
-    if ( dataCount > 0 ){
-        int dataIndex = _getIndexCurrent();
-        if ( 0 <= dataIndex ){
-            images.push_back( m_datas[dataIndex]->_getImage());
+    //Return the images in stack order.
+    int startIndex = _getIndexCurrent();
+    for ( int i = 0; i < dataCount; i++ ){
+        int dIndex = (startIndex + i) % dataCount;
+        if ( m_datas[dIndex]->_isVisible() ){
+            images.push_back( m_datas[dIndex]->_getImage());
         }
     }
     return images;
 }
+
 
 std::shared_ptr<ContourControls> Controller::getContourControls() {
     return m_contourControls;
@@ -465,7 +571,7 @@ std::shared_ptr<GridControls> Controller::getGridControls() {
     return m_gridControls;
 }
 
-std::vector<int> Controller::getImageDimensions( ){
+std::vector<int> Controller::getImageDimensions( ) const {
     std::vector<int> result;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
@@ -481,6 +587,7 @@ std::vector<int> Controller::getImageDimensions( ){
     return result;
 }
 
+
 QString Controller::getImageName(int index) const{
     QString name;
     if ( 0 <= index && index < m_datas.size()){
@@ -488,6 +595,29 @@ QString Controller::getImageName(int index) const{
     }
     return name;
 }
+
+
+std::vector<int> Controller::getImageSlice() const {
+    std::vector<int> result;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        int dimensions = m_datas[dataIndex] -> _getDimensions();
+        result.resize( dimensions );
+        Carta::Lib::AxisInfo::KnownType axisXType = m_datas[dataIndex]->_getAxisXType();
+        Carta::Lib::AxisInfo::KnownType axisYType = m_datas[dataIndex]->_getAxisYType();
+        for ( int i = 0; i < dimensions; i++ ){
+            Carta::Lib::AxisInfo::KnownType type  = m_datas[dataIndex]->_getAxisType( i );
+            if ( type == axisXType || type == axisYType ){
+                result[i] = -1;
+            }
+            else {
+                result[i] = getFrame( type );
+            }
+        }
+    }
+    return result;
+}
+
 
 int Controller::_getIndex( const QString& fileName) const{
     int dataCount = m_datas.size();
@@ -512,16 +642,18 @@ int Controller::_getIndexData( ControllerData* target ) const {
 }
 
 int Controller::_getIndexCurrent( ) const {
-    int index = m_selectImage->getIndex();
     int dataIndex = -1;
-    int visibleIndex = -1;
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isVisible() ){
-            visibleIndex++;
-            if ( visibleIndex == index ){
-                dataIndex = i;
-                break;
+    if ( m_selectImage ){
+        int index = m_selectImage->getIndex();
+        int visibleIndex = -1;
+        int dataCount = m_datas.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            if ( m_datas[i]->_isVisible() ){
+                visibleIndex++;
+                if ( visibleIndex == index ){
+                    dataIndex = i;
+                    break;
+                }
             }
         }
     }
@@ -568,22 +700,6 @@ double Controller::getPercentile( int frameLow, int frameHigh, double intensity 
     return percentile;
 }
 
-std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> Controller::getPipeline() const {
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline(nullptr);
-    //Color map should be based on the selected image rather than the current image.
-    int dataIndex = _getIndexCurrent();
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isSelected() ){
-            dataIndex = i;
-            break;
-        }
-    }
-    if ( 0 <= dataIndex ){
-        pipeline = m_datas[dataIndex]->_getPipeline();
-    }
-    return pipeline;
-}
 
 QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
     QStringList result("");
@@ -621,6 +737,16 @@ QString Controller::_getPreferencesId() const {
     return id;
 }
 
+std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
+    int regionCount = m_regions.size();
+    std::vector<Carta::Lib::RegionInfo> regionInfos( regionCount );
+    for ( int i = 0; i < regionCount; i++ ){
+        regionInfos[i] = (*m_regions[i]->getInfo().get());
+    }
+    return regionInfos;
+}
+
+
 int Controller::getSelectImageIndex() const {
     int selectImageIndex = -1;
     int stackedImageVisibleCount = getStackedImageCountVisible();
@@ -629,7 +755,6 @@ int Controller::getSelectImageIndex() const {
     }
     return selectImageIndex;
 }
-
 
 
 std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates(){
@@ -644,10 +769,10 @@ std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates()
 }
 
 
-
 int Controller::getStackedImageCount() const {
     return m_datas.size();
 }
+
 
 int Controller::getStackedImageCountVisible() const {
     int visibleCount = 0;
@@ -693,6 +818,16 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
             dataState.insertValue<QString>( axisName, m_selects[i]->getStateString());
         }
         dataState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
+
+        //Regions
+        int regionCount = m_regions.size();
+        dataState.insertArray( REGIONS, regionCount );
+        for ( int i = 0; i < regionCount; i++ ){
+            QString lookup = Carta::State::UtilState::getLookup( REGIONS, i );
+            QString regionStateStr = m_regions[i]->_getStateString();
+            dataState.setObject( lookup, regionStateStr );
+        }
+
         result = dataState.toString();
     }
     return result;
@@ -863,13 +998,22 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) ->QString {
-        std::set<QString> keys = {"image"};
+        std::set<QString> keys = {IMAGE};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString imageName = dataValues[*keys.begin()];
         DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
             QString longName = dataLoader->getLongName( imageName, "");
         QString result = closeImage( longName );
                 return result;
+    });
+
+    addCommandCallback( "closeRegion", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) ->QString {
+        std::set<QString> keys = {"region"};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString regionId = dataValues[*keys.begin()];
+        QString result = closeRegion( regionId );
+        return result;
     });
 
     addCommandCallback( CENTER, [=] (const QString & /*cmd*/,
@@ -927,9 +1071,8 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString TYPE( "type");
         const QString INDEX( "index");
-        std::set<QString> keys = {TYPE, INDEX};
+        std::set<QString> keys = {Util::TYPE, INDEX};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString shapePath;
         bool validIndex = false;
@@ -941,13 +1084,16 @@ void Controller::_initializeCallbacks(){
                 shapePath = m_regions[index]->getPath();
             }
             else {
-                shapePath = _makeRegion( dataValues[TYPE]);
-                if ( shapePath.size() == 0 ){
-                    qDebug()<<"Error registerShape unsupported shape: "<<params;
+                Carta::Lib::RegionInfo::RegionType regionType = Region::getRegionType( dataValues[Util::TYPE] );
+                std::shared_ptr<Region> region = RegionFactory::makeRegion( regionType );
+                if ( region ){
+                    m_regions.append( region );
+                    shapePath = region->getPath();
                 }
                 else {
-                    saveState();
+                    qDebug()<<"Error unsupported region: "<<params;
                 }
+
             }
         }
         return shapePath;
@@ -971,13 +1117,12 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "setLayersSelected", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        bool error = false;
-        std::vector<int> vals = Util::string2VectorInt( params, &error, ";" );
-        if ( error ){
+        QStringList names = params.split(";");
+        if ( names.size() == 0 ){
             result = "Please specify the layers to select as nonnegative integers";
         }
         else {
-            result = setLayersSelected( vals );
+            result = setLayersSelected( names );
         }
         Util::commandPostProcess( result );
         return result;
@@ -1063,6 +1208,24 @@ void Controller::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {Util::TAB_INDEX};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString tabIndexStr = dataValues[Util::TAB_INDEX];
+        bool validIndex = false;
+        int tabIndex = tabIndexStr.toInt( &validIndex );
+        if ( validIndex ){
+            result = setTabIndex( tabIndex );
+        }
+        else {
+            result = "Please check that the tab index is a number: " + params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
 }
 
 
@@ -1087,16 +1250,14 @@ void Controller::_initializeState(){
     m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
+    //Default Tab
+    m_state.insertValue<int>( Util::TAB_INDEX, 0 );
     m_state.flushState();
 
     //Now the data state.
     m_stateData.insertArray(DATA, 0 );
-
-    //For testing only.
-    //_makeRegion( RegionRectangle::CLASS_NAME );
     int regionCount = m_regions.size();
     m_stateData.insertArray(REGIONS, regionCount );
-    //_saveRegions();
     m_stateData.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
@@ -1141,18 +1302,6 @@ void Controller::_loadView( bool newClips, int dataIndex ){
     }
 }
 
-
-QString Controller::_makeRegion( const QString& regionType ){
-    QString shapePath = Region::makeRegion( regionType );
-    if ( shapePath.size() > 0 ){
-        Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
-        Carta::State::CartaObject* shapeObj = objManager->getObject( shapePath );
-        shapePath = shapeObj->getPath();
-        m_regions.append(dynamic_cast<Region*>(shapeObj));
-
-     }
-    return shapePath;
-}
 
 void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
     int dataCount = m_datas.size();
@@ -1210,11 +1359,17 @@ void Controller::_removeData( int index ){
 
 void Controller::_renderAll(){
     int gridIndex = _getIndexCurrent();
-    _render( m_datas, gridIndex );
+    QList<std::shared_ptr<ControllerData> > datas;
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        int stackIndex = (gridIndex + i) % dataCount;
+        datas.append( m_datas[stackIndex] );
+    }
+    _render( datas, gridIndex );
 }
 
 void Controller::_renderSingle( int dIndex ){
-    if ( dIndex >= 0 && dIndex >= m_datas.size() ){
+    if ( dIndex >= 0 && dIndex < m_datas.size() ){
         QList<std::shared_ptr<ControllerData> > datas;
         datas.append( m_datas[dIndex] );
         int topIndex = _getIndexCurrent();
@@ -1296,15 +1451,27 @@ void Controller::resetStateData( const QString& state ){
         m_selects[i]->resetState( axisState );
     }
 
+    //Restore the region State
+    m_regions.clear();
+    int regionCount = dataState.getArraySize(REGIONS);
+    for ( int i = 0; i < regionCount; i++ ){
+        QString regionLookup = Carta::State::UtilState::getLookup( REGIONS, i );
+        QString regionState = dataState.toString( regionLookup );
+        std::shared_ptr<Region> region = RegionFactory::makeRegion( regionState );
+        m_regions.append( region );
+    }
+    _saveStateRegions();
+
     //Notify others there has been a change to the data.
     emit dataChanged( this );
+    emit dataChangedRegion( this );
 
     //Reset the state of the grid controls based on the selected image.
-    int dataIndex = _getIndexCurrent();
+    /*int dataIndex = _getIndexCurrent();
     if ( 0 <= dataIndex ){
         StateInterface controlState = m_datas[dataIndex]->_getGridState();
         this->m_gridControls->_resetState( controlState );
-    }
+    }*/
 }
 
 void Controller::resetPan(){
@@ -1349,10 +1516,10 @@ void Controller::resetZoom(){
 
 
 void Controller::saveState() {
+    //Images
     int dataCount = m_datas.size();
     int oldDataCount = m_stateData.getArraySize(DATA );
     if ( oldDataCount != dataCount ){
-        //Insert the names of the data items for display purposes.
         m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveNone );
     }
     for (int i = 0; i < dataCount; i++) {
@@ -1360,10 +1527,21 @@ void Controller::saveState() {
         QString dataKey = UtilState::getLookup( DATA, i);
         m_stateData.setObject( dataKey, layerString);
     }
+    m_stateData.flushState();
+}
 
-    /*int regionCount = m_regions.size();
-    m_state.resizeArray( REGIONS, regionCount );
-    _saveRegions();*/
+void Controller::_saveStateRegions(){
+    //Regions
+    int regionCount = m_regions.size();
+    int oldRegionCount = m_stateData.getArraySize( REGIONS);
+    if ( regionCount != oldRegionCount){
+        m_stateData.resizeArray( REGIONS, regionCount, StateInterface::PreserveNone );
+    }
+    for ( int i = 0; i < regionCount; i++ ){
+        QString regionKey = UtilState::getLookup( REGIONS, i);
+        QString regionTypeStr= m_regions[i]->_getStateString();
+        m_stateData.setObject( regionKey, regionTypeStr );
+    }
     m_stateData.flushState();
 }
 
@@ -1418,29 +1596,15 @@ void Controller::saveImageResultCB( bool result ){
     emit saveImageResult( result );
 }
 
-void Controller::_saveRegions(){
-    int regionCount = m_regions.size();
-    for ( int i = 0; i < regionCount; i++ ){
-        QString arrayStr = UtilState::getLookup( REGIONS, i);
-        QString regionType= m_regions[i]->getType();
-        QString regionId = m_regions[i]->getPath();
-        m_state.setObject( arrayStr );
-        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "type"), regionType );
-        m_state.insertValue<QString>( UtilState::getLookup( arrayStr, "id"), regionId );
-    }
-}
-
-
 void Controller::_scheduleFrameReload( bool newClips ){
     if ( m_datas.size() > 0  ){
         // if reload is already pending, do nothing
         if ( m_reloadFrameQueued ) {
             return;
         }
+
         int selectIndex=m_selectImage->getIndex();
         m_stackDraw->setSelectIndex( selectIndex);
-        _renderAll();
-        m_reloadFrameQueued = true;
         QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
     }
 }
@@ -1486,7 +1650,8 @@ void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
             int dataIndex = _getIndexCurrent();
             if ( 0 <= dataIndex ){
                 _updateCursorText( true );
-                emit channelChanged( this );
+                emit frameChanged( this, axisType );
+                _renderAll();
             }
         }
     }
@@ -1501,9 +1666,10 @@ void Controller::setFrameImage( int val) {
         if ( oldIndex != val ){
             m_selectImage->setIndex(val);
             if ( isStackSelectAuto() ){
-                std::vector<int> indices(1);
-                indices[0] = val;
-                _setLayersSelected( indices );
+                QStringList names;
+                QString name = getImageName( val );
+                names.append( name );
+                _setLayersSelected( names );
             }
             int dataIndex = _getIndexCurrent();
             if ( 0 <= dataIndex ){
@@ -1514,9 +1680,7 @@ void Controller::setFrameImage( int val) {
                     m_selects[i]->setUpperBound( upperBound );
                     if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
                         m_selects[i]->setIndex( 0 );
-                        if ( type == AxisInfo::KnownType::SPECTRAL ){
-                            emit channelChanged( this );
-                        }
+                        emit frameChanged( this, type );
                     }
                 }
 
@@ -1524,7 +1688,10 @@ void Controller::setFrameImage( int val) {
                 m_gridControls->_resetState( gridState );
             }
             _updateCursorText( true );
+
+            //_scheduleFrameReload( false );
             emit dataChanged( this );
+
         }
     }
 }
@@ -1585,7 +1752,7 @@ QString Controller::setImageOrder( const std::vector<int>& indices ){
     if ( imageReordered ){
         m_datas = reorderedList;
         if ( selectedIndex != newSelectedIndex ){
-            this->setFrameImage( newSelectedIndex );
+            //this->setFrameImage( newSelectedIndex );
         }
         _renderAll();
     }
@@ -1621,7 +1788,7 @@ QString Controller::setImageVisibility( int dataIndex, bool visible ){
     return result;
 }
 
-QString Controller::setLayersSelected( const std::vector<int> indices ){
+QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     bool selectModeAuto = isStackSelectAuto();
     if ( !selectModeAuto ){
@@ -1633,54 +1800,43 @@ QString Controller::setLayersSelected( const std::vector<int> indices ){
     return result;
 }
 
-QString Controller::_setLayersSelected( const std::vector<int> indices ){
+
+
+QString Controller::_setLayersSelected( const QStringList names ){
     int dataCount = m_datas.size();
-    //Note: we could to a careful check of the indices here to make sure
-    //the are all nonnegative, and not outside of the required bounds, but
-    //that would be slower so we just do a rudimentary check that the size
-    //is okay.
     QString result;
-    std::vector<int> sortedLayers = indices;
-    std::sort( sortedLayers.begin(), sortedLayers.end());
-    int selectIndex = 0;
-    int indexCount = indices.size();
-    int selectedIndex = indexCount;
-    if ( indexCount > 0 ){
-        selectedIndex = sortedLayers[0];
-    }
-    std::vector<int> oldSelects;
-    bool selectStateChanged = false;
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->_isSelected() ){
-            oldSelects.push_back( i );
-        }
-        if ( i != selectedIndex ){
-            bool stateChange = m_datas[i]->_setSelected( false );
+    int nameCount = names.size();
+    if ( nameCount > 0 ){
+        bool selectStateChanged = false;
+        //Go through the data and select those with names matching those
+        //passed in.
+        for ( int i = 0; i < dataCount; i++ ){
+            QString imageName = getImageName( i );
+            bool selected = false;
+            for ( QString name : names ){
+                if ( m_datas[i]->_isMatchPartial( name )){
+                    selected = true;
+                    break;
+                }
+            }
+            //Found one of the images that should be selected.
+            bool stateChange = m_datas[i]->_setSelected( selected );
             if ( stateChange ){
-                selectStateChanged = true;
+               selectStateChanged = true;
+            }
+            bool stackAutoSelect = m_state.getValue<bool>(STACK_SELECT_AUTO);
+            if ( selected && !stackAutoSelect ){
+                setFrameImage( i );
             }
         }
-        else {
-            bool stateChange = m_datas[i]->_setSelected( true );
-            if ( stateChange ){
-                selectStateChanged = true;
-            }
-            selectIndex++;
-            if ( selectIndex < indexCount ){
-                selectedIndex = sortedLayers[selectIndex];
-            }
+
+        if ( selectStateChanged ){
+            saveState();
+            emit colorChanged( this );
         }
     }
-    if ( selectIndex != indexCount){
-        result = "Invalid selection indices";
-    }
-    if ( !result.isEmpty( )){
-        //Set the selections back the way they were
-        setLayersSelected( oldSelects );
-    }
-    else if ( selectStateChanged ){
-        saveState();
-        emit colorChanged( this );
+    else {
+        result = "Please specify the names of the layers to select.";
     }
     return result;
 }
@@ -1774,6 +1930,22 @@ QString Controller::setCompositionMode( const QString& compMode ){
     }
     return result;
 }
+
+QString Controller::setTabIndex( int index ){
+    QString result;
+    if ( index >= 0 ){
+        int oldIndex = m_state.getValue<int>( Util::TAB_INDEX );
+        if ( index != oldIndex ){
+            m_state.setValue<int>( Util::TAB_INDEX, index );
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Image settings tab index must be nonnegative: "+ QString::number(index);
+    }
+    return result;
+}
+
 
 void Controller::setZoomLevel( double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
@@ -1944,25 +2116,6 @@ Controller::~Controller(){
         objMan->destroyObject( m_selectImage->getId());
         m_selectImage = nullptr;
     }
-
-    if ( m_gridControls != nullptr ){
-        objMan->removeObject( m_gridControls->getId());
-    }
-
-    if ( m_contourControls != nullptr ){
-        objMan->removeObject( m_contourControls->getId());
-    }
-
-    if ( m_settings != nullptr ){
-        objMan->removeObject( m_settings->getId());
-    }
-
-    _clearData();
-
-    for ( Region* region : m_regions ){
-        objMan->destroyObject( region->getId());
-    }
-    m_regions.clear();
 }
 
 }

@@ -23,14 +23,11 @@ const QString Colormap::INTENSITY_MAX = "intensityMax";
 
 
 class Colormap::Factory : public Carta::State::CartaObjectFactory {
-
-    public:
-
-    Carta::State::CartaObject * create (const QString & path, const QString & id)
-        {
-            return new Colormap (path, id);
-        }
-    };
+public:
+    Carta::State::CartaObject * create (const QString & path, const QString & id){
+        return new Colormap (path, id);
+    }
+};
 
 bool Colormap::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormap::Factory());
@@ -73,9 +70,8 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
         if ( hist != nullptr ){
             objAdded = m_linkImpl->addLink( hist );
             if ( objAdded ){
-                //connect( this, SIGNAL(colorMapChanged( Colormap*)), hist, SLOT( updateColorMap( Colormap*)));
-                //hist->updateColorMap( this );
-
+                connect( this, SIGNAL(colorMapChanged()), hist, SLOT( updateColorMap()));
+                hist->updateColorMap();
                 connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double)), this, SLOT(_updateIntensityBounds( double, double )));
             }
         }
@@ -96,6 +92,7 @@ void Colormap::_colorStateChanged(){
     if ( m_stateColors.size() > 0 ){
         m_stateColors[0]->_replicateTo( m_state );
         m_state.flushState();
+        emit colorMapChanged();
     }
 }
 
@@ -159,7 +156,7 @@ QString Colormap::_commandSetColorMix( const QString& params ){
 }
 
 QString Colormap::_commandSetColorMap( const QString& params ){
-    std::set<QString> keys = {"name"};
+    std::set<QString> keys = {Util::NAME};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString colorMapStr = dataValues[*keys.begin()];
     QString result = setColorMap( colorMapStr );
@@ -240,6 +237,49 @@ void Colormap::_initializeCallbacks(){
     addCommandCallback( "reverseColormap", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
             QString result = _commandReverseColorMap( params );
+            return result;
+        });
+
+    addCommandCallback( "setBorderAlpha", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+                QString result;
+                std::set<QString> keys = {Util::ALPHA};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+
+                bool validAlpha = false;
+                double alphaValue = dataValues[Util::ALPHA].toInt(&validAlpha );
+                if ( validAlpha ){
+                    result = setBorderAlpha( alphaValue );
+                }
+                else {
+                    result = "Border color alpha value must be in [0,255]: "+params;
+                }
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "setBorderColor", [=] (const QString & /*cmd*/,
+                                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+
+            bool validRed = false;
+            double redValue = dataValues[Util::RED].toInt(&validRed );
+
+            bool validBlue = false;
+            double blueValue = dataValues[Util::BLUE].toInt(&validBlue );
+
+            bool validGreen = false;
+            double greenValue = dataValues[Util::GREEN].toInt(&validGreen);
+
+            if ( validRed && validBlue && validGreen ){
+                result = setBorderColor( redValue, greenValue, blueValue );
+            }
+            else {
+                result = "Border color values must be in [0,255]: "+params;
+            }
+            Util::commandPostProcess( result );
             return result;
         });
 
@@ -338,6 +378,24 @@ void Colormap::_initializeCallbacks(){
                 return result;
             });
 
+    addCommandCallback( "setDefaultBorder", [=] (const QString & /*cmd*/,
+                            const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {ColorState::BORDER_DEFAULT};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString defaultBorderStr = dataValues[*keys.begin()];
+            bool validBool = false;
+            bool useDefaultBorder = Util::toBool( defaultBorderStr, &validBool );
+            QString result;
+            if ( validBool ){
+                setBorderDefault( useDefaultBorder );
+            }
+            else {
+                result = "Please specify true/false for use default border: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setDefaultNan", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {ColorState::NAN_DEFAULT};
@@ -373,8 +431,33 @@ void Colormap::_initializeCallbacks(){
             Util::commandPostProcess( result );
             return result;
         });
+
+    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {Util::TAB_INDEX};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString tabIndexStr = dataValues[Util::TAB_INDEX];
+            bool validIndex = false;
+            int tabIndex = tabIndexStr.toInt( &validIndex );
+            if ( validIndex ){
+                result = setTabIndex( tabIndex );
+            }
+            else {
+                result = "Please check that the tab index is a number: " + params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 }
 
+bool Colormap::isBorderDefault() const {
+    bool borderDefault = false;
+    if ( m_stateColors.size() > 0 ){
+        borderDefault = m_stateColors[0]->_isBorderDefault();
+    }
+    return borderDefault;
+}
 
 bool Colormap::_isGlobal() const {
     bool global = true;
@@ -464,6 +547,57 @@ QString Colormap::removeLink( CartaObject* cartaObject ){
     return result;
 }
 
+QString Colormap::setBorderAlpha( int alphaValue ){
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    if ( isBorderDefault() ){
+        setBorderDefault( false );
+    }
+    for ( int i = 0; i < stateColorCount; i++ ){
+        result = m_stateColors[i]->_setBorderAlpha( alphaValue );
+        if ( !result.isEmpty()){
+            break;
+        }
+    }
+    if ( result.isEmpty() ){
+        _colorStateChanged();
+    }
+    return result;
+}
+
+
+QString Colormap::setBorderColor( int redValue, int greenValue, int blueValue){
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    if ( isBorderDefault() ){
+        setBorderDefault( false );
+    }
+    for ( int i = 0; i < stateColorCount; i++ ){
+        result = m_stateColors[i]->_setBorderColor( redValue, greenValue, blueValue );
+        if ( !result.isEmpty()){
+            break;
+        }
+    }
+    if ( result.isEmpty() ){
+        _colorStateChanged();
+    }
+    return result;
+}
+
+QString Colormap::setBorderDefault( bool borderDefault ) {
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    for ( int i = 0; i < stateColorCount; i++ ){
+        m_stateColors[i]->_setBorderDefault( borderDefault );
+    }
+    if ( stateColorCount == 0 ){
+        result = "There were no color maps to for border default.";
+    }
+    else {
+        _colorStateChanged();
+    }
+    return result;
+}
 
 QString Colormap::setColorMap( const QString& colorMapStr ){
     int stateColorCount = m_stateColors.size();
@@ -544,14 +678,17 @@ QString Colormap::setDataTransform( const QString& transformString){
 
 void Colormap::_setColorStates( Controller* controller ){
     std::vector< std::shared_ptr<ColorState> > selectedColorStates = controller->getSelectedColorStates();
-    m_stateColors.clear();
     int stateColorCount = selectedColorStates.size();
-    for ( int i = 0; i < stateColorCount; i++ ){
-        m_stateColors.push_back( selectedColorStates[i] );
-    }
+    if ( stateColorCount > 0 ){
+        m_stateColors.clear();
 
-    //Update the state the client is listening to.
-    _colorStateChanged();
+        for ( int i = 0; i < stateColorCount; i++ ){
+            m_stateColors.push_back( selectedColorStates[i] );
+        }
+
+        //Update the state the client is listening to.
+        _colorStateChanged();
+    }
 }
 
 void Colormap::setGlobal( bool global ){
@@ -630,7 +767,25 @@ QString Colormap::setSignificantDigits( int digits ){
     return result;
 }
 
-
+QString Colormap::setTabIndex( int index ){
+    QString result;
+    if ( index >= 0 ){
+        int stateColorCount = m_stateColors.size();
+        for ( int i = 0; i < stateColorCount; i++ ){
+            result = m_stateColors[i]->_setTabIndex( index );
+            if ( !result.isEmpty() ){
+                break;
+            }
+        }
+        if ( result.isEmpty()){
+            _colorStateChanged();
+        }
+    }
+    else {
+        result = "Image settings tab index must be nonnegative: "+ QString::number(index);
+    }
+    return result;
+}
 
 void Colormap::_updateIntensityBounds( double minIntensity, double maxIntensity ){
     double oldMinIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
@@ -651,11 +806,6 @@ void Colormap::_updateIntensityBounds( double minIntensity, double maxIntensity 
 }
 
 Colormap::~Colormap(){
-    if ( m_settings != nullptr ){
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString id = m_settings->getId();
-        objMan->removeObject( id );
-    }
 }
 }
 }

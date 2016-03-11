@@ -94,6 +94,36 @@ class tContour(unittest.TestCase):
         driver.execute_script( "arguments[0].scrollIntoView(true);", textBox)
         elementValue = Util._changeElementText( self, driver, textBox, str(value))
         self.assertEqual( str(value), elementValue, "Numeric value not correct")
+        
+    # Test that we can add a default Contour set using the percentile method,
+    # linear spacing, 3 levels, and a minimum level of 20 and a maximum level of 90.
+    def test_percentileMethod(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        #Load a default image
+        Util.load_image( self, driver, "aH.fits")
+
+        #Show the image settings
+        Util.openSettings( self, driver, "Image", True )
+
+        # Navigate to Contour tab of the Image Settings
+        self._clickContourTab( driver )
+
+        # Set a minimum contour level of 10 and a maximum contour level of 90
+        self._typeText( driver, "imageContourLevelMin", 20 )
+        self._typeText( driver, "imageContourLevelMax", 90 )
+
+        # Change the level count to 3.
+        self._setLevelCount( driver, 3 )
+
+        # Hit the Add/Update ContourSet button
+        self._clickAddContourSetButton( driver )
+
+        # Check that there is now a Tab called Default under Contour Sets
+        self._clickDefaultContourSetTab( driver )
+
+       
 
     # Test that we can add a default Contour set using the range method,
     # linear spacing, 3 levels, and a minimum level of 0.1 and a maximum level of 0.9.
@@ -105,7 +135,7 @@ class tContour(unittest.TestCase):
         Util.load_image( self, driver, "aH.fits")
 
         #Show the image settings
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
 
         # Navigate to Contour tab of the Histogram Settings
         self._clickContourTab( driver )
@@ -141,7 +171,7 @@ class tContour(unittest.TestCase):
         Util.load_image( self, driver, "aH.fits")
 
         #Show the image settings
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
 
         # Navigate to Contour tab of the Histogram Settings
         self._clickContourTab( driver )

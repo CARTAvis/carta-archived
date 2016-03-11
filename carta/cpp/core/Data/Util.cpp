@@ -1,5 +1,7 @@
 #include "Util.h"
 #include "Data/Error/ErrorManager.h"
+#include "CartaLib/ICoordinateFormatter.h"
+#include "CartaLib/IImage.h"
 #include <QDebug>
 #include <cmath>
 
@@ -15,34 +17,16 @@ const QString Util::PREFERENCES = "preferences";
 const QString Util::RED = "red";
 const QString Util::BLUE = "blue";
 const QString Util::GREEN = "green";
+const QString Util::NAME = "name";
 const QString Util::PEN_WIDTH = "width";
+const QString Util::TAB_INDEX = "tabIndex";
+const QString Util::TYPE = "type";
+const QString Util::UNITS = "units";
 const QString Util::VISIBLE = "visible";
 const int Util::MAX_COLOR = 255;
 
 Util::Util( ) {
 
-}
-
-
-bool Util::toBool( const QString str, bool* valid ){
-    *valid = false;
-    bool result = false;
-    if ( str == TRUE ){
-        *valid = true;
-        result = true;
-    }
-    else if ( str == FALSE ){
-        *valid = true;
-    }
-    return result;
-}
-
-QString Util::toString( bool val ){
-    QString result = FALSE;
-    if ( val ){
-        result = TRUE;
-    }
-    return result;
 }
 
 
@@ -52,6 +36,26 @@ void Util::commandPostProcess( const QString& errorMsg){
         errorMan->registerWarning( errorMsg );
     }
 }
+
+
+int Util::getAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
+        Carta::Lib::AxisInfo::KnownType axisType ){
+    int index = -1;
+    if ( image ){
+        std::shared_ptr<CoordinateFormatterInterface> cf(
+                               image-> metaData()-> coordinateFormatter()-> clone() );
+        int axisCount = cf->nAxes();
+        for ( int i = 0; i < axisCount; i++ ){
+            Carta::Lib::AxisInfo axisInfo = cf->axisInfo( i );
+            if ( axisInfo.knownType() == axisType ){
+                index = i;
+                break;
+            }
+        }
+    }
+    return index;
+}
+
 
 bool Util::isListMatch( const QStringList& list1, const QStringList& list2 ){
     bool listEqual = true;
@@ -70,14 +74,15 @@ bool Util::isListMatch( const QStringList& list1, const QStringList& list2 ){
     return listEqual;
 }
 
-double Util::roundToDigits(double value, int digits)
-{
+
+double Util::roundToDigits(double value, int digits){
     if ( value == 0 ) {
         return 0;
     }
     double factor = pow(10.0, digits - ceil(log10(fabs(value))));
     return round(value * factor) / factor;
 }
+
 
 /// convert string to array of doubles
 std::vector < double > Util::string2VectorDouble( QString s, bool* error, QString sep ){
@@ -96,6 +101,7 @@ std::vector < double > Util::string2VectorDouble( QString s, bool* error, QStrin
     return res;
 }
 
+
 /// convert string to array of doubles
 std::vector < int > Util::string2VectorInt( QString s, bool* error, QString sep ){
     QStringList lst = s.split( sep );
@@ -112,6 +118,30 @@ std::vector < int > Util::string2VectorInt( QString s, bool* error, QString sep 
     }
     return res;
 }
+
+
+bool Util::toBool( const QString str, bool* valid ){
+    *valid = false;
+    bool result = false;
+    if ( str == TRUE ){
+        *valid = true;
+        result = true;
+    }
+    else if ( str == FALSE ){
+        *valid = true;
+    }
+    return result;
+}
+
+
+QString Util::toString( bool val ){
+    QString result = FALSE;
+    if ( val ){
+        result = TRUE;
+    }
+    return result;
+}
+
 
 Util::~Util(){
 

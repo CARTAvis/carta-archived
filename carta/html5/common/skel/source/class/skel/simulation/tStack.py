@@ -24,20 +24,27 @@ class tStack(unittest.TestCase):
         print "Combine mode=",combMode
         self.assertTrue( mode==combMode, "Combine modes not as expected")
         
+    def _isColorChecked(self, colorBox ):
+        colorBorder = colorBox.get_attribute( "class")
+        checked = False
+        if colorBorder == "qx-line-border":
+            checked = True
+        return checked
+    
+    def _testColor(self, colorBoxId, colorExpected, colorStr, driver ):
+        filterBox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, colorBoxId)))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", filterBox )
+        colorChecked = self._isColorChecked( filterBox )
+        print "Color checked=", colorChecked
+        colorCheckExpected = True
+        if colorExpected == 0:
+            colorCheckExpected = False
+        self.assertEqual( colorChecked, colorCheckExpected, colorStr + " amount is not correct")
+        
     def verifyColor(self, driver, redExpected, greenExpected, blueExpected ):
-        spinRed = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='filterRGBSpinRed']/input")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", spinRed )
-        redAmount = spinRed.get_attribute( "value");
-        print "Red amount=",redAmount
-        self.assertEqual( int(redAmount), redExpected, "Red amount is not correct")
-        spinGreen = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='filterRGBSpinGreen']/input")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", spinGreen )
-        greenAmount = spinGreen.get_attribute( "value");
-        self.assertEqual( int(greenAmount), greenExpected, "Green amount is not correct")
-        spinBlue = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='filterRGBSpinBlue']/input")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", spinBlue )
-        blueAmount = spinBlue.get_attribute( "value");
-        self.assertEqual( int(blueAmount), blueExpected, "Blue amount is not correct")
+        self._testColor( "filterRedBox", redExpected, "Red", driver )
+        self._testColor( "filterGreenBox", greenExpected, "Green", driver)
+        self._testColor( "filterBlueBox", blueExpected, "Blue", driver )
             
     # Load 3 images
     # Hide the second image; check the count goes down to 2
@@ -51,12 +58,13 @@ class tStack(unittest.TestCase):
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "aH.fits")
         
+        
         #Verify the image animator sees three images.
         Util.verifyAnimatorUpperBound( self, driver, 2, "Image" )
         
         #Open the image settings
         #Open the stack tab
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
         Util.clickTab( driver, "Stack" )
         
         #Turn off auto select
@@ -64,19 +72,21 @@ class tStack(unittest.TestCase):
         ActionChains(driver).click( autoSelectCheck ).perform()
         
         #Hide the second image
-        secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.ListItem']/div[text()='aJ.fits']/..")))
+        secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Image.Stack.ListItemIcon']/div[text()='aJ.fits']/..")))
         ActionChains(driver).context_click( secondItem ).perform()
         ActionChains(driver).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
         
         #Verify the animator sees two images
+        time.sleep( 2 )
         Util.verifyAnimatorUpperBound(self, driver, 1, "Image" )
         
         #Show the second image
-        secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.ListItem']/div[text()='aJ.fits']/..")))
+        secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Image.Stack.ListItemIcon']/div[text()='aJ.fits']/..")))
         ActionChains(driver).context_click( secondItem ).perform()
         ActionChains(driver).send_keys( Keys.ARROW_DOWN ).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ENTER ).perform()
         
         #Verify the animator sees three images
+        time.sleep( 2 )
         Util.verifyAnimatorUpperBound( self, driver, 2, "Image")
         
     # Test that flipping between combine types resets non-supported settings
@@ -87,7 +97,8 @@ class tStack(unittest.TestCase):
         
         #Open image settings and stack.
         Util.load_image( self, driver, "Default")
-        Util.openSettings( self, driver, "Image" )
+        time.sleep( timeout )
+        Util.openSettings( self, driver, "Image", True )
         Util.clickTab( driver, "Stack" )
         
         #Load the plus layer
@@ -97,6 +108,7 @@ class tStack(unittest.TestCase):
         ActionChains(driver).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         
         #Change the transparency to 100
+        time.sleep( timeout )
         transparencyText = driver.find_element_by_xpath( "//input[starts-with(@id,'maskAlphaTextField')]" )
         driver.execute_script( "arguments[0].scrollIntoView(true);", transparencyText)
         Util._changeElementText(self, driver, transparencyText, 100)
@@ -106,7 +118,7 @@ class tStack(unittest.TestCase):
         driver.execute_script( "arguments[0].scrollIntoView(true);", filterBoxRed )
         ActionChains(driver).click( filterBoxRed ).perform()
         
-        #Verify the RGC spins are correct.
+        #Verify the RGB spins are correct.
         self.verifyColor( driver, 255, 0, 0 )
     
         #Load the alpha layer.
@@ -116,7 +128,7 @@ class tStack(unittest.TestCase):
         ActionChains(driver).send_keys(Keys.ARROW_UP).send_keys(Keys.ENTER).perform()
         
         #Verify the color has been set back to white.
-        self.verifyColor( driver, 255,255, 255)
+        self.verifyColor( driver, 0, 0, 0)
         
         #Load the none layer.
         combineCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "layerCompositionMode")))
@@ -142,7 +154,7 @@ class tStack(unittest.TestCase):
         
         #Open the image settings
         #Open the stack tab
-        Util.openSettings( self, driver, "Image" )
+        Util.openSettings( self, driver, "Image", True )
         Util.clickTab( driver, "Stack" )
         
         #Turn off auto select
@@ -150,11 +162,8 @@ class tStack(unittest.TestCase):
         ActionChains(driver).click( autoSelectCheck ).perform()
         
         #Select the last two images
-        secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.ListItem']/div[text()='aJ.fits']/..")))
+        secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Image.Stack.ListItemIcon']/div[text()='aJ.fits']/..")))
         ActionChains(driver).key_down( Keys.CONTROL).click(secondItem).perform()
-        #ActionChains(driver).click( firstItem ).perform()
-        #secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.ListItem']/div[text()='aH.fits']/..")))
-        #ActionChains(driver).key_down(Keys.CONTROL).click(secondItem).perform()
         
         #Change these images to plus layer combining
         combineCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "layerCompositionMode")))
@@ -163,10 +172,11 @@ class tStack(unittest.TestCase):
         ActionChains(driver).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         
         #Change the filter color to green
+        time.sleep(2)
         filterBoxGreen = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "filterGreenBox")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", filterBoxGreen )
         ActionChains(driver).click( filterBoxGreen ).perform()
-        
+    
         #Turn on auto select
         autoSelectCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "autoSelectImages")))
         ActionChains(driver).click( autoSelectCheck ).perform()
@@ -182,8 +192,9 @@ class tStack(unittest.TestCase):
         
         #First layer
         ActionChains(driver).click( forwardAnimateButton ).perform()
+        time.sleep(2)
         self.verifyCompositionMode( driver, "None");
-        self.verifyColor( driver, 255, 255, 255 )
+        self.verifyColor( driver, 0, 0, 0 )
         
         #Second & third layer
         for i in range(0,2):

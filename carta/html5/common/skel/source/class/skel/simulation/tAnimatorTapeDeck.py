@@ -118,6 +118,8 @@ class tAnimatorTapeDeck(tAnimator.tAnimator):
         # Check that the channel value is the same as the last channel value
         self._getLastValue( driver, "Channel" )
         currChannelValue = self._getCurrentValue( driver, "Channel" )
+        print "Last channel value ", lastChannelValue
+        print "Current channel value ", currChannelValue
         self.assertEqual( int(currChannelValue), int(lastChannelValue), "Channel Animator did not return to last channel value")
 
         # Load another image so the image animator is available.

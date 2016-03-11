@@ -45,7 +45,7 @@ class tAnimator(unittest.TestCase):
         lastValueButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckLastValue")))
         driver.execute_script( "arguments[0].scrollIntoView(true);", lastValueButton)
         ActionChains(driver).click( lastValueButton ).perform()
-        time.sleep( timeout )
+        time.sleep( 2 )
 
     # Get the current value
     def _getCurrentValue(self, driver, animator):
@@ -78,12 +78,17 @@ class tAnimator(unittest.TestCase):
 
     # Open Settings for a particular animation window
     def _openSettings(self, driver, name):
+        # Note:  it seems if we scroll directly to the settings check, there is a tip of it not in view
+        # so we cannot click it.  Instead, we scroll to the animator upper bound which is slightly higher,
+        # and allows up to check the settings check.
         settingsId = name + "SettingsCheck"
-        print "Settings id ", settingsId
+        upperId = "//div[@id='" + name + "AnimatorUpperBound']"
+        upperLabel = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, upperId)))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", upperLabel)
+        
         settingsXPath = "//div[@id='" + settingsId + "']/div[@qxclass='qx.ui.basic.Image']"
         settingsCheckBox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, settingsXPath )))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", settingsCheckBox)
-        ActionChains(driver).click( settingsCheckBox ).perform()
+        ActionChains(driver).move_to_element( settingsCheckBox).click().perform()
         
         
     # Click the stop button on the tapedeck

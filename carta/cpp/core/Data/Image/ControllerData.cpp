@@ -96,19 +96,6 @@ void ControllerData::_clearColorMap(){
     }
 }
 
-void ControllerData::_clearData(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    if ( m_dataGrid != nullptr){
-        objMan->removeObject(m_dataGrid->getId());
-    }
-    for ( std::set< std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-            it != m_dataContours.end(); it++ ){
-        if ( (*it) ){
-            objMan->removeObject( (*it)->getId() );
-        }
-    }
-}
-
 void ControllerData::_colorChanged(){
     if ( m_dataSource ){
         QString mapName = m_stateColor->_getColorMap();
@@ -137,6 +124,12 @@ void ControllerData::_colorChanged(){
             QColor nanColor = m_dataSource->_getNanColor();
             m_stateColor->_setNanColor( nanColor.red(), nanColor.green(), nanColor.blue() );
         }
+
+        int redBorder = m_stateColor->_getBorderRed();
+        int blueBorder = m_stateColor->_getBorderBlue();
+        int greenBorder = m_stateColor->_getBorderGreen();
+        int alphaAmount = m_stateColor->_getBorderTransparency();
+        m_dataGrid->_setBorderColor( QColor(redBorder, greenBorder, blueBorder, alphaAmount) );
         emit colorStateChanged();
     }
 }
@@ -148,6 +141,14 @@ void ControllerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displa
     if ( m_dataSource ){
         m_dataSource->_setDisplayAxes( displayAxisTypes, frames );
     }
+}
+
+Carta::Lib::AxisInfo::KnownType ControllerData::_getAxisType( int index ) const {
+    AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
+    if ( m_dataSource ){
+        type = m_dataSource->_getAxisType( index );
+    }
+    return type;
 }
 
 AxisInfo::KnownType ControllerData::_getAxisXType() const {
@@ -288,6 +289,10 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> ControllerData::_getImage(){
     return image;
 }
 
+std::shared_ptr<DataSource> ControllerData::_getDataSource(){
+    return m_dataSource;
+}
+
 QPointF ControllerData::_getImagePt( QPointF screenPt, bool* valid ) const {
     QPointF imagePt;
     if ( m_dataSource ){
@@ -354,13 +359,7 @@ double ControllerData::_getPercentile( int frameLow, int frameHigh, double inten
     return percentile;
 }
 
-std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> ControllerData::_getPipeline() const {
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline;
-    if ( m_dataSource ){
-        pipeline = m_dataSource->_getPipeline();
-    }
-    return pipeline;
-}
+
 
 QStringList ControllerData::_getPixelCoordinates( double ra, double dec ) const{
     QStringList result("");
@@ -498,6 +497,16 @@ bool ControllerData::_isMatch( const QString& name ) const {
     return matched;
 }
 
+bool ControllerData::_isMatchPartial( const QString& name ) const {
+    bool matched = false;
+    QString fileName = _getFileName();
+    //We just try to match the last part of the file name.
+    if ( fileName.endsWith( name ) ){
+        matched = true;
+    }
+    return matched;
+}
+
 void ControllerData::_renderingDone(
         QImage image,
         Carta::Lib::VectorGraphics::VGList gridVG,
@@ -506,7 +515,7 @@ void ControllerData::_renderingDone(
     /// \todo we should make sure the jobId matches the last submitted job...
 
     m_qimage = image;
-    Carta::Lib::VectorGraphics::VGComposer comp( gridVG );
+    Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
 
     if ( _isContourDraw()){
         // where does 0.5, 0.5 map to?
@@ -530,13 +539,15 @@ void ControllerData::_renderingDone(
                 double m31 = p1.x() - m11 * 0.5;
                 double m32 = p1.y() - m22 * 0.5;
                 tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
-                Carta::Lib::VectorGraphics::VGComposer contourComp;
-                contourComp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
-                contourComp.appendList( contourVG);
-                comp.appendList( contourComp.vgList() );
+
+                comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
+                comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
+                comp.appendList( contourVG);
+                comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
             }
         }
     }
+    comp.appendList( gridVG);
     m_vectorGraphics = comp.vgList();
 
     // schedule a repaint with the connector
@@ -663,7 +674,7 @@ void ControllerData::_resetStateContours(const Carta::State::StateInterface& res
     //Add any contours not there
     for ( int i = 0; i < contourCount; i++ ){
        QString lookup = Carta::State::UtilState::getLookup( DataContours::CONTOURS, i );
-       QString nameLookup = Carta::State::UtilState::getLookup( lookup, DataContours::SET_NAME );
+       QString nameLookup = Carta::State::UtilState::getLookup( lookup, Util::NAME );
        QString contourStr = restoreState.toString( lookup);
        QString contourName = restoreState.getValue<QString>( nameLookup );
        supportedContours.append( contourName );
@@ -957,7 +968,6 @@ void ControllerData::_viewResize( const QSize& newSize ){
 
 
 ControllerData::~ControllerData() {
-    _clearData();
 }
 }
 }

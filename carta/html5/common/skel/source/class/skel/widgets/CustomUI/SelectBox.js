@@ -30,6 +30,28 @@ qx.Class.define("skel.widgets.CustomUI.SelectBox", {
     members : {
         
         /**
+         * Return the index of the first selected item.
+         * @return {Number} - the index of the first selected item.
+         */
+        getIndex : function(){
+            var selections = this.getSelection();
+            var selection = null;
+            var index = -1;
+            if ( selections.length > 0 ){
+                selection = selections[0].getLabel();
+                var selectables = this.getSelectables(true);
+                for ( var i = 0; i < selectables.length; i++ ){
+                    var selectValue = selectables[i].getLabel();
+                    if ( selectValue == selection ){
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            return index;
+        },
+        
+        /**
          * Return the first value that the user selected.
          * @return {String} - the first user selected value or null if there
          *      is no such value.

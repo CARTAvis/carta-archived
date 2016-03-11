@@ -563,8 +563,8 @@ QString GridControls::setAxis( const QString& axisId, const QString& purpose ){
     QString result = m_dataGrid->_setAxis( axisId, purpose, &axisChanged );
     if ( axisChanged ){
         _updateGrid();
-        _notifyAxesChanged();
     }
+    _notifyAxesChanged();
     return result;
 }
 
@@ -680,6 +680,9 @@ QString GridControls::setShowAxis( bool showAxis ){
     bool axisChanged = false;
     QString result = m_dataGrid->_setShowAxis( showAxis, & axisChanged );
     if ( axisChanged ){
+        if ( !showAxis ){
+            setShowGridLines( false );
+        }
         _updateGrid();
     }
     return result;
@@ -790,10 +793,6 @@ void GridControls::_updateGrid(){
 }
 
 GridControls::~GridControls(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    if ( m_dataGrid != nullptr){
-        objMan->removeObject(m_dataGrid->getId());
-    }
 }
 }
 }

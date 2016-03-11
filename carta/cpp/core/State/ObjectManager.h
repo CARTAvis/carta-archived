@@ -5,8 +5,7 @@
  *      Author: jjacobs
  */
 
-#ifndef OBJECTMANAGER_H_
-#define OBJECTMANAGER_H_
+#pragma once
 
 #include <map>
 #include <QString>
@@ -28,7 +27,7 @@ class CartaObject {
 
 public:
 
-    virtual ~CartaObject () {};
+    virtual ~CartaObject ();
 
 
     QString addIdToCommand (const QString & commandName) const;
@@ -458,6 +457,3 @@ private:
 };
 }
 }
-
-
-#endif /* OBJECTMANAGER_H_ */

@@ -86,7 +86,6 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             var countLabel = new qx.ui.basic.Label( "Level Count:");
             this.m_levelCountSpin = new qx.ui.form.Spinner();
             this.m_levelCountSpin.setMinimum( 1 );
-            this.m_levelCountSpin.setEditable( false );
             this.m_levelCountSpin.setToolTipText( "Specify the number of contour levels to generate.");
             this.m_levelCountSpin.addListener( "changeValue", this._sendLevelCountCmd, this );
             skel.widgets.TestID.addTestId( this.m_levelCountSpin, "imageContourLevelCount" );
@@ -228,7 +227,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * Send a command to the server to delete a contour set.
          */
         _sendDeleteCmd : function(){
-            
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             //First we erase the item from the combo box so it does not get reset.
             var name = this.m_nameCombo.getValue();
             var itemCount = this.m_nameCombo.getItemCount();
@@ -267,16 +267,13 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * Send a command to the server add a contour set.
          */
         _sendGenerateCmd : function(){
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             if ( this.m_id !== null && this.m_connector !== null ){
-                
-                var errorMan = skel.widgets.ErrorHandler.getInstance();
-                errorMan.clearErrors();
                 
                 //Before we send a generate command, we make sure that there are not
                 //values in the text fields that have not been sent to the server because
                 //the user did not press enter.
-                
-                
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "generateLevels";
                 var name = this.m_nameCombo.getValue();
@@ -298,6 +295,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * Send a command to the server specifying spacing between contour levels.
          */
         _sendIntervalCmd : function(){
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             if ( this.m_id !== null && this.m_connector !== null){
                 var interval = this.m_intervalWidget.getValue();
                 var path = skel.widgets.Path.getInstance();
@@ -311,6 +310,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * Send a command to the server specifying the number of contour levels.
          */
         _sendLevelCountCmd : function(){
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             if ( this.m_id !== null && this.m_connector !== null){
                 var levelCount = this.m_levelCountSpin.getValue();
                 var path = skel.widgets.Path.getInstance();
@@ -324,6 +325,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * Send a command to the server specifying the minimum contour level.
          */
         _sendLimitMinCmd : function(){
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             if ( this.m_id !== null && this.m_connector !== null){
                 var limitMin = this.m_limitMinText.getValue();
                 var path = skel.widgets.Path.getInstance();
@@ -337,6 +340,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * Send a command to the server specifying the maximum contour level.
          */
         _sendLimitMaxCmd : function(){
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             if ( this.m_id !== null && this.m_connector !== null){
                 var limitMax = this.m_limitMaxText.getValue();
                 var path = skel.widgets.Path.getInstance();
@@ -351,6 +356,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
          * should be dashed.
          */
         _sendNegativeDashedCmd : function(){
+            var errorMan = skel.widgets.ErrorHandler.getInstance();
+            errorMan.clearErrors();
             if ( this.m_id !== null && this.m_connector !== null){
                 var dashed = this.m_negativeCheck.getValue();
                 var path = skel.widgets.Path.getInstance();

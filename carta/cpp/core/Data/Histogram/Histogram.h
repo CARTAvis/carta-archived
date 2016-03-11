@@ -26,11 +26,7 @@ class ImageInterface;
 
 class ImageView;
 
-
 namespace Carta {
-namespace Histogram {
-class HistogramGenerator;
-}
 
 namespace Data {
 
@@ -39,6 +35,8 @@ class Clips;
 class Colormap;
 class Controller;
 class LinkableImpl;
+class Plot2DManager;
+class PlotStyles;
 class Settings;
 
 class Histogram : public QObject, public Carta::State::CartaObject, public ILinkable {
@@ -61,11 +59,6 @@ public:
      * Clear the state of the histogram.
      */
     void clear();
-
-    /**
-     * Clear the histogram zoom selection.
-     */
-    void clearSelection();
 
     /**
      * Return a string representing the histogram state of a particular type.
@@ -204,6 +197,15 @@ public:
     */
     bool getColored();
 
+
+    /**
+     * Save a copy of the histogram as an image.
+     * @param filename the full path where the file is to be saved.
+     * @return an error message if there was a problem saving the histogram;
+     *      an empty string otherwise.
+     */
+    QString saveHistogram( const QString& filename );
+
     /**
      * Set the drawing style for the histogram (outline, filled, etc).
      * @param style a unique identifier for a histogram drawing style.
@@ -313,22 +315,24 @@ public:
     QString setSignificantDigits( int digits );
 
     /**
-     * Save a copy of the histogram as an image.
-     * @param filename the full path where the file is to be saved.
-     * @return an error message if there was a problem saving the histogram;
-     *      an empty string otherwise.
+     * Set the index of the settings tab that should be selected.
+     * @param index - the index of the selected settings tab.
+     * @return - an error message if there was a problem setting the tab index; an empty string
+     *      otherwise.
      */
-    QString saveHistogram( const QString& filename );
+    QString setTabIndex( int index );
 
     virtual ~Histogram();
     const static QString CLASS_NAME;
-    const static QString GRAPH_STYLE_LINE;
-    const static QString GRAPH_STYLE_OUTLINE;
-    const static QString GRAPH_STYLE_FILL;
 
 signals:
     void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
 
+public slots:
+    /**
+     * Update the colors used by the histogram.
+     */
+    void updateColorMap();
 
 protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
@@ -337,9 +341,12 @@ private slots:
     void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
     void _createHistogram( Controller* );
 
-    void _updateSize( const QSize& size );
-    void _updateChannel( Controller* controller );
+    void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateColorClips( double colorMinPercent, double colorMaxPercent);
+
+
+    void  _updateColorSelection();
+    QString _zoomToSelection();
 
 private:
 
@@ -359,8 +366,6 @@ private:
     QString _set2DFootPrint( const QString& params );
     void _setErrorMargin();
 
-
-
     /**
     * Check if the given string represents a valid plane mode by doing a case
     *   insensitive comparison to each of the defined plane mode strings.
@@ -369,17 +374,6 @@ private:
     *   string otherwise.
     */
     QString _getActualPlaneMode( const QString& planeModeStr );
-
-    /**
-    * Check if the given string represents a valid graph style by doing a case
-    *   insensitive comparison to each of the defined graph style strings.
-    * @param styleStr the string to check.
-    * @return the actual graph style string if a match is found; an empty
-    *   string otherwise.
-    */
-    QString _getActualGraphStyle( const QString& styleStr );
-
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> _generateData(Controller* controller);
     
     /**
      * Returns the server side id of the histogram user preferences.
@@ -391,31 +385,14 @@ private:
     double _toBinWidth( int count ) const;
     int _toBinCount( double width ) const;
 
-    //User range selection
-    void _startSelection(const QString& params );
-    void _startSelectionColor( const QString& params );
-
-    void _updateSelection(int x );
-    void  _updateColorSelection();
-    void _endSelection(const QString& params );
-    void _endSelectionColor(const QString& params );
-
     void _initializeDefaultState();
     void _initializeCallbacks();
     void _initializeStatics();
 
-    void _refreshView();
     bool _resetBinCountBasedOnWidth();
     void _resetDefaultStateData();
 
-    QString _zoomToSelection();
-
     static bool m_registered;
-
-    bool m_selectionEnabled;
-    double m_selectionStart;
-    double m_selectionEnd;
-    bool m_selectionEnabledColor;
 
     const static QString CLIP_BUFFER;
     const static QString CLIP_BUFFER_SIZE;
@@ -432,7 +409,6 @@ private:
     const static QString COLOR_MAX;
     const static QString COLOR_MIN_PERCENT;
     const static QString COLOR_MAX_PERCENT;
-    const static QString DATA_PATH;
     const static QString FREQUENCY_UNIT;
     const static QString GRAPH_STYLE;
     const static QString GRAPH_LOG_COUNT;
@@ -453,8 +429,6 @@ private:
     const static QString FOOT_PRINT_REGION_ALL;
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
-    const static QString X_COORDINATE;
-    const static QString POINTER_MOVE;
     const static QString SIGNIFICANT_DIGITS;
     
     static ChannelUnits* m_channelUnits;
@@ -468,10 +442,9 @@ private:
     class Factory;
 
     int m_cubeChannel;
-    //Data View
-    std::shared_ptr<ImageView> m_view = nullptr;
 
     static Clips*  m_clips;
+    static PlotStyles* m_graphStyles;
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
@@ -479,13 +452,12 @@ private:
     //Preferences
     std::unique_ptr<Settings> m_preferences;
 
-    Carta::Histogram::HistogramGenerator* m_histogram = nullptr;
+    //Plot generation
+    std::unique_ptr<Plot2DManager> m_plotManager;
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
-    //Separate state for mouse events since they get updated rapidly and not
-    //everyone wants to listen to them.
-    Carta::State::StateInterface m_stateMouse;
+
 	Histogram( const Histogram& other);
 	Histogram operator=( const Histogram& other );
 };

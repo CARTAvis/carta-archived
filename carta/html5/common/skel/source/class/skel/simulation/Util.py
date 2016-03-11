@@ -13,7 +13,7 @@ def setUp(self, browser):
     # Running on Ubuntu (Firefox)
     if browser == 1:
         self.driver = webdriver.Firefox()
-        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3&username=dan12&password=Cameron21")
+        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
         #self.driver.get("http://199.116.235.164:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
         #self.driver.get("http://142.244.190.171:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
@@ -187,8 +187,7 @@ def load_image(unittest, driver, imageName, imageId = "pwUID0"):
     ActionChains(driver).double_click( imageWindow ).perform()
     
     # Pause, otherwise stale element for Chrome
-    if browser == 2:
-        time.sleep( timeout)
+    time.sleep( timeout)
 
     # Click the data button
     dataButton = driver.find_element_by_xpath( "//div[text()='Data']/..")
@@ -274,16 +273,15 @@ def load_image_windowIndex( unittest,driver,imageName,windowIndex):
     return imageWindow
 
 
-# Open image settings by clicking on image settings checkbox located on the menu bar
-def openSettings(unittest, driver, name ):
+# Open settings by clicking the settings checkbox located on the menu bar
+def openSettings(unittest, driver, name, open ):
     settingsText = name + " Settings"
-    print "Settings text=",settingsText
     searchPath ="//div[@qxclass='qx.ui.form.CheckBox']/div[text()='{0}']/following-sibling::div[@class='qx-checkbox']".format( settingsText )
-    print "Search path=",searchPath
-    imageSettingsCheckbox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, searchPath )))
-    settingsOpen = isChecked(unittest, imageSettingsCheckbox )
-    if not settingsOpen:
-        ActionChains(driver).click( imageSettingsCheckbox ).perform()
+    settingsCheckbox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, searchPath )))
+    settingsOpen = isChecked(unittest, settingsCheckbox )
+    if (not settingsOpen and open) or (settingsOpen and not open):
+        ActionChains(driver).click( settingsCheckbox ).perform()
+    return settingsCheckbox
 
 
 

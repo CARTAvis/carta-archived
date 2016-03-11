@@ -15,20 +15,22 @@ Histogram1::_computeHistogram()
 {
     vector < std::pair < double, double > > data;
     QString name;
-    QString units = "";
+    QString unitsX = "";
+    QString unitsY = "";
     if ( m_histogram ) {
         bool computed = m_histogram->compute();
         if ( computed ) {
             data = m_histogram->getData();
             name = m_histogram->getName();
-            units = m_histogram->getUnits();
+            unitsX = m_histogram->getUnitsX();
+            unitsY = m_histogram->getUnitsY();
         }
         else {
             qDebug() << "Could not generate histogram data";
         }
     }
 
-    Carta::Lib::Hooks::HistogramResult result( name, units, data );
+    Carta::Lib::Hooks::HistogramResult result( name, unitsX, unitsY, data );
     return result;
 } // _computeHistogram
 
@@ -119,10 +121,8 @@ Histogram1::_getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
     casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
     if ( specAx < 0 ) {
         //qWarning() << "Image did not have a spectral coordinate";
-        /// \todo Does this mean we can only compute histograms on spectral coordinates!?!?!?!
         return bounds;
     }
-
 
     casa::IPosition imgShape = casaImage->shape();
     int chanMin = std::max( 0, channelMin);
@@ -160,12 +160,12 @@ Histogram1::handleHook( BaseHook & hookData )
         Carta::Lib::Hooks::HistogramHook & hook
             = static_cast < Carta::Lib::Hooks::HistogramHook & > ( hookData );
 
-        const auto & images = hook.paramsPtr-> dataSource;
-        if ( images.size() == 0 ) {
+        const auto & image = hook.paramsPtr-> dataSource;
+        if ( !image ) {
             return false;
         }
 
-        auto casaImage = cartaII2casaII_float( images.front() );
+        auto casaImage = cartaII2casaII_float( image );
         if( ! casaImage) {
             qWarning() << "Histogram plugin: not an image created by casaimageloader...";
             return false;
@@ -173,7 +173,7 @@ Histogram1::handleHook( BaseHook & hookData )
         if ( !m_histogram ){
             m_histogram.reset(new ImageHistogram < casa::Float >());
         }
-        m_histogram-> setImage( casaImage->cloneII() );
+
         m_histogram-> setBinCount( hook.paramsPtr->binCount );
 
         double frequencyMin = hook.paramsPtr->minFrequency;
@@ -187,20 +187,22 @@ Histogram1::handleHook( BaseHook & hookData )
             if ( specAx >= 0 ) {
                 minChannel = hook.paramsPtr->minChannel;
                 maxChannel = hook.paramsPtr->maxChannel;
-                m_histogram->setChannelRange( minChannel, maxChannel );
-            }
+                //m_histogram->setChannelRange( minChannel, maxChannel );
 
-            auto bounds = _getFrequencyBounds( casaImage, minChannel, maxChannel, rangeUnits );
-            frequencyMin = bounds.first;
-            frequencyMax = bounds.second;
+                std::pair<double,double> bounds = _getFrequencyBounds( casaImage, minChannel, maxChannel, rangeUnits );
+                frequencyMin = bounds.first;
+                frequencyMax = bounds.second;
+            }
+            m_histogram->setChannelRange( minChannel, maxChannel );
         }
         else {
-            auto bounds = _getChannelBounds( casaImage, frequencyMin, frequencyMax, rangeUnits );
+            std::pair<int,int> bounds = _getChannelBounds( casaImage, frequencyMin, frequencyMax, rangeUnits );
             m_histogram-> setChannelRange( bounds.first, bounds.second );
         }
-        m_histogram->setIntensityRange(
-                    hook.paramsPtr->minIntensity,
-                    hook.paramsPtr->maxIntensity );
+        m_histogram-> setImage( casaImage->cloneII() );
+        double minIntensity = hook.paramsPtr->minIntensity;
+        double maxIntensity = hook.paramsPtr->maxIntensity;
+        m_histogram->setIntensityRange( minIntensity, maxIntensity );
 
         hook.result = _computeHistogram();
         hook.result.setFrequencyBounds( frequencyMin, frequencyMax );

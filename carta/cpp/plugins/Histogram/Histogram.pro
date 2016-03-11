@@ -33,6 +33,7 @@ LIBS += -L$${WCSLIBDIR}/lib -lwcs
 
 INCLUDEPATH += $${CASACOREDIR}/include
 INCLUDEPATH += $${WCSLIBDIR}/include
+INCLUDEPATH += $${CFITSIODIR}/include
 
 OTHER_FILES += \
     plugin.json
@@ -49,11 +50,9 @@ QMAKE_EXTRA_COMPILERS += copy_files
 
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
-    PRE_TARGETDEPS += $$OUT_PWD/../CasaImageLoader/libplugin.dylib
-    LIBS += -L$$OUT_PWD/../CasaImageLoader -lplugin
+    QMAKE_LFLAGS += -undefined dynamic_lookup
 }
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
-    PRE_TARGETDEPS += $$OUT_PWD/../CasaImageLoader/libplugin.so
 }
 

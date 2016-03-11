@@ -48,6 +48,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         Util.load_image(self, driver, "TWHydra_CO2_1line.image.fits")
 
         # Find the last channel by finding the value of the upper bound spin box
+        time.sleep( timeout )
         upperSpin = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ChannelUpperBoundSpin']/input")))
         lastChannel = upperSpin.get_attribute( "value")
         print 'Last channel', lastChannel
@@ -97,6 +98,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
 
         # Verify the animator channel is back to the last one
         channelVal = indexText.get_attribute( "value")
+        print "Channel value=",channelVal
         self.assertEqual( channelVal, lastChannel, "Channel animator did not get restored to last channel")
 
 

@@ -15,6 +15,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
     construct : function( ) {
         this.base(arguments);
         this.m_connector = mImport("connector");
+        this.m_serverUpdate = false;
         this._init( );
     },
 
@@ -35,6 +36,37 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             parent.add( colorRgb, {row:rowIndex, column:1} );
         },
         
+        /**
+         * Return the selected UI color as an RGB array.
+         * @return {Array} - the color as an RGB array.
+         */
+        _getColorAsRGB : function(){
+            var red = 0;
+            var green = 0;
+            var blue = 0;
+            if ( this._isRedSelected() ){
+                red = 255;
+            }
+            else if ( this._isGreenSelected() ){
+                green = 255;
+            }
+            else if ( this._isBlueSelected() ){
+                blue = 255;
+            }
+            else {
+                red = 255;
+                blue = 255;
+                green = 255;
+            }
+          
+            var colorArray = [];
+            colorArray[0] = red;
+            colorArray[1] = green;
+            colorArray[2] = blue;
+            return colorArray;
+        },
+        
+        
         /*
          * Initializes the UI.
          */
@@ -43,7 +75,6 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this._initOpacity();
             this._initPresets();
             this._add( new qx.ui.core.Spacer(1), {flex:1} );
-            this._initRgbs();
             this._initPreview();
         },
         
@@ -110,34 +141,52 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
         },
         
         /**
-         * Initialize controls for setting RGB.
+         * Returns true if the user has selected blue.
+         * @return {boolean} - true if the user has selected blue; false otherwise.
          */
-        _initRgbs : function(){
-            var hContainer = new qx.ui.container.Composite();
-            hContainer.setLayout( new qx.ui.layout.HBox(1));
-            hContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
-            var rgbContainer = new qx.ui.container.Composite();
-            rgbContainer.setLayout( new qx.ui.layout.Grid(2,2));
-            this.m_spinRed = new qx.ui.form.Spinner( 0, 0, 255 );
-            this.m_spinRed.setToolTipText( "Set the red mask color amount in the selected layer(s).");
-            this.m_spinRedId = this.m_spinRed.addListener("changeValue", this._primaryColorChanged, this );
-            skel.widgets.TestID.addTestId( this.m_spinRed, "filterRGBSpinRed");
-            this.m_spinBlue = new qx.ui.form.Spinner( 0, 0, 255 );
-            this.m_spinBlue.setToolTipText( "Set the blue mask color amount in the selected layer(s).");
-            this.m_spinBlueId = this.m_spinBlue.addListener( "changeValue", this._primaryColorChanged, this );
-            skel.widgets.TestID.addTestId( this.m_spinBlue, "filterRGBSpinBlue");
-            this.m_spinGreen = new qx.ui.form.Spinner( 0, 0, 255 );
-            this.m_spinGreen.setToolTipText( "Set the green mask color amount in the selected layer(s).");
-            this.m_spinGreenId = this.m_spinGreen.addListener( "changeValue", this._primaryColorChanged, this );
-            skel.widgets.TestID.addTestId( this.m_spinGreen, "filterRGBSpinGreen");
-            this._addColorRgb( rgbContainer, this.m_spinRed, "Red:", 0);
-            this._addColorRgb( rgbContainer, this.m_spinGreen, "Green:", 1);
-            this._addColorRgb( rgbContainer, this.m_spinBlue, "Blue:", 2);
-            hContainer.add( rgbContainer );
-            hContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
-            this._add( hContainer );
+        _isBlueSelected : function(){
+            var blueSelected = false;
+            if ( this.m_presetBlue.getDecorator() == this.m_BORDER_LINE ){
+                blueSelected = true;
+            }
+            return blueSelected;
         },
         
+        /**
+         * Returns true if the user has selected green.
+         * @return {boolean} - true if the user has selected green; false otherwise.
+         */
+        _isGreenSelected : function(){
+            var greenSelected = false;
+            if ( this.m_presetGreen.getDecorator() == this.m_BORDER_LINE ){
+                greenSelected = true;
+            }
+            return greenSelected;
+        },
+        
+        /**
+         * Returns true if the user has selected red.
+         * @return {boolean} - true if the user has selected red; false otherwise.
+         */
+        _isRedSelected : function(){
+            var redSelected = false;
+            if ( this.m_presetRed.getDecorator() == this.m_BORDER_LINE ){
+                redSelected = true;
+            }
+            return redSelected;
+        },
+        
+        /**
+         * Return true if the user has selected white.
+         * @return {boolean} - true if the color is white; false otherwise.
+         */
+        _isNoneSelected : function(){
+            var noneSelected = false;
+            if ( this.m_presetNone.getDecorator() == this.m_BORDER_LINE ){
+                noneSelected = true;
+            }
+            return noneSelected;
+        },
         
         /**
          * Construct a square for a preset color.
@@ -157,7 +206,6 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
          * Update the UI based on a preset color of red.
          */
         _presetRedSelected : function(){
-            this._setRgbColors( 255, 0, 0 );
             this.m_presetRed.setDecorator( this.m_BORDER_LINE );
             this.m_presetGreen.setDecorator( this.m_BORDER_NONE );
             this.m_presetBlue.setDecorator( this.m_BORDER_NONE );
@@ -170,7 +218,6 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
          * Update the UI based on a preset color of green.
          */
         _presetGreenSelected : function(){
-            this._setRgbColors( 0, 255, 0 );
             this.m_presetRed.setDecorator( this.m_BORDER_NONE );
             this.m_presetGreen.setDecorator( this.m_BORDER_LINE );
             this.m_presetBlue.setDecorator( this.m_BORDER_NONE );
@@ -183,7 +230,6 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
          * Update the UI based on a preset color of blue.
          */
         _presetBlueSelected : function(){
-            this._setRgbColors( 0, 0, 255 );
             this.m_presetRed.setDecorator( this.m_BORDER_NONE );
             this.m_presetGreen.setDecorator( this.m_BORDER_NONE );
             this.m_presetBlue.setDecorator( this.m_BORDER_LINE );
@@ -192,11 +238,11 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this._sendMaskColorCmd();
         },
         
+       
         /**
          * Update the UI based on no color filter.
          */
         _presetNoneSelected : function(){
-            this._setRgbColors( 255, 255, 255 );
             this.m_presetRed.setDecorator( this.m_BORDER_NONE );
             this.m_presetGreen.setDecorator( this.m_BORDER_NONE );
             this.m_presetBlue.setDecorator( this.m_BORDER_NONE );
@@ -220,9 +266,10 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
          * RGB color values.
          */
         _updatePresets : function(){
-            var red = this.m_spinRed.getValue();
-            var green = this.m_spinGreen.getValue();
-            var blue = this.m_spinBlue.getValue();
+            var colorArray = this._getColorAsRGB();
+            var red = colorArray[0];
+            var green = colorArray[1];
+            var blue = colorArray[2];
             if ( red == 255 && green == 0 && blue == 0 ){
                 this._presetRedSelected();
             }
@@ -254,26 +301,36 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
          * Notify the server that the mask color has changed.
          */
         _sendMaskColorCmd : function(){
-            if ( this.m_id !== null ){
-                var red = this.m_spinRed.getValue();
-                var green = this.m_spinGreen.getValue();
-                var blue = this.m_spinBlue.getValue();
-                var params = "red:"+red+",green:"+green+",blue:"+blue;
+            if ( this.m_id !== null && !this.m_serverUpdate ){
+                var colorArray = this._getColorAsRGB();
+                var params = "red:"+colorArray[0]+",green:"+colorArray[1]+",blue:"+colorArray[2];
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setMaskColor";
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-        
+ 
         /**
          * Update the UI with mask information from the server.
          * @param mask {Object} - mask information from the server.
          */
         setControls : function( mask ){
-            this._setRgbColors( mask.red, mask.green, mask.blue );
-            this._updatePresets();
+            this.m_serverUpdate = true;
+            if ( mask.red == 255 && mask.blue == 0 && mask.green == 0){
+                this._presetRedSelected();
+            }
+            else if ( mask.red == 0 && mask.blue == 255 && mask.green == 0 ){
+                this._presetBlueSelected();
+            }
+            else if ( mask.red == 0 && mask.blue == 0 && mask.green == 255 ){
+                this._presetGreenSelected();
+            }
+            else {
+                this._presetNoneSelected();
+            }
             this.m_transparency.setValue( mask.alpha );
             this._setControlsEnabled( mask.alphaSupport, mask.colorSupport );
+            this.m_serverUpdate = false;
         },
         
         /**
@@ -288,9 +345,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this.m_presetGreen.setEnabled( enabledColor );
             this.m_presetBlue.setEnabled( enabledColor );
             this.m_presetNone.setEnabled( enabledColor );
-            this.m_spinRed.setEnabled( enabledColor );
-            this.m_spinBlue.setEnabled( enabledColor );
-            this.m_spinGreen.setEnabled( enabledColor );
+           
             this.m_transparency.setEnabled( enabledTransparency );
         },
         
@@ -308,40 +363,14 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
          * Update the preview panel with the latest color information.
          */
         _setPreviewColor : function(){
-            var red = this.m_spinRed.getValue();
-            var green = this.m_spinGreen.getValue();
-            var blue = this.m_spinBlue.getValue();
+            var rgbArray = this._getColorAsRGB();
             var alpha = this.m_transparency.getValue();
             var alphaNorm = alpha / 255;
-            var rgbArray = [red, green, blue];
             var hexStr = qx.util.ColorUtil.rgbToHexString(rgbArray );
             this.m_preview.setBackgroundColor( hexStr );
             this.m_preview.setOpacity( alphaNorm );
         },
         
-        /**
-         * Update the rgb controls with new color information.
-         * @param redAmount {Number} - the amount of red.
-         * @param greenAmount {Number} - the amount of green.
-         * @param blueAmount {Number} - the amount of blue.
-         */
-        _setRgbColors : function( redAmount, greenAmount, blueAmount ){
-            this.m_spinRed.removeListenerById( this.m_spinRedId );
-            this.m_spinGreen.removeListenerById( this.m_spinGreenId );
-            this.m_spinBlue.removeListenerById( this.m_spinBlueId );
-            if ( redAmount != this.m_spinRed.getValue() ){
-                this.m_spinRed.setValue( redAmount );
-            }
-            if ( greenAmount != this.m_spinGreen.getValue() ){
-                this.m_spinGreen.setValue( greenAmount );
-            }
-            if ( blueAmount != this.m_spinBlue.getValue() ){
-                this.m_spinBlue.setValue( blueAmount );
-            }
-            this.m_spinRedId = this.m_spinRed.addListener( "changeValue", this._primaryColorChanged, this );
-            this.m_spinGreenId = this.m_spinGreen.addListener( "changeValue", this._primaryColorChanged, this );
-            this.m_spinBlueId = this.m_spinBlue.addListener( "changeValue", this._primaryColorChanged, this );
-        },
         
         m_connector : null,
         m_id : null,
@@ -350,12 +379,8 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
         m_presetBlue : null,
         m_presetNone : null,
         m_preview : null,
-        m_spinRed : null,
-        m_spinGreen : null,
-        m_spinBlue : null,
-        m_spinRedId : null,
-        m_spinGreenId : null,
-        m_spinBlueId : null,
+        m_serverUpdate : null,
+        
         m_transparency : null,
         
         m_BORDER_NONE : "no-border",

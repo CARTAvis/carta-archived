@@ -44,6 +44,8 @@ class CoordinateSystems;
 class DataSource : public QObject {
 
 friend class ControllerData;
+friend class Histogram;
+friend class Profiler;
 
 Q_OBJECT
 
@@ -67,14 +69,6 @@ private:
     std::vector<int> _fitFramesToImage( const std::vector<int>& sourceFrames ) const;
 
     /**
-     * Returns the index of the axis of the given type in the image or -1 if there is
-     * no such axis
-     * @param axisType - the type of axis.
-     * @return the index of the axis in the image or -1 if there is no such axis.
-     */
-    int _getAxisIndex( Carta::Lib::AxisInfo::KnownType axisType ) const;
-
-    /**
      * Return a list of information about the axes to display.
      * @return a list showing information about which axes should be displayed and how
      *  they should be displayed.
@@ -86,8 +80,6 @@ private:
      * @return - a list of axes that are present in the image.
      */
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
-
-
 
     /**
      * Returns the type of the axis with the given index in the image.

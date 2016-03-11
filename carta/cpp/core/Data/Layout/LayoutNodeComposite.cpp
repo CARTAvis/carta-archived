@@ -271,13 +271,11 @@ bool LayoutNodeComposite::_removeWindow( const QString& nodeId,
     //with the other grand kid.
     bool windowRemoved = false;
     LayoutNode* replacementNode = nullptr;
-    LayoutNode* destroyNode = nullptr;
     if ( child.get() != nullptr ){
         LayoutNode* firstGrandKid = child->getChildFirst();
         if ( firstGrandKid != nullptr ){
             if ( firstGrandKid->getPath() == nodeId ){
                 replacementNode = child->getChildSecond();
-                destroyNode = child.get();
             }
         }
         if ( replacementNode == nullptr ){
@@ -285,14 +283,12 @@ bool LayoutNodeComposite::_removeWindow( const QString& nodeId,
             if ( secondGrandKid != nullptr ){
                 if ( secondGrandKid->getPath() == nodeId ){
                     replacementNode = child->getChildFirst();
-                    destroyNode = secondGrandKid;
                 }
             }
         }
         if ( replacementNode != nullptr ){
             windowRemoved = true;
             _setChild( childKey, child, replacementNode, false );
-            destroyNode->clear();
         }
     }
     return windowRemoved;
@@ -324,15 +320,7 @@ void LayoutNodeComposite::_resetStateChild( const QString& childKey, std::unique
         else {
             childNode = NodeFactory::makeLeaf();
         }
-        //Replace the child
-        LayoutNode* oldChild = child.get();
-        if ( oldChild != nullptr ){
-            child.release();
-        }
         child.reset( childNode );
-        if ( oldChild != nullptr ){
-            oldChild->clear();
-        }
     }
 
     //Reset the state of the child.
@@ -341,17 +329,12 @@ void LayoutNodeComposite::_resetStateChild( const QString& childKey, std::unique
 }
 
 
-
-
 void LayoutNodeComposite::_setChild( const QString& key,
         std::unique_ptr<LayoutNode>& child, LayoutNode* node, bool destroy ){
     if ( node != nullptr ){
         QString lookup = Carta::State::UtilState::getLookup( key, ID);
         QString oldLookup = m_state.getValue<QString>( lookup );
         if ( node->getPath() !=  oldLookup ){
-            if ( child.get() != nullptr && destroy ){
-                child->clear();
-            }
             if ( !destroy ){
                 child.release();
             }

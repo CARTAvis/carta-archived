@@ -31,9 +31,7 @@ private:
     class Factory;
 
     static const QString PLUGINS;
-    static const QString NAME;
     static const QString DESCRIPTION;
-    static const QString TYPE;
     static const QString VERSION;
     static const QString ERRORS;
     static const QString STAMP;

@@ -102,8 +102,8 @@ private:
     void _addContourSet( std::shared_ptr<DataContours> contour );
 
     void _clearColorMap();
-    void _clearData();
 
+    Carta::Lib::AxisInfo::KnownType _getAxisType( int index ) const;
     Carta::Lib::AxisInfo::KnownType _getAxisXType() const;
     Carta::Lib::AxisInfo::KnownType _getAxisYType() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
@@ -175,6 +175,11 @@ private:
      */
     QString _getCursorText( int mouseX, int mouseY, const std::vector<int>& frames );
 
+    /**
+     * Return the data source of the image.
+     * @return - the data source of the image.
+     */
+    std::shared_ptr<DataSource> _getDataSource();
 
     /**
      * Return the image size for the given coordinate index.
@@ -211,6 +216,10 @@ private:
      */
     std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
 
+    /**
+     * Return the current image.
+     * @return - the current image.
+     */
     QImage _getQImage() const;
 
     /**
@@ -231,7 +240,6 @@ private:
      * @return true if the computed intensity is valid; otherwise false.
      */
     bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
-
 
     /**
      * Returns information about this layer in the stack.
@@ -265,13 +273,6 @@ private:
      * @return the percentile corresponding to the intensity.
      */
     double _getPercentile( int frameLow, int frameHigh, double intensity ) const;
-
-    /**
-     * Returns the pipeline responsible for rendering the image.
-     * @retun the pipeline responsible for rendering the image.
-     */
-    std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> _getPipeline() const;
-
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
@@ -350,6 +351,15 @@ private:
      * @return true if the name identifies this layer; false otherwise.
      */
     bool _isMatch( const QString& name ) const;
+
+    /**
+     * Returns true if the last part of the name matches this layer; false otherwise.
+     * @return true if the last part of the name matches this layer; false otherwise.
+     */
+    //Needed for when files are opened in non-standard directories and the web code
+    //only has a partial file name for security reasons.
+    bool _isMatchPartial( const QString& name ) const;
+
 
     /**
      * Returns true if this data is selected; false otherwise.
@@ -532,7 +542,7 @@ private:
     std::set< std::shared_ptr<DataContours> > m_dataContours;
 
     //Pointer to image interface.
-    std::unique_ptr<DataSource> m_dataSource;
+    std::shared_ptr<DataSource> m_dataSource;
 
 
      /// image-and-grid-service result synchronizer

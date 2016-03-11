@@ -59,7 +59,6 @@ private:
 
     static bool m_registered;
     const static QString COLOR_MAPS;
-    const static QString COLOR_NAME;
     const static QString COLOR_MAP_COUNT;
     Colormaps( const QString& path, const QString& id );
 

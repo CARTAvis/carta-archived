@@ -2,18 +2,11 @@
  *  Functionality expected of a histogram implementation.
  */
 
-#ifndef IIMAGEHISTOGRAM_H_
-#define IIMAGEHISTOGRAM_H_
+#pragma once
 
 #include <vector>
 #include <QString>
 
-// namespace casa {
-//     template <class T> class ImageInterface;
-//     template <class T> class LatticeHistograms;
-//     template <class T> class SubImage;
-//     class ImageRegion;
-// }
 
 /**
  * Generates and Manages the data corresponding to a histogram.
@@ -40,10 +33,16 @@ public:
     virtual QString getName() const = 0;
 
     /**
-     * Returns the intensity units.
-     * @return the image intensity units.
+     * Returns the x-axis units.
+     * @return - the x-axis data units.
      */
-    virtual QString getUnits() const = 0;
+    virtual QString getUnitsX() const = 0;
+
+    /**
+     * Returns the y-axis units.
+     * @return - the y-axis data units.
+     */
+    virtual QString getUnitsY() const = 0;
 
     /**
      * Sets the number of bins in the histogram.
@@ -70,5 +69,3 @@ protected:
     virtual ~IImageHistogram();
     IImageHistogram();
 };
-
-#endif /* IIMAGEHISTOGRAM_H_ */

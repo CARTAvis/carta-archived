@@ -72,8 +72,15 @@ public:
     /**
      * Returns true if the nan color will be derived from the bottom of the color map; false,
      * if the nan color is set be the user.
+     * @return - true if the default nan color should be used; false, otherwise.
      */
     bool isNanDefault() const;
+
+    /**
+     * Returns true if the default border color should be used; false otherwise.
+     * @return - true if the default border/transparency is used; false for a user specified one.
+     */
+    bool isBorderDefault() const;
 
     /**
      * Returns whether or not the colormap is reversed.
@@ -91,6 +98,30 @@ public:
      * @param state- a json representation of state.
      */
     virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the color of the plot border.
+     * @param redValue - the amount of red [0,255].
+     * @param greenValue - the amount of green [0,255].
+     * @param blueValue - the amount of blue [0,255].
+     */
+    QString setBorderColor( int redValue, int greenValue, int blueValue );
+
+    /**
+     * Set the transparency of the plot border.
+     * @param alphaValue - how transparent the border should be (255 complete opaque,
+     *      0 transparent).
+     * @return - an error message if the border transparency could not be set; an empty
+     *      string otherwise.
+     */
+    QString setBorderAlpha( int alphaValue );
+
+    /**
+     * Set whether to use a default border around the plot.
+     * @param useDefault - true if the default border should be used; false, if it is a
+     *      user settable default border.
+     */
+    QString setBorderDefault( bool useDefault );
 
     /**
      * Set the name of the current color map.
@@ -173,9 +204,23 @@ public:
      */
     QString setSignificantDigits( int digits );
 
+    /**
+     * Set the index of the tab that should be selected.
+     * @param index - the index of the user selected settings tab.
+     * @return an error message if there was a problem setting the tab index; an
+     *      empty string otherwise.
+     */
+    QString setTabIndex( int index );
+
 
     virtual ~Colormap();
     const static QString CLASS_NAME;
+
+signals:
+    /**
+     * Notification that the color map has changed.
+     */
+    void colorMapChanged();
 
 private slots:
     void _updateIntensityBounds( double minIntensity, double maxIntensity );
