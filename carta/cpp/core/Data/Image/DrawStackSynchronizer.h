@@ -9,7 +9,6 @@
 #include <QString>
 #include <QList>
 #include <QObject>
-#include <QImage>
 
 #include <memory>
 

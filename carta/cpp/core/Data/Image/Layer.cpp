@@ -140,13 +140,7 @@ void Layer::_resetState( const QString& stateStr ){
     Carta::State::StateInterface restoreState("");
     restoreState.setState( stateStr );
 
-    //Restore the grid
-    QString gridStr = restoreState.toString( DataGrid::GRID );
-    Carta::State::StateInterface gridState( "" );
-    gridState.setState( gridStr );
-    _gridChanged( gridState);
 
-    _resetStateContours( restoreState );
     _resetState( restoreState );
 }
 
@@ -214,6 +208,14 @@ bool Layer::_setSelected( const QStringList& names ){
     }
 
     return stateChanged;
+}
+
+void Layer::_setSupportAlpha( bool /*supportAlpha*/ ){
+
+}
+
+void Layer::_setSupportColor( bool /*supportColor*/ ){
+
 }
 
 

@@ -171,6 +171,71 @@ class tSnapshotData(tSnapshot.tSnapshot):
 
         # Verify that only the original two images are loaded
         self._verifyImage( driver, 1 )
+    
+    # Test that a data snapshot can be taken with 3 images loaded and that they
+    # will all be restored if the snapshot is reloaded.
+    def test_multipleImagesRestored(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+
+         # Load 3 images.
+        Util.load_image(self,driver, "TWHydra_CO2_1line.image.fits" )
+        Util.load_image(self,driver, "aH.fits" )
+        Util.load_image(self,driver, "aJ.fits" )
+        
+        # Verify 3 images are loaded
+        self._verifyImage( driver, 2 )
+        
+        # Save a data snapshot.
+         # Find the session button on the menu bar and click it.
+        menuBar = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Menu.MenuBar']")))
+        self._clickSessionButton( driver )
+
+        # Find the save session button in the submenu and click it.
+        self._clickSessionSaveButton( driver )
+
+        # The save popup should be visible.  Make sure data is checked and
+        # layout and preferences are not checked
+        self._setSaveOptions( driver, False, False, True )
+
+        # Type in tSnapshotData for the save name.
+        self._setSaveName( driver, "tSnapshotData")
+
+        # Hit the save button
+        self._saveSnapshot( driver )
+
+        # Close the dialog
+        self._closeSave( driver )
+        
+        # Remove all 3 the image
+        ActionChains(driver).double_click( imageWindow ).perform()
+        dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
+        for i in range(0,2):
+            ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+                Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+                
+        # Verify no images are loaded
+        self._verifyImage( driver, 0 )
+        
+         # Click the restore sessions button
+        self._clickSessionButton( driver )
+        self._clickSessionRestoreButton( driver )
+
+        # Select tSnapshotData in the restore combo box
+        self._selectRestoreSnapshot( driver, "tSnapshotData")
+
+        # Hit the restore button
+        self._restoreSnapshot( driver )
+
+        # Close the restore dialog
+        self._closeRestore( driver )
+        time.sleep( timeout )
+        
+        # Verify 3 images are loaded
+        self._verifyImage( driver, 2 );
         
     # Load an image. Save a data snapshot.  Remove the image.  Restore
     # the snapshot.  Check that the image is loaded.

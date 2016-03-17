@@ -436,7 +436,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
     m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
     //Default Tab
-    m_state.insertValue<int>( Util::TAB_INDEX, 0 );
+    m_state.insertValue<int>( Util::TAB_INDEX, 1 );
     m_state.flushState();
 
 }

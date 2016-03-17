@@ -44,6 +44,7 @@ class Layer : public QObject, public Carta::State::CartaObject {
     friend class Controller;
     friend class LayerGroup;
     friend class Stack;
+    friend class DrawGroupSynchronizer;
     friend class DrawStackSynchronizer;
 
     Q_OBJECT
@@ -192,7 +193,7 @@ protected:
      * Return an identifier for the layer.
      * @return - a layer identifier.
      */
-    QString _getId() const;
+    virtual QString _getId() const;
 
     /**
      * Returns the underlying image.
@@ -289,9 +290,16 @@ protected:
 
     /**
      * Return the state of this layer.
+     * @param truncatePaths - true if full paths to files should not be given.
      * @return - a string representation of the layer state.
      */
-    virtual QString _getStateString() const = 0;
+    virtual QString _getStateString( bool truncatePaths ) const = 0;
+
+    /**
+     * Return the layer vector graphics.
+     * @return - the layer vector graphics, which can include both the grid and contours.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getVectorGraphics();
 
     /**
      * Return the zoom factor for this layer.
@@ -438,6 +446,9 @@ protected:
      */
     virtual bool _setSelected( const QStringList& selectNames );
 
+    virtual void _setSupportAlpha( bool supportAlpha );
+    virtual void _setSupportColor( bool supportColor );
+
     /**
      * Show/hide this layer.
      * @param visible - true to show the layer; false to hide it.
@@ -494,11 +505,7 @@ private:
     QImage _getQImage() const;
 
 
-    /**
-     * Return the layer vector graphics.
-     * @return - the layer vector graphics, which can include both the grid and contours.
-     */
-    Carta::Lib::VectorGraphics::VGList _getVectorGraphics();
+
 
     void _initializeSingletons( );
     void _initializeState();

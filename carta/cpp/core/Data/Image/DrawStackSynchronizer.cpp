@@ -51,7 +51,6 @@ void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
 }
 
 void DrawStackSynchronizer::_scheduleFrameRepaint(){
-
     // if reload is already pending, do nothing
     m_renderCount++;
     if ( m_repaintFrameQueued || (m_renderCount != m_redrawCount ) ) {
@@ -72,7 +71,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint(){
             Carta::Lib::VectorGraphics::VGList graphicsList = m_layers[dIndex]->_getVectorGraphics();
             m_view->setRasterLayer( stackIndex, image );
 
-            QString combineMode = m_layers[dIndex]->_getCompositionMode();
+            /*QString combineMode = m_layers[dIndex]->_getCompositionMode();
             if ( combineMode == LayerCompositionModes::PLUS ){
                 std::shared_ptr<Carta::Lib::PixelMaskCombiner> pmc =
                         std::make_shared < Carta::Lib::PixelMaskCombiner > ();
@@ -89,7 +88,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint(){
                 float alphaVal = m_layers[dIndex]->_getMaskAlpha();
                 alphaCombine-> setAlpha( alphaVal );
                 m_view->setRasterLayerCombiner( stackIndex, alphaCombine );
-            }
+            }*/
             m_view->setVGLayer( stackIndex, graphicsList );
             stackIndex++;
         }

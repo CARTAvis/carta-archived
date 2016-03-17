@@ -54,7 +54,7 @@ QStringList LayerCompositionModes::getLayerCompositionModes() const {
 }
 
 QString LayerCompositionModes::getDefault() const {
-    return NONE;
+    return PLUS;
 }
 
 void LayerCompositionModes::_initializeDefaultState(){
@@ -78,7 +78,7 @@ bool LayerCompositionModes::isAlphaSupport( const QString& modeName ) const {
     QString actualModeName;
     bool actualMode = isCompositionMode( modeName, actualModeName );
     if ( actualMode ){
-        if ( actualModeName == PLUS || actualModeName == ALPHA ){
+        if ( actualModeName == ALPHA ){
             alphaSupport = true;
         }
     }

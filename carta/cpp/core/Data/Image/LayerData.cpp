@@ -2,7 +2,6 @@
 #include "Contour/DataContours.h"
 #include "DataSource.h"
 #include "DrawSynchronizer.h"
-//#include "Data/Preferences/PreferencesSave.h"
 #include "Data/DataLoader.h"
 #include "Data/Util.h"
 #include "Data/Colormap/ColorState.h"
@@ -60,9 +59,6 @@ LayerData::LayerData(const QString& path, const QString& id) :
         m_dataGrid.reset( gridObj );
         m_dataGrid->_initializeGridRenderer();
 
-        ColorState* colorObj = objMan->createObject<ColorState>();
-        m_stateColor.reset( colorObj );
-
         std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
         std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
 
@@ -90,6 +86,11 @@ void LayerData::_clearColorMap(){
        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
        objMan->removeObject( m_stateColor->getId() );
     }
+}
+
+void LayerData::_colorChanged(){
+    _updateColor();
+    Layer::_colorChanged();
 }
 
 
@@ -172,39 +173,43 @@ std::vector< std::shared_ptr<ColorState> >  LayerData::_getSelectedColorStates()
 
 void LayerData::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
 
-    //Decide if we are going to use our own separate map that is a copy of our current
-    //one or reset to a shared global color map based on whether the passed in map
-    //is null
-    if ( _isSelected() ){
-        bool colorReset = false;
-        if ( colorState ){
-            if ( m_stateColor.get() == nullptr || !m_stateColor->_isGlobal() ){
-                //Use a common global map
+    if ( m_stateColor ){
+        //Decide if we are going to use our own separate map that is a copy of our current
+        //one or reset to a shared global color map based on whether the passed in map
+        //is null
+        if ( _isSelected() ){
+            bool colorReset = false;
+            if ( colorState ){
                 _clearColorMap();
+                colorReset = true;
                 m_stateColor = colorState;
-                colorReset = true;
+            }
+            else {
+                //We are going to use our own color map
+                if ( m_stateColor->_isGlobal() ){
+                    if ( m_stateColor ){
+                        disconnect( m_stateColor.get() );
+                    }
+                    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                    ColorState* cObject = objMan->createObject<ColorState>();
+                    if ( m_stateColor.get() != nullptr ){
+                        m_stateColor->_replicateTo( cObject );
+                    }
+                    cObject->_setGlobal( false );
+                    m_stateColor.reset (cObject);
+                    colorReset = true;
+                }
+            }
+            if ( colorReset ){
+                _colorChanged( );
+                connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
             }
         }
-        else {
-            //We are going to use our own color map
-            if ( m_stateColor.get() == nullptr || m_stateColor->_isGlobal() ){
-                if ( m_stateColor ){
-                   disconnect( m_stateColor.get() );
-                }
-                Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                ColorState* cObject = objMan->createObject<ColorState>();
-                if ( m_stateColor.get() != nullptr ){
-                    m_stateColor->_replicateTo( cObject );
-                }
-                cObject->_setGlobal( false );
-                m_stateColor.reset (cObject);
-                colorReset = true;
-            }
-        }
-        if ( colorReset ){
-            _colorChanged( );
-            connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
-        }
+    }
+    //If ours is null, just use the one provided, no questions asked.
+    else if (colorState){
+        m_stateColor = colorState;
+        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
     }
 }
 
@@ -402,19 +407,26 @@ QPointF LayerData::_getScreenPt( QPointF imagePt, bool* valid ) const {
     return screenPt;
 }
 
-QString LayerData::_getStateString() const{
+QString LayerData::_getStateString( bool truncatePaths ) const{
     Carta::State::StateInterface copyState( m_state );
-    copyState.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
-    int contourCount = m_dataContours.size();
-    copyState.insertArray( DataContours::CONTOURS, contourCount );
-    int i = 0;
-    for ( std::set< std::shared_ptr<DataContours> >::iterator iter = m_dataContours.begin();
+    if ( !truncatePaths ){
+        copyState.setValue<QString>(Util::NAME, m_dataSource->_getFileName());
+        copyState.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
+        int contourCount = m_dataContours.size();
+        copyState.insertArray( DataContours::CONTOURS, contourCount );
+        int i = 0;
+        for ( std::set< std::shared_ptr<DataContours> >::iterator iter = m_dataContours.begin();
             iter != m_dataContours.end(); iter++ ){
-        QString lookup = Carta::State::UtilState::getLookup( DataContours::CONTOURS, i );
-        copyState.setObject( lookup, (*iter)->_getState().toString() );
-        i++;
+            QString lookup = Carta::State::UtilState::getLookup( DataContours::CONTOURS, i );
+            copyState.setObject( lookup, (*iter)->_getState().toString() );
+            i++;
+        }
+        QString colorState( "");
+        if ( m_stateColor ){
+            colorState =  m_stateColor->getStateString("", SNAPSHOT_PREFERENCES );
+        }
+        copyState.insertObject( ColorState::CLASS_NAME, colorState );
     }
-    copyState.insertObject( ColorState::CLASS_NAME, m_stateColor->getStateString("", SNAPSHOT_PREFERENCES ));
     QString stateStr = copyState.toString();
     return stateStr;
 }
@@ -482,41 +494,42 @@ void LayerData::_renderingDone(
         Carta::Lib::VectorGraphics::VGList contourVG,
         int64_t /*jobId*/){
     /// \todo we should make sure the jobId matches the last submitted job...
+    if ( !image.isNull()){
+        m_qimage = image;
+        Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
+        if ( _isContourDraw()){
+            // where does 0.5, 0.5 map to?
+            if ( m_dataSource ){
 
-    m_qimage = image;
-    Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
-    if ( _isContourDraw()){
-        // where does 0.5, 0.5 map to?
-        if ( m_dataSource ){
+                bool valid1 = false;
+                QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, &valid1 );
 
-            bool valid1 = false;
-            QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, &valid1 );
+                // where does 1.5, 1.5 map to?
+                bool valid2 = false;
+                QPointF p2 = m_dataSource->_getScreenPt( { 1.5, 1.5 }, &valid2 );
+                if ( valid1 && valid2 ){
+                    QTransform tf;
+                    double m11 = p2.x() - p1.x();
+                    double m22 = p2.y() - p1.y();
+                    double m33 = 1; // no projection
+                    double m13 = 0; // no projection
+                    double m23 = 0; // no projection
+                    double m12 = 0; // no shearing
+                    double m21 = 0; // no shearing
+                    double m31 = p1.x() - m11 * 0.5;
+                    double m32 = p1.y() - m22 * 0.5;
+                    tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
 
-            // where does 1.5, 1.5 map to?
-            bool valid2 = false;
-            QPointF p2 = m_dataSource->_getScreenPt( { 1.5, 1.5 }, &valid2 );
-            if ( valid1 && valid2 ){
-                QTransform tf;
-                double m11 = p2.x() - p1.x();
-                double m22 = p2.y() - p1.y();
-                double m33 = 1; // no projection
-                double m13 = 0; // no projection
-                double m23 = 0; // no projection
-                double m12 = 0; // no shearing
-                double m21 = 0; // no shearing
-                double m31 = p1.x() - m11 * 0.5;
-                double m32 = p1.y() - m22 * 0.5;
-                tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
-
-                comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
-                comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
-                comp.appendList( contourVG);
-                comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
+                    comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
+                    comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
+                    comp.appendList( contourVG);
+                    comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
+                }
             }
         }
+        comp.appendList( gridVG);
+        m_vectorGraphics = comp.vgList();
     }
-    comp.appendList( gridVG);
-    m_vectorGraphics = comp.vgList();
 
     // schedule a repaint with the connector
     emit renderingDone();
@@ -650,8 +663,23 @@ void LayerData::_resetStateContours(const Carta::State::StateInterface& restoreS
 void LayerData::_resetState( const Carta::State::StateInterface& restoreState ){
     //Restore the other state variables
     Layer::_resetState( restoreState );
-    m_stateColor->_resetState( restoreState.getValue<QString>( ColorState::CLASS_NAME));
-    //m_state.setValue<QString>(DataSource::DATA_PATH, restoreState.getValue<QString>(DataSource::DATA_PATH));
+    QString colorState = restoreState.toString( ColorState::CLASS_NAME);
+    if ( colorState.length() > 0 ){
+        //Create a color state if it does not exist.
+        if ( ! m_stateColor ){
+            Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+            ColorState* cObject = objMan->createObject<ColorState>();
+            m_stateColor.reset( cObject);
+        }
+        m_stateColor->_resetState( colorState );
+    }
+
+    //Restore the grid
+    QString gridStr = restoreState.toString( DataGrid::GRID );
+    Carta::State::StateInterface gridState( "" );
+    gridState.setState( gridStr );
+    _gridChanged( gridState);
+    _resetStateContours( restoreState );
 
     //Color mix
     QString redKey = Carta::State::UtilState::getLookup( MASK, Util::RED );
@@ -798,6 +826,22 @@ void LayerData::_setMaskAlphaDefault(){
 void LayerData::_setPan( double imgX, double imgY ){
     if ( m_dataSource ){
         m_dataSource-> _setPan( imgX, imgY );
+    }
+}
+
+void LayerData::_setSupportAlpha( bool supportAlpha ){
+    QString layerAlphaKey = Carta::State::UtilState::getLookup( MASK, LAYER_ALPHA );
+    m_state.setValue( layerAlphaKey , supportAlpha );
+    if ( !supportAlpha ){
+        _setMaskAlphaDefault();
+    }
+}
+
+void LayerData::_setSupportColor( bool supportColor ){
+    QString layerColorKey = Carta::State::UtilState::getLookup( MASK, LAYER_COLOR );
+    m_state.setValue( layerColorKey , supportColor );
+    if ( !supportColor ){
+        _setMaskColorDefault();
     }
 }
 

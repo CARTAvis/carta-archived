@@ -10,15 +10,19 @@ qx.Class.define("skel.widgets.Image.Stack.TreeGroup", {
     /**
      * Constructor.
      */
-    construct : function( label, id, settings ) {
+    construct : function( label, id, visible ) {
         this.base(arguments);
+        this.m_label = label;
         this.setLabel( label );
         this.m_id = id;
-        this.m_settings = settings;
+        this.m_visible = visible;
+        this._initContextMenu();
     },
     
 
     members : {
+        
+        
         
         /**
          * Returns whether or not this node supports RGB.

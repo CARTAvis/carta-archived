@@ -277,9 +277,11 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          * Update the group layers control and the layer settings based on
          * the tree item(s) selected.
          */
-        _treeItemSelected : function(){
+        _treeItemSelected : function( msg ){
+            var sendCmd = msg.getData().send;
+            var groupSelected = this.m_imageTree.isGroupSelected();
             //Enable the group check box depending on what is selected.
-            if ( this.m_imageTree.isGroupSelected() ){
+            if ( groupSelected ){
                 //Enable the group check box and select it.
                 this.m_groupCheck.removeListenerById( this.m_groupListenId );
                 this._addGroupCheck( true );
@@ -299,7 +301,9 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 this._addGroupCheck( false );
             }
             this._updateSettings();
-            this._sendSelectionCmd();
+            if ( sendCmd ){
+                this._sendSelectionCmd();
+            }
         },
         
         
@@ -309,6 +313,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
         _updateSettings : function(){
             var nameSelected = this.m_imageTree.getSelectedName();
             this.m_maskControls.setName( nameSelected );
+            var idSelected = this.m_imageTree.getSelectedId();
+            this.m_maskControls.setLayerId( idSelected );
             var groupSelected = this.m_imageTree.isGroupSelected();
             if ( groupSelected ){
                 this.m_maskControls.setModeGroup();

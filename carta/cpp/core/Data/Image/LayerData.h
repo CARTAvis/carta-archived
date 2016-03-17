@@ -245,10 +245,11 @@ protected:
     virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() Q_DECL_OVERRIDE;
 
     /**
-         * Return the state of this layer.
-         * @return - a string representation of the layer state.
-         */
-    virtual QString _getStateString() const Q_DECL_OVERRIDE;
+     * Return the state of this layer.
+     * @param truncatePaths - true if full paths to files should not be given.
+     * @return - a string representation of the layer state.
+     */
+    virtual QString _getStateString( bool truncatePaths ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the zoom factor for this image.
@@ -407,7 +408,8 @@ protected:
      */
     virtual void _setPan( double imgX, double imgY ) Q_DECL_OVERRIDE;
 
-
+    virtual void _setSupportAlpha( bool supportAlpha );
+    virtual void _setSupportColor( bool supportColor );
 
     /**
      * Set the zoom factor for this image.
@@ -425,7 +427,8 @@ protected:
      */
     virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
 
-
+protected slots:
+    virtual void _colorChanged() Q_DECL_OVERRIDE;
 
 private slots:
 

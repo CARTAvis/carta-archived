@@ -54,6 +54,7 @@ HEADERS += \
     Data/Image/Contour/GeneratorState.h \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
+    Data/Image/DrawGroupSynchronizer.h \
     Data/Image/DrawSynchronizer.h \
     Data/Image/DrawStackSynchronizer.h \
     Data/Image/Grid/AxisMapper.h \
@@ -167,6 +168,7 @@ SOURCES += \
     Data/Image/Grid/GridControls.cpp \
     Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
+    Data/Image/DrawGroupSynchronizer.cpp \
     Data/Image/DrawSynchronizer.cpp \
     Data/Image/DrawStackSynchronizer.cpp \
     Data/Image/LayerCompositionModes.cpp \

@@ -295,7 +295,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
         _sendMaskColorCmd : function(){
             if ( this.m_id !== null && !this.m_serverUpdate ){
                 var colorArray = this._getColorAsRGB();
-                var params = "red:"+colorArray[0]+",green:"+colorArray[1]+",blue:"+colorArray[2];
+                var params = "id:"+ this.m_layerId+",red:"+colorArray[0]+",green:"+colorArray[1]+",blue:"+colorArray[2];
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setMaskColor";
                 this.m_connector.sendCommand( cmd, params, function(){});
@@ -331,6 +331,14 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
         setId : function( id ){
             this.m_id = id;
             this.m_transparency.setId( id );
+        },
+        
+        /**
+         * Set an identifier for the layer.
+         * @param id {String} - an identifier for the layer.
+         */
+        setLayerId : function( id ){
+            this.m_layerId = id;
         },
 
         
@@ -377,6 +385,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
         
         m_connector : null,
         m_id : null,
+        m_layerId : null,
         m_presetRed : null,
         m_presetGreen : null,
         m_presetBlue : null,

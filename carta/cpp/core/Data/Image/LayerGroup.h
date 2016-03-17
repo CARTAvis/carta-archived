@@ -12,6 +12,8 @@ namespace Carta {
 
 namespace Data {
 
+class DrawGroupSynchronizer;
+
 class LayerGroup : public Layer {
 
 Q_OBJECT
@@ -220,9 +222,16 @@ protected:
 
     /**
      * Return the state of this layer.
+     * @param truncatePaths - true if full paths to files should not be given.
      * @return - a string representation of the layer state.
      */
-    virtual QString _getStateString() const Q_DECL_OVERRIDE;
+    virtual QString _getStateString( bool truncatePaths ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Return the layer vector graphics.
+     * @return - the layer vector graphics, which can include both the grid and contours.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getVectorGraphics() Q_DECL_OVERRIDE;
 
     /**
      * Return the zoom factor for this image.
@@ -257,7 +266,6 @@ protected:
     virtual void _render( const std::vector<int>& frames,
             const Carta::Lib::KnownSkyCS& cs, bool topOfStack ) Q_DECL_OVERRIDE;
 
-    void _render( QList<std::shared_ptr<Layer> > datas, int gridIndex );
 
     /**
      * Center the image.
@@ -380,6 +388,8 @@ protected slots:
 
     virtual void _colorChanged() Q_DECL_OVERRIDE;
 
+private slots:
+    void _renderingDone( QImage image );
 
 private:
 
@@ -394,11 +404,15 @@ private:
 
     void _removeData( int index );
 
+    //Set the color support of the child to conform to that of the group.
+    void _setColorSupport( std::shared_ptr<Layer> layer );
+
     class Factory;
     static bool m_registered;
 
     static const QString GROUP;
 
+    std::unique_ptr<DrawGroupSynchronizer> m_drawSync;
     LayerGroup(const LayerGroup& other);
     LayerGroup& operator=(const LayerGroup& other);
 };

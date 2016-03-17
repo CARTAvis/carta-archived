@@ -73,7 +73,16 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsAlpha", {
             this.m_transparency.setId( id );
         },
         
+        /**
+         * Set an identifier for the layer.
+         * @param layerId {String} - an identifier for the layer.
+         */
+        setLayerId : function( layerId ){
+            this.m_layerId = layerId;
+        },
+        
         m_id : null,
+        m_layerId : null,
         m_transparency : null
     }
 });

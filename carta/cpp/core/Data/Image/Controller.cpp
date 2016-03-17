@@ -14,12 +14,11 @@
 #include "Data/Error/ErrorManager.h"
 
 #include "Data/Region/Region.h"
-#include "Data/Region/RegionFactory.h"
+
 
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
-#include "CartaLib/Hooks/LoadRegion.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "Globals.h"
 
@@ -57,7 +56,7 @@ const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
 const QString Controller::POINTER_MOVE = "pointer-move";
 const QString Controller::ZOOM = "zoom";
-const QString Controller::REGIONS = "regions";
+
 const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
 
@@ -73,7 +72,6 @@ using Carta::Lib::AxisInfo;
 
 Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
-        m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA )),
         m_stateMouse(UtilState::getLookup(path, Stack::VIEW)){
 
      _initializeState();
@@ -110,9 +108,6 @@ Controller::Controller( const QString& path, const QString& id ) :
      Settings* settingsObj = objMan->createObject<Settings>();
      m_settings.reset( settingsObj );
 
-     //Load the view.
-     m_stack->_scheduleFrameReload();
-
      _initializeCallbacks();
 }
 
@@ -139,46 +134,27 @@ bool Controller::_addDataImage(const QString& fileName) {
     if ( dataAdded ){
         if ( isStackSelectAuto() ){
             QStringList selectedLayers;
-            selectedLayers.append( fileName );
+            QString stackId= m_stack->_getCurrentId();
+            selectedLayers.append( stackId );
             _setLayersSelected( selectedLayers );
         }
-
         _updateDisplayAxes();
         emit dataChanged( this );
     }
     return dataAdded;
 }
 
-bool Controller::_addDataRegion(const QString& /*fileName*/) {
-    //int selectIndex = getSelectImageIndex();
-    bool regionLoaded = false;
-    /*if ( selectIndex >= 0 ){
-
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_datas[selectIndex]->_getImage();
-        auto result = Globals::instance()-> pluginManager()
-                                -> prepare <Carta::Lib::Hooks::LoadRegion>(fileName, image );
-        auto lam = [=] ( const Carta::Lib::Hooks::LoadRegion::ResultType &data ) {
-            int regionCount = data.size();
-            for ( int i = 0; i < regionCount; i++ ){
-               if ( data[i] ){
-                   std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
-                   regionPtr -> _setUserId( fileName, i );
-                   m_regions.push_back( regionPtr );
-               }
-            }
-        };
-        try {
-            result.forEach( lam );
-            emit dataChangedRegion( this );
-            regionLoaded = true;
-            _saveStateRegions();
-        }
-        catch( char*& error ){
-            QString errorStr( error );
-            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-            hr->registerError( errorStr );
-        }
-    }*/
+bool Controller::_addDataRegion(const QString& fileName) {
+    QString errorStr = m_stack->_addDataRegion( fileName );
+    bool regionLoaded = true;
+    if ( errorStr.isEmpty() ){
+        emit dataChangedRegion( this );
+    }
+    else {
+        regionLoaded = false;
+        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+        hr->registerError( errorStr );
+    }
     return regionLoaded;
 }
 
@@ -245,38 +221,21 @@ QString Controller::closeImage( const QString& id ){
         if ( visibleImageCount == 0 ){
             _clearStatistics();
         }
+        emit dataChanged( this );
     }
     return result;
 }
 
 QString Controller::closeRegion( const QString& regionId ){
-    bool regionRemoved = false;
-    QString result;
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    //Note that more than one region could be removed, if there are
-    //serveral regions that start with the passed in id.
-    int regionCount = m_regions.size();
-    for ( int i = regionCount - 1; i >= 0; i-- ){
-        bool match = m_regions[i]->_isMatch( regionId );
-        if ( match ){
-            QString id = m_regions[i]->getId();
-            objMan->removeObject( id );
-            m_regions.removeAt( i );
-            regionRemoved = true;
-        }
-    }
-    if ( regionRemoved ){
-        _saveStateRegions();
+    QString result = m_stack->_closeRegion( regionId );
+    if ( result.isEmpty() ){
         emit dataChanged( this );
-    }
-    else {
-        result = "Could not find region to remove for id="+regionId;
     }
     return result;
 }
 
 void Controller::_colorMapChanged(){
-    m_stack->_renderAll();
+    m_stack->_scheduleFrameReload( true );
 }
 
 
@@ -303,14 +262,13 @@ void Controller::_contourSetRemoved( const QString setName ){
 }
 
 void Controller::_contoursChanged(){
-    m_stack->_renderAll();
+    m_stack->_scheduleFrameReload( true );
 }
 
 void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
         bool applyAll ){
     m_stack->_displayAxesChanged( displayAxisTypes, applyAll );
     emit axesChanged();
-    m_stack->_scheduleFrameReload( false );
     _updateCursorText( true );
 }
 
@@ -503,11 +461,7 @@ QString Controller::_getPreferencesId() const {
 }
 
 std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
-    int regionCount = m_regions.size();
-    std::vector<Carta::Lib::RegionInfo> regionInfos( regionCount );
-    for ( int i = 0; i < regionCount; i++ ){
-        regionInfos[i] = (*m_regions[i]->getInfo().get());
-    }
+    std::vector<Carta::Lib::RegionInfo> regionInfos = m_stack->_getRegions();
     return regionInfos;
 }
 
@@ -559,15 +513,6 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
 
         dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
         dataState.setValue<int>(StateInterface::INDEX, getIndex() );
-
-        //Regions
-        int regionCount = m_regions.size();
-        dataState.insertArray( REGIONS, regionCount );
-        for ( int i = 0; i < regionCount; i++ ){
-            QString lookup = Carta::State::UtilState::getLookup( REGIONS, i );
-            QString regionStateStr = m_regions[i]->_getStateString();
-            dataState.setObject( lookup, regionStateStr );
-        }
 
         result = dataState.toString();
     }
@@ -808,7 +753,7 @@ void Controller::_initializeCallbacks(){
         std::set<QString> keys = {Util::TYPE, INDEX};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString shapePath;
-        bool validIndex = false;
+        /*bool validIndex = false;
         int index = dataValues[INDEX].toInt( &validIndex );
         if ( validIndex ){
             int regionCount = m_regions.size();
@@ -828,7 +773,7 @@ void Controller::_initializeCallbacks(){
                 }
 
             }
-        }
+        }*/
         return shapePath;
     });
 
@@ -852,11 +797,10 @@ void Controller::_initializeCallbacks(){
         QString result;
         QStringList names = params.split(";");
         if ( names.size() == 0 ){
-            result = "Please specify the layers to select as nonnegative integers";
+            result = "Please specify the layers to select.";
         }
         else {
-            //No reason to flush the state as the new selection is coming from the client.
-            result = _setLayersSelected( names, false );
+            result = _setLayersSelected( names );
         }
         Util::commandPostProcess( result );
         return result;
@@ -966,20 +910,6 @@ void Controller::_initializeCallbacks(){
 }
 
 
-
-/*void Controller::_initializeSelections(){
-    int axisCount = static_cast<int>(AxisInfo::KnownType::OTHER);
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    m_selects.resize( axisCount );
-    for ( int i = 0; i < axisCount; i++ ){
-        m_selects[i] = objMan->createObject<Selection>();
-        connect( m_selects[i], SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
-    }
-    m_selectImage = objMan->createObject<Selection>();
-    connect( m_selectImage, SIGNAL(indexChanged(bool)), this, SLOT(_scheduleFrameReload()));
-}*/
-
-
 void Controller::_initializeState(){
     //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
@@ -990,12 +920,6 @@ void Controller::_initializeState(){
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 0 );
     m_state.flushState();
-
-    //Now the data state.
-    //m_stateData.insertArray(DATA, 0 );
-    int regionCount = m_regions.size();
-    m_stateData.insertArray(REGIONS, regionCount );
-    m_stateData.flushState();
 
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(CURSOR, "");
@@ -1014,15 +938,12 @@ void Controller::_loadViewQueued( bool newClips ){
     QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
 }
 
-void Controller::_loadView( bool newClips ){
+void Controller::_loadView( bool renderAll ){
     //Load the image.
     bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
-    if ( newClips ){
-        autoClip = true;
-    }
     double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
     double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
-    m_stack->_load( autoClip, clipValueMin, clipValueMax );
+    m_stack->_load( renderAll, autoClip, clipValueMin, clipValueMax );
 }
 
 
@@ -1097,18 +1018,10 @@ void Controller::resetStateData( const QString& state ){
     m_stackDraw->setSelectIndex( m_selectImage->getIndex());
     _renderAll();
 */
-    //Now we need to restore the axis states.
-    /*int selectCount = m_selects.size();
-    for ( int i = 0; i < selectCount; i++ ){
-        AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
-        const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-        QString axisPurpose = AxisMapper::getPurpose( axisType, cs );
-        QString axisState = dataState.getValue<QString>( axisPurpose );
-        m_selects[i]->resetState( axisState );
-    }*/
+
 
     //Restore the region State
-    m_regions.clear();
+    /*m_regions.clear();
     int regionCount = dataState.getArraySize(REGIONS);
     for ( int i = 0; i < regionCount; i++ ){
         QString regionLookup = Carta::State::UtilState::getLookup( REGIONS, i );
@@ -1116,18 +1029,15 @@ void Controller::resetStateData( const QString& state ){
         std::shared_ptr<Region> region = RegionFactory::makeRegion( regionState );
         m_regions.append( region );
     }
-    _saveStateRegions();
+    _saveStateRegions();*/
 
     //Notify others there has been a change to the data.
     emit dataChanged( this );
     emit dataChangedRegion( this );
 
     //Reset the state of the grid controls based on the selected image.
-    /*int dataIndex = _getIndexCurrent();
-    if ( 0 <= dataIndex ){
-        StateInterface controlState = m_datas[dataIndex]->_getGridState();
-        this->m_gridControls->_resetState( controlState );
-    }*/
+    StateInterface gridState = m_stack->_getGridState();
+    m_gridControls->_resetState( gridState );
     _loadViewQueued( true );
 }
 
@@ -1159,21 +1069,6 @@ void Controller::resetZoom(){
         m_stateData.flushState();
     }
 }*/
-
-void Controller::_saveStateRegions(){
-    //Regions
-    int regionCount = m_regions.size();
-    int oldRegionCount = m_stateData.getArraySize( REGIONS);
-    if ( regionCount != oldRegionCount){
-        m_stateData.resizeArray( REGIONS, regionCount, StateInterface::PreserveNone );
-    }
-    for ( int i = 0; i < regionCount; i++ ){
-        QString regionKey = UtilState::getLookup( REGIONS, i);
-        QString regionTypeStr= m_regions[i]->_getStateString();
-        m_stateData.setObject( regionKey, regionTypeStr );
-    }
-    m_stateData.flushState();
-}
 
 
 QString Controller::saveImage( const QString& fileName ){
@@ -1343,27 +1238,33 @@ QString Controller::setImageVisibility( /*int dataIndex*/const QString& idStr, b
 
 QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
-    bool selectModeAuto = isStackSelectAuto();
-    if ( !selectModeAuto ){
-        result = _setLayersSelected( indices );
+    if ( indices.size() > 0 ){
+        bool selectModeAuto = isStackSelectAuto();
+        if ( !selectModeAuto ){
+            result = _setLayersSelected( indices );
+        }
+        else {
+            result = "Enable manual layer selection mode before setting layers.";
+        }
     }
     else {
-        result = "Enable manual layer selection mode before setting layers.";
+        result = "Please specify one or more layers to select.";
     }
     return result;
 }
 
 
-QString Controller::_setLayersSelected( const QStringList names, bool flush ){
+QString Controller::_setLayersSelected( const QStringList names ){
     QString result;
     bool stackAutoSelect = m_state.getValue<bool>(STACK_SELECT_AUTO);
     bool selectStateChanged = m_stack->_setSelected( names );
     if ( selectStateChanged ){
-        int selectIndex = m_stack->_getIndexCurrent();
-        if (  !stackAutoSelect  ){
-            setFrameImage( selectIndex );
+        if ( names.size() > 0 ){
+            int selectIndex = m_stack->_getIndex(names[0]);
+            if (  !stackAutoSelect  ){
+                setFrameImage( selectIndex );
+            }
         }
-        m_stack->_saveState( flush );
         emit colorChanged( this );
     }
 

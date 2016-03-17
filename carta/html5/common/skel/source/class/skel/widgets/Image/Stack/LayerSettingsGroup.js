@@ -80,6 +80,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
             var label = new qx.ui.basic.Label( "Composer:" );
             this.m_compModeCombo = new skel.widgets.CustomUI.SelectBox( 
                     "setCompositionMode", "mode");
+            this.m_compModeCombo.addListener( "selectChanged", this._sendCompModeCmd, this );
             skel.widgets.TestID.addTestId( this.m_compModeCombo, "layerCompositionMode");
             this.m_compModeCombo.setToolTipText( "Select a layer composition mode.");
             hContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
@@ -87,6 +88,19 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
             hContainer.add( this.m_compModeCombo );
             hContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
             this.m_content.add( hContainer );
+        },
+        
+        /**
+         * Send a command to the server to change the group layer composition mode.
+         */
+        _sendCompModeCmd : function(){
+            if ( this.m_id !== null ){
+                var compMode = this.m_compModeCombo.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setCompositionMode";
+                var params = "mode:"+compMode+",id:"+this.m_layerId;
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
         },
         
         
@@ -106,17 +120,25 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
          */
         setId : function( id ){
             this.m_id = id;
-            this.m_compModeCombo.setId( id );
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVarCompModes = this.m_connector.getSharedVar(path.LAYER_COMPOSITION_MODES);
             this.m_sharedVarCompModes.addCB( this._compModesChangedCB.bind( this));
             this._compModesChangedCB();
         },
         
+        /**
+         * Set an identifier for the layer.
+         * @param layerId {String} - an identifier for the layer.
+         */
+        setLayerId : function( layerId ){
+            this.m_layerId = layerId;
+        },
+        
         m_compModeCombo : null,
         m_connector : null,
         m_content : null,
         m_id : null,
+        m_layerId : null,
         m_sharedVarCompModes : null
     }
 });

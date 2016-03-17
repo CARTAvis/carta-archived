@@ -14,7 +14,6 @@
 #include <QString>
 #include <QList>
 #include <QObject>
-#include <QImage>
 
 #include <set>
 
@@ -618,12 +617,6 @@ private:
     void _initializeState();
     void _initializeCallbacks();
 
-
-    //QString _makeRegion( const QString& regionType );
-
-    //Save region state.
-    void _saveStateRegions();
-
     /**
      * Set whether or not the selected layers should be using the global
      * colormap.
@@ -644,7 +637,7 @@ private:
      * @param frameIndex  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
-    QString _setLayersSelected( const QStringList indices, bool flush = true );
+    QString _setLayersSelected( const QStringList indices);
 
 
     void _updateCursor( int mouseX, int mouseY );
@@ -661,7 +654,6 @@ private:
     static const QString DATA_PATH;
     static const QString IMAGE;
     static const QString PAN_ZOOM_ALL;
-    static const QString REGIONS;
     static const QString CENTER;
     static const QString POINTER_MOVE;
     static const QString STACK_SELECT_AUTO;
@@ -677,12 +669,6 @@ private:
     std::unique_ptr<Stack> m_stack;
 
     std::shared_ptr<ColorState> m_stateColor;
-
-
-    QList<std::shared_ptr<Region> > m_regions;
-
-    //Holds image that are loaded and selections on the data.
-    Carta::State::StateInterface m_stateData;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.

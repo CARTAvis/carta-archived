@@ -27,7 +27,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
         "treeSelection" : "qx.event.type.Data"
     },
     
-    members : {
+    members : { 
+       
         
         /**
          * Add child nodes to the passed in root folder.
@@ -35,37 +36,58 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
          * @param itemArray {Array} - a list of children to add.
          * @param selections {Array} - a running record of the tree nodes that are selected.
          */
-        _addChildren : function( root, itemArray, selections ){
+        _addChildren : function( root, itemArray, selections, nodes ){
             var id = root.getId();
             var path = skel.widgets.Path.getInstance();
             for ( var i = 0; i < itemArray.length; i++ ){
                 var itemId = itemArray[i].id;
                 var treeItem = null;
-                if ( itemArray[i].type == "LayerData"){
-                    var colorStr = "";
-                    if ( itemArray[i].mask.colorSupport){
-                        var colorArray = [];
-                        colorArray[0] = itemArray[i].mask.red;
-                        colorArray[1] = itemArray[i].mask.green;
-                        colorArray[2] = itemArray[i].mask.blue;
-                        colorStr = qx.util.ColorUtil.rgbToHexString( colorArray );
-                    }
-                    treeItem = new skel.widgets.Image.Stack.TreeItem( itemArray[i].name, colorStr, itemId );
+                if ( itemArray[i].type == this.m_LAYER_DATA){
+                    treeItem = new skel.widgets.Image.Stack.TreeItem( itemArray[i].name, itemId, itemArray[i].visible );
                     treeItem.setSettings( itemArray[i].mask);
                     root.add( treeItem );
                 }
-                else if ( itemArray[i].type == "LayerGroup"){
-                    
-                    treeItem = new skel.widgets.Image.Stack.TreeGroup( itemArray[i].name, itemId);
+                else if ( itemArray[i].type == this.m_LAYER_GROUP){
+                    treeItem = new skel.widgets.Image.Stack.TreeGroup( itemArray[i].name, itemId, itemArray[i].visible );
                     treeItem.setSettings( itemArray[i].mode );
                     root.add( treeItem );
-                    this._addChildren( treeItem, itemArray[i].layerGroup, selections );
+                    this._addChildren( treeItem, itemArray[i].layers, selections, nodes );
                 }
                
                 if ( itemArray[i].selected ){
                     selections.push( treeItem );
                 }
+                nodes.push( itemArray[i].name );
             }
+        },
+        
+        /**
+         * Returns a list of tree nodes that should be selected.
+         * @param root {Object} - the current tree node.
+         * @param selections {Array} - list of names for selected nodes.
+         * @return {Array} - the children of the root with names in the selections list.
+         */
+        _getNodesSelected : function( root, selections, nodeSelections ){
+            var children = root.getChildren();
+            for ( var i = 0; i < children.length; i++ ){
+                this._getNodesSelected( children[i], selections, nodeSelections );
+            }
+            if ( selections.contains( root.getLabel() ) ){
+                nodeSelections.push( root );
+            }
+        },
+        
+        /**
+         * Returns the id of the first selected tree item.
+         * @return {String} - the id of the first selected tree item.
+         */
+        getSelectedId : function(){
+            var widgets = this.m_tree.getSelection();
+            var id = "";
+            if ( widgets.length > 0 ){
+                id = widgets[0].getId();
+            }
+            return id;
         },
         
         /**
@@ -80,6 +102,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return name;
         },
+        
         
         /**
          * Returns the identifiers of the selected tree nodes.
@@ -109,12 +132,56 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
         },
         
         /**
-         * Notify listeners that the selected tree node(s) have changed.
+         * Return a list of the names of tree nodes.
+         * @param itemArray {Object} - an object containing tree nodes.
+         * @param newNodes {Array} - list of names of tree nodes.
          */
-        _notifySelection : function(){
-            var data = {};
-            this.fireDataEvent( "treeSelection", data );
+        _getTreeNodes : function( itemArray, newNodes){
+            for ( var i = 0; i < itemArray.length; i++ ){
+                if ( itemArray[i].type == this.m_LAYER_GROUP ){
+                    this._getTreeNodes( itemArray[i].layers, newNodes );
+                }
+                newNodes.push( itemArray[i].name );
+            }
         },
+        
+        /**
+         * Return tree nodes with matching names that are children of the passed
+         * in node.
+         * @param node {Object} - the root tree nodes.
+         * @paran newNodes {Array} - children with matching names.
+         * @param names {Array} - names of nodes to be selected.
+         */
+        _getTreeNodesMatching : function( node, newNodes, names){
+            var children = node.getChildren();
+            for ( var i = 0; i < children.length; i++ ){
+       
+                this._getTreeNodesMatching( children[i], newNodes, names );
+            }
+            if ( names.indexOf( node.getNodeLabel() ) >= 0 ){
+                newNodes.push( node);
+            }
+        },
+        
+        /**
+         * Return the list of tree nodes that should be selected.
+         * @param itemArray {Array} - a list of labels for the nodes that should be
+         *      selected.
+         * @param newNodes {Array} - a list of tree nodes with labels matching those
+         *      in the itemArray.
+         */
+        _getTreeNodeSelections : function( itemArray, newNodes ){
+            for ( var i = 0; i < itemArray.length; i++ ){
+                if ( itemArray[i].type == this.m_LAYER_GROUP ){
+                    this._getTreeNodeSelections( itemArray[i].layers, newNodes );
+                }
+                if ( itemArray[i].selected ){
+                    newNodes.push( itemArray[i].name );
+                }
+            }
+        },
+        
+      
         
         /**
          * Initialize the UI for the file tree and the directory/file text
@@ -204,21 +271,132 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             return siblings;
         },
         
+        /**
+         * Returns true if there is a difference in labels of the tree nodes between
+         * the current tree and the ones passed in from the server.
+         * @param dataTree {Object} - a list of tree nodes from the server.
+         */
+        _isTreeNodesChanged : function( dataTree ){
+            //get the new nodes based on server data.
+            var newNodes = [];
+            this._getTreeNodes( dataTree, newNodes );
+            
+            //get the old nodes displayed by the tree.
+            var oldNodes = [];
+            if ( this.m_treeData != null ){
+                this._getTreeNodes( this.m_treeData, oldNodes );
+            }
+            
+            //Decide if the lists of nodes are the same.
+            var changed = true;
+            if ( oldNodes.length == newNodes.length ){
+                var j = 0;
+                for ( j = 0; j < oldNodes.length; j++ ){
+                    if ( oldNodes[j] != newNodes[j] ){
+                        break;
+                    }
+                }
+                if ( j == oldNodes.length ){
+                    changed = false;
+                }
+            }
+            return changed;
+        },
         
         /**
-         * Update the UI with new directory information from the server.
+         * Notify listeners that the selected tree node(s) have changed.
+         */
+        _notifySelection : function(){
+            var data = {
+                send : true
+            };
+            this.fireDataEvent( "treeSelection", data );
+        },
+        
+        
+        /**
+         * Update the UI with new tree information from the server.
          */
         _resetModel : function( ){
             var root = new skel.widgets.Image.Stack.TreeGroup( "", "");
             this.m_tree.setRoot( root );
             var selections = [];
-            this._addChildren( root, this.m_treeData, selections );
+            this.m_nodes = [];
+            this._addChildren( root, this.m_treeData, selections, this.m_nodes );
             root.setOpen( true );
             var selectCount = selections.length;
             var oldSelects = this.m_tree.getSelection();
+            this._setTreeSelections( selections );
+        },
+        
+        /**
+         * Update the UI with a list of the tree nodes (widgets) that should be
+         * selected.
+         * @param selections {Array} - list of tree nodes that should be selected.
+         */
+        _setTreeSelections : function( selections ){
             this.m_tree.removeListenerById( this.m_treeSelectId );
             this.m_tree.setSelection( selections );
             this.m_treeSelectId = this.m_tree.addListener( "changeSelection", this._notifySelection, this );
+        },
+        
+        /**
+         * Update the nodes of the tree that are selected based on server-side
+         * information.
+         * @param dataTree {Object} - server-side information about the selected tree nodes.
+         */
+        _updateSelections : function( dataTree ){
+            var selections = [];
+            this._getTreeNodeSelections( dataTree, selections );
+            var oldSelections = [];
+            this._getTreeNodeSelections( this.m_treeData, oldSelections );
+            var selectionsChanged = true;
+            if ( oldSelections.length = selections.length ){
+                var i = 0;
+                for ( i = 0; i < selections.length; i++ ){
+                    if ( selections[i] != oldSelections[i] ){
+                        break;
+                    }
+                }
+                if ( i == selections.length ){
+                    selectionsChanged = false;
+                }
+            }
+           
+            if ( selectionsChanged ){
+                var nodeSelections = [];
+                this._getTreeNodesMatching( this.m_tree.getRoot(), nodeSelections, selections );
+                this._setTreeSelections( nodeSelections );
+                var data = {
+                    send : false
+                };
+                this.fireDataEvent( "treeSelection", data );
+            }
+        },
+        
+        /**
+         * Update tree node settings (such as color) based on information from
+         * the server.
+         * @param dataTree {Object} - server-side information about note properties.
+         * @param treeItems {Array} - a list of tree nodes.
+         */
+        _updateSettings : function( dataTree, treeItems ){
+            for ( var i = 0; i < dataTree.length; i++ ){
+                if ( dataTree[i].type == this.m_LAYER_GROUP ){
+                    this._updateSettings( dataTree[i].layers, treeItems );
+                }
+                //see if any of the treeItems have the same id.
+                for ( var j = 0; j < treeItems.length; j++ ){
+                    
+                    if ( treeItems[j].getId() == dataTree[i].id ){
+                       //Update the treeItems.
+                       treeItems[j].setVisible( dataTree[i].visible );
+                       treeItems[j].setSettings( dataTree[i].mask );
+                       break;
+                    }
+                }
+               
+            }
         },
 
         
@@ -228,8 +406,17 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
          *                hierarchical JSON format
          */
         _updateTree : function(dataTree) {
-            this.m_treeData = dataTree;
-            this._resetModel();
+            var treeNodeChanged = this._isTreeNodesChanged( dataTree );
+            if ( treeNodeChanged ){
+                this.m_treeData = dataTree;
+                this._resetModel();
+            }
+            else {
+                var treeItems = this.m_tree.getItems( true, true )
+                this._updateSettings( dataTree, treeItems );
+                this._updateSelections( dataTree );
+                this.m_treeData = dataTree;
+            }
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
         },
@@ -239,7 +426,11 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
         m_jsonObj : null,
         m_tree : null,
         m_treeSelectId : null,
-        m_treeData : null
+        m_treeData : null,
+        //List of names of current tree nodes
+        m_nodes : null,
+        m_LAYER_GROUP : "LayerGroup",
+        m_LAYER_DATA : "LayerData"
     }
 
 });

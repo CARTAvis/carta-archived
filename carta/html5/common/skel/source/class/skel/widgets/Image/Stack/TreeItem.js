@@ -10,15 +10,14 @@ qx.Class.define("skel.widgets.Image.Stack.TreeItem", {
     /**
      * Constructor.
      */
-    construct : function( label, color, id, settings ) {
+    construct : function( label, id, visible ) {
         this.base(arguments);
+        this.m_label = label;
         this.setLabel( label );
-        this.m_color = color;
+        this.m_visible = visible;
         this.m_id = id;
-        this.m_settings = settings;
-        if ( this.m_color.length > 0 ){
-            this.setIcon( this.m_color );
-        }
+        this._initContextMenu();
+        this.setIcon( "" );
     },
    
 
@@ -32,17 +31,15 @@ qx.Class.define("skel.widgets.Image.Stack.TreeItem", {
             var control;
             switch( id ){
                 case "icon":
-                    control = new qx.ui.core.Widget();
-                    control.setBackgroundColor( this.m_color );
-                    control.setDecorator( this.m_BORDER_LINE );
-                    control.setWidth(10);
-                    control.setHeight(10);
-                    control.setMaxHeight(10);
+                    this.m_customIcon = new skel.widgets.Image.Stack.CustomIcon( /*this.m_color*/ );
+                    control = this.m_customIcon;
                     this._add( control );
                     break;
             }
             return control || this.base( arguments, id );
         },
+        
+
      
         /**
          * Returns whether or not this node supports RGB.
@@ -50,8 +47,8 @@ qx.Class.define("skel.widgets.Image.Stack.TreeItem", {
          */
         isColorSupport : function(){
             var colorSupport = false;
-            if ( this.m_color.length > 0 ){
-                colorSupport = true;
+            if ( this.m_settings != null ){
+                colorSupport = this.m_settings.colorSupport;
             }
             return colorSupport;
         },
@@ -62,11 +59,6 @@ qx.Class.define("skel.widgets.Image.Stack.TreeItem", {
          */
         isGroup : function(){
             return false;
-        },
-      
-    
-        m_color : null,
-        m_BORDER_LINE : "line-border"
-
+        }
     }
 });

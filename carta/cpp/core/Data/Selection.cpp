@@ -186,7 +186,7 @@ QString Selection::setIndex(int frameValue) {
             if ( oldValue != frameValue ){
                 m_state.setValue<int>(INDEX_KEY, frameValue);
                 m_state.flushState();
-                emit indexChanged( false );
+                emit indexChanged( );
             }
         }
         else {

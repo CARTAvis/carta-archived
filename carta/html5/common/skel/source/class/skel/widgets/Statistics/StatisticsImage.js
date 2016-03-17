@@ -67,6 +67,7 @@ qx.Class.define("skel.widgets.Statistics.StatisticsImage", {
             imageContainer.setLayout( new qx.ui.layout.HBox(2) );
             this.m_collapseToggle = new qx.ui.basic.Image( "skel/icons/plus.gif");
             this.m_collapseToggle.setToolTipText( "Expand/Collapse image statistics.");
+            skel.widgets.TestID.addTestId( this.m_collapseToggle, "statsExpandCollapse" );  
             this.m_collapseToggle.addListener( "click", this._collapseChanged, this );
             
             imageContainer.add( new qx.ui.core.Spacer(2), {flex:1} );

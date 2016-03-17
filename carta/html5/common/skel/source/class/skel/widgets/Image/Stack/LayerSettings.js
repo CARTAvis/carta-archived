@@ -94,17 +94,25 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
         },
         
         /**
+         * Complete setting the mode in a generic way (regardless of the layer type).
+         */
+        setGeneric : function(){
+            this.m_layerSettings.setId( this.m_id );
+            this.m_layerSettings.setLayerId ( this.m_layerId );
+            this.m_content.add( this.m_layerSettings );
+        },
+       
+        
+        /**
          * Display settings appropriate to a group of layers.
          */
         setModeGroup : function(){
             var groupMode = this._isModeGroup();
+            console.log( "setModeGroup groupMode="+groupMode);
             if ( !groupMode ){
                 this._removeLayerSettings();
                 this.m_layerSettings = new skel.widgets.Image.Stack.LayerSettingsGroup();
-                var groupName = this.m_nameText.getValue();
-                if ( groupName.length > 0 ){
-                    this.m_content.add( this.m_layerSettings );
-                }
+                this.setGeneric();
             }
         },
         
@@ -115,8 +123,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
             if ( !this._isModeColor() ){
                 this._removeLayerSettings();
                 this.m_layerSettings = new skel.widgets.Image.Stack.LayerSettingsColor();
-                //this.m_layerSettings.setControls( this.m_mask );
-                this.m_content.add( this.m_layerSettings );
+                this.setGeneric();
             }
         },
         
@@ -128,8 +135,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
             if ( !alphaMode ){
                 this._removeLayerSettings();
                 this.m_layerSettings = new skel.widgets.Image.Stack.LayerSettingsAlpha();
-                //this.m_layerSettings.setControls( this.m_mask );
-                this.m_content.add( this.m_layerSettings );
+                this.setGeneric();
             }
         },
       
@@ -140,6 +146,14 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
          */
         setId : function( id ){
             this.m_id = id;
+        },
+        
+        /**
+         * Set an identifier for the layer.
+         */
+        setLayerId : function( layerId ){
+            this.m_layerId = layerId;
+            this.m_layerSettings.setLayerId( layerId );
         },
         
         /**
@@ -161,6 +175,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
        
         m_content : null,
         m_id : null,
+        m_layerId : null,
         m_mask : null,
         m_mode : null,
         m_layerSettings : null,
