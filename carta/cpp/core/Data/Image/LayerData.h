@@ -32,11 +32,7 @@ namespace Core {
     namespace ImageRenderService {
         class Service;
     }
-    namespace ImageSaveService {
-        class ImageSaveService;
-    }
 }
-
 
 
 namespace Data {
@@ -283,16 +279,6 @@ protected:
 
 
     /**
-     * Save a copy of the full image in the current image view.
-     * @param saveName the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @param frames - list of image frames.
-     * @return an error message if there was a problem saving the image.
-     */
-    virtual QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames );
-
-
-    /**
         * Returns whether or not the data was successfully loaded.
         * @param fileName an identifier for the location of a data source.
         * @return true if the data souce was successfully loaded; false otherwise.
@@ -438,12 +424,6 @@ private slots:
                           Carta::Lib::VectorGraphics::VGList vgList,
                           Carta::Lib::VectorGraphics::VGList contourList,
                           int64_t jobId );
-
-
-    // Asynchronous result from saveFullImage().
-    //void _saveImageResultCB( bool result );
-
-
 
 private:
 

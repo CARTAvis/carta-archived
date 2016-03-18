@@ -352,15 +352,6 @@ public:
     void resetZoom();
 
     /**
-     * Save a copy of the full image in the current image view.
-     * @param filename the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there is an initial problem with saving;
-     *      an empty string if the save operation has been initiated.
-     */
-    QString saveImage( const QString& filename,  double scale );
-
-    /**
      * Save a copy of the full image in the current image view using the current scale.
      * @param filename the full path where the file is to be saved.
      * @return an error message if there is an initial problem with saving;
@@ -368,12 +359,6 @@ public:
      */
     QString saveImage( const QString& filename );
 
-    /**
-     * Save the state of this controller.
-     * @param flush - true if the state should be flushed to the client; false otherwise
-     *      (for example, when the state change came from the client).
-     */
-    //void saveState( bool flush = true );
 
     /**
      * Set whether or not clip values should be recomputed when the frame changes.

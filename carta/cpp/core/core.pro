@@ -54,9 +54,9 @@ HEADERS += \
     Data/Image/Contour/GeneratorState.h \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
-    Data/Image/DrawGroupSynchronizer.h \
-    Data/Image/DrawSynchronizer.h \
-    Data/Image/DrawStackSynchronizer.h \
+    Data/Image/Draw/DrawGroupSynchronizer.h \
+    Data/Image/Draw/DrawSynchronizer.h \
+    Data/Image/Draw/DrawStackSynchronizer.h \
     Data/Image/Grid/AxisMapper.h \
     Data/Image/Grid/DataGrid.h \
     Data/Image/Grid/Fonts.h \
@@ -65,6 +65,9 @@ HEADERS += \
     Data/Image/Grid/LabelFormats.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Image/LayerCompositionModes.h \
+    Data/Image/Save/SaveService.h \
+    Data/Image/Save/SaveView.h \
+    Data/Image/Save/SaveViewLayered.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -168,10 +171,13 @@ SOURCES += \
     Data/Image/Grid/GridControls.cpp \
     Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
-    Data/Image/DrawGroupSynchronizer.cpp \
-    Data/Image/DrawSynchronizer.cpp \
-    Data/Image/DrawStackSynchronizer.cpp \
+    Data/Image/Draw/DrawGroupSynchronizer.cpp \
+    Data/Image/Draw/DrawSynchronizer.cpp \
+    Data/Image/Draw/DrawStackSynchronizer.cpp \
     Data/Image/LayerCompositionModes.cpp \
+    Data/Image/Save/SaveService.cpp \
+    Data/Image/Save/SaveView.cpp \
+    Data/Image/Save/SaveViewLayered.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \

@@ -25,12 +25,6 @@ namespace NdArray {
 class RawViewInterface;
 }
 }
-namespace Core {
-namespace ImageSaveService {
-class ImageSaveService;
-}
-}
-
 
 namespace Data {
 
@@ -46,6 +40,7 @@ class Layer : public QObject, public Carta::State::CartaObject {
     friend class Stack;
     friend class DrawGroupSynchronizer;
     friend class DrawStackSynchronizer;
+    friend class SaveService;
 
     Q_OBJECT
 
@@ -65,10 +60,6 @@ signals:
 
     //Notification that a new image has been produced.
     void renderingDone();
-
-    /// Return the result of SaveFullImage() after the image has been rendered
-    /// and a save attempt made.
-    void saveImageResult( bool result );
 
     void colorStateChanged();
 
@@ -489,9 +480,6 @@ protected:
 protected slots:
     virtual void _colorChanged();
 
-private slots:
-    // Asynchronous result from saveFullImage().
-    void _saveImageResultCB( bool result );
 
 
 private:
@@ -528,17 +516,6 @@ private:
      */
     virtual void _resetState( const QString& stateStr );
 
-    /**
-     * Save a copy of the full image in the current image view.
-     * @param saveName the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @param frames - list of image frames.
-     * @return an error message if there was a problem saving the image.
-     */
-    virtual QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames ) = 0;
-
-    /// Saves images
-    Carta::Core::ImageSaveService::ImageSaveService *m_saveService;
 
     Layer(const Layer& other);
     Layer& operator=(const Layer& other);

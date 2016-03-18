@@ -4,7 +4,7 @@
 #include "Data/Util.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "CartaLib/IRemoteVGView.h"
-#include "Data/Image/DrawGroupSynchronizer.h"
+#include "Data/Image/Draw/DrawGroupSynchronizer.h"
 #include "State/UtilState.h"
 
 #include <QDebug>
@@ -76,7 +76,6 @@ bool LayerGroup::_addData(const QString& fileName/*, std::shared_ptr<ColorState>
 
         targetIndex = m_children.size();
         targetSource->_setId( getId() + QDir::separator() + QString::number(targetIndex));
-        //connect( targetSource, & Layer::saveImageResult, this, & Controller::saveImageResultCB );
         connect( targetSource, SIGNAL(contourSetAdded(Layer*,const QString&)),
                 this, SIGNAL(contourSetAdded(Layer*, const QString&)));
         connect( targetSource, SIGNAL(contourSetRemoved(const QString&)),
@@ -628,13 +627,6 @@ void LayerGroup::_resetPan( ){
     for ( int i = 0; i < dataCount; i++ ){
         m_children[i]->_resetPan();
     }
-}
-
-QString LayerGroup::_saveImage( const QString& /*saveName*/,  double /*scale*/,
-        const std::vector<int>& /*frames*/ ){
-    qWarning() << "Need to implement saveImage for group";
-    QString result;
-    return result;
 }
 
 

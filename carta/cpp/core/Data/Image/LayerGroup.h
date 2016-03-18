@@ -283,16 +283,6 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
-
-    /**
-     * Save a copy of the full image in the current image view.
-     * @param saveName the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @param frames - list of image frames.
-     * @return an error message if there was a problem saving the image.
-     */
-    virtual QString _saveImage( const QString& saveName,  double scale, const std::vector<int>& frames );
-
     /**
      * Reset the color map information for this data.
      * @param colorState - stored information about the color map.

@@ -5,8 +5,6 @@
 #include "Data/Colormap/ColorState.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "State/UtilState.h"
-#include "../../ImageSaveService.h"
-
 
 #include <QDebug>
 
@@ -153,12 +151,6 @@ void Layer::_resetState( const Carta::State::StateInterface& restoreState ){
     m_state.setValue<bool>(SELECTED, restoreState.getValue<bool>(SELECTED) );
     m_state.setValue<QString>( Util::ID, restoreState.getValue<QString>(Util::ID));
     m_state.setValue<QString>(LAYER_NAME, restoreState.getValue<QString>(LAYER_NAME));
-}
-
-
-void Layer::_saveImageResultCB( bool result ){
-    emit saveImageResult( result );
-    m_saveService->deleteLater();
 }
 
 

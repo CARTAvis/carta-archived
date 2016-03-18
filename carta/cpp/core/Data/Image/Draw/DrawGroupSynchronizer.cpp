@@ -1,4 +1,4 @@
-#include "DrawGroupSynchronizer.h"
+#include "Data/Image/Draw/DrawGroupSynchronizer.h"
 #include "Data/Image/Layer.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "CartaLib/IRemoteVGView.h"

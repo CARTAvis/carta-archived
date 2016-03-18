@@ -1,19 +1,24 @@
 #include "LayerGroup.h"
-#include "Data/Util.h"
+
 #include "Data/Image/LayerCompositionModes.h"
-#include "Data/Image/DrawStackSynchronizer.h"
+#include "Data/Image/Draw/DrawStackSynchronizer.h"
 #include "Data/Image/Grid/AxisMapper.h"
-#include "State/UtilState.h"
-#include "State/StateInterface.h"
-#include "Data/Selection.h"
+#include "Data/Image/Save/SaveService.h"
+#include "Data/Preferences/PreferencesSave.h"
 #include "Data/Region/Region.h"
 #include "Data/Region/RegionFactory.h"
+#include "Data/Selection.h"
+#include "Data/Util.h"
+#include "State/UtilState.h"
+#include "State/StateInterface.h"
 #include "CartaLib/Hooks/LoadRegion.h"
 #include "Globals.h"
 
 #include <QDebug>
 #include <QDir>
 #include "Stack.h"
+
+
 
 using Carta::Lib::AxisInfo;
 
@@ -585,10 +590,6 @@ void Stack::_resetZoom( bool panZoomAll ){
     }
 }
 
-QString Stack::saveImage( const QString& saveName,  double scale){
-    QString result = _saveImage( saveName, scale, _getFrameIndices());
-    return result;
-}
 
 void Stack::_saveChildren( Carta::State::StateInterface& state, bool truncate ) const {
     int dataCount = m_children.size();
@@ -602,6 +603,36 @@ void Stack::_saveChildren( Carta::State::StateInterface& state, bool truncate ) 
         state.setObject( dataKey, layerString);
     }
 }
+
+QString Stack::_saveImage( const QString& saveName ){
+    QString result;
+    m_saveService = new SaveService();
+    result = m_saveService->setFileName( saveName );
+    if ( result.isEmpty()){
+        PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
+        int width = prefSave->getWidth();
+        int height = prefSave->getHeight();
+        Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
+        m_saveService->setOutputSize( QSize( width, height ) );
+        m_saveService->setAspectRatioMode( aspectRatioMode );
+        m_saveService->setLayers( m_children );
+        m_saveService->setSelectIndex( _getIndexCurrent() );
+        connect( m_saveService, SIGNAL(saveImageResult() ),
+                this, SLOT(_saveImageResultCB() ) );
+
+        bool saveStarted = m_saveService->saveFullImage();
+        if ( !saveStarted ){
+            result = "Image was not rendered";
+        }
+    }
+    return result;
+}
+
+void Stack::_saveImageResultCB( bool result ){
+    emit saveImageResult( result );
+    m_saveService->deleteLater();
+}
+
 
 
 void Stack::_saveState( bool flush ) {

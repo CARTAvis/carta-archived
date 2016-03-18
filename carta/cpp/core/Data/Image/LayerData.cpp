@@ -1,7 +1,7 @@
 #include "Grid/DataGrid.h"
 #include "Contour/DataContours.h"
 #include "DataSource.h"
-#include "DrawSynchronizer.h"
+#include "Data/Image/Draw/DrawSynchronizer.h"
 #include "Data/DataLoader.h"
 #include "Data/Util.h"
 #include "Data/Colormap/ColorState.h"
@@ -13,8 +13,6 @@
 #include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/AxisDisplayInfo.h"
 #include "../../ImageRenderService.h"
-#include "../../ImageSaveService.h"
-
 
 #include <QDebug>
 #include <QTime>
@@ -710,48 +708,7 @@ void LayerData::_resetPan( ){
     }
 }
 
-QString LayerData::_saveImage( const QString& /*saveName*/, double /*scale*/,
-        const std::vector<int>& /*frames*/ ){
-    QString result;
-   /* if ( m_dataSource ){
 
-        std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline =
-                m_dataSource->_getPipeline();
-        m_saveService = new Carta::Core::ImageSaveService::ImageSaveService( saveName,
-               pipeline );
-
-        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view( m_dataSource->_getRawData( frames ));
-        if ( view != nullptr ){
-            QString viewId = m_dataSource->_getViewIdCurrent( frames );
-            m_saveService->setInputView( view, viewId );
-            PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
-            int width = prefSave->getWidth();
-            int height = prefSave->getHeight();
-            Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-            m_saveService->setOutputSize( QSize( width, height ) );
-            m_saveService->setAspectRatioMode( aspectRatioMode );
-            std::pair<int,int> displayDims = m_dataSource->_getDisplayDims();
-            m_saveService->setDisplayShape( displayDims.first, displayDims.second );
-
-            m_saveService->setZoom( scale );
-
-            connect( m_saveService, & Carta::Core::ImageSaveService::ImageSaveService::saveImageResult,
-                    this, & Layer::_saveImageResultCB );
-
-            bool saveStarted = m_saveService->saveFullImage();
-            if ( !saveStarted ){
-                result = "Image was not rendered";
-            }
-        }
-        else {
-            result = "There was no data to save.";
-        }
-    }
-    else {
-        result = "There was no image to save.";
-    }*/
-    return result;
-}
 
 
 

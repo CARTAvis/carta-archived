@@ -1052,56 +1052,24 @@ void Controller::resetZoom(){
 }
 
 
-/*void Controller::saveState( bool flush ) {
-    //Images
-    int dataCount = m_datas.size();
-    int oldDataCount = m_stateData.getArraySize(DATA );
-    if ( oldDataCount != dataCount ){
-        m_stateData.resizeArray(DATA, dataCount, StateInterface::PreserveNone );
-    }
-    for (int i = 0; i < dataCount; i++) {
-        //QString layerString = m_datas[i]->_getLayerString();
-        QString layerString = m_datas[i]->_getStateString();
-        QString dataKey = UtilState::getLookup( DATA, i);
-        m_stateData.setObject( dataKey, layerString);
-    }
-    if ( flush ){
-        m_stateData.flushState();
-    }
-}*/
-
-
 QString Controller::saveImage( const QString& fileName ){
-    double zoomLevel = getZoomLevel();
-    return saveImage( fileName, zoomLevel );
-}
-
-QString Controller::saveImage( const QString& fileName, double scale ){
     QString result;
     DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
     bool securityRestricted = dLoader->isSecurityRestricted();
     if ( !securityRestricted ){
-        //int dataIndex = _getIndexCurrent();
-        //if ( 0 <= dataIndex ){
-            //Check and make sure the directory exists.
-            int dirIndex = fileName.lastIndexOf( QDir::separator() );
-            QString dirName = fileName;
-            if ( dirIndex >= 0 ){
-                dirName = fileName.left( dirIndex );
-            }
-            QDir dir( dirName );
-            if ( ! dir.exists() ){
-                result = "Please make sure the save path is valid: "+fileName;
-            }
-            else {
-                //std::vector<int> frames = _getFrameIndices();
-                result = m_stack->saveImage( fileName, scale );
-                //result = m_datas[dataIndex]->_saveImage( fileName, scale, frames );
-            }
-        //}
-        //else {
-            //result = "Please make sure there is an image to save.";
-        //}
+        //Check and make sure the directory exists.
+        int dirIndex = fileName.lastIndexOf( QDir::separator() );
+        QString dirName = fileName;
+        if ( dirIndex >= 0 ){
+            dirName = fileName.left( dirIndex );
+        }
+        QDir dir( dirName );
+        if ( ! dir.exists() ){
+            result = "Please make sure the save path is valid: "+fileName;
+        }
+        else {
+            result = m_stack->_saveImage( fileName );
+        }
     }
     else {
         result = "Write access to the file system is not available.";
@@ -1122,9 +1090,6 @@ void Controller::saveImageResultCB( bool result ){
     emit saveImageResult( result );
 }
 
-/*void Controller::_scheduleFrameReload( bool newClips ){
-    m_stack->_scheduleFrameReload( newClips );
-}*/
 
 void Controller::setAutoClip( bool autoClip ){
     bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
