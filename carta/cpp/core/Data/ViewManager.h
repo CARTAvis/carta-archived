@@ -80,9 +80,11 @@ public:
      * @param fileName a locater for the data to load.
      * @param objectId the unique server side id of the controller which is
      * responsible for displaying the file.
-     * @return true if successful, false otherwise.
+     * @param success - set to true if the file was successfully loaded; false otherwise.
+     * @return - the identifier of the server-side object managing the image if the file
+     *      was successfully loaded; otherwise, an error message.
      */
-    bool loadFile( const QString& objectId, const QString& fileName);
+    QString loadFile( const QString& objectId, const QString& fileName, bool* success);
 
 
     /**

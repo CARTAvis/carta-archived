@@ -207,6 +207,7 @@ void LayerData::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
     //If ours is null, just use the one provided, no questions asked.
     else if (colorState){
         m_stateColor = colorState;
+        _colorChanged();
         connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
     }
 }
@@ -281,6 +282,17 @@ int LayerData::_getDimension() const {
     return imageSize;
 }
 
+std::vector<int> LayerData::_getImageDimensions( ) const {
+    std::vector<int> result;
+    if ( m_dataSource ){
+        int dimensions = m_dataSource->_getDimensions();
+        for ( int i = 0; i < dimensions; i++ ) {
+            int d = m_dataSource->_getDimension( i );
+            result.push_back( d );
+        }
+    }
+    return result;
+}
 
 
 int LayerData::_getFrameCount( AxisInfo::KnownType type ) const {
@@ -562,10 +574,9 @@ void LayerData::_render( const std::vector<int>& frames,
     int rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
     int topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
     int bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
-
-    QRectF outputRect( leftMargin, topMargin,
-                       renderSize.width() - leftMargin - rightMargin,
-                       renderSize.height() - topMargin - bottomMargin );
+    int outWidth = renderSize.width() - leftMargin - rightMargin;
+    int outHeight = renderSize.height() - topMargin - bottomMargin;
+    QRectF outputRect( leftMargin, topMargin, outWidth, outHeight );
 
     QPointF topLeft = outputRect.topLeft();
     QPointF bottomRight = outputRect.bottomRight();
@@ -661,6 +672,13 @@ void LayerData::_resetStateContours(const Carta::State::StateInterface& restoreS
 void LayerData::_resetState( const Carta::State::StateInterface& restoreState ){
     //Restore the other state variables
     Layer::_resetState( restoreState );
+
+    //Restore the grid
+    QString gridStr = restoreState.toString( DataGrid::GRID );
+    Carta::State::StateInterface gridState( "" );
+    gridState.setState( gridStr );
+    _gridChanged( gridState);
+    _resetStateContours( restoreState );
     QString colorState = restoreState.toString( ColorState::CLASS_NAME);
     if ( colorState.length() > 0 ){
         //Create a color state if it does not exist.
@@ -671,13 +689,6 @@ void LayerData::_resetState( const Carta::State::StateInterface& restoreState ){
         }
         m_stateColor->_resetState( colorState );
     }
-
-    //Restore the grid
-    QString gridStr = restoreState.toString( DataGrid::GRID );
-    Carta::State::StateInterface gridState( "" );
-    gridState.setState( gridStr );
-    _gridChanged( gridState);
-    _resetStateContours( restoreState );
 
     //Color mix
     QString redKey = Carta::State::UtilState::getLookup( MASK, Util::RED );
@@ -709,12 +720,9 @@ void LayerData::_resetPan( ){
 }
 
 
-
-
-
-bool LayerData::_setFileName( const QString& fileName ){
-    bool successfulLoad = m_dataSource->_setFileName( fileName );
-    if ( successfulLoad ){
+QString LayerData::_setFileName( const QString& fileName, bool * success ){
+    QString result = m_dataSource->_setFileName( fileName, success );
+    if ( *success){
         DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
         QString shortName = dLoader->getShortName( fileName );
         //m_state.setValue<QString>(DataSource::DATA_PATH, fileName );
@@ -726,8 +734,9 @@ bool LayerData::_setFileName( const QString& fileName ){
             m_state.setValue<QString>( LAYER_NAME, shortName );
             m_state.flushState();
         }
+        result = m_state.getValue<QString>( Util::ID );
     }
-    return successfulLoad;
+    return result;
 }
 
 bool LayerData::_setLayersGrouped( bool /*grouped*/  ){
@@ -858,6 +867,47 @@ void LayerData::_updateColor(){
 void LayerData::_viewResize( const QSize& newSize ){
     if ( m_dataSource ){
         m_dataSource->_viewResize( newSize );
+    }
+}
+
+void LayerData::_viewReset(){
+    _viewResize( m_viewSize );
+    _setPan( m_viewPan.x(), m_viewPan.y() );
+}
+
+void LayerData::_viewResizeFullSave(const QSize& outputSize){
+    if ( m_dataSource ){
+
+        //We take the true image size and multiply by the zoom factor to get the
+        //size of the saved image.  Later, we can scale it to the desired output
+        //size.
+        int zoomFactor = _getZoom();
+        m_viewPan = _getCenterPixel();
+        m_viewSize = _getOutputSize();
+        _resetPan();
+        std::vector<int> imageDims = _getImageDimensions();
+        if ( imageDims.size() >= 2 ){
+            int minWidth = imageDims[0] * zoomFactor;
+            int minHeight = imageDims[1] * zoomFactor;
+
+            int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
+            int rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
+            int topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
+            int bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
+            int availHeight = outputSize.height() - bottomMargin - topMargin;
+            int availWidth = outputSize.width() - leftMargin - rightMargin;
+            if ( availHeight > minHeight && availWidth > minWidth ){
+                int multWidth = availWidth / minWidth;
+                int multHeight = availHeight / minHeight;
+                int mult = qMin( multWidth, multHeight );
+                if ( mult > 0 ){
+                    minWidth = minWidth * mult;
+                    minHeight = minHeight * mult;
+                }
+            }
+            QSize outputSize( minWidth, minHeight );
+            _viewResize( outputSize );
+        }
     }
 }
 

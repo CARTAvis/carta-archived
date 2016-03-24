@@ -91,6 +91,7 @@ Controller::Controller( const QString& path, const QString& id ) :
      connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
                              this, SLOT(_contourSetRemoved(const QString&)));
      connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _colorMapChanged() ));
+     connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
 
      GridControls* gridObj = objMan->createObject<GridControls>();
      m_gridControls.reset( gridObj );
@@ -115,23 +116,24 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
     m_stack->_addContourSet( contourSet );
 }
 
-bool Controller::addData(const QString& fileName) {
+QString Controller::addData(const QString& fileName, bool* success) {
     //Decide on the type of data we are adding based on the file
     //suffix.
-    bool result = false;
+    *success = false;
+    QString result;
     if ( fileName.endsWith( DataLoader::CRTF) ){
-        result = _addDataRegion( fileName );
+        result = _addDataRegion( fileName, success );
     }
     else {
-        result = _addDataImage( fileName );
+        result = _addDataImage( fileName, success );
     }
     return result;
 }
 
 
-bool Controller::_addDataImage(const QString& fileName) {
-    bool dataAdded = m_stack->_addData( fileName, m_stateColor );
-    if ( dataAdded ){
+QString Controller::_addDataImage(const QString& fileName, bool* success ) {
+    QString result = m_stack->_addData( fileName, m_stateColor, success );
+    if ( *success ){
         if ( isStackSelectAuto() ){
             QStringList selectedLayers;
             QString stackId= m_stack->_getCurrentId();
@@ -141,21 +143,19 @@ bool Controller::_addDataImage(const QString& fileName) {
         _updateDisplayAxes();
         emit dataChanged( this );
     }
-    return dataAdded;
+    return result;
 }
 
-bool Controller::_addDataRegion(const QString& fileName) {
-    QString errorStr = m_stack->_addDataRegion( fileName );
-    bool regionLoaded = true;
-    if ( errorStr.isEmpty() ){
+QString Controller::_addDataRegion(const QString& fileName, bool* success) {
+    QString result = m_stack->_addDataRegion( fileName, success );
+    if ( success ){
         emit dataChangedRegion( this );
     }
     else {
-        regionLoaded = false;
         ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-        hr->registerError( errorStr );
+        hr->registerError( result );
     }
-    return regionLoaded;
+    return result;
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
@@ -336,30 +336,16 @@ std::shared_ptr<GridControls> Controller::getGridControls() {
     return m_gridControls;
 }
 
-/*std::vector<int> Controller::getImageDimensions( ) const {
-    std::vector<int> result;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        int dimensions = m_datas[dataIndex]->_getDimensions();
-        for ( int i = 0; i < dimensions; i++ ) {
-            int d = m_datas[dataIndex]->_getDimension( i );
-            result.push_back( d );
-        }
-    }
-    else {
-        result.push_back(0);
-    }
+std::vector<int> Controller::getImageDimensions( ) const {
+    std::vector<int> result = m_stack->_getImageDimensions();
     return result;
-}*/
+}
 
 
-/*QString Controller::getLayerId(int index) const{
-    QString name;
-    if ( 0 <= index && index < m_datas.size()){
-        name = m_datas[index]->_getId();
-    }
-    return name;
-}*/
+QStringList Controller::getLayerIds() const{
+    QStringList names = m_stack->_getLayerIds();
+    return names;
+}
 
 
 std::vector<int> Controller::getImageSlice() const {

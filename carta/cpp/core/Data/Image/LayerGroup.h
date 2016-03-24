@@ -39,7 +39,7 @@ protected:
      */
     virtual void _addContourSet( std::shared_ptr<DataContours> contour );
 
-    virtual bool _addData(const QString& fileName /*, std::shared_ptr<ColorState> state*/);
+    virtual QString _addData(const QString& fileName, bool* success);
 
     virtual bool _addGroup( /*const QString& state*/ );
 
@@ -139,6 +139,13 @@ protected:
       * Returns the underlying image.
       */
     virtual std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage() Q_DECL_OVERRIDE;
+
+    /**
+     * Get the image dimensions.
+     * @return - a list of frame counts for the current image in each dimension.
+     */
+    virtual std::vector<int> _getImageDimensions( ) const Q_DECL_OVERRIDE;
+
     virtual std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > _getImages() Q_DECL_OVERRIDE;
 
     /**
@@ -161,6 +168,11 @@ protected:
      */
     virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Returns the identifier for this layer and its children.
+     * @return - a list of identifiers for this layer and its children.
+     */
+    virtual QStringList _getLayerIds( ) const Q_DECL_OVERRIDE;
 
     /**
      * Get the dimensions of the image viewer (window size).
@@ -297,11 +309,6 @@ protected:
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg ) Q_DECL_OVERRIDE;
 
-    /**
-     * Set an identifier for this layer.
-     * @param id - an identifier for the layer.
-     */
-    virtual void _setId( const QString& id ) Q_DECL_OVERRIDE;
 
     virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
 
@@ -359,9 +366,20 @@ protected:
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) Q_DECL_OVERRIDE;
 
     /**
+     * Reset the view to its previous state after a save.
+     */
+    virtual void _viewReset() Q_DECL_OVERRIDE;
+
+    /**
      * Resize the view of the image.
      */
     virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
+
+    /**
+     * Store output size information prior to a save.
+     * @param outputSize - the desired output size of the saved image.
+     */
+    virtual void _viewResizeFullSave(const QSize& outputSize) Q_DECL_OVERRIDE;
 
     /**
      *  Constructor.

@@ -100,7 +100,7 @@ QString Selection::setLowerBoundUser( int userLowerBound ){
 }
 
 void Selection::setUpperBound(int newUpperBound) {
-    if ( newUpperBound > 0 ){
+    if ( newUpperBound >= 1 ){
         int oldUpperBound = m_state.getValue<int>(HIGH_KEY );
         if ( newUpperBound != oldUpperBound ){
             m_state.setValue<int>(HIGH_KEY, newUpperBound);

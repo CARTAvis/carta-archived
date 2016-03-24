@@ -1,6 +1,5 @@
 #include "ColorState.h"
 #include "Colormaps.h"
-#include "Data/Image/Controller.h"
 #include "TransformsData.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
@@ -58,7 +57,8 @@ ColorState::ColorState( const QString& path, const QString& id):
 
 int ColorState::_getBorderGreen() const {
     QString greenLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::GREEN );
-    return m_state.getValue<int>( greenLookup );
+    int greenAmount = m_state.getValue<int>( greenLookup );
+    return greenAmount;
 }
 
 int ColorState::_getBorderRed() const {

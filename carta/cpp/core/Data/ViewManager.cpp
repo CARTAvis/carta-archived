@@ -352,7 +352,11 @@ void ViewManager::_initCallbacks(){
         const QString DATA( "data");
         std::set<QString> keys = {Util::ID,DATA};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        loadFile( dataValues[Util::ID], dataValues[DATA]);
+        bool fileLoaded = false;
+        QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
+        if ( !fileLoaded ){
+            Util::commandPostProcess( result);
+        }
         return "";
     });
 
@@ -517,8 +521,8 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
     return result;
 }
 
-bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
-    bool result = false;
+QString ViewManager::loadFile( const QString& controlId, const QString& fileName, bool* fileLoaded){
+    QString result;
     int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
@@ -526,7 +530,7 @@ bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
            //Add the data to it
             _makeDataLoader();
            QString path = m_dataLoader->getFile( fileName, "" );
-           result = m_controllers[i]->addData( path );
+           result = m_controllers[i]->addData( path, fileLoaded );
            break;
         }
     }

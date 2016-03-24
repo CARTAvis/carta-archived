@@ -153,13 +153,14 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
          * @param names {Array} - names of nodes to be selected.
          */
         _getTreeNodesMatching : function( node, newNodes, names){
-            var children = node.getChildren();
-            for ( var i = 0; i < children.length; i++ ){
-       
-                this._getTreeNodesMatching( children[i], newNodes, names );
-            }
-            if ( names.indexOf( node.getNodeLabel() ) >= 0 ){
-                newNodes.push( node);
+            if ( node !== null ){
+                var children = node.getChildren();
+                for ( var i = 0; i < children.length; i++ ){
+                    this._getTreeNodesMatching( children[i], newNodes, names );
+                }
+                if ( names.indexOf( node.getNodeLabel() ) >= 0 ){
+                    newNodes.push( node);
+                }
             }
         },
         
@@ -349,7 +350,9 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             var selections = [];
             this._getTreeNodeSelections( dataTree, selections );
             var oldSelections = [];
-            this._getTreeNodeSelections( this.m_treeData, oldSelections );
+            if ( this.m_treeData !== null ){
+                this._getTreeNodeSelections( this.m_treeData, oldSelections );
+            }
             var selectionsChanged = true;
             if ( oldSelections.length = selections.length ){
                 var i = 0;
@@ -412,7 +415,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                 this._resetModel();
             }
             else {
-                var treeItems = this.m_tree.getItems( true, true )
+                var treeItems = this.m_tree.getItems( true, true );
                 this._updateSettings( dataTree, treeItems );
                 this._updateSelections( dataTree );
                 this.m_treeData = dataTree;

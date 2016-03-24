@@ -69,6 +69,11 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Layer::_getIma
     return images;
 }
 
+QStringList Layer::_getLayerIds( ) const {
+    QStringList idList( _getId());
+    return idList;
+}
+
 QString Layer::_getLayerName() const {
     return m_state.getValue<QString>( LAYER_NAME );
 }
@@ -104,8 +109,9 @@ void Layer::_initializeSingletons( ){
 void Layer::_initializeState(){
     m_state.insertValue<bool>(Util::VISIBLE, true );
     m_state.insertValue<bool>(SELECTED, false );
+
+    m_state.insertValue<QString>(Util::ID, getPath());
     m_state.insertValue<QString>( LAYER_NAME, "");
-    m_state.insertValue<QString>(Util::ID, "");
 }
 
 bool Layer::_isContourDraw() const {
@@ -149,13 +155,14 @@ void Layer::_resetStateContours(const Carta::State::StateInterface& /*restoreSta
 void Layer::_resetState( const Carta::State::StateInterface& restoreState ){
     m_state.setValue<bool>(Util::VISIBLE, restoreState.getValue<bool>(Util::VISIBLE) );
     m_state.setValue<bool>(SELECTED, restoreState.getValue<bool>(SELECTED) );
-    m_state.setValue<QString>( Util::ID, restoreState.getValue<QString>(Util::ID));
     m_state.setValue<QString>(LAYER_NAME, restoreState.getValue<QString>(LAYER_NAME));
 }
 
 
-bool Layer::_setFileName( const QString& /*fileName*/ ){
-    return false;
+QString Layer::_setFileName( const QString& /*fileName*/, bool* success ){
+    QString result = "Incorrect layer for loading image files.";
+    *success = false;
+    return result;
 }
 
 
@@ -168,12 +175,6 @@ bool Layer::_setCompositionMode( const QString& id, const QString& /*composition
     return stateChanged;
 }
 
-void Layer::_setId( const QString& id ){
-    QString oldId = m_state.getValue<QString>(Util::ID);
-    if ( oldId != id ){
-        m_state.setValue<QString>(Util::ID, id );
-    }
-}
 
 
 QString Layer::_setImageOrder( const QString& groupId, const std::vector<int>& /*indices*/ ){

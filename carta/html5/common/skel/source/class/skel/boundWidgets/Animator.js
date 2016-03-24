@@ -142,7 +142,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if ( start !=  lowValue ){
                 this.m_lowBoundsSpinner.setValue( parseInt(start) );
             }
-            
             var highValue = this.m_highBoundsSpinner.getValue();
             if ( end !=  highValue ){
                 this.m_highBoundsSpinner.setValue( parseInt(end) );
@@ -250,6 +249,19 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var highBound = this.m_highBoundsSpinner.getValue();
             if ( highBound != this.m_frame){
                 this._sendFrame( highBound );
+            }
+        },
+        
+        /**
+         * Notify the server if the user set high bound changes.
+         */
+        _highChanged : function(){
+            var newVal = this.m_highBoundsSpinner.getValue();
+            if ( newVal < this.m_lowBoundsSpinner.getValue() ){
+                this.m_highBoundsSpinner.setValue( ev.getOldData());
+            }
+            else {
+                this._sendUserUpperBound();
             }
         },
 
@@ -497,15 +509,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
-            this.m_highBoundsSpinner.addListener( skel.widgets.Path.CHANGE_VALUE, function(ev){
-                var newVal = ev.getData();
-                if ( newVal < this.m_lowBoundsSpinner.getValue() ){
-                    this.m_highBoundsSpinner.setValue( ev.getOldData());
-                }
-                else {
-                    this._sendUserUpperBound();
-                }
-            }, this );
             skel.widgets.TestID.addTestId( this.m_highBoundsSpinner, this.m_title+"UpperBoundSpin");
             this.m_highBoundsSpinner.setToolTipText( "Set an upper bound for valid values");
             var sliderComposite = new qx.ui.container.Composite();
@@ -712,6 +715,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     if ( this._frameCB ){
                         try {
                             var frameObj = JSON.parse( val );
+                            this.m_noSends = true;
                             this.m_frame = frameObj.frame;
                             this.m_frameLow = frameObj.frameStart;
                             this.m_frameHigh = frameObj.frameEnd;
@@ -719,6 +723,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                             this._frameEndCB( );
                             this._frameCB( );
                             this._frameBoundsUserCB( frameObj.frameStartUser, frameObj.frameEndUser );
+                            this.m_noSends = false;
                         }
                         catch( err ){
                             console.log( "Selection resetCB, could not parse: "+val );
@@ -734,7 +739,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * @param behavior {String} a descriptor for the end behavior.
          */
         _sendEndBehavior : function(behavior) {
-            if ( this.m_connector !== null ){
+            if ( this.m_connector !== null && !this.m_noSends ){
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_animId + path.SEP_COMMAND + "setEndBehavior";
@@ -749,7 +754,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * @param frameIndex {Number} the new frame value.
          */
         _sendFrame : function(frameIndex) {
-            if (this.m_connector !== null) {
+            if (this.m_connector !== null && !this.m_noSends) {
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
                     var paramMap = frameIndex;
                     var path = skel.widgets.Path.getInstance();
@@ -763,7 +768,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Send a command to the server indicating the new frame rate.
          */
         _sendFrameRate : function() {
-            if ( this.m_connector !== null ){
+            if ( this.m_connector !== null && !this.m_noSends ){
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_animId + path.SEP_COMMAND + "setFrameRate";
@@ -777,7 +782,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Send a command to the server indicating the new frame step size.
          */
         _sendFrameStep : function() {
-            if ( this.m_connector !== null ){
+            if ( this.m_connector !== null && !this.m_noSends ){
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_animId + path.SEP_COMMAND + "setFrameStep";
@@ -806,7 +811,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Send the user set lower bound to the server.
          */
         _sendUserLowerBound : function(){
-            if ( this.m_connector !== null ){
+            if ( this.m_connector !== null && !this.m_noSends){
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_animId + path.SEP_COMMAND + "setLowerBoundUser";
@@ -820,7 +825,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Send the user set upper bound to the server.
          */
         _sendUserUpperBound : function(){
-            if ( this.m_connector !== null ){
+            if ( this.m_connector !== null && !this.m_noSends){
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_animId + path.SEP_COMMAND + "setUpperBoundUser";
@@ -908,6 +913,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_winId : "",
         //The object id of the look up to use for finding updates; corresponds to a C++ AnimatorType object id.
         m_animId : "",
+        m_noSends : false,
 
         //UI Widgets
         m_content : null,

@@ -398,11 +398,14 @@ private:
 
 
     /**
-     * Returns whether or not the data was successfully loaded.
+     * Attempts to load an image file.
      * @param fileName an identifier for the location of a data source.
-     * @return true if the data souce was successfully loaded; false otherwise.
+     * @param success - set to true if the image file is successfully loaded; otherwise,
+     *      set to false.
+     * @return - an error message if the image was not successfully loaded; otherwise,
+     *      an empty string.
      */
-    bool _setFileName( const QString& fileName );
+    QString _setFileName( const QString& fileName, bool* success );
 
 
     /**

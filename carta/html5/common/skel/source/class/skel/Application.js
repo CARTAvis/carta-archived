@@ -364,10 +364,19 @@ qx.Class.define( "skel.Application",
         
         
         _showFileSaver : function( message ){
+            
+            var supportsFull = true;
+            if ( message ){
+                var path = skel.widgets.Path.getInstance();
+                if ( message.getData().getPlugin() == path.HISTOGRAM_PLUGIN ){
+                    supportsFull = false;
+                }
+            }
             if( this.m_fileSaver === null ) {
                 this.m_fileSaver = new skel.widgets.IO.FileSaver();
             }
             this.m_fileSaver.setTarget( message.getData() );
+            this.m_fileSaver.setSupportFull( supportsFull );
             var layoutObj = {
                     left  : "0%",
                     right : "50%",

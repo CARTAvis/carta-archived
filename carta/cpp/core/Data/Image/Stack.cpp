@@ -55,20 +55,23 @@ Stack::Stack(const QString& path, const QString& id) :
     _initializeSelections();
 }
 
-bool Stack::_addData(const QString& fileName, std::shared_ptr<ColorState> colorState ) {
-    bool successfulLoad = LayerGroup::_addData( fileName );
-    if ( successfulLoad ){
-        int lastIndex = m_children.size() - 1;
+QString Stack::_addData(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success ) {
+    QString result = LayerGroup::_addData( fileName, success );
+    int lastIndex = m_children.size() - 1;
+    if ( *success ){
         m_children[lastIndex]->_setColorMapGlobal( colorState );
         m_children[lastIndex]->_viewResize( m_stackDraw->getClientSize() );
         m_stackDraw->setLayers( m_children );
         _resetFrames( lastIndex );
         _saveState();
     }
-    return successfulLoad;
+    else {
+        _closeData( m_children[lastIndex]->_getId() );
+    }
+    return result;
 }
 
-QString Stack::_addDataRegion(const QString& fileName ) {
+QString Stack::_addDataRegion(const QString& fileName, bool* success ) {
     QString msg;
     int selectIndex = _getSelectImageIndex();
     if ( selectIndex >= 0 ){
@@ -89,9 +92,11 @@ QString Stack::_addDataRegion(const QString& fileName ) {
         try {
             result.forEach( lam );
             _saveStateRegions();
+            *success = true;
         }
         catch( char*& error ){
             msg = QString( error );
+            *success = false;
         }
     }
     return msg;
@@ -121,7 +126,7 @@ bool Stack::_closeData( const QString& id ){
         int targetData = _getIndexCurrent();
         int selectCount = m_selects.size();
         for ( int i = 0; i < selectCount; i++ ){
-            int frameCount = 0;
+            int frameCount = 1;
             AxisInfo::KnownType axisType= static_cast<AxisInfo::KnownType>( i );
             if ( targetData >= 0 ){
                 frameCount = m_children[targetData]->_getFrameCount( axisType );
@@ -289,6 +294,14 @@ int Stack::_getIndexCurrent( ) const {
         }
     }
     return dataIndex;
+}
+
+QStringList Stack::_getLayerIds( ) const {
+    QStringList idList;
+    for ( std::shared_ptr<Layer> layer : m_children ){
+        idList.append( layer->_getLayerIds());
+    }
+    return idList;
 }
 
 QString Stack::getPixelValue( double x, double y) const {
@@ -607,23 +620,23 @@ void Stack::_saveChildren( Carta::State::StateInterface& state, bool truncate ) 
 QString Stack::_saveImage( const QString& saveName ){
     QString result;
     m_saveService = new SaveService();
-    result = m_saveService->setFileName( saveName );
-    if ( result.isEmpty()){
-        PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
-        int width = prefSave->getWidth();
-        int height = prefSave->getHeight();
-        Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-        m_saveService->setOutputSize( QSize( width, height ) );
-        m_saveService->setAspectRatioMode( aspectRatioMode );
-        m_saveService->setLayers( m_children );
-        m_saveService->setSelectIndex( _getIndexCurrent() );
-        connect( m_saveService, SIGNAL(saveImageResult() ),
-                this, SLOT(_saveImageResultCB() ) );
-
-        bool saveStarted = m_saveService->saveFullImage();
-        if ( !saveStarted ){
-            result = "Image was not rendered";
-        }
+    m_saveService->setFileName( saveName );
+    PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
+    int width = prefSave->getWidth();
+    int height = prefSave->getHeight();
+    bool fullImage = prefSave->isFullImage();
+    Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
+    m_saveService->setOutputSize( QSize( width, height ) );
+    m_saveService->setAspectRatioMode( aspectRatioMode );
+    m_saveService->setFullImage( fullImage );
+    m_saveService->setLayers( m_children );
+    m_saveService->setSelectIndex( _getIndexCurrent() );
+    connect( m_saveService, SIGNAL(saveImageResult(bool) ),
+            this, SLOT(_saveImageResultCB(bool) ) );
+    std::vector<int> frameIndices = _getFrameIndices();
+    bool saveStarted = m_saveService->saveImage(frameIndices, _getCoordinateSystem());
+    if ( !saveStarted ){
+        result = "Image was not saved.  Please check the file name.";
     }
     return result;
 }
@@ -631,6 +644,14 @@ QString Stack::_saveImage( const QString& saveName ){
 void Stack::_saveImageResultCB( bool result ){
     emit saveImageResult( result );
     m_saveService->deleteLater();
+    //If we saved with a full image, we may have changed the view, so do a
+    //repaint to reset it.
+    PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
+
+    bool fullImage = prefSave->isFullImage();
+    if ( fullImage ){
+        _scheduleFrameReload( true );
+    }
 }
 
 

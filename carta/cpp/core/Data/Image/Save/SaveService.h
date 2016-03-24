@@ -9,7 +9,9 @@
 #include <QSize>
 #include <QImage>
 #include <QList>
+#include <QTimer>
 #include <memory>
+#include "CartaLib/CartaLib.h"
 
 namespace Carta{
 namespace Data{
@@ -49,9 +51,15 @@ public:
      * Set the name of the file where the image should be saved.
      * @param fileName - the absolute path to the file where the image should be
      *      saved.
-     * @return - an error message if the file does not exist or is not writable.
      */
-    QString setFileName( const QString& fileName );
+   void setFileName( const QString& fileName );
+
+   /**
+    * Set whether the full image should be saved or only the part visible in the
+    * viewer.
+    * @param fullImage - true if the full image should be saved; false, otherwise.
+    */
+    void setFullImage( bool fullImage );
 
     /**
      * Set the top index in the stack.
@@ -63,7 +71,8 @@ public:
      * Save the image.
      * @return true if the image was saved; false, otherwise.
      */
-    bool saveFullImage();
+    bool saveImage(const std::vector<int>& frames,
+            const Carta::Lib::KnownSkyCS& cs);
 
     /**
      * Destructor.
@@ -80,18 +89,27 @@ signals:
 
 private slots:
 
+    void _scheduleSave();
+
+private:
+
+    /**
+     * Returns true if the file is writable and the path is valid.
+     * @return - true if the save designation is valid; false otherwise.
+     */
+    bool _isFileValid() const;
+
     /**
      * Saves the image to disk.
      * @param img - the image to save.
      */
-    void _saveFullImageCB( QImage img );
-
-private:
-
-    void _scheduleFrameRepaint();
+    void _saveImage( QImage img );
 
     /// Full path of the output image
     QString m_fileName;
+
+    //Whether to save the full image or only the part visible in the view.
+    bool m_fullImage;
 
     //Layers in the stack.
     QList<std::shared_ptr<Layer> > m_layers;
@@ -108,6 +126,10 @@ private:
     // Layered stack view.
     std::unique_ptr<SaveViewLayered> m_view;
 
+    //Total number of images that need to be drawn.
+    int m_renderCount;
+    //Count of images that have been redrawn to date.
+    int m_redrawCount;
 };
 }
 }

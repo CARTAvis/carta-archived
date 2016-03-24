@@ -13,6 +13,7 @@ const QString PreferencesSave::ASPECT_KEEP = "Keep";
 const QString PreferencesSave::ASPECT_EXPAND = "Expand";
 const QString PreferencesSave::ASPECT_IGNORE = "Ignore";
 const QString PreferencesSave::ASPECT_RATIO_MODE = "aspectMode";
+const QString PreferencesSave::FULL_IMAGE = "fullImage";
 const QString PreferencesSave::WIDTH = "width";
 const QString PreferencesSave::HEIGHT = "height";
 
@@ -70,6 +71,7 @@ QString PreferencesSave::getStateString( const QString& /*sessionId*/, SnapshotT
 
 void PreferencesSave::_initializeDefaultState(){
     m_state.insertValue<QString>( ASPECT_RATIO_MODE, ASPECT_KEEP );
+    m_state.insertValue<bool>(FULL_IMAGE, false );
     m_state.insertValue<int>( WIDTH, 400 );
     m_state.insertValue<int>( HEIGHT, 500 );
     m_state.flushState();
@@ -84,6 +86,23 @@ void PreferencesSave::_initializeCallbacks(){
                Util::commandPostProcess( result );
                return result;
         });
+
+    addCommandCallback( "setFullImage", [=] (const QString & /*cmd*/,
+                       const QString & params, const QString & /*sessionId*/) -> QString {
+                  std::set<QString> keys = {FULL_IMAGE};
+                  std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                  bool validBool = false;
+                  QString result;
+                  bool fullImage = Util::toBool( dataValues[FULL_IMAGE], &validBool);
+                  if ( validBool ){
+                      setFullImage( fullImage );
+                  }
+                  else {
+                      result = "Whether or not to save the full image must be true/false: "+params;
+                  }
+                  Util::commandPostProcess( result );
+                  return result;
+           });
 
     addCommandCallback( "setWidth", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
@@ -121,6 +140,10 @@ void PreferencesSave::_initializeCallbacks(){
 
 }
 
+bool PreferencesSave::isFullImage() const {
+    return m_state.getValue<bool>(FULL_IMAGE);
+}
+
 QString PreferencesSave::setAspectRatioMode( const QString& mode  ){
     QString result;
     QString actualMode;
@@ -156,6 +179,14 @@ QString PreferencesSave::_setDimension( int dim, const QString& key ){
         result = "Invalid save image "+key+": "+dim;
     }
     return result;
+}
+
+void PreferencesSave::setFullImage( bool fullImage ){
+    bool oldFull = m_state.getValue<bool>(FULL_IMAGE );
+    if ( oldFull != fullImage ){
+        m_state.setValue<bool>(FULL_IMAGE, fullImage);
+        m_state.flushState();
+    }
 }
 
 QString PreferencesSave::setWidth( int width ){

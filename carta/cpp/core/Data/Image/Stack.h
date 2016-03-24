@@ -48,6 +48,8 @@ protected:
     virtual bool _closeData( const QString& id ) Q_DECL_OVERRIDE;
     virtual int _getIndexCurrent( ) const;
 
+    virtual QStringList _getLayerIds( ) const Q_DECL_OVERRIDE;
+
     virtual void _resetState( const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
 
     virtual bool _setLayersGrouped( bool grouped  );
@@ -68,8 +70,8 @@ private slots:
 
 private:
 
-    bool _addData(const QString& fileName, std::shared_ptr<ColorState> colorState );
-    QString _addDataRegion(const QString& fileName );
+    QString _addData(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success );
+    QString _addDataRegion(const QString& fileName, bool* success );
 
     QString _closeRegion( const QString& regionId );
 

@@ -182,8 +182,12 @@ protected:
       * Returns the underlying image.
       */
      virtual std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage() Q_DECL_OVERRIDE;
-     //virtual std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > _getImages() Q_DECL_OVERRIDE;
 
+     /**
+      * Get the image dimensions.
+      * @return - a list containing frame counts for each dimension of the image.
+      */
+     virtual std::vector<int> _getImageDimensions( ) const Q_DECL_OVERRIDE;
 
      /**
       * Get the transparency for the layer.
@@ -277,13 +281,14 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
-
     /**
-        * Returns whether or not the data was successfully loaded.
-        * @param fileName an identifier for the location of a data source.
-        * @return true if the data souce was successfully loaded; false otherwise.
-        */
-    virtual bool _setFileName( const QString& fileName ) Q_DECL_OVERRIDE;
+     * Attempts to load an image file.
+     * @param fileName - an identifier for the location of the image file.
+     * @param success - set to true if the file is successfully loaded.
+     * @return - an error message if the file could not be loaded or the id of
+     *      the layer if it is successfully loaded.
+     */
+    virtual QString _setFileName( const QString& fileName, bool* success ) Q_DECL_OVERRIDE;
 
     /**
      * Returns the location on the image corresponding to a screen point in
@@ -409,9 +414,20 @@ protected:
     virtual void _updateColor() Q_DECL_OVERRIDE;
 
     /**
+     * Reset the view to its previous state after a save.
+     */
+    virtual void _viewReset() Q_DECL_OVERRIDE;
+
+    /**
      * Resize the view of the image.
      */
     virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
+
+    /**
+     * Store output size information prior to a save.
+     * @param outputSize - the desired output size of the saved image.
+     */
+    virtual void _viewResizeFullSave( const QSize& outputSize) Q_DECL_OVERRIDE;
 
 protected slots:
     virtual void _colorChanged() Q_DECL_OVERRIDE;
@@ -458,6 +474,9 @@ private:
 
     //Pointer to image interface.
     std::shared_ptr<DataSource> m_dataSource;
+
+    QSize m_viewSize;
+    QPointF m_viewPan;
 
 
      /// image-and-grid-service result synchronizer

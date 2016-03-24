@@ -190,6 +190,14 @@ protected:
      * Returns the underlying image.
      */
     virtual std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage() = 0;
+
+
+    /**
+     * Get the image dimensions.
+     * @return - a list containing frame counts for each dimension of the image.
+     */
+    virtual std::vector<int> _getImageDimensions( ) const = 0;
+
     virtual std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > _getImages();
 
     /**
@@ -211,6 +219,12 @@ protected:
      * @return true if the computed intensity is valid; otherwise false.
      */
     virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const = 0;
+
+    /**
+     * Returns the layer identifiers.
+     * @return - a list containing identifiers for this layer and its children.
+     */
+    virtual QStringList _getLayerIds( ) const;
 
     /**
      * Get the transparency for the layer.
@@ -376,17 +390,14 @@ protected:
             QString& errorMsg );
 
     /**
-     * Returns whether or not the data was successfully loaded.
-     * @param fileName an identifier for the location of a data source.
-     * @return true if the data souce was successfully loaded; false otherwise.
+     * Attempts to load an image file.
+     * @param fileName - an identifier for the location of the image file.
+     * @param success - set to true if the file is successfully loaded.
+     * @return - an error message if the file could not be loaded or the id of
+     *      the layer if it is successfully loaded.
      */
-    virtual bool _setFileName( const QString& fileName );
+    virtual QString _setFileName( const QString& fileName, bool* success );
 
-    /**
-     * Set the layer identifier.
-     * @param id - the layer identifier.
-     */
-    virtual void _setId( const QString& id );
     virtual QString _setImageOrder( const QString& groupId, const std::vector<int>& indices );
 
     virtual bool _setLayersGrouped( bool grouped ) = 0;
@@ -459,9 +470,20 @@ protected:
     virtual void _updateColor();
 
     /**
+     * Reset the view to its previous state after a save.
+     */
+    virtual void _viewReset() = 0;
+
+    /**
      * Resize the view of the image.
      */
     virtual void _viewResize( const QSize& newSize ) = 0;
+
+    /**
+     * Store output size information prior to a save.
+     * @param outputSize - the desired output size of the saved image.
+     */
+    virtual void _viewResizeFullSave(const QSize& outputSize) = 0;
 
     /**
      *  Constructor.

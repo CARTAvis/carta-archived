@@ -112,7 +112,11 @@ Viewer::start()
 
     if ( fname.length() > 0 ) {
         QString controlId = m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, 0);
-        m_viewManager->loadFile( controlId, fname );
+        bool successfulLoad = false;
+        QString result = m_viewManager->loadFile( controlId, fname, &successfulLoad );
+        if ( !successfulLoad ){
+            qDebug() << result;
+        }
     }
 
     qDebug() << "Viewer has been initialized.";

@@ -72,9 +72,11 @@ public:
      * Add data to this controller.
      * @param fileName the location of the data;
      *        this could represent a url or an absolute path on a local filesystem.
-     * @return true upon success, false otherwise.
+     * @param success - set to true if the data was successfully added.
+     * @return - the identifier for the data that was added, if it was added successfully;
+     *      otherwise, an error message.
      */
-    bool addData(const QString& fileName);
+    QString addData(const QString& fileName, bool* success);
 
     /**
      * Apply the indicated clips to managed images.
@@ -94,10 +96,10 @@ public:
 
     /**
      * Close the given image.
-     * @param name an identifier for the image to close.
+     * @param id - a stack id for the image to close.
      * @return - an error message if the image was not successfully closed.
      */
-    QString closeImage( const QString& name );
+    QString closeImage( const QString& id );
 
     /**
      * Close the given region.
@@ -189,14 +191,13 @@ public:
     /**
      * Get the image dimensions.
      */
-    //std::vector<int> getImageDimensions( ) const;
+    std::vector<int> getImageDimensions( ) const;
 
     /**
-     * Returns an identifier for the layer at the given index.
-     * @param index the index of a data layer.
-     * @return an identifier for the layer.
+     * Recursively returns the identifiers for the layers in the stack..
+     * @return - identifiers for the layers in the stack.
      */
-    //QString getLayerId( int index ) const;
+     QStringList getLayerIds( ) const;
 
     /**
      * Return a list of indices indicating the current frames of the selected
@@ -578,12 +579,10 @@ private:
     class Factory;
 
     /// Add a region to the stack from a file.
-    bool _addDataRegion(const QString& fileName );
+    QString _addDataRegion(const QString& fileName, bool* success );
 
     /// Add an image to the stack from a file.
-    bool _addDataImage( const QString& fileName );
-
-    //bool _addGroup( const QString& groupState );
+    QString _addDataImage( const QString& fileName, bool* success );
 
     //Clear the color map.
     void _clearColorMap();
