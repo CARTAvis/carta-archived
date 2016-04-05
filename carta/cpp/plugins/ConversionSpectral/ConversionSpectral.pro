@@ -19,7 +19,7 @@ SOURCES += \
     ConverterVelocityWavelength.cpp \
     ConverterWavelength.cpp \
     ConverterWavelengthFrequency.cpp \
-    ConverterWavelengthVelocity.cpp 
+    ConverterWavelengthVelocity.cpp
 
 HEADERS += \
     SpectralConversionPlugin.h \
@@ -33,7 +33,7 @@ HEADERS += \
     ConverterVelocityWavelength.h \
     ConverterWavelength.h \
     ConverterWavelengthFrequency.h \
-    ConverterWavelengthVelocity.h 
+    ConverterWavelengthVelocity.h
 
 casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
@@ -65,6 +65,7 @@ MYFILES = plugin.json
 
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
+    QMAKE_LFLAGS += -undefined dynamic_lookup
 }
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
