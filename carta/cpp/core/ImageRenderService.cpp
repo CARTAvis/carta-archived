@@ -274,7 +274,7 @@ Service::screen2img( const QPointF & p )
 void
 Service::internalRenderSlot()
 {
-    static int renderCount = 0;
+    //static int renderCount = 0;
     //qDebug() << "Image render" << renderCount++ << "xyz";
 
     // raw double to base64 converter
@@ -432,17 +432,18 @@ Service::internalRenderSlot()
                 p.drawLine( QPointF( 0, pt.y() ), QPointF( outputSize().width(), pt.y() ) );
             }
         }
+        // debuggin: put a yellow stamp on the image, so that next time it's recalled
+        // it'll have 'cached' stamped on it
+        if ( CARTA_RUNTIME_CHECKS ) {
+            p.setPen( QColor( "yellow" ) );
+            p.drawText( img.rect(), Qt::AlignRight | Qt::AlignBottom, "Cached" );
+        }
     }
 
     // report result
     emit done( img, m_lastSubmittedJobId );
 
-    // debuggin: put a yellow stamp on the image, so that next time it's recalled
-    // it'll have 'cached' stamped on it
-    if ( CARTA_RUNTIME_CHECKS ) {
-        p.setPen( QColor( "yellow" ) );
-        p.drawText( img.rect(), Qt::AlignRight | Qt::AlignBottom, "Cached" );
-    }
+
 
     // insert this image into frame cache
     m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
