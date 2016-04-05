@@ -33,6 +33,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
             
             //Everything will have a user settable name.
             this.m_nameText = new qx.ui.form.TextField();
+            skel.widgets.TestID.addTestId( this.m_nameText, "stackLayerName");
             this.m_nameListenId = this.m_nameText.addListener( "changeValue", this._sendNameCmd, this );
             var nameLabel = new qx.ui.basic.Label( "Name:");
             var nameContainer = new qx.ui.container.Composite();
