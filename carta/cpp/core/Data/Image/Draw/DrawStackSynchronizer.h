@@ -44,18 +44,6 @@ public:
      */
     QSize getClientSize() const;
 
-    /**
-     * Set the potential data that are layers in the stack if they are visible.
-     * @param layers- a list of potential stack layers.
-     */
-    void setLayers( QList< std::shared_ptr<Layer> > layers);
-
-    /**
-     * Set the top index in the stack.
-     * @param index - the top stack index.
-     */
-    void setSelectIndex( int index );
-
 
     virtual ~DrawStackSynchronizer();
 

@@ -3,6 +3,7 @@
 #include "Contour/DataContours.h"
 #include "Data/Util.h"
 #include "Data/Colormap/ColorState.h"
+#include "Data/DataLoader.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "State/UtilState.h"
 
@@ -30,6 +31,16 @@ Layer::Layer( const QString& className, const QString& path, const QString& id) 
     _initializeState();
 }
 
+void Layer::_addLayer( std::shared_ptr<Layer> /*layer*/, int /*targetIndex*/ ){
+
+}
+
+
+void Layer::_clearChildren(){
+
+}
+
+
 
 void Layer::_clearColorMap(){
 }
@@ -42,6 +53,11 @@ bool Layer::_closeData( const QString& /*id*/ ){
 
 void Layer::_colorChanged(){
     _updateColor();
+}
+
+QList<std::shared_ptr<Layer> > Layer::_getChildren(){
+    QList<std::shared_ptr<Layer> > children;
+    return children;
 }
 
 
@@ -60,17 +76,17 @@ std::set<std::shared_ptr<DataContours>> Layer::_getContours() {
 }
 
 
-QString Layer::_getId() const {
-    return m_state.getValue<QString>( Util::ID );
-}
-
 std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Layer::_getImages(){
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     return images;
 }
 
+QString Layer::_getLayerId() const {
+    return m_state.getValue<QString>(Util::ID);
+}
+
 QStringList Layer::_getLayerIds( ) const {
-    QStringList idList( _getId());
+    QStringList idList( m_state.getValue<QString>( Util::ID));
     return idList;
 }
 
@@ -109,9 +125,14 @@ void Layer::_initializeSingletons( ){
 void Layer::_initializeState(){
     m_state.insertValue<bool>(Util::VISIBLE, true );
     m_state.insertValue<bool>(SELECTED, false );
-
-    m_state.insertValue<QString>(Util::ID, getPath());
+    QString idStr = getId();
+    idStr = idStr.replace( "c", "");
+    m_state.insertValue<QString>(Util::ID, idStr);
     m_state.insertValue<QString>( LAYER_NAME, "");
+}
+
+bool Layer::_isComposite() const {
+    return false;
 }
 
 bool Layer::_isContourDraw() const {
@@ -119,6 +140,23 @@ bool Layer::_isContourDraw() const {
     return contourDraw;
 }
 
+bool Layer::_isDescendant( const QString& id ) const {
+    return _isMatch( id );
+}
+
+bool Layer::_isEmpty() const {
+    return false;
+}
+
+
+bool Layer::_isMatch( const QString& name ) const {
+    bool matched = false;
+    QString id = _getLayerId();
+    if ( name == id ){
+        matched = true;
+    }
+    return matched;
+}
 
 bool Layer::_isSelected() const {
     return m_state.getValue<bool>( SELECTED );
@@ -130,24 +168,6 @@ bool Layer::_isVisible() const {
 }
 
 
-bool Layer::_isMatch( const QString& name ) const {
-    bool matched = false;
-    QString id = _getId();
-    if ( name == id ){
-        matched = true;
-    }
-    return matched;
-}
-
-
-void Layer::_resetState( const QString& stateStr ){
-    Carta::State::StateInterface restoreState("");
-    restoreState.setState( stateStr );
-
-
-    _resetState( restoreState );
-}
-
 void Layer::_resetStateContours(const Carta::State::StateInterface& /*restoreState*/ ){
 
 }
@@ -155,7 +175,14 @@ void Layer::_resetStateContours(const Carta::State::StateInterface& /*restoreSta
 void Layer::_resetState( const Carta::State::StateInterface& restoreState ){
     m_state.setValue<bool>(Util::VISIBLE, restoreState.getValue<bool>(Util::VISIBLE) );
     m_state.setValue<bool>(SELECTED, restoreState.getValue<bool>(SELECTED) );
-    m_state.setValue<QString>(LAYER_NAME, restoreState.getValue<QString>(LAYER_NAME));
+    QString layerName = restoreState.getValue<QString>(LAYER_NAME);
+    QString shortName = layerName;
+    if ( !layerName.startsWith( GROUP )){
+        DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+        shortName = dLoader->getShortName( layerName );
+    }
+    m_state.setValue<QString>(Util::ID, restoreState.getValue<QString>(Util::ID));
+    m_state.setValue<QString>(LAYER_NAME, shortName);
 }
 
 
@@ -169,29 +196,30 @@ QString Layer::_setFileName( const QString& /*fileName*/, bool* success ){
 bool Layer::_setCompositionMode( const QString& id, const QString& /*compositionMode*/,
         QString& errorMsg ){
     bool stateChanged = false;
-    if ( id == _getId() ){
+    if ( id == _getLayerId() ){
         errorMsg = "Composition mode is not implemented the layer";
     }
     return stateChanged;
 }
 
 
-
-QString Layer::_setImageOrder( const QString& groupId, const std::vector<int>& /*indices*/ ){
-    QString result;
-    if ( groupId == _getId() ){
-        result = "The image order of a single image layer cannot be set.";
+bool Layer::_setLayerName( const QString& id, const QString& name ){
+    bool nameChanged = false;
+    if ( id == _getLayerId() ){
+        m_state.setValue<QString>( LAYER_NAME, name);
+        nameChanged = true;
     }
-    return result;
+    return nameChanged;
 }
 
-
-
-bool Layer::_setSelected( const QStringList& names ){
+bool Layer::_setSelected( QStringList& names ){
     bool stateChanged = false;
     bool selected = false;
-    if ( names.contains( _getId())){
+    QString layerId = _getLayerId();
+    int layerIndex = names.indexOf( layerId );
+    if ( layerIndex >= 0 ){
         selected = true;
+        names.removeAt( layerIndex );
     }
 
     bool oldSelected = m_state.getValue<bool>(SELECTED );
@@ -199,7 +227,6 @@ bool Layer::_setSelected( const QStringList& names ){
         m_state.setValue<bool>( SELECTED, selected );
         stateChanged = true;
     }
-
     return stateChanged;
 }
 
@@ -214,7 +241,7 @@ void Layer::_setSupportColor( bool /*supportColor*/ ){
 
 bool Layer::_setVisible( const QString& id, bool visible ){
     bool foundLayer = false;
-    if ( id == _getId() ){
+    if ( id == _getLayerId() ){
         bool oldVisible = m_state.getValue<bool>(Util::VISIBLE);
         if ( visible != oldVisible ){
             m_state.setValue<bool>( Util::VISIBLE, visible );

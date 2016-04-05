@@ -72,7 +72,7 @@ qx.Mixin.define("skel.widgets.Image.Stack.TreeNodeMixin", {
             if ( this.m_settings != settings ){
                 this.m_settings = settings;
                 if ( this.m_customIcon != null ){
-                    this.m_customIcon.setColor( settings.red, settings.green, settings.blue );
+                    this.m_customIcon.setColor( settings.red, settings.green, settings.blue, settings.colorSupport );
                 }
             }
         },

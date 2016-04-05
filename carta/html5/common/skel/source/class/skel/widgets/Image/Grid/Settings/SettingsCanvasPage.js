@@ -163,7 +163,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
          *      should be shown; false otherwise.
          */
         _setShowSystem : function ( showSystem ){
-            if ( this.m_showSystem.getValue() != showSystem ){
+            if ( typeof showSystem !== "undefined" && 
+                    this.m_showSystem.getValue() != showSystem ){
                 this.m_showSystem.removeListenerById( this.m_showListenerId );
                 this.m_showSystem.setValue( showSystem );
                 this.m_showListenerId = this.m_showSystem.addListener( skel.widgets.Path.CHANGE_VALUE, 
@@ -178,7 +179,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
          *      to all images in the stack; false otherwise.
          */
         _setApplyAll : function ( applyAll ){
-            if ( this.m_allImages.getValue() != applyAll ){
+            if ( typeof applyAll !== "undefined" && 
+                    this.m_allImages.getValue() != applyAll ){
                 this.m_allImages.removeListenerById( this.m_allListenerId );
                 this.m_allImages.setValue( applyAll );
                 this.m_allListenerId = this.m_allImages.addListener( skel.widgets.Path.CHANGE_VALUE, 
@@ -191,7 +193,9 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
          * @param skyCS {String} - an identifier for a coordinate system.
          */
         _setCoordinateSystem : function( skyCS ){
-            this.m_coordSystem.setValue( skyCS );
+            if ( typeof skyCS !== "undefined"){
+                this.m_coordSystem.setValue( skyCS );
+            }
         },
         
         /**
@@ -208,7 +212,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
          * @param showAxes {boolean} - true if the axes should be shown; false otherwise.
          */
         _setShowStatistics : function ( showStatistics ){
-            if ( this.m_showStatistics.getValue() != showStatistics ){
+            if ( typeof showStatistics !=="undefined" && 
+                    this.m_showStatistics.getValue() != showStatistics ){
                 this.m_showStatistics.removeListenerById( this.m_cursorListenerId );
                 this.m_showStatistics.setValue( showStatistics );
                 this.m_cursorListenerId = this.m_showStatistics.addListener( skel.widgets.Path.CHANGE_VALUE, 

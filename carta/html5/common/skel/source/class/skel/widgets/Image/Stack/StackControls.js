@@ -31,11 +31,13 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             if ( add ){
                 if ( groupIndex < 0 ){
                     this.m_selectContainer.add( this.m_groupCheck );
+                    this.m_selectContainer.add( this.m_lastSpacer, {flex:1});
                 }
             }
             else {
                 if ( groupIndex >= 0 ){
                     this.m_selectContainer.remove( this.m_groupCheck );
+                    this.m_selectContainer.remove( this.m_lastSpacer );
                 }
             }
         },
@@ -45,7 +47,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         _autoSelectChanged : function(){
             var auto = this.m_autoSelectCheck.getValue();
-            this.m_imageTree.setEnabled( !auto );
+            this.m_imageTree.setAutoSelect( auto );
             this._sendStackAutoSelectCmd();
         },
 
@@ -104,7 +106,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         _initMaskControls : function(){
             this.m_maskControls = new skel.widgets.Image.Stack.LayerSettings();
-            this.m_splitter._add( this.m_maskControls );
+            this.m_splitter.add( this.m_maskControls, 1 );
         },
         
         
@@ -135,12 +137,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             this.m_selectContainer.add( this.m_panZoomAllCheck );
             this.m_selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
             
-            //Group check
-            this.m_groupCheck = new qx.ui.form.CheckBox( "Group"); 
-            this.m_groupCheck.setToolTipText( "Group/ungroup the selected layer(s).");
-            this.m_groupListenId = this.m_groupCheck.addListener( "changeValue", this._sendGroupCmd, this );
-            this.m_selectContainer.add( this.m_groupCheck );
-            this.m_selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
+           
             
             this.m_imageTree = new skel.widgets.Image.Stack.StackTree();
             this.m_imageTree.addListener( "treeSelection", this._treeItemSelected, this );
@@ -149,8 +146,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             listContainer.add( this.m_selectContainer );
             this.m_splitter = new qx.ui.splitpane.Pane( "horizontal");
             this.m_splitter.add( this.m_imageTree, 0 );
-            listContainer.add( this.m_splitter );
-            this._add( listContainer );
+            listContainer.add( this.m_splitter, {flex:1} );
+            this._add( listContainer, {flex:1} );
         },
 
         /**
@@ -182,16 +179,6 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             };
         },
         
-        /**
-         * Send a command to the server to group/ungroup selected layers.
-         */
-        _sendGroupCmd : function(){
-            var groupSelections = this.m_groupCheck.getValue();
-            var params = "group:"+groupSelections;
-            var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_id + path.SEP_COMMAND + "setGroup";
-            this.m_connector.sendCommand( cmd, params, function(){});
-        },
         
         /**
          * Send a command to the server indicating whether to pan/zoom all images
@@ -203,20 +190,6 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_id + path.SEP_COMMAND + "setPanZoomAll";
             this.m_connector.sendCommand( cmd, params, function(){});
-        },
-        
-        /**
-         * Send a command to the server to reorder the images in the stack.
-         * @param msg {Array} - a list specifying the new image order.
-         */
-        _sendReorderCmd : function( msg ){
-            var imageList = msg.getData().listItems;
-            if ( imageList.length > 0 ){
-                var params = imageList.join(";");
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setImageOrder";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }
         },
         
         
@@ -241,10 +214,9 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
         
         
         /**
-         * Send a command to the server to reorder the images in the stack.
-         * @param msg {Array} - a list specifying the new image order.
+         * Send a command to the server to change auto selection of the images in the stack.
          */
-        _sendStackAutoSelectCmd : function( msg ){
+        _sendStackAutoSelectCmd : function( ){
             var autoSelect = this.m_autoSelectCheck.getValue();
             var params = "stackAutoSelect:"+autoSelect;
             var path = skel.widgets.Path.getInstance();
@@ -268,6 +240,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         setId : function( imageId ){
             this.m_id = imageId;
+            this.m_imageTree.setId( this.m_id );
             this.m_maskControls.setId( imageId );
             this._registerControls();
             this._registerControlsData();
@@ -279,27 +252,6 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          */
         _treeItemSelected : function( msg ){
             var sendCmd = msg.getData().send;
-            var groupSelected = this.m_imageTree.isGroupSelected();
-            //Enable the group check box depending on what is selected.
-            if ( groupSelected ){
-                //Enable the group check box and select it.
-                this.m_groupCheck.removeListenerById( this.m_groupListenId );
-                this._addGroupCheck( true );
-                this.m_groupCheck.setValue( true );
-                this.m_groupListenId = this.m_groupCheck.addListener( "changeValue", this._sendGroupCmd, this );
-            }
-            
-            else if ( this.m_imageTree.isSiblingsSelected() ){
-                //Enable the group check box and unselect it.
-                this.m_groupCheck.removeListenerById( this.m_groupListenId );
-                this._addGroupCheck( true );
-                this.m_groupCheck.setValue( false );
-                this.m_groupListenId = this.m_groupCheck.addListener( "changeValue", this._sendGroupCmd, this );
-            }
-            else {
-                //Disable the group check box
-                this._addGroupCheck( false );
-            }
             this._updateSettings();
             if ( sendCmd ){
                 this._sendSelectionCmd();
@@ -337,8 +289,6 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
         m_id : null,
         m_connector : null,
         m_datas : null,
-        m_groupCheck : null,
-        m_groupListenId : null,
         m_panZoomAllCheck : null,
         m_sharedVar : null,
         m_sharedVarData : null,

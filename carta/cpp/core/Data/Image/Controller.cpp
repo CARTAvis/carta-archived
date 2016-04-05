@@ -85,12 +85,12 @@ Controller::Controller( const QString& path, const QString& id ) :
      m_stack.reset( layerGroupRoot );
      connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
              this, SLOT(_notifyFrameChange( Carta::Lib::AxisInfo::KnownType)));
-     connect( m_stack.get(), SIGNAL( viewLoad(bool)), this, SLOT(_loadViewQueued(bool)));
+     connect( m_stack.get(), SIGNAL( viewLoad()), this, SLOT(_loadViewQueued()));
      connect( m_stack.get(), SIGNAL(contourSetAdded(Layer*,const QString&)),
                      this, SLOT(_contourSetAdded(Layer*, const QString&)));
      connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
                              this, SLOT(_contourSetRemoved(const QString&)));
-     connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _colorMapChanged() ));
+     connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _loadViewQueued() ));
      connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
 
      GridControls* gridObj = objMan->createObject<GridControls>();
@@ -104,7 +104,7 @@ Controller::Controller( const QString& path, const QString& id ) :
      m_contourControls.reset( contourObj );
      m_contourControls->setPercentIntensityMap( this );
      connect( m_contourControls.get(), SIGNAL(drawContoursChanged()),
-             this, SLOT( _contoursChanged()));
+             this, SLOT(_loadViewQueued()));
 
      Settings* settingsObj = objMan->createObject<Settings>();
      m_settings.reset( settingsObj );
@@ -132,7 +132,7 @@ QString Controller::addData(const QString& fileName, bool* success) {
 
 
 QString Controller::_addDataImage(const QString& fileName, bool* success ) {
-    QString result = m_stack->_addData( fileName, m_stateColor, success );
+    QString result = m_stack->_addDataImage( fileName, m_stateColor, success );
     if ( *success ){
         if ( isStackSelectAuto() ){
             QStringList selectedLayers;
@@ -186,7 +186,7 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
 
         if( clipsChangedValue ){
             m_state.flushState();
-            m_stack->_scheduleFrameReload( true );
+            _loadViewQueued();
             double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
             double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
             emit clipsChanged( minPercent, maxPercent );
@@ -234,11 +234,6 @@ QString Controller::closeRegion( const QString& regionId ){
     return result;
 }
 
-void Controller::_colorMapChanged(){
-    m_stack->_scheduleFrameReload( true );
-}
-
-
 
 void Controller::centerOnPixel( double centerX, double centerY ){
     bool panZoomAll = m_state.getValue<bool>( PAN_ZOOM_ALL );
@@ -261,9 +256,6 @@ void Controller::_contourSetRemoved( const QString setName ){
     }
 }
 
-void Controller::_contoursChanged(){
-    m_stack->_scheduleFrameReload( true );
-}
 
 void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
         bool applyAll ){
@@ -354,48 +346,6 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-/*int Controller::_getIndex( const QString& fileName) const{
-    int dataCount = m_datas.size();
-    int targetIndex = -1;
-    for ( int i = 0; i < dataCount; i++ ){
-        QString dataName = m_datas[i]->_getId();
-        if ( fileName == dataName ){
-            targetIndex = i;
-            break;
-        }
-    }
-    return targetIndex;
-}*/
-
-/*int Controller::_getIndexData( Layer* target ) const {
-    int targetIndex = -1;
-    if ( target != nullptr ){
-        QString targetName = target->_getId();
-        targetIndex = _getIndex( targetName);
-    }
-    return targetIndex;
-}*/
-
-/*int Controller::_getIndexCurrent( ) const {
-    int dataIndex = -1;
-    if ( m_selectImage ){
-        int index = m_selectImage->getIndex();
-        int visibleIndex = -1;
-        int dataCount = m_datas.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            if ( m_datas[i]->_isVisible() ){
-                visibleIndex++;
-                if ( visibleIndex == index ){
-                    dataIndex = i;
-                    break;
-                }
-            }
-        }
-    }
-    return dataIndex;
-}*/
-
-
 bool Controller::getIntensity( double percentile, double* intensity ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
     bool validIntensity = getIntensity( currentFrame, currentFrame, percentile, intensity );
@@ -482,21 +432,8 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         result = prefState.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
-
         Carta::State::StateInterface dataState("");
-        //DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
-
-        /*QString rootDir = dataLoader->getRootDir( sessionId );
-        int dataCount = m_datas.size();
-        dataState.insertArray( DATA, dataCount );
-        for ( int i = 0; i < dataCount; i++ ){
-            QString lookup = Carta::State::UtilState::getLookup( DATA, i );
-            QString dataStateStr = m_datas[i]->_getStateString();
-            dataState.setObject( lookup, dataStateStr );
-        }*/
         dataState.setState( m_stack->_getStateString() );
-
-
         dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
         dataState.setValue<int>(StateInterface::INDEX, getIndex() );
 
@@ -534,6 +471,24 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "moveLayers", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {"moveDown"};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString moveDownStr = dataValues[*keys.begin()];
+                bool validBool = false;
+                bool moveDown = Util::toBool( moveDownStr, &validBool );
+                QString result;
+                if ( validBool ){
+                    result = moveSelectedLayers( moveDown );
+                }
+                else {
+                    result = "Whether to move up or down selected layers must be true/false: "+params;
+                }
+                Util::commandPostProcess( result );
+                return result;
+            });
+
     addCommandCallback( "setGroup", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {Layer::GROUP};
@@ -562,24 +517,6 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
-    addCommandCallback( "setImageOrder", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-        bool parseError = false;
-        const QString indexStr( "indices");
-        std::set<QString> keys = {Util::ID, indexStr};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString idStr = dataValues[Util::ID ];
-        std::vector<int> vals = Util::string2VectorInt( dataValues[indexStr], &parseError, ";" );
-        QString result;
-        if ( !parseError ){
-            result = setImageOrder( idStr, vals );
-        }
-        else {
-            result = "Image order must be expressed as nonnegative integers: "+params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
 
 
     //Listen for updates to the clip and reload the frame.
@@ -778,6 +715,16 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setLayerName", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::ID,Util::NAME};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString result = setLayerName( dataValues[Util::ID], dataValues[Util::NAME] );
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+
     addCommandCallback( "setLayersSelected", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
@@ -920,16 +867,21 @@ bool Controller::isStackSelectAuto() const {
 }
 
 
-void Controller::_loadViewQueued( bool newClips ){
-    QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection, Q_ARG(bool, newClips) );
+void Controller::_loadViewQueued( ){
+    QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
 }
 
-void Controller::_loadView( bool renderAll ){
+void Controller::_loadView(){
     //Load the image.
     bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
     double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
     double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
-    m_stack->_load( renderAll, autoClip, clipValueMin, clipValueMax );
+    m_stack->_load( autoClip, clipValueMin, clipValueMax );
+}
+
+QString Controller::moveSelectedLayers( bool moveDown ){
+    QString result = m_stack->_moveSelectedLayers( moveDown );
+    return result;
 }
 
 
@@ -959,52 +911,7 @@ void Controller::resetStateData( const QString& state ){
     dataState.setState( state );
 
     //Reset the layers
-    m_stack->_resetState( dataState );
-
-    /*std::vector<int> frames = _getFrameIndices();
-    int dataCount = dataState.getArraySize(DATA);
-    QStringList loadedFiles;
-    for ( int i = 0; i < dataCount; i++ ){
-        QString dataLookup = Carta::State::UtilState::getLookup( DATA, i );
-        QString idLookup = Carta::State::UtilState::getLookup( dataLookup, Util::ID );
-        QString id = dataState.getValue<QString>( idLookup );
-        int dataIndex = _getIndex( id );
-        if ( dataIndex == -1 ){
-            QString fileLookup = Carta::State::UtilState::getLookup( dataLookup, DataSource::DATA_PATH);
-            QString fileName = dataState.getValue<QString>( fileLookup );
-            if ( !fileName.isEmpty()){
-                addData( fileName );
-            }
-            else {
-                _addGroup( dataState.toString( dataLookup ));
-            }
-            dataIndex = m_datas.size() - 1;
-
-        }
-        loadedFiles.append( id );
-        if ( dataIndex >= 0 ){
-            m_datas[dataIndex]->_resetState(dataState.toString(dataLookup));
-            _loadView( true, dataIndex );
-        }
-    }
-
-    //Remove any data that should not be there
-    int stackCount = m_datas.size();
-    for ( int i = stackCount-1; i>= 0; i--){
-        QString id = m_datas[i]->_getId();
-        if ( !loadedFiles.contains( id )){
-            _removeData( i );
-        }
-    }
-    m_stackDraw->setLayers( m_datas );
-
-    //Reset the image select state.
-    QString dataStateStr = dataState.getValue<QString>( Selection::IMAGE );
-    m_selectImage ->resetState( dataStateStr );
-    m_stackDraw->setSelectIndex( m_selectImage->getIndex());
-    _renderAll();
-*/
-
+    m_stack->_resetStack( dataState );
 
     //Restore the region State
     /*m_regions.clear();
@@ -1024,7 +931,7 @@ void Controller::resetStateData( const QString& state ){
     //Reset the state of the grid controls based on the selected image.
     StateInterface gridState = m_stack->_getGridState();
     m_gridControls->_resetState( gridState );
-    _loadViewQueued( true );
+    _loadViewQueued();
 }
 
 void Controller::resetPan(){
@@ -1148,11 +1055,6 @@ void Controller::_setColorMapUseGlobal( bool global ) {
     emit colorChanged( this );
 }
 
-QString Controller::setImageOrder( const QString& groupId, const std::vector<int>& indices ){
-    QString result = m_stack->_setImageOrder( groupId, indices );
-    return result;
-}
-
 
 QString Controller::setImageVisibility( /*int dataIndex*/const QString& idStr, bool visible ){
     QString result;
@@ -1187,6 +1089,15 @@ QString Controller::setImageVisibility( /*int dataIndex*/const QString& idStr, b
     return result;
 }
 
+QString Controller::setLayerName( const QString& id, const QString& name ){
+    bool nameSet = m_stack->_setLayerName( id, name );
+    QString result;
+    if ( !nameSet ){
+        result = "Layer was not found so the name could not be set.";
+    }
+    return result;
+}
+
 QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     if ( indices.size() > 0 ){
@@ -1205,20 +1116,24 @@ QString Controller::setLayersSelected( const QStringList indices ){
 }
 
 
-QString Controller::_setLayersSelected( const QStringList names ){
+QString Controller::_setLayersSelected( QStringList names ){
     QString result;
     bool stackAutoSelect = m_state.getValue<bool>(STACK_SELECT_AUTO);
+    QString firstName;
+    if ( names.size() > 0 ){
+        firstName = names[0];
+    }
     bool selectStateChanged = m_stack->_setSelected( names );
     if ( selectStateChanged ){
-        if ( names.size() > 0 ){
-            int selectIndex = m_stack->_getIndex(names[0]);
+        if ( !firstName.isEmpty() ){
+            int selectIndex = m_stack->_getIndex( firstName );
             if (  !stackAutoSelect  ){
                 setFrameImage( selectIndex );
             }
         }
         emit colorChanged( this );
+        emit dataChanged( this );
     }
-
     return result;
 }
 
@@ -1270,7 +1185,7 @@ QString Controller::setSelectedLayersGrouped( bool grouped ){
             result = "The selected layer(s) could not be grouped.";
         }
         else {
-            result = "Please make sure only one composite layer is selected to ungroup";
+            result = "Unable to remove group.";
         }
     }
     return result;

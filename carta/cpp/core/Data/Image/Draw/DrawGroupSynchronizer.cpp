@@ -20,22 +20,29 @@ void DrawGroupSynchronizer::render(
     if ( m_repaintFrameQueued ){
         return;
     }
-    m_repaintFrameQueued = true;
     int dataCount = m_layers.size();
-    m_renderCount = 0;
-    m_redrawCount = dataCount;
-    int stackIndex = 0;
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_layers[i]->_isVisible() ){
-            connect( m_layers[i].get(), SIGNAL(renderingDone()),
-                    this, SLOT(_scheduleFrameRepaint()), Qt::UniqueConnection);
-            bool topOfStack = false;
-            if ( i == topIndex ){
-                topOfStack = true;
+    if ( dataCount > 0 ){
+        m_repaintFrameQueued = true;
+
+        m_renderCount = 0;
+        m_redrawCount = dataCount;
+        int stackIndex = 0;
+        for ( int i = 0; i < dataCount; i++ ){
+            if ( m_layers[i]->_isVisible() ){
+                connect( m_layers[i].get(), SIGNAL(renderingDone()),
+                        this, SLOT(_scheduleFrameRepaint()), Qt::UniqueConnection);
+                bool topOfStack = false;
+                if ( i == topIndex ){
+                    topOfStack = true;
+                }
+                m_layers[i]->_render( frames, cs, topOfStack );
+                stackIndex++;
             }
-            m_layers[i]->_render( frames, cs, topOfStack );
-            stackIndex++;
         }
+    }
+    else {
+        //Just say we are done since there is nothing to draw.
+        emit done( m_qImage );
     }
 }
 
@@ -51,6 +58,7 @@ void DrawGroupSynchronizer::_scheduleFrameRepaint(){
             std::shared_ptr<Carta::Lib::PixelMaskCombiner> pmc =
                     std::make_shared < Carta::Lib::PixelMaskCombiner > ();
             m_qImage = QImage(m_imageSize, QImage::Format_ARGB32 );
+            m_qImage.fill( QColor(0,0,0,0));
             for ( int i = 0; i < dataCount; i++ ){
                 float alphaVal = m_layers[i]->_getMaskAlpha();
                 pmc-> setAlpha( alphaVal );

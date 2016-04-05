@@ -15,6 +15,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
      */
     construct : function( ) {
         this.base(arguments);
+        this.m_connector = mImport("connector");
         this._init( );
     },
     
@@ -25,21 +26,20 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
          * Initializes the UI.
          */
         _init : function( ) {
-            this._setLayout( new qx.ui.layout.VBox(1) );
+            this._setLayout( new qx.ui.layout.VBox() );
             this.m_content = new qx.ui.groupbox.GroupBox( "");
             this.m_content.setLayout( new qx.ui.layout.VBox(1) );
             this._add( this.m_content );
             
             //Everything will have a user settable name.
             this.m_nameText = new qx.ui.form.TextField();
+            this.m_nameListenId = this.m_nameText.addListener( "changeValue", this._sendNameCmd, this );
             var nameLabel = new qx.ui.basic.Label( "Name:");
             var nameContainer = new qx.ui.container.Composite();
-            nameContainer.setLayout( new qx.ui.layout.HBox(2) );
-            nameContainer.add( new qx.ui.core.Spacer(2), {flex:1});
+            nameContainer.setLayout( new qx.ui.layout.HBox(1) );
             nameContainer.add( nameLabel );
             nameContainer.add( this.m_nameText, {flex:1} );
-            nameContainer.add( new qx.ui.core.Spacer(2), {flex:1});
-            this.m_content.add( nameContainer );
+            this.m_content.add( nameContainer);
             
             this.m_layerSettings = new skel.widgets.Image.Stack.LayerSettingsColor();
             this.m_content.add( this.m_layerSettings );
@@ -94,6 +94,17 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
         },
         
         /**
+         * Send a command to the server to change the layer's name.
+         */
+        _sendNameCmd : function(){
+            var name = this.m_nameText.getValue();
+            var params = "id:"+ this.m_layerId+",name:"+name;
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setLayerName";
+            this.m_connector.sendCommand( cmd, params, function(){});
+        },
+        
+        /**
          * Complete setting the mode in a generic way (regardless of the layer type).
          */
         setGeneric : function(){
@@ -108,7 +119,6 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
          */
         setModeGroup : function(){
             var groupMode = this._isModeGroup();
-            console.log( "setModeGroup groupMode="+groupMode);
             if ( !groupMode ){
                 this._removeLayerSettings();
                 this.m_layerSettings = new skel.widgets.Image.Stack.LayerSettingsGroup();
@@ -161,7 +171,9 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
          * @param name {String} - a user set name for the layer.
          */
         setName : function( name ){
+            this.m_nameText.removeListenerById( this.m_nameListenId );
             this.m_nameText.setValue( name );
+            this.m_nameListenId = this.m_nameText.addListener( "changeValue", this._sendNameCmd, this );
         },
         
         /**
@@ -172,13 +184,14 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettings", {
             this.m_layerSettings.setControls( settings );
         },
         
-       
+        m_connector : null,
         m_content : null,
         m_id : null,
         m_layerId : null,
         m_mask : null,
         m_mode : null,
         m_layerSettings : null,
-        m_nameText : null
+        m_nameText : null,
+        m_nameListenId : null
     }
 });

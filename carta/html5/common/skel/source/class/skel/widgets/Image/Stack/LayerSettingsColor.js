@@ -102,7 +102,11 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
                     "Set the transparency.", "Slide to set the transparency.",
                     "maskAlphaTextField", "maskAlphaSlider", false);
             this.m_transparency.setNotify( true );
-            this.m_transparency.addListener( "textSliderChanged", this._setPreviewColor, this );
+            this.m_transparency.addListener( "textSliderChanged", function(msg){
+                this._setPreviewColor;
+                this._sendTransparency(msg);
+            }, this );
+            
             transContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
             transContainer.add( this.m_transparency );
             transContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
@@ -301,12 +305,25 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
+        
+        /**
+         * Send a command to the server to change the transparency.
+         * @param msg {Object} - information about the transparency to send.
+         */
+        _sendTransparency : function( msg ){
+            var transp = msg.getData().value;
+            var params = "id:"+ this.m_layerId+",alpha:"+transp;
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setMaskAlpha";
+            this.m_connector.sendCommand( cmd, params, function(){});
+        },
  
         /**
          * Update the UI with mask information from the server.
          * @param mask {Object} - mask information from the server.
          */
         setControls : function( mask ){
+            this.m_transparency.setValue( mask.alpha );
             this.m_serverUpdate = true;
             if ( mask.red == 255 && mask.blue == 0 && mask.green == 0){
                 this._presetRedSelected();
@@ -330,7 +347,6 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
          */
         setId : function( id ){
             this.m_id = id;
-            this.m_transparency.setId( id );
         },
         
         /**

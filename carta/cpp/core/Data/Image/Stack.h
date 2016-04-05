@@ -50,18 +50,24 @@ protected:
 
     virtual QStringList _getLayerIds( ) const Q_DECL_OVERRIDE;
 
-    virtual void _resetState( const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
+
+
+    /**
+     * Give the layer (a more user-friendly) name.
+     * @param id - an identifier for the layer to rename.
+     * @param name - the new name for the layer.
+     * @return - true if the name was successfully reset; false otherwise.
+     */
+    virtual bool _setLayerName( const QString& id, const QString& name ) Q_DECL_OVERRIDE;
 
     virtual bool _setLayersGrouped( bool grouped  );
 
-    virtual bool _setSelected( const QStringList& names ) Q_DECL_OVERRIDE;
+    virtual bool _setSelected( QStringList& names ) Q_DECL_OVERRIDE;
 
 
     virtual bool _setVisible( const QString& id, bool visible );
 
 private slots:
-
-    void _scheduleFrameReload( bool renderAll = true);
 
     void _viewResize();
 
@@ -70,42 +76,13 @@ private slots:
 
 private:
 
-    QString _addData(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success );
+    QString _addDataImage(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success );
     QString _addDataRegion(const QString& fileName, bool* success );
 
     QString _closeRegion( const QString& regionId );
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll );
 
-    std::vector<Carta::Lib::RegionInfo> _getRegions() const;
-    /**
-     * Return the state of this layer.
-     * @return - a string representation of the layer state.
-     */
-    QString _getStateString() const;
-
-    void _gridChanged( const Carta::State::StateInterface& state, bool applyAll);
-
-
-    /**
-     * Return a QImage representation of this data.
-     * @param renderAll - true if all images in the stack should be drawn; false, for
-     *      just the current one.
-     * @param autoClip true if clips should be automatically generated; false otherwise.
-     * @param clipMinPercentile the minimum clip value.
-     * @param clipMaxPercentile the maximum clip value.
-     */
-    void _load( bool renderAll, bool autoClip, double clipMinPercentile, double clipMaxPercentile );
-
-    /**
-     * Center the image.
-     */
-    void _resetPan( bool panZoomAll );
-
-    /**
-     * Reset the zoom to the original value.
-     */
-    void _resetZoom( bool panZoomAll );
 
     std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
 
@@ -116,18 +93,53 @@ private:
 
     std::vector<int> _getImageSlice() const;
     int _getIndex( const QString& layerId) const;
+     std::vector<Carta::Lib::RegionInfo> _getRegions() const;
 
 
-    int _getSelectImageIndex() const;
-    QString _getCurrentId() const;
+     int _getSelectImageIndex() const;
+
+     /**
+      * Return the state of this layer.
+      * @return - a string representation of the layer state.
+      */
+     QString _getStateString() const;
+     QString _getCurrentId() const;
+
+    void _gridChanged( const Carta::State::StateInterface& state, bool applyAll);
 
     void _initializeSelections();
     void _initializeState();
+
+    /**
+     * Return a QImage representation of this data.
+     * @param renderAll - true if all images in the stack should be drawn; false, for
+     *      just the current one.
+     * @param autoClip true if clips should be automatically generated; false otherwise.
+     * @param clipMinPercentile the minimum clip value.
+     * @param clipMaxPercentile the maximum clip value.
+     */
+    void _load( bool autoClip, double clipMinPercentile, double clipMaxPercentile );
+
+
+    QString _moveSelectedLayers( bool moveDown );
     void _render(QList<std::shared_ptr<Layer> > datas, int gridIndex);
     void _renderAll();
-    void _renderSingle( int dIndex );
+
     QString _reorderImages( const std::vector<int> & indices );
     QString _resetFrames( int val);
+
+
+    /**
+     * Center the image.
+     */
+    void _resetPan( bool panZoomAll );
+
+    void _resetStack( const Carta::State::StateInterface& restoreState );
+
+    /**
+     * Reset the zoom to the original value.
+     */
+    void _resetZoom( bool panZoomAll );
     void _saveChildren( Carta::State::StateInterface& state, bool truncate ) const;
 
     /**
@@ -176,7 +188,6 @@ private:
     Selection* m_selectImage;
     std::vector<Selection*> m_selects;
     QList<std::shared_ptr<Region> > m_regions;
-    bool m_reloadFrameQueued;
 
     /// Saves images
     SaveService *m_saveService;

@@ -67,7 +67,7 @@ void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
        else if ( m_plotType == PlotType::HISTOGRAM ){
            //For right now, just one histogram plot
            if ( m_datas.size() > 0 ){
-               return;
+               clearData();
            }
            pData.reset( new Plot2DHistogram() );
        }

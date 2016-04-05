@@ -350,7 +350,7 @@ protected:
      * Reset the prefereence state of this layer.
      * @param restoreState - the new layer state.
      */
-    virtual void _resetState( const Carta::State::StateInterface& restoreState );
+    virtual void _resetState( const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
 
     /**
          * Reset the layer contours.

@@ -31,14 +31,22 @@ qx.Class.define("skel.widgets.Image.Stack.CustomIcon", {
          * @param red {Number} - amount of red in [0,255].
          * @param green {Number} - amount of green in [0,255].
          * @param blue {Number} - amount of blue in [0,255].
+         * @param colorSupport {boolean} - true if the node is in a group with color support;
+         *      false otherwise.
          */
-        setColor : function( red, green, blue ){
-            var colorArray = [];
-            colorArray[0] = red;
-            colorArray[1] = green;
-            colorArray[2] = blue;
-            var colorStr = qx.util.ColorUtil.rgbToHexString( colorArray );
-            this.setBackgroundColor( colorStr );
+        setColor : function( red, green, blue, colorSupport ){
+            if ( colorSupport ){
+                var colorArray = [];
+                colorArray[0] = red;
+                colorArray[1] = green;
+                colorArray[2] = blue;
+                var colorStr = qx.util.ColorUtil.rgbToHexString( colorArray );
+                this.setBackgroundColor( colorStr );
+            }
+            else {
+                this.setBackgroundColor( "transparent" );
+                this.setDecorator( "no-border");
+            }
         },
         
         /**

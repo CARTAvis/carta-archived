@@ -83,6 +83,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
             this.m_compModeCombo.addListener( "selectChanged", this._sendCompModeCmd, this );
             skel.widgets.TestID.addTestId( this.m_compModeCombo, "layerCompositionMode");
             this.m_compModeCombo.setToolTipText( "Select a layer composition mode.");
+            this.m_compModeCombo.setEnabled( false );
             hContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
             hContainer.add( label );
             hContainer.add( this.m_compModeCombo );

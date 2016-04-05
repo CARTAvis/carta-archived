@@ -325,6 +325,13 @@ public:
     bool isStackSelectAuto() const;
 
     /**
+     * Move the selected main stack layers up or down one layer.
+     * @param moveDown - true if the selected layers should be moved down one layer;
+     *      false otherwise.
+     */
+    QString moveSelectedLayers( bool moveDown );
+
+    /**
      * Remove a contour set from the images.
      * @param contourSet - the contour set to remove.
      */
@@ -396,21 +403,20 @@ public:
 
 
     /**
-     * Specify a new image order.
-     * @param groupId - an identifier for the group where the images will be reordered.
-     * @param imageIndices - a list specifying a new order for the images in
-     *      a layer.
-     * @return an error message if the new image order could not be set;
-     *      otherwise, an empty string.
-     */
-    QString setImageOrder( const QString& groupId, const std::vector<int>& imageIndices );
-
-    /**
      * Show/hide a particular layer in the stack.
      * @param id - the identifier for a layer in the stack.
      * @param visible - true if the layer should be visible; false otherwise.
      */
     QString setImageVisibility( /*int dataIndex*/const QString& id, bool visible );
+
+    /**
+     * Give the layer (a more user-friendly) name.
+     * @param id - an identifier for the layer to rename.
+     * @param name - the new name for the layer.
+     * @return - an error message if the layer could not be renamed; an empty
+     *      string otherwise.
+     */
+    QString setLayerName( const QString& id, const QString& name );
 
     /**
      * Set the indices of the selected data sources.
@@ -549,20 +555,14 @@ private slots:
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
 
-    void _colorMapChanged();
-
     void _contourSetAdded( Layer* cData, const QString& setName );
     void _contourSetRemoved( const QString setName );
-    void _contoursChanged();
-
-
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
     //Refresh the view based on the latest data selection information.
-    //The parameter newClips is set if the clip values have changed and need to be recomputed.
-    void _loadView( bool newClips = false );
-    void _loadViewQueued( bool newClips );
+    void _loadView(  );
+    void _loadViewQueued( );
     void _notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis );
 
 

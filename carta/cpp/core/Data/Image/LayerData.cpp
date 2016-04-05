@@ -689,6 +689,7 @@ void LayerData::_resetState( const Carta::State::StateInterface& restoreState ){
         }
         m_stateColor->_resetState( colorState );
     }
+    _updateColor();
 
     //Color mix
     QString redKey = Carta::State::UtilState::getLookup( MASK, Util::RED );
@@ -747,7 +748,7 @@ bool LayerData::_setLayersGrouped( bool /*grouped*/  ){
 bool LayerData::_setMaskColor( const QString& id, int redAmount,
         int greenAmount, int blueAmount){
     bool changed = false;
-    if ( id == _getId() ){
+    if ( id == _getLayerId() ){
         QString redKey = Carta::State::UtilState::getLookup( MASK, Util::RED );
         int oldRedAmount = m_state.getValue<int>( redKey );
         QString greenKey = Carta::State::UtilState::getLookup( MASK, Util::GREEN );
@@ -766,13 +767,13 @@ bool LayerData::_setMaskColor( const QString& id, int redAmount,
 }
 
 void LayerData::_setMaskColorDefault(){
-    _setMaskColor( _getId(), 255,255,255);
+    _setMaskColor( _getLayerId(), 255,255,255);
 }
 
 
 bool LayerData::_setMaskAlpha( const QString& id, int alphaAmount ){
     bool changed = false;
-    if ( id == _getId() ){
+    if ( id == _getLayerId() ){
         QString lookup = Carta::State::UtilState::getLookup( MASK, Util::ALPHA );
         int oldAlpha = m_state.getValue<int>( lookup );
         if ( oldAlpha != alphaAmount ){
@@ -784,7 +785,7 @@ bool LayerData::_setMaskAlpha( const QString& id, int alphaAmount ){
 }
 
 void LayerData::_setMaskAlphaDefault(){
-    _setMaskAlpha( _getId(), 255);
+    _setMaskAlpha( _getLayerId(), 255);
 }
 
 

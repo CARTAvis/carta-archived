@@ -1,6 +1,10 @@
 /**
  * Controls for setting the transparency of a layer.
  */
+/*global mImport */
+/*******************************************************************************
+ * @ignore( mImport)
+ ******************************************************************************/
 
 qx.Class.define("skel.widgets.Image.Stack.LayerSettingsAlpha", {
     extend : qx.ui.core.Widget,
@@ -10,6 +14,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsAlpha", {
      */
     construct : function( ) {
         this.base(arguments);
+        this.m_connector = mImport("connector");
         this._init( );
     },
     
@@ -48,10 +53,22 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsAlpha", {
                     "Set the transparency.", "Slide to set the transparency.",
                     "maskAlphaTextField", "maskAlphaSlider", false);
             this.m_transparency.setNotify( true );
+            this.m_transparency.addListener( "textSliderChanged", this._sendTransparency, this );
             transContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
             transContainer.add( this.m_transparency );
             transContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
             this._add( transContainer );
+        },
+        
+        /**
+         * Send a command to the server to change the transparency.
+         */
+        _sendTransparency : function( msg ){
+            var transp = msg.getData().value;
+            var params = "id:"+ this.m_layerId+",alpha:"+transp;
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setMaskAlpha";
+            this.m_connector.sendCommand( cmd, params, function(){});
         },
        
  
@@ -70,7 +87,6 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsAlpha", {
          */
         setId : function( id ){
             this.m_id = id;
-            this.m_transparency.setId( id );
         },
         
         /**
@@ -80,7 +96,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsAlpha", {
         setLayerId : function( layerId ){
             this.m_layerId = layerId;
         },
-        
+        m_connector : null,
         m_id : null,
         m_layerId : null,
         m_transparency : null

@@ -52,23 +52,39 @@ public:
 
     virtual ~Layer();
 
-signals:
 
-    void contourSetRemoved( const QString& name );
-    void contourSetAdded(Layer* data, const QString& name );
+
+signals:
+    virtual void contourSetRemoved( const QString& name );
+    virtual void contourSetAdded(Layer* data, const QString& name );
+    virtual void colorStateChanged();
 
 
     //Notification that a new image has been produced.
     void renderingDone();
 
-    void colorStateChanged();
 
 protected:
+
     /**
      * Add a contour set.
      * @param contour - the contour set to add.
      */
     virtual void _addContourSet( std::shared_ptr<DataContours> contour ) = 0;
+
+    /**
+     * Add a layer to this one at the given index.
+     * @param layer - the layer to add.
+     * @param targetIndex - the index for the new layer.
+     */
+    virtual void _addLayer( std::shared_ptr<Layer> layer, int targetIndex = -1 );
+
+    /**
+     * Set the child count to zero without actually deleting them.
+     */
+    //Used when putting layers into groups.
+    virtual void _clearChildren();
+
 
     /**
      * Remove the color map.
@@ -92,6 +108,12 @@ protected:
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const = 0;
 
     virtual QPointF _getCenterPixel() const = 0;
+
+    /**
+     * Return a list of child layers.
+     * @return - a list of child layers.
+     */
+    virtual QList<std::shared_ptr<Layer> > _getChildren();
 
     /**
      * Return stored information about the color map.
@@ -180,11 +202,6 @@ protected:
     //Return grid state.
     virtual Carta::State::StateInterface _getGridState() const = 0;
 
-    /**
-     * Return an identifier for the layer.
-     * @return - a layer identifier.
-     */
-    virtual QString _getId() const;
 
     /**
      * Returns the underlying image.
@@ -219,6 +236,12 @@ protected:
      * @return true if the computed intensity is valid; otherwise false.
      */
     virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const = 0;
+
+    /**
+     * Returns an identifier for the layer.
+     * @return - an identifier for the layer.
+     */
+    virtual QString _getLayerId() const;
 
     /**
      * Returns the layer identifiers.
@@ -314,12 +337,34 @@ protected:
 
     virtual void _gridChanged( const Carta::State::StateInterface& state) = 0;
 
+    /**
+     * Returns whether or not the layer can contain other layers.
+     * @return - true if the layer is composite; false otherwise.
+     */
+    virtual bool _isComposite() const;
 
     /**
-         * Returns true if at least one contour set should be drawn; false otherwise.
-         * @return - true if there is at least one contour set to draw; false otherwise.
-         */
+     * Returns true if at least one contour set should be drawn; false otherwise.
+     * @return - true if there is at least one contour set to draw; false otherwise.
+     */
     virtual bool _isContourDraw() const;
+
+    /**
+     * Returns true if the identifier passed in matches the id of this layer or one
+     * of its children.
+     * @param id - an identifier for a layer.
+     * @return - true if the passed in identifier matches this layer or one of its
+     *      children; false otherwise.
+     */
+    virtual bool _isDescendant( const QString& id ) const;
+
+    /**
+     * Returns true if the layer contains nothing visible to the user; false
+     * otherwise.
+     * @return - true if the layer is empty; false otherwise.
+     */
+    virtual bool _isEmpty() const;
+
 
     /**
      * Returns true if this data is selected; false otherwise.
@@ -398,8 +443,15 @@ protected:
      */
     virtual QString _setFileName( const QString& fileName, bool* success );
 
-    virtual QString _setImageOrder( const QString& groupId, const std::vector<int>& indices );
 
+    /**
+     * Give the layer (a more user-friendly) name.
+     * @param id - an identifier for the layer to rename.
+     * @param name - the new name for the layer.
+     * @return - true if this layers identifier matches that of the one passed
+     *      in and the name was successfully reset; false otherwise.
+     */
+    virtual bool _setLayerName( const QString& id, const QString& name );
     virtual bool _setLayersGrouped( bool grouped ) = 0;
 
     /**
@@ -433,6 +485,7 @@ protected:
      */
     virtual void _setMaskAlphaDefault() = 0;
 
+
     /**
      * Set the center for this image's display.
      * @param imgX the x-coordinate of the center.
@@ -446,7 +499,7 @@ protected:
      * @param selected - true if the data source is selected; false otherwise.
      * @return -true if the selected state changed; false otherwise.
      */
-    virtual bool _setSelected( const QStringList& selectNames );
+    virtual bool _setSelected( QStringList& selectNames );
 
     virtual void _setSupportAlpha( bool supportAlpha );
     virtual void _setSupportColor( bool supportColor );
@@ -520,6 +573,7 @@ private:
     void _initializeSingletons( );
     void _initializeState();
 
+
     /**
      * Returns true if the name identifies this layer; false otherwise.
      * @return true if the name identifies this layer; false otherwise.
@@ -531,13 +585,6 @@ private:
      * @return true if the layer is visible; false otherwise.
      */
     bool _isVisible() const;
-
-    /**
-     * Restore the state of this layer.
-     * @param stateStr - the new layer state.
-     */
-    virtual void _resetState( const QString& stateStr );
-
 
     Layer(const Layer& other);
     Layer& operator=(const Layer& other);

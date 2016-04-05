@@ -135,7 +135,7 @@ LayeredRemoteVGView::p_timerCB()
     }
 
     QImage buff( size, QImage::Format_ARGB32_Premultiplied );
-    buff.fill( QColor( 0, 0, 0, 255 ) );
+    buff.fill( QColor( 0, 0, 0, 0 ) );
 
     // now go through the layers and paint them on top of the last result
     for ( auto & layer : m_rasterLayers ) {
@@ -145,7 +145,6 @@ LayeredRemoteVGView::p_timerCB()
         }
         combiner->combine( buff, layer.qimg );
     }
-
     m_vgView-> setRaster( buff );
 
     // concatenate all VG lists into one

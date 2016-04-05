@@ -29,13 +29,16 @@ void DrawStackSynchronizer::_repaintFrameNow(){
 }
 
 
-
 void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
         std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs, int topIndex ){
+    if ( m_repaintFrameQueued ){
+        return;
+    }
     int dataCount = datas.size();
+    m_layers = datas;
+    m_selectIndex = topIndex;
     m_renderCount = 0;
     m_redrawCount = dataCount;
-    int stackIndex = 0;
     for ( int i = 0; i < dataCount; i++ ){
         if ( datas[i]->_isVisible() ){
             connect( datas[i].get(), SIGNAL(renderingDone()),
@@ -45,8 +48,12 @@ void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
                 topOfStack = true;
             }
             datas[i]->_render( frames, cs, topOfStack );
-            stackIndex++;
         }
+    }
+    if ( dataCount == 0 ){
+        m_view->resetLayers();
+        m_repaintFrameQueued = true;
+        QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     }
 }
 
@@ -65,30 +72,17 @@ void DrawStackSynchronizer::_scheduleFrameRepaint(){
     for ( int i = 0; i < dataCount; i++ ){
         int dIndex = ( m_selectIndex + i + 1) % dataCount;
         m_layers[dIndex]->disconnect( this );
-        if ( m_layers[dIndex]->_isVisible() ){
-
+        bool layerEmpty = m_layers[dIndex]->_isEmpty();
+        bool layerVisible = m_layers[dIndex]->_isVisible();
+        if ( layerVisible && !layerEmpty){
             QImage image = m_layers[dIndex]->_getQImage();
             Carta::Lib::VectorGraphics::VGList graphicsList = m_layers[dIndex]->_getVectorGraphics();
             m_view->setRasterLayer( stackIndex, image );
-
-            /*QString combineMode = m_layers[dIndex]->_getCompositionMode();
-            if ( combineMode == LayerCompositionModes::PLUS ){
-                std::shared_ptr<Carta::Lib::PixelMaskCombiner> pmc =
-                        std::make_shared < Carta::Lib::PixelMaskCombiner > ();
-
-                float alphaVal = m_layers[dIndex]->_getMaskAlpha();
-                pmc-> setAlpha( alphaVal );
-                qint32 maskColor = m_layers[dIndex]->_getMaskColor();
-                pmc-> setMask( maskColor );
-                m_view->setRasterLayerCombiner( stackIndex, pmc );
-            }
-            else if ( combineMode == LayerCompositionModes::ALPHA ){
-                std::shared_ptr<Carta::Lib::AlphaCombiner> alphaCombine =
-                                        std::make_shared<Carta::Lib::AlphaCombiner>();
-                float alphaVal = m_layers[dIndex]->_getMaskAlpha();
-                alphaCombine-> setAlpha( alphaVal );
-                m_view->setRasterLayerCombiner( stackIndex, alphaCombine );
-            }*/
+            std::shared_ptr<Carta::Lib::AlphaCombiner> alphaCombine =
+                    std::make_shared<Carta::Lib::AlphaCombiner>();
+            float alphaVal = m_layers[dIndex]->_getMaskAlpha();
+            alphaCombine-> setAlpha( alphaVal );
+            m_view->setRasterLayerCombiner( stackIndex, alphaCombine );
             m_view->setVGLayer( stackIndex, graphicsList );
             stackIndex++;
         }
@@ -96,15 +90,6 @@ void DrawStackSynchronizer::_scheduleFrameRepaint(){
     m_repaintFrameQueued = true;
     QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
 }
-
-void DrawStackSynchronizer::setLayers( QList< std::shared_ptr<Layer> > layers){
-    m_layers = layers;
-}
-
-void DrawStackSynchronizer::setSelectIndex( int selectIndex ){
-    m_selectIndex = selectIndex;
-}
-
 
 
 DrawStackSynchronizer::~DrawStackSynchronizer(){

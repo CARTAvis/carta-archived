@@ -258,7 +258,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _highChanged : function(){
             var newVal = this.m_highBoundsSpinner.getValue();
             if ( newVal < this.m_lowBoundsSpinner.getValue() ){
-                this.m_highBoundsSpinner.setValue( ev.getOldData());
+                this.m_highBoundsSpinner.setValue( newVal );
             }
             else {
                 this._sendUserUpperBound();

@@ -50,23 +50,17 @@ Stack::Stack(const QString& path, const QString& id) :
     LayerGroup( CLASS_NAME, path, id),
     m_stackDraw(nullptr),
     m_selectImage(nullptr){
-    m_reloadFrameQueued = false;
     _initializeState();
     _initializeSelections();
 }
 
-QString Stack::_addData(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success ) {
-    QString result = LayerGroup::_addData( fileName, success );
-    int lastIndex = m_children.size() - 1;
-    if ( *success ){
-        m_children[lastIndex]->_setColorMapGlobal( colorState );
-        m_children[lastIndex]->_viewResize( m_stackDraw->getClientSize() );
-        m_stackDraw->setLayers( m_children );
-        _resetFrames( lastIndex );
+QString Stack::_addDataImage(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success ) {
+    int stackIndex = -1;
+    QSize viewSize = m_stackDraw->getClientSize();
+    QString result = _addData( fileName, success, &stackIndex, colorState, viewSize);
+    if ( *success && stackIndex >= 0 ){
+        _resetFrames( stackIndex );
         _saveState();
-    }
-    else {
-        _closeData( m_children[lastIndex]->_getId() );
     }
     return result;
 }
@@ -106,7 +100,7 @@ QString Stack::_addDataRegion(const QString& fileName, bool* success ) {
 bool Stack::_addGroup( /*const QString& state*/ ){
     bool groupAdded = LayerGroup::_addGroup();
     if ( groupAdded ){
-        m_stackDraw->setLayers( m_children );
+        _saveState();
     }
     return groupAdded;
 }
@@ -115,10 +109,8 @@ bool Stack::_closeData( const QString& id ){
     bool dataClosed = LayerGroup::_closeData( id );
     if ( dataClosed ){
         int selectedImage = m_selectImage->getIndex();
-
         int visibleImageCount = _getStackSizeVisible();
         m_selectImage->setUpperBound( visibleImageCount );
-
         if ( selectedImage >= visibleImageCount ){
             m_selectImage->setIndex(0);
         }
@@ -140,12 +132,12 @@ bool Stack::_closeData( const QString& id ){
             }
             m_selects[i]->setUpperBound( frameCount );
         }
-        m_stackDraw->setLayers( m_children );
-        _scheduleFrameReload( false );
+        emit viewLoad( );
         _saveState();
     }
     return dataClosed;
 }
+
 
 QString Stack::_closeRegion( const QString& regionId ){
     bool regionRemoved = false;
@@ -182,7 +174,6 @@ void Stack::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisType
             if (m_children[dataIndex] != nullptr) {
                 std::vector<int> frames = _getFrameIndices();
                 m_children[dataIndex]->_displayAxesChanged( displayAxisTypes, frames );
-                _scheduleFrameReload( false );
             }
         }
     }
@@ -194,9 +185,8 @@ void Stack::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisType
                 m_children[i]->_displayAxesChanged( displayAxisTypes, frames );
             }
         }
-        _scheduleFrameReload( true );
     }
-
+    emit viewLoad( );
 }
 
 std::set<AxisInfo::KnownType> Stack::_getAxesHidden() const {
@@ -269,7 +259,7 @@ int Stack::_getIndex( const QString& layerId) const {
     int index = -1;
     int dataCount = m_children.size();
     for ( int i = 0; i < dataCount; i++  ){
-        if ( m_children[i]->_getId() == layerId ){
+        if ( m_children[i]->_isDescendant( layerId ) ){
             index = i;
             break;
         }
@@ -284,7 +274,7 @@ int Stack::_getIndexCurrent( ) const {
         int visibleIndex = -1;
         int dataCount = m_children.size();
         for ( int i = 0; i < dataCount; i++ ){
-            if ( m_children[i]->_isVisible() ){
+            if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
                 visibleIndex++;
                 if ( visibleIndex == index ){
                     dataIndex = i;
@@ -321,12 +311,12 @@ int Stack::_getSelectImageIndex() const {
 void Stack::_initializeSelections(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     m_selectImage = objMan->createObject<Selection>();
-    connect( m_selectImage, SIGNAL(indexChanged()), this, SLOT(_scheduleFrameReload()));
+    connect( m_selectImage, SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
     int axisCount = static_cast<int>(AxisInfo::KnownType::OTHER);
     m_selects.resize( axisCount );
     for ( int i = 0; i < axisCount; i++ ){
         m_selects[i] = objMan->createObject<Selection>();
-        connect( m_selects[i], SIGNAL(indexChanged()), this, SLOT(_scheduleFrameReload()));
+        connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
     }
 }
 
@@ -341,7 +331,7 @@ QString Stack::_getCurrentId() const {
     QString id = "";
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        id = m_children[dataIndex]->_getId();
+        id = m_children[dataIndex]->_getLayerId();
     }
     return id;
 }
@@ -402,7 +392,6 @@ void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyA
     if ( dataIndex >= 0 ){
         if ( !applyAll ){
             m_children[dataIndex]->_gridChanged( state );
-            _scheduleFrameReload( false );
         }
         else {
             int dataCount = m_children.size();
@@ -411,30 +400,82 @@ void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyA
                     m_children[i]->_gridChanged( state );
                 }
             }
-            _scheduleFrameReload( true );
         }
+        emit viewLoad( );
     }
 }
 
-void Stack::_load( bool renderAll, bool recomputeClipsOnNewFrame,
+void Stack::_load( bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile ){
-    m_reloadFrameQueued = false;
     std::vector<int> frames = _getFrameIndices();
-    if ( !renderAll) {
-        int dataIndex = _getIndexCurrent();
-        if ( dataIndex >= 0 && m_children[dataIndex] != nullptr) {
-            m_children[dataIndex]->_load(frames, recomputeClipsOnNewFrame,
-                    minClipPercentile, maxClipPercentile);
-            _renderSingle( dataIndex );
+    int dataCount = m_children.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        m_children[i]->_load( frames, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
+    }
+    _renderAll();
+}
+
+QString Stack::_moveSelectedLayers( bool moveDown ){
+    QString result;
+    QList<int> selectIndices;
+    int dataCount = m_children.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_children[i]->_isSelected() ){
+            selectIndices.append(i);
         }
+    }
+    int selectedCount = selectIndices.size();
+    bool stackChanged = false;
+    if ( selectedCount == 0 ){
+        result = "Please make sure at least one, non-internal layer is selected.";
     }
     else {
-        int dataCount = m_children.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            m_children[i]->_load( frames, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
+        if ( moveDown ){
+            for ( int i = selectedCount - 1; i >= 0; i-- ){
+                int index = selectIndices[i];
+                if ( index == dataCount - 1 ){
+                    //If it is the last index, we can't move it down, so just skip it
+                    //unless it is the only one selected, in which case we should generate
+                    //an error message.
+                    if ( selectedCount == 1 ){
+                        result = "The last image in the stack can not be moved down any further.";
+                    }
+                }
+                else {
+                    int newIndex = index + 1;
+                    std::shared_ptr<Layer> moveLayer = m_children[index];
+                    m_children.removeAt( index );
+                    m_children.insert( newIndex, moveLayer );
+                    stackChanged = true;
+                }
+            }
         }
-        _renderAll();
+        else {
+            for ( int i = 0; i < selectedCount; i++ ){
+                int index = selectIndices[i];
+                if ( index == 0 ){
+                    //If it is the first index, we can't move it up, so just skip it
+                    //unless it is the only one selected, in which case we should generate
+                    //an error message.
+                    if ( selectedCount == 1 ){
+                        result = "The first image in the stack can not be moved up any further.";
+                    }
+                }
+                else {
+                    int newIndex = index - 1;
+                    std::shared_ptr<Layer> moveLayer = m_children[index];
+                    m_children.removeAt( index );
+                    m_children.insert( newIndex, moveLayer );
+                    stackChanged = true;
+                }
+            }
+        }
+        if ( stackChanged ){
+            emit viewLoad( );
+            _saveState();
+        }
     }
+    return result;
 }
 
 void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex ){
@@ -448,66 +489,16 @@ void Stack::_renderAll(){
     QList<std::shared_ptr<Layer> > datas;
     int dataCount = m_children.size();
     for ( int i = 0; i < dataCount; i++ ){
-        int stackIndex = (gridIndex + i) % dataCount;
-        datas.append( m_children[stackIndex] );
+        bool visible = m_children[i]->_isVisible();
+        bool empty = m_children[i]->_isEmpty();
+        if ( visible && !empty ){
+            datas.append( m_children[i] );
+        }
     }
     _render( datas, gridIndex );
 }
 
-void Stack::_renderSingle( int dIndex ){
-    if ( dIndex >= 0 && dIndex < m_children.size() ){
-        //Render a single data set (the one passed in).
-        QList<std::shared_ptr<Layer> > datas;
-        datas.append( m_children[dIndex] );
-        //No grid unless the data set being passed in is the top one.
-        int topIndex = _getIndexCurrent();
-        int gridIndex = -1;
-        if ( dIndex == topIndex ){
-            gridIndex = 0;
-        }
-        _render( datas, gridIndex );
-    }
-}
 
-QString Stack::_reorderImages( const std::vector<int> & indices ){
-    QString result;
-    bool imageReordered = false;
-    int dataCount = m_children.size();
-    int indexCount = indices.size();
-    QList<std::shared_ptr<Layer> > reorderedList;
-    int selectedIndex = m_selectImage->getIndex();
-    int newSelectedIndex = selectedIndex;
-    if ( indexCount != dataCount ){
-        result = "Reorder image size must match the stack count: "+QString::number(dataCount);
-    }
-    else {
-        for ( int i = 0; i < indexCount; i++ ){
-            int targetIndex = indices[i];
-            if ( targetIndex < 0  || targetIndex >= dataCount ){
-                result = "Reorder failed: unknown image index: "+targetIndex;
-                break;
-            }
-            //Insert the image at the target index at position i.
-            else {
-                reorderedList.append( m_children[targetIndex] );
-                if ( targetIndex != i ){
-                    if ( selectedIndex == targetIndex ){
-                        newSelectedIndex = i;
-                    }
-                    imageReordered = true;
-                }
-            }
-        }
-    }
-    if ( imageReordered ){
-        m_children = reorderedList;
-        if ( selectedIndex != newSelectedIndex ){
-            this->_setFrameImage( newSelectedIndex );
-        }
-        _scheduleFrameReload( true );
-    }
-    return result;
-}
 
 QString Stack::_resetFrames( int val ){
     //Set the image frame.
@@ -517,7 +508,7 @@ QString Stack::_resetFrames( int val ){
         int visibleCount = _getStackSizeVisible();
         m_selectImage->setUpperBound( visibleCount );
         m_selectImage->setIndex(val);
-        layerId = m_children[val]->_getId();
+        layerId = m_children[val]->_getLayerId();
         int selectCount = m_selects.size();
         for ( int i = 0; i < selectCount; i++ ){
             AxisInfo::KnownType type = static_cast<AxisInfo::KnownType>(i);
@@ -534,8 +525,8 @@ QString Stack::_resetFrames( int val ){
 }
 
 
-void Stack::_resetState( const Carta::State::StateInterface& restoreState ){
-    LayerGroup::_resetState( restoreState );
+void Stack::_resetStack( const Carta::State::StateInterface& restoreState ){
+    _resetState( restoreState );
     QString dataStateStr = restoreState.getValue<QString>( Selection::IMAGE );
     m_selectImage ->resetState( dataStateStr );
     int selectCount = m_selects.size();
@@ -556,12 +547,8 @@ void Stack::_resetState( const Carta::State::StateInterface& restoreState ){
         m_regions.append( region );
     }
     _saveStateRegions();
-
     _saveState();
-
-    m_stackDraw->setLayers( m_children );
-    m_stackDraw->setSelectIndex( m_selectImage->getIndex());
-    _scheduleFrameReload( true );
+    emit viewLoad();
 }
 
 void Stack::_resetPan( bool panZoomAll ){
@@ -571,16 +558,15 @@ void Stack::_resetPan( bool panZoomAll ){
             for ( int i = 0; i < dataCount; i++ ){
                 m_children[i]->_resetPan();
             }
-            _scheduleFrameReload( true );
         }
     }
     else {
         int dataIndex = _getIndexCurrent();
         if ( dataIndex >= 0 ){
             m_children[dataIndex]->_resetPan();
-            _scheduleFrameReload( false );
         }
     }
+    emit viewLoad( );
 }
 
 
@@ -591,16 +577,15 @@ void Stack::_resetZoom( bool panZoomAll ){
             for ( int i = 0; i < dataCount; i++ ){
                 m_children[i]->_resetZoom();
             }
-            _scheduleFrameReload( true );
         }
     }
     else {
         int dataIndex = _getIndexCurrent();
         if ( dataIndex >= 0 ){
             m_children[dataIndex]->_resetZoom();
-            _scheduleFrameReload( false );
         }
     }
+    emit viewLoad( );
 }
 
 
@@ -647,10 +632,9 @@ void Stack::_saveImageResultCB( bool result ){
     //If we saved with a full image, we may have changed the view, so do a
     //repaint to reset it.
     PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
-
     bool fullImage = prefSave->isFullImage();
     if ( fullImage ){
-        _scheduleFrameReload( true );
+        emit viewLoad( );
     }
 }
 
@@ -678,21 +662,6 @@ void Stack::_saveStateRegions(){
     m_state.flushState();
 }
 
-void Stack::_scheduleFrameReload( bool renderAll ){
-    if ( m_children.size() > 0  ){
-        // if reload is already pending, do nothing
-        if ( m_reloadFrameQueued ) {
-            return;
-        }
-        m_reloadFrameQueued = true;
-
-        int selectIndex=m_selectImage->getIndex();
-        m_stackDraw->setSelectIndex( selectIndex);
-        emit viewLoad( renderAll );
-    }
-
-}
-
 
 bool Stack::_setCompositionMode( const QString& id, const QString& compositionMode,
         QString& errorMsg ){
@@ -703,7 +672,7 @@ bool Stack::_setCompositionMode( const QString& id, const QString& compositionMo
         stateChanged = LayerGroup::_setCompositionMode( id, actualCompMode, errorMsg );
         if ( stateChanged ){
             _saveState();
-            _scheduleFrameReload( false );
+            emit viewLoad();
         }
     }
     else {
@@ -724,7 +693,7 @@ void Stack::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
             int dataIndex = _getIndexCurrent();
             if ( 0 <= dataIndex ){
                 emit frameChanged( axisType );
-                _scheduleFrameReload( true );
+                emit viewLoad();
             }
         }
     }
@@ -740,15 +709,25 @@ QString Stack::_setFrameImage( int val ){
     return layerId;
 }
 
+bool Stack::_setLayerName( const QString& id, const QString& name ){
+    bool nameSet = LayerGroup::_setLayerName( id, name );
+    if ( nameSet ){
+        _saveState();
+    }
+    return nameSet;
+}
 
 bool Stack::_setLayersGrouped( bool grouped  ){
     bool operationPerformed = LayerGroup::_setLayersGrouped( grouped );
     if ( operationPerformed ){
-        _scheduleFrameReload( false );
+        _viewResize();
+        emit viewLoad();
         _saveState();
     }
     return operationPerformed;
 }
+
+
 
 
 void Stack::_setMaskColor( const QString& id, int redAmount,
@@ -766,7 +745,7 @@ void Stack::_setMaskColor( const QString& id, int redAmount,
         bool changed = LayerGroup::_setMaskColor( id, redAmount, greenAmount, blueAmount);
         if ( changed ){
             _saveState();
-            _scheduleFrameReload( false );
+            emit viewLoad();
         }
     }
 }
@@ -779,7 +758,7 @@ void Stack::_setMaskAlpha( const QString& id, int alphaAmount, QString& result )
         bool changed = LayerGroup::_setMaskAlpha( id, alphaAmount );
         if ( changed ){
             _saveState();
-            _scheduleFrameReload( false );
+            emit viewLoad();
         }
     }
 }
@@ -790,18 +769,17 @@ void Stack::_setPan( double imgX, double imgY, bool panZoomAll ){
        for ( int i = 0; i < childCount; i++ ){
            m_children[i]->_setPan( imgX, imgY );
        }
-       _scheduleFrameReload( true );
    }
    else {
        int dataIndex = _getIndexCurrent();
        if ( dataIndex >= 0 ){
            m_children[dataIndex]->_setPan( imgX, imgY );
        }
-       _scheduleFrameReload( false );
    }
+   emit viewLoad();
 }
 
-bool Stack::_setSelected( const QStringList& names){
+bool Stack::_setSelected( QStringList& names){
     bool stateChanged = LayerGroup::_setSelected( names );
     if ( stateChanged ){
         _saveState( true );
@@ -819,7 +797,7 @@ bool Stack::_setVisible( const QString& id, bool visible ){
     if ( layerFound ){
         int visibleCount = _getStackSizeVisible();
         m_selectImage->setUpperBound( visibleCount );
-        _scheduleFrameReload( false );
+        emit viewLoad();
         _saveState();
     }
     return layerFound;
@@ -831,15 +809,14 @@ void Stack::_setZoomLevel( double zoomFactor, bool zoomPanAll ){
         for ( int i = 0; i < dataCount; i++ ){
             m_children[i]->_setZoom( zoomFactor );
         }
-        _scheduleFrameReload( true );
     }
     else {
         int dataIndex = _getIndexCurrent();
         if ( dataIndex >= 0 ){
             m_children[dataIndex]->_setZoom( zoomFactor );
-            _scheduleFrameReload( false );
         }
     }
+    emit viewLoad();
 }
 
 void Stack::_updatePan( double centerX , double centerY, bool zoomPanAll ){
@@ -847,16 +824,14 @@ void Stack::_updatePan( double centerX , double centerY, bool zoomPanAll ){
         for ( std::shared_ptr<Layer> data : m_children ){
             _updatePan( centerX, centerY, data );
         }
-        _scheduleFrameReload( true );
     }
     else {
         int dataIndex = _getIndexCurrent();
         if ( dataIndex >= 0 ){
             _updatePan( centerX, centerY, m_children[dataIndex] );
-            _scheduleFrameReload( false );
         }
     }
-
+    emit viewLoad();
 }
 
 void Stack::_updatePan( double centerX , double centerY,
@@ -875,15 +850,14 @@ void Stack::_updateZoom( double centerX, double centerY, double zoomFactor, bool
         for (std::shared_ptr<Layer> data : m_children ){
             _updateZoom( centerX, centerY, zoomFactor, data );
         }
-        _scheduleFrameReload( true );
     }
     else {
         int dataIndex = _getIndexCurrent();
         if ( dataIndex >= 0 ){
             _updateZoom( centerX, centerY, zoomFactor, m_children[dataIndex] );
-            _scheduleFrameReload( false );
         }
     }
+    emit viewLoad();
 }
 
 void Stack::_updateZoom( double centerX, double centerY, double zoomFactor,
@@ -922,7 +896,7 @@ void Stack::_viewResize(){
     for ( int i = 0; i < m_children.size(); i++ ){
         m_children[i]->_viewResize( clientSize );
     }
-    _scheduleFrameReload( true );
+    viewLoad();
 }
 
 

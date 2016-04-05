@@ -28,7 +28,9 @@ public:
 signals:
     void frameChanged(  Carta::Lib::AxisInfo::KnownType axis);
 
-    void viewLoad( bool newClips );
+    void removeLayer( Layer* group);
+
+    void viewLoad( );
 
 
 protected:
@@ -39,9 +41,35 @@ protected:
      */
     virtual void _addContourSet( std::shared_ptr<DataContours> contour );
 
-    virtual QString _addData(const QString& fileName, bool* success);
+    /**
+     * Add a data layer to the group.
+     * @param fileName - path to the image file.
+     * @param success - set to true if the image file is successfully loaded.
+     * @param stackIndex - set to the index of the image in this group if it is loaded
+     *      in this group.
+     * @param colorState - information about the color display for the image.
+     * @param viewSize - the current client view size.
+     */
+    QString _addData(const QString& fileName, bool* success, int* stackIndex,
+                      std::shared_ptr<ColorState> colorState=std::shared_ptr<ColorState>(nullptr),
+                      QSize viewSize=QSize()  );
+
+
 
     virtual bool _addGroup( /*const QString& state*/ );
+
+    /**
+     * Add a layer to this one at the given index.
+     * @param layer - the layer to add.
+     * @param targetIndex - the index for the new layer.
+     */
+    virtual void _addLayer( std::shared_ptr<Layer> layer, int targetIndex = -1 ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the child count to zero without actually deleting them.
+     */
+    //Used when putting layers into groups.
+    virtual void _clearChildren() Q_DECL_OVERRIDE;
 
     /**
      * Remove the color map.
@@ -65,6 +93,12 @@ protected:
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const Q_DECL_OVERRIDE;
 
     virtual QPointF _getCenterPixel() const Q_DECL_OVERRIDE;
+
+    /**
+     * Return a list of child layers.
+     * @return - a list of child layers.
+     */
+    virtual QList<std::shared_ptr<Layer> > _getChildren() Q_DECL_OVERRIDE;
 
     /**
      * Return the mode used to composed the layer.
@@ -255,6 +289,28 @@ protected:
     virtual void _gridChanged( const Carta::State::StateInterface& state ) Q_DECL_OVERRIDE;
 
     /**
+     * Returns true since other layers can be added to a group.
+     * @return - true.
+     */
+    virtual bool _isComposite() const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns true if the identifier passed in matches the id of this layer or one
+     * of its children.
+     * @param id - an identifier for a layer.
+     * @return - true if the passed in identifier matches this layer or one of its
+     *      children; false otherwise.
+     */
+    virtual bool _isDescendant( const QString& id ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns true if the layer contains nothing visible to the user; false
+     * otherwise.
+     * @return - true if the layer is empty; false otherwise.
+     */
+    virtual bool _isEmpty() const Q_DECL_OVERRIDE;
+
+    /**
      * Return a QImage representation of this data.
      * @param frames - a list of frames to load, one for each of the known axis types.
      * @param autoClip true if clips should be automatically generated; false otherwise.
@@ -309,18 +365,25 @@ protected:
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg ) Q_DECL_OVERRIDE;
 
+    /**
+     * Give the layer (a more user-friendly) name.
+     * @param id - an identifier for the layer to rename.
+     * @param name - the new name for the layer.
+     * @return - true if the name was successfully reset; false otherwise.
+     */
+    virtual bool _setLayerName( const QString& id, const QString& name ) Q_DECL_OVERRIDE;
 
     virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
 
     virtual bool _setMaskColor( const QString& id, int redAmount,
-                int greenAmount, int blueAmount );
+                int greenAmount, int blueAmount ) Q_DECL_OVERRIDE;
 
     /**
      * Set this data source selected.
      * @param selected - true if the data source is selected; false otherwise.
      * @return -true if the selected state changed; false otherwise.
      */
-    virtual bool _setSelected( const QStringList& names ) Q_DECL_OVERRIDE;
+    virtual bool _setSelected( QStringList& names ) Q_DECL_OVERRIDE;
 
 
     /**
@@ -398,27 +461,29 @@ protected slots:
 
 private slots:
     void _renderingDone( QImage image );
+    void _removeLayer( Layer* group );
 
 private:
 
-    void _addLayer( std::shared_ptr<Layer> layer );
+    void _assignColor( int index );
+    void _clearData();
+
+
 
     //Get a default name based on the id of the group.
     QString _getDefaultName( const QString& id ) const;
 
-    int _getIndex( const QString& fileName) const;
+    std::shared_ptr<Layer> _getSelectedGroup();
 
     void _initializeState();
 
     void _removeData( int index );
 
     //Set the color support of the child to conform to that of the group.
-    void _setColorSupport( std::shared_ptr<Layer> layer );
+    void _setColorSupport( Layer* layer );
 
     class Factory;
     static bool m_registered;
-
-    static const QString GROUP;
 
     std::unique_ptr<DrawGroupSynchronizer> m_drawSync;
     LayerGroup(const LayerGroup& other);

@@ -19,7 +19,7 @@ namespace Data {
 
 const QString LayerGroup::CLASS_NAME = "LayerGroup";
 const QString LayerGroup::COMPOSITION_MODE="mode";
-const QString LayerGroup::GROUP = "Group";
+
 const QString LayerGroup::LAYERS = "layers";
 
 
@@ -65,51 +65,129 @@ void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
     }
 }
 
-QString LayerGroup::_addData(const QString& fileName, bool* success ) {
-    //Find the location of the data, if it already exists.
-    int targetIndex = _getIndex( fileName );
+QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex,
+        std::shared_ptr<ColorState> colorState,
+        QSize viewSize ) {
     QString result;
-    //Add the data if it is not already there.
-    if (targetIndex == -1) {
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        LayerData* targetSource = objMan->createObject<LayerData>();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    LayerData* targetSource = objMan->createObject<LayerData>();
+    connect( targetSource, SIGNAL(contourSetAdded(Layer*,const QString&)),
+            this, SIGNAL(contourSetAdded(Layer*, const QString&)));
+    connect( targetSource, SIGNAL(contourSetRemoved(const QString&)),
+            this, SIGNAL(contourSetRemoved(const QString&)));
+    connect( targetSource, SIGNAL(colorStateChanged()), this, SIGNAL(colorStateChanged() ));
+    result = targetSource->_setFileName(fileName, success );
+    //If we are making a new layer, see if there is a selected group.  If so,
+    //add to the group.  If not, add to this group.
+    if ( *success ){
+        if ( colorState ){
+            targetSource->_setColorMapGlobal( colorState );
+        }
+        targetSource->_viewResize( viewSize );
+        _setColorSupport( targetSource );
+        std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
+        if (selectedGroup && colorState ){
+            selectedGroup->_addLayer( std::shared_ptr<Layer>(targetSource) );
+        }
+        else {
+            m_children.append( std::shared_ptr<Layer>(targetSource) );
+            *stackIndex = m_children.size() - 1;
+        }
 
-        targetIndex = m_children.size();
-        connect( targetSource, SIGNAL(contourSetAdded(Layer*,const QString&)),
-                this, SIGNAL(contourSetAdded(Layer*, const QString&)));
-        connect( targetSource, SIGNAL(contourSetRemoved(const QString&)),
-                        this, SIGNAL(contourSetRemoved(const QString&)));
-        connect( targetSource, SIGNAL(colorStateChanged()), this, SIGNAL(colorStateChanged() ));
-        m_children.append(std::shared_ptr<Layer>(targetSource));
-        _setColorSupport( m_children[targetIndex] );
     }
-
-    result = m_children[targetIndex]->_setFileName(fileName, success );
+    else {
+        delete targetSource;
+    }
     return result;
 }
-
-
 
 
 bool LayerGroup::_addGroup(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     LayerGroup* targetSource = objMan->createObject<LayerGroup>();
+    connect( targetSource, SIGNAL(removeLayer(Layer*)),
+            this, SLOT( _removeLayer( Layer*)));
     m_children.append( std::shared_ptr<Layer>(targetSource));
     return true;
 }
 
 
-void LayerGroup::_addLayer( std::shared_ptr<Layer> layer ){
-    m_children.append( layer );
-    int targetIndex = m_children.size() - 1;
-    _setColorSupport( m_children[ targetIndex ]);
+void LayerGroup::_addLayer( std::shared_ptr<Layer> layer, int targetIndex ){
+    int tIndex = targetIndex;
+    int childCount = m_children.size();
+    if ( tIndex == -1 || tIndex == childCount){
+        m_children.append( layer );
+        tIndex = m_children.size() - 1;
+    }
+    else if (tIndex >= 0 && tIndex < childCount){
+        m_children.insert( tIndex, layer );
+    }
+    if ( tIndex >= 0 && tIndex < m_children.size() ){
+        _setColorSupport( m_children[ tIndex ].get());
+        _assignColor( tIndex );
+    }
 }
+
+void LayerGroup::_assignColor( int index ){
+
+    QString compMode = _getCompositionMode();
+    bool colorSupport = m_compositionModes->isColorSupport( compMode );
+    if ( colorSupport ){
+        int childrenCount = m_children.size();
+        if ( index >= 0 && index < childrenCount ){
+            bool redUsed = false;
+            bool blueUsed = false;
+            bool greenUsed = false;
+            for ( int i = 0; i < index; i++ ){
+                QColor color = m_children[i]->_getMaskColor();
+                int redAmount = color.red();
+                int greenAmount = color.green();
+                int blueAmount = color.blue();
+                if ( redAmount == 255 && greenAmount == 0 && blueAmount == 0){
+                    redUsed = true;
+                }
+                else if ( redAmount == 0 && greenAmount == 255 && blueAmount == 0 ){
+                    greenUsed = true;
+                }
+                else if ( redAmount == 0 && greenAmount == 0 && blueAmount == 255 ){
+                    blueUsed = true;
+                }
+
+            }
+            QString id = m_children[index]->_getLayerId();
+            if ( !redUsed ){
+                m_children[index]->_setMaskColor( id, 255, 0, 0 );
+            }
+            else if ( !greenUsed ){
+                m_children[index]->_setMaskColor( id, 0, 255, 0 );
+            }
+            else if ( !blueUsed ){
+                m_children[index]->_setMaskColor( id, 0, 0, 255 );
+            }
+        }
+    }
+    else {
+        m_children[index]->_setMaskColorDefault();
+    }
+}
+
 
 void LayerGroup::_clearColorMap(){
     Layer::_clearColorMap();
     int childCount = m_children.size();
     for ( int i = 0; i < childCount; i++ ){
         m_children[i]->_clearColorMap();
+    }
+}
+
+void LayerGroup::_clearChildren(){
+    m_children.clear();
+}
+
+void LayerGroup::_clearData(){
+    int childCount = m_children.size();
+    for ( int i = childCount - 1; i>= 0; i-- ){
+        _removeData( i );
     }
 }
 
@@ -137,12 +215,7 @@ bool LayerGroup::_closeData( const QString& id ){
             break;
         }
     }
-    /***
-     * TODO:  Need to change these to Ids so that we don't have to deal with partial
-     * matches. If we get down to one item in the children, or 0 items, to we need to
-     * collapse ourselves from a composite to a singleton?
-     */
-    qDebug() << "Todo";
+
     if ( targetIndex >= 0 ){
         _removeData( targetIndex );
         dataClosed = true;
@@ -227,7 +300,9 @@ QPointF LayerGroup::_getCenterPixel() const {
     return center;
 }
 
-
+QList<std::shared_ptr<Layer> > LayerGroup::_getChildren(){
+    return m_children;
+}
 
 QString LayerGroup::_getCompositionMode() const {
     return m_state.getValue<QString>( COMPOSITION_MODE );
@@ -376,21 +451,21 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_g
     return images;
 }
 
-int LayerGroup::_getIndex( const QString& fileName) const{
-    int dataCount = m_children.size();
-    int targetIndex = -1;
-    for ( int i = 0; i < dataCount; i++ ){
-        QString dataName = m_children[i]->_getId();
-        if ( fileName == dataName ){
-            targetIndex = i;
-            break;
-        }
-    }
-    return targetIndex;
-}
 
 int LayerGroup::_getIndexCurrent( ) const {
     int dataIndex = -1;
+    //The current index should be the first selected one.
+    int childCount = m_children.size();
+    for ( int i = 0; i < childCount; i++ ){
+        if ( m_children[i]->_isSelected()){
+            dataIndex = i;
+            break;
+        }
+    }
+    //Just choose the top one if nothing is selected
+    if ( dataIndex == -1 && childCount > 0 ){
+        dataIndex = 0;
+    }
     return dataIndex;
 }
 
@@ -472,6 +547,31 @@ QPointF LayerGroup::_getScreenPt( QPointF imagePt, bool* valid ) const {
     return screenPt;
 }
 
+std::shared_ptr<Layer> LayerGroup::_getSelectedGroup() {
+    std::shared_ptr<Layer> group( nullptr );
+    int childCount = m_children.size();
+    for ( int i = 0; i < childCount; i++ ){
+        if ( m_children[i]->_isComposite() ){
+            //See if the child is selected.  If so, it is the one
+            //we are looking for.
+            if ( m_children[i]->_isSelected() ){
+                group = m_children[i];
+                break;
+            }
+            else {
+                //See if the child has descendants that are groups and
+                //selected.
+                LayerGroup* childGroup = (LayerGroup*)(m_children[i].get());
+                group = childGroup->_getSelectedGroup();
+                if ( group ){
+                    break;
+                }
+            }
+        }
+    }
+    return group;
+}
+
 int LayerGroup::_getStackSize() const {
     return m_children.size();
 }
@@ -480,7 +580,7 @@ int LayerGroup::_getStackSizeVisible() const {
     int visibleCount = 0;
     int imageCount = m_children.size();
     for ( int i = 0; i < imageCount; i++ ){
-        if ( m_children[i]->_isVisible() ){
+        if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
             visibleCount++;
         }
     }
@@ -528,10 +628,41 @@ void LayerGroup::_gridChanged( const Carta::State::StateInterface& state ){
 
 
 void LayerGroup::_initializeState(){
+
     QString defaultCompMode = m_compositionModes->getDefault();
     m_state.insertValue<QString>( COMPOSITION_MODE, defaultCompMode );
     m_state.insertArray( LayerGroup::LAYERS, 0 );
-    m_state.setValue<QString>( LAYER_NAME, "Group"+getId());
+    m_state.setValue<QString>( LAYER_NAME, Layer::GROUP+_getLayerId());
+}
+
+bool LayerGroup::_isComposite() const {
+    return true;
+}
+
+bool LayerGroup::_isDescendant( const QString& id ) const {
+    bool descendant = _isMatch( id );
+    if ( !descendant ){
+        int childCount = m_children.size();
+        for ( int i = 0; i < childCount; i++ ){
+            if ( m_children[i]->_isDescendant( id )){
+                descendant = true;
+                break;
+            }
+        }
+    }
+    return descendant;
+}
+
+bool LayerGroup::_isEmpty() const {
+    bool empty = true;
+    int childCount = m_children.size();
+    for ( int i = 0; i < childCount; i++ ){
+        if ( !m_children[i]->_isEmpty() ){
+            empty = false;
+            break;
+        }
+    }
+    return empty;
 }
 
 
@@ -544,11 +675,14 @@ void LayerGroup::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
 }
 
 void LayerGroup::_removeData( int index ){
-    disconnect( m_children[index].get());
-    QString id = m_children[index]->getId();
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    objMan->removeObject( id );
-    m_children.removeAt( index );
+    int childCount = m_children.size();
+    if ( 0 <= index && index < childCount ){
+        disconnect( m_children[index].get());
+        QString id = m_children[index]->getId();
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        objMan->removeObject( id );
+        m_children.removeAt( index );
+    }
 }
 
 
@@ -558,12 +692,43 @@ void LayerGroup::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
     }
 }
 
+void LayerGroup::_removeLayer( Layer* group ){
+    if ( group ){
+        QString id = group->getId();
+        //Find the index of the group to remove.
+        int childCount = m_children.size();
+
+        int targetIndex = -1;
+        for ( int i = 0; i < childCount; i++ ){
+            if ( m_children[i]->getId() == id ){
+                targetIndex = i;
+                break;
+
+            }
+        }
+        if ( targetIndex >= 0 ){
+            QList<std::shared_ptr<Layer> > children = group->_getChildren();
+            group->_clearChildren();
+            _removeData( targetIndex );
+            int addCount = children.size();
+            for ( int i = 0; i < addCount; i++ ){
+                int addIndex = targetIndex + i;
+                _addLayer( children[i], addIndex );
+            }
+        }
+    }
+}
+
 
 void LayerGroup::_render( const std::vector<int>& frames,
         const Carta::Lib::KnownSkyCS& cs, bool topOfStack ){
     m_drawSync->setLayers( m_children );
     m_drawSync->setCombineMode( _getCompositionMode() );
-    m_drawSync->render( frames, cs, topOfStack );
+    int topIndex = -1;
+    if ( topOfStack ){
+        topIndex = _getIndexCurrent();
+    }
+    m_drawSync->render( frames, cs, topIndex );
 }
 
 
@@ -579,42 +744,30 @@ void LayerGroup::_resetState( const Carta::State::StateInterface& restoreState )
 
     //State of children
     int dataCount = restoreState.getArraySize(LAYERS);
-    QStringList loadedFiles;
+    _clearData();
     for ( int i = 0; i < dataCount; i++ ){
         QString dataLookup = Carta::State::UtilState::getLookup( LAYERS, i );
         QString typeLookup = Carta::State::UtilState::getLookup( dataLookup, Util::TYPE );
         QString layerType = restoreState.getValue<QString>( typeLookup );
-        QString idLookup = Carta::State::UtilState::getLookup( dataLookup, Util::ID );
-        QString id = restoreState.getValue<QString>( idLookup );
-        int dataIndex = _getIndex( id );
-        if ( dataIndex == -1 ){
-            if ( layerType == LayerGroup::CLASS_NAME ){
-                _addGroup();
-            }
-            else {
-                QString fileLookup = Carta::State::UtilState::getLookup( dataLookup, Util::NAME);
-                QString fileName = restoreState.getValue<QString>( fileLookup );
-                if ( !fileName.isEmpty()){
-                    bool success = false;
-                    _addData( fileName, &success );
-                }
-            }
+        int dataIndex = -1;
+        if ( layerType == LayerGroup::CLASS_NAME ){
+            _addGroup();
             dataIndex = m_children.size()-1;
-            m_children[dataIndex]->_resetState( restoreState.toString( dataLookup));
-
         }
-        loadedFiles.append( id );
-        if ( dataIndex >= 0 ){
-            m_children[dataIndex]->_resetState(restoreState.toString(dataLookup));
+        else {
+            QString fileLookup = Carta::State::UtilState::getLookup( dataLookup, Util::NAME);
+            QString fileName = restoreState.getValue<QString>( fileLookup );
+            if ( !fileName.isEmpty()){
+                bool success = false;
+                _addData( fileName, &success, &dataIndex );
+            }
         }
-    }
-
-    //Remove any data that should not be there
-    int stackCount = m_children.size();
-    for ( int i = stackCount-1; i>= 0; i--){
-        QString id = m_children[i]->_getId();
-        if ( !loadedFiles.contains( id )){
-            _removeData( i );
+        int childCount = m_children.size();
+        if ( dataIndex >= 0 && dataIndex < childCount){
+            QString dataStateStr = restoreState.toString( dataLookup );
+            Carta::State::StateInterface childState( "" );
+            childState.setState( dataStateStr );
+            m_children[dataIndex]->_resetState( childState );
         }
     }
 }
@@ -642,7 +795,7 @@ void LayerGroup::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
     }
 }
 
-void LayerGroup::_setColorSupport( std::shared_ptr<Layer> layer ){
+void LayerGroup::_setColorSupport( Layer* layer ){
     QString compMode = _getCompositionMode();
     bool colorSupport = m_compositionModes->isColorSupport( compMode );
     bool alphaSupport = m_compositionModes->isAlphaSupport( compMode );
@@ -653,7 +806,7 @@ void LayerGroup::_setColorSupport( std::shared_ptr<Layer> layer ){
 bool LayerGroup::_setCompositionMode( const QString& id, const QString& compositionMode,
         QString& errorMsg ){
     bool stateChanged = false;
-    if ( id == _getId() ){
+    if ( id == _getLayerId() ){
         QString oldMode = m_state.getValue<QString>( COMPOSITION_MODE );
         if ( oldMode != compositionMode ){
             m_state.setValue<QString>( COMPOSITION_MODE, compositionMode );
@@ -684,14 +837,16 @@ bool LayerGroup::_setCompositionMode( const QString& id, const QString& composit
 
 bool LayerGroup::_setLayersGrouped( bool grouped  ){
     bool operationPerformed = false;
-
-    //First see if any of the children can do the operation.
     int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        bool childPerformed = m_children[i]->_setLayersGrouped( grouped );
-        if ( childPerformed ){
-            operationPerformed = true;
-            break;
+    if ( !grouped ){
+        //First see if any of the children can do the operation.
+        //For now, it only makes sense to allow groups one deep.
+        for ( int i = 0; i < dataCount; i++ ){
+            bool childPerformed = m_children[i]->_setLayersGrouped( grouped );
+            if ( childPerformed ){
+                operationPerformed = true;
+                break;
+            }
         }
     }
 
@@ -700,7 +855,7 @@ bool LayerGroup::_setLayersGrouped( bool grouped  ){
         //Go through the layers and get the selected ones.
         QList<int> selectIndices;
         for ( int i = 0; i < dataCount; i++ ){
-            if ( m_children[i]->_isSelected() ){
+            if ( m_children[i]->_isSelected() && !m_children[i]->_isComposite()){
                 selectIndices.append(i);
             }
         }
@@ -716,58 +871,25 @@ bool LayerGroup::_setLayersGrouped( bool grouped  ){
                 }
                 //Remove all the selected ones from the list.
                 for ( int i = selectedCount - 1; i >= 0; i-- ){
-                    _removeData(i);
+                    disconnect( m_children[selectIndices[i]].get());
+                    m_children.removeAt( selectIndices[i] );
                 }
                 //Insert the group layer at the first selected index.
-                std::shared_ptr<Layer> group( groupLayer );
-                m_children.insert( selectIndices[0], group );
+                m_children.insert( selectIndices[0], std::shared_ptr<Layer>(groupLayer) );
+                connect( groupLayer, SIGNAL(removeLayer(Layer*)),
+                            this, SLOT( _removeLayer( Layer*)));
                 QStringList selections;
-                selections.append( groupLayer->_getId());
-                group->_setSelected( selections );
+                selections.append( groupLayer->_getLayerId());
+                groupLayer->_setSelected( selections );
                 operationPerformed = true;
             }
         }
         else {
             //Split the selected layers.
-            if ( selectedCount == 1 ){
-                //Go through the selected layers, split them, and remove
-                //the original.
-                /*QMap<int, std::shared_ptr<Layer> > newLayers;
-                for ( int i = selectedCount - 1; i >= 0; i-- ){
-                    QList<std::shared_ptr<Layer> > splitLayers = m_datas[selectIndices[i]]->split();
-                    if ( splitLayers.size() > 0 ){
-                        newLayers[selectIndices[i]]= splitLayers;
-                        _removeData( selectIndices[i] );
-                    }
-                }
-                //Insert the new layers.
-                QList<int> keys = newLayers.keys();
-                int keyCount = keys.size();
-                if ( keyCount > 0 ){
-                    datasChanged = true;
-                    for ( int i = 0; i < keyCount; i++ ){
-                        int insertIndex = keys[i];
-                        int layerCount = newLayers[keys[i]].size();
-                        for ( int j = 0; j < layerCount; j++ ){
-                            m_datas.insert( insertIndex + j, newLayers[keys[i]][j]);
-                        }
-                    }
-                }
-                else {
-                    result = "At least one composite layer must be selected to ungroup.";
-                }*/
+            if ( _isSelected() ){
+                emit removeLayer( this );
+                operationPerformed = true;
             }
-        }
-        if ( operationPerformed ){
-            //_saveState();
-
-            //Refresh the view of the data.
-            //_scheduleFrameReload( false );
-
-            //Notify others there has been a change to the data.
-
-
-            //emit dataChanged( this );
         }
     }
     return operationPerformed;
@@ -800,20 +922,32 @@ bool LayerGroup::_setMaskColor( const QString& id, int redAmount,
     return changed;
 }
 
+bool LayerGroup::_setLayerName( const QString& id, const QString& name ){
+    bool nameSet = Layer::_setLayerName( id, name );
+    if ( !nameSet ){
+        int childCount = m_children.size();
+        for ( int i = 0; i < childCount; i++ ){
+            nameSet = m_children[i]->_setLayerName( id, name );
+            if ( nameSet ){
+                break;
+            }
+        }
+    }
+    return nameSet;
+}
+
 void LayerGroup::_setPan( double imgX, double imgY ){
     for ( std::shared_ptr<Layer> node : m_children ){
         node -> _setPan( imgX, imgY );
     }
 }
 
-bool LayerGroup::_setSelected( const QStringList& names){
+bool LayerGroup::_setSelected( QStringList& names){
     bool stateChanged = Layer::_setSelected( names );
-    if ( !stateChanged || names.size() == 0 ){
-        for ( std::shared_ptr<Layer> layer : m_children ){
-            bool layerChange = layer->_setSelected( names );
-            if ( layerChange ){
-                stateChanged = true;
-            }
+    for ( std::shared_ptr<Layer> layer : m_children ){
+        bool layerChange = layer->_setSelected( names );
+        if ( layerChange ){
+            stateChanged = true;
         }
     }
     return stateChanged;
@@ -855,7 +989,6 @@ bool LayerGroup::_setVisible( const QString& id, bool visible ){
         for ( int i = 0; i < dataCount; i++ ){
             bool layerChildFound  = m_children[i]->_setVisible( id, visible );
             if ( layerChildFound ){
-                //layerIndex = i;
                 layerFound = true;
                 break;
             }
@@ -898,7 +1031,7 @@ void LayerGroup::_viewResizeFullSave(const QSize& outputSize){
 }
 
 LayerGroup::~LayerGroup() {
-
+    _clearData();
 
 }
 }
