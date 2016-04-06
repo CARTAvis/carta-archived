@@ -2,7 +2,6 @@
 
 #include <QString>
 #include <QList>
-#include <casa/Arrays/Vector.h>
 #include <coordinates/Coordinates/SpectralCoordinate.h>
 
 /**
