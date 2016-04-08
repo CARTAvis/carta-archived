@@ -113,20 +113,35 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
             this.m_planeAll.setToolTipText( "Compute based on the entire image.");
             this.m_planeAllListenerId = this.m_planeAll.addListener( skel.widgets.Path.CHANGE_VALUE, 
                     this._planeAllChanged, this );
+            this.m_smallCheck = new qx.ui.form.CheckBox();
+            this.m_smallCheck.setToolTipText( "Whether or not a histogram of the entire cube should default to a histogram of the current channel for large cubes.");
+            this.m_smallCheck.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                    this._smallCheckChanged, this );
+            var smallLabel = new qx.ui.basic.Label( "if size is <=");
+            this.m_pixelText = new skel.widgets.CustomUI.NumericTextField( 0, null);
+            this.m_pixelText.setToolTipText( "Cube size limit before the histogram of the entire cube defaults to a histogram of the current channel for performance reasons.");
+            this.m_pixelText.addListener( "textChanged", this._sendCubeSizeCmd, this );
+            var pixelLabel = new qx.ui.basic.Label( "pixels.");
+           
+            
+            var topContainer = new qx.ui.container.Composite();
+            var layout = new qx.ui.layout.HBox();
+            layout.setAlignX( "center" );
+            layout.setAlignY( "middle" );
+            topContainer.setLayout( layout );
+            topContainer.add( this.m_planeAll );
+            topContainer.add( this.m_smallCheck);
+            topContainer.add( smallLabel );
+            topContainer.add( this.m_pixelText );
+            topContainer.add( pixelLabel );
+            planeContainer.add( topContainer );
             
             //Current plane
             this.m_planeSingle = new qx.ui.form.RadioButton( "Current");
             this.m_planeSingle.setToolTipText( "Compute based on the current channel.");
             this.m_planeSingleListenerId = this.m_planeSingle.addListener( skel.widgets.Path.CHANGE_VALUE, 
                    this._planeSingleChanged, this );
-            
-            var topContainer = new qx.ui.container.Composite();
-            topContainer.setLayout( new qx.ui.layout.HBox() );
-            topContainer.add( this.m_planeAll );
-            topContainer.add( new qx.ui.core.Spacer(2), {flex:1});
-            topContainer.add( this.m_planeSingle );
-            topContainer.add( new qx.ui.core.Spacer(2), {flex:1});
-            planeContainer.add( topContainer );
+            planeContainer.add( this.m_planeSingle);
             
             //Channel selection
             this.m_planeChannel = new qx.ui.form.RadioButton( "Channel");
@@ -259,7 +274,13 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
         _planeAllChanged : function(){
             if ( this.m_planeAll.getValue() ){
                 this._planeModeChanged( this.m_planeAll.getLabel());
+                this.m_smallCheck.setEnabled(true );
             }
+            else {
+                this.m_smallCheck.setEnabled( false );
+            }
+            var smallChecked = this.m_smallCheck.getValue();
+            this.m_pixelText.setEnabled( smallChecked && this.m_smallCheck.isEnabled() );
         },
         
         /**
@@ -291,6 +312,45 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
                 this._planeModeChanged( this.m_planeRange.getLabel());
             }
             this.setPlaneRangeEnabled( planeChecked );
+        },
+        
+        /**
+         * A change in the checked status in the UI of the checkbox
+         * governing whether or not to default to a single channel for
+         * large cubes.
+         */
+        _smallCheckChanged : function(){
+            var checked = this.m_smallCheck.getValue();
+            this.m_pixelText.setEnabled( checked);
+            this._sendCubeLimitCmd();
+        },
+        
+        /**
+         * Send a command to the server as to whether or not a size limit
+         * should be imposed on cubes where a histogram of the entire cube
+         * is rendered.
+         */
+        _sendCubeLimitCmd : function(){
+            if ( this.m_connector !== null && this.m_id !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setCubeLimit";
+                var params = "limitCubeSize:"+this.m_smallCheck.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        /**
+         * Send a command to the server giving a new size limit of how large
+         * a cube can be before a histogram of the entire cube will not be
+         * rendered.
+         */
+        _sendCubeSizeCmd : function(){
+            if ( this.m_connector !== null && this.m_id !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setCubeSizeLimit";
+                var params = "cubeSizeMax:"+this.m_pixelText.getValue();
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
         },
         
         /**
@@ -358,6 +418,19 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
          */
         setPlaneChannelMax : function( planeChannelMax ){
             this.m_planeChannelText.setUpperBound( planeChannelMax );
+        },
+        
+        /**
+         * Set parameters relating to how large a cube can be before a histogram
+         * of the entire cube will not be rendered.
+         * @param pixelLimit {boolean} - true if there should be a limit on the size
+         *      of cubes; false otherwise.
+         * @param pixelLimitSize {Number} - how big a cube can be before the cube
+         *      histogram defaults to a single plane if a pixel limit has been imposed.
+         */
+        setCubeAllLimits : function( pixelLimit, pixelLimitSize ){
+            this.m_smallCheck.setValue( pixelLimit );
+            this.m_pixelText.setValue( pixelLimitSize );
         },
         
         /**
@@ -480,6 +553,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
         m_sharedVarUnit : null,
         m_minListenerId : null,
         m_maxListenerId : null,
+        m_pixelText : null,
         m_planeAll : null,
         m_planeSingle : null,
         m_planeChannel : null,
@@ -491,6 +565,7 @@ qx.Class.define("skel.widgets.Histogram.HistogramCube", {
         m_planeRangeListenerId : null,
         m_rangeMinText : null,
         m_rangeMaxText : null,
+        m_smallCheck : null,
         m_unitCombo : null
     },
     

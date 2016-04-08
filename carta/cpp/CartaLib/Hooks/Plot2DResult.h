@@ -49,6 +49,12 @@ class Plot2DResult {
      */
     QString getUnitsY() const;
 
+    /**
+     * Set the title of the plot data.
+     * @param name - a title for the plot data.
+     */
+    void setName( const QString& name );
+
     virtual ~Plot2DResult(){}
 
   protected:

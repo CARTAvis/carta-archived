@@ -29,7 +29,9 @@ QString Plot2DResult::getUnitsY() const {
     return m_unitsY;
 }
 
-
+void Plot2DResult::setName( const QString& name ){
+    m_name = name;
+}
     }
   }
 

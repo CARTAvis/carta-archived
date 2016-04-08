@@ -38,6 +38,9 @@ HEADERS += \
     Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
+    Data/Histogram/HistogramRenderService.h \
+    Data/Histogram/HistogramRenderThread.h \
+    Data/Histogram/HistogramRenderWorker.h \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
@@ -183,6 +186,9 @@ SOURCES += \
     Data/Error/ErrorManager.cpp \
     Data/Histogram/Histogram.cpp \
     Data/Histogram/ChannelUnits.cpp \
+    Data/Histogram/HistogramRenderService.cpp \
+    Data/Histogram/HistogramRenderThread.cpp \
+    Data/Histogram/HistogramRenderWorker.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/Layout/Layout.cpp \

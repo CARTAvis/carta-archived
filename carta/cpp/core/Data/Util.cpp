@@ -13,6 +13,7 @@ const QString Util::ALPHA = "alpha";
 const QString Util::APPLY = "apply";
 const QString Util::TRUE = "true";
 const QString Util::FALSE = "false";
+const QString Util::ERROR = "Error";
 const QString Util::PREFERENCES = "preferences";
 const QString Util::RED = "red";
 const QString Util::BLUE = "blue";
