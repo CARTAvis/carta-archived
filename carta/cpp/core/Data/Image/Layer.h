@@ -37,6 +37,7 @@ class Layer : public QObject, public Carta::State::CartaObject {
 
     friend class Controller;
     friend class LayerGroup;
+    friend class Profiler;
     friend class Stack;
     friend class DrawGroupSynchronizer;
     friend class DrawStackSynchronizer;
@@ -173,9 +174,6 @@ protected:
      * @return - the data source of the image.
      */
     virtual std::shared_ptr<DataSource> _getDataSource() = 0;
-
-    virtual std::vector< std::shared_ptr<DataSource> > _getDataSources() = 0;
-
 
     /**
      * Return the image size for the given coordinate index.

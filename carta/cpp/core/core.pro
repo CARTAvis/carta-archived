@@ -87,6 +87,7 @@ HEADERS += \
     Data/Profile/CurveData.h \
     Data/Profile/IntensityUnits.h \
     Data/Profile/Profiler.h \
+    Data/Profile/ProfileStatistics.h \
     Data/Profile/SpectralUnits.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
@@ -205,6 +206,7 @@ SOURCES += \
     Data/Profile/CurveData.cpp \
     Data/Profile/IntensityUnits.cpp \
     Data/Profile/Profiler.cpp \
+    Data/Profile/ProfileStatistics.cpp \
     Data/Profile/SpectralUnits.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \

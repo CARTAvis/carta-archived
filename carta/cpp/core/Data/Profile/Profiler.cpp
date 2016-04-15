@@ -8,6 +8,7 @@
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/DataSource.h"
+#include "Data/Image/Layer.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "Data/Plotter/LegendLocations.h"
@@ -19,7 +20,9 @@
 #include "CartaLib/Hooks/Plot2DResult.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
+#include "CartaLib/Hooks/ProfileHook.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/ProfileInfo.h"
 #include "State/UtilState.h"
 #include "Globals.h"
 #include "PluginManager.h"
@@ -33,6 +36,7 @@ const QString Profiler::CLASS_NAME = "Profiler";
 const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
 const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CURVES = "curves";
+const QString Profiler::CURVE_SELECT = "selectCurve";
 const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
@@ -241,11 +245,11 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
 }
 
 
-int Profiler::_findCurveIndex( const QString& curveName ) const {
+int Profiler::_findCurveIndex( const QString& name ) const {
     int curveCount = m_plotCurves.size();
     int index = -1;
     for ( int i = 0; i < curveCount; i++ ){
-        if ( m_plotCurves[i]->getName() == curveName ){
+        if ( m_plotCurves[i]->isMatch( name ) ){
             index = i;
             break;
         }
@@ -261,6 +265,74 @@ void Profiler::_generateProfile(Controller* controller ){
     }
     if ( activeController ){
         _loadProfile( activeController );
+    }
+}
+
+void Profiler::_generateData( std::shared_ptr<Layer> layer ){
+    QString layerName = layer->_getLayerName();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> image = layer->_getImage();
+    std::vector < int > pos( image-> dims().size(), 0 );
+    int axis = _getExtractionAxisIndex( image );
+    if ( axis >= 0 ){
+        Profiles::PrincipalAxisProfilePath path( axis, pos );
+
+        Carta::Lib::ProfileInfo profInfo;
+        Carta::Lib::RegionInfo regionInfo;
+        qDebug() << "Calling profile hook";
+        auto result = Globals::instance()-> pluginManager()
+                      -> prepare <Carta::Lib::Hooks::ProfileHook>(image,
+                              regionInfo, profInfo);
+        auto lam = [=] ( const Carta::Lib::Hooks::ProfileHook::ResultType &data ) {
+            qDebug() << "Profile got result data count="<<data.size();
+        };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            qDebug() << "Profiler could not get data: caught error: " << error;
+        }
+
+        Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
+        Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
+        m_leftUnit = image->getPixelUnit().toStr();
+
+        auto profilecb = [ = ] () {
+            bool finished = extractor->isFinished();
+            if ( finished ){
+                auto data = extractor->getDataD();
+
+                int dataCount = data.size();
+                if ( dataCount > 0 ){
+                    std::vector<double> plotDataX( dataCount );
+                    std::vector<double> plotDataY( dataCount );
+
+                    for( int i = 0 ; i < dataCount; i ++ ){
+                        plotDataX[i] = i;
+                        plotDataY[i] = data[i];
+                    }
+
+                    int curveIndex = _findCurveIndex( layerName );
+                    std::shared_ptr<CurveData> profileCurve( nullptr );
+                    if ( curveIndex < 0 ){
+                        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                        profileCurve.reset( objMan->createObject<CurveData>() );
+                        profileCurve->setImageName( layerName );
+                        _assignColor( profileCurve );
+                        m_plotCurves.append( profileCurve );
+                        profileCurve->setSource( image );
+                        _saveCurveState();
+                    }
+                    else {
+                        profileCurve = m_plotCurves[curveIndex];
+                    }
+                    profileCurve->setData( plotDataX, plotDataY );
+                    _updatePlotData();
+                }
+                extractor->deleteLater();
+            }
+        };
+        connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
+        extractor-> start( path );
     }
 }
 
@@ -351,6 +423,7 @@ QString Profiler::_getUnitUnits( const QString& unitStr ){
 void Profiler::_initializeDefaultState(){
     //Data state is the curves
     m_stateData.insertArray( CURVES, 0 );
+    m_stateData.insertValue<int>(CURVE_SELECT, 0 );
     m_stateData.flushState();
 
     //Default units
@@ -409,6 +482,18 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setCurveName", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {Util::NAME, "oldName"};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString nameStr = dataValues[Util::NAME];
+            QString idStr = dataValues["oldName"];
+            QString result = setCurveName( idStr, nameStr );
+            Util::commandPostProcess( result );
+            return result;
+        });
+
 
 
 
@@ -558,64 +643,53 @@ void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
         return;
     }
-    std::vector<std::shared_ptr<DataSource> > dataSources = controller->getDataSources();
+    std::vector<std::shared_ptr<Layer> > dataSources = controller->getDataSources();
+    qDebug() << "_loadProfile dataCount="<<dataSources.size();
 
-    m_plotCurves.clear();
-    m_plotManager->clearData();
+    //m_plotCurves.clear();
+    //m_plotManager->clearData();
+
+    //Make profiles for any new data that has been loaded.
     int dataCount = dataSources.size();
     for ( int i = 0; i < dataCount; i++ ) {
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSources[i]->_getImage();
-    	std::vector < int > pos( image-> dims().size(), 0 );
-        int axis = _getExtractionAxisIndex( image );
-        if ( axis >= 0 ){
-            Profiles::PrincipalAxisProfilePath path( axis, pos );
-            Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
-            Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
-            shared_ptr<Carta::Lib::Image::MetaDataInterface> metaData = image->metaData();
-            QString longFile = dataSources[i]->_getFileName();
-            DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
-            QString fileName = dataLoader->getShortName( longFile );
-            m_leftUnit = image->getPixelUnit().toStr();
+        QString layerName = dataSources[i]->_getLayerName();
+        int curveCount = m_plotCurves.size();
+        int profileIndex = -1;
+        for ( int j = 0; j < curveCount; j++ ){
+            QString imageName = m_plotCurves[j]->getImageName();
+            if ( imageName == layerName ){
+                profileIndex = j;
+                break;
+            }
+        }
 
-            auto profilecb = [ = ] () {
-                bool finished = extractor->isFinished();
-                if ( finished ){
-                    auto data = extractor->getDataD();
-
-                    int dataCount = data.size();
-                    if ( dataCount > 0 ){
-                        std::vector<double> plotDataX( dataCount );
-                        std::vector<double> plotDataY( dataCount );
-
-                        for( int i = 0 ; i < dataCount; i ++ ){
-                            plotDataX[i] = i;
-                            plotDataY[i] = data[i];
-                        }
-
-                        int curveIndex = _findCurveIndex( fileName );
-                        std::shared_ptr<CurveData> profileCurve( nullptr );
-                        if ( curveIndex < 0 ){
-                            Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                            profileCurve.reset( objMan->createObject<CurveData>() );
-                            profileCurve->setName( fileName );
-                            _assignColor( profileCurve );
-                            m_plotCurves.append( profileCurve );
-                            profileCurve->setSource( image );
-                            _saveCurveState();
-                        }
-                        else {
-                            profileCurve = m_plotCurves[curveIndex];
-                        }
-                        profileCurve->setData( plotDataX, plotDataY );
-                        _updatePlotData();
-                    }
-                    extractor->deleteLater();
-                }
-            };
-            connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
-            extractor-> start( path );
+        if ( profileIndex < 0 ){
+            _generateData( dataSources[i]);
         }
     }
+
+    //Go through the old profiles and remove any that are no longer present.
+    int curveCount = m_plotCurves.size();
+    QList<int> removeIndices;
+    for ( int i = 0; i < curveCount; i++ ){
+        QString imageName = m_plotCurves[i]->getImageName();
+        bool layerFound = false;
+        for ( int j = 0; j < dataCount; j++ ){
+            QString layerName = dataSources[j]->_getLayerName();
+            if ( layerName == imageName ){
+                layerFound = true;
+                break;
+            }
+        }
+        if ( !layerFound ){
+            removeIndices.append( i );
+        }
+    }
+    int removeCount = removeIndices.size();
+    for ( int i = removeCount - 1; i >= 0; i-- ){
+        m_plotCurves.removeAt( removeIndices[i] );
+    }
+    _updatePlotData();
 }
 
 
@@ -763,6 +837,21 @@ QStringList Profiler::setCurveColor( const QString& name, int redAmount, int gre
         else {
             result.append( "Unrecognized profile curve:"+name );
         }
+    }
+    return result;
+}
+
+QString Profiler::setCurveName( const QString& id, const QString& newName ){
+    QString result;
+    int curveIndex = _findCurveIndex( id );
+    if ( curveIndex >= 0 ){
+        result = m_plotCurves[curveIndex]->setName( newName );
+        _saveCurveState( curveIndex );
+        m_stateData.flushState();
+        m_plotManager->setCurveName( id, newName );
+    }
+    else {
+        result = "Profile name could not be set because of invalid identifier: "+id;
     }
     return result;
 }

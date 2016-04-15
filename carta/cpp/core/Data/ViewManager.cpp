@@ -26,6 +26,7 @@
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/Profile/IntensityUnits.h"
 #include "Data/Profile/Profiler.h"
+#include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/SpectralUnits.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics/Statistics.h"
@@ -91,6 +92,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<SpectralUnits>();
     Util::findSingletonObject<IntensityUnits>();
     Util::findSingletonObject<LineStyles>();
+    Util::findSingletonObject<ProfileStatistics>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -982,9 +984,9 @@ void ViewManager::setDeveloperView(){
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
     m_histograms[0]->addLink( m_controllers[0]);
-    m_statistics[0]->addLink( m_controllers[0]);
+    //m_statistics[0]->addLink( m_controllers[0]);
     //m_colormaps[0]->addLink( m_controllers[0]);
-    //m_profilers[0]->addLink( m_controllers[0]);
+    m_profilers[0]->addLink( m_controllers[0]);
     //m_colormaps[0]->addLink( m_histograms[0]);
     _refreshState();
 }

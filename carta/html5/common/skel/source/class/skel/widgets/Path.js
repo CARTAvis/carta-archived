@@ -29,6 +29,7 @@ qx.Class.define("skel.widgets.Path", {
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
         this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.PREFERENCES_SAVE = this.BASE_PATH + "PreferencesSave";
+        this.PROFILE_STATISTICS = this.BASE_PATH + "ProfileStatistics";
         this.REGION = this.BASE_PATH + this.REGION_DATA + this.SEP;
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";

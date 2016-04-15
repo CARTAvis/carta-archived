@@ -37,6 +37,7 @@ namespace Carta {
 namespace Data {
 class ColorState;
 class Layer;
+class LayerData;
 class Stack;
 class DataSource;
 class DisplayControls;
@@ -160,7 +161,7 @@ public:
      * Return all data sources.
      * @return - the list of all visible data sources.
      */
-    std::vector< std::shared_ptr<DataSource> > getDataSources();
+    std::vector< std::shared_ptr<Layer> > getDataSources();
 
     /**
      * Return a shared pointer to the contour controls.

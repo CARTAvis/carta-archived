@@ -292,6 +292,13 @@ void Plot2DManager::setColored( bool colored, const QString& id ){
     }
 }
 
+void Plot2DManager::setCurveName( const QString& oldName, const QString& newName ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setCurveName( oldName, newName );
+        _refreshView();
+    }
+}
+
 
 void Plot2DManager::setLegendLocation( const QString& location ){
     if ( m_plotGenerator ){

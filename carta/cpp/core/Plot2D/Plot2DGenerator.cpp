@@ -241,6 +241,13 @@ void Plot2DGenerator::setColored( bool colored, const QString& id ){
     }
 }
 
+void Plot2DGenerator::setCurveName( const QString& oldName, const QString& newName ){
+    std::shared_ptr<Plot2D> plotData = _findData( oldName );
+    if ( plotData ){
+        plotData->setId( newName );
+    }
+}
+
 
 void Plot2DGenerator::setLegendExternal( bool externalLegend ){
     if ( m_legendExternal != externalLegend ){

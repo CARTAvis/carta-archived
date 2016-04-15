@@ -12,6 +12,7 @@ SUBDIRS += ConversionIntensity
 SUBDIRS += ImageAnalysis-2.10.2016
 SUBDIRS += ImageStatistics
 SUBDIRS += RegionCASA
+SUBDIRS += ProfileCASA
 
 SUBDIRS += qimage
 

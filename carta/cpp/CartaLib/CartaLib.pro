@@ -18,6 +18,7 @@ SOURCES += \
     Hooks/ConversionSpectralHook.cpp \
     Hooks/Histogram.cpp \
     Hooks/HistogramResult.cpp \
+    Hooks/ProfileHook.cpp \
     Hooks/ImageStatisticsHook.cpp \
     Hooks/LoadRegion.cpp \
     Hooks/Plot2DResult.cpp \
@@ -31,6 +32,7 @@ SOURCES += \
     IPlotLabelGenerator.cpp \
     Hooks/LoadAstroImage.cpp \
     PixelPipeline/CustomizablePixelPipeline.cpp \
+    ProfileInfo.cpp \
     PWLinear.cpp \
     StatInfo.cpp \
     VectorGraphics/VGList.cpp \
@@ -53,6 +55,7 @@ HEADERS += \
     Hooks/ConversionSpectralHook.h \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \
+    Hooks/ProfileHook.h \
     Hooks/HookIDs.h \
     Hooks/ImageStatisticsHook.h \
     Hooks/LoadRegion.h \
@@ -71,6 +74,7 @@ HEADERS += \
     TPixelPipeline/IScalar2Scalar.h \
     PixelPipeline/IPixelPipeline.h \
     PixelPipeline/CustomizablePixelPipeline.h \
+    ProfileInfo.h \
     PWLinear.h \
     StatInfo.h \
     VectorGraphics/VGList.h \

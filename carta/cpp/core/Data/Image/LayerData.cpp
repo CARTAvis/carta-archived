@@ -258,12 +258,6 @@ std::shared_ptr<DataSource> LayerData::_getDataSource(){
     return m_dataSource;
 }
 
-std::vector< std::shared_ptr<DataSource> > LayerData::_getDataSources(){
-    std::vector< std::shared_ptr<DataSource> > sources;
-    sources.push_back( m_dataSource );
-    return sources;
-}
-
 
 int LayerData::_getDimension( int coordIndex ) const {
     int dim = -1;

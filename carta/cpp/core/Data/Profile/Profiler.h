@@ -40,6 +40,7 @@ class CurveData;
 class IntensityUnits;
 class LegendLocations;
 class LinkableImpl;
+class Layer;
 class Settings;
 class SpectralUnits;
 
@@ -93,6 +94,13 @@ public:
      * @return - one or more error messages if the color of the data set cannot be set.
      */
     QStringList setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount );
+
+    /**
+     * Change the name of a profile curve.
+     * @param id - the old name of the curve.
+     * @param newName - the new name of the curve.
+     */
+    QString setCurveName( const QString& id, const QString& newName );
 
     /**
      * Set the drawing style for the Profiler (outline, filled, etc).
@@ -153,6 +161,7 @@ private:
     const static QString AXIS_UNITS_BOTTOM;
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
+    const static QString CURVE_SELECT;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
@@ -170,6 +179,8 @@ private:
             const QString& newUnit = QString() ) const;
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
 
+    void _generateData( std::shared_ptr<Layer> layer );
+
     Controller* _getControllerSelected() const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
     QString _getLegendLocationsId() const;
@@ -179,7 +190,7 @@ private:
      */
     QString _getPreferencesId() const;
 
-    int _findCurveIndex( const QString& curveName ) const;
+    int _findCurveIndex( const QString& curveId ) const;
 
     void _initializeDefaultState();
     void _initializeCallbacks();

@@ -149,7 +149,6 @@ protected:
      */
     virtual std::shared_ptr<DataSource> _getDataSource() Q_DECL_OVERRIDE;
 
-    virtual std::vector< std::shared_ptr<DataSource> > _getDataSources() Q_DECL_OVERRIDE;
 
     /**
      * Return the image size for the given coordinate index.

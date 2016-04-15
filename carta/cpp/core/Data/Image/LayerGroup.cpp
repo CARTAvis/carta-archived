@@ -398,18 +398,22 @@ std::shared_ptr<DataSource> LayerGroup::_getDataSource(){
     return dSource;
 }
 
-std::vector< std::shared_ptr<DataSource> > LayerGroup::_getDataSources() {
-    std::vector< std::shared_ptr<DataSource> > dataSources;
+std::vector< std::shared_ptr<Layer> > LayerGroup::_getDataSources() {
+    std::vector< std::shared_ptr<Layer> > dataSources;
     int dataCount = m_children.size();
     //Return the images in stack order.
     int startIndex = _getIndexCurrent();
     for ( int i = 0; i < dataCount; i++ ){
         int dIndex = (startIndex + i) % dataCount;
-        if ( m_children[dIndex]->_isVisible() ){
-            std::vector< std::shared_ptr<DataSource> > childSources = m_children[dIndex]->_getDataSources();
-            for ( std::shared_ptr<DataSource> dSource : childSources ){
+        if ( m_children[dIndex]->_isVisible() && m_children[dIndex]->_isComposite()){
+            LayerGroup* group = dynamic_cast<LayerGroup*>( m_children[dIndex].get() );
+            std::vector< std::shared_ptr<Layer> > childSources = group->_getDataSources();
+            for ( std::shared_ptr<Layer> dSource : childSources ){
                 dataSources.push_back( dSource );
             }
+        }
+        else {
+            dataSources.push_back( m_children[dIndex] );
         }
     }
     return dataSources;

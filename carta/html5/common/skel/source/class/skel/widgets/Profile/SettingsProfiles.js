@@ -1,5 +1,5 @@
 /**
- * Allows the user to customize the display of a profile curve.
+ * Allows the user to manage profile curves.
  */
 /*global mImport */
 /*******************************************************************************
@@ -19,34 +19,35 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         //Initiate connector.
          if ( typeof mImport !== "undefined"){
              this.m_connector = mImport("connector");
-             
-             var path = skel.widgets.Path.getInstance();
                  
-             //Curve styles
-             this.m_sharedVar = this.m_connector.getSharedVar(path.LINE_STYLES);
-             this.m_sharedVar.addCB(this._lineStylesChangedCB.bind(this));
-             this._lineStylesChangedCB();
+             var path = skel.widgets.Path.getInstance();
+
+             //Profile statistics
+             this.m_sharedVarStats = this.m_connector.getSharedVar(path.PROFILE_STATISTICS);
+             this.m_sharedVarStats.addCB(this._statsChangedCB.bind(this));
+             this._statsChangedCB();
          }
     },
 
     members : {
         
         /**
-         * Update the list of profile curves based on server information.
-         * @param curveUpdate {Object} - information from the server about profile curves.
+         * Update from the server.
+         * @param curveUpdate {Object} - information from the server about the profile
+         *      curves.
          */
         dataUpdate : function( curveUpdate ){
-            this.m_curveInfo = curveUpdate.curves;
-            var curveNames = [];
-            for ( var i = 0; i < this.m_curveInfo.length; i++ ){
-                curveNames[i] = this.m_curveInfo[i].name;
+            if ( typeof curveUpdate.curves != "undefined"){
+                this.m_curveInfo = curveUpdate.curves;
+                this._updateCurveNames();
+                this._updateImageNames();
+                var selectIndex = curveUpdate.selectCurve;
+                this._updateSelection( selectIndex );
             }
-            this.m_curveList.setItems( curveNames );
-            this._updateColor();
-            this._updateStyle();
-        }, 
+        },
+        
        
-
+        
         /**
          * Initializes the UI.
          */
@@ -55,150 +56,205 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this._setLayout(widgetLayout);
             
             var overallContainer = new qx.ui.container.Composite();
-            overallContainer.setLayout( new qx.ui.layout.HBox(1));
+            overallContainer.setLayout( new qx.ui.layout.VBox(1));
+            
+            //Custom Name
+            var nameContainer = new qx.ui.container.Composite();
+            nameContainer.setLayout( new qx.ui.layout.HBox(1));
+            this.m_nameSelect = new qx.ui.form.ComboBox();
+            this.m_nameSelect.addListener( "changeValue", this._nameChangedCB, this );
+            this.m_nameSelect.setToolTipText( "Specify a custom name for the profile.");
+            var nameLabel = new qx.ui.basic.Label( "Custom Name:");
+            nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            nameContainer.add( nameLabel );
+            nameContainer.add( this.m_nameSelect, {flex:5} );
+            nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            overallContainer.add( nameContainer );
+            
+            //Initialize image selection
+            var imageLabel = new qx.ui.basic.Label( "Image:");
+            this.m_imageSelect = new skel.widgets.CustomUI.SelectBox();
+            this.m_imageSelect.setToolTipText( "Specify the image used to generate the profile.");
+            var selectContainer = new qx.ui.container.Composite();
+            var gridLayout = new qx.ui.layout.Grid();
+            gridLayout.setSpacing( 2 );
+            gridLayout.setColumnFlex( 1, 1 );
+            gridLayout.setColumnMinWidth( 1, 200 );
+            gridLayout.setColumnFlex( 3, 1 );
+            gridLayout.setRowAlign( 0, "right", "middle");
+            selectContainer.setLayout( gridLayout );
+            selectContainer.add( imageLabel, {row:0, column:0} );
+            selectContainer.add( this.m_imageSelect, {row:0, column:1} );
+            
+            //Initialize region selection
+            var regionLabel = new qx.ui.basic.Label( "Region:");
+            this.m_regionSelect = new skel.widgets.CustomUI.SelectBox();
+            this.m_regionSelect.setToolTipText( "Specify the region used to generate the profile.");
+            selectContainer.add( regionLabel, {row:0, column:2} );
+            selectContainer.add( this.m_regionSelect, {row:0, column:3} );
+            
+            //Initialize rest frequency
+            gridLayout.setRowAlign( 1, "right", "middle");
+            var restFreqLabel = new qx.ui.basic.Label( "Rest Frequency:");
+            this.m_restFreqText = new skel.widgets.CustomUI.NumericTextField( 0, null );
+            this.m_restFreqText.setToolTipText( "Specify the rest frequency.");
+            selectContainer.add( restFreqLabel, {row:1, column:0});
+            selectContainer.add( this.m_restFreqText, {row:1, column:1} );
+            
+            //Initialize the statistic
+            var statLabel = new qx.ui.basic.Label( "Statistic:");
+            this.m_statSelect = new skel.widgets.CustomUI.SelectBox();
+            this.m_statSelect.setToolTipText( "Specify the method used to generate the profile.");
+            selectContainer.add( statLabel, {row:1, column:2});
+            selectContainer.add( this.m_statSelect, {row:1, column:3});
+            
+            overallContainer.add( selectContainer );
+            
+            var butContainer = this._initButtons();
+            overallContainer.add( butContainer );
+            
             this._add( overallContainer );
-            
-            var TABLE_WIDTH = 150;
-            this.m_curveList  = new skel.widgets.CustomUI.ItemTable( "Profiles", TABLE_WIDTH);
-            this.m_curveList.setToolTipText( "Select one or more profiles to customize the display." );
-            this.m_curveList.setWidth( TABLE_WIDTH );
-            this.m_curveList.addListener( "itemsSelected", this._updateColor, this );
-            overallContainer.add( this.m_curveList );
-            
-            var curveContainer = new qx.ui.container.Composite();
-            curveContainer.setLayout( new qx.ui.layout.VBox(1));
-            
-            var styleContainer = new qx.ui.container.Composite();
-            styleContainer.setLayout( new qx.ui.layout.HBox(1));
-            var styleLabel = new qx.ui.basic.Label( "Style:");
-            this.m_styleCombo = new skel.widgets.CustomUI.SelectBox();
-            this.m_styleCombo.setToolTipText( "Select a line style for the curve.");
-            this.m_styleCombo.addListener( "selectChanged", this._sendStyleChangeCmd, this );
-            styleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
-            styleContainer.add( styleLabel );
-            styleContainer.add( this.m_styleCombo );
-            styleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
-            curveContainer.add( styleContainer );
-            
-            this.m_colorSelector = new skel.widgets.CustomUI.ColorSelector();
-            this.m_colorListenerId = this.m_colorSelector.addListener( "changeValue", this._sendColorChangeCmd, this );
-            curveContainer.add( this.m_colorSelector );
-            
-            overallContainer.add( curveContainer );
         },
         
         /**
-         * Callback for a change in the available line styles.
+         * Initialize the buttons responsible for managing profiles.
          */
-        _lineStylesChangedCB : function(){
-            if ( this.m_sharedVar ){
-                var val = this.m_sharedVar.get();
+        _initButtons : function(){
+            var butContainer = new qx.ui.container.Composite();
+            butContainer.setLayout( new qx.ui.layout.HBox(1));
+            butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            this.m_addButton = new qx.ui.form.Button( "New");
+            this.m_copyButton = new qx.ui.form.Button( "Copy");
+            this.m_removeButton = new qx.ui.form.Button( "Remove");
+            butContainer.add( this.m_addButton );
+            butContainer.add( this.m_copyButton );
+            butContainer.add( this.m_removeButton );
+            butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            return butContainer;
+        },
+        
+        /**
+         * Callback for when a profile name changes through the UI.
+         */
+        _nameChangedCB : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var newName = this.m_nameSelect.getValue();
+                var oldName = this.m_curveInfo[this.m_selectIndex].name;
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setCurveName";
+                var params = "name:"+newName+",oldName:"+oldName;
+                this.m_connector.sendCommand( cmd, params, null );
+            }
+        },
+        
+        
+        /**
+         * Set the server side id of the object managing profile information.
+         * @param id {String} the server side id of the managing profiles.
+         */
+        setId : function( id ){
+            this.m_id = id;
+        },
+        
+        /**
+         * Server update when profile curves have changed.
+         */
+        _statsChangedCB : function(){
+            if ( this.m_sharedVarStats ){
+                var val = this.m_sharedVarStats.get();
                 if ( val ){
                     try {
                         var obj = JSON.parse( val );
-                        var styles = obj.lineStyles;
-                        this.m_styleCombo.setSelectItems( styles );
+                        var stats = obj.profileStats;
+                        this.m_statSelect.setSelectItems( stats );
                     }
                     catch( err ){
-                        console.log( "Could not parse line styles: "+val );
+                        console.log( "Could not parse profile information: "+val );
                         console.log( "Err: "+err);
                     }
                 }
             }
         },
         
-        
         /**
-         * Notify the server that the user has changed the color of a profile curve.
+         * Update the names of profile curves based on server information.
          */
-        _sendColorChangeCmd : function(){
-            if ( this.m_id !== null ){
-                var red = this.m_colorSelector.getRed();
-                var green = this.m_colorSelector.getGreen();
-                var blue = this.m_colorSelector.getBlue();
-                var curves = this.m_curveList.getSelected();
-                var nameList = curves.join(";")
-                var params = "red:"+red+",green:"+green+",blue:"+blue+",name:"+nameList;
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setCurveColor";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }
-        },
-        
-        /**
-         * Notify the server that the user has changed the color of a profile curve.
-         */
-        _sendStyleChangeCmd : function(){
-            if ( this.m_id !== null ){
-                var style = this.m_styleCombo.getValue();
-                var curves = this.m_curveList.getSelected();
-                var nameList = curves.join(";");
-                var params = "style:"+style+",name:"+nameList;
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setLineStyle";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }
-        },
-        
-        
-        /**
-         * Set the server side id of this plot.
-         * @param id {String} the server side id of the object that produced this plot.
-         */
-        setId : function( id ){
-            this.m_id = id;
-        },
-        
-        
-        /**
-         * Update the color display when the selected profile curve changes.
-         */
-        _updateColor : function(){
-            if ( this.m_curveList !== null && this.m_colorSelector !== null &&
-                    this.m_curveInfo !== null ){
-                this.m_colorSelector.removeListenerById( this.m_colorListenerId );
-                var curveIndex = this.m_curveList.getSelectedIndex();
-                if ( curveIndex < this.m_curveInfo.length ){
-                    var oldRed = this.m_colorSelector.getRed();
-                    var newRed = this.m_curveInfo[curveIndex].red;
-                    if ( oldRed != newRed ){
-                        this.m_colorSelector.setRed( newRed );
-                    }
-                    var oldGreen = this.m_colorSelector.getGreen();
-                    var newGreen = this.m_curveInfo[curveIndex].green;
-                    if ( oldGreen != newGreen ){
-                        this.m_colorSelector.setGreen( newGreen );
-                    }
-                    var oldBlue = this.m_colorSelector.getBlue();
-                    var newBlue = this.m_curveInfo[curveIndex].blue;
-                    if ( oldBlue != newBlue ){
-                        this.m_colorSelector.setBlue( newBlue );
+        _updateCurveNames : function(){
+            try {
+                var oldName = this.m_nameSelect.getValue();
+                var nameCount = this.m_curveInfo.length;
+                this.m_nameSelect.removeAll();
+                for ( var i = 0; i < nameCount; i++ ){
+                    var profileName = this.m_curveInfo[i].name;
+                    var tempItem = new qx.ui.form.ListItem( profileName );
+                    this.m_nameSelect.add( tempItem );
+                }
+                //Try to reset the old selection
+                if ( oldName !== null ){
+                    this.m_nameSelect.setValue( oldName );
+                }
+                //Select the first item
+                else if ( nameCount > 0 ){
+                    var selectables = this.m_nameSelect.getChildrenContainer().getSelectables(true);
+                    if ( selectables.length > 0 ){
+                        this.m_nameSelect.setValue( selectables[0].getLabel());
                     }
                 }
-                this.m_colorListenerId = this.m_colorSelector.addListener( "changeValue", this._sendColorChangeCmd, this );
+            }
+            catch( err ){
+                console.log( "Could not parse profile names." );
+                console.log( "Err: "+err);
             }
         },
         
         /**
-         * Update the style when the user selects a new profile curve.
+         * Update the names of the images used to generate profile curves based
+         * on server information.
          */
-        _updateStyle : function(){
-            if ( this.m_curveList !== null && this.m_curveInfo !== null ){
-                var curveIndex = this.m_curveList.getSelectedIndex();
-                if ( curveIndex < this.m_curveInfo.length ){
-                    var style = this.m_curveInfo[curveIndex].lineStyle;
-                    this.m_styleCombo.setSelectValue( style );
-                }
+        _updateImageNames : function(){
+            var nameCount = this.m_curveInfo.length;
+            var imageNames = [];
+            for ( var i = 0; i < nameCount; i++ ){
+                var imageName = this.m_curveInfo[i].image;
+                imageNames.push( imageName );
+            }
+            this.m_imageSelect.setSelectItems( imageNames );
+        },
+        
+        /**
+         * Update the controls based on the selected profile curve.
+         * @param selectIndex {Number} - the index of the selected curve.
+         */
+        _updateSelection : function( selectIndex ){
+            this.m_selectIndex = selectIndex;
+            var name = this.m_curveInfo[selectIndex].name;
+            if ( this.m_nameSelect.getValue() != name ){
+                this.m_nameSelect.setValue( name );
+            }
+            var imageName = this.m_curveInfo[selectIndex].image;
+            if ( imageName != this.m_imageSelect.getValue() ){
+                this.m_imageSelect.setSelectValue( imageName );
+            }
+            var restFreq = Number(this.m_curveInfo[selectIndex].restFrequency);
+            this.m_restFreqText.setValue( restFreq );
+            var statName = this.m_curveInfo[selectIndex].stat;
+            if ( statName != this.m_statSelect.getValue() ){
+                this.m_statSelect.setSelectValue( statName );
             }
         },
         
         m_id : null,
+        m_selectIndex : null,
+        m_addButton : null,
+        m_copyButton : null,
+        m_removeButton : null,
+        m_imageSelect : null,
+        m_nameSelect : null,
+        m_regionSelect : null,
+        m_restFreqText : null,
+        m_statSelect : null,
         m_connector : null,
-        m_curveList : null,
-        m_curveInfo : null,
-        m_colorSelector : null,
-        m_colorListenerId : null,
-        m_sharedVar : null,
-        m_styleCombo : null
+        m_sharedVarStats : null,
+        m_curveInfo : null
     }
 });

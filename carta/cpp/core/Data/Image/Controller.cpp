@@ -301,7 +301,7 @@ std::shared_ptr<DataSource> Controller::getDataSource(){
     return m_stack->_getDataSource();
 }
 
-std::vector< std::shared_ptr<DataSource> > Controller::getDataSources() {
+std::vector< std::shared_ptr<Layer> > Controller::getDataSources() {
     return m_stack-> _getDataSources();
 }
 

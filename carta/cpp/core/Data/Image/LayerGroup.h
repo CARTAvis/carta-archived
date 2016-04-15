@@ -13,6 +13,7 @@ namespace Carta {
 namespace Data {
 
 class DrawGroupSynchronizer;
+class LayerData;
 
 class LayerGroup : public Layer {
 
@@ -142,7 +143,7 @@ protected:
      * @return - the data source of the image.
      */
     virtual std::shared_ptr<DataSource> _getDataSource() Q_DECL_OVERRIDE;
-    virtual std::vector< std::shared_ptr<DataSource> > _getDataSources() Q_DECL_OVERRIDE;
+    virtual std::vector< std::shared_ptr<Layer> > _getDataSources();
 
     /**
      * Return the image size for the given coordinate index.

@@ -158,6 +158,13 @@ public:
     void setColored( bool colored, const QString& id = QString() );
 
     /**
+     * Rename the curve.
+     * @param oldName - the original name of the curve.
+     * @param newName - the new name for the curve.
+     */
+    void setCurveName( const QString& oldName, const QString& newName );
+
+    /**
      * Set whether or not to show a line with legend items.
      * @param showLegendLine - true if a sample line should be shown with legend
      *      items; false, otherwise.

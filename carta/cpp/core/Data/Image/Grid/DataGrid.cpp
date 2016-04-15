@@ -441,8 +441,10 @@ void DataGrid::_resetGridRenderer(){
 
 
 void DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
-    m_state = otherState;
-    _resetGridRenderer();
+    if ( otherState.getValue<QString>( Carta::State::StateInterface::OBJECT_TYPE).length() > 0 ){
+        m_state = otherState;
+        _resetGridRenderer();
+    }
 }
 
 QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool* axisChanged ){
