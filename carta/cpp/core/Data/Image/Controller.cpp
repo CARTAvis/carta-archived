@@ -301,8 +301,12 @@ std::shared_ptr<DataSource> Controller::getDataSource(){
     return m_stack->_getDataSource();
 }
 
-std::vector< std::shared_ptr<Layer> > Controller::getDataSources() {
-    return m_stack-> _getDataSources();
+std::vector< std::shared_ptr<Layer> > Controller::getLayers() {
+    return m_stack-> _getLayers();
+}
+
+std::shared_ptr<Layer> Controller::getLayer() {
+    return m_stack->_getLayer();
 }
 
 std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::getImages() {

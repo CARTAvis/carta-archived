@@ -2,6 +2,7 @@
 #include "CurveData.h"
 #include "IntensityUnits.h"
 #include "SpectralUnits.h"
+#include "GenerateModes.h"
 #include "Data/Clips.h"
 #include "Data/DataLoader.h"
 #include "Data/Settings.h"
@@ -37,10 +38,13 @@ const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
 const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CURVES = "curves";
 const QString Profiler::CURVE_SELECT = "selectCurve";
+const QString Profiler::GEN_MODE = "genMode";
+const QString Profiler::IMAGES = "images";
 const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
+const QString Profiler::REGIONS = "regions";
 
 
 class Profiler::Factory : public Carta::State::CartaObjectFactory {
@@ -55,6 +59,7 @@ bool Profiler::m_registered =
 
 SpectralUnits* Profiler::m_spectralUnits = nullptr;
 IntensityUnits* Profiler::m_intensityUnits = nullptr;
+GenerateModes* Profiler::m_generateModes = nullptr;
 
 
 QList<QColor> Profiler::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
@@ -105,11 +110,12 @@ QString Profiler::addLink( CartaObject*  target){
         if ( !m_controllerLinked ){
             linkAdded = m_linkImpl->addLink( controller );
             if ( linkAdded ){
-                connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_generateProfile(Controller*)));
+                connect(controller, SIGNAL(dataChanged(Controller*)),
+                        this , SLOT(_loadProfile(Controller*)));
                 connect(controller, SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
                         this, SLOT( _updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
                 m_controllerLinked = true;
-                _generateProfile( controller );
+                _loadProfile( controller);
             }
         }
         else {
@@ -160,6 +166,41 @@ void Profiler::_assignColor( std::shared_ptr<CurveData> curveData ){
         curveData->setColor( randomColor.name());
     }
 }
+
+
+void Profiler::_assignCurveName( std::shared_ptr<CurveData>& profileCurve ) const {
+    QString name = profileCurve->getName();
+    QString curveName = name;
+    if ( name.trimmed().length() == 0 ){
+        curveName = profileCurve->getNameImage();
+        QString regionName = profileCurve->getNameRegion();
+        if ( regionName.length() > 0 ){
+            curveName = curveName + "(" + regionName + ")";
+        }
+    }
+
+    //Make sure the name is unique among all the curves we have listed.
+    int curveCount = m_plotCurves.size();
+    bool duplicate = false;
+    QString checkName = curveName;
+    int iter = 1;
+    do {
+        duplicate = false;
+        for ( int i = 0; i < curveCount; i++ ){
+            QString cName = m_plotCurves[i]->getName();
+            if ( cName == checkName ){
+                duplicate = true;
+                break;
+            }
+        }
+        if ( duplicate ){
+            checkName = curveName + "("+QString::number(iter)+")";
+        }
+        iter++;
+    } while ( duplicate );
+    profileCurve->setName( checkName );
+}
+
 
 
 std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveData,
@@ -258,17 +299,7 @@ int Profiler::_findCurveIndex( const QString& name ) const {
 }
 
 
-void Profiler::_generateProfile(Controller* controller ){
-    Controller* activeController = controller;
-    if ( activeController == nullptr ){
-        activeController = _getControllerSelected();
-    }
-    if ( activeController ){
-        _loadProfile( activeController );
-    }
-}
-
-void Profiler::_generateData( std::shared_ptr<Layer> layer ){
+void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
     QString layerName = layer->_getLayerName();
     std::shared_ptr<Carta::Lib::Image::ImageInterface> image = layer->_getImage();
     std::vector < int > pos( image-> dims().size(), 0 );
@@ -278,12 +309,38 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer ){
 
         Carta::Lib::ProfileInfo profInfo;
         Carta::Lib::RegionInfo regionInfo;
-        qDebug() << "Calling profile hook";
         auto result = Globals::instance()-> pluginManager()
                       -> prepare <Carta::Lib::Hooks::ProfileHook>(image,
                               regionInfo, profInfo);
         auto lam = [=] ( const Carta::Lib::Hooks::ProfileHook::ResultType &data ) {
-            qDebug() << "Profile got result data count="<<data.size();
+            int dataCount = data.size();
+            if ( dataCount > 0 ){
+                std::vector<double> plotDataX( dataCount );
+                std::vector<double> plotDataY( dataCount );
+
+                for( int i = 0 ; i < dataCount; i ++ ){
+                    plotDataX[i] = i;
+                    plotDataY[i] = data[i];
+                }
+
+                int curveIndex = _findCurveIndex( layerName );
+                std::shared_ptr<CurveData> profileCurve( nullptr );
+                if ( curveIndex < 0 || createNew ){
+                    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                    profileCurve.reset( objMan->createObject<CurveData>() );
+                    profileCurve->setImageName( layerName );
+                    _assignCurveName( profileCurve );
+                    _assignColor( profileCurve );
+                    m_plotCurves.append( profileCurve );
+                    profileCurve->setSource( image );
+                    _saveCurveState();
+                }
+                else {
+                    profileCurve = m_plotCurves[curveIndex];
+                }
+                profileCurve->setData( plotDataX, plotDataY );
+                _updatePlotData();
+            }
         };
         try {
             result.forEach( lam );
@@ -292,7 +349,7 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer ){
             qDebug() << "Profiler could not get data: caught error: " << error;
         }
 
-        Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
+        /*Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
         Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
         m_leftUnit = image->getPixelUnit().toStr();
 
@@ -332,7 +389,7 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer ){
             }
         };
         connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
-        extractor-> start( path );
+        extractor-> start( path );*/
     }
 }
 
@@ -350,6 +407,32 @@ Controller* Profiler::_getControllerSelected() const {
         }
     }
     return controller;
+}
+
+
+std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode( Controller* controller) const {
+    QString generateMode = m_state.getValue<QString>( GEN_MODE );
+    std::vector<std::shared_ptr<Layer> > dataSources;
+    if ( m_generateModes->isCurrent( generateMode ) ){
+        std::shared_ptr<Layer> dataSource = controller->getLayer();
+        if ( dataSource ){
+            dataSources.push_back( dataSource );
+        }
+    }
+    else if ( m_generateModes->isAll( generateMode ) ){
+        dataSources = controller->getLayers();
+    }
+    else if ( m_generateModes->isAllExcludeSingle( generateMode ) ){
+        std::vector<std::shared_ptr<Layer> > dSources = controller->getLayers();
+        int dCount = dSources.size();
+        for ( int i = 0; i < dCount; i++ ){
+            int dim = dSources[i]->_getDimension();
+            if ( dim > 2 ){
+                dataSources.push_back( dSources[i]);
+            }
+        }
+    }
+    return dataSources;
 }
 
 
@@ -422,6 +505,8 @@ QString Profiler::_getUnitUnits( const QString& unitStr ){
 
 void Profiler::_initializeDefaultState(){
     //Data state is the curves
+    m_stateData.insertArray( IMAGES, 0 );
+    m_stateData.insertArray( REGIONS, 0 );
     m_stateData.insertArray( CURVES, 0 );
     m_stateData.insertValue<int>(CURVE_SELECT, 0 );
     m_stateData.flushState();
@@ -432,6 +517,7 @@ void Profiler::_initializeDefaultState(){
     m_plotManager->setTitleAxisX( unitType );
     m_state.insertValue<QString>( AXIS_UNITS_BOTTOM, m_bottomUnit );
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
+    m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
 
     //Legend
     bool external = true;
@@ -494,7 +580,42 @@ void Profiler::_initializeCallbacks(){
             return result;
         });
 
+    addCommandCallback( "setGenerationMode", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {"mode"};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString modeStr = dataValues[*keys.begin()];
+                QString result = setGenerateMode( modeStr );
+                Util::commandPostProcess( result );
+                return result;
+            });
 
+    addCommandCallback( "newProfile", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                QString result = profileNew();
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "copyProfile", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    std::set<QString> keys = {Util::NAME};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString nameStr = dataValues[Util::NAME];
+                    QString result = profileCopy( nameStr );
+                    Util::commandPostProcess( result );
+                    return result;
+                });
+
+    addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    std::set<QString> keys = {Util::NAME};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString nameStr = dataValues[Util::NAME];
+                    QString result = profileRemove( nameStr );
+                    Util::commandPostProcess( result );
+                    return result;
+                });
 
 
     addCommandCallback( "setCurveColor", [=] (const QString & /*cmd*/,
@@ -625,6 +746,9 @@ void Profiler::_initializeStatics(){
     if ( m_intensityUnits == nullptr ){
         m_intensityUnits = Util::findSingletonObject<IntensityUnits>();
     }
+    if ( m_generateModes == nullptr ){
+           m_generateModes = Util::findSingletonObject<GenerateModes>();
+       }
 }
 
 
@@ -638,25 +762,23 @@ bool Profiler::isLinked( const QString& linkId ) const {
 }
 
 
-
 void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
         return;
     }
-    std::vector<std::shared_ptr<Layer> > dataSources = controller->getDataSources();
-    qDebug() << "_loadProfile dataCount="<<dataSources.size();
+    _updateAvailableImages( controller );
+    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
 
-    //m_plotCurves.clear();
-    //m_plotManager->clearData();
+    m_plotManager->clearData();
 
     //Make profiles for any new data that has been loaded.
-    int dataCount = dataSources.size();
+    int dataCount = layers.size();
     for ( int i = 0; i < dataCount; i++ ) {
-        QString layerName = dataSources[i]->_getLayerName();
+        QString layerName = layers[i]->_getLayerName();
         int curveCount = m_plotCurves.size();
         int profileIndex = -1;
         for ( int j = 0; j < curveCount; j++ ){
-            QString imageName = m_plotCurves[j]->getImageName();
+            QString imageName = m_plotCurves[j]->getNameImage();
             if ( imageName == layerName ){
                 profileIndex = j;
                 break;
@@ -664,7 +786,7 @@ void Profiler::_loadProfile( Controller* controller ){
         }
 
         if ( profileIndex < 0 ){
-            _generateData( dataSources[i]);
+            _generateData( layers[i]);
         }
     }
 
@@ -672,10 +794,10 @@ void Profiler::_loadProfile( Controller* controller ){
     int curveCount = m_plotCurves.size();
     QList<int> removeIndices;
     for ( int i = 0; i < curveCount; i++ ){
-        QString imageName = m_plotCurves[i]->getImageName();
+        QString imageName = m_plotCurves[i]->getNameImage();
         bool layerFound = false;
         for ( int j = 0; j < dataCount; j++ ){
-            QString layerName = dataSources[j]->_getLayerName();
+            QString layerName = layers[j]->_getLayerName();
             if ( layerName == imageName ){
                 layerFound = true;
                 break;
@@ -719,6 +841,55 @@ void Profiler::_movieFrame(){
             }
         }
     }
+}
+
+QString Profiler::profileNew(){
+    QString result;
+    Controller* controller = _getControllerSelected();
+    if ( controller){
+        std::shared_ptr<Layer> layer = controller->getLayer();
+        _generateData( layer, true );
+    }
+    else {
+        result = "Could not generate a profile - no linked images.";
+    }
+    return result;
+}
+
+QString Profiler::profileCopy( const QString& baseName ){
+    QString result;
+    int curveIndex = _findCurveIndex( baseName );
+    if ( curveIndex >= 0 ){
+        //Create a new plot curve, and copy data.
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        std::shared_ptr<CurveData> profileCurve( objMan->createObject<CurveData>() );
+        profileCurve->copy( m_plotCurves[curveIndex]);
+        _assignCurveName( profileCurve );
+        m_plotCurves.append( profileCurve );
+        _saveCurveState();
+        _updatePlotData();
+    }
+    else {
+        result = "Could not find the profile "+baseName+" to copy.";
+    }
+    return result;
+}
+
+QString Profiler::profileRemove( const QString& name ){
+    QString result;
+    int curveIndex = _findCurveIndex( name );
+    if ( curveIndex >= 0 ){
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        objMan->removeObject( m_plotCurves[curveIndex]->getId());
+        m_plotCurves.removeAt( curveIndex );
+        m_plotManager->removeData( name );
+        _saveCurveState();
+        _updatePlotData();
+    }
+    else {
+        result = "Could not find profile curve "+name+" to remove.";
+    }
+    return result;
 }
 
 
@@ -856,6 +1027,22 @@ QString Profiler::setCurveName( const QString& id, const QString& newName ){
     return result;
 }
 
+QString Profiler::setGenerateMode( const QString& modeStr ){
+    QString result;
+    QString actualMode = m_generateModes->getActualMode( modeStr );
+    if ( !actualMode.isEmpty() ){
+        QString oldMode = m_state.getValue<QString>( GEN_MODE );
+        if ( actualMode != oldMode ){
+            m_state.setValue<QString>( GEN_MODE, actualMode);
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Unrecognized profile generation mode: "+modeStr;
+    }
+    return result;
+}
+
 
 QString Profiler::setLineStyle( const QString& name, const QString& lineStyle ){
     QString result;
@@ -962,6 +1149,19 @@ void Profiler::timerEvent( QTimerEvent* /*event*/ ){
             m_timerId = 0;
         }
     }
+}
+
+
+void Profiler::_updateAvailableImages( Controller* controller ){
+    std::vector<std::shared_ptr<Layer> > dataSources = controller->getLayers();
+    int dCount = dataSources.size();
+    m_stateData.resizeArray( IMAGES, dCount );
+    for ( int i = 0; i < dCount; i++ ){
+        QString layerName = dataSources[i]->_getLayerName();
+        QString lookup = Carta::State::UtilState::getLookup( IMAGES, i );
+        m_stateData.setValue( lookup, layerName );
+    }
+    m_stateData.flushState();
 }
 
 

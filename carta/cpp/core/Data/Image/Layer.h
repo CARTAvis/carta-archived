@@ -175,6 +175,7 @@ protected:
      */
     virtual std::shared_ptr<DataSource> _getDataSource() = 0;
 
+
     /**
      * Return the image size for the given coordinate index.
      * @param coordIndex an index of a coordinate of the image.
@@ -224,7 +225,6 @@ protected:
      */
     virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const = 0;
 
-
     /**
      * Returns the intensity corresponding to a given percentile.
      * @param frameLow a lower bound for the image frames or -1 if there is no lower bound.
@@ -234,6 +234,18 @@ protected:
      * @return true if the computed intensity is valid; otherwise false.
      */
     virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const = 0;
+
+    /**
+     * Return the current layer.
+     * @return - the current layer.
+     */
+    virtual std::shared_ptr<Layer> _getLayer();
+
+    /**
+     * Return all layers containing images.
+     * @return - all layers containing images.
+     */
+    virtual std::vector<std::shared_ptr<Layer> > _getLayers();
 
     /**
      * Returns an identifier for the layer.

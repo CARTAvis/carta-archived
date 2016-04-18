@@ -120,6 +120,12 @@ public:
     bool isSelectionOnCanvas( int xPos ) const;
 
     /**
+     * Remove a set of data form the plot.
+     * @param dataName - an identifier for the data set to remove.
+     */
+    void removeData( const QString& dataName );
+
+    /**
      * Set the range of values for the x-axis.
      * @param min - the smallest desired x-axis value.
      * @param max - the largest desired x-axis value.

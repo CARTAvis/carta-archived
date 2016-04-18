@@ -198,7 +198,13 @@ double Plot2DGenerator::getVLinePosition( bool* valid ) const {
     return pos;
 }
 
-
+void Plot2DGenerator::removeData( const QString& dataName ){
+    std::shared_ptr<Plot2D> pData = _findData( dataName );
+    if ( pData ){
+        pData->detachFromPlot();
+        m_datas.removeOne( pData );
+    }
+}
 
 void Plot2DGenerator::setAxisXRange( double min, double max ){
     m_plot->setAxisScale( QwtPlot::xBottom, min, max );

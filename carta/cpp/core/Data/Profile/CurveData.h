@@ -31,16 +31,23 @@ friend class Profiler;
 public:
 
     /**
+     * Copy the state of the other curve into this one.
+     * @param other - the curve whose state should be copied.
+     */
+    void copy( const std::shared_ptr<CurveData> & other );
+
+    /**
      * Return the color to use in plotting the points of the curve.
      * @return - the color to use in plotting the points of the curve.
      */
     QColor getColor() const;
 
     /**
-     * Return the name of the image used to generate the profile curve.
-     * @return - the name of the image used to generate the profile curve.
+     * Return an identifier for the style to use in drawing lines.
+     * @return - an identifier for the style used to draw lines.
      */
-    QString getImageName() const;
+    QString getLineStyle() const;
+
 
     /**
      * Return an identifier for the curve.
@@ -49,10 +56,34 @@ public:
     QString getName() const;
 
     /**
+     * Return the name of the image used to generate the profile curve.
+     * @return - the name of the image used to generate the profile curve.
+     */
+    QString getNameImage() const;
+
+    /**
+     * Return the name of the region used to generate the profile curve.
+     * @return - the name of the region used to generate the profile curve.
+     */
+    QString getNameRegion() const;
+
+    /**
+     * Return the rest frequency used for the profile.
+     * @return - the rest frequency used for the profile.
+     */
+    double getRestFrequency() const;
+
+    /**
      * Return the internal state of the curve as a string.
      * @return - the curve state.
      */
     QString getStateString() const;
+
+    /**
+     * Return the statistic used to summarize profiles.
+     * @return - the statistic used to summarize profiles.
+     */
+    QString getStatistic() const;
 
     /**
      * Return the image used to generate the curve.

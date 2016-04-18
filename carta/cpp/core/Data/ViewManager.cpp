@@ -27,6 +27,7 @@
 #include "Data/Profile/IntensityUnits.h"
 #include "Data/Profile/Profiler.h"
 #include "Data/Profile/ProfileStatistics.h"
+#include "Data/Profile/GenerateModes.h"
 #include "Data/Profile/SpectralUnits.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics/Statistics.h"
@@ -93,6 +94,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<IntensityUnits>();
     Util::findSingletonObject<LineStyles>();
     Util::findSingletonObject<ProfileStatistics>();
+    Util::findSingletonObject<GenerateModes>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();

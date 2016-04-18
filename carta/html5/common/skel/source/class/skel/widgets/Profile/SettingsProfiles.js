@@ -9,6 +9,7 @@
 qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
     extend : qx.ui.tabview.Page,
 
+
     /**
      * Constructor.
      */
@@ -26,6 +27,11 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
              this.m_sharedVarStats = this.m_connector.getSharedVar(path.PROFILE_STATISTICS);
              this.m_sharedVarStats.addCB(this._statsChangedCB.bind(this));
              this._statsChangedCB();
+             
+             //Generate modes
+             this.m_sharedVarModes = this.m_connector.getSharedVar(path.PROFILE_GEN_MODES);
+             this.m_sharedVarModes.addCB(this._genModesChangedCB.bind(this));
+             this._genModesChangedCB();
          }
     },
 
@@ -40,13 +46,13 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             if ( typeof curveUpdate.curves != "undefined"){
                 this.m_curveInfo = curveUpdate.curves;
                 this._updateCurveNames();
-                this._updateImageNames();
+                this._updateImageNames( curveUpdate );
                 var selectIndex = curveUpdate.selectCurve;
                 this._updateSelection( selectIndex );
+                this.m_genSelect.setSelectValue( curveUpdate.genMode );
             }
         },
         
-       
         
         /**
          * Initializes the UI.
@@ -55,8 +61,21 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
             
+            
             var overallContainer = new qx.ui.container.Composite();
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
+            
+            //Init generate.
+            var genContainer = new qx.ui.container.Composite();
+            genContainer.setLayout( new qx.ui.layout.HBox(1));
+            this.m_genSelect = new skel.widgets.CustomUI.SelectBox();
+            this.m_genSelect.addListener( "changeValue", this._genModeChangedCB, this );
+            var genLabel = new qx.ui.basic.Label( "Auto Generate:");
+            genContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            genContainer.add( genLabel );
+            genContainer.add( this.m_genSelect );
+            genContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            overallContainer.add( genContainer );
             
             //Custom Name
             var nameContainer = new qx.ui.container.Composite();
@@ -64,7 +83,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_nameSelect = new qx.ui.form.ComboBox();
             this.m_nameSelect.addListener( "changeValue", this._nameChangedCB, this );
             this.m_nameSelect.setToolTipText( "Specify a custom name for the profile.");
-            var nameLabel = new qx.ui.basic.Label( "Custom Name:");
+            var nameLabel = new qx.ui.basic.Label( "Name:");
             nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             nameContainer.add( nameLabel );
             nameContainer.add( this.m_nameSelect, {flex:5} );
@@ -124,8 +143,14 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             butContainer.setLayout( new qx.ui.layout.HBox(1));
             butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             this.m_addButton = new qx.ui.form.Button( "New");
+            this.m_addButton.setToolTipText( "Create a new profile using default settings.");
+            this.m_addButton.addListener( "execute", this._sendNewCmd, this );
             this.m_copyButton = new qx.ui.form.Button( "Copy");
+            this.m_copyButton.setToolTipText( "Create a new profile using the same settings as the selected profile.");
+            this.m_copyButton.addListener( "execute", this._sendCopyCmd, this );
             this.m_removeButton = new qx.ui.form.Button( "Remove");
+            this.m_removeButton.setToolTipText( "Delete the selected profile.");
+            this.m_removeButton.addListener( "execute",this._sendRemoveCmd, this );
             butContainer.add( this.m_addButton );
             butContainer.add( this.m_copyButton );
             butContainer.add( this.m_removeButton );
@@ -134,15 +159,113 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         },
         
         /**
+         * Server update when available methods of generating profiles changes.
+         */
+        _genModesChangedCB : function(){
+            if ( this.m_sharedVarModes ){
+                var val = this.m_sharedVarModes.get();
+                if ( val ){
+                    try {
+                        var obj = JSON.parse( val );
+                        var modes = obj.genModes;
+                        this.m_genSelect.setSelectItems( modes );
+                    }
+                    catch( err ){
+                        console.log( "Could not parse profile generation modes: "+val );
+                        console.log( "Err: "+err);
+                    }
+                }
+            }
+        },
+        
+        /**
+         * Callback for when the profile generation mode changes in the UI.
+         */
+        _genModeChangedCB : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var mode = this.m_genSelect.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setGenerationMode";
+                var params = "mode:"+mode;
+                this.m_connector.sendCommand( cmd, params, null );
+            }
+        },
+        
+        /**
          * Callback for when a profile name changes through the UI.
          */
         _nameChangedCB : function(){
+            //Decide if the current name matches one of the servers.
+            var existingIndex = -1;
+            var curveCount = this.m_curveInfo.length;
+            var targetName = this.m_nameSelect.getValue();
+            for ( var i = 0; i < curveCount; i++ ){
+                if ( targetName == this.m_curveInfo[i].name ){
+                    existingIndex = i;
+                    break;
+                }
+            }
+            //If it is an existing one, the user clicked the combo box
+            //and we need to update the other UI fields to match it.
+            if ( existingIndex >= 0 ){
+                this._updateSelecting( existingIndex);
+            }
+            else {
+                //If it is a new name, the user renamed the existing curve
+                //and we need to notify the server.
+                this._sendRenameCmd();
+            }
+        },
+        
+        /**
+         * Notify the server the user has renamed a profile.
+         */
+        _sendRenameCmd : function(){
             if ( this.m_id !== null && this.m_connector !== null ){
                 var newName = this.m_nameSelect.getValue();
                 var oldName = this.m_curveInfo[this.m_selectIndex].name;
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setCurveName";
                 var params = "name:"+newName+",oldName:"+oldName;
+                this.m_connector.sendCommand( cmd, params, null );
+            }
+        },
+        
+        /**
+         * Send a command to the server to generate a new profile.
+         */
+        _sendNewCmd : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "newProfile";
+                var params = "";
+                this.m_connector.sendCommand( cmd, params, null );
+            }
+        },
+        
+        /**
+         * Send a command to the server to generate a new profile
+         * based on a copy of the current profile.
+         */
+        _sendCopyCmd : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var newName = this.m_nameSelect.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "copyProfile";
+                var params = "name:"+newName;
+                this.m_connector.sendCommand( cmd, params, null );
+            }
+        },
+        
+        /**
+         * Send a command to the server to remove the current profile.
+         */
+        _sendRemoveCmd : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var newName = this.m_nameSelect.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "removeProfile";
+                var params = "name:"+newName;
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
@@ -157,7 +280,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         },
         
         /**
-         * Server update when profile curves have changed.
+         * Server update when available methods of generating profiles changes.
          */
         _statsChangedCB : function(){
             if ( this.m_sharedVarStats ){
@@ -211,14 +334,8 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
          * Update the names of the images used to generate profile curves based
          * on server information.
          */
-        _updateImageNames : function(){
-            var nameCount = this.m_curveInfo.length;
-            var imageNames = [];
-            for ( var i = 0; i < nameCount; i++ ){
-                var imageName = this.m_curveInfo[i].image;
-                imageNames.push( imageName );
-            }
-            this.m_imageSelect.setSelectItems( imageNames );
+        _updateImageNames : function( data){
+            this.m_imageSelect.setSelectItems( data.images );
         },
         
         /**
@@ -249,12 +366,14 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         m_copyButton : null,
         m_removeButton : null,
         m_imageSelect : null,
+        m_genSelect : null,
         m_nameSelect : null,
         m_regionSelect : null,
         m_restFreqText : null,
         m_statSelect : null,
         m_connector : null,
         m_sharedVarStats : null,
+        m_sharedVarModes : null,
         m_curveInfo : null
     }
 });

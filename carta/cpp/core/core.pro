@@ -89,6 +89,7 @@ HEADERS += \
     Data/Profile/Profiler.h \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/SpectralUnits.h \
+    Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -208,6 +209,7 @@ SOURCES += \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/SpectralUnits.cpp \
+    Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \

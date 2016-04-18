@@ -231,6 +231,13 @@ void Plot2DManager::_refreshView(){
 }
 
 
+void Plot2DManager::removeData( const QString& dataName ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->removeData( dataName );
+    }
+}
+
+
 QString Plot2DManager::savePlot( const QString& fileName ){
     QString result = "";
     //Check and make sure the directory exists.

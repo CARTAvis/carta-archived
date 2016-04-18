@@ -39,6 +39,26 @@ CurveData::CurveData( const QString& path, const QString& id):
     _initializeDefaultState();
 }
 
+void CurveData::copy( const std::shared_ptr<CurveData> & other ){
+    if ( other ){
+        m_plotDataX = other->m_plotDataX;
+        m_plotDataY = other->m_plotDataY;
+        m_region = other->m_region;
+        m_imageSource = other->m_imageSource;
+
+        m_state.setValue<QString>( Util::NAME, other->getName());
+        QColor otherColor = other->getColor();
+        m_state.setValue<int>( Util::RED, otherColor.red() );
+        m_state.setValue<int>( Util::GREEN, otherColor.green() );
+        m_state.setValue<int>( Util::BLUE, otherColor.blue() );
+        m_state.setValue<QString>( STYLE, other->getLineStyle() );
+        m_state.setValue<QString>( STATISTIC, other->getStatistic());
+        m_state.setValue<double>(REST_FREQUENCY, other->getRestFrequency() );
+        m_state.setValue<QString>(IMAGE_NAME, other->getNameImage());
+        m_state.setValue<QString>(REGION_NAME, other->getNameRegion());
+    }
+}
+
 QColor CurveData::getColor() const {
     int red = m_state.getValue<int>( Util::RED );
     int green = m_state.getValue<int>( Util::GREEN );
@@ -46,12 +66,29 @@ QColor CurveData::getColor() const {
     return QColor( red, green, blue );
 }
 
-QString CurveData::getImageName() const {
-    return m_state.getValue<QString>( IMAGE_NAME );
+
+QString CurveData::getLineStyle() const {
+    return m_state.getValue<QString>( STYLE );
 }
+
 
 QString CurveData::getName() const {
     return m_state.getValue<QString>( Util::NAME );
+}
+
+
+QString CurveData::getNameImage() const {
+    return m_state.getValue<QString>( IMAGE_NAME );
+}
+
+
+QString CurveData::getNameRegion() const {
+    return m_state.getValue<QString>( REGION_NAME );
+}
+
+
+double CurveData::getRestFrequency() const {
+    return m_state.getValue<double>( REST_FREQUENCY );
 }
 
 
@@ -61,6 +98,10 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> CurveData::getSource() const 
 
 QString CurveData::getStateString() const{
     return m_state.toString();
+}
+
+QString CurveData::getStatistic() const {
+    return m_state.getValue<QString>( STATISTIC );
 }
 
 std::vector<double> CurveData::getValuesX() const {
@@ -141,15 +182,6 @@ QString CurveData::setImageName( const QString& imageName ){
         QString oldImageName = m_state.getValue<QString>(IMAGE_NAME );
         if ( oldImageName != imageName ){
             m_state.setValue<QString>(IMAGE_NAME, imageName );
-            if ( m_state.getValue<QString>( Util::NAME).length() == 0 ){
-                QString regionName = m_state.getValue<QString>(REGION_NAME );
-
-                QString defaultName = imageName;
-                if ( regionName.length() > 0 ){
-                    defaultName = defaultName + "("+regionName+")";
-                }
-                m_state.setValue<QString>( Util::NAME, defaultName );
-            }
         }
     }
     else {

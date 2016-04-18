@@ -37,6 +37,7 @@ namespace Data {
 class Plot2DManager;
 class Controller;
 class CurveData;
+class GenerateModes;
 class IntensityUnits;
 class LegendLocations;
 class LinkableImpl;
@@ -56,6 +57,8 @@ public:
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
 
+
+
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
@@ -64,6 +67,29 @@ public:
      * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Generate a new profile based on default settings.
+     * @return - an error message if the new profile could not be generated; an empty
+     *      string otherwise.
+     */
+    QString profileNew();
+
+    /**
+     * Generate a new profile based on the given profile.
+     * @param baseName - an identifier for the profile to copy.
+     * @return - an error message if a copy of the given profile could not be
+     *      generated; an empty string otherwise.
+     */
+    QString profileCopy( const QString& baseName );
+
+    /**
+     * Delete the indicated profile.
+     * @param name - an identifier for the profile to delete.
+     * @return - an error message if the indicated profile could not be removed;
+     *      an empty string otherwise.
+     */
+    QString profileRemove( const QString& name );
 
 
     virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
@@ -101,6 +127,14 @@ public:
      * @param newName - the new name of the curve.
      */
     QString setCurveName( const QString& id, const QString& newName );
+
+    /**
+     * Set which if any profiles should be automatically generated.
+     * @param modeStr - an identifier for a profile generate mode.
+     * @return - an error message if the profile generate mode was not recognized
+     *      or could not be set.
+     */
+    QString setGenerateMode( const QString& modeStr );
 
     /**
      * Set the drawing style for the Profiler (outline, filled, etc).
@@ -154,7 +188,7 @@ protected:
 
 private slots:
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
-    void _generateProfile( Controller* controller = nullptr );
+    void _loadProfile( Controller* controller);
     void _movieFrame();
 
 private:
@@ -162,14 +196,18 @@ private:
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
     const static QString CURVE_SELECT;
+    const static QString GEN_MODE;
+    const static QString IMAGES;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
+    const static QString REGIONS;
     const static QString TAB_INDEX;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
+    void _assignCurveName( std::shared_ptr<CurveData>& profileCurve ) const;
 
     //Convert axis units.
     void _convertX( std::vector<double>& converted,
@@ -179,9 +217,10 @@ private:
             const QString& newUnit = QString() ) const;
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
 
-    void _generateData( std::shared_ptr<Layer> layer );
+    void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
 
     Controller* _getControllerSelected() const;
+    std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
     QString _getLegendLocationsId() const;
     /**
@@ -196,10 +235,10 @@ private:
     void _initializeCallbacks();
     void _initializeStatics();
 
-    void _loadProfile( Controller* controller);
-
     void _saveCurveState();
     void _saveCurveState( int index );
+
+    void _updateAvailableImages( Controller* controller );
 
     //Notify the plot to redraw.
     void _updatePlotData();
@@ -245,6 +284,7 @@ private:
 
     static SpectralUnits* m_spectralUnits;
     static IntensityUnits* m_intensityUnits;
+    static GenerateModes* m_generateModes;
 
 
     static QList<QColor> m_curveColors;

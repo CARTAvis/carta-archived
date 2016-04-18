@@ -398,26 +398,6 @@ std::shared_ptr<DataSource> LayerGroup::_getDataSource(){
     return dSource;
 }
 
-std::vector< std::shared_ptr<Layer> > LayerGroup::_getDataSources() {
-    std::vector< std::shared_ptr<Layer> > dataSources;
-    int dataCount = m_children.size();
-    //Return the images in stack order.
-    int startIndex = _getIndexCurrent();
-    for ( int i = 0; i < dataCount; i++ ){
-        int dIndex = (startIndex + i) % dataCount;
-        if ( m_children[dIndex]->_isVisible() && m_children[dIndex]->_isComposite()){
-            LayerGroup* group = dynamic_cast<LayerGroup*>( m_children[dIndex].get() );
-            std::vector< std::shared_ptr<Layer> > childSources = group->_getDataSources();
-            for ( std::shared_ptr<Layer> dSource : childSources ){
-                dataSources.push_back( dSource );
-            }
-        }
-        else {
-            dataSources.push_back( m_children[dIndex] );
-        }
-    }
-    return dataSources;
-}
 
 std::vector<int> LayerGroup::_getImageDimensions( ) const {
     std::vector<int> result;
@@ -480,6 +460,38 @@ bool LayerGroup::_getIntensity( int frameLow, int frameHigh, double percentile, 
         intensityFound = m_children[dataIndex]->_getIntensity( frameLow, frameHigh, percentile, intensity );
     }
     return intensityFound;
+}
+
+std::shared_ptr<Layer> LayerGroup::_getLayer(){
+    std::shared_ptr<Layer> layer(nullptr);
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        if ( !m_children[dataIndex]->_isComposite() ){
+            layer = m_children[dataIndex];
+        }
+        else {
+            layer = m_children[dataIndex]->_getLayer();
+        }
+    }
+    return layer;
+}
+
+std::vector<std::shared_ptr<Layer> > LayerGroup::_getLayers(){
+    std::vector<std::shared_ptr<Layer> > layers;
+    int dataCount = m_children.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( !m_children[i]->_isComposite() ){
+            layers.push_back( m_children[i] );
+        }
+        else {
+            std::vector<std::shared_ptr<Layer> > childLayers = m_children[i]->_getLayers();
+            int childCount = childLayers.size();
+            for ( int j = 0; j < childCount; j++ ){
+                layers.push_back( childLayers[j] );
+            }
+        }
+    }
+    return layers;
 }
 
 QStringList LayerGroup::_getLayerIds( ) const {

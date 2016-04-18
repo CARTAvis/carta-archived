@@ -128,6 +128,12 @@ public:
     double getVLinePosition( bool* valid ) const;
 
     /**
+     * Remove a profile from the list.
+     * @param dataName - the profile to remove.
+     */
+    void removeData( const QString& dataName );
+
+    /**
      * Save a copy of the plot as an image.
      * @param filename the full path where the file is to be saved.
      * @return an error message if there was a problem saving the Plot2DManager;

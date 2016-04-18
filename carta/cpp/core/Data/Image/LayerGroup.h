@@ -143,7 +143,6 @@ protected:
      * @return - the data source of the image.
      */
     virtual std::shared_ptr<DataSource> _getDataSource() Q_DECL_OVERRIDE;
-    virtual std::vector< std::shared_ptr<Layer> > _getDataSources();
 
     /**
      * Return the image size for the given coordinate index.
@@ -202,6 +201,19 @@ protected:
      * @return true if the computed intensity is valid; otherwise false.
      */
     virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Return the current layer.
+     * @return - the current layer.
+     */
+    virtual std::shared_ptr<Layer> _getLayer() Q_DECL_OVERRIDE;
+
+    /**
+     * Return all layers containing images.
+     * @return - all layers containing images.
+     */
+    virtual std::vector<std::shared_ptr<Layer> > _getLayers() Q_DECL_OVERRIDE;
+
 
     /**
      * Returns the identifier for this layer and its children.

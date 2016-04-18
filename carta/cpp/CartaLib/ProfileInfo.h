@@ -19,22 +19,42 @@ public:
         OTHER
     };
 
+    /**
+     * Constructor.
+     */
+    ProfileInfo();
+
+    /**
+     * Return the method to be used for aggregating data.
+     * @return - the method used for aggregating data.
+     */
     AggregateType getAggregateType() const;
 
-    /// set the aggregate type
-    ProfileInfo & setAggregateType( const AggregateType & knownType );
+    /**
+     * Return the rest frequency used in generating the profile.
+     * @return - the rest frequency used in generating the profile.
+     */
+    double getRestFrequency() const;
 
+    /**
+     * Return the rest frequency unit.
+     * @return - the rest frequency unit.
+     */
+    QString getRestUnit() const;
 
-    QString unit() const { return m_unit; }
+    /**
+     * Set the method used for aggregating data.
+     * @param aggType - the method used for aggregating data.
+     */
+    ProfileInfo & setAggregateType( const AggregateType & aggType );
 
-    ProfileInfo & setUnit( const QString & unit );
+    virtual ~ProfileInfo();
 
 protected:
-    QString m_unit;
     AggregateType m_aggregateType = AggregateType::OTHER;
+    double m_restFrequency;
+    QString m_restUnit;
 };
-
-
 
 } // namespace Lib
 } // namespace Carta

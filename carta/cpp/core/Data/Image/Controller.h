@@ -158,10 +158,16 @@ public:
     std::shared_ptr<DataSource> getDataSource();
 
     /**
-     * Return all data sources.
-     * @return - the list of all visible data sources.
+     * Return the current layer.
+     * @return - the current layer.
      */
-    std::vector< std::shared_ptr<Layer> > getDataSources();
+    std::shared_ptr<Layer> getLayer();
+
+    /**
+     * Return all layers containing images.
+     * @return - a list of all layers containing images.
+     */
+    std::vector< std::shared_ptr<Layer> > getLayers();
 
     /**
      * Return a shared pointer to the contour controls.
