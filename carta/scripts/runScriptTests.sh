@@ -28,7 +28,7 @@ try py.test -v test_cartavis.py::test_isEmpty
 try py.test -v test_cartavis.py::test_removeLink
 #try py.test -v test_cartavis.py::test_saveFullImage
 try py.test -v test_cartavis.py::test_setAnalysisLayout
-try py.test -v test_cartavis.py::test_setCPPColormap
+#try py.test -v test_cartavis.py::test_setCPPColormap
 try py.test -v test_cartavis.py::test_setColorMix
 try py.test -v test_cartavis.py::test_setCustomLayout
 try py.test -v test_cartavis.py::test_setDataTransform
