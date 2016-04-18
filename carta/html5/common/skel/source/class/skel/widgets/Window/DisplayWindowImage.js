@@ -203,7 +203,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var path = skel.widgets.Path.getInstance();
             if (pluginId == path.ANIMATOR || /*pluginId == this.m_pluginId ||*/
                     pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN || 
-                    pluginId == path.STATISTICS ) {
+                    pluginId == path.STATISTICS || pluginId == path.PROFILE ) {
                 linkable = true;
             }
             return linkable;

@@ -344,19 +344,21 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
          */
         _updateSelection : function( selectIndex ){
             this.m_selectIndex = selectIndex;
-            var name = this.m_curveInfo[selectIndex].name;
-            if ( this.m_nameSelect.getValue() != name ){
-                this.m_nameSelect.setValue( name );
-            }
-            var imageName = this.m_curveInfo[selectIndex].image;
-            if ( imageName != this.m_imageSelect.getValue() ){
-                this.m_imageSelect.setSelectValue( imageName );
-            }
-            var restFreq = Number(this.m_curveInfo[selectIndex].restFrequency);
-            this.m_restFreqText.setValue( restFreq );
-            var statName = this.m_curveInfo[selectIndex].stat;
-            if ( statName != this.m_statSelect.getValue() ){
-                this.m_statSelect.setSelectValue( statName );
+            if ( 0 <= selectIndex && selectIndex < this.m_curveInfo.length ){
+                var name = this.m_curveInfo[selectIndex].name;
+                if ( this.m_nameSelect.getValue() != name ){
+                    this.m_nameSelect.setValue( name );
+                }
+                var imageName = this.m_curveInfo[selectIndex].image;
+                if ( imageName != this.m_imageSelect.getValue() ){
+                    this.m_imageSelect.setSelectValue( imageName );
+                }
+                var restFreq = Number(this.m_curveInfo[selectIndex].restFrequency);
+                this.m_restFreqText.setValue( restFreq );
+                var statName = this.m_curveInfo[selectIndex].stat;
+                if ( statName != this.m_statSelect.getValue() ){
+                    this.m_statSelect.setSelectValue( statName );
+                }
             }
         },
         

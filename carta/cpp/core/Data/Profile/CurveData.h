@@ -24,6 +24,7 @@ namespace Data {
 
 class LineStyles;
 class ProfileStatistics;
+class ProfilePlotStyles;
 class Region;
 
 class CurveData : public Carta::State::CartaObject {
@@ -144,6 +145,8 @@ public:
      */
     QString setName( const QString& curveName );
 
+    QString setPlotStyle( const QString& plotStyle );
+
     /**
      * Set the image that was used to generate the curve.
      * @param imageSource - the image that was used to generate the curve.
@@ -157,6 +160,7 @@ private:
 
     const static QString COLOR;
     const static QString STYLE;
+    const static QString PLOT_STYLE;
     const static QString STATISTIC;
     const static QString REGION_NAME;
     const static QString IMAGE_NAME;
@@ -170,6 +174,7 @@ private:
     static bool m_registered;
     static LineStyles* m_lineStyles;
     static ProfileStatistics* m_stats;
+    static ProfilePlotStyles* m_plotStyles;
 
     CurveData( const QString& path, const QString& id );
     class Factory;

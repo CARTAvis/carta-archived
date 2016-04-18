@@ -27,6 +27,7 @@ qx.Class.define("skel.widgets.Path", {
         this.LINE_STYLES = this.BASE_PATH + "LineStyles";
         this.MOUSE_X = this.BASE_PATH + this.MOUSE + this.SEP + "x" + this.SEP;
         this.MOUSE_Y = this.BASE_PATH + this.MOUSE + this.SEP + "y" + this.SEP;
+        this.PLOT_STYLES = this.BASE_PATH + "ProfilePlotStyles";
         this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.PREFERENCES_SAVE = this.BASE_PATH + "PreferencesSave";
         this.PROFILE_GEN_MODES = this.BASE_PATH + "GenerateModes";
@@ -91,6 +92,7 @@ qx.Class.define("skel.widgets.Path", {
         MOUSE_X : "",
         MOUSE_Y : "",
         PLUGINS : "ViewPlugins",
+        PLOT_STYLES : "",
         PREFERENCES : "",
         PREFERENCES_SAVE : "",
         PROFILE : "Profiler",

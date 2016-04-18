@@ -2,6 +2,7 @@
 #include "Data/Util.h"
 #include "Data/Plotter/LineStyles.h"
 #include "Data/Profile/ProfileStatistics.h"
+#include "Data/Profile/ProfilePlotStyles.h"
 #include "State/UtilState.h"
 #include <QDebug>
 
@@ -11,6 +12,7 @@ namespace Data {
 
 const QString CurveData::CLASS_NAME = "CurveData";
 const QString CurveData::COLOR = "color";
+const QString CurveData::PLOT_STYLE = "plotStyle";
 const QString CurveData::STYLE = "style";
 const QString CurveData::STATISTIC = "stat";
 const QString CurveData::REGION_NAME = "region";
@@ -29,6 +31,7 @@ bool CurveData::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new CurveData::Factory());
 LineStyles* CurveData::m_lineStyles = nullptr;
 ProfileStatistics* CurveData::m_stats = nullptr;
+ProfilePlotStyles* CurveData::m_plotStyles = nullptr;
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
@@ -121,6 +124,8 @@ void CurveData::_initializeDefaultState(){
 
     QString defaultLineStyle = m_lineStyles->getDefault();
     m_state.insertValue<QString>( STYLE, defaultLineStyle );
+    QString defaultPlotStyle = m_plotStyles->getDefault();
+    m_state.insertValue<QString>( PLOT_STYLE, defaultPlotStyle );
 
     m_state.insertValue<QString>( STATISTIC, m_stats->getDefault());
     m_state.insertValue<double>(REST_FREQUENCY, 0 );
@@ -135,6 +140,9 @@ void CurveData::_initializeStatics(){
     }
     if ( m_stats == nullptr ){
         m_stats = Util::findSingletonObject<ProfileStatistics>();
+    }
+    if ( m_plotStyles == nullptr ){
+        m_plotStyles = Util::findSingletonObject<ProfilePlotStyles>();
     }
 }
 
@@ -201,6 +209,21 @@ QString CurveData::setName( const QString& curveName ){
     }
     else {
         result = "Please specify a non-blank name for the curve.";
+    }
+    return result;
+}
+
+QString CurveData::setPlotStyle( const QString& plotStyle ){
+    QString result;
+    QString oldStyle = m_state.getValue<QString>( PLOT_STYLE );
+    QString actualStyle = m_plotStyles->getActualStyle( plotStyle );
+    if ( !actualStyle.isEmpty() ){
+        if ( actualStyle != oldStyle ){
+            m_state.setValue<QString>( PLOT_STYLE, actualStyle );
+        }
+    }
+    else {
+        result = "Unrecognized plot style: " + plotStyle;
     }
     return result;
 }

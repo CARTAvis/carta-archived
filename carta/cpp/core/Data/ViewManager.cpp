@@ -21,9 +21,10 @@
 #include "Data/Layout/Layout.h"
 #include "Data/Layout/NodeFactory.h"
 #include "Data/Plotter/LineStyles.h"
-#include "Data/Plotter/PlotStyles.h"
+#include "Data/Histogram/PlotStyles.h"
 #include "Data/Preferences/Preferences.h"
 #include "Data/Preferences/PreferencesSave.h"
+#include "Data/Profile/ProfilePlotStyles.h"
 #include "Data/Profile/IntensityUnits.h"
 #include "Data/Profile/Profiler.h"
 #include "Data/Profile/ProfileStatistics.h"
@@ -80,6 +81,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<TransformsImage>();
     Util::findSingletonObject<ErrorManager>();
     Util::findSingletonObject<LabelFormats>();
+    Util::findSingletonObject<ProfilePlotStyles>();
     Util::findSingletonObject<Preferences>();
     Util::findSingletonObject<PreferencesSave>();
     Util::findSingletonObject<ChannelUnits>();
@@ -90,6 +92,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<ContourStyles>();
     Util::findSingletonObject<LayerCompositionModes>();
     Util::findSingletonObject<PlotStyles>();
+
     Util::findSingletonObject<SpectralUnits>();
     Util::findSingletonObject<IntensityUnits>();
     Util::findSingletonObject<LineStyles>();

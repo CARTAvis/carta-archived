@@ -359,7 +359,7 @@ protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
-    void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
+    void  _generateHistogram( Controller* controller=nullptr);
     void _createHistogram( Controller* );
 
     //Notification that new histogram data has been produced.

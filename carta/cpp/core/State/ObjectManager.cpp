@@ -24,7 +24,8 @@ QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "CoordinateSystems","DataLoader","ErrorManager",
         "GenerateModes","Fonts","IntensityUnits",
         "LabelFormats","Layout","LayerCompositionModes","LineStyles",
-         "PlotStyles","Preferences", "PreferencesSave","ProfileStatistics",
+         "PlotStyles", "ProfilePlotStyles",
+         "Preferences", "PreferencesSave","ProfileStatistics",
          "SpectralUnits", "TransformsImage","TransformsData",
          "Themes","ViewManager"};
 

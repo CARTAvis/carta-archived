@@ -38,6 +38,7 @@ HEADERS += \
     Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
+    Data/Histogram/PlotStyles.h \
     Data/Histogram/HistogramRenderService.h \
     Data/Histogram/HistogramRenderThread.h \
     Data/Histogram/HistogramRenderWorker.h \
@@ -79,7 +80,6 @@ HEADERS += \
     Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
     Data/Plotter/Plot2DManager.h \
-    Data/Plotter/PlotStyles.h \
     Data/Plotter/LineStyles.h \
     Data/Plotter/LegendLocations.h \
     Data/Preferences/Preferences.h \
@@ -87,6 +87,7 @@ HEADERS += \
     Data/Profile/CurveData.h \
     Data/Profile/IntensityUnits.h \
     Data/Profile/Profiler.h \
+    Data/Profile/ProfilePlotStyles.h \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/SpectralUnits.h \
     Data/Profile/GenerateModes.h \
@@ -191,6 +192,7 @@ SOURCES += \
     Data/Histogram/HistogramRenderService.cpp \
     Data/Histogram/HistogramRenderThread.cpp \
     Data/Histogram/HistogramRenderWorker.cpp \
+    Data/Histogram/PlotStyles.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/Layout/Layout.cpp \
@@ -200,13 +202,13 @@ SOURCES += \
     Data/Layout/NodeFactory.cpp \
     Data/Plotter/Plot2DManager.cpp \
     Data/Plotter/LegendLocations.cpp \
-    Data/Plotter/PlotStyles.cpp \
     Data/Plotter/LineStyles.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
     Data/Profile/IntensityUnits.cpp \
     Data/Profile/Profiler.cpp \
+    Data/Profile/ProfilePlotStyles.cpp \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/SpectralUnits.cpp \
     Data/Profile/GenerateModes.cpp \

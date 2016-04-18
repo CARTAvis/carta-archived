@@ -1,6 +1,6 @@
 #include "Plot2D.h"
 #include "Data/Plotter/LineStyles.h"
-#include "Data/Plotter/PlotStyles.h"
+#include "Data/Histogram/PlotStyles.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <QDebug>
 
@@ -46,6 +46,8 @@ void Plot2D::setColored( bool colored ){
 void Plot2D::setDrawStyle( const QString& style ){
     m_drawStyle = style;
 }
+
+
 
 void Plot2D::setLegendLine( bool /*showLegendLine*/ ){
 

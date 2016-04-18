@@ -3,6 +3,7 @@
 #include "IntensityUnits.h"
 #include "SpectralUnits.h"
 #include "GenerateModes.h"
+#include "ProfilePlotStyles.h"
 #include "Data/Clips.h"
 #include "Data/DataLoader.h"
 #include "Data/Settings.h"
@@ -15,7 +16,7 @@
 #include "Data/Plotter/LegendLocations.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Data/Plotter/LineStyles.h"
-#include "Data/Plotter/PlotStyles.h"
+
 #include "Plot2D/Plot2DGenerator.h"
 
 #include "CartaLib/Hooks/Plot2DResult.h"
@@ -201,7 +202,14 @@ void Profiler::_assignCurveName( std::shared_ptr<CurveData>& profileCurve ) cons
     profileCurve->setName( checkName );
 }
 
-
+void Profiler::_clearData(){
+    m_plotManager->clearData();
+    int curveSize = m_plotCurves.size();
+    for ( int i = curveSize - 1; i>= 0; i-- ){
+        QString curveName = m_plotCurves[i]->getName();
+        profileRemove( curveName );
+    }
+}
 
 std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveData,
         const QString& newUnit ) const {
@@ -719,6 +727,17 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setPlotStyle", [=] (const QString & /*cmd*/,
+               const QString & params, const QString & /*sessionId*/) -> QString {
+           std::set<QString> keys = {CurveData::STYLE, Util::NAME};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString plotStyle = dataValues[CurveData::STYLE];
+           QString curveName = dataValues[Util::NAME];
+           QString result = setPlotStyle( curveName, plotStyle );
+           Util::commandPostProcess( result );
+           return result;
+       });
+
     addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
@@ -747,8 +766,9 @@ void Profiler::_initializeStatics(){
         m_intensityUnits = Util::findSingletonObject<IntensityUnits>();
     }
     if ( m_generateModes == nullptr ){
-           m_generateModes = Util::findSingletonObject<GenerateModes>();
-       }
+        m_generateModes = Util::findSingletonObject<GenerateModes>();
+    }
+
 }
 
 
@@ -902,7 +922,7 @@ QString Profiler::removeLink( CartaObject* cartaObject){
         if ( removed ){
             controller->disconnect(this);
             m_controllerLinked = false;
-            //_resetDefaultStateData();
+            _clearData();
         }
     }
     else {
@@ -1117,6 +1137,26 @@ void Profiler::setLegendShow( bool showLegend ){
     }
 }
 
+QString Profiler::setPlotStyle( const QString& name, const QString& plotStyle ){
+    QString result;
+    int index = _findCurveIndex( name );
+    if ( index >= 0 ){
+        result = m_plotCurves[index]->setPlotStyle( plotStyle );
+        if ( result.isEmpty() ){
+            _saveCurveState( index );
+            m_stateData.flushState();
+            ProfilePlotStyles* plotStyles = Util::findSingletonObject<ProfilePlotStyles>();
+            QString actualStyle = plotStyles->getActualStyle( plotStyle );
+            m_plotManager->setStyle( actualStyle, name );
+        }
+    }
+    else {
+        result = "Profile curve was not recognized: "+name;
+    }
+    return result;
+}
+
+
 QString Profiler::setTabIndex( int index ){
     QString result;
     if ( index >= 0 ){
@@ -1182,6 +1222,7 @@ void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kno
         }
     }
 }
+
 
 
 void Profiler::_updatePlotData(){

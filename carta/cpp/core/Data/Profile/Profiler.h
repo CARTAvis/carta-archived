@@ -172,6 +172,15 @@ public:
     void setLegendShow( bool showLegend );
 
     /**
+     * Set the plot style (continuous, step, etc).
+     * @param name - an identifier for a profile curve.
+     * @param plotStyle - an identifier for a plot style.
+     * @return - an error string if the plot style could not be set; otherwise, an
+     *      empty string.
+     */
+    QString setPlotStyle( const QString& name, const QString& plotStyle );
+
+    /**
      * Set the index of the profile settings tab that should be selected.
      * @param index - the index of the profile settings tab that should be selected.
      * @return - an error message if the tab index could not be set; an empty string otherwise.
@@ -208,6 +217,8 @@ private:
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
     void _assignCurveName( std::shared_ptr<CurveData>& profileCurve ) const;
+
+    void _clearData();
 
     //Convert axis units.
     void _convertX( std::vector<double>& converted,

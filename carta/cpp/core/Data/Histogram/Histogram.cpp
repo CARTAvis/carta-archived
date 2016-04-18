@@ -11,7 +11,7 @@
 #include "Data/Util.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Plot2D/Plot2DGenerator.h"
-#include "Data/Plotter/PlotStyles.h"
+#include "Data/Histogram/PlotStyles.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Globals.h"
 #include "MainConfig.h"
@@ -179,7 +179,6 @@ void Histogram::applyClips(){
        double colorMin = m_stateData.getValue<double>( COLOR_MIN );
        double colorMax = m_stateData.getValue<double>( COLOR_MAX );
        emit colorIntensityBoundsChanged( colorMin, colorMax );
-       _generateHistogram( false );
    }
 }
 
@@ -233,14 +232,14 @@ void Histogram::_createHistogram( Controller* controller){
 
         m_stateData.flushState();
     }
-    _generateHistogram( true, controller );
+    _generateHistogram( controller );
 }
 
 
 void Histogram::_finishClips (){
     m_stateData.flushState();
     m_plotManager->clearSelectionColor();
-    _generateHistogram( true );
+    _generateHistogram( nullptr );
 }
 
 void Histogram::_finishColor(){
@@ -251,12 +250,12 @@ void Histogram::_finishColor(){
 }
 
 
-void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller ){
+void Histogram::_generateHistogram( Controller* controller ){
     Controller* activeController = controller;
-    if ( activeController == nullptr ){
+    if ( !activeController  ){
         activeController = _getControllerSelected();
     }
-    if ( newDataNeeded ){
+    if ( activeController ){
         _loadData( activeController );
     }
 
@@ -1094,7 +1093,7 @@ QString Histogram::setClipBuffer( int bufferAmount ){
         if ( oldBufferAmount != bufferAmount ){
             m_stateData.setValue<int>( CLIP_BUFFER_SIZE, bufferAmount );
             m_stateData.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1137,7 +1136,7 @@ QString Histogram::setCubeSizeLimit(  int sizeLimit ){
         if ( oldLimit != sizeLimit ){
             m_state.setValue<int>( RESTRICT_SIZE_MAX, sizeLimit );
             m_state.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     return result;
@@ -1148,7 +1147,7 @@ void Histogram::setLimitCubes( bool limitCubes ){
     if ( limitCubes != oldLimitCubes ){
         m_state.setValue<bool>( SIZE_ALL_RESTRICT, limitCubes );
         m_state.flushState();
-        _generateHistogram( true );
+        _generateHistogram( nullptr );
     }
 }
 
@@ -1471,7 +1470,10 @@ QString Histogram::setColored( bool colored ){
     if ( colored != oldColored){
         m_state.setValue<bool>(GRAPH_COLORED, colored );
         m_state.flushState();
-        _generateHistogram( false );
+        if ( colored ){
+            _generateHistogram( nullptr );
+        }
+        m_plotManager->setColored( colored );
     }
     return result;
 }
@@ -1656,7 +1658,7 @@ QString Histogram::setBinWidth( double binWidth ){
                 m_state.setValue<double>( BIN_WIDTH, oldBinWidth );
             }
             m_state.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1680,7 +1682,7 @@ QString Histogram::setBinCount( int binCount ){
                 int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
                 m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
                 m_state.flushState();
-                _generateHistogram( true );
+                _generateHistogram( nullptr );
             }
         }
         else {
@@ -1702,7 +1704,7 @@ QString Histogram::_setCubeChannel( int channel ){
         if ( m_cubeChannel != channel ){
             m_cubeChannel = channel;
             if ( m_state.getValue<QString>(PLANE_MODE) == PLANE_MODE_SINGLE ){
-                _generateHistogram( true );
+                _generateHistogram( nullptr );
             }
         }
     }
@@ -1723,7 +1725,7 @@ QString Histogram::setPlaneChannel( int channel ){
         if ( oldChannel != channel ){
             m_stateData.setValue<int>( PLANE_CHANNEL, channel );
             if ( m_state.getValue<QString>(PLANE_MODE) == PLANE_MODE_CHANNEL ){
-                _generateHistogram( true );
+                _generateHistogram( nullptr );
             }
         }
     }
@@ -1737,7 +1739,7 @@ QString Histogram::setLogCount( bool logCount ){
     if ( logCount != oldLogCount ){
         m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
         m_state.flushState();
-        _generateHistogram( false );
+        m_plotManager->setLogScale( logCount );
     }
     return result;
 }
@@ -1752,7 +1754,7 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
         if ( actualPlaneMode != oldPlaneMode ){
             m_state.setValue<QString>(PLANE_MODE, actualPlaneMode );
             m_state.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1779,7 +1781,7 @@ QString Histogram::_set2DFootPrint( const QString& params ){
         if ( footPrintStr != oldFootPrint){
             m_state.setValue<QString>(FOOT_PRINT, footPrintStr );
             m_state.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1810,7 +1812,7 @@ QString Histogram::setPlaneRange( double planeMin, double planeMax){
                 m_stateData.flushState();
                 QString planeMode = m_state.getValue<QString>(PLANE_MODE);
                 if ( planeMode == PLANE_MODE_RANGE ){
-                    _generateHistogram( true );
+                    _generateHistogram( nullptr );
                 }
             }
         }
@@ -1874,7 +1876,7 @@ QString Histogram::setGraphStyle( const QString& styleStr ){
         if ( actualStyle != oldStyle ){
             m_state.setValue<QString>(GRAPH_STYLE, actualStyle );
             m_state.flushState();
-            _generateHistogram( false );
+            m_plotManager->setStyle( styleStr );
         }
     }
     else {
@@ -1906,7 +1908,7 @@ QString Histogram::setUseClipBuffer( bool useBuffer ){
     if ( useBuffer != oldUseBuffer ){
         m_state.setValue<bool>(CLIP_BUFFER, useBuffer );
         m_state.flushState();
-        _generateHistogram( true );
+        _generateHistogram( nullptr );
     }
     return result;
 }
@@ -1940,7 +1942,7 @@ void Histogram::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kn
         _setCubeChannel( spectralFrame );
         QString mode = m_state.getValue<QString>(PLANE_MODE);
         if ( mode == PLANE_MODE_SINGLE ){
-            _generateHistogram(true, controller );
+            _generateHistogram(controller );
         }
     }
 }
@@ -1983,9 +1985,6 @@ void Histogram::_updateColorSelection(){
         }
         setRangeColor( minRange, maxRange );
     }
-    else {
-        _generateHistogram( valid );
-    }
 }
 
 QString Histogram::_zoomToSelection(){
@@ -2002,9 +2001,6 @@ QString Histogram::_zoomToSelection(){
         if ( minRange < maxRange ){
             result = setClipRange( minRange, maxRange );
         }
-    }
-    else {
-        _generateHistogram( valid );
     }
     return result;
 }

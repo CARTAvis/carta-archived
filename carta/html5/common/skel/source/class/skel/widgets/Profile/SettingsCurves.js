@@ -26,6 +26,11 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
              this.m_sharedVar = this.m_connector.getSharedVar(path.LINE_STYLES);
              this.m_sharedVar.addCB(this._lineStylesChangedCB.bind(this));
              this._lineStylesChangedCB();
+             
+             //Plot styles
+             this.m_sharedVarPlot = this.m_connector.getSharedVar(path.PLOT_STYLES);
+             this.m_sharedVarPlot.addCB(this._plotStylesChangedCB.bind(this));
+             this._plotStylesChangedCB();
          }
     },
 
@@ -43,6 +48,7 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             }
             this.m_curveList.setItems( curveNames );
             this._updateColor();
+            this._updateStylePlot();
             this._updateStyle();
         }, 
        
@@ -71,11 +77,15 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             var styleContainer = new qx.ui.container.Composite();
             styleContainer.setLayout( new qx.ui.layout.HBox(1));
             var styleLabel = new qx.ui.basic.Label( "Style:");
+            this.m_lineCombo = new skel.widgets.CustomUI.SelectBox();
+            this.m_lineCombo.setToolTipText( "Select a plot style for the curve.");
+            this.m_lineCombo.addListener( "selectChanged", this._sendStylePlotCmd, this );
             this.m_styleCombo = new skel.widgets.CustomUI.SelectBox();
             this.m_styleCombo.setToolTipText( "Select a line style for the curve.");
             this.m_styleCombo.addListener( "selectChanged", this._sendStyleChangeCmd, this );
             styleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             styleContainer.add( styleLabel );
+            styleContainer.add( this.m_lineCombo );
             styleContainer.add( this.m_styleCombo );
             styleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             curveContainer.add( styleContainer );
@@ -101,6 +111,27 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
                     }
                     catch( err ){
                         console.log( "Could not parse line styles: "+val );
+                        console.log( "Err: "+err);
+                    }
+                }
+            }
+        },
+        
+        /**
+         * Callback for a change in the list of available plot styles from the
+         * server.
+         */
+        _plotStylesChangedCB : function(){
+            if ( this.m_sharedVarPlot ){
+                var val = this.m_sharedVarPlot.get();
+                if ( val ){
+                    try {
+                        var obj = JSON.parse( val );
+                        var styles = obj.plotStyles;
+                        this.m_lineCombo.setSelectItems( styles );
+                    }
+                    catch( err ){
+                        console.log( "Could not parse plot styles: "+val );
                         console.log( "Err: "+err);
                     }
                 }
@@ -136,6 +167,18 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
                 var params = "style:"+style+",name:"+nameList;
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setLineStyle";
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        _sendStylePlotCmd : function(){
+            if ( this.m_id !== null ){
+                var style = this.m_lineCombo.getValue();
+                var curves = this.m_curveList.getSelected();
+                var nameList = curves.join(";");
+                var params = "style:"+style+",name:"+nameList;
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setPlotStyle";
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
@@ -192,13 +235,25 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             }
         },
         
+        _updateStylePlot : function(){
+            if ( this.m_curveList !== null && this.m_curveInfo !== null ){
+                var curveIndex = this.m_curveList.getSelectedIndex();
+                if ( curveIndex < this.m_curveInfo.length ){
+                    var style = this.m_curveInfo[curveIndex].plotStyle;
+                    this.m_lineCombo.setSelectValue( style );
+                }
+            }
+        },
+        
         m_id : null,
         m_connector : null,
         m_curveList : null,
         m_curveInfo : null,
         m_colorSelector : null,
         m_colorListenerId : null,
+        m_lineCombo : null,
         m_sharedVar : null,
+        m_sharedVarPlot : null,
         m_styleCombo : null
     }
 });

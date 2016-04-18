@@ -349,6 +349,7 @@ void Plot2DManager::setLineStyle( const QString& style, const QString& id ){
 void Plot2DManager::setLogScale( bool logScale ){
     if ( m_plotGenerator ){
         m_plotGenerator->setLogScale( logScale );
+        updatePlot();
     }
 }
 
