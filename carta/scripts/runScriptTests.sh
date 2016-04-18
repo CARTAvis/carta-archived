@@ -24,7 +24,7 @@ try py.test -v test_cartavis.py::test_getPixelUnits
 try py.test -v test_cartavis.py::test_getPixelValue
 try py.test -v test_cartavis.py::test_getPluginList
 try py.test -v test_cartavis.py::test_isEmpty
-try py.test -v test_cartavis.py::test_loadFile
+#try py.test -v test_cartavis.py::test_loadFile
 try py.test -v test_cartavis.py::test_removeLink
 #try py.test -v test_cartavis.py::test_saveFullImage
 try py.test -v test_cartavis.py::test_setAnalysisLayout
