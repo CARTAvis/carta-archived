@@ -186,6 +186,13 @@ public:
      * @return - an error message if the tab index could not be set; an empty string otherwise.
      */
     QString setTabIndex( int index );
+    QString setZoomMax( double zoomMaxClient, bool finish = true );
+    QString setZoomMaxPercent( double percent, bool finish = true );
+    QString setZoomMin( double zoomMinClient, bool finish = true );
+    QString setZoomMinPercent( double percent, bool finish = true );
+    QString setZoomRange( double zoomMin, double zoomMax );
+    QString setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent );
+    void _finishZoom();
 
 
     virtual ~Profiler();
@@ -213,6 +220,12 @@ private:
     const static QString LEGEND_EXTERNAL;
     const static QString REGIONS;
     const static QString TAB_INDEX;
+    const static QString ZOOM_MIN;
+    const static QString ZOOM_MAX;
+    const static QString ZOOM_MIN_CLIENT;
+    const static QString ZOOM_MAX_CLIENT;
+    const static QString ZOOM_MIN_PERCENT;
+    const static QString ZOOM_MAX_PERCENT;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );

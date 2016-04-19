@@ -30,6 +30,9 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             this.m_axesSettings = new skel.widgets.Profile.SettingsAxis();
             this.add( this.m_axesSettings );
             
+            this.m_zoomSettings = new skel.widgets.Profile.SettingsZoom();
+            this.add( this.m_zoomSettings );
+            
             this.m_legendSettings = new skel.widgets.Profile.SettingsLegend();
             this.add( this.m_legendSettings );
         },
@@ -60,10 +63,12 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             this.m_id = id;
             this.m_axesSettings.setId( id );
             this.m_legendSettings.setId( id );
+            this.m_zoomSettings.setId( id );
         },
         
         m_id : null,
         m_axesSettings : null,
-        m_legendSettings : null
+        m_legendSettings : null,
+        m_zoomSettings : null
     }
 });
