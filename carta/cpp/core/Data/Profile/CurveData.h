@@ -44,6 +44,12 @@ public:
     QColor getColor() const;
 
     /**
+     * Return the maximum x- data value.
+     * @return - the maximum x- data value.
+     */
+    double getDataMax() const;
+
+    /**
      * Return an identifier for the style to use in drawing lines.
      * @return - an identifier for the style used to draw lines.
      */

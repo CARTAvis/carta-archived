@@ -53,6 +53,17 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             }
         },
         
+        /**
+         * Update data based server state.
+         * @param profileData {Object} - information about the data state
+         *      from the server.
+         */
+        dataUpdate : function( profileData ){
+            if ( this.m_zoomSettings !== null ){
+                this.m_zoomSettings.dataUpdate( profileData );
+            }
+        },
+        
         
         /**
          * Set the server side id of this control UI.

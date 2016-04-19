@@ -208,7 +208,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             //If it is an existing one, the user clicked the combo box
             //and we need to update the other UI fields to match it.
             if ( existingIndex >= 0 ){
-                this._updateSelecting( existingIndex);
+                this._updateSelection( existingIndex);
             }
             else {
                 //If it is a new name, the user renamed the existing curve

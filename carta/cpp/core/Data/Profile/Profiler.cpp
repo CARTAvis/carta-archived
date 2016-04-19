@@ -48,10 +48,9 @@ const QString Profiler::LEGEND_LINE = "legendLine";
 const QString Profiler::REGIONS = "regions";
 const QString Profiler::ZOOM_MIN = "zoomMin";
 const QString Profiler::ZOOM_MAX = "zoomMax";
-const QString Profiler::ZOOM_MIN_CLIENT = "zoomMinClient";
-const QString Profiler::ZOOM_MAX_CLIENT = "zoomMaxClient";
 const QString Profiler::ZOOM_MIN_PERCENT = "zoomMinPercent";
 const QString Profiler::ZOOM_MAX_PERCENT = "zoomMaxPercent";
+const double Profiler::ERROR_MARGIN = 0.000001;
 
 
 
@@ -100,6 +99,7 @@ Profiler::Profiler( const QString& path, const QString& id):
 
     m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::PROFILE) );
     m_plotManager->setTitleAxisY( "" );
+    connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));
     connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT(_movieFrame()));
 
     _initializeStatics();
@@ -490,6 +490,18 @@ QList<QString> Profiler::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 
+double Profiler::_getMaxFrame() const {
+    double maxFrame = 0;
+    int curveCount = m_plotCurves.size();
+    for ( int i = 0; i < curveCount; i++ ){
+        double curveMax = m_plotCurves[i]->getDataMax();
+        if ( curveMax > maxFrame ){
+            maxFrame = curveMax;
+        }
+    }
+    return maxFrame;
+}
+
 
 QString Profiler::_getPreferencesId() const {
     return m_preferences->getPath();
@@ -526,8 +538,6 @@ void Profiler::_initializeDefaultState(){
     m_stateData.insertValue<int>(CURVE_SELECT, 0 );
     m_stateData.insertValue<double>( ZOOM_MIN, 0 );
     m_stateData.insertValue<double>(ZOOM_MAX, 1);
-    m_stateData.insertValue<double>(ZOOM_MIN_CLIENT, 0 );
-    m_stateData.insertValue<double>(ZOOM_MAX_CLIENT, 1 );
     m_stateData.insertValue<double>(ZOOM_MIN_PERCENT, 0);
     m_stateData.insertValue<double>(ZOOM_MAX_PERCENT, 100 );
     m_stateData.flushState();
@@ -769,79 +779,64 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
-    addCommandCallback( "setZoomMax", [=] (const QString & /*cmd*/,
+    addCommandCallback( "setZoomRange", [=] (const QString & /*cmd*/,
                const QString & params, const QString & /*sessionId*/) -> QString {
            QString result;
-           std::set<QString> keys = {ZOOM_MAX};
+           std::set<QString> keys = {ZOOM_MIN, ZOOM_MAX};
            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
            QString zoomMaxStr = dataValues[ZOOM_MAX];
            bool validRangeMax = false;
            double zoomMax = zoomMaxStr.toDouble( &validRangeMax );
-           if ( validRangeMax ){
-               result = setZoomMax( zoomMax );
+           QString zoomMinStr = dataValues[ZOOM_MIN];
+           bool validRangeMin = false;
+           double zoomMin = zoomMinStr.toDouble( &validRangeMin );
+           if ( !validRangeMax || !validRangeMin ){
+               result = "Invalid profile range: " + params+"; bounds must be valid number(s).";
            }
            else {
-               result = "Invalid profile zoom maximum: " + params+" must be a valid number.";
+               result = setZoomRange( zoomMin, zoomMax );
            }
            Util::commandPostProcess( result );
            return result;
        });
 
-       addCommandCallback( "setZoomMaxPercent", [=] (const QString & /*cmd*/,
+       addCommandCallback( "setZoomRangePercent", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
           QString result;
 
-          std::set<QString> keys = {ZOOM_MAX_PERCENT};
+          std::set<QString> keys = {ZOOM_MIN_PERCENT, ZOOM_MAX_PERCENT};
           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
           QString zoomMaxPercentStr = dataValues[ZOOM_MAX_PERCENT];
           bool validRangeMax = false;
           double zoomMaxPercent = zoomMaxPercentStr.toDouble( &validRangeMax );
-          if ( validRangeMax ){
-              result = setZoomMaxPercent( zoomMaxPercent );
+          QString zoomMinPercentStr = dataValues[ZOOM_MIN_PERCENT];
+          bool validRangeMin = false;
+          double zoomMinPercent = zoomMinPercentStr.toDouble( &validRangeMin );
+
+          if ( !validRangeMin || !validRangeMax ){
+              result = "Invalid profile zoom percent range: " + params+"; must be valid number(s).";
           }
           else {
-              result = "Invalid profile zoom maximum percentile: " + params+", must be a valid number.";
+              result = setZoomRangePercent( zoomMinPercent, zoomMaxPercent );
           }
           Util::commandPostProcess( result );
           return result;
        });
 
-       addCommandCallback( "setZoomMin", [=] (const QString & /*cmd*/,
-               const QString & params, const QString & /*sessionId*/) -> QString {
-           QString result;
-           std::set<QString> keys = {ZOOM_MIN};
-           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-           QString zoomMinStr = dataValues[ZOOM_MIN];
-           bool validRangeMin = false;
-           double zoomMin = zoomMinStr.toDouble( &validRangeMin );
-           if ( validRangeMin ){
-               result = setZoomMin( zoomMin);
-           }
-           else {
-               result = "Invalid profile zoom minimum: " + params+" must be a valid number.";
-           }
-           Util::commandPostProcess( result );
-           return result;
-
-       });
-
-       addCommandCallback( "setZoomMinPercent", [=] (const QString & /*cmd*/,
-                       const QString & params, const QString & /*sessionId*/) -> QString {
-           QString result;
-           std::set<QString> keys = {ZOOM_MIN_PERCENT};
-           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-           QString zoomMinPercentStr = dataValues[ZOOM_MIN_PERCENT];
-           bool validRangeMin = false;
-           double zoomMinPercent = zoomMinPercentStr.toDouble( &validRangeMin );
-           if ( validRangeMin ){
-               result = setZoomMinPercent( zoomMinPercent);
-           }
-           else {
-               result = "Invalid profile zoom minimum percentile: " + params+", must be a valid number.";
-           }
+       addCommandCallback( "zoomFull", [=] (const QString & /*cmd*/,
+               const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+           QString result = setZoomRangePercent( 0, 100);
            Util::commandPostProcess( result );
            return result;
        });
+
+       addCommandCallback( "zoomSelected", [=] (const QString & /*cmd*/,
+               const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+           QString result = _zoomToSelection();
+           Util::commandPostProcess( result );
+           return result;
+       });
+
 }
 
 
@@ -1259,56 +1254,48 @@ QString Profiler::setTabIndex( int index ){
     return result;
 }
 
-QString Profiler::setZoomMax( double zoomMaxClient, bool finish ){
-    QString result;
-
-    double oldMax = m_stateData.getValue<double>(ZOOM_MAX);
-    double oldMaxClient = m_stateData.getValue<double>( ZOOM_MAX_CLIENT );
-    double zoomMinClient = m_stateData.getValue<double>( ZOOM_MIN_CLIENT );
-    double oldMaxPercent = m_stateData.getValue<double>(ZOOM_MAX_PERCENT);
-    //Bypass the check that the new max will be larger than the old min if we
-    //are not finished and are also planning to set a new min.
-    if ( zoomMinClient < zoomMaxClient || !finish ){
-        double adjustedMax = zoomMaxClient;
-        if ( finish ){
-            _finishZoom();
-        }
-    }
-    else {
-        result = "Zoom mininum, "+QString::number(zoomMinClient)+" must be less than maximum, "+QString::number(zoomMaxClient);
-    }
-    return result;
-}
-
-QString Profiler::setZoomMaxPercent( double percent, bool finish ){
-    QString result;
-    return result;
-}
-
-QString Profiler::setZoomMin( double zoomMinClient, bool finish ){
-    QString result;
-    return result;
-}
-
-QString Profiler::setZoomMinPercent( double percent, bool finish ){
-    QString result;
-    return result;
-}
 
 
 QString Profiler::setZoomRange( double zoomMin, double zoomMax ){
     QString result;
     if ( zoomMin < zoomMax ){
-        result = setZoomMin( zoomMin, false );
-        if ( result.isEmpty()){
-            result = setZoomMax( zoomMax, false );
-            if ( result.isEmpty() ){
-                _finishZoom();
+        bool changed = false;
+        double oldZoomMin = m_stateData.getValue<double>( ZOOM_MIN );
+        if ( qAbs( zoomMin - oldZoomMin ) > ERROR_MARGIN ){
+            changed = true;
+            m_stateData.setValue<double>( ZOOM_MIN, zoomMin );
+        }
+        double oldZoomMax = m_stateData.getValue<double>( ZOOM_MAX );
+        if ( qAbs( zoomMax - oldZoomMax ) > ERROR_MARGIN ){
+            changed = true;
+            m_stateData.setValue<double>( ZOOM_MAX, zoomMax );
+        }
+        if ( changed ){
+            qDebug() << "setZoom range min="<<zoomMin<<" max="<<zoomMax;
+            //Update the percents to match.
+            double maxChannel = _getMaxFrame();
+            double lowerPercent = 0;
+            double upperPercent = 100;
+            if ( maxChannel > 0 ){
+                if ( zoomMin > 0 ){
+                    lowerPercent = zoomMin / maxChannel;
+                }
+                double diffUpper = maxChannel - zoomMax;
+                if ( diffUpper > 0 ){
+                    upperPercent = 100 - diffUpper / maxChannel;
+                }
             }
+            m_stateData.setValue<double>( ZOOM_MIN_PERCENT, lowerPercent );
+            m_stateData.setValue<double>( ZOOM_MAX_PERCENT, upperPercent );
+            qDebug() << "setZoom percent min="<<lowerPercent<<" max="<<upperPercent;
+            m_stateData.flushState();
+
+            //Update the graph.
+            m_plotManager->setAxisXRange( zoomMin, zoomMax );
         }
     }
     else {
-        result = "Minimum zoom, "+QString::number(zoomMin)+", must be less than maximum zoom, "+QString::number(zoomMax);
+        result = "Minimum zoom, "+QString::number(zoomMin)+", must be less the maximum zoom, "+QString::number(zoomMax);
     }
     return result;
 }
@@ -1318,15 +1305,33 @@ QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPerc
     if ( 0 <= zoomMinPercent && zoomMinPercent <= 100 ){
         if ( 0 <= zoomMaxPercent && zoomMaxPercent <= 100 ){
             if ( zoomMinPercent < zoomMaxPercent ){
-                result = setZoomMinPercent( zoomMinPercent, false );
-                if ( result.isEmpty()){
-                    result = setZoomMaxPercent( zoomMaxPercent, false );
-                    if ( zoomMinPercent == 0 && zoomMaxPercent == 100 ){
-                        m_plotManager->clearSelection();
+                qDebug() << "Zoom range percent min="<<zoomMinPercent<<" max="<<zoomMaxPercent;
+                bool changed = false;
+                double oldZoomMinPercent = m_stateData.getValue<double>( ZOOM_MIN_PERCENT );
+                if ( qAbs( zoomMinPercent - oldZoomMinPercent ) > ERROR_MARGIN ){
+                    changed = true;
+                    m_stateData.setValue<double>( ZOOM_MIN_PERCENT, zoomMinPercent );
+                }
+                double oldZoomMaxPercent = m_stateData.getValue<double>( ZOOM_MAX_PERCENT );
+                if ( qAbs( zoomMaxPercent - oldZoomMaxPercent ) > ERROR_MARGIN ){
+                    changed = true;
+                    m_stateData.setValue<double>( ZOOM_MAX_PERCENT, zoomMaxPercent );
+                }
+                if ( changed ){
+                    //Update the values to match.
+                    double maxChannel = _getMaxFrame();
+                    double minZoom = 0;
+                    double maxZoom = 1;
+                    if ( maxChannel > 0 ){
+                        minZoom = maxChannel * zoomMinPercent/100;
+                        maxZoom = maxChannel - maxChannel * zoomMaxPercent / 100;
+                        m_stateData.setValue<double>( ZOOM_MIN, minZoom );
+                        m_stateData.setValue<double>( ZOOM_MAX, maxZoom );
                     }
-                    if ( result.isEmpty() ){
-                        _finishZoom();
-                    }
+                    m_stateData.flushState();
+
+                    //Update the graph.
+                    m_plotManager->setAxisXRange( minZoom, maxZoom );
                 }
             }
             else {
@@ -1341,10 +1346,6 @@ QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPerc
         result = "Invalid zoom left percent [0,100]: "+QString::number( zoomMinPercent);
     }
     return result;
-}
-
-void Profiler::_finishZoom(){
-
 }
 
 
@@ -1430,7 +1431,23 @@ void Profiler::_updatePlotData(){
     m_plotManager->updatePlot();
 }
 
-
+QString Profiler::_zoomToSelection(){
+    QString result;
+    bool valid = false;
+    std::pair<double,double> range = m_plotManager->getRange( & valid );
+    if ( valid ){
+        double minRange = range.first;
+        double maxRange = range.second;
+        if ( range.first > range.second ){
+            minRange = range.second;
+            maxRange = range.first;
+        }
+        if ( minRange < maxRange ){
+            result = setZoomRange( minRange, maxRange );
+        }
+    }
+    return result;
+}
 
 
 Profiler::~Profiler(){

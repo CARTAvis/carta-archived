@@ -70,6 +70,11 @@ QColor CurveData::getColor() const {
 }
 
 
+double CurveData::getDataMax() const {
+    return m_plotDataX.size();
+}
+
+
 QString CurveData::getLineStyle() const {
     return m_state.getValue<QString>( STYLE );
 }

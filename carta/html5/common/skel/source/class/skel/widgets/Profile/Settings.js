@@ -73,6 +73,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
                     var profileData = JSON.parse( val );
                     this.m_pages[this.m_INDEX_CURVES].dataUpdate( profileData );
                     this.m_pages[this.m_INDEX_PROFILES].dataUpdate( profileData );
+                    this.m_pages[this.m_INDEX_PLOT].dataUpdate( profileData );
                 }
                 catch( err ){
                     console.log( "TabSettings Could not parse: "+val+" error: "+err );

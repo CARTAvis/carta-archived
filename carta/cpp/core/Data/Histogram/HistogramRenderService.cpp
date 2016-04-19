@@ -41,13 +41,14 @@ void HistogramRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image:
     if ( m_renderQueued ) {
         return;
     }
+    m_renderQueued = true;
     if ( !m_worker ){
         m_worker = new HistogramRenderWorker();
     }
     bool paramsChanged = m_worker->setParameters( dataSource, binCount, minChannel, maxChannel, minFrequency, maxFrequency,
                rangeUnits, minIntensity, maxIntensity, fileName );
     if ( paramsChanged ){
-        m_renderQueued = true;
+
         int pid = m_worker->computeHist();
         if ( pid != -1 ){
             if ( !m_renderThread ){
@@ -61,7 +62,11 @@ void HistogramRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image:
         }
         else {
             qDebug() << "Bad file descriptor: "<<pid;
+            m_renderQueued = false;
         }
+    }
+    else {
+        m_renderQueued = false;
     }
 }
 

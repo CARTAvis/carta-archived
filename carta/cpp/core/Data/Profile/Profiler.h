@@ -57,8 +57,6 @@ public:
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
 
-
-
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
@@ -186,13 +184,9 @@ public:
      * @return - an error message if the tab index could not be set; an empty string otherwise.
      */
     QString setTabIndex( int index );
-    QString setZoomMax( double zoomMaxClient, bool finish = true );
-    QString setZoomMaxPercent( double percent, bool finish = true );
-    QString setZoomMin( double zoomMinClient, bool finish = true );
-    QString setZoomMinPercent( double percent, bool finish = true );
+
     QString setZoomRange( double zoomMin, double zoomMax );
     QString setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent );
-    void _finishZoom();
 
 
     virtual ~Profiler();
@@ -206,6 +200,7 @@ private slots:
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _loadProfile( Controller* controller);
     void _movieFrame();
+    QString _zoomToSelection();
 
 private:
     const static QString AXIS_UNITS_BOTTOM;
@@ -222,10 +217,9 @@ private:
     const static QString TAB_INDEX;
     const static QString ZOOM_MIN;
     const static QString ZOOM_MAX;
-    const static QString ZOOM_MIN_CLIENT;
-    const static QString ZOOM_MAX_CLIENT;
     const static QString ZOOM_MIN_PERCENT;
     const static QString ZOOM_MAX_PERCENT;
+    const static double ERROR_MARGIN;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
@@ -246,6 +240,7 @@ private:
     Controller* _getControllerSelected() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
+    double _getMaxFrame() const;
     QString _getLegendLocationsId() const;
     /**
      * Returns the server side id of the Profiler user preferences.
