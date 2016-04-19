@@ -94,7 +94,7 @@ def test_saveFullImage(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest.png'
     i = cartavisInstance.getImageViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
-    _saveImage(i[0], imageName, tempImageDir, 10, 10, '1', True)
+    _saveImage(i[0], imageName, tempImageDir, 400, 500, 'Keep', True)
 
 @pytest.mark.xfail(reason="Python colormaps may not be available.")
 def test_setPythonColormap(cartavisInstance, tempImageDir, cleanSlate):
