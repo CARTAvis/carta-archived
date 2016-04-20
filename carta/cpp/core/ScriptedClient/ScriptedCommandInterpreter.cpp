@@ -760,9 +760,8 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
         QString filename = args["filename"].toString();
         int width = args["width"].toInt();
         int height = args["height"].toInt();
-        bool fullImage = args["fullImage"].toBool();
         QString aspectStr = args["aspectRatioMode"].toString().toLower();
-        m_scriptFacade->saveImage( imageView, filename, width, height, fullImage,aspectStr );
+        m_scriptFacade->saveImage( imageView, filename, width, height, aspectStr );
     }
 
 } // asyncMessageReceivedCB

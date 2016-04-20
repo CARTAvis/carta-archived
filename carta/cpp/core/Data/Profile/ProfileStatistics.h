@@ -45,6 +45,10 @@ private:
     const static QString STAT_MEAN;
     const static QString STAT_MEDIAN;
     const static QString STAT_SUM;
+    const static QString STAT_VARIANCE;
+    const static QString STAT_MIN;
+    const static QString STAT_MAX;
+    const static QString STAT_RMS;
     const static QString STAT_FLUX_DENSITY;
 
     void _initializeDefaultState();

@@ -185,6 +185,19 @@ public:
      */
     QString setTabIndex( int index );
 
+    /**
+     * Set whether or not to add extra space at each end of the x-axis.
+     * @param zoomBuffer - true to add extra padding at each end of the x-axis; false otherwise.
+     */
+    void setZoomBuffer( bool zoomBuffer );
+
+    /**
+     * Set the amount of extra space to add to each end of the x-axis.
+     * @param zoomBufferSize - a percentage of the actual plot space to add to each end of the x-axis.
+     * @return - an error message if the buffer percentage could not be set.
+     */
+    QString setZoomBufferSize( double zoomBufferSize );
+
     QString setZoomRange( double zoomMin, double zoomMax );
     QString setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent );
 
@@ -215,6 +228,8 @@ private:
     const static QString LEGEND_EXTERNAL;
     const static QString REGIONS;
     const static QString TAB_INDEX;
+    const static QString ZOOM_BUFFER;
+    const static QString ZOOM_BUFFER_SIZE;
     const static QString ZOOM_MIN;
     const static QString ZOOM_MAX;
     const static QString ZOOM_MIN_PERCENT;

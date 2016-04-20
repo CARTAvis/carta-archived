@@ -10,7 +10,6 @@ namespace Data
 SaveService::SaveService( QObject * parent ) :
         QObject( parent ),
         m_view( new SaveViewLayered()){
-    m_fullImage = false;
 }
 
 bool SaveService::_isFileValid() const {
@@ -39,9 +38,6 @@ bool SaveService::saveImage(const std::vector<int>& frames,
                     topOfStack = true;
                 }
 
-                if ( m_fullImage ){
-                    m_layers[i]->_viewResizeFullSave( m_outputSize);
-                }
                 m_layers[i]->_render( frames, cs, topOfStack );
                 stackIndex++;
             }
@@ -54,7 +50,7 @@ void SaveService::_saveImage( QImage img ){
     QSize imgSize = img.size();
     qDebug() << "img height="<<imgSize.height()<<" width="<<imgSize.width();
     qDebug() << "aspect="<<m_aspectRatioMode;
-    QImage imgScaled = img.scaled( m_outputSize, m_aspectRatioMode );
+    QImage imgScaled = img.scaled( m_outputSize, m_aspectRatioMode ,Qt::SmoothTransformation);
     QSize scaledSize = imgScaled.size();
     qDebug() << "scaled height="<<scaledSize.height()<<" width="<<scaledSize.width();
     bool result = imgScaled.save( m_fileName );
@@ -110,11 +106,6 @@ void SaveService::setOutputSize( QSize size ){
 
 void SaveService::setAspectRatioMode( Qt::AspectRatioMode mode ){
     m_aspectRatioMode = mode;
-}
-
-
-void SaveService::setFullImage( bool fullImage ){
-    m_fullImage = fullImage;
 }
 
 

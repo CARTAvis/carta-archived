@@ -870,41 +870,6 @@ void LayerData::_viewReset(){
     _setPan( m_viewPan.x(), m_viewPan.y() );
 }
 
-void LayerData::_viewResizeFullSave(const QSize& outputSize){
-    if ( m_dataSource ){
-
-        //We take the true image size and multiply by the zoom factor to get the
-        //size of the saved image.  Later, we can scale it to the desired output
-        //size.
-        int zoomFactor = _getZoom();
-        m_viewPan = _getCenterPixel();
-        m_viewSize = _getOutputSize();
-        _resetPan();
-        std::vector<int> imageDims = _getImageDimensions();
-        if ( imageDims.size() >= 2 ){
-            int minWidth = imageDims[0] * zoomFactor;
-            int minHeight = imageDims[1] * zoomFactor;
-
-            int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
-            int rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
-            int topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
-            int bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
-            int availHeight = outputSize.height() - bottomMargin - topMargin;
-            int availWidth = outputSize.width() - leftMargin - rightMargin;
-            if ( availHeight > minHeight && availWidth > minWidth ){
-                int multWidth = availWidth / minWidth;
-                int multHeight = availHeight / minHeight;
-                int mult = qMin( multWidth, multHeight );
-                if ( mult > 0 ){
-                    minWidth = minWidth * mult;
-                    minHeight = minHeight * mult;
-                }
-            }
-            QSize outputSize( minWidth, minHeight );
-            _viewResize( outputSize );
-        }
-    }
-}
 
 
 LayerData::~LayerData() {

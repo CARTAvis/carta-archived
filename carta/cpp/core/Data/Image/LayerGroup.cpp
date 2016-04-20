@@ -1040,11 +1040,6 @@ void LayerGroup::_viewResize( const QSize& newSize ){
     }
 }
 
-void LayerGroup::_viewResizeFullSave(const QSize& outputSize){
-    for ( std::shared_ptr<Layer> node : m_children ){
-        node->_viewResizeFullSave(outputSize);
-    }
-}
 
 LayerGroup::~LayerGroup() {
     _clearData();

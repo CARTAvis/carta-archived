@@ -609,11 +609,9 @@ QString Stack::_saveImage( const QString& saveName ){
     PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
     int width = prefSave->getWidth();
     int height = prefSave->getHeight();
-    bool fullImage = prefSave->isFullImage();
     Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
     m_saveService->setOutputSize( QSize( width, height ) );
     m_saveService->setAspectRatioMode( aspectRatioMode );
-    m_saveService->setFullImage( fullImage );
     m_saveService->setLayers( m_children );
     m_saveService->setSelectIndex( _getIndexCurrent() );
     connect( m_saveService, SIGNAL(saveImageResult(bool) ),
@@ -629,13 +627,6 @@ QString Stack::_saveImage( const QString& saveName ){
 void Stack::_saveImageResultCB( bool result ){
     emit saveImageResult( result );
     m_saveService->deleteLater();
-    //If we saved with a full image, we may have changed the view, so do a
-    //repaint to reset it.
-    PreferencesSave* prefSave = Util::findSingletonObject<PreferencesSave>();
-    bool fullImage = prefSave->isFullImage();
-    if ( fullImage ){
-        emit viewLoad( );
-    }
 }
 
 

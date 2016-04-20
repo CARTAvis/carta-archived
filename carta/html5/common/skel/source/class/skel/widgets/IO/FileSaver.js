@@ -57,14 +57,6 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
             locContainer.add( this.m_saveText, {flex:1} );
             locContainer.add( browseButton );
             
-            //Full Image
-            this.m_fullImageLabel = new qx.ui.basic.Label( "Full Image:");
-            this.m_fullImageCheck = new qx.ui.form.CheckBox( );
-            this.m_fullImageCheck.setToolTipText( "Set whether or not the entire image should be saved or only the visible portion of it.");
-            this.m_fullImageListenId = this.m_fullImageCheck.addListener( "changeValue", this._sendFullImage, this );
-            this.m_fullContainer = new qx.ui.container.Composite();
-            this.m_fullContainer.setLayout( new qx.ui.layout.HBox(2));
-            
             
             
             //Aspect Ratio
@@ -144,7 +136,6 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
 
             //Add containers to main one
             this._add( locContainer );
-            this._add( this.m_fullContainer );
             this._add( aspectContainer );
             this._add( sizeContainer );
             this._add(buttonComposite);
@@ -182,7 +173,6 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
             if ( val ){
                 try {
                     var savePrefs = JSON.parse( val );
-                    this._setFullImage( savePrefs.fullImage );
                     this._setWidth( savePrefs.width );
                     this._setHeight( savePrefs.height );
                     this._setAspectRatioMode( savePrefs.aspectMode );
@@ -236,21 +226,7 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
             return heightValid;
         },
         
-        /**
-         * Notify the server whether or not the user has decided to save the
-         * entire image or only the visible part of it.
-         */
-        _sendFullImage : function(){
-            var errorMan = skel.widgets.ErrorHandler.getInstance();
-            if ( this.m_connector !== null ){
-                var value = this.m_fullImageCheck.getValue();
-                errorMan.clearErrors();
-                var path = skel.widgets.Path.getInstance();
-                var cmd = path.PREFERENCES_SAVE + path.SEP_COMMAND +"setFullImage";
-                var params = "fullImage:"+value;
-                this.m_connector.sendCommand( cmd, params, null);
-            }
-        },
+       
         
         /**
          * Notify the server that the preferred width of the saved image has changed.
@@ -304,20 +280,7 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
                     skel.widgets.Path.CHANGE_VALUE, this._sendAspectRatioMode, this );
         },
         
-        /**
-         * Update the UI with information from the server about whether or not to save
-         * the entire image.
-         * @param fullImage {boolean} - true if the entire image should be saved; false,
-         *      if only the visible portion of it should be saved.
-         */
-        _setFullImage : function( fullImage ){
-            var oldFull = this.m_fullImageCheck.getValue();
-            if ( oldFull != fullImage ){
-                this.m_fullImageCheck.removeListenerById( this.m_fullImageListenId );
-                this.m_fullImageCheck.setValue( fullImage );
-                this.m_fullImageListenId = this.m_fullImageCheck.addListener( "changeValue", this._sendFullImage, this );
-            }
-        },
+      
         
         /**
          * Update the UI based on the server specified height.
@@ -330,23 +293,7 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
             }
         },
         
-        /**
-         * Set whether or not to show the save full image control.
-         * @param supportFull {boolean} - true to show the control; false otherwise.
-         */
-        setSupportFull : function( supportFull ){
-            if ( supportFull ){
-                if ( this.m_fullContainer.indexOf( this.m_fullImageCheck) < 0 ){
-                    this.m_fullContainer.add( new qx.ui.core.Spacer(), {flex:1});
-                    this.m_fullContainer.add( this.m_fullImageLabel );
-                    this.m_fullContainer.add( this.m_fullImageCheck );
-                    this.m_fullContainer.add( new qx.ui.core.Spacer(), {flex:1});
-                }
-            }
-            else {
-                this.m_fullContainer.removeAll();
-            }
-        },
+        
 
         /**
          * Stores the window that wants to add data.
@@ -368,15 +315,14 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
         },
 
         m_connector : null,
-        m_fullContainer : null,
-        m_fullImageLabel : null,
+      
         m_aspectIgnoreRadio : null,
         m_aspectKeepRadio : null,
         m_aspectExpandRadio : null,
-        m_fullImageListenId : null,
+      
         m_widthText : null,
         m_heightText : null,
-        m_fullImageCheck : null,
+       
         m_sharedVar : null,
         m_saveText : null,
         m_target : null,

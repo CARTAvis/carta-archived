@@ -463,7 +463,7 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
 
 QStringList ScriptFacade::saveImage( const QString& controlId, const QString& filename,
         int width, int height,
-        bool fullImage,  const QString& aspectModeStr ){
+        const QString& aspectModeStr ){
     ObjectManager* objMan = ObjectManager::objectManager();
     //Save the state so the view will update and parse parameters to make
     //sure they are valid before calling save.
@@ -472,7 +472,6 @@ QStringList ScriptFacade::saveImage( const QString& controlId, const QString& fi
     QString widthError = prefSave->setWidth( width );
     QString heightError = prefSave->setHeight( height );
     QString aspectModeError = prefSave->setAspectRatioMode( aspectModeStr );
-    prefSave->setFullImage( fullImage );
     if ( widthError.isEmpty() && heightError.isEmpty() && aspectModeError.isEmpty() ){
         QString id = objMan->parseId( controlId );
         Carta::State::CartaObject* obj = objMan->getObject( id );

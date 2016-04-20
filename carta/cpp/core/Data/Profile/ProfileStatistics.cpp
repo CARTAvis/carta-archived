@@ -14,6 +14,10 @@ const QString ProfileStatistics::CLASS_NAME = "ProfileStatistics";
 const QString ProfileStatistics::STAT_MEAN = "Mean";
 const QString ProfileStatistics::STAT_MEDIAN = "Median";
 const QString ProfileStatistics::STAT_SUM = "Sum";
+const QString ProfileStatistics::STAT_VARIANCE = "Variance";
+const QString ProfileStatistics::STAT_MIN = "Minimum";
+const QString ProfileStatistics::STAT_MAX = "Maximum";
+const QString ProfileStatistics::STAT_RMS = "RMS";
 const QString ProfileStatistics::STAT_FLUX_DENSITY = "Flux Density";
 
 
@@ -67,12 +71,16 @@ void ProfileStatistics::_initStat( int * index, const QString& name ){
 }
 
 void ProfileStatistics::_initializeDefaultState(){
-    m_state.insertArray( STAT_LIST, 4 );
+    m_state.insertArray( STAT_LIST, 8 );
     int i = 0;
 
     _initStat( &i, STAT_MEAN );
     _initStat( &i, STAT_MEDIAN );
     _initStat( &i, STAT_SUM );
+    _initStat( &i, STAT_VARIANCE );
+    _initStat( &i, STAT_MIN );
+    _initStat( &i, STAT_MAX );
+    _initStat( &i, STAT_RMS );
     _initStat( &i, STAT_FLUX_DENSITY );
 
     m_state.flushState();

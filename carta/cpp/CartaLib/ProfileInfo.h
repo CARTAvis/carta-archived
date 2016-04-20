@@ -14,8 +14,12 @@ public:
     {
         MEAN,
         MEDIAN,
+        RMS,
         SUM,
         FLUX_DENSITY,
+        VARIANCE,
+        MIN,
+        MAX,
         OTHER
     };
 

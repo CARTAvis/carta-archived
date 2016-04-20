@@ -451,11 +451,6 @@ protected:
      */
     virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
 
-    /**
-     * Store output size information prior to a save.
-     * @param outputSize - the desired output size of the saved image.
-     */
-    virtual void _viewResizeFullSave(const QSize& outputSize) Q_DECL_OVERRIDE;
 
     /**
      *  Constructor.

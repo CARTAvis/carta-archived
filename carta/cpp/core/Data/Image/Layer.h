@@ -543,12 +543,6 @@ protected:
     virtual void _viewResize( const QSize& newSize ) = 0;
 
     /**
-     * Store output size information prior to a save.
-     * @param outputSize - the desired output size of the saved image.
-     */
-    virtual void _viewResizeFullSave(const QSize& outputSize) = 0;
-
-    /**
      *  Constructor.
      */
     Layer( const QString& className, const QString& path, const QString& id );

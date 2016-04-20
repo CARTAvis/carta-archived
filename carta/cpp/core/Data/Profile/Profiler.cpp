@@ -46,6 +46,8 @@ const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
 const QString Profiler::REGIONS = "regions";
+const QString Profiler::ZOOM_BUFFER = "zoomBuffer";
+const QString Profiler::ZOOM_BUFFER_SIZE = "zoomBufferSize";
 const QString Profiler::ZOOM_MIN = "zoomMin";
 const QString Profiler::ZOOM_MAX = "zoomMax";
 const QString Profiler::ZOOM_MIN_PERCENT = "zoomMinPercent";
@@ -540,6 +542,8 @@ void Profiler::_initializeDefaultState(){
     m_stateData.insertValue<double>(ZOOM_MAX, 1);
     m_stateData.insertValue<double>(ZOOM_MIN_PERCENT, 0);
     m_stateData.insertValue<double>(ZOOM_MAX_PERCENT, 100 );
+    m_stateData.insertValue<bool>(ZOOM_BUFFER, false );
+    m_stateData.insertValue<double>( ZOOM_BUFFER_SIZE, 10 );
     m_stateData.flushState();
 
     //Default units
@@ -599,6 +603,42 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setZoomBufferSize", [=] (const QString & /*cmd*/,
+                      const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+           std::set<QString> keys = {ZOOM_BUFFER_SIZE};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString zoomBufferStr = dataValues[*keys.begin()];
+           bool validInt = false;
+           double zoomBuffer = zoomBufferStr.toInt( &validInt );
+           if ( validInt ){
+               result = setZoomBufferSize( zoomBuffer );
+           }
+           else {
+               result = "Invalid zoom buffer size: " + params+" must be a valid integer.";
+           }
+           Util::commandPostProcess( result );
+           return result;
+       });
+
+    addCommandCallback( "setZoomBuffer", [=] (const QString & /*cmd*/,
+                  const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+          std::set<QString> keys = {ZOOM_BUFFER};
+          std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+          QString zoomBufferStr = dataValues[*keys.begin()];
+          bool validBool = false;
+          bool zoomBuffer = Util::toBool(zoomBufferStr, &validBool );
+          if ( validBool ){
+              setZoomBuffer( zoomBuffer );
+          }
+          else {
+              result = "Use zoom buffer must be true/false: " + params;
+          }
+          Util::commandPostProcess( result );
+          return result;
+      });
 
     addCommandCallback( "setCurveName", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -826,13 +866,6 @@ void Profiler::_initializeCallbacks(){
        addCommandCallback( "zoomFull", [=] (const QString & /*cmd*/,
                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
            QString result = setZoomRangePercent( 0, 100);
-           Util::commandPostProcess( result );
-           return result;
-       });
-
-       addCommandCallback( "zoomSelected", [=] (const QString & /*cmd*/,
-               const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-           QString result = _zoomToSelection();
            Util::commandPostProcess( result );
            return result;
        });
@@ -1255,6 +1288,30 @@ QString Profiler::setTabIndex( int index ){
 }
 
 
+void Profiler::setZoomBuffer( bool zoomBuffer ){
+    bool oldZoomBuffer = m_stateData.getValue<bool>( ZOOM_BUFFER );
+    if ( oldZoomBuffer != zoomBuffer ){
+        m_stateData.setValue<bool>( ZOOM_BUFFER, zoomBuffer );
+        m_stateData.flushState();
+    }
+
+}
+
+QString Profiler::setZoomBufferSize( double zoomBufferSize ){
+    QString result;
+    if ( zoomBufferSize >= 0 && zoomBufferSize < 100 ){
+        double oldBufferSize = m_stateData.getValue<double>( ZOOM_BUFFER_SIZE );
+        if ( qAbs( zoomBufferSize - oldBufferSize) > ERROR_MARGIN ){
+            m_stateData.setValue<double>( ZOOM_BUFFER_SIZE, zoomBufferSize );
+            m_stateData.flushState();
+        }
+    }
+    else {
+        result = "Zoom buffer size must be in [0,100): "+QString::number(zoomBufferSize);
+    }
+    return result;
+}
+
 
 QString Profiler::setZoomRange( double zoomMin, double zoomMax ){
     QString result;
@@ -1271,7 +1328,6 @@ QString Profiler::setZoomRange( double zoomMin, double zoomMax ){
             m_stateData.setValue<double>( ZOOM_MAX, zoomMax );
         }
         if ( changed ){
-            qDebug() << "setZoom range min="<<zoomMin<<" max="<<zoomMax;
             //Update the percents to match.
             double maxChannel = _getMaxFrame();
             double lowerPercent = 0;
@@ -1287,7 +1343,6 @@ QString Profiler::setZoomRange( double zoomMin, double zoomMax ){
             }
             m_stateData.setValue<double>( ZOOM_MIN_PERCENT, lowerPercent );
             m_stateData.setValue<double>( ZOOM_MAX_PERCENT, upperPercent );
-            qDebug() << "setZoom percent min="<<lowerPercent<<" max="<<upperPercent;
             m_stateData.flushState();
 
             //Update the graph.
@@ -1305,7 +1360,6 @@ QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPerc
     if ( 0 <= zoomMinPercent && zoomMinPercent <= 100 ){
         if ( 0 <= zoomMaxPercent && zoomMaxPercent <= 100 ){
             if ( zoomMinPercent < zoomMaxPercent ){
-                qDebug() << "Zoom range percent min="<<zoomMinPercent<<" max="<<zoomMaxPercent;
                 bool changed = false;
                 double oldZoomMinPercent = m_stateData.getValue<double>( ZOOM_MIN_PERCENT );
                 if ( qAbs( zoomMinPercent - oldZoomMinPercent ) > ERROR_MARGIN ){
@@ -1324,7 +1378,7 @@ QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPerc
                     double maxZoom = 1;
                     if ( maxChannel > 0 ){
                         minZoom = maxChannel * zoomMinPercent/100;
-                        maxZoom = maxChannel - maxChannel * zoomMaxPercent / 100;
+                        maxZoom = maxChannel * zoomMaxPercent / 100;
                         m_stateData.setValue<double>( ZOOM_MIN, minZoom );
                         m_stateData.setValue<double>( ZOOM_MAX, maxZoom );
                     }
@@ -1347,6 +1401,7 @@ QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPerc
     }
     return result;
 }
+
 
 
 void Profiler::timerEvent( QTimerEvent* /*event*/ ){

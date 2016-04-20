@@ -251,7 +251,7 @@ public:
             See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
     QStringList saveImage( const QString& controlId, const QString& filename,
-            int width, int height, bool fullImage, const QString& aspectRatioMode );
+            int width, int height, const QString& aspectRatioMode );
 
     /**
      * Save the current state.

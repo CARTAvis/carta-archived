@@ -42,13 +42,6 @@ public:
      */
     int getWidth() const;
 
-    /**
-     * Returns whether the full image should be saved or only the part of
-     * the image visible in the view.
-     * @return - true if the entire image should be saved; false if only the visible
-     *      part should be saved.
-     */
-    bool isFullImage() const;
 
     /**
      * Set the aspect ratio to be used for saving images.
@@ -59,12 +52,6 @@ public:
      */
     QString setAspectRatioMode( const QString& aspectRatioMode );
 
-    /**
-     * Set whether or not to save the full image or only the visible part of it.
-     * @param fullImage - true if the entire image should be saved; false, if only
-     *      the visible part of it should be saved.
-     */
-    void setFullImage( bool fullImage );
 
     /**
      * Set the width for the saved image.
@@ -95,7 +82,6 @@ private:
     static const QString ASPECT_EXPAND;
     static const QString ASPECT_IGNORE;
     static const QString ASPECT_RATIO_MODE;
-    static const QString FULL_IMAGE;
     static const QString WIDTH;
     static const QString HEIGHT;
     static bool m_registered;

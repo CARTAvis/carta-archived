@@ -27,10 +27,10 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
 
         
         /**
-         * Callback for a server error when setting the histogram minimum clip value.
-         * @return {function} which displays/clears the error.
+         * Callback for a server error.
+         * @return {function} which clears any errors if the error message is empty.
          */
-        _errorRangeCB : function( msg ){
+        _errorCB : function( msg ){
             if ( msg == null || msg.length == 0 ){
                 var errorMan = skel.widgets.ErrorHandler.getInstance();
                 errorMan.clearErrors();
@@ -38,14 +38,6 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
         },
         
 
-        
-        /**
-         * Callback for a server error when setting the clip buffer size.
-         * @return {function} which displays/clears the error.
-         */
-        _errorBufferCB : function(){
-            return this._errorCB( this.m_bufferText );
-        },
 
         /**
          * Initializes the UI.
@@ -74,7 +66,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             this.m_minClipText = new skel.widgets.CustomUI.NumericTextField( null, null);
             this.m_minClipText.setToolTipText( "Smallest value on the horizontal axis.");
             this.m_minClipText.setIntegerOnly( false );
-            this.m_minClipText.setTextId( "histogramZoomMinValue");
+            this.m_minClipText.setTextId( "profileZoomMinValue");
             this.m_minClipListenerId = this.m_minClipText.addListener( "textChanged", 
                     this._sendRangeCmd,  this );
       
@@ -83,7 +75,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             this.m_percentMinClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMinClipText.setToolTipText( "Percentage to zoom from the left on the horizontal axis; 0 is no left zoom.");
             this.m_percentMinClipText.setIntegerOnly( false );
-            this.m_percentMinClipText.setTextId( "histogramZoomMinPercent");
+            this.m_percentMinClipText.setTextId( "profileZoomMinPercent");
             this.m_percentMinClipListenerId = this.m_percentMinClipText.addListener( "textChanged", 
                     this._sendRangePercentCmd, this );
             
@@ -97,7 +89,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             maxLabel.setTextAlign( "center");
             this.m_maxClipText = new skel.widgets.CustomUI.NumericTextField( null, null );
             this.m_maxClipText.setToolTipText( "Largest value on the horizontal axis");
-            this.m_maxClipText.setTextId( "histogramZoomMaxValue");
+            this.m_maxClipText.setTextId( "profileZoomMaxValue");
             this.m_maxClipText.setIntegerOnly( false );
             this.m_maxClipListenerId = this.m_maxClipText.addListener( "textChanged", 
                     this._sendRangeCmd, this );
@@ -107,7 +99,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             this.m_percentMaxClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMaxClipText.setToolTipText( "Percentage to zoom in from the right on the horizontal axis; 100 is no right zoom.");
             this.m_percentMaxClipText.setIntegerOnly( false );
-            this.m_percentMaxClipText.setTextId( "histogramZoomMaxPercent");
+            this.m_percentMaxClipText.setTextId( "profileZoomMaxPercent");
             this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", 
                     this._sendRangePercentCmd, this );
             
@@ -118,29 +110,29 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             
             //Buffer
             this.m_buffer = new qx.ui.form.CheckBox( "Buffer");
-            /*this.m_buffer.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
+            this.m_buffer.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 var useBuffer = this.m_buffer.getValue();
                 if ( this.m_connector !== null ){
                     var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + "setUseClipBuffer";
-                    var params = "useClipBuffer:"+useBuffer;
+                    var cmd = this.m_id + path.SEP_COMMAND + "setZoomBuffer";
+                    var params = "zoomBuffer:"+useBuffer;
                     this.m_connector.sendCommand( cmd, params, function(){});
                 }
                 this.m_bufferText.setEnabled( useBuffer );
-            }, this );*/
+            }, this );
            
             this.m_bufferText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_bufferText.setIntegerOnly( true );
-            this.m_bufferText.setToolTipText( "Provide extra space at each end of the histogram; specify as a percentage [0,100).");
+            this.m_bufferText.setToolTipText( "Provide extra space at each end of the plot; specify as a percentage [0,100).");
             this.m_bufferText.setEnabled( false );
-            /*this.m_bufferText.addListener( "textChanged", function(){
+            this.m_bufferText.addListener( "textChanged", function(){
                 if ( this.m_connector !== null ){
                     var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + "setClipBuffer";
-                    var params = "clipBuffer:"+this.m_bufferText.getValue();
-                    this.m_connector.sendCommand( cmd, params, this._errorBufferCB());
+                    var cmd = this.m_id + path.SEP_COMMAND + "setZoomBufferSize";
+                    var params = "zoomBufferSize:"+this.m_bufferText.getValue();
+                    this.m_connector.sendCommand( cmd, params, this._errorCB());
                 }
-            }, this );*/
+            }, this );
             var perLabel = new qx.ui.basic.Label( "%");
             
             var bufContainer = new qx.ui.container.Composite();
@@ -154,18 +146,10 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             
             //Zoom and Selected Buttons
             this.m_fullRange = new qx.ui.form.Button( "Full" );
-            this.m_fullRange.setToolTipText( "Zoom out to full histogram range.");
+            this.m_fullRange.setToolTipText( "Zoom out to full plot range.");
             this.m_fullRange.addListener( "execute", function(){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "zoomFull";
-                var params = "";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }, this );
-            this.m_selectedRange = new qx.ui.form.Button( "Selected");
-            this.m_selectedRange.setToolTipText( "Zoom to the graphically selected range.");
-            this.m_selectedRange.addListener( "execute", function(){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "zoomSelected";
                 var params = "";
                 this.m_connector.sendCommand( cmd, params, function(){});
             }, this );
@@ -173,7 +157,6 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             var butContainer = new qx.ui.container.Composite();
             butContainer.setLayout( new qx.ui.layout.HBox(2));
             butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-            butContainer.add( this.m_selectedRange );
             butContainer.add( this.m_fullRange );
             butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             overallContainer.add( butContainer );
@@ -190,7 +173,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id+path.SEP_COMMAND + "setZoomRange";
                     var params = "zoomMin:"+minZoom + ",zoomMax:"+maxZoom;
-                    this.m_connector.sendCommand( cmd, params, this._errorRangeCB( ));
+                    this.m_connector.sendCommand( cmd, params, this._errorCB( ));
                 }
             }
         },
@@ -204,7 +187,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id+path.SEP_COMMAND + "setZoomRangePercent";
                     var params = "zoomMinPercent:"+minZoomPercent + ",zoomMaxPercent:"+maxZoomPercent;
-                    this.m_connector.sendCommand( cmd, params, this._errorRangeCB( ));
+                    this.m_connector.sendCommand( cmd, params, this._errorCB( ));
                 }
             }
         },
@@ -235,6 +218,8 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
              console.log( "Settings zoom data Update");
              this.setZoomBounds( data.zoomMin, data.zoomMax );
              this.setZoomPercents( data.zoomMinPercent, data.zoomMaxPercent );
+             this.setBuffer( data.zoomBuffer );
+             this.setBufferAmount( data.zoomBufferSize );
          },
 
         /**
@@ -262,7 +247,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
         },
 
         /**
-         * Set the amount to clip at each end of the histogram based on percentiles.
+         * Set the amount to clip at each end of the plot based on percentiles.
          * @param min {Number} a decimal [0,1] representing the left amount to clip.
          * @param max {Number} a decimal [0,1] representing the right amount to clip.
          */
@@ -289,8 +274,8 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
        
         
         /**
-         * Set the server side id of this histogram.
-         * @param id {String} the server side id of the object that produced this histogram.
+         * Set the server side id of the object managing state for this UI..
+         * @param id {String} the server side id of the object.
          */
         setId : function( id ){
             this.m_id = id;
@@ -309,8 +294,7 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
         m_percentMaxClipText : null,
         m_percentMinClipListenerId : null,
         m_percentMaxClipListenerId : null,
-        m_fullRange : null,
-        m_selectedRange : null
+        m_fullRange : null
     },
     
     properties : {

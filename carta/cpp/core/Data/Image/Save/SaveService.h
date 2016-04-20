@@ -54,12 +54,6 @@ public:
      */
    void setFileName( const QString& fileName );
 
-   /**
-    * Set whether the full image should be saved or only the part visible in the
-    * viewer.
-    * @param fullImage - true if the full image should be saved; false, otherwise.
-    */
-    void setFullImage( bool fullImage );
 
     /**
      * Set the top index in the stack.
@@ -107,9 +101,6 @@ private:
 
     /// Full path of the output image
     QString m_fileName;
-
-    //Whether to save the full image or only the part visible in the view.
-    bool m_fullImage;
 
     //Layers in the stack.
     QList<std::shared_ptr<Layer> > m_layers;
