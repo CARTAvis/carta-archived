@@ -135,6 +135,12 @@ public:
     QString setGenerateMode( const QString& modeStr );
 
     /**
+     * Set whether or not to show/hide grid lines on the plot.
+     * @param showLines - true to show grid lines; false otherwise.
+     */
+    void setGridLines( bool showLines );
+
+    /**
      * Set the drawing style for the Profiler (outline, filled, etc).
      * @param style a unique identifier for a Profiler drawing style.
      * @return an error message if there was a problem setting the draw style; an empty string otherwise.
@@ -221,6 +227,7 @@ private:
     const static QString CURVES;
     const static QString CURVE_SELECT;
     const static QString GEN_MODE;
+    const static QString GRID_LINES;
     const static QString IMAGES;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;

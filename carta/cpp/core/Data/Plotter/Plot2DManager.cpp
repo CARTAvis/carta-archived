@@ -307,6 +307,14 @@ void Plot2DManager::setCurveName( const QString& oldName, const QString& newName
 }
 
 
+void Plot2DManager::setGridLines( bool showLines ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setGridLines( showLines );
+        updatePlot();
+    }
+}
+
+
 void Plot2DManager::setLegendLocation( const QString& location ){
     if ( m_plotGenerator ){
         m_plotGenerator->setLegendLocation( location );

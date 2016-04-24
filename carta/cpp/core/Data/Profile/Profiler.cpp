@@ -40,6 +40,7 @@ const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CURVES = "curves";
 const QString Profiler::CURVE_SELECT = "selectCurve";
 const QString Profiler::GEN_MODE = "genMode";
+const QString Profiler::GRID_LINES = "gridLines";
 const QString Profiler::IMAGES = "images";
 const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
@@ -564,6 +565,9 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<bool>( LEGEND_SHOW, true );
     m_state.insertValue<bool>( LEGEND_LINE, true );
 
+    //Plot
+    m_state.insertValue<bool>(GRID_LINES, false );
+
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 2 );
 
@@ -716,6 +720,24 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setGridLines", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {GRID_LINES};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString gridStr = dataValues[GRID_LINES];
+            bool validBool = false;
+            bool gridLines = Util::toBool( gridStr, &validBool );
+            QString result;
+            if ( validBool ){
+                setGridLines( gridLines );
+            }
+            else {
+                result = "Set toggling plot grid lines must be true/false: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     addCommandCallback( "setLegendLocation", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1178,6 +1200,15 @@ QString Profiler::setGenerateMode( const QString& modeStr ){
         result = "Unrecognized profile generation mode: "+modeStr;
     }
     return result;
+}
+
+void Profiler::setGridLines( bool showLines ){
+    bool oldShowLines = m_state.getValue<bool>( GRID_LINES );
+    if ( oldShowLines != showLines ){
+        m_state.setValue<bool>( GRID_LINES, showLines );
+        m_state.flushState();
+        m_plotManager->setGridLines( showLines );
+    }
 }
 
 

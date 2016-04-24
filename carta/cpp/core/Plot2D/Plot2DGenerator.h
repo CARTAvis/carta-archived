@@ -8,6 +8,7 @@
 #include <QString>
 #include <memory>
 #include <qwt_plot.h>
+#include <qwt_plot_grid.h>
 
 
 namespace Carta {
@@ -155,6 +156,12 @@ public:
      */
     void setCurveName( const QString& oldName, const QString& newName );
 
+    /**
+     * Set whether or not to show/hide grid lines.
+     * @param showGrid - true to show grid lines; false to hide them.
+     */
+    void setGridLines( bool showGrid );
+
 
     /**
      * Set whether or not a sample line should be drawn with legend items.
@@ -301,6 +308,7 @@ private:
     Plot2DSelection *m_range;
     Plot2DSelection * m_rangeColor;
     Plot2DLine* m_vLine;
+    QwtPlotGrid* m_gridLines;
     int m_height;
     int m_width;
     QString m_axisNameX;

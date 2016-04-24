@@ -118,7 +118,7 @@ def test_setCPPColormap(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_CubeHelix1.png'
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColormap('CubeHelix1')
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(i[0], imageName, tempImageDir, 10, 10, 'Ignore')
 
 def test_setDefaultColormap(cartavisInstance, tempImageDir, cleanSlate):
@@ -130,7 +130,7 @@ def test_setDefaultColormap(cartavisInstance, tempImageDir, cleanSlate):
     imageName = 'mexinputtest_Gray.png'
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColormap('Gray')
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(i[0], imageName, tempImageDir, 10, 10, 'Ignore')
 
 @pytest.mark.xfail(reason="saveImage() has been deprecated for now.")
@@ -191,9 +191,10 @@ def test_setChannel(cartavisInstance, tempImageDir, cleanSlate):
     i[0].loadFile(os.getcwd() + '/data/RaDecVel.fits')
     channels = i[0].getChannelCount()
     a[0].setChannel(0)
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(i[0], image1, tempImageDir,10,10,'Ignore')
     a[0].setChannel(1)
+    time.sleep(3)
     _saveImage(i[0], image2, tempImageDir,10,10,'Ignore')
     # Also check that invalid channel values yield error messages
     assert a[0].setChannel(channels+10) != ['']
@@ -242,7 +243,7 @@ def test_setColorMix(cartavisInstance, tempImageDir, cleanSlate):
     c = cartavisInstance.getColormapViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setColorMix(0.7, 0.3, 0.8)
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(i[0], imageName, tempImageDir,10,10,'Ignore')
     # Check that invalid values cause error information to be returned.
     assert c[0].setColorMix(-1,-1,-1)[0] != ''
@@ -256,7 +257,7 @@ def test_setDataTransform(cartavisInstance, tempImageDir, cleanSlate):
     c = cartavisInstance.getColormapViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setDataTransform('square root')
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(i[0], imageName, tempImageDir, 10, 10, 'Ignore')
     # Check that invalid values cause error information to be returned.
     assert c[0].setDataTransform('squarepants')[0] != ''
@@ -270,7 +271,7 @@ def test_setGamma(cartavisInstance, tempImageDir, cleanSlate):
     c = cartavisInstance.getColormapViews()
     i[0].loadFile(os.getcwd() + '/data/mexinputtest.fits')
     c[0].setGamma(0.25)
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(i[0], imageName, tempImageDir, 10, 10, 'Ignore')
 
 #@pytest.mark.xfail(reason="The behaviour of the saveHistogram() function\
@@ -374,7 +375,7 @@ def test_loadFile(cartavisInstance, tempImageDir, cleanSlate):
     assert loadResult[0] != 'error'
     # Finally, check that the image that has been loaded is actually
     # the image we expect.
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(i[0], 'mexinputtest.png', tempImageDir,10,10,'Ignore')
 
 def test_getIntensity(cartavisInstance, cleanSlate):
@@ -779,10 +780,10 @@ def _setImage(imageView, animatorView, tempImageDir):
     imageView.loadFile(os.getcwd() + '/data/mexinputtest.fits')
     imageView.loadFile(os.getcwd() + '/data/qualityimage.fits')
     animatorView.setImage(0)
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(imageView, image1, tempImageDir,10,10,'Ignore')
     animatorView.setImage(1)
-    time.sleep(1)
+    time.sleep(3)
     _saveImage(imageView, image2, tempImageDir, 10,10,'Ignore')
 
 def _saveImage(imageView, imageName, tempImageDir, width, height, aspect):

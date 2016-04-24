@@ -58,9 +58,9 @@ qx.Class.define("skel.widgets.Profile.SettingsAxis", {
             var gridLayout = new qx.ui.layout.Grid();
             overallContainer.setLayout( gridLayout );
             overallContainer.add( axisLeftLabel, {row:0,column:0});
-            overallContainer.add( this.m_axisLeft, {row:0, column:1});
-            overallContainer.add( axisBottomLabel, {row:1, column:0});
-            overallContainer.add( this.m_axisBottom, {row:1,column:1});
+            overallContainer.add( this.m_axisLeft, {row:1, column:0});
+            overallContainer.add( axisBottomLabel, {row:2, column:0});
+            overallContainer.add( this.m_axisBottom, {row:3,column:0});
         },
         
         /**

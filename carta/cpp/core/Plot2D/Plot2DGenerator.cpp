@@ -19,6 +19,7 @@ const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
 Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     m_rangeColor( nullptr ),
     m_vLine( nullptr ),
+    m_gridLines( nullptr),
     m_font( "Helvetica", 10){
     m_legendVisible = false;
     m_logScale = false;
@@ -121,7 +122,6 @@ std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( const QString& id, bo
     *valid = false;
     std::shared_ptr<Plot2D> plotData = _findData(id);
     if ( plotData ){
-        qDebug() << "Generator found data & getting bounds from plot data";
         result = plotData->getBoundsY();
         *valid = true;
     }
@@ -252,6 +252,21 @@ void Plot2DGenerator::setCurveName( const QString& oldName, const QString& newNa
     if ( plotData ){
         plotData->setId( newName );
     }
+}
+
+void Plot2DGenerator::setGridLines( bool showGrid ){
+    if ( !m_gridLines ){
+        m_gridLines = new QwtPlotGrid();
+        m_gridLines->enableX( false );
+        m_gridLines->enableY( true );
+    }
+    if ( showGrid ){
+        m_gridLines->attach( m_plot );
+    }
+    else {
+        m_gridLines->detach();
+    }
+    m_plot->replot();
 }
 
 

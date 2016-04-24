@@ -171,6 +171,12 @@ public:
     void setCurveName( const QString& oldName, const QString& newName );
 
     /**
+     * Set whether or not to show/hide grid lines.
+     * @param showGrid - true to show grid lines on the plot canvas; false otherwise.
+     */
+    void setGridLines( bool showGrid );
+
+    /**
      * Set whether or not to show a line with legend items.
      * @param showLegendLine - true if a sample line should be shown with legend
      *      items; false, otherwise.
