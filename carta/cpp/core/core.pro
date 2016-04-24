@@ -69,6 +69,8 @@ HEADERS += \
     Data/Image/Grid/LabelFormats.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Image/LayerCompositionModes.h \
+    Data/Image/RenderRequest.h \
+    Data/Image/RenderResponse.h \
     Data/Image/Save/SaveService.h \
     Data/Image/Save/SaveView.h \
     Data/Image/Save/SaveViewLayered.h \
@@ -181,6 +183,8 @@ SOURCES += \
     Data/Image/Draw/DrawSynchronizer.cpp \
     Data/Image/Draw/DrawStackSynchronizer.cpp \
     Data/Image/LayerCompositionModes.cpp \
+    Data/Image/RenderRequest.cpp \
+    Data/Image/RenderResponse.cpp \
     Data/Image/Save/SaveService.cpp \
     Data/Image/Save/SaveView.cpp \
     Data/Image/Save/SaveViewLayered.cpp \

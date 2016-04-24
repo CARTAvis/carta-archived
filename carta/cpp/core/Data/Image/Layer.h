@@ -10,7 +10,10 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
+#include "Data/Image/RenderRequest.h"
+#include "Data/Image/RenderResponse.h"
 #include <QImage>
+#include <QStack>
 #include <set>
 
 
@@ -62,7 +65,7 @@ signals:
 
 
     //Notification that a new image has been produced.
-    void renderingDone();
+    void renderingDone( const std::shared_ptr<RenderResponse>& response );
 
 
 protected:
@@ -316,6 +319,15 @@ protected:
     virtual QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const = 0;
 
     /**
+     * Return the size of the saved image based on the user defined output size and the aspect
+     * ratio mode.
+     * @param outputSize - the output image size specified by the user.
+     * @param aspectMode - whether the aspect ratio of the image should be preserved (etc).
+     * @return - the size of the saved image.
+     */
+    virtual QSize _getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const = 0;
+
+    /**
      * Returns the location on the screen corresponding to a location in image coordinates.
      * @param imagePt an (x,y) pair of image coordinates.
      * @param valid set to true if an image is loaded that can do the translation; otherwise false;
@@ -332,12 +344,6 @@ protected:
      * @return - a string representation of the layer state.
      */
     virtual QString _getStateString( bool truncatePaths ) const = 0;
-
-    /**
-     * Return the layer vector graphics.
-     * @return - the layer vector graphics, which can include both the grid and contours.
-     */
-    virtual Carta::Lib::VectorGraphics::VGList _getVectorGraphics();
 
     /**
      * Return the zoom factor for this layer.
@@ -398,14 +404,21 @@ protected:
      */
     virtual void _removeContourSet( std::shared_ptr<DataContours> contourSet ) = 0;
 
+    /**
+     * Generate a new rendered image.
+     * @param request - parameters to use in rendering the image.
+     */
+    void _render( const std::shared_ptr<RenderRequest>& request );
 
     /**
-     * Generate a new QImage.
-     * @param frames - list of image frames.
-     * @param cs - an enumerated coordinate system type.
+     * Finish the render.
      */
-    virtual void _render( const std::vector<int>& frames,
-            const Carta::Lib::KnownSkyCS& cs, bool topOfStack ) = 0;
+    void _renderDone();
+
+    /**
+     * Start the render.
+     */
+    virtual void _renderStart() = 0;
 
     /**
      * Center the image.
@@ -552,8 +565,10 @@ protected:
     static const QString LAYER;
     static const QString SELECTED;
 
-    QImage m_qimage;
-    Carta::Lib::VectorGraphics::VGList m_vectorGraphics;
+    bool m_renderQueued;
+
+    QStack<std::shared_ptr<RenderRequest>> m_renderRequests;
+
     static LayerCompositionModes* m_compositionModes;
 
 protected slots:
@@ -564,15 +579,6 @@ protected slots:
 private:
 
     QString _getLayerName() const;
-
-    /**
-     * Return the current image.
-     * @return - the current image.
-     */
-    QImage _getQImage() const;
-
-
-
 
     void _initializeSingletons( );
     void _initializeState();

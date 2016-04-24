@@ -478,11 +478,16 @@ QString Stack::_moveSelectedLayers( bool moveDown ){
     return result;
 }
 
-void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex ){
+void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex){
     std::vector<int> frames =_getFrameIndices();
     const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
-    m_stackDraw->_render( datas, frames, cs, gridIndex );
+    QSize size;
+    std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs, false, size));
+    request->setTopIndex( gridIndex );
+    m_stackDraw->_render( datas, /*frames, cs, gridIndex, size*/ request);
 }
+
+
 
 void Stack::_renderAll(){
     int gridIndex = _getIndexCurrent();
@@ -610,14 +615,15 @@ QString Stack::_saveImage( const QString& saveName ){
     int width = prefSave->getWidth();
     int height = prefSave->getHeight();
     Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
-    m_saveService->setOutputSize( QSize( width, height ) );
     m_saveService->setAspectRatioMode( aspectRatioMode );
     m_saveService->setLayers( m_children );
-    m_saveService->setSelectIndex( _getIndexCurrent() );
     connect( m_saveService, SIGNAL(saveImageResult(bool) ),
             this, SLOT(_saveImageResultCB(bool) ) );
     std::vector<int> frameIndices = _getFrameIndices();
-    bool saveStarted = m_saveService->saveImage(frameIndices, _getCoordinateSystem());
+    std::shared_ptr<RenderRequest> request( new RenderRequest( frameIndices,
+            _getCoordinateSystem(), false, QSize(width, height )));
+    request->setTopIndex( _getIndexCurrent());
+    bool saveStarted = m_saveService->saveImage(/*frameIndices, _getCoordinateSystem()*/request);
     if ( !saveStarted ){
         result = "Image was not saved.  Please check the file name.";
     }

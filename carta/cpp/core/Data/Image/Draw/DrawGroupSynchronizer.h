@@ -5,11 +5,14 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/VectorGraphics/VGList.h"
+
 
 #include <QString>
 #include <QList>
 #include <QObject>
 #include <QImage>
+#include <QMap>
 
 #include <memory>
 
@@ -17,6 +20,8 @@ namespace Carta {
 namespace Data {
 
 class Layer;
+class RenderRequest;
+class RenderResponse;
 
 
 class DrawGroupSynchronizer: public QObject {
@@ -33,12 +38,9 @@ public:
 
     /**
      * Render a group of images using the given input parameters.
-     * @param frames - list of frame indices for each of the axes.
-     * @param cs - the coordinate system.
-     * @param gridIndex - the index of the image providing the grid.
+     * @param request - stored parameters for the render.
      */
-    void render( std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs,
-               int gridIndex );
+    void render( const std::shared_ptr<RenderRequest>& request);
 
     /**
      * Set the group layers to combine.
@@ -71,16 +73,16 @@ signals:
 private slots:
 
     /**
-    * Notification that a stack layer has changed finished rendering its image.
+    * Notification that a stack layer has finished rendering its image.
     */
-    void _scheduleFrameRepaint();
+    void _scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& );
 
 private:
 
     //Layers to combine
     QList< std::shared_ptr<Layer> > m_layers;
     bool m_repaintFrameQueued;
-    QImage m_qImage;
+    QMap<QString, std::shared_ptr<RenderResponse> > m_images;
     QString m_combineMode;
     QSize m_imageSize;
     int m_renderCount;

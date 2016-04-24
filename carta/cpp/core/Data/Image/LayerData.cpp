@@ -51,6 +51,8 @@ LayerData::LayerData(const QString& path, const QString& id) :
     m_drawSync( nullptr ),
     m_stateColor( nullptr ){
 
+        m_renderQueued = false;
+
         _initializeState();
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         DataGrid* gridObj = objMan->createObject<DataGrid>();
@@ -63,9 +65,11 @@ LayerData::LayerData(const QString& path, const QString& id) :
         // create the synchronizer
         m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
 
+
         // connect its done() slot to our renderingSlot()
         connect( m_drawSync.get(), & DrawSynchronizer::done,
                          this, & LayerData::_renderingDone );
+
 }
 
 void LayerData::_addContourSet( std::shared_ptr<DataContours> contour ){
@@ -100,13 +104,7 @@ void LayerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxis
 }
 
 
-/*std::vector<Carta::Lib::AxisDisplayInfo> LayerData::_getAxisDisplayInfo() const {
-    std::vector<Carta::Lib::AxisDisplayInfo> displayInfo;
-    if ( m_dataSource ){
-        displayInfo = m_dataSource->_getAxisDisplayInfo();
-    }
-    return displayInfo;
-}*/
+
 
 Carta::Lib::AxisInfo::KnownType LayerData::_getAxisType( int index ) const {
     AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
@@ -391,14 +389,57 @@ QString LayerData::_getPixelValue( double x, double y, const std::vector<int>& f
     return pixelValue;
 }
 
+QSize LayerData::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {
+    QSize saveSize = outputSize;
 
-/*std::shared_ptr<Carta::Core::ImageRenderService::Service> LayerData::_getRenderer(){
-    std::shared_ptr<Carta::Core::ImageRenderService::Service> service( nullptr );
-    if ( m_dataSource ){
-        service = m_dataSource->_getRenderer();
+    //Get the grid margin space.
+    int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
+    int rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
+    int topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
+    int bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
+
+    //Get the image dimensions
+    Carta::Lib::AxisInfo::KnownType axisXType = m_dataSource->_getAxisXType();
+    Carta::Lib::AxisInfo::KnownType axisYType = m_dataSource->_getAxisYType();
+    int imageWidth = m_dataSource->_getFrameCount( axisXType );
+    int imageHeight = m_dataSource->_getFrameCount( axisYType );
+
+
+    if ( aspectMode == Qt::KeepAspectRatio || aspectMode == Qt::KeepAspectRatioByExpanding ){
+        //Get the width and height after grid margins are subtracted off.
+        int outWidth = outputSize.width() - leftMargin - rightMargin;
+        int outHeight = outputSize.height() - topMargin - bottomMargin;
+
+        //Get the image dimensions
+        if ( m_dataSource ){
+            double widthRatio = (outWidth*1.0) / imageWidth;
+            double heightRatio = (outHeight*1.0) / imageHeight;
+            double ratio = 1;
+            if ( aspectMode == Qt::KeepAspectRatio ){
+                ratio = qMin( widthRatio, heightRatio );
+            }
+            else {
+                ratio = qMax( widthRatio, heightRatio );
+            }
+            double saveWidth = ratio * imageWidth + leftMargin + rightMargin;
+            double saveHeight = ratio * imageHeight + topMargin + bottomMargin;
+            saveSize = QSize( saveWidth, saveHeight );
+        }
     }
-    return service;
-}*/
+    else {
+        //Just save to the size specified by the user, unless it is too small.
+        //If the user specified size is too small, produce an image of minimum size.
+        double minWidth = imageWidth +leftMargin + rightMargin;
+        double minHeight = imageHeight + topMargin + bottomMargin;
+        if ( saveSize.width() < minWidth ){
+            saveSize.setWidth( minWidth );
+        }
+        if ( saveSize.height() < minHeight ){
+            saveSize.setHeight( minHeight );
+        }
+    }
+    return saveSize;
+}
 
 QPointF LayerData::_getScreenPt( QPointF imagePt, bool* valid ) const {
     QPointF screenPt;
@@ -492,14 +533,35 @@ void LayerData::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
 }
 
 
+
+
+
+
+
+void LayerData::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
+    if ( contourSet ){
+        QString targetName = contourSet->getName();
+        for ( std::set< std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+                        it != m_dataContours.end(); it++ ){
+            if ( targetName == (*it)->getName() ){
+                m_dataContours.erase(*it);
+                break;
+            }
+        }
+    }
+}
+
+
 void LayerData::_renderingDone(
         QImage image,
         Carta::Lib::VectorGraphics::VGList gridVG,
         Carta::Lib::VectorGraphics::VGList contourVG,
         int64_t /*jobId*/){
     /// \todo we should make sure the jobId matches the last submitted job...
+    Carta::Lib::VectorGraphics::VGList vectorGraphics;
+    QImage qImage;
     if ( !image.isNull()){
-        m_qimage = image;
+        qImage = image;
         Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
         if ( _isContourDraw()){
             // where does 0.5, 0.5 map to?
@@ -532,36 +594,34 @@ void LayerData::_renderingDone(
             }
         }
         comp.appendList( gridVG);
-        m_vectorGraphics = comp.vgList();
+        vectorGraphics = comp.vgList();
     }
+    std::shared_ptr<RenderResponse> response( new RenderResponse(qImage, vectorGraphics, _getLayerId()) );
+    emit renderingDone( response );
 
-    // schedule a repaint with the connector
-    emit renderingDone();
 }
 
+void LayerData::_renderStart(){
 
+    m_renderQueued = true;
 
+    //Get the render parameters from the next request.
+    std::shared_ptr<RenderRequest> request = m_renderRequests.pop();
+    std::vector<int> frames = request->getFrames();
+    Carta::Lib::KnownSkyCS cs = request->getCoordinateSystem();
+    bool topOfStack = request->isStackTop();
+    QSize outputSize = request->getOutputSize();
 
-void LayerData::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
-    if ( contourSet ){
-        QString targetName = contourSet->getName();
-        for ( std::set< std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
-                        it != m_dataContours.end(); it++ ){
-            if ( targetName == (*it)->getName() ){
-                m_dataContours.erase(*it);
-                break;
-            }
-        }
-    }
-}
-
-
-void LayerData::_render( const std::vector<int>& frames,
-        const Carta::Lib::KnownSkyCS& cs, bool topOfStack ){
-    // erase current grid
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
     std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
-    QSize renderSize = imageService-> outputSize();
+
+    QSize renderSize = m_viewSize;
+    if ( !outputSize.isNull() && !outputSize.isEmpty() &&
+            outputSize.width() > 0 && outputSize.height() > 0  ){
+        renderSize = outputSize;
+    }
+
+    m_dataSource->_viewResize( renderSize );
     gridService-> setOutputSize( renderSize );
 
     int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
@@ -577,7 +637,6 @@ void LayerData::_render( const std::vector<int>& frames,
 
     QPointF topLeftInput = imageService-> screen2img( topLeft );
     QPointF bottomRightInput = imageService->screen2img( bottomRight );
-
     QRectF inputRect( topLeftInput, bottomRightInput );
 
     gridService-> setImageRect( inputRect );
@@ -620,6 +679,7 @@ void LayerData::_render( const std::vector<int>& frames,
     if ( topOfStack ){
         gridDraw = m_dataGrid->_isGridVisible();
     }
+
     m_drawSync-> start( contourDraw, gridDraw );
 }
 
@@ -860,6 +920,7 @@ void LayerData::_updateColor(){
 }
 
 void LayerData::_viewResize( const QSize& newSize ){
+    m_viewSize = newSize;
     if ( m_dataSource ){
         m_dataSource->_viewResize( newSize );
     }

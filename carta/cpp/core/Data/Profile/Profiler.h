@@ -274,6 +274,8 @@ private:
 
     void _updateAvailableImages( Controller* controller );
 
+    void _updatePlotBounds();
+
     //Notify the plot to redraw.
     void _updatePlotData();
 

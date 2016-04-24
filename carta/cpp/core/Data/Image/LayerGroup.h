@@ -266,6 +266,15 @@ protected:
     virtual QString _getPixelValue( double x, double y,
             const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Return the size of the saved image based on the user defined output size and the aspect
+     * ratio mode.
+     * @param outputSize - the output image size specified by the user.
+     * @param aspectMode - whether the aspect ratio of the image should be preserved (etc).
+     * @return - the size of the saved image.
+     */
+    virtual QSize _getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const Q_DECL_OVERRIDE;
+
     virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() Q_DECL_OVERRIDE;
 
     /**
@@ -286,11 +295,6 @@ protected:
      */
     virtual QString _getStateString( bool truncatePaths ) const Q_DECL_OVERRIDE;
 
-    /**
-     * Return the layer vector graphics.
-     * @return - the layer vector graphics, which can include both the grid and contours.
-     */
-    virtual Carta::Lib::VectorGraphics::VGList _getVectorGraphics() Q_DECL_OVERRIDE;
 
     /**
      * Return the zoom factor for this image.
@@ -341,12 +345,8 @@ protected:
 
     /**
      * Generate a new QImage.
-     * @param frames - list of image frames.
-     * @param cs - an enumerated coordinate system type.
      */
-    virtual void _render( const std::vector<int>& frames,
-            const Carta::Lib::KnownSkyCS& cs, bool topOfStack ) Q_DECL_OVERRIDE;
-
+    virtual void _renderStart( );
 
     /**
      * Center the image.

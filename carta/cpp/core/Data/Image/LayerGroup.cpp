@@ -551,6 +551,16 @@ QString LayerGroup::_getPixelValue( double x, double y, const std::vector<int>& 
 }
 
 
+QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {
+    QSize saveSize = outputSize;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        saveSize = m_children[dataIndex]->_getSaveSize( outputSize, aspectMode );
+    }
+    return saveSize;
+}
+
+
 QPointF LayerGroup::_getScreenPt( QPointF imagePt, bool* valid ) const {
     QPointF screenPt;
     int dataIndex = _getIndexCurrent();
@@ -613,14 +623,6 @@ QString LayerGroup::_getStateString( bool truncatePaths ) const{
     }
     QString stateStr = copyState.toString();
     return stateStr;
-}
-
-Carta::Lib::VectorGraphics::VGList LayerGroup::_getVectorGraphics(){
-    Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
-    for ( std::shared_ptr<Layer> layer : m_children ){
-        comp.appendList( layer->_getVectorGraphics() );
-    }
-    return comp.vgList();
 }
 
 
@@ -736,21 +738,26 @@ void LayerGroup::_removeLayer( Layer* group ){
 }
 
 
-void LayerGroup::_render( const std::vector<int>& frames,
-        const Carta::Lib::KnownSkyCS& cs, bool topOfStack ){
-    m_drawSync->setLayers( m_children );
-    m_drawSync->setCombineMode( _getCompositionMode() );
-    int topIndex = -1;
-    if ( topOfStack ){
-        topIndex = _getIndexCurrent();
+void LayerGroup::_renderStart( ){
+    if ( m_renderRequests.size() > 0 ){
+        m_renderQueued = true;
+        std::shared_ptr<RenderRequest> request = m_renderRequests.pop();
+        m_drawSync->setLayers( m_children );
+        m_drawSync->setCombineMode( _getCompositionMode() );
+        int topIndex = -1;
+        if ( request->isStackTop()){
+            topIndex = _getIndexCurrent();
+        }
+        request->setTopIndex( topIndex );
+        m_drawSync->render( request );
     }
-    m_drawSync->render( frames, cs, topIndex );
 }
 
 
 void LayerGroup ::_renderingDone( QImage image ){
-    m_qimage = image;
-    emit renderingDone();
+    Carta::Lib::VectorGraphics::VGList graphics;
+    std::shared_ptr<RenderResponse> response( new RenderResponse(image, graphics, _getLayerId()));
+    emit renderingDone( response );
 }
 
 

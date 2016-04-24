@@ -9,7 +9,6 @@
 #include <QSize>
 #include <QImage>
 #include <QList>
-#include <QTimer>
 #include <memory>
 #include "CartaLib/CartaLib.h"
 
@@ -18,6 +17,8 @@ namespace Data{
 
 class SaveViewLayered;
 class Layer;
+class RenderRequest;
+class RenderResponse;
 
 class SaveService : public QObject {
     Q_OBJECT
@@ -29,11 +30,6 @@ public:
      */
     explicit SaveService( QObject * parent = 0 );
 
-    /**
-     * Set the desired output size of the image.
-     * @param size - the width and height of the output image.
-     */
-    void setOutputSize( QSize size );
 
     /**
      * Set how the image should be scaled to fit the output size.
@@ -56,17 +52,11 @@ public:
 
 
     /**
-     * Set the top index in the stack.
-     * @param index - the top stack index.
-     */
-    void setSelectIndex( int index );
-
-    /**
      * Save the image.
      * @return true if the image was saved; false, otherwise.
      */
-    bool saveImage(const std::vector<int>& frames,
-            const Carta::Lib::KnownSkyCS& cs);
+    bool saveImage(/*const std::vector<int>& frames,
+            const Carta::Lib::KnownSkyCS& cs*/const std::shared_ptr<RenderRequest>&);
 
     /**
      * Destructor.
@@ -83,9 +73,13 @@ signals:
 
 private slots:
 
-    void _scheduleSave();
+    void _scheduleSave(/*const QImage& qImage,
+            const Carta::Lib::VectorGraphics::VGList& vg, const QString& layerName*/
+            const std::shared_ptr<RenderResponse>& response);
 
 private:
+
+    QSize _getSaveSize( const std::shared_ptr<RenderRequest>& request ) const;
 
     /**
      * Returns true if the file is writable and the path is valid.
@@ -104,6 +98,8 @@ private:
 
     //Layers in the stack.
     QList<std::shared_ptr<Layer> > m_layers;
+
+    QMap<QString,std::shared_ptr<RenderResponse> > m_images;
 
     //Top layer of the stack
     int m_selectIndex;

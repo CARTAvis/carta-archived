@@ -411,6 +411,8 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
 }
 
 
+
+
 Controller* Profiler::_getControllerSelected() const {
     //We are only supporting one linked controller.
     Controller* controller = nullptr;
@@ -1345,14 +1347,29 @@ QString Profiler::setZoomRange( double zoomMin, double zoomMax ){
             m_stateData.setValue<double>( ZOOM_MAX_PERCENT, upperPercent );
             m_stateData.flushState();
 
-            //Update the graph.
-            m_plotManager->setAxisXRange( zoomMin, zoomMax );
+           _updatePlotBounds();
         }
     }
     else {
         result = "Minimum zoom, "+QString::number(zoomMin)+", must be less the maximum zoom, "+QString::number(zoomMax);
     }
     return result;
+}
+
+void Profiler::_updatePlotBounds(){
+    //Update the graph.
+    //See if we need to add an additional buffer.
+    double graphMin = m_stateData.getValue<double>( ZOOM_MIN );
+    double graphMax = m_stateData.getValue<double>( ZOOM_MAX );
+    double maxChannel = _getMaxFrame();
+    if ( m_stateData.getValue<bool>( ZOOM_BUFFER) ){
+        double bufferSize = m_stateData.getValue<double>( ZOOM_BUFFER_SIZE );
+        double halfSize = bufferSize / 2;
+        double buffAmount = maxChannel * halfSize / 100;
+        graphMin = graphMin - buffAmount;
+        graphMax = graphMax + buffAmount;
+    }
+    m_plotManager->setAxisXRange( graphMin, graphMax );
 }
 
 QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent ){
@@ -1385,7 +1402,7 @@ QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPerc
                     m_stateData.flushState();
 
                     //Update the graph.
-                    m_plotManager->setAxisXRange( minZoom, maxZoom );
+                    _updatePlotBounds();
                 }
             }
             else {

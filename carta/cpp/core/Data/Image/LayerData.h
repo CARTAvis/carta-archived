@@ -75,14 +75,6 @@ protected:
        virtual void _clearColorMap();
 
     /**
-         * Return a list of information about the axes to display.
-         * @return a list showing information about which axes should be displayed and how
-         *  they should be displayed.
-         */
-    //std::vector<Carta::Lib::AxisDisplayInfo> _getAxisDisplayInfo() const;
-
-    //virtual std::shared_ptr<Carta::Core::ImageRenderService::Service> _getRenderer() Q_DECL_OVERRIDE;
-    /**
      * Respond to a change in display axes.
      * @param displayAxisTypes - the x-, y-, and z- axes to display.
      * @param frames - list of image frames.
@@ -128,9 +120,9 @@ protected:
             const std::vector<int>& frames) const Q_DECL_OVERRIDE;
 
     /**
-         * Return the coordinate system in use.
-         * @return - an enumerated coordinate system type.
-         */
+     * Return the coordinate system in use.
+     * @return - an enumerated coordinate system type.
+     */
     virtual Carta::Lib::KnownSkyCS _getCoordinateSystem() const Q_DECL_OVERRIDE;
 
     /**
@@ -231,7 +223,14 @@ protected:
      */
     virtual QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
 
-
+    /**
+     * Return the size of the saved image based on the user defined output size and the aspect
+     * ratio mode.
+     * @param outputSize - the output image size specified by the user.
+     * @param aspectMode - whether the aspect ratio of the image should be preserved (etc).
+     * @return - the size of the saved image.
+     */
+    virtual QSize _getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the location on the screen corresponding to a location in image coordinates.
@@ -338,12 +337,8 @@ protected:
 
     /**
      * Generate a new QImage.
-     * @param frames - list of image frames.
-     * @param cs - an enumerated coordinate system type.
      */
-    virtual void _render( const std::vector<int>& frames,
-            const Carta::Lib::KnownSkyCS& cs, bool topOfStack ) Q_DECL_OVERRIDE;
-
+    virtual void _renderStart() Q_DECL_OVERRIDE;
 
     /**
      * Reset the prefereence state of this layer.
@@ -352,9 +347,9 @@ protected:
     virtual void _resetState( const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
 
     /**
-         * Reset the layer contours.
-         * @param restoreeState - the new layer state.
-         */
+     * Reset the layer contours.
+     * @param restoreeState - the new layer state.
+     */
     virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
 
     /**
@@ -472,8 +467,10 @@ private:
     QPointF m_viewPan;
 
 
+
      /// image-and-grid-service result synchronizer
     std::unique_ptr<DrawSynchronizer> m_drawSync;
+
     std::shared_ptr<ColorState> m_stateColor;
 
     LayerData(const LayerData& other);
