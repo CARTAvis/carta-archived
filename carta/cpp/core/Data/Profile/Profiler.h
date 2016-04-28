@@ -216,9 +216,10 @@ protected:
     virtual void timerEvent( QTimerEvent* event );
 
 private slots:
-    void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
+    void _cursorUpdate( double x, double y );
     void _loadProfile( Controller* controller);
     void _movieFrame();
+    void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     QString _zoomToSelection();
 
 private:
@@ -234,6 +235,8 @@ private:
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
     const static QString REGIONS;
+    const static QString SHOW_TOOLTIP;
+    const static QString TOOL_TIPS;
     const static QString TAB_INDEX;
     const static QString ZOOM_BUFFER;
     const static QString ZOOM_BUFFER_SIZE;

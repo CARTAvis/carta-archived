@@ -43,6 +43,17 @@ public:
      */
     QColor getColor() const;
 
+
+    /**
+     * Return information about the plot point under the cursor.
+     * @param x - the x-coordinate of the point under the cursor.
+     * @param y - the y-coordinate of the point under the cursor.
+     * @param error - the approximation error in matching the mouse point
+     *      to the closest point on the plot curve.
+     * @return - information about the curve point closest to the mouse point.
+     */
+    QString getCursorText( double x, double y, double* error) const;
+
     /**
      * Return the maximum x- data value.
      * @return - the maximum x- data value.
@@ -171,6 +182,11 @@ private:
     const static QString REGION_NAME;
     const static QString IMAGE_NAME;
     const static QString REST_FREQUENCY;
+
+    double _calculateRelativeError( double minValue, double maxValue ) const;
+    void _calculateRelativeErrors( double& errorX, double& errorY ) const;
+    void _getMinMax(double* xmin, double* xmax, double* ymin,
+            double* ymax ) const;
 
     void _initializeDefaultState();
     void _initializeStatics();

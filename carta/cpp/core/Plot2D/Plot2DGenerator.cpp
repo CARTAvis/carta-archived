@@ -5,6 +5,7 @@
 #include "Plot2DLine.h"
 #include "Plot.h"
 #include <qwt_scale_engine.h>
+#include <qwt_scale_widget.h>
 #include <qwt_plot_renderer.h>
 #include "Data/Plotter/LegendLocations.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
@@ -196,6 +197,39 @@ double Plot2DGenerator::getVLinePosition( bool* valid ) const {
         pos = m_vLine->getPosition( );
     }
     return pos;
+}
+
+std::pair<double,double> Plot2DGenerator::getWorldPt(int x, int y, int width, int height ) const {
+    QSize plotSize = m_plot->size();
+    //qDebug() << "plotSize width="<<plotSize.width()<<" height="<<plotSize.height();
+    //qDebug() << " ";
+    QWidget* canvas = m_plot->canvas();
+    QSize canvasSize = canvas->size();
+    double xMargin = plotSize.width() - canvasSize.width();
+    //double yMargin = plotSize.height() - canvasSize.height();
+    //Space between edge of canvas and where 0 is.
+    const int WHITE_OFFSET = 8;
+    int marginSpaceX = xMargin - WHITE_OFFSET;
+    //int marginSpaceY = yMargin;
+    //qDebug() << "screen x="<<x<<" y="<<y<<" width="<<width<<" height="<<height;
+    double widthStretch = (width*1.0  - marginSpaceX) / (plotSize.width() - marginSpaceX );
+    double heightStretch = (height*1.0 /*- marginSpaceY*/ ) / (plotSize.height() /*- marginSpaceY*/ );
+    //qDebug() << "widthStretch="<<widthStretch<<" heightStretch="<<heightStretch;
+
+    double canvasX = ( x - marginSpaceX ) / widthStretch;
+    double canvasY = ( y /*- marginSpaceY */) / heightStretch;
+    //qDebug() << "canvas pt x="<<canvasX<<" y="<<canvasY;
+    std::pair<double,double> worldPt;
+    //if ( canvasX > 0 && canvasY > 0 ){
+
+        double xValue = m_plot->invTransform( QwtPlot::xBottom, canvasX );
+        double yValue = m_plot->invTransform( QwtPlot::yLeft, canvasY );
+        //double xZeroValue = m_plot->invTransform( QwtPlot::xBottom, 0 );
+        //qDebug() << "Zero is being mapped to "<<xZeroValue;
+        //qDebug() << "Plot value x="<<xValue<<" y="<<yValue;
+        worldPt = std::pair<double,double>( xValue, yValue );
+    //}
+    return worldPt;
 }
 
 void Plot2DGenerator::removeData( const QString& dataName ){
@@ -463,7 +497,7 @@ void Plot2DGenerator::setTitleAxisY( const QString& title){
 }
 
 
-QImage * Plot2DGenerator::toImage( int width, int height ) const {
+QImage Plot2DGenerator::toImage( int width, int height ) const {
     QwtPlotRenderer renderer;
     if ( width <= 0 ){
         width = m_width;
@@ -471,8 +505,9 @@ QImage * Plot2DGenerator::toImage( int width, int height ) const {
     if ( height <= 0 ){
         height = m_height;
     }
-    QImage * plotImage =new QImage(width, height, QImage::Format_RGB32);
-    renderer.renderTo(m_plot, *plotImage );
+    m_plot->resize( width, height );
+    QImage plotImage(width, height, QImage::Format_RGB32);
+    renderer.renderTo(m_plot, plotImage );
     return plotImage;
 }
 
@@ -528,6 +563,7 @@ Plot2DGenerator::~Plot2DGenerator(){
         delete m_vLine;
     }
     delete m_range;
+    delete m_plot;
 }
 }
 }

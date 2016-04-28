@@ -110,6 +110,17 @@ public:
      */
     double getVLinePosition( bool* valid ) const;
 
+    /**
+     * Translate a pixel point (x,y) contained in a plot of the given size into a
+     * world point.
+     * @param x - the x-coordinate of the pixel point.
+     * @param y - the y-coordinate of the pixel point.
+     * @param width - the width of the plot in pixels.
+     * @param height - the height of the plot in pixels.
+     * @return - the world coordinates of the the plot point.
+     */
+    std::pair<double,double> getWorldPt(int x, int y, int width, int height ) const;
+
 
     /**
      * Return true if the parameter is on the canvas itself rather than in the
@@ -288,7 +299,7 @@ public:
      * @param width - the width of the desired image.
      * @param height - the height of the desired image.
      */
-    QImage * toImage( int width = 0, int height = 0) const;
+    QImage toImage( int width = 0, int height = 0) const;
 
     virtual ~Plot2DGenerator();
 

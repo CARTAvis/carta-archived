@@ -181,7 +181,6 @@ private:
 
     class Factory;
     static bool m_registered;
-    static const QString VIEW;
     static const QString REGIONS;
 
     std::unique_ptr<DrawStackSynchronizer> m_stackDraw;

@@ -121,10 +121,12 @@ public:
      static const QString ID;
      static const QString NAME;
      static const QString PEN_WIDTH;
+     static const QString POINTER_MOVE;
      static const QString TAB_INDEX;
      static const QString TYPE;
      static const QString UNITS;
      static const QString VISIBLE;
+     static const QString VIEW;
      static const int MAX_COLOR;
 
 private:

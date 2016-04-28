@@ -249,7 +249,7 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frames );
         if ( rawData != nullptr ){
-            Carta::Lib::NdArray::TypedView<double> view( rawData, false );
+            Carta::Lib::NdArray::TypedView<double> view( rawData, true );
             double val =  view.get( { valX, valY } );
             pixelValue = QString::number( val );
         }

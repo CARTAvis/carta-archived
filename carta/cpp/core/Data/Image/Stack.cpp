@@ -29,7 +29,6 @@ namespace Data {
 
 const QString Stack::CLASS_NAME = "Stack";
 const QString Stack::REGIONS = "regions";
-const QString Stack::VIEW = "view";
 
 
 class Stack::Factory : public Carta::State::CartaObjectFactory {

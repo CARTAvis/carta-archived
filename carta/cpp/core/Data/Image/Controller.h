@@ -646,7 +646,6 @@ private:
     static const QString IMAGE;
     static const QString PAN_ZOOM_ALL;
     static const QString CENTER;
-    static const QString POINTER_MOVE;
     static const QString STACK_SELECT_AUTO;
 
     static const QString ZOOM;

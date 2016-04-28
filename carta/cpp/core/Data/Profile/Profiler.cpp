@@ -47,6 +47,8 @@ const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
 const QString Profiler::REGIONS = "regions";
+const QString Profiler::SHOW_TOOLTIP = "showToolTip";
+const QString Profiler::TOOL_TIPS = "toolTips";
 const QString Profiler::ZOOM_BUFFER = "zoomBuffer";
 const QString Profiler::ZOOM_BUFFER_SIZE = "zoomBufferSize";
 const QString Profiler::ZOOM_MIN = "zoomMin";
@@ -104,6 +106,8 @@ Profiler::Profiler( const QString& path, const QString& id):
     m_plotManager->setTitleAxisY( "" );
     connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));
     connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT(_movieFrame()));
+    connect( m_plotManager.get(), SIGNAL(cursorMove(double,double)),
+            this, SLOT(_cursorUpdate(double,double)));
 
     _initializeStatics();
     _initializeDefaultState();
@@ -301,6 +305,26 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
         }
     }
     return converted;
+}
+
+void Profiler::_cursorUpdate( double x, double y ){
+    QString cursorText;
+    int curveCount = m_plotCurves.size();
+    double approxError = 1.0;
+    //Find the curve with a point closest to x,y.
+    for ( int i = 0; i < curveCount; i++ ){
+        double error = 0;
+        QString curveText = m_plotCurves[i]->getCursorText( x, y, &error );
+        if ( !curveText.isEmpty() ){
+            if ( error < approxError ){
+                cursorText = curveText;
+                approxError = error;
+            }
+        }
+    }
+    //if ( !cursorText.isEmpty() ){
+        m_plotManager->setCursorText( cursorText );
+    //}
 }
 
 
@@ -556,6 +580,7 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<QString>( AXIS_UNITS_BOTTOM, m_bottomUnit );
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
     m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
+    m_state.insertValue<bool>(TOOL_TIPS, false );
 
     //Legend
     bool external = true;
@@ -570,6 +595,7 @@ void Profiler::_initializeDefaultState(){
 
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 2 );
+    m_state.insertValue<bool>( SHOW_TOOLTIP, true );
 
     m_state.flushState();
 }
@@ -893,7 +919,6 @@ void Profiler::_initializeCallbacks(){
            Util::commandPostProcess( result );
            return result;
        });
-
 }
 
 
@@ -907,7 +932,6 @@ void Profiler::_initializeStatics(){
     if ( m_generateModes == nullptr ){
         m_generateModes = Util::findSingletonObject<GenerateModes>();
     }
-
 }
 
 

@@ -54,7 +54,6 @@ const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
-const QString Controller::POINTER_MOVE = "pointer-move";
 const QString Controller::ZOOM = "zoom";
 
 const QString Controller::PLUGIN_NAME = "CasaImageLoader";
@@ -72,7 +71,7 @@ using Carta::Lib::AxisInfo;
 
 Controller::Controller( const QString& path, const QString& id ) :
         CartaObject( CLASS_NAME, path, id),
-        m_stateMouse(UtilState::getLookup(path, Stack::VIEW)){
+        m_stateMouse(UtilState::getLookup(path, Util::VIEW)){
 
      _initializeState();
 
@@ -80,7 +79,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 
      //Stack
      Stack* layerGroupRoot = objMan->createObject<Stack>();
-     QString viewName = Carta::State::UtilState::getLookup( path, Stack::VIEW);
+     QString viewName = Carta::State::UtilState::getLookup( path, Util::VIEW);
      layerGroupRoot->_setViewName( viewName );
      m_stack.reset( layerGroupRoot );
      connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
@@ -579,7 +578,7 @@ void Controller::_initializeCallbacks(){
             return result;
         });
 
-    QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( Stack::VIEW, POINTER_MOVE));
+    QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( Util::VIEW, Util::POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
         QStringList mouseList = value.split( " ");
         if ( mouseList.size() == 2 ){
@@ -860,7 +859,7 @@ void Controller::_initializeState(){
 
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(CURSOR, "");
-    m_stateMouse.insertValue<QString>(POINTER_MOVE, "");
+    m_stateMouse.insertValue<QString>(Util::POINTER_MOVE, "");
     m_stateMouse.insertValue<int>(ImageView::MOUSE_X, 0 );
     m_stateMouse.insertValue<int>(ImageView::MOUSE_Y, 0 );
     m_stateMouse.flushState();

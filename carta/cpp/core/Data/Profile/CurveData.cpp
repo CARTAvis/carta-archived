@@ -4,6 +4,7 @@
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/ProfilePlotStyles.h"
 #include "State/UtilState.h"
+#include <QtCore/qmath.h>
 #include <QDebug>
 
 namespace Carta {
@@ -42,6 +43,45 @@ CurveData::CurveData( const QString& path, const QString& id):
     _initializeDefaultState();
 }
 
+double CurveData::_calculateRelativeError( double minValue, double maxValue ) const {
+    double range = qAbs( maxValue - minValue );
+    double error = 0;
+    if ( ! std::isnan( range ) ){
+        //Divide by powers of 10 until we get something less than 1.
+        if ( range > 1 ){
+            int i = 0;
+            double powerValue = qPow(10,i);
+            while ( range / powerValue > 1 ){
+                i++;
+                powerValue = qPow(10,i);
+            }
+            error = powerValue;
+        }
+        //Multiply by powers of 10 until we get something larger than 1.
+        else {
+            int i = 0;
+            while ( range * qPow(10,i) < 1 ){
+                i++;
+            }
+            error = 1 / qPow(10,i);
+        }
+    }
+    //Add in arbitrary scaling for more accuracy.
+    error = error * .005;
+    return error;
+}
+
+void CurveData::_calculateRelativeErrors( double& errorX, double& errorY ) const {
+    double dataMinX = std::numeric_limits<double>::max();
+    double dataMaxX = -1 * dataMinX;
+    double dataMinY = std::numeric_limits<double>::max();;
+    double dataMaxY = -1 * dataMinY;
+    _getMinMax( &dataMinX, &dataMaxX, &dataMinY, &dataMaxY );
+    errorX = _calculateRelativeError( dataMinX, dataMaxX );
+    errorY = _calculateRelativeError( dataMinY, dataMaxY );
+}
+
+
 void CurveData::copy( const std::shared_ptr<CurveData> & other ){
     if ( other ){
         m_plotDataX = other->m_plotDataX;
@@ -69,9 +109,65 @@ QColor CurveData::getColor() const {
     return QColor( red, green, blue );
 }
 
+QString CurveData::getCursorText( double x, double y, double* error ) const {
+    int dataCount = m_plotDataX.size();
+    //Normalize the error by the size of the data.
+    double targetErrorX = 0;
+    double targetErrorY = 0;
+    *error = 0;
+    _calculateRelativeErrors( targetErrorX, targetErrorY );
+
+    //Find the index that yields the smallest error
+    //withen acceptable bounds.
+    int selectedIndex = -1;
+    double minErrorX = std::numeric_limits<double>::max();
+    for ( int i = 0; i < dataCount; i++ ) {
+        double curveX = m_plotDataX[i];
+        double curveY = m_plotDataY[i];
+
+        double errorX = fabs( curveX - x );
+        double errorY = fabs( curveY - y );
+        if ( errorX < targetErrorX && errorY < targetErrorY ) {
+            if ( errorX < minErrorX ){
+                selectedIndex = i;
+                minErrorX = errorX;
+            }
+        }
+    }
+
+    //If we found an index with acceptable bounds, show the point
+    //as a tooltip.
+    QString toolTipStr;
+    if ( selectedIndex >= 0 ){
+        *error = qSqrt( qPow( m_plotDataX[selectedIndex] - x, 2 )+ qPow(m_plotDataY[selectedIndex] - y, 2) );
+        toolTipStr.append( "(" );
+        toolTipStr.append(QString::number( m_plotDataX[selectedIndex] ));
+        //toolTipStr.append( " " +xUnit +", " );
+        toolTipStr.append( ", ");
+        toolTipStr.append(QString::number( m_plotDataY[selectedIndex],'g',4 ));
+        //toolTipStr.append( " " + yUnit+ ")");
+        toolTipStr.append( ")");
+    }
+    return toolTipStr;
+}
+
 
 double CurveData::getDataMax() const {
     return m_plotDataX.size();
+}
+
+
+void CurveData::_getMinMax(double* xmin, double* xmax, double* ymin,
+        double* ymax) const {
+    int maxPoints = m_plotDataX.size();
+    for (int i = 0; i < maxPoints; ++i) {
+        double dx = m_plotDataX[i];
+        double dy = m_plotDataY[i];
+        *xmin = (*xmin > dx) ? dx : *xmin;
+        *xmax = (*xmax < dx) ? dx : *xmax;
+        *ymin = (*ymin > dy) ? dy : *ymin;
+        *ymax = (*ymax < dy) ? dy : *ymax;
+    }
 }
 
 
