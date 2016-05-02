@@ -6,6 +6,7 @@
 #include "State/UtilState.h"
 #include <QtCore/qmath.h>
 #include <QDebug>
+#include <cmath>
 
 namespace Carta {
 
