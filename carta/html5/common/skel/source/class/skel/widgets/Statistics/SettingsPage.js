@@ -36,19 +36,21 @@ qx.Class.define("skel.widgets.Statistics.SettingsPage", {
             content.setLayout( new qx.ui.layout.VBox(2) );
             this._add( content, {flex:1} );
             
-            var controlContainer = new qx.ui.container.Composite();
-            controlContainer.setLayout( new qx.ui.layout.HBox(2) );
-            var showLabel = new qx.ui.basic.Label( "Show:");
-            this.m_showCheck = new qx.ui.form.CheckBox();
-            this.m_showCheck.setToolTipText( "Show/hide "+label+" statistics.");
-            skel.widgets.TestID.addTestId( this.m_showCheck, label+"ShowStats");
-            this.m_showId = this.m_showCheck.addListener( skel.widgets.Path.CHANGE_VALUE, 
-                    this._statVisibilityChanged, this );
-            controlContainer.add( new qx.ui.core.Spacer(2), {flex:1});
-            controlContainer.add( showLabel);
-            controlContainer.add( this.m_showCheck);
-            controlContainer.add( new qx.ui.core.Spacer(2), {flex:1});
-            content.add( controlContainer );
+            if ( label == "Region"){
+                var controlContainer = new qx.ui.container.Composite();
+                controlContainer.setLayout( new qx.ui.layout.HBox(2) );
+                var showLabel = new qx.ui.basic.Label( "Show:");
+                this.m_showCheck = new qx.ui.form.CheckBox();
+                this.m_showCheck.setToolTipText( "Show/hide "+label+" statistics.");
+                skel.widgets.TestID.addTestId( this.m_showCheck, label+"ShowStats");
+                this.m_showId = this.m_showCheck.addListener( skel.widgets.Path.CHANGE_VALUE, 
+                        this._statVisibilityChanged, this );
+                controlContainer.add( new qx.ui.core.Spacer(2), {flex:1});
+                controlContainer.add( showLabel);
+                controlContainer.add( this.m_showCheck);
+                controlContainer.add( new qx.ui.core.Spacer(2), {flex:1});
+                content.add( controlContainer );
+            }
             
             this.m_checkContainer = new skel.widgets.Statistics.DragDropGrid( label );
             this.m_checkContainer.addListener( "statMoved", this._sendMoveCmd, this );

@@ -130,7 +130,7 @@ signals:
     void indexChanged(int,const QString&);
 
 private slots:
-    void _selectionChanged( bool );
+    void _selectionChanged();
 
 private:
     void _setType( const QString& type );

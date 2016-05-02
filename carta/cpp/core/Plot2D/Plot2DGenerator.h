@@ -8,6 +8,7 @@
 #include <QString>
 #include <memory>
 #include <qwt_plot.h>
+#include <qwt_plot_grid.h>
 
 
 namespace Carta {
@@ -109,6 +110,17 @@ public:
      */
     double getVLinePosition( bool* valid ) const;
 
+    /**
+     * Translate a pixel point (x,y) contained in a plot of the given size into a
+     * world point.
+     * @param x - the x-coordinate of the pixel point.
+     * @param y - the y-coordinate of the pixel point.
+     * @param width - the width of the plot in pixels.
+     * @param height - the height of the plot in pixels.
+     * @return - the world coordinates of the the plot point.
+     */
+    std::pair<double,double> getWorldPt(int x, int y, int width, int height ) const;
+
 
     /**
      * Return true if the parameter is on the canvas itself rather than in the
@@ -118,6 +130,12 @@ public:
      *    otherwise.
      */
     bool isSelectionOnCanvas( int xPos ) const;
+
+    /**
+     * Remove a set of data form the plot.
+     * @param dataName - an identifier for the data set to remove.
+     */
+    void removeData( const QString& dataName );
 
     /**
      * Set the range of values for the x-axis.
@@ -141,6 +159,20 @@ public:
      *      the colored attribute to all data sets.
      */
     void setColored( bool colored, const QString& id = QString() );
+
+    /**
+     * Rename a curve.
+     * @param oldName - the original identifier for the curve.
+     * @param newName - the new identifier for the curve.
+     */
+    void setCurveName( const QString& oldName, const QString& newName );
+
+    /**
+     * Set whether or not to show/hide grid lines.
+     * @param showGrid - true to show grid lines; false to hide them.
+     */
+    void setGridLines( bool showGrid );
+
 
     /**
      * Set whether or not a sample line should be drawn with legend items.
@@ -267,7 +299,7 @@ public:
      * @param width - the width of the desired image.
      * @param height - the height of the desired image.
      */
-    QImage * toImage( int width = 0, int height = 0) const;
+    QImage toImage( int width = 0, int height = 0) const;
 
     virtual ~Plot2DGenerator();
 
@@ -287,6 +319,7 @@ private:
     Plot2DSelection *m_range;
     Plot2DSelection * m_rangeColor;
     Plot2DLine* m_vLine;
+    QwtPlotGrid* m_gridLines;
     int m_height;
     int m_width;
     QString m_axisNameX;

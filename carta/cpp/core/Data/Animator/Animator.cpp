@@ -241,6 +241,7 @@ Controller* Animator::_getControllerSelected() const {
     else {
         //Find the first controller that has an image.
         int linkCount = m_linkImpl->getLinkCount();
+        Controller* alt = nullptr;
         for ( int i = 0; i < linkCount; i++ ){
             Controller* control = dynamic_cast<Controller*>( m_linkImpl->getLink(i) );
             if ( control != nullptr ){
@@ -249,10 +250,14 @@ Controller* Animator::_getControllerSelected() const {
                     controller = control;
                     break;
                 }
+                alt = control;
             }
         }
+        //Otherwise, just choose one.
+        if ( controller == nullptr ){
+            controller = alt;
+        }
     }
-
     return controller;
 }
 

@@ -128,6 +128,12 @@ public:
     double getVLinePosition( bool* valid ) const;
 
     /**
+     * Remove a profile from the list.
+     * @param dataName - the profile to remove.
+     */
+    void removeData( const QString& dataName );
+
+    /**
      * Save a copy of the plot as an image.
      * @param filename the full path where the file is to be saved.
      * @return an error message if there was a problem saving the Plot2DManager;
@@ -156,6 +162,26 @@ public:
      */
     //Note:  this refers to a multicolored data set.
     void setColored( bool colored, const QString& id = QString() );
+
+    /**
+     * Set the text giving coordinate information for points on the plot.
+     * @param cursorText - set the text that gives coordinate information for points on
+     *      the plot.
+     */
+    void setCursorText( const QString& cursorText );
+
+    /**
+     * Rename the curve.
+     * @param oldName - the original name of the curve.
+     * @param newName - the new name for the curve.
+     */
+    void setCurveName( const QString& oldName, const QString& newName );
+
+    /**
+     * Set whether or not to show/hide grid lines.
+     * @param showGrid - true to show grid lines on the plot canvas; false otherwise.
+     */
+    void setGridLines( bool showGrid );
 
     /**
      * Set whether or not to show a line with legend items.
@@ -270,18 +296,29 @@ public:
 
     /**
      * Update a user selection.
-     * @param x - the current end value of the selection.
+     * @param x - the current x-coordinate end value of the selection.
+     * @param y - the current y-coordinate end value of the selection.
+     * @param width - the width of the screen.
+     * @param height - the height of the screen.
      */
-    void updateSelection(int x );
+    void updateSelection(int x, int y, int width, int height );
 
     virtual ~Plot2DManager();
 
     const static QString CLASS_NAME;
+    const static QString CURSOR_TEXT;
     const static QString GRAPH_STYLE_LINE;
     const static QString GRAPH_STYLE_OUTLINE;
     const static QString GRAPH_STYLE_FILL;
 
 signals:
+
+    /**
+     * Notification that the mouse has moved on the plot.
+     * @param x - the x-coordinate of the plot point.
+     * @param y - the y-coordinate of the plot point.
+     */
+    void cursorMove( double x, double y );
 
     /**
      * Notification to the application class that the user has made
@@ -307,7 +344,6 @@ private:
 
     const static QString DATA_PATH;
     const static QString X_COORDINATE;
-    const static QString POINTER_MOVE;
 
     void _initializeDefaultState();
     void _initializeCallbacks();
@@ -320,6 +356,7 @@ private:
     double m_selectionStart;
     double m_selectionEnd;
     bool m_selectionEnabledColor;
+    bool m_cursorEnabled;
 
     //View of plot
     std::shared_ptr<ImageView> m_view = nullptr;

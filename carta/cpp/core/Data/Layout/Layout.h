@@ -155,7 +155,6 @@ private:
 
     class Factory;
 
-    static const QString ID;
     static const QString LAYOUT_ROWS;
     static const QString LAYOUT_COLS;
     static const QString LAYOUT_NODE;

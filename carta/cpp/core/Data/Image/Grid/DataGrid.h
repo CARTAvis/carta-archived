@@ -29,7 +29,7 @@ class Themes;
 
 class DataGrid : public Carta::State::CartaObject {
 
-friend class ControllerData;
+friend class LayerData;
 friend class GridControls;
 
 public:

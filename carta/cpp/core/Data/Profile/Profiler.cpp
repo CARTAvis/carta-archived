@@ -2,24 +2,29 @@
 #include "CurveData.h"
 #include "IntensityUnits.h"
 #include "SpectralUnits.h"
+#include "GenerateModes.h"
+#include "ProfilePlotStyles.h"
 #include "Data/Clips.h"
 #include "Data/DataLoader.h"
 #include "Data/Settings.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/DataSource.h"
+#include "Data/Image/Layer.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "Data/Plotter/LegendLocations.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Data/Plotter/LineStyles.h"
-#include "Data/Plotter/PlotStyles.h"
+
 #include "Plot2D/Plot2DGenerator.h"
 
 #include "CartaLib/Hooks/Plot2DResult.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
+#include "CartaLib/Hooks/ProfileHook.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/ProfileInfo.h"
 #include "State/UtilState.h"
 #include "Globals.h"
 #include "PluginManager.h"
@@ -33,10 +38,25 @@ const QString Profiler::CLASS_NAME = "Profiler";
 const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
 const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CURVES = "curves";
+const QString Profiler::CURVE_SELECT = "selectCurve";
+const QString Profiler::GEN_MODE = "genMode";
+const QString Profiler::GRID_LINES = "gridLines";
+const QString Profiler::IMAGES = "images";
 const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
+const QString Profiler::REGIONS = "regions";
+const QString Profiler::SHOW_TOOLTIP = "showToolTip";
+const QString Profiler::TOOL_TIPS = "toolTips";
+const QString Profiler::ZOOM_BUFFER = "zoomBuffer";
+const QString Profiler::ZOOM_BUFFER_SIZE = "zoomBufferSize";
+const QString Profiler::ZOOM_MIN = "zoomMin";
+const QString Profiler::ZOOM_MAX = "zoomMax";
+const QString Profiler::ZOOM_MIN_PERCENT = "zoomMinPercent";
+const QString Profiler::ZOOM_MAX_PERCENT = "zoomMaxPercent";
+const double Profiler::ERROR_MARGIN = 0.000001;
+
 
 
 class Profiler::Factory : public Carta::State::CartaObjectFactory {
@@ -51,6 +71,7 @@ bool Profiler::m_registered =
 
 SpectralUnits* Profiler::m_spectralUnits = nullptr;
 IntensityUnits* Profiler::m_intensityUnits = nullptr;
+GenerateModes* Profiler::m_generateModes = nullptr;
 
 
 QList<QColor> Profiler::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
@@ -83,7 +104,10 @@ Profiler::Profiler( const QString& path, const QString& id):
 
     m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::PROFILE) );
     m_plotManager->setTitleAxisY( "" );
+    connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));
     connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT(_movieFrame()));
+    connect( m_plotManager.get(), SIGNAL(cursorMove(double,double)),
+            this, SLOT(_cursorUpdate(double,double)));
 
     _initializeStatics();
     _initializeDefaultState();
@@ -101,11 +125,12 @@ QString Profiler::addLink( CartaObject*  target){
         if ( !m_controllerLinked ){
             linkAdded = m_linkImpl->addLink( controller );
             if ( linkAdded ){
-                connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_generateProfile(Controller*)));
+                connect(controller, SIGNAL(dataChanged(Controller*)),
+                        this , SLOT(_loadProfile(Controller*)));
                 connect(controller, SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
                         this, SLOT( _updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
                 m_controllerLinked = true;
-                _generateProfile( controller );
+                _loadProfile( controller);
             }
         }
         else {
@@ -157,6 +182,48 @@ void Profiler::_assignColor( std::shared_ptr<CurveData> curveData ){
     }
 }
 
+
+void Profiler::_assignCurveName( std::shared_ptr<CurveData>& profileCurve ) const {
+    QString name = profileCurve->getName();
+    QString curveName = name;
+    if ( name.trimmed().length() == 0 ){
+        curveName = profileCurve->getNameImage();
+        QString regionName = profileCurve->getNameRegion();
+        if ( regionName.length() > 0 ){
+            curveName = curveName + "(" + regionName + ")";
+        }
+    }
+
+    //Make sure the name is unique among all the curves we have listed.
+    int curveCount = m_plotCurves.size();
+    bool duplicate = false;
+    QString checkName = curveName;
+    int iter = 1;
+    do {
+        duplicate = false;
+        for ( int i = 0; i < curveCount; i++ ){
+            QString cName = m_plotCurves[i]->getName();
+            if ( cName == checkName ){
+                duplicate = true;
+                break;
+            }
+        }
+        if ( duplicate ){
+            checkName = curveName + "("+QString::number(iter)+")";
+        }
+        iter++;
+    } while ( duplicate );
+    profileCurve->setName( checkName );
+}
+
+void Profiler::_clearData(){
+    m_plotManager->clearData();
+    int curveSize = m_plotCurves.size();
+    for ( int i = curveSize - 1; i>= 0; i-- ){
+        QString curveName = m_plotCurves[i]->getName();
+        profileRemove( curveName );
+    }
+}
 
 std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveData,
         const QString& newUnit ) const {
@@ -240,12 +307,32 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
     return converted;
 }
 
+void Profiler::_cursorUpdate( double x, double y ){
+    QString cursorText;
+    int curveCount = m_plotCurves.size();
+    double approxError = 1.0;
+    //Find the curve with a point closest to x,y.
+    for ( int i = 0; i < curveCount; i++ ){
+        double error = 0;
+        QString curveText = m_plotCurves[i]->getCursorText( x, y, &error );
+        if ( !curveText.isEmpty() ){
+            if ( error < approxError ){
+                cursorText = curveText;
+                approxError = error;
+            }
+        }
+    }
+    //if ( !cursorText.isEmpty() ){
+        m_plotManager->setCursorText( cursorText );
+    //}
+}
 
-int Profiler::_findCurveIndex( const QString& curveName ) const {
+
+int Profiler::_findCurveIndex( const QString& name ) const {
     int curveCount = m_plotCurves.size();
     int index = -1;
     for ( int i = 0; i < curveCount; i++ ){
-        if ( m_plotCurves[i]->getName() == curveName ){
+        if ( m_plotCurves[i]->isMatch( name ) ){
             index = i;
             break;
         }
@@ -254,15 +341,101 @@ int Profiler::_findCurveIndex( const QString& curveName ) const {
 }
 
 
-void Profiler::_generateProfile(Controller* controller ){
-    Controller* activeController = controller;
-    if ( activeController == nullptr ){
-        activeController = _getControllerSelected();
-    }
-    if ( activeController ){
-        _loadProfile( activeController );
+void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
+    QString layerName = layer->_getLayerName();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> image = layer->_getImage();
+    std::vector < int > pos( image-> dims().size(), 0 );
+    int axis = _getExtractionAxisIndex( image );
+    if ( axis >= 0 ){
+        Profiles::PrincipalAxisProfilePath path( axis, pos );
+
+        Carta::Lib::ProfileInfo profInfo;
+        Carta::Lib::RegionInfo regionInfo;
+        auto result = Globals::instance()-> pluginManager()
+                      -> prepare <Carta::Lib::Hooks::ProfileHook>(image,
+                              regionInfo, profInfo);
+        auto lam = [=] ( const Carta::Lib::Hooks::ProfileHook::ResultType &data ) {
+            int dataCount = data.size();
+            if ( dataCount > 0 ){
+                std::vector<double> plotDataX( dataCount );
+                std::vector<double> plotDataY( dataCount );
+
+                for( int i = 0 ; i < dataCount; i ++ ){
+                    plotDataX[i] = i;
+                    plotDataY[i] = data[i];
+                }
+
+                int curveIndex = _findCurveIndex( layerName );
+                std::shared_ptr<CurveData> profileCurve( nullptr );
+                if ( curveIndex < 0 || createNew ){
+                    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                    profileCurve.reset( objMan->createObject<CurveData>() );
+                    profileCurve->setImageName( layerName );
+                    _assignCurveName( profileCurve );
+                    _assignColor( profileCurve );
+                    m_plotCurves.append( profileCurve );
+                    profileCurve->setSource( image );
+                    _saveCurveState();
+                }
+                else {
+                    profileCurve = m_plotCurves[curveIndex];
+                }
+                profileCurve->setData( plotDataX, plotDataY );
+                _updatePlotData();
+            }
+        };
+        try {
+            result.forEach( lam );
+        }
+        catch( char*& error ){
+            qDebug() << "Profiler could not get data: caught error: " << error;
+        }
+
+        /*Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
+        Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
+        m_leftUnit = image->getPixelUnit().toStr();
+
+        auto profilecb = [ = ] () {
+            bool finished = extractor->isFinished();
+            if ( finished ){
+                auto data = extractor->getDataD();
+
+                int dataCount = data.size();
+                if ( dataCount > 0 ){
+                    std::vector<double> plotDataX( dataCount );
+                    std::vector<double> plotDataY( dataCount );
+
+                    for( int i = 0 ; i < dataCount; i ++ ){
+                        plotDataX[i] = i;
+                        plotDataY[i] = data[i];
+                    }
+
+                    int curveIndex = _findCurveIndex( layerName );
+                    std::shared_ptr<CurveData> profileCurve( nullptr );
+                    if ( curveIndex < 0 ){
+                        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                        profileCurve.reset( objMan->createObject<CurveData>() );
+                        profileCurve->setImageName( layerName );
+                        _assignColor( profileCurve );
+                        m_plotCurves.append( profileCurve );
+                        profileCurve->setSource( image );
+                        _saveCurveState();
+                    }
+                    else {
+                        profileCurve = m_plotCurves[curveIndex];
+                    }
+                    profileCurve->setData( plotDataX, plotDataY );
+                    _updatePlotData();
+                }
+                extractor->deleteLater();
+            }
+        };
+        connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
+        extractor-> start( path );*/
     }
 }
+
+
 
 
 Controller* Profiler::_getControllerSelected() const {
@@ -278,6 +451,32 @@ Controller* Profiler::_getControllerSelected() const {
         }
     }
     return controller;
+}
+
+
+std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode( Controller* controller) const {
+    QString generateMode = m_state.getValue<QString>( GEN_MODE );
+    std::vector<std::shared_ptr<Layer> > dataSources;
+    if ( m_generateModes->isCurrent( generateMode ) ){
+        std::shared_ptr<Layer> dataSource = controller->getLayer();
+        if ( dataSource ){
+            dataSources.push_back( dataSource );
+        }
+    }
+    else if ( m_generateModes->isAll( generateMode ) ){
+        dataSources = controller->getLayers();
+    }
+    else if ( m_generateModes->isAllExcludeSingle( generateMode ) ){
+        std::vector<std::shared_ptr<Layer> > dSources = controller->getLayers();
+        int dCount = dSources.size();
+        for ( int i = 0; i < dCount; i++ ){
+            int dim = dSources[i]->_getDimension();
+            if ( dim > 2 ){
+                dataSources.push_back( dSources[i]);
+            }
+        }
+    }
+    return dataSources;
 }
 
 
@@ -320,6 +519,18 @@ QList<QString> Profiler::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 
+double Profiler::_getMaxFrame() const {
+    double maxFrame = 0;
+    int curveCount = m_plotCurves.size();
+    for ( int i = 0; i < curveCount; i++ ){
+        double curveMax = m_plotCurves[i]->getDataMax();
+        if ( curveMax > maxFrame ){
+            maxFrame = curveMax;
+        }
+    }
+    return maxFrame;
+}
+
 
 QString Profiler::_getPreferencesId() const {
     return m_preferences->getPath();
@@ -350,7 +561,16 @@ QString Profiler::_getUnitUnits( const QString& unitStr ){
 
 void Profiler::_initializeDefaultState(){
     //Data state is the curves
+    m_stateData.insertArray( IMAGES, 0 );
+    m_stateData.insertArray( REGIONS, 0 );
     m_stateData.insertArray( CURVES, 0 );
+    m_stateData.insertValue<int>(CURVE_SELECT, 0 );
+    m_stateData.insertValue<double>( ZOOM_MIN, 0 );
+    m_stateData.insertValue<double>(ZOOM_MAX, 1);
+    m_stateData.insertValue<double>(ZOOM_MIN_PERCENT, 0);
+    m_stateData.insertValue<double>(ZOOM_MAX_PERCENT, 100 );
+    m_stateData.insertValue<bool>(ZOOM_BUFFER, false );
+    m_stateData.insertValue<double>( ZOOM_BUFFER_SIZE, 10 );
     m_stateData.flushState();
 
     //Default units
@@ -359,6 +579,8 @@ void Profiler::_initializeDefaultState(){
     m_plotManager->setTitleAxisX( unitType );
     m_state.insertValue<QString>( AXIS_UNITS_BOTTOM, m_bottomUnit );
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
+    m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
+    m_state.insertValue<bool>(TOOL_TIPS, false );
 
     //Legend
     bool external = true;
@@ -368,8 +590,12 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<bool>( LEGEND_SHOW, true );
     m_state.insertValue<bool>( LEGEND_LINE, true );
 
+    //Plot
+    m_state.insertValue<bool>(GRID_LINES, false );
+
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 2 );
+    m_state.insertValue<bool>( SHOW_TOOLTIP, true );
 
     m_state.flushState();
 }
@@ -410,6 +636,89 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setZoomBufferSize", [=] (const QString & /*cmd*/,
+                      const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+           std::set<QString> keys = {ZOOM_BUFFER_SIZE};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString zoomBufferStr = dataValues[*keys.begin()];
+           bool validInt = false;
+           double zoomBuffer = zoomBufferStr.toInt( &validInt );
+           if ( validInt ){
+               result = setZoomBufferSize( zoomBuffer );
+           }
+           else {
+               result = "Invalid zoom buffer size: " + params+" must be a valid integer.";
+           }
+           Util::commandPostProcess( result );
+           return result;
+       });
+
+    addCommandCallback( "setZoomBuffer", [=] (const QString & /*cmd*/,
+                  const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+          std::set<QString> keys = {ZOOM_BUFFER};
+          std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+          QString zoomBufferStr = dataValues[*keys.begin()];
+          bool validBool = false;
+          bool zoomBuffer = Util::toBool(zoomBufferStr, &validBool );
+          if ( validBool ){
+              setZoomBuffer( zoomBuffer );
+          }
+          else {
+              result = "Use zoom buffer must be true/false: " + params;
+          }
+          Util::commandPostProcess( result );
+          return result;
+      });
+
+    addCommandCallback( "setCurveName", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {Util::NAME, "oldName"};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString nameStr = dataValues[Util::NAME];
+            QString idStr = dataValues["oldName"];
+            QString result = setCurveName( idStr, nameStr );
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setGenerationMode", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {"mode"};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString modeStr = dataValues[*keys.begin()];
+                QString result = setGenerateMode( modeStr );
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "newProfile", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                QString result = profileNew();
+                Util::commandPostProcess( result );
+                return result;
+            });
+
+    addCommandCallback( "copyProfile", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    std::set<QString> keys = {Util::NAME};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString nameStr = dataValues[Util::NAME];
+                    QString result = profileCopy( nameStr );
+                    Util::commandPostProcess( result );
+                    return result;
+                });
+
+    addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+                    std::set<QString> keys = {Util::NAME};
+                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                    QString nameStr = dataValues[Util::NAME];
+                    QString result = profileRemove( nameStr );
+                    Util::commandPostProcess( result );
+                    return result;
+                });
 
 
     addCommandCallback( "setCurveColor", [=] (const QString & /*cmd*/,
@@ -437,6 +746,24 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setGridLines", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {GRID_LINES};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString gridStr = dataValues[GRID_LINES];
+            bool validBool = false;
+            bool gridLines = Util::toBool( gridStr, &validBool );
+            QString result;
+            if ( validBool ){
+                setGridLines( gridLines );
+            }
+            else {
+                result = "Set toggling plot grid lines must be true/false: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     addCommandCallback( "setLegendLocation", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -513,6 +840,17 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setPlotStyle", [=] (const QString & /*cmd*/,
+               const QString & params, const QString & /*sessionId*/) -> QString {
+           std::set<QString> keys = {CurveData::STYLE, Util::NAME};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString plotStyle = dataValues[CurveData::STYLE];
+           QString curveName = dataValues[Util::NAME];
+           QString result = setPlotStyle( curveName, plotStyle );
+           Util::commandPostProcess( result );
+           return result;
+       });
+
     addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
@@ -530,6 +868,57 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setZoomRange", [=] (const QString & /*cmd*/,
+               const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+           std::set<QString> keys = {ZOOM_MIN, ZOOM_MAX};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString zoomMaxStr = dataValues[ZOOM_MAX];
+           bool validRangeMax = false;
+           double zoomMax = zoomMaxStr.toDouble( &validRangeMax );
+           QString zoomMinStr = dataValues[ZOOM_MIN];
+           bool validRangeMin = false;
+           double zoomMin = zoomMinStr.toDouble( &validRangeMin );
+           if ( !validRangeMax || !validRangeMin ){
+               result = "Invalid profile range: " + params+"; bounds must be valid number(s).";
+           }
+           else {
+               result = setZoomRange( zoomMin, zoomMax );
+           }
+           Util::commandPostProcess( result );
+           return result;
+       });
+
+       addCommandCallback( "setZoomRangePercent", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+          QString result;
+
+          std::set<QString> keys = {ZOOM_MIN_PERCENT, ZOOM_MAX_PERCENT};
+          std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+          QString zoomMaxPercentStr = dataValues[ZOOM_MAX_PERCENT];
+          bool validRangeMax = false;
+          double zoomMaxPercent = zoomMaxPercentStr.toDouble( &validRangeMax );
+          QString zoomMinPercentStr = dataValues[ZOOM_MIN_PERCENT];
+          bool validRangeMin = false;
+          double zoomMinPercent = zoomMinPercentStr.toDouble( &validRangeMin );
+
+          if ( !validRangeMin || !validRangeMax ){
+              result = "Invalid profile zoom percent range: " + params+"; must be valid number(s).";
+          }
+          else {
+              result = setZoomRangePercent( zoomMinPercent, zoomMaxPercent );
+          }
+          Util::commandPostProcess( result );
+          return result;
+       });
+
+       addCommandCallback( "zoomFull", [=] (const QString & /*cmd*/,
+               const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+           QString result = setZoomRangePercent( 0, 100);
+           Util::commandPostProcess( result );
+           return result;
+       });
 }
 
 
@@ -539,6 +928,9 @@ void Profiler::_initializeStatics(){
     }
     if ( m_intensityUnits == nullptr ){
         m_intensityUnits = Util::findSingletonObject<IntensityUnits>();
+    }
+    if ( m_generateModes == nullptr ){
+        m_generateModes = Util::findSingletonObject<GenerateModes>();
     }
 }
 
@@ -553,69 +945,56 @@ bool Profiler::isLinked( const QString& linkId ) const {
 }
 
 
-
 void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
         return;
     }
-    std::vector<std::shared_ptr<DataSource> > dataSources = controller->getDataSources();
+    _updateAvailableImages( controller );
+    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
 
-    m_plotCurves.clear();
     m_plotManager->clearData();
-    int dataCount = dataSources.size();
+
+    //Make profiles for any new data that has been loaded.
+    int dataCount = layers.size();
     for ( int i = 0; i < dataCount; i++ ) {
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSources[i]->_getImage();
-    	std::vector < int > pos( image-> dims().size(), 0 );
-        int axis = _getExtractionAxisIndex( image );
-        if ( axis >= 0 ){
-            Profiles::PrincipalAxisProfilePath path( axis, pos );
-            Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
-            Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
-            shared_ptr<Carta::Lib::Image::MetaDataInterface> metaData = image->metaData();
-            QString longFile = dataSources[i]->_getFileName();
-            DataLoader* dataLoader = Util::findSingletonObject<DataLoader>();
-            QString fileName = dataLoader->getShortName( longFile );
-            m_leftUnit = image->getPixelUnit().toStr();
+        QString layerName = layers[i]->_getLayerName();
+        int curveCount = m_plotCurves.size();
+        int profileIndex = -1;
+        for ( int j = 0; j < curveCount; j++ ){
+            QString imageName = m_plotCurves[j]->getNameImage();
+            if ( imageName == layerName ){
+                profileIndex = j;
+                break;
+            }
+        }
 
-            auto profilecb = [ = ] () {
-                bool finished = extractor->isFinished();
-                if ( finished ){
-                    auto data = extractor->getDataD();
-
-                    int dataCount = data.size();
-                    if ( dataCount > 0 ){
-                        std::vector<double> plotDataX( dataCount );
-                        std::vector<double> plotDataY( dataCount );
-
-                        for( int i = 0 ; i < dataCount; i ++ ){
-                            plotDataX[i] = i;
-                            plotDataY[i] = data[i];
-                        }
-
-                        int curveIndex = _findCurveIndex( fileName );
-                        std::shared_ptr<CurveData> profileCurve( nullptr );
-                        if ( curveIndex < 0 ){
-                            Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                            profileCurve.reset( objMan->createObject<CurveData>() );
-                            profileCurve->setName( fileName );
-                            _assignColor( profileCurve );
-                            m_plotCurves.append( profileCurve );
-                            profileCurve->setSource( image );
-                            _saveCurveState();
-                        }
-                        else {
-                            profileCurve = m_plotCurves[curveIndex];
-                        }
-                        profileCurve->setData( plotDataX, plotDataY );
-                        _updatePlotData();
-                    }
-                    extractor->deleteLater();
-                }
-            };
-            connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
-            extractor-> start( path );
+        if ( profileIndex < 0 ){
+            _generateData( layers[i]);
         }
     }
+
+    //Go through the old profiles and remove any that are no longer present.
+    int curveCount = m_plotCurves.size();
+    QList<int> removeIndices;
+    for ( int i = 0; i < curveCount; i++ ){
+        QString imageName = m_plotCurves[i]->getNameImage();
+        bool layerFound = false;
+        for ( int j = 0; j < dataCount; j++ ){
+            QString layerName = layers[j]->_getLayerName();
+            if ( layerName == imageName ){
+                layerFound = true;
+                break;
+            }
+        }
+        if ( !layerFound ){
+            removeIndices.append( i );
+        }
+    }
+    int removeCount = removeIndices.size();
+    for ( int i = removeCount - 1; i >= 0; i-- ){
+        m_plotCurves.removeAt( removeIndices[i] );
+    }
+    _updatePlotData();
 }
 
 
@@ -647,6 +1026,55 @@ void Profiler::_movieFrame(){
     }
 }
 
+QString Profiler::profileNew(){
+    QString result;
+    Controller* controller = _getControllerSelected();
+    if ( controller){
+        std::shared_ptr<Layer> layer = controller->getLayer();
+        _generateData( layer, true );
+    }
+    else {
+        result = "Could not generate a profile - no linked images.";
+    }
+    return result;
+}
+
+QString Profiler::profileCopy( const QString& baseName ){
+    QString result;
+    int curveIndex = _findCurveIndex( baseName );
+    if ( curveIndex >= 0 ){
+        //Create a new plot curve, and copy data.
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        std::shared_ptr<CurveData> profileCurve( objMan->createObject<CurveData>() );
+        profileCurve->copy( m_plotCurves[curveIndex]);
+        _assignCurveName( profileCurve );
+        m_plotCurves.append( profileCurve );
+        _saveCurveState();
+        _updatePlotData();
+    }
+    else {
+        result = "Could not find the profile "+baseName+" to copy.";
+    }
+    return result;
+}
+
+QString Profiler::profileRemove( const QString& name ){
+    QString result;
+    int curveIndex = _findCurveIndex( name );
+    if ( curveIndex >= 0 ){
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        objMan->removeObject( m_plotCurves[curveIndex]->getId());
+        m_plotCurves.removeAt( curveIndex );
+        m_plotManager->removeData( name );
+        _saveCurveState();
+        _updatePlotData();
+    }
+    else {
+        result = "Could not find profile curve "+name+" to remove.";
+    }
+    return result;
+}
+
 
 QString Profiler::removeLink( CartaObject* cartaObject){
     bool removed = false;
@@ -657,7 +1085,7 @@ QString Profiler::removeLink( CartaObject* cartaObject){
         if ( removed ){
             controller->disconnect(this);
             m_controllerLinked = false;
-            //_resetDefaultStateData();
+            _clearData();
         }
     }
     else {
@@ -767,6 +1195,46 @@ QStringList Profiler::setCurveColor( const QString& name, int redAmount, int gre
     return result;
 }
 
+QString Profiler::setCurveName( const QString& id, const QString& newName ){
+    QString result;
+    int curveIndex = _findCurveIndex( id );
+    if ( curveIndex >= 0 ){
+        result = m_plotCurves[curveIndex]->setName( newName );
+        _saveCurveState( curveIndex );
+        m_stateData.flushState();
+        m_plotManager->setCurveName( id, newName );
+    }
+    else {
+        result = "Profile name could not be set because of invalid identifier: "+id;
+    }
+    return result;
+}
+
+QString Profiler::setGenerateMode( const QString& modeStr ){
+    QString result;
+    QString actualMode = m_generateModes->getActualMode( modeStr );
+    if ( !actualMode.isEmpty() ){
+        QString oldMode = m_state.getValue<QString>( GEN_MODE );
+        if ( actualMode != oldMode ){
+            m_state.setValue<QString>( GEN_MODE, actualMode);
+            m_state.flushState();
+        }
+    }
+    else {
+        result = "Unrecognized profile generation mode: "+modeStr;
+    }
+    return result;
+}
+
+void Profiler::setGridLines( bool showLines ){
+    bool oldShowLines = m_state.getValue<bool>( GRID_LINES );
+    if ( oldShowLines != showLines ){
+        m_state.setValue<bool>( GRID_LINES, showLines );
+        m_state.flushState();
+        m_plotManager->setGridLines( showLines );
+    }
+}
+
 
 QString Profiler::setLineStyle( const QString& name, const QString& lineStyle ){
     QString result;
@@ -841,6 +1309,26 @@ void Profiler::setLegendShow( bool showLegend ){
     }
 }
 
+QString Profiler::setPlotStyle( const QString& name, const QString& plotStyle ){
+    QString result;
+    int index = _findCurveIndex( name );
+    if ( index >= 0 ){
+        result = m_plotCurves[index]->setPlotStyle( plotStyle );
+        if ( result.isEmpty() ){
+            _saveCurveState( index );
+            m_stateData.flushState();
+            ProfilePlotStyles* plotStyles = Util::findSingletonObject<ProfilePlotStyles>();
+            QString actualStyle = plotStyles->getActualStyle( plotStyle );
+            m_plotManager->setStyle( actualStyle, name );
+        }
+    }
+    else {
+        result = "Profile curve was not recognized: "+name;
+    }
+    return result;
+}
+
+
 QString Profiler::setTabIndex( int index ){
     QString result;
     if ( index >= 0 ){
@@ -855,6 +1343,137 @@ QString Profiler::setTabIndex( int index ){
     }
     return result;
 }
+
+
+void Profiler::setZoomBuffer( bool zoomBuffer ){
+    bool oldZoomBuffer = m_stateData.getValue<bool>( ZOOM_BUFFER );
+    if ( oldZoomBuffer != zoomBuffer ){
+        m_stateData.setValue<bool>( ZOOM_BUFFER, zoomBuffer );
+        m_stateData.flushState();
+    }
+
+}
+
+QString Profiler::setZoomBufferSize( double zoomBufferSize ){
+    QString result;
+    if ( zoomBufferSize >= 0 && zoomBufferSize < 100 ){
+        double oldBufferSize = m_stateData.getValue<double>( ZOOM_BUFFER_SIZE );
+        if ( qAbs( zoomBufferSize - oldBufferSize) > ERROR_MARGIN ){
+            m_stateData.setValue<double>( ZOOM_BUFFER_SIZE, zoomBufferSize );
+            m_stateData.flushState();
+        }
+    }
+    else {
+        result = "Zoom buffer size must be in [0,100): "+QString::number(zoomBufferSize);
+    }
+    return result;
+}
+
+
+QString Profiler::setZoomRange( double zoomMin, double zoomMax ){
+    QString result;
+    if ( zoomMin < zoomMax ){
+        bool changed = false;
+        double oldZoomMin = m_stateData.getValue<double>( ZOOM_MIN );
+        if ( qAbs( zoomMin - oldZoomMin ) > ERROR_MARGIN ){
+            changed = true;
+            m_stateData.setValue<double>( ZOOM_MIN, zoomMin );
+        }
+        double oldZoomMax = m_stateData.getValue<double>( ZOOM_MAX );
+        if ( qAbs( zoomMax - oldZoomMax ) > ERROR_MARGIN ){
+            changed = true;
+            m_stateData.setValue<double>( ZOOM_MAX, zoomMax );
+        }
+        if ( changed ){
+            //Update the percents to match.
+            double maxChannel = _getMaxFrame();
+            double lowerPercent = 0;
+            double upperPercent = 100;
+            if ( maxChannel > 0 ){
+                if ( zoomMin > 0 ){
+                    lowerPercent = zoomMin / maxChannel;
+                }
+                double diffUpper = maxChannel - zoomMax;
+                if ( diffUpper > 0 ){
+                    upperPercent = 100 - diffUpper / maxChannel;
+                }
+            }
+            m_stateData.setValue<double>( ZOOM_MIN_PERCENT, lowerPercent );
+            m_stateData.setValue<double>( ZOOM_MAX_PERCENT, upperPercent );
+            m_stateData.flushState();
+
+           _updatePlotBounds();
+        }
+    }
+    else {
+        result = "Minimum zoom, "+QString::number(zoomMin)+", must be less the maximum zoom, "+QString::number(zoomMax);
+    }
+    return result;
+}
+
+void Profiler::_updatePlotBounds(){
+    //Update the graph.
+    //See if we need to add an additional buffer.
+    double graphMin = m_stateData.getValue<double>( ZOOM_MIN );
+    double graphMax = m_stateData.getValue<double>( ZOOM_MAX );
+    double maxChannel = _getMaxFrame();
+    if ( m_stateData.getValue<bool>( ZOOM_BUFFER) ){
+        double bufferSize = m_stateData.getValue<double>( ZOOM_BUFFER_SIZE );
+        double halfSize = bufferSize / 2;
+        double buffAmount = maxChannel * halfSize / 100;
+        graphMin = graphMin - buffAmount;
+        graphMax = graphMax + buffAmount;
+    }
+    m_plotManager->setAxisXRange( graphMin, graphMax );
+}
+
+QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent ){
+    QString result;
+    if ( 0 <= zoomMinPercent && zoomMinPercent <= 100 ){
+        if ( 0 <= zoomMaxPercent && zoomMaxPercent <= 100 ){
+            if ( zoomMinPercent < zoomMaxPercent ){
+                bool changed = false;
+                double oldZoomMinPercent = m_stateData.getValue<double>( ZOOM_MIN_PERCENT );
+                if ( qAbs( zoomMinPercent - oldZoomMinPercent ) > ERROR_MARGIN ){
+                    changed = true;
+                    m_stateData.setValue<double>( ZOOM_MIN_PERCENT, zoomMinPercent );
+                }
+                double oldZoomMaxPercent = m_stateData.getValue<double>( ZOOM_MAX_PERCENT );
+                if ( qAbs( zoomMaxPercent - oldZoomMaxPercent ) > ERROR_MARGIN ){
+                    changed = true;
+                    m_stateData.setValue<double>( ZOOM_MAX_PERCENT, zoomMaxPercent );
+                }
+                if ( changed ){
+                    //Update the values to match.
+                    double maxChannel = _getMaxFrame();
+                    double minZoom = 0;
+                    double maxZoom = 1;
+                    if ( maxChannel > 0 ){
+                        minZoom = maxChannel * zoomMinPercent/100;
+                        maxZoom = maxChannel * zoomMaxPercent / 100;
+                        m_stateData.setValue<double>( ZOOM_MIN, minZoom );
+                        m_stateData.setValue<double>( ZOOM_MAX, maxZoom );
+                    }
+                    m_stateData.flushState();
+
+                    //Update the graph.
+                    _updatePlotBounds();
+                }
+            }
+            else {
+                result = "Zoom minimum percent: "+ QString::number(zoomMinPercent)+" must be less than "+QString::number( zoomMaxPercent);
+            }
+        }
+        else {
+            result = "Invalid zoom right percent [0,100]: "+QString::number(zoomMaxPercent);
+        }
+    }
+    else {
+        result = "Invalid zoom left percent [0,100]: "+QString::number( zoomMinPercent);
+    }
+    return result;
+}
+
 
 
 void Profiler::timerEvent( QTimerEvent* /*event*/ ){
@@ -876,6 +1495,19 @@ void Profiler::timerEvent( QTimerEvent* /*event*/ ){
 }
 
 
+void Profiler::_updateAvailableImages( Controller* controller ){
+    std::vector<std::shared_ptr<Layer> > dataSources = controller->getLayers();
+    int dCount = dataSources.size();
+    m_stateData.resizeArray( IMAGES, dCount );
+    for ( int i = 0; i < dCount; i++ ){
+        QString layerName = dataSources[i]->_getLayerName();
+        QString lookup = Carta::State::UtilState::getLookup( IMAGES, i );
+        m_stateData.setValue( lookup, layerName );
+    }
+    m_stateData.flushState();
+}
+
+
 void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type ){
     if ( type == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
         int frame = controller->getFrame( type );
@@ -893,6 +1525,7 @@ void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kno
         }
     }
 }
+
 
 
 void Profiler::_updatePlotData(){
@@ -925,7 +1558,23 @@ void Profiler::_updatePlotData(){
     m_plotManager->updatePlot();
 }
 
-
+QString Profiler::_zoomToSelection(){
+    QString result;
+    bool valid = false;
+    std::pair<double,double> range = m_plotManager->getRange( & valid );
+    if ( valid ){
+        double minRange = range.first;
+        double maxRange = range.second;
+        if ( range.first > range.second ){
+            minRange = range.second;
+            maxRange = range.first;
+        }
+        if ( minRange < maxRange ){
+            result = setZoomRange( minRange, maxRange );
+        }
+    }
+    return result;
+}
 
 
 Profiler::~Profiler(){

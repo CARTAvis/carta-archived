@@ -17,7 +17,7 @@ namespace Data {
 
 const QString Plot2DManager::CLASS_NAME = "Plot2DManager";
 const QString Plot2DManager::DATA_PATH = "dataPath";
-const QString Plot2DManager::POINTER_MOVE = "pointer-move";
+const QString Plot2DManager::CURSOR_TEXT = "cursorText";
 const QString Plot2DManager::X_COORDINATE = "x";
 
 using Carta::State::UtilState;
@@ -29,6 +29,8 @@ Plot2DManager::Plot2DManager( const QString& path, const QString& id ):
             m_view(nullptr),
             m_plotGenerator( nullptr ),
             m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
+
+    m_cursorEnabled = false;
 
     _initializeDefaultState();
     _initializeCallbacks();
@@ -165,7 +167,8 @@ void Plot2DManager::_initializeDefaultState(){
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(ImageView::MOUSE_X, 0 );
     m_stateMouse.insertValue<QString>(ImageView::MOUSE_Y, 0 );
-    m_stateMouse.insertValue<QString>(POINTER_MOVE, "");
+    m_stateMouse.insertValue<QString>(Util::POINTER_MOVE, "");
+    m_stateMouse.insertValue<QString>(CURSOR_TEXT, "");
     m_stateMouse.flushState();
 }
 
@@ -210,14 +213,20 @@ void Plot2DManager::_initializeCallbacks(){
         return result;
     });
 
-    QString pointerPath= UtilState::getLookup(getPath(), UtilState::getLookup(ImageView::VIEW, POINTER_MOVE));
+    QString pointerPath= UtilState::getLookup(getPath(), UtilState::getLookup(Util::VIEW, Util::POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
         QStringList mouseList = value.split( " ");
-        if ( mouseList.size() == 2 ){
+        if ( mouseList.size() == 4 ){
             bool validX = false;
             int mouseX = mouseList[0].toInt( &validX );
-            if ( validX ){
-                updateSelection( mouseX);
+            bool validY = false;
+            int mouseY = mouseList[1].toInt( &validY );
+            bool validWidth = false;
+            int width = mouseList[2].toInt( &validWidth );
+            bool validHeight = false;
+            int height = mouseList[3].toInt( &validHeight );
+            if ( validX && validY && validWidth && validHeight ){
+                updateSelection( mouseX, mouseY, width, height);
             }
         }
     });
@@ -225,9 +234,16 @@ void Plot2DManager::_initializeCallbacks(){
 
 
 void Plot2DManager::_refreshView(){
-    QImage * image = m_plotGenerator->toImage();
-    m_view->resetImage( *image );
+    QImage image = m_plotGenerator->toImage();
+    m_view->resetImage( image );
     m_view->scheduleRedraw();
+}
+
+
+void Plot2DManager::removeData( const QString& dataName ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->removeData( dataName );
+    }
 }
 
 
@@ -249,21 +265,21 @@ QString Plot2DManager::savePlot( const QString& fileName ){
         int height = prefSave->getHeight();
         Qt::AspectRatioMode aspectRatioMode = prefSave->getAspectRatioMode();
         QImage imgScaled;
-        QImage* image = nullptr;
+        QImage image;
         if ( aspectRatioMode == Qt::IgnoreAspectRatio ){
             image = m_plotGenerator->toImage( width, height );
-            imgScaled = *image;
+            imgScaled = image;
         }
         else {
             image = m_plotGenerator->toImage();
             QSize outputSize( width, height );
-            imgScaled = image->scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
+            imgScaled = image.scaled( outputSize, aspectRatioMode, Qt::SmoothTransformation );
         }
         bool saveSuccessful = imgScaled.save( fileName, 0, 100 );
         if ( !saveSuccessful ){
             result = "The image could not be saved; please check the path: "+fileName+" is valid.";
         }
-        delete image;
+        //delete image;
     }
     return result;
 }
@@ -288,6 +304,28 @@ void Plot2DManager::setColor( QColor curveColor, const QString& id ){
 void Plot2DManager::setColored( bool colored, const QString& id ){
     if ( m_plotGenerator ){
         m_plotGenerator->setColored( colored, id );
+        updatePlot();
+    }
+}
+
+void Plot2DManager::setCursorText( const QString& cursorText ){
+    if ( m_stateMouse.getValue<QString>(CURSOR_TEXT) != cursorText ){
+        m_stateMouse.setValue<QString>(CURSOR_TEXT, cursorText );
+        m_stateMouse.flushState();
+    }
+}
+
+void Plot2DManager::setCurveName( const QString& oldName, const QString& newName ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setCurveName( oldName, newName );
+        _refreshView();
+    }
+}
+
+
+void Plot2DManager::setGridLines( bool showLines ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setGridLines( showLines );
         updatePlot();
     }
 }
@@ -335,6 +373,7 @@ void Plot2DManager::setLineStyle( const QString& style, const QString& id ){
 void Plot2DManager::setLogScale( bool logScale ){
     if ( m_plotGenerator ){
         m_plotGenerator->setLogScale( logScale );
+        updatePlot();
     }
 }
 
@@ -443,10 +482,16 @@ void Plot2DManager::updatePlot( ){
 }
 
 
-void Plot2DManager::updateSelection(int x){
+void Plot2DManager::updateSelection(int x, int y, int width, int height){
     m_selectionEnd = x;
     if ( m_selectionEnabled || m_selectionEnabledColor ){
        updatePlot();
+    }
+    else {
+       if ( m_cursorEnabled ){
+           std::pair<double,double> worldValue = m_plotGenerator->getWorldPt( x, y, width, height );
+           emit cursorMove( worldValue.first, worldValue.second );
+       }
     }
 }
 

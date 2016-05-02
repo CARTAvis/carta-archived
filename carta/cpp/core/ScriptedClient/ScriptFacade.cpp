@@ -11,7 +11,6 @@
 #include "Data/Histogram/Histogram.h"
 #include "Data/Layout/Layout.h"
 #include "Data/Preferences/PreferencesSave.h"
-//#include "Data/Statistics.h"
 #include "Data/Image/Grid/GridControls.h"
 #include "Data/Image/Contour/ContourControls.h"
 
@@ -19,7 +18,6 @@
 #include <cmath>
 
 using Carta::State::ObjectManager;
-//using Carta::State::CartaObject;
 
 const QString ScriptFacade::TOGGLE = "toggle";
 const QString ScriptFacade::ERROR = "error";
@@ -160,11 +158,15 @@ QStringList ScriptFacade::getPluginList() const {
     return resultList;
 }
 
-QStringList ScriptFacade::loadFile( const QString& objectId, const QString& fileName ){
-    QStringList resultList("");
-    bool result = m_viewManager->loadFile( objectId, fileName );
-    if ( result == false ) {
-        resultList = _logErrorMessage( ERROR, "Could not load file " + fileName );
+QStringList ScriptFacade::loadFile( const QString& objectId, const QString& fileName){
+    QStringList resultList;
+    bool loadSuccess = false;
+    QString result = m_viewManager->loadFile( objectId, fileName, &loadSuccess );
+    if ( !loadSuccess ) {
+        resultList = _logErrorMessage( ERROR, "Could not load file " + fileName + ": "+result);
+    }
+    else {
+        resultList.append( result);
     }
     return resultList;
 }
@@ -458,33 +460,10 @@ QStringList ScriptFacade::setClipValue( const QString& controlId, double clipVal
     return resultList;
 }
 
-/*QStringList ScriptFacade::saveImage( const QString& controlId, const QString& filename ) {
-    QStringList resultList("");
-    ObjectManager* objMan = ObjectManager::objectManager();
-    QString id = objMan->parseId( controlId );
-    Carta::State::CartaObject* obj = objMan->getObject( id );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            bool result = controller->saveImage( filename );
-            if ( !result ) {
-                resultList = QStringList( "Could not save image to " + filename );
-            }
-        }
-        else {
-            resultList = QStringList( ERROR );
-            resultList.append( UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = QStringList( ERROR );
-        resultList.append( "The specified image view could not be found." );
-    }
-    return resultList;
-}*/
 
-QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString& filename, int width, int height,
-        double scale, /*Qt::AspectRatioMode aspectRatioMode*/ const QString& aspectModeStr ){
+QStringList ScriptFacade::saveImage( const QString& controlId, const QString& filename,
+        int width, int height,
+        const QString& aspectModeStr ){
     ObjectManager* objMan = ObjectManager::objectManager();
     //Save the state so the view will update and parse parameters to make
     //sure they are valid before calling save.
@@ -499,7 +478,7 @@ QStringList ScriptFacade::saveFullImage( const QString& controlId, const QString
         if ( obj != nullptr ){
             Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
             if ( controller != nullptr ){
-                errorList = QStringList( controller->saveImage( filename, scale ) );
+                errorList = QStringList( controller->saveImage( filename) );
             }
         }
     }
@@ -775,7 +754,7 @@ QStringList ScriptFacade::getImageDimensions( const QString& controlId ) {
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             std::vector<int> dimensions = controller->getImageDimensions();
-            if ( dimensions.size() == 1 && dimensions[0] == 0 ) {
+            if ( dimensions.size() == 0 ){
                 resultList = _logErrorMessage( ERROR, "Could not obtain image dimensions." );
             }
             else {
@@ -917,12 +896,13 @@ QStringList ScriptFacade::getImageNames( const QString& controlId ) {
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            int imageCount = controller->getStackedImageCount();
-            if ( imageCount == 0 ) {
+            QStringList layerIds = controller->getLayerIds();
+            int count = layerIds.size();
+            if ( count == 0 ){
                 resultList = QStringList("");
             }
-            for ( int i = 0; i < imageCount; i++ ) {
-                resultList.append( controller->getImageName( i ) );
+            else {
+                resultList = layerIds;
             }
         }
         else {

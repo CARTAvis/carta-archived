@@ -249,7 +249,7 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frames );
         if ( rawData != nullptr ){
-            Carta::Lib::NdArray::TypedView<double> view( rawData, false );
+            Carta::Lib::NdArray::TypedView<double> view( rawData, true );
             double val =  view.get( { valX, valY } );
             pixelValue = QString::number( val );
         }
@@ -616,9 +616,10 @@ void DataSource::_resizeQuantileCache(){
     m_quantileCache.resize( nf);
 }
 
-bool DataSource::_setFileName( const QString& fileName ){
+QString DataSource::_setFileName( const QString& fileName, bool* success ){
     QString file = fileName.trimmed();
-    bool successfulLoad = true;
+    *success = true;
+    QString result;
     if (file.length() > 0) {
         if ( file != m_fileName ){
             try {
@@ -637,22 +638,24 @@ bool DataSource::_setFileName( const QString& fileName ){
                     m_fileName = file;
                 }
                 else {
-                    qWarning( "Could not find any plugin to load image");
-                    successfulLoad = false;
+                    result = "Could not find any plugin to load image";
+                    qWarning() << result;
+                    *success = false;
                 }
 
             }
             catch( std::logic_error& err ){
-                qDebug() << "Failed to load image "<<fileName;
-                successfulLoad = false;
+                result = "Failed to load image "+fileName;
+                qDebug() << result;
+                *success = false;
             }
         }
     }
     else {
-        qDebug() << "Could not load empty file.";
-        successfulLoad = false;
+        result = "Could not load empty file.";
+        *success = false;
     }
-    return successfulLoad;
+    return result;
 }
 
 

@@ -22,9 +22,10 @@ namespace State {
 QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
         "CoordinateSystems","DataLoader","ErrorManager",
-        "Fonts","IntensityUnits",
+        "GenerateModes","Fonts","IntensityUnits",
         "LabelFormats","Layout","LayerCompositionModes","LineStyles",
-         "PlotStyles","Preferences", "PreferencesSave",
+         "PlotStyles", "ProfilePlotStyles",
+         "Preferences", "PreferencesSave","ProfileStatistics",
          "SpectralUnits", "TransformsImage","TransformsData",
          "Themes","ViewManager"};
 

@@ -71,7 +71,7 @@ qx.Class.define("skel.widgets.Profile.SettingsLegend", {
             content.add( lineContainer );
             
             var locateContainer = new qx.ui.container.Composite();
-            locateContainer.setLayout( new qx.ui.layout.HBox(2));
+            locateContainer.setLayout( new qx.ui.layout.VBox(2));
             var locateLabel = new qx.ui.basic.Label( "Location:");
             this.m_legendLocate = new skel.widgets.CustomUI.SelectBox("setLegendLocation","legendLocation");
             this.m_legendLocate.setToolTipText( "Choose the location of the legend on the plot.");

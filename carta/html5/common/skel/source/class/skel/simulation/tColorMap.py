@@ -98,15 +98,6 @@ class tColorMap(unittest.TestCase):
         autoSelectCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "autoSelectImages")))
         ActionChains(driver).click( autoSelectCheck ).perform()
         
-        #Select the first two images in the stack
-        imageFirst = "//div[text()='{0}']/..".format( image2 )
-        print "imageFirst=",imageFirst
-        firstItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, imageFirst )))
-        imageSecond = "//div[text()='{0}']/..".format( image3 )
-        print "imageSecond=",imageSecond
-        secondItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, imageSecond )))
-        ActionChains( driver ).send_keys( Keys.SHIFT ).click( firstItem ).click( secondItem ).perform()
-    
         #Uncheck using a global color map
         globalCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "colorMapGlobal")))
         ActionChains(driver).click( globalCheck ).perform()
@@ -120,7 +111,7 @@ class tColorMap(unittest.TestCase):
         #Change back to auto select so that the color map changes as we animate
         ActionChains(driver).click( autoSelectCheck ).perform()
         
-        #Animate through images.  Make sure the first and second ones are using the new map 
+        #Animate through images.  Make sure the first and second ones are using the old map 
         #and the third is not
         self._nextImage( driver )
         imageMapName = self._getColorMapName( driver )
@@ -129,7 +120,7 @@ class tColorMap(unittest.TestCase):
         self._nextImage( driver )
         imageMapName = self._getColorMapName( driver )
         print "Image 2 name=",imageMapName
-        self.assertTrue( imageMapName == newMapName, "Color map name 2 incorrect")
+        self.assertTrue( imageMapName == oldMapName, "Color map name 2 incorrect")
         self._nextImage( driver )
         imageMapName = self._getColorMapName( driver )
         print "Image 3 name=",imageMapName

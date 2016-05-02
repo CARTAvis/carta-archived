@@ -113,7 +113,7 @@ public:
     static bool m_registered;
 
 signals:
-    void indexChanged( bool forceReload );
+    void indexChanged();
 
 private:
 

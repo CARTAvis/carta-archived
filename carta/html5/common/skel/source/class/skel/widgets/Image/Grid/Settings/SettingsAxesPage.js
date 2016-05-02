@@ -139,9 +139,11 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
         setControls : function( controls ){
             this._setShowAxes( controls.grid.showAxis );
             this._setShowInternalLabels( controls.grid.showInternalLabels);
-            this._setThickness( controls.grid.axes.width );
-            this._setTransparency( controls.grid.axes.alpha );
-            this.m_axesDisplay.setControls( controls.grid );
+            if ( typeof controls.grid.axes !== "undefined"){
+                this._setThickness( controls.grid.axes.width );
+                this._setTransparency( controls.grid.axes.alpha );
+                this.m_axesDisplay.setControls( controls.grid );
+            }
         },
         
         /**
@@ -149,7 +151,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
          * @param showAxes {boolean} - true if the axes should be shown; false otherwise.
          */
         _setShowAxes : function ( showAxes ){
-            if ( this.m_showAxes.getValue() != showAxes ){
+            if ( typeof showAxes !== "undefined" && 
+                    this.m_showAxes.getValue() != showAxes ){
                 this.m_showAxes.removeListenerById( this.m_showListenerId );
                 this.m_showAxes.setValue( showAxes );
                 this.m_showListenerId = this.m_showAxes.addListener( skel.widgets.Path.CHANGE_VALUE, 
@@ -164,7 +167,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
          *      false otherwise.
          */
         _setShowInternalLabels : function( showInternalLabels ){
-            if ( this.m_showInternalLabels.getValue() != showInternalLabels ){
+            if ( typeof showInternalLabels !== "undefined" && 
+                    this.m_showInternalLabels.getValue() != showInternalLabels ){
                 this.m_showInternalLabels.removeListenerById( this.m_internalListenerId );
                 this.m_showInternalLabels.setValue( showInternalLabels );
                 this.m_internalListenerId = this.m_showInternalLabels.addListener( skel.widgets.Path.CHANGE_VALUE, 

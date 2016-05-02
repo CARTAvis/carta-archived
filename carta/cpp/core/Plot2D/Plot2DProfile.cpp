@@ -1,5 +1,5 @@
 #include "Plot2DProfile.h"
-#include "Data/Plotter/PlotStyles.h"
+#include "Data/Profile/ProfilePlotStyles.h"
 #include <qwt_painter.h>
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <QDebug>
@@ -30,7 +30,17 @@ void Plot2DProfile::drawLines (QPainter *painter, const QwtScaleMap &xMap,
     QPen curvePen( m_defaultColor );
     curvePen.setStyle( m_penStyle );
     painter->setPen( curvePen );
+
     QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
+}
+
+void Plot2DProfile::drawSteps (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
+        const QRectF &canvasRect, int from, int to) const {
+    QPen curvePen( m_defaultColor );
+    curvePen.setStyle( m_penStyle );
+    painter->setPen( curvePen );
+
+    QwtPlotCurve::drawSteps( painter, xMap, yMap, canvasRect, from, to );
 }
 
 QwtGraphic Plot2DProfile::legendIcon( int /*index*/, const QSizeF& iconSize ) const {
@@ -82,6 +92,20 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
 
 void Plot2DProfile::setBaseLine( double /*val*/ ){
 }
+
+void Plot2DProfile::setDrawStyle( const QString& style ){
+    Plot2D::setDrawStyle( style );
+    if ( m_drawStyle == Carta::Data::ProfilePlotStyles::PLOT_STYLE_LINE ){
+        setStyle( QwtPlotCurve::Lines );
+    }
+    else if ( m_drawStyle == Carta::Data::ProfilePlotStyles::PLOT_STYLE_STEP ){
+        setStyle( QwtPlotCurve::Steps );
+    }
+    else {
+        qDebug() << "Unrecognized draw style";
+    }
+}
+
 
 
 void Plot2DProfile::setId( const QString& id ){

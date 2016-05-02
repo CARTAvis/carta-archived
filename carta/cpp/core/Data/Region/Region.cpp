@@ -13,7 +13,6 @@ const QString Region::CLASS_NAME = "Region";
 const QString Region::CORNERS = "corners";
 const QString Region::REGION_POLYGON = "Polygon";
 const QString Region::REGION_ELLIPSE = "Ellipse";
-const QString Region::REGION_ID = "id";
 const QString Region::REGION_TYPE = "regionType";
 const QString Region::XCOORD = "x";
 const QString Region::YCOORD = "y";
@@ -106,7 +105,7 @@ void Region::_initializeCallbacks(){
 
 void Region::_initializeState(){
     m_state.insertValue<QString>( REGION_TYPE, REGION_POLYGON );
-    m_state.insertValue<QString>( REGION_ID, "");
+    m_state.insertValue<QString>( Util::ID, "");
     m_state.insertArray( CORNERS, 0 );
     m_state.flushState();
 }
@@ -114,7 +113,7 @@ void Region::_initializeState(){
 bool Region::_isMatch( const QString& id ) const {
     bool match = false;
     if ( !id.isEmpty() && id.trimmed().length() > 0 ){
-        QString regionId = m_state.getValue<QString>( REGION_ID );
+        QString regionId = m_state.getValue<QString>( Util::ID );
         if ( regionId.startsWith( id ) ){
             match = true;
         }
@@ -128,8 +127,8 @@ void Region::_restoreState( const QString& stateStr ){
     dataState.setState( stateStr );
     QString regionType = dataState.getValue<QString>(REGION_TYPE);
     m_state.setValue<QString>( REGION_TYPE, regionType);
-    QString regionId = dataState.getValue<QString>(REGION_ID);
-    m_state.setValue<QString>( REGION_ID, regionId );
+    QString regionId = dataState.getValue<QString>(Util::ID);
+    m_state.setValue<QString>( Util::ID, regionId );
     int cornerCount = dataState.getArraySize( CORNERS );
     m_state.resizeArray( CORNERS, cornerCount );
     for ( int i = 0; i < cornerCount; i++ ){
@@ -167,7 +166,7 @@ void Region::setRegionType( Carta::Lib::RegionInfo::RegionType regionType ){
 void Region::_setUserId( const QString& file, int index ){
     CARTA_ASSERT( index >= 0 );
     QString id = file + QString::number( index );
-    m_state.setValue<QString>( REGION_ID, id );
+    m_state.setValue<QString>( Util::ID, id );
 }
 
 

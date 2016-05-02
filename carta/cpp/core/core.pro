@@ -38,10 +38,17 @@ HEADERS += \
     Data/Error/ErrorManager.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
+    Data/Histogram/PlotStyles.h \
+    Data/Histogram/HistogramRenderService.h \
+    Data/Histogram/HistogramRenderThread.h \
+    Data/Histogram/HistogramRenderWorker.h \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
-    Data/Image/ControllerData.h \
+    Data/Image/LayerGroup.h \
+    Data/Image/Stack.h \
+    Data/Image/Layer.h \
+    Data/Image/LayerData.h \
     Data/Image/Contour/Contour.h \
     Data/Image/Contour/ContourControls.h \
     Data/Image/Contour/ContourGenerateModes.h \
@@ -51,8 +58,9 @@ HEADERS += \
     Data/Image/Contour/GeneratorState.h \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
-    Data/Image/DrawSynchronizer.h \
-    Data/Image/DrawStackSynchronizer.h \
+    Data/Image/Draw/DrawGroupSynchronizer.h \
+    Data/Image/Draw/DrawSynchronizer.h \
+    Data/Image/Draw/DrawStackSynchronizer.h \
     Data/Image/Grid/AxisMapper.h \
     Data/Image/Grid/DataGrid.h \
     Data/Image/Grid/Fonts.h \
@@ -61,6 +69,11 @@ HEADERS += \
     Data/Image/Grid/LabelFormats.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Image/LayerCompositionModes.h \
+    Data/Image/RenderRequest.h \
+    Data/Image/RenderResponse.h \
+    Data/Image/Save/SaveService.h \
+    Data/Image/Save/SaveView.h \
+    Data/Image/Save/SaveViewLayered.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -69,7 +82,6 @@ HEADERS += \
     Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
     Data/Plotter/Plot2DManager.h \
-    Data/Plotter/PlotStyles.h \
     Data/Plotter/LineStyles.h \
     Data/Plotter/LegendLocations.h \
     Data/Preferences/Preferences.h \
@@ -77,7 +89,10 @@ HEADERS += \
     Data/Profile/CurveData.h \
     Data/Profile/IntensityUnits.h \
     Data/Profile/Profiler.h \
+    Data/Profile/ProfilePlotStyles.h \
+    Data/Profile/ProfileStatistics.h \
     Data/Profile/SpectralUnits.h \
+    Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -145,7 +160,10 @@ SOURCES += \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
-    Data/Image/ControllerData.cpp \
+    Data/Image/LayerData.cpp \
+    Data/Image/Layer.cpp \
+    Data/Image/LayerGroup.cpp \
+    Data/Image/Stack.cpp \
     Data/Image/Contour/Contour.cpp \
     Data/Image/Contour/ContourControls.cpp \
     Data/Image/Contour/ContourGenerateModes.cpp \
@@ -161,14 +179,24 @@ SOURCES += \
     Data/Image/Grid/GridControls.cpp \
     Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
-    Data/Image/DrawSynchronizer.cpp \
-    Data/Image/DrawStackSynchronizer.cpp \
+    Data/Image/Draw/DrawGroupSynchronizer.cpp \
+    Data/Image/Draw/DrawSynchronizer.cpp \
+    Data/Image/Draw/DrawStackSynchronizer.cpp \
     Data/Image/LayerCompositionModes.cpp \
+    Data/Image/RenderRequest.cpp \
+    Data/Image/RenderResponse.cpp \
+    Data/Image/Save/SaveService.cpp \
+    Data/Image/Save/SaveView.cpp \
+    Data/Image/Save/SaveViewLayered.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \
     Data/Histogram/Histogram.cpp \
     Data/Histogram/ChannelUnits.cpp \
+    Data/Histogram/HistogramRenderService.cpp \
+    Data/Histogram/HistogramRenderThread.cpp \
+    Data/Histogram/HistogramRenderWorker.cpp \
+    Data/Histogram/PlotStyles.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
     Data/Layout/Layout.cpp \
@@ -178,14 +206,16 @@ SOURCES += \
     Data/Layout/NodeFactory.cpp \
     Data/Plotter/Plot2DManager.cpp \
     Data/Plotter/LegendLocations.cpp \
-    Data/Plotter/PlotStyles.cpp \
     Data/Plotter/LineStyles.cpp \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
     Data/Profile/IntensityUnits.cpp \
     Data/Profile/Profiler.cpp \
+    Data/Profile/ProfilePlotStyles.cpp \
+    Data/Profile/ProfileStatistics.cpp \
     Data/Profile/SpectralUnits.cpp \
+    Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \

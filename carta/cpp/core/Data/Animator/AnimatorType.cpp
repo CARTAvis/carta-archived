@@ -221,7 +221,7 @@ QString AnimatorType::_makeSelection(){
         objManager->destroyObject( m_select->getId());
     }
     m_select = objManager->createObject<Selection>();
-    connect( m_select, SIGNAL(indexChanged(bool)), this, SLOT(_selectionChanged(bool)));
+    connect( m_select, SIGNAL(indexChanged()), this, SLOT(_selectionChanged()));
     QString path = m_select->getPath();
     return path;
 }
@@ -232,7 +232,7 @@ void AnimatorType::resetStateData( const QString& state ){
     }
 }
 
-void AnimatorType::_selectionChanged( bool /*forceReload*/ ){
+void AnimatorType::_selectionChanged(){
     emit indexChanged( m_select->getIndex(), m_type );
 }
 

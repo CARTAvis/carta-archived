@@ -31,22 +31,72 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
         var path = skel.widgets.Path.getInstance();
         this.m_prefix = this.m_viewId + path.SEP+ path.VIEW + path.SEP +"pointer-move";
         this.m_viewSharedVar = this.m_connector.getSharedVar(this.m_prefix);
+       
+        
+        this.m_popup = new qx.ui.popup.Popup( new qx.ui.layout.Canvas()).set({
+            backgroundColor: "#FFFAD3",
+            padding: [4,4],
+            offset : 10,
+            offsetBottom : 5
+        });
+        this.m_popupText = new qx.ui.basic.Atom();
+        this.m_popup.add(this.m_popupText);
+        
+        var pathText = this.m_viewId + path.SEP + path.VIEW;
+        this.m_sharedVarText = this.m_connector.getSharedVar( pathText );
+        this.m_sharedVarText.addCB(this._cursorChangedCB.bind(this));
+        this._cursorChangedCB();
     },
 
     members: {
+    
+        _cursorChangedCB : function(){
+            if ( this.m_sharedVarText ){
+                var val = this.m_sharedVarText.get();
+                if ( val ){
+                    try {
+                        var obj = JSON.parse( val );
+                        if ( this.m_popupText !== null){
+                            this.m_popupText.setLabel( obj.cursorText );
+                            if ( obj.cursorText.length > 0 ){
+                                this.m_popup.show();
+                            }
+                            else {
+                                this.m_popup.hide();
+                            }
+                        }
+                    }
+                    catch( err ){
+                        console.log( "Could not drag view text: "+val );
+                        console.log( "Err: "+err);
+                    }
+                }
+            }
+        },
+        
         /**
          * Callback for a mouse move event.
          * @param ev {qx.event.type.Mouse}.
          */
         _mouseMoveCB : function (ev) {
-            if ( this.m_drag ){
+            //if ( this.m_drag ){
                 var box = this.overlayWidget().getContentLocation( "box" );
                 var pt = {
                         x: ev.getDocumentLeft() - box.left,
                         y: ev.getDocumentTop() - box.top
                 };
-                this.m_viewSharedVar.set( "" + pt.x + " " + pt.y);
-            }
+               
+                var width = box.right - box.left;
+                var height = box.bottom - box.top;
+                this.m_viewSharedVar.set( "" + pt.x + " " + pt.y+" "+width+" "+height);
+                var helpLocation = {
+                    left : ev.getViewportLeft(),
+                    top : ev.getViewportTop() - 20
+                };
+                
+                this.m_popup.placeToPoint(helpLocation);
+                
+            //}
         },
         /**
          * Callback for a mouse down event.
@@ -90,7 +140,10 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
         },
         
         m_viewId : null,
-        m_drag : false
+        m_drag : false,
+        m_popup : null,
+        m_popupText : null,
+        m_sharedVarText : null
 
     }
 } );

@@ -15,7 +15,6 @@ const QString LayoutNodeComposite::CLASS_NAME = "LayoutNodeComposite";
 const QString LayoutNodeComposite::HORIZONTAL = "horizontal";
 const QString LayoutNodeComposite::PLUGIN_LEFT = "layoutLeft";
 const QString LayoutNodeComposite::PLUGIN_RIGHT = "layoutRight";
-const QString LayoutNodeComposite::ID = "id";
 const QString LayoutNodeComposite::COMPOSITE = "composite";
 
 class LayoutNodeComposite::Factory : public Carta::State::CartaObjectFactory {
@@ -230,11 +229,11 @@ void LayoutNodeComposite::_initializeDefaultState(){
     m_state.insertValue<bool>( HORIZONTAL, true );
     m_state.insertObject( PLUGIN_LEFT);
     m_state.insertObject( PLUGIN_RIGHT);
-    QString idLookupLeft = UtilState::getLookup( PLUGIN_LEFT, ID );
+    QString idLookupLeft = UtilState::getLookup( PLUGIN_LEFT, Util::ID );
     QString typeLookupLeft = UtilState::getLookup( PLUGIN_LEFT, COMPOSITE );
     m_state.insertValue<QString>( idLookupLeft, "");
     m_state.insertValue<bool>( typeLookupLeft, false);
-    QString idLookupRight = UtilState::getLookup( PLUGIN_RIGHT, ID );
+    QString idLookupRight = UtilState::getLookup( PLUGIN_RIGHT, Util::ID );
     QString typeLookupRight = UtilState::getLookup( PLUGIN_RIGHT, COMPOSITE );
     m_state.insertValue<QString>( idLookupRight, "");
     m_state.insertValue<bool>( typeLookupRight, false);
@@ -332,7 +331,7 @@ void LayoutNodeComposite::_resetStateChild( const QString& childKey, std::unique
 void LayoutNodeComposite::_setChild( const QString& key,
         std::unique_ptr<LayoutNode>& child, LayoutNode* node, bool destroy ){
     if ( node != nullptr ){
-        QString lookup = Carta::State::UtilState::getLookup( key, ID);
+        QString lookup = Carta::State::UtilState::getLookup( key, Util::ID);
         QString oldLookup = m_state.getValue<QString>( lookup );
         if ( node->getPath() !=  oldLookup ){
             if ( !destroy ){
@@ -414,7 +413,7 @@ QString LayoutNodeComposite::toString() const {
 }
 
 void LayoutNodeComposite::_updateChildState( const QString& childKey, const QString& id, bool composite ){
-    QString idLookup = Carta::State::UtilState::getLookup( childKey, ID);
+    QString idLookup = Carta::State::UtilState::getLookup( childKey, Util::ID);
     QString oldId = m_state.getValue<QString>( idLookup );
     if ( oldId != id ){
         m_state.setValue<QString>( idLookup, id );

@@ -99,9 +99,11 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsGridPage", {
          */
         setControls : function( controls ){
             this._setShowGridLines( controls.grid.showGridLines );
-            this._setThickness( controls.grid.grid.width );
-            this._setTransparency( controls.grid.grid.alpha);
-            this._setSpacing( controls.grid.spacing );
+            if ( typeof controls.grid.grid !== "undefined"){
+                this._setThickness( controls.grid.grid.width );
+                this._setTransparency( controls.grid.grid.alpha);
+                this._setSpacing( controls.grid.spacing );
+            }
         },
 
         
@@ -110,7 +112,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsGridPage", {
          * @param showGridLines {boolean} - true if the grid lines should be visible; false otherwise.
          */
         _setShowGridLines : function ( showGridLines ){
-            if ( this.m_showGridLines.getValue() != showGridLines ){
+            if ( typeof showGridLines !== "undefined" && 
+                    this.m_showGridLines.getValue() != showGridLines ){
                 this.m_showGridLines.removeListenerById( this.m_showListenerId );
                 this.m_showGridLines.setValue( showGridLines );
                 this.m_showListenerId = this.m_showGridLines.addListener( skel.widgets.Path.CHANGE_VALUE, 
@@ -123,7 +126,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsGridPage", {
          * @param thickness {Number} the grid line thickness.
          */
         _setThickness : function( thickness ){
-            if ( this.m_thickness.getValue() != thickness ){
+            if ( typeof thickness !=="undefined" && 
+                    this.m_thickness.getValue() != thickness ){
                 this.m_thickness.setValue( thickness );
             }
         },
@@ -134,10 +138,12 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsGridPage", {
          * @param spacing {Number} - the amount of spacing between grid lines.
          */
         _setSpacing : function( spacing ){
-            var spaceFloat = spacing * skel.widgets.CustomUI.TextSlider.MAX_SLIDER;
-            var normSpacing = Math.round( spaceFloat );
-            if ( this.m_spacing.getValue() != normSpacing ){
-                this.m_spacing.setValue( normSpacing );
+            if ( typeof spacing !== "undefined"){
+                var spaceFloat = spacing * skel.widgets.CustomUI.TextSlider.MAX_SLIDER;
+                var normSpacing = Math.round( spaceFloat );
+                if ( this.m_spacing.getValue() != normSpacing ){
+                    this.m_spacing.setValue( normSpacing );
+                }
             }
         },
         
@@ -146,7 +152,8 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsGridPage", {
          * @param transparency {Number} - the amount of grid line transparency.
          */
         _setTransparency : function( transparency ){
-            if ( this.m_transparency.getValue() != transparency ){
+            if ( typeof transparency !== "undefined" && 
+                    this.m_transparency.getValue() != transparency ){
                 this.m_transparency.setValue( transparency );
             }
         },

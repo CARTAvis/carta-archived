@@ -98,7 +98,7 @@ public:
      * @param objectId the unique server-side id of an object that displays an image view.
      * @param fileName a path identifying the file containing an image.
      * @return an error message if there was a problem loading the file;
-     *      an empty string otherwise.
+     *      the layerId otherwise.
      */
     QStringList loadFile( const QString& objectId, const QString& fileName);
 
@@ -239,26 +239,19 @@ public:
     QStringList setClipValue( const QString& controlId, double clipValue );
 
     /**
-     * Save a screenshot of the current image view.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param fileName the full path where the file is to be saved.
-     * @return an error message if there was a problem saving the image;
-     *      an empty string otherwise.
-     */
-    //QStringList saveImage( const QString& controlId, const QString& fileName );
-
-    /**
      * Save a copy of the full image in the current image view.
      * @param controlId the unique server-side id of an object managing a controller.
      * @param filename the full path where the file is to be saved.
      * @param width the width of the saved image.
      * @param height the height of the saved image.
-     * @param scale the scale (zoom level) of the saved image.
+     * @param fullImage - true if the full image should be saved; false if the
+     *      current screen shot should be saved (which could be only a partial image
+     *      if it is zoomed).
      * @param aspectRatioMode can be either "ignore", "keep", or "expand".
             See http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for further information.
      */
-    QStringList saveFullImage( const QString& controlId, const QString& filename,
-            int width, int height, double scale, const QString& aspectRatioMode /*Qt::AspectRatioMode aspectRatioMode*/ );
+    QStringList saveImage( const QString& controlId, const QString& filename,
+            int width, int height, const QString& aspectRatioMode );
 
     /**
      * Save the current state.

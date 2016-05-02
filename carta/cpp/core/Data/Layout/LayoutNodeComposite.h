@@ -71,7 +71,6 @@ private:
     const static QString ORIENTATION;
     const static QString VERTICAL;
     const static QString HORIZONTAL;
-    const static QString ID;
     const static QString COMPOSITE;
 
 

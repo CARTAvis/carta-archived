@@ -85,6 +85,7 @@ void PreferencesSave::_initializeCallbacks(){
                return result;
         });
 
+
     addCommandCallback( "setWidth", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
                    std::set<QString> keys = {WIDTH};
@@ -120,6 +121,7 @@ void PreferencesSave::_initializeCallbacks(){
                 });
 
 }
+
 
 QString PreferencesSave::setAspectRatioMode( const QString& mode  ){
     QString result;
@@ -157,6 +159,7 @@ QString PreferencesSave::_setDimension( int dim, const QString& key ){
     }
     return result;
 }
+
 
 QString PreferencesSave::setWidth( int width ){
     QString result = _setDimension( width, WIDTH );

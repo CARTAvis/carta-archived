@@ -14,7 +14,7 @@ namespace Data {
 
 class Region : public Carta::State::CartaObject {
     friend class RegionFactory;
-    friend class Controller;
+    friend class Stack;
 public:
 
     /**
@@ -73,9 +73,9 @@ private:
 
     const static QString REGION_TYPE;
     const static QString CORNERS;
-    const static QString REGION_ID;
     const static QString REGION_POLYGON;
     const static QString REGION_ELLIPSE;
+
     const static QString XCOORD;
     const static QString YCOORD;
     void _initializeCallbacks();

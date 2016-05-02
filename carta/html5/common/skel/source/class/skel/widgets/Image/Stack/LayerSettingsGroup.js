@@ -1,5 +1,5 @@
 /**
- * Controls for setting an image mask.
+ * Setting controls for a group of layers.
  */
 /*global mImport */
 /*******************************************************************************
@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 
-qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
+qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
     extend : qx.ui.core.Widget,
 
     /**
@@ -17,6 +17,10 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
         this.base(arguments);
         this.m_connector = mImport("connector");
         this._init( );
+    },
+    
+    statics : {
+        TYPE : "group"
     },
     
 
@@ -47,6 +51,15 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
             }
         },
         
+        /**
+         * Return an identifier for the type of layer settings.
+         * @return {String} - an identifier for the type of layer settings.
+         */
+        getType : function(){
+            return skel.widgets.Image.Stack.LayerSettingsGroup.TYPE;
+        },
+        
+        
         /*
          * Initializes the UI.
          */
@@ -56,7 +69,6 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
             this.m_content.setLayout( new qx.ui.layout.VBox(1) );
             this._add( this.m_content );
             this._initCompositeModes();
-            this._initMask();
         },
         
         /**
@@ -68,10 +80,10 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
             var label = new qx.ui.basic.Label( "Composer:" );
             this.m_compModeCombo = new skel.widgets.CustomUI.SelectBox( 
                     "setCompositionMode", "mode");
+            this.m_compModeCombo.addListener( "selectChanged", this._sendCompModeCmd, this );
             skel.widgets.TestID.addTestId( this.m_compModeCombo, "layerCompositionMode");
             this.m_compModeCombo.setToolTipText( "Select a layer composition mode.");
-            
-            //this.m_applyId = this.m_applyCheck.addListener( "changeValue", this._sendApplyCmd, this );
+            this.m_compModeCombo.setEnabled( false );
             hContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
             hContainer.add( label );
             hContainer.add( this.m_compModeCombo );
@@ -79,23 +91,27 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
             this.m_content.add( hContainer );
         },
         
-        
         /**
-         * Initialize the mask color controls.
+         * Send a command to the server to change the group layer composition mode.
          */
-        _initMask : function(){
-            this.m_maskColor = new skel.widgets.Image.Stack.MaskControlsColor();
-            this.m_content.add( this.m_maskColor );
+        _sendCompModeCmd : function(){
+            if ( this.m_id !== null ){
+                var compMode = this.m_compModeCombo.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setCompositionMode";
+                var params = "mode:"+compMode+",id:"+this.m_layerId;
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
         },
         
         
+
         /**
          * Update the UI with server information.
-         * @param mask {Object} - information from server about the mask.
+         * @param mode {String} - information from server about the layer composition mode.
          */
-        setControls : function(mask){
-            this.m_compModeCombo.setSelectValue( mask.mode );
-            this.m_maskColor.setControls( mask );
+        setControls : function( mode){
+            this.m_compModeCombo.setSelectValue( mode );
         },
         
         /**
@@ -105,19 +121,25 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControls", {
          */
         setId : function( id ){
             this.m_id = id;
-            this.m_maskColor.setId( id );
-            this.m_compModeCombo.setId( id );
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVarCompModes = this.m_connector.getSharedVar(path.LAYER_COMPOSITION_MODES);
             this.m_sharedVarCompModes.addCB( this._compModesChangedCB.bind( this));
             this._compModesChangedCB();
         },
         
+        /**
+         * Set an identifier for the layer.
+         * @param layerId {String} - an identifier for the layer.
+         */
+        setLayerId : function( layerId ){
+            this.m_layerId = layerId;
+        },
+        
         m_compModeCombo : null,
         m_connector : null,
         m_content : null,
         m_id : null,
-        m_sharedVarCompModes : null,
-        m_maskColor : null
+        m_layerId : null,
+        m_sharedVarCompModes : null
     }
 });

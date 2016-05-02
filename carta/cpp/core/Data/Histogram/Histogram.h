@@ -17,6 +17,9 @@ namespace Lib {
 namespace PixelPipeline {
 class IColormapNamed;
 }
+namespace Hooks {
+class HistogramResult;
+}
 namespace Image {
 class ImageInterface;
 }
@@ -34,6 +37,7 @@ class ChannelUnits;
 class Clips;
 class Colormap;
 class Controller;
+class HistogramRenderService;
 class LinkableImpl;
 class Plot2DManager;
 class PlotStyles;
@@ -299,6 +303,23 @@ public:
     QString setColorMinPercent( double colorMinPercent, bool complete );
 
     /**
+     * Set an upper limit for the size of the cubes where the whole histogram
+     * will be rendered; if a cube exceeds this size, only the current channel of
+     * the cube will be rendered;
+     * @param sizeLimit - upper limit for the size of the cubes where a histogram
+     *      of the entire cube will be rendered.
+     */
+    QString setCubeSizeLimit( int sizeLimit );
+
+    /**
+     * Set whether or not an upper limit should be imposed on the size of cubes where a histogram
+     * of the entire cube will be produced.
+     * @param limitCubes - true if there should be a limit on the size of cubes
+     *      where a histogram of the entire cube is produced; false otherwise.
+     */
+    void setLimitCubes( bool limitCubes );
+
+    /**
      * Set the channel manually that the histogram should display.
      * @param channel - a channel index.
      * @return - an error message if there was a problem setting the channel; and empty string
@@ -338,8 +359,11 @@ protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
 private slots:
-    void  _generateHistogram( bool newDataNeeded, Controller* controller=nullptr);
+    void  _generateHistogram( Controller* controller=nullptr);
     void _createHistogram( Controller* );
+
+    //Notification that new histogram data has been produced.
+    void _histogramRendered();
 
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateColorClips( double colorMinPercent, double colorMaxPercent);
@@ -430,6 +454,8 @@ private:
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
     const static QString SIGNIFICANT_DIGITS;
+    const static QString SIZE_ALL_RESTRICT;
+    const static QString RESTRICT_SIZE_MAX;
     
     static ChannelUnits* m_channelUnits;
 
@@ -454,6 +480,9 @@ private:
 
     //Plot generation
     std::unique_ptr<Plot2DManager> m_plotManager;
+
+    //Compute histogram in a thread
+    std::unique_ptr<HistogramRenderService> m_renderService;
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;

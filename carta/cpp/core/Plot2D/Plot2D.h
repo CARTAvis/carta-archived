@@ -82,7 +82,7 @@ public:
      * Set the draw style for the data (outline, filled, line).
      * @param style an identifier for a data drawing style.
      */
-    void setDrawStyle( const QString& style );
+    virtual void setDrawStyle( const QString& style );
 
     /**
      * Set whether or not a sample legend line should be drawn with legend items.
@@ -107,6 +107,7 @@ public:
      * @param pipeline -  an object capable of determining a color mapping.
      */
     void setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline);
+
 
     /**
      * Destructor.

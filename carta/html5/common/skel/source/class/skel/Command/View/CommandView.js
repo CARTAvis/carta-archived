@@ -33,6 +33,7 @@ qx.Class.define("skel.Command.View.CommandView", {
                         location : winInfo.getLocation(),
                         plugin : pluginName
                     };
+                    winInfo.setSelected( false, false );
                     //Changing the view will change to a custom layout, but we don't want to show
                     //the custom layout dialog in such a case.
                     var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();

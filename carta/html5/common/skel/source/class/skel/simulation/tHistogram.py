@@ -69,6 +69,8 @@ class tHistogram( unittest.TestCase ):
 
         # Wait for the image window to be present (ensures browser is fully loaded)
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+        # Load an image
+        Util.load_image(self, driver, "Default")
 
         # Find and select the histogram window
         histWindow = self._getHistogramWindow( driver )
@@ -97,7 +99,8 @@ class tHistogram( unittest.TestCase ):
         # Calculate percent difference from center.  Note this will fail if the upper
         # bound of the slider changes
         #9.21034037198 = ln(10000)
-        per = logTextValue / 9.2034037198;
+        per = logTextValue / 100;
+        print " percent=",per
         textScrollPercent = .5 - per
         print "scrollPercent=",textScrollPercent
 
@@ -105,6 +108,7 @@ class tHistogram( unittest.TestCase ):
         binCountSlider = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[starts-with(@id, 'histogramBinCountSlider')]")))
         # Width of the slider
         sliderSize = binCountSlider.size
+        print 'Slider size=', sliderSize
         # Amount we need to move in order to get to the center
         sliderScrollAmount = sliderSize['width'] * textScrollPercent
         print 'Slider scroll=',sliderScrollAmount
@@ -114,9 +118,10 @@ class tHistogram( unittest.TestCase ):
         self.assertIsNotNone( sliderScroll, "Could not find bin count slider scroll")
         scrollSize = sliderScroll.size
         print 'Scroll width=', scrollSize['width']
-
+        scrollSizeWidth = scrollSize['width']
+        
         # Subtract half the width of the slider scroll.
-        sliderScrollAmount = sliderScrollAmount - math.log(scrollSize['width']) / 2
+        sliderScrollAmount = sliderScrollAmount - scrollSizeWidth / 2
         print 'Slider scroll adjusted=',sliderScrollAmount
         ActionChains( driver ).drag_and_drop_by_offset( sliderScroll, sliderScrollAmount, 0 ).perform()
         time.sleep( timeout )
@@ -223,7 +228,8 @@ class tHistogram( unittest.TestCase ):
         imageWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
         ActionChains(driver).double_click( imageWindow ).perform()
         dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
-        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
 
         # Find and select the Histogram window

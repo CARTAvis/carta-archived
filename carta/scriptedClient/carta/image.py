@@ -26,7 +26,8 @@ class Image(CartaView):
         -------
         list
             An error message if there was a problem loading the file,
-            and nothing otherwise.
+            and a list containing  the server-side
+            id of object holding the image if it was successfully loaded.
         """
         result = self.con.cmdTagList("loadFile", imageView=self.getId(),
                                      fname=fileName)
@@ -380,29 +381,10 @@ class Image(CartaView):
                                      destView=self.getId())
         return result
 
-    def saveImage(self, dest):
-        """
-        Save a screenshot of the current image view.
-
-        Parameters
-        ----------
 
 
-         dest: string
-            The full path where the file is to be saved.
-
-        Returns
-        -------
-        list
-            An error message if the file could not be saved, and nothing
-            otherwise.
-        """
-        result = self.con.cmdTagList("saveImage", imageView=self.getId(),
-                                     filename=dest)
-        return result
-
-    def saveFullImage(self, dest, width=-1, height=-1, scale=1,
-                      aspectRatioMode='ignore'):
+    def saveImage(self, dest, width=-1, height=-1,
+                      aspectRatioMode='ignore', fullImage=False):
         """
         Save a copy of the entire image (not just what is visible in the
         image viewer).
@@ -419,15 +401,15 @@ class Image(CartaView):
             The height of the saved image.
             The default value is -1, which causes the parameter to be
             ignored.
-        scale: float
-            The desired zoom level of the saved image.
-            The default value is 1.
         aspectRatioMode: string
             Can be one of three possible values: 'ignore', 'keep', or
             'expand'. See
             http://doc.qt.io/qt-5/qt.html#AspectRatioMode-enum for an
             explanation of these options.
             The default value is 'ignore'.
+        fullImage : bool
+            True means that the full image will be saved; false means that the
+            current view of the image will be saved.
 
         Returns
         -------
@@ -435,13 +417,13 @@ class Image(CartaView):
             Error message if an error occurred; empty otherwise.
         """
         if (width < 0 or height < 0):
-            currentDim = self.getImageDimensions()
-            width = currentDim[0]
-            height = currentDim[1]
-        result = self.con.cmdAsyncList("saveFullImage", imageView=self.getId(),
+            outputSize = self.getOutputSize()
+            width = outputSize.width
+            height = outputSize.height
+        result = self.con.cmdAsyncList("saveImage", imageView=self.getId(),
                                      filename=dest, width=width, height=height,
-                                     scale=scale,
-                                     aspectRatioMode=aspectRatioMode)
+                                     aspectRatioMode=aspectRatioMode,
+                                     fullImage = fullImage)
         return result
 
     def getImageDimensions(self):
@@ -637,8 +619,9 @@ class Image(CartaView):
         """
         result = self.con.cmdTagList("getImageNames", imageView=self.getId())
         imageNames = []
-        if (result[0] != ""):
-            imageNames = result
+        if ( len(result)> 0):
+            if (result[0] != ""):
+                imageNames.extend( result)
         return imageNames
 
     def closeImage(self, imageName):

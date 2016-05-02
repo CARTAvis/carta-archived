@@ -10,12 +10,10 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/RegionInfo.h"
-#include "CartaLib/VectorGraphics/VGList.h"
 
 #include <QString>
 #include <QList>
 #include <QObject>
-#include <QImage>
 
 #include <set>
 
@@ -32,23 +30,22 @@ namespace Carta {
         namespace NdArray {
             class RawViewInterface;
         }
-        class LayeredRemoteVGView;
     }
 }
 
 namespace Carta {
 namespace Data {
 class ColorState;
-class ControllerData;
+class Layer;
+class LayerData;
+class Stack;
 class DataSource;
 class DisplayControls;
-class DrawStackSynchronizer;
 class GridControls;
 class ContourControls;
 class Settings;
 class Region;
 class RegionRectangle;
-class Selection;
 
 class Controller: public QObject, public Carta::State::CartaObject,
     public IPercentIntensityMap {
@@ -76,9 +73,11 @@ public:
      * Add data to this controller.
      * @param fileName the location of the data;
      *        this could represent a url or an absolute path on a local filesystem.
-     * @return true upon success, false otherwise.
+     * @param success - set to true if the data was successfully added.
+     * @return - the identifier for the data that was added, if it was added successfully;
+     *      otherwise, an error message.
      */
-    bool addData(const QString& fileName);
+    QString addData(const QString& fileName, bool* success);
 
     /**
      * Apply the indicated clips to managed images.
@@ -98,10 +97,10 @@ public:
 
     /**
      * Close the given image.
-     * @param name an identifier for the image to close.
+     * @param id - a stack id for the image to close.
      * @return - an error message if the image was not successfully closed.
      */
-    QString closeImage( const QString& name );
+    QString closeImage( const QString& id );
 
     /**
      * Close the given region.
@@ -159,10 +158,16 @@ public:
     std::shared_ptr<DataSource> getDataSource();
 
     /**
-     * Return all data sources.
-     * @return - the list of all visible data sources.
+     * Return the current layer.
+     * @return - the current layer.
      */
-    std::vector< std::shared_ptr<DataSource> > getDataSources();
+    std::shared_ptr<Layer> getLayer();
+
+    /**
+     * Return all layers containing images.
+     * @return - a list of all layers containing images.
+     */
+    std::vector< std::shared_ptr<Layer> > getLayers();
 
     /**
      * Return a shared pointer to the contour controls.
@@ -196,11 +201,10 @@ public:
     std::vector<int> getImageDimensions( ) const;
 
     /**
-     * Returns an identifier for the data source at the given index.
-     * @param index the index of a data source.
-     * @return an identifier for the image.
+     * Recursively returns the identifiers for the layers in the stack..
+     * @return - identifiers for the layers in the stack.
      */
-    QString getImageName(int index) const;
+     QStringList getLayerIds( ) const;
 
     /**
      * Return a list of indices indicating the current frames of the selected
@@ -328,6 +332,13 @@ public:
     bool isStackSelectAuto() const;
 
     /**
+     * Move the selected main stack layers up or down one layer.
+     * @param moveDown - true if the selected layers should be moved down one layer;
+     *      false otherwise.
+     */
+    QString moveSelectedLayers( bool moveDown );
+
+    /**
      * Remove a contour set from the images.
      * @param contourSet - the contour set to remove.
      */
@@ -356,15 +367,6 @@ public:
     void resetZoom();
 
     /**
-     * Save a copy of the full image in the current image view.
-     * @param filename the full path where the file is to be saved.
-     * @param scale the scale (zoom level) of the saved image.
-     * @return an error message if there is an initial problem with saving;
-     *      an empty string if the save operation has been initiated.
-     */
-    QString saveImage( const QString& filename,  double scale );
-
-    /**
      * Save a copy of the full image in the current image view using the current scale.
      * @param filename the full path where the file is to be saved.
      * @return an error message if there is an initial problem with saving;
@@ -372,10 +374,6 @@ public:
      */
     QString saveImage( const QString& filename );
 
-    /**
-     * Save the state of this controller.
-     */
-    void saveState();
 
     /**
      * Set whether or not clip values should be recomputed when the frame changes.
@@ -408,24 +406,24 @@ public:
      * @param compMode - the type of composition mode to apply.
      * @return an error message if there was a problem recognizing the composition mode.
      */
-    QString setCompositionMode( const QString& compMode );
+    QString setCompositionMode( const QString& id, const QString& compMode );
 
-
-    /**
-     * Specify a new image order.
-     * @param imageIndices - a list specifying a new order for the images in
-     *      a layer.
-     * @return an error message if the new image order could not be set;
-     *      otherwise, an empty string.
-     */
-    QString setImageOrder( const std::vector<int>& imageIndices );
 
     /**
      * Show/hide a particular layer in the stack.
-     * @param dataIndex - the index of a layer in the stack.
+     * @param id - the identifier for a layer in the stack.
      * @param visible - true if the layer should be visible; false otherwise.
      */
-    QString setImageVisibility( int dataIndex, bool visible );
+    QString setImageVisibility( /*int dataIndex*/const QString& id, bool visible );
+
+    /**
+     * Give the layer (a more user-friendly) name.
+     * @param id - an identifier for the layer to rename.
+     * @param name - the new name for the layer.
+     * @return - an error message if the layer could not be renamed; an empty
+     *      string otherwise.
+     */
+    QString setLayerName( const QString& id, const QString& name );
 
     /**
      * Set the indices of the selected data sources.
@@ -443,7 +441,7 @@ public:
      */
     //Note: Mask color will not take affect unless a composition mode that supports
     //a color filter has been set.
-    QStringList setMaskColor( int redAmount, int greenAmount, int blueAmount );
+    QStringList setMaskColor( const QString& id, int redAmount, int greenAmount, int blueAmount );
 
     /**
      * Set the transparency of the layer.
@@ -453,7 +451,7 @@ public:
      */
     //Note: Layer transparency will not take affect unless a composition mode which supports
     //transparency has been set.
-    QString setMaskAlpha( int alphaAmount );
+    QString setMaskAlpha( const QString& id, int alphaAmount );
 
     /**
      * Set whether or not a pan/zoom operation should affect all layers in the stack
@@ -462,6 +460,14 @@ public:
      *      top layer should be pan/zoomed.
      */
     void setPanZoomAll( bool panZoomAll );
+
+    /**
+     * Group/ungroup the selected layers.
+     * @param grouped - true if the selected layers should be grouped; false if they
+     *  are grouped and should be ungrouped.
+     * @return - an error message if the group/ungroup message could not be performed.
+     */
+    QString setSelectedLayersGrouped( bool grouped );
 
     /**
      * Set whether or not selection of layers in the stack should be based on the
@@ -556,30 +562,15 @@ private slots:
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
 
-    void _colorMapChanged();
-
-    void _contourSetAdded( ControllerData* cData, const QString& setName );
+    void _contourSetAdded( Layer* cData, const QString& setName );
     void _contourSetRemoved( const QString setName );
-    void _contoursChanged();
-
-
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 
     //Refresh the view based on the latest data selection information.
-    //The parameter newClips is set if the clip values have changed and need to be recomputed.
-    void _loadView( bool newClips = false );
-
-    /**
-     * The view has been resized.
-     */
-    void _viewResize();
-
-    /**
-     * Schedule a frame reload event.
-     * @param newClips - set when the clip values have changed and will need to be recomputed.
-     */
-    void _scheduleFrameReload( bool newClips = false );
+    void _loadView(  );
+    void _loadViewQueued( );
+    void _notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis );
 
 
     // Asynchronous result from saveFullImage().
@@ -595,10 +586,10 @@ private:
     class Factory;
 
     /// Add a region to the stack from a file.
-    bool _addDataRegion(const QString& fileName );
+    QString _addDataRegion(const QString& fileName, bool* success );
 
     /// Add an image to the stack from a file.
-    bool _addDataImage( const QString& fileName );
+    QString _addDataImage( const QString& fileName, bool* success );
 
     //Clear the color map.
     void _clearColorMap();
@@ -610,41 +601,12 @@ private:
     set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
-    std::vector<int> _getFrameIndices( ) const;
-
-    //Get the data index
-    int _getIndex( const QString& fileName) const;
-
-    //Get the actual data index of the selection with the given index.  This method
-    //takes into account that some images may be hidden, i.e., temporarily not seen
-    //on the stack.
-    int _getIndexCurrent( ) const;
-
-    //Get the actual index of the passed in data.
-    int _getIndexData( ControllerData* cd ) const;
-
 
     QString _getPreferencesId() const;
 
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
-    void _initializeSelections();
-    void _loadView( bool newClips, int dataIndex );
-
-    //QString _makeRegion( const QString& regionType );
-
-    void _removeData( int index );
-
-    //Render all images in the stack
-    void _renderAll();
-    //Render a single image in the stack at the given index
-    void _renderSingle( int dIndex );
-    //Helper function to render a subset of layers in the stack.  The grid index is
-    //the index of the layer in the subset that should draw the grid or -1 if there
-    //is no such index.
-    void _render( QList<std::shared_ptr<ControllerData> > datas, int gridIndex );
-    void _saveStateRegions();
 
     /**
      * Set whether or not the selected layers should be using the global
@@ -663,19 +625,15 @@ private:
     /**
      * Make a frame selection.
      * @param axisType - the axis for which a frame is being set.
-     * @param val  a frame index for the axis.
+     * @param frameIndex  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
-    QString _setLayersSelected( const QStringList indices );
+    QString _setLayersSelected( const QStringList indices);
 
 
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
-    void _updateDisplayAxes( int targetIndex );
-    void _updatePan( double centerX , double centerY,
-            std::shared_ptr<ControllerData> data);
-    void _updateZoom( double centerX, double centerY, double zoomFactor,
-             std::shared_ptr<ControllerData> data );
+    void _updateDisplayAxes( /*int targetIndex*/ );
 
     static bool m_registered;
 
@@ -687,40 +645,24 @@ private:
     static const QString DATA_PATH;
     static const QString IMAGE;
     static const QString PAN_ZOOM_ALL;
-    static const QString REGIONS;
     static const QString CENTER;
-    static const QString POINTER_MOVE;
     static const QString STACK_SELECT_AUTO;
-    static const QString VIEW;
-    static const QString ZOOM;
 
-    //Data Selections
-    Selection* m_selectImage;
-    std::vector<Selection*> m_selects;
+    static const QString ZOOM;
 
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;
-    std::unique_ptr<DrawStackSynchronizer> m_stackDraw;
 
     std::unique_ptr<Settings> m_settings;
 
-
     //Data available to and managed by this controller.
-    QList<shared_ptr<ControllerData> > m_datas;
+    std::unique_ptr<Stack> m_stack;
 
     std::shared_ptr<ColorState> m_stateColor;
-
-
-    QList<std::shared_ptr<Region> > m_regions;
-
-    //Holds image that are loaded and selections on the data.
-    Carta::State::StateInterface m_stateData;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
-
-    bool m_reloadFrameQueued;
 
     Controller(const Controller& other);
     Controller& operator=(const Controller& other);

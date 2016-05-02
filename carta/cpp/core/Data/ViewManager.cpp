@@ -21,11 +21,14 @@
 #include "Data/Layout/Layout.h"
 #include "Data/Layout/NodeFactory.h"
 #include "Data/Plotter/LineStyles.h"
-#include "Data/Plotter/PlotStyles.h"
+#include "Data/Histogram/PlotStyles.h"
 #include "Data/Preferences/Preferences.h"
 #include "Data/Preferences/PreferencesSave.h"
+#include "Data/Profile/ProfilePlotStyles.h"
 #include "Data/Profile/IntensityUnits.h"
 #include "Data/Profile/Profiler.h"
+#include "Data/Profile/ProfileStatistics.h"
+#include "Data/Profile/GenerateModes.h"
 #include "Data/Profile/SpectralUnits.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics/Statistics.h"
@@ -78,6 +81,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<TransformsImage>();
     Util::findSingletonObject<ErrorManager>();
     Util::findSingletonObject<LabelFormats>();
+    Util::findSingletonObject<ProfilePlotStyles>();
     Util::findSingletonObject<Preferences>();
     Util::findSingletonObject<PreferencesSave>();
     Util::findSingletonObject<ChannelUnits>();
@@ -88,9 +92,12 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<ContourStyles>();
     Util::findSingletonObject<LayerCompositionModes>();
     Util::findSingletonObject<PlotStyles>();
+
     Util::findSingletonObject<SpectralUnits>();
     Util::findSingletonObject<IntensityUnits>();
     Util::findSingletonObject<LineStyles>();
+    Util::findSingletonObject<ProfileStatistics>();
+    Util::findSingletonObject<GenerateModes>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -349,11 +356,14 @@ void ViewManager::_initCallbacks(){
     //Callback for adding a data source to a Controller.
     addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString ID( "id");
         const QString DATA( "data");
-        std::set<QString> keys = {ID,DATA};
+        std::set<QString> keys = {Util::ID,DATA};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        loadFile( dataValues[ID], dataValues[DATA]);
+        bool fileLoaded = false;
+        QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
+        if ( !fileLoaded ){
+            Util::commandPostProcess( result);
+        }
         return "";
     });
 
@@ -518,8 +528,8 @@ QString ViewManager::linkRemove( const QString& sourceId, const QString& destId 
     return result;
 }
 
-bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
-    bool result = false;
+QString ViewManager::loadFile( const QString& controlId, const QString& fileName, bool* fileLoaded){
+    QString result;
     int controlCount = getControllerCount();
     for ( int i = 0; i < controlCount; i++ ){
         const QString controlPath= m_controllers[i]->getPath();
@@ -527,7 +537,7 @@ bool ViewManager::loadFile( const QString& controlId, const QString& fileName){
            //Add the data to it
             _makeDataLoader();
            QString path = m_dataLoader->getFile( fileName, "" );
-           result = m_controllers[i]->addData( path );
+           result = m_controllers[i]->addData( path, fileLoaded );
            break;
         }
     }
@@ -971,7 +981,7 @@ void ViewManager::setDeveloperView(){
     _clearHistograms( 1, m_histograms.size() );
     _clearAnimators( 1, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
-    _clearStatistics( 0, m_statistics.size());
+    _clearStatistics( 1, m_statistics.size());
     _clearProfilers( 1, m_profilers.size() );
     _clearControllers( 1, m_controllers.size() );
 

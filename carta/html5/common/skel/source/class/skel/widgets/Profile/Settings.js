@@ -36,8 +36,9 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             this._add( this.m_tabView );
             
             this.m_pages = [];
-            this.m_pages[0] = new skel.widgets.Profile.SettingsDisplay();
-            this.m_pages[1] = new skel.widgets.Profile.SettingsProfiles();
+            this.m_pages[this.m_INDEX_PLOT] = new skel.widgets.Profile.SettingsDisplay();
+            this.m_pages[this.m_INDEX_PROFILES] = new skel.widgets.Profile.SettingsProfiles();
+            this.m_pages[this.m_INDEX_CURVES] = new skel.widgets.Profile.SettingsCurves();
             
             for ( var i = 0; i < this.m_pages.length; i++ ){
                 this.m_tabView.add( this.m_pages[i] );
@@ -52,7 +53,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             if ( val ){
                 try {
                     var profilePrefs = JSON.parse( val );
-                    this.m_pages[0].prefUpdate( profilePrefs );
+                    this.m_pages[this.m_INDEX_PLOT].prefUpdate( profilePrefs );
                     var tabIndex = profilePrefs.tabIndex;
                     this._selectTab( tabIndex );
                 }
@@ -70,7 +71,9 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             if ( val ){
                 try {
                     var profileData = JSON.parse( val );
-                    this.m_pages[1].dataUpdate( profileData );
+                    this.m_pages[this.m_INDEX_CURVES].dataUpdate( profileData );
+                    this.m_pages[this.m_INDEX_PROFILES].dataUpdate( profileData );
+                    this.m_pages[this.m_INDEX_PLOT].dataUpdate( profileData );
                 }
                 catch( err ){
                     console.log( "TabSettings Could not parse: "+val+" error: "+err );
@@ -106,6 +109,9 @@ qx.Class.define("skel.widgets.Profile.Settings", {
         },
         
         m_sharedVar : null,
-        m_sharedVarData : null
+        m_sharedVarData : null,
+        m_INDEX_CURVES : 2,
+        m_INDEX_PROFILES : 1,
+        m_INDEX_PLOT : 0
     }
 });
