@@ -1,8 +1,9 @@
 #include "Profiler.h"
 #include "CurveData.h"
-#include "IntensityUnits.h"
-#include "SpectralUnits.h"
 #include "GenerateModes.h"
+#include "UnitsFrequency.h"
+#include "UnitsIntensity.h"
+#include "UnitsSpectral.h"
 #include "ProfilePlotStyles.h"
 #include "Data/Clips.h"
 #include "Data/DataLoader.h"
@@ -16,9 +17,7 @@
 #include "Data/Plotter/LegendLocations.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Data/Plotter/LineStyles.h"
-
 #include "Plot2D/Plot2DGenerator.h"
-
 #include "CartaLib/Hooks/Plot2DResult.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
@@ -69,8 +68,8 @@ public:
 bool Profiler::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Profiler::Factory());
 
-SpectralUnits* Profiler::m_spectralUnits = nullptr;
-IntensityUnits* Profiler::m_intensityUnits = nullptr;
+UnitsSpectral* Profiler::m_spectralUnits = nullptr;
+UnitsIntensity* Profiler::m_intensityUnits = nullptr;
 GenerateModes* Profiler::m_generateModes = nullptr;
 
 
@@ -277,7 +276,7 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
                         curveData->getSource();
                 if ( dataSource ){
                     //First, we need to make sure the x-values are in Hertz.
-                    QString hertzKey = SpectralUnits::NAME_FREQUENCY + "(" + SpectralUnits::UNIT_HZ + ")";
+                    QString hertzKey = UnitsSpectral::NAME_FREQUENCY + "(" + UnitsFrequency::UNIT_HZ + ")";
                     std::vector<double> hertzVals = _convertUnitsX( curveData, hertzKey );
                     bool validBounds = false;
                     std::pair<double,double> boundsY = m_plotManager->getPlotBoundsY( curveData->getName(), &validBounds );
@@ -322,9 +321,7 @@ void Profiler::_cursorUpdate( double x, double y ){
             }
         }
     }
-    //if ( !cursorText.isEmpty() ){
-        m_plotManager->setCursorText( cursorText );
-    //}
+    m_plotManager->setCursorText( cursorText );
 }
 
 
@@ -343,44 +340,63 @@ int Profiler::_findCurveIndex( const QString& name ) const {
 
 void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
     QString layerName = layer->_getLayerName();
+    int curveIndex = _findCurveIndex( layerName );
     std::shared_ptr<Carta::Lib::Image::ImageInterface> image = layer->_getImage();
+    _generateData( image, curveIndex, layerName, createNew );
+}
+
+
+void Profiler::_generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
+        int curveIndex, const QString& layerName, bool createNew ){
     std::vector < int > pos( image-> dims().size(), 0 );
     int axis = _getExtractionAxisIndex( image );
     if ( axis >= 0 ){
         Profiles::PrincipalAxisProfilePath path( axis, pos );
 
         Carta::Lib::ProfileInfo profInfo;
+        if ( curveIndex >= 0 ){
+            profInfo = m_plotCurves[curveIndex]->getProfileInfo();
+        }
+        QString bottomUnits = getAxisUnitsBottom();
+        profInfo.setSpectralUnit( _getUnitUnits( bottomUnits) );
+        QString typeStr = _getUnitType( bottomUnits );
+        profInfo.setSpectralType( typeStr );
         Carta::Lib::RegionInfo regionInfo;
         auto result = Globals::instance()-> pluginManager()
                       -> prepare <Carta::Lib::Hooks::ProfileHook>(image,
                               regionInfo, profInfo);
-        auto lam = [=] ( const Carta::Lib::Hooks::ProfileHook::ResultType &data ) {
+        auto lam = [=] ( const Carta::Lib::Hooks::ProfileHook::ResultType &result ) {
+            std::vector< std::pair<double,double> > data = result.getData();
             int dataCount = data.size();
             if ( dataCount > 0 ){
                 std::vector<double> plotDataX( dataCount );
                 std::vector<double> plotDataY( dataCount );
 
                 for( int i = 0 ; i < dataCount; i ++ ){
-                    plotDataX[i] = i;
-                    plotDataY[i] = data[i];
+                    plotDataX[i] = data[i].first;
+                    plotDataY[i] = data[i].second;
                 }
 
-                int curveIndex = _findCurveIndex( layerName );
                 std::shared_ptr<CurveData> profileCurve( nullptr );
                 if ( curveIndex < 0 || createNew ){
                     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
                     profileCurve.reset( objMan->createObject<CurveData>() );
                     profileCurve->setImageName( layerName );
+                    double restFrequency = result.getRestFrequency();
+                    QString restUnit = result.getRestUnits();
+                    profileCurve->setRestQuantity( restFrequency, restUnit );
                     _assignCurveName( profileCurve );
                     _assignColor( profileCurve );
                     m_plotCurves.append( profileCurve );
                     profileCurve->setSource( image );
-                    _saveCurveState();
+
                 }
                 else {
                     profileCurve = m_plotCurves[curveIndex];
                 }
+
                 profileCurve->setData( plotDataX, plotDataY );
+                _saveCurveState();
                 _updatePlotData();
             }
         };
@@ -435,7 +451,10 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
     }
 }
 
-
+QString Profiler::getAxisUnitsBottom() const {
+    QString bottomUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
+    return bottomUnits;
+}
 
 
 Controller* Profiler::_getControllerSelected() const {
@@ -494,22 +513,6 @@ int Profiler::_getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageI
 }
 
 
-QString Profiler::getStateString( const QString& sessionId, SnapshotType type ) const{
-    QString result("");
-    if ( type == SNAPSHOT_PREFERENCES ){
-        StateInterface prefState( "");
-        prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
-        prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
-        prefState.insertValue<QString>( Settings::SETTINGS, m_preferences->getStateString(sessionId, type) );
-        result = prefState.toString();
-    }
-    else if ( type == SNAPSHOT_LAYOUT ){
-        result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
-    }
-    return result;
-}
-
-
 QString Profiler::_getLegendLocationsId() const {
     return m_legendLocations->getPath();
 }
@@ -534,6 +537,21 @@ double Profiler::_getMaxFrame() const {
 
 QString Profiler::_getPreferencesId() const {
     return m_preferences->getPath();
+}
+
+QString Profiler::getStateString( const QString& sessionId, SnapshotType type ) const{
+    QString result("");
+    if ( type == SNAPSHOT_PREFERENCES ){
+        StateInterface prefState( "");
+        prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
+        prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
+        prefState.insertValue<QString>( Settings::SETTINGS, m_preferences->getStateString(sessionId, type) );
+        result = prefState.toString();
+    }
+    else if ( type == SNAPSHOT_LAYOUT ){
+        result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
+    }
+    return result;
 }
 
 QString Profiler::_getUnitType( const QString& unitStr ){
@@ -581,6 +599,7 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
     m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
     m_state.insertValue<bool>(TOOL_TIPS, false );
+
 
     //Legend
     bool external = true;
@@ -693,6 +712,57 @@ void Profiler::_initializeCallbacks(){
                 return result;
             });
 
+    addCommandCallback( "setRestFrequency", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::NAME, CurveData::REST_FREQUENCY};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString nameStr = dataValues[Util::NAME];
+        QString restFreqStr = dataValues[CurveData::REST_FREQUENCY];
+        bool validDouble = false;
+        double restFreq = restFreqStr.toDouble( &validDouble );
+        QString result;
+        if ( validDouble ){
+            result = setRestFrequency( restFreq, nameStr );
+        }
+        else {
+            result = "Rest frequency must be a valid number: "+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setRestUnit", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::NAME, CurveData::REST_UNIT_FREQ};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString nameStr = dataValues[Util::NAME];
+        QString restUnits = dataValues[CurveData::REST_UNIT_FREQ];
+        QString result = setRestUnits( restUnits, nameStr );
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+
+
+    addCommandCallback( "setRestUnitType", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::NAME, CurveData::REST_FREQUENCY_UNITS};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString nameStr = dataValues[Util::NAME];
+        QString restUnitsStr = dataValues[CurveData::REST_FREQUENCY_UNITS];
+        bool validBool = false;
+        bool restUnitsFreq = Util::toBool( restUnitsStr, &validBool );
+        QString result;
+        if ( validBool ){
+            result = setRestUnitType( restUnitsFreq, nameStr );
+        }
+        else {
+            result = "Rest unit type frequency must be true/false: "+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
     addCommandCallback( "newProfile", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
                 QString result = profileNew();
@@ -711,14 +781,24 @@ void Profiler::_initializeCallbacks(){
                 });
 
     addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-                    std::set<QString> keys = {Util::NAME};
-                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                    QString nameStr = dataValues[Util::NAME];
-                    QString result = profileRemove( nameStr );
-                    Util::commandPostProcess( result );
-                    return result;
-                });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::NAME};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString nameStr = dataValues[Util::NAME];
+        QString result = profileRemove( nameStr );
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "resetRestFrequency", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {Util::NAME};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString nameStr = dataValues[Util::NAME];
+        QString result = resetRestFrequency( nameStr );
+        Util::commandPostProcess( result );
+        return result;
+    });
 
 
     addCommandCallback( "setCurveColor", [=] (const QString & /*cmd*/,
@@ -924,10 +1004,10 @@ void Profiler::_initializeCallbacks(){
 
 void Profiler::_initializeStatics(){
     if ( m_spectralUnits == nullptr ){
-        m_spectralUnits = Util::findSingletonObject<SpectralUnits>();
+        m_spectralUnits = Util::findSingletonObject<UnitsSpectral>();
     }
     if ( m_intensityUnits == nullptr ){
-        m_intensityUnits = Util::findSingletonObject<IntensityUnits>();
+        m_intensityUnits = Util::findSingletonObject<UnitsIntensity>();
     }
     if ( m_generateModes == nullptr ){
         m_generateModes = Util::findSingletonObject<GenerateModes>();
@@ -967,7 +1047,6 @@ void Profiler::_loadProfile( Controller* controller ){
                 break;
             }
         }
-
         if ( profileIndex < 0 ){
             _generateData( layers[i]);
         }
@@ -1094,6 +1173,22 @@ QString Profiler::removeLink( CartaObject* cartaObject){
     return result;
 }
 
+QString Profiler::resetRestFrequency( const QString& curveName ){
+    QString result;
+    int index = _findCurveIndex( curveName );
+    if ( index >= 0 ){
+        m_plotCurves[index]->resetRestFrequency();
+        _saveCurveState( index );
+        m_stateData.flushState();
+        _generateData( m_plotCurves[index]->getImage(),
+                    index, m_plotCurves[index]->getNameImage(), false );
+    }
+    else {
+        result = "Could not reset rest frequency, unrecognized profile curve:"+curveName;
+    }
+    return result;
+}
+
 void Profiler::resetState( const QString& state ){
     StateInterface restoredState( "");
     restoredState.setState( state );
@@ -1194,6 +1289,7 @@ QStringList Profiler::setCurveColor( const QString& name, int redAmount, int gre
     }
     return result;
 }
+
 
 QString Profiler::setCurveName( const QString& id, const QString& newName ){
     QString result;
@@ -1328,6 +1424,54 @@ QString Profiler::setPlotStyle( const QString& name, const QString& plotStyle ){
     return result;
 }
 
+QString Profiler::setRestFrequency( double freq, const QString& curveName ){
+    QString result;
+    int index = _findCurveIndex( curveName );
+    if ( index >= 0 ){
+        result = m_plotCurves[index]->setRestFrequency( freq );
+        _saveCurveState( index );
+        m_stateData.flushState();
+        _generateData( m_plotCurves[index]->getImage(),
+                    index, m_plotCurves[index]->getNameImage(), false );
+    }
+    else {
+        result = "Unrecognized profile curve: "+curveName;
+    }
+    return result;
+}
+
+QString Profiler::setRestUnits( const QString& restUnits, const QString& curveName ){
+    QString result;
+    int index = _findCurveIndex( curveName );
+    if ( index >= 0 ){
+        result = m_plotCurves[index]->setRestUnits( restUnits );
+        if ( result.isEmpty() ){
+            _saveCurveState( index );
+            m_stateData.flushState();
+        }
+    }
+    else {
+        result = "Unrecognized profile curve: "+curveName;
+    }
+    return result;
+}
+
+
+QString Profiler::setRestUnitType( bool restUnitsFreq, const QString& curveName ){
+    QString result;
+    int index = _findCurveIndex( curveName );
+    if ( index >= 0 ){
+        m_plotCurves[index]->setRestUnitType( restUnitsFreq );
+        _saveCurveState( index );
+        m_stateData.flushState();
+    }
+    else {
+        result = "Unrecognized profile curve:"+curveName;
+    }
+    return result;
+}
+
+
 
 QString Profiler::setTabIndex( int index ){
     QString result;
@@ -1411,21 +1555,6 @@ QString Profiler::setZoomRange( double zoomMin, double zoomMax ){
     return result;
 }
 
-void Profiler::_updatePlotBounds(){
-    //Update the graph.
-    //See if we need to add an additional buffer.
-    double graphMin = m_stateData.getValue<double>( ZOOM_MIN );
-    double graphMax = m_stateData.getValue<double>( ZOOM_MAX );
-    double maxChannel = _getMaxFrame();
-    if ( m_stateData.getValue<bool>( ZOOM_BUFFER) ){
-        double bufferSize = m_stateData.getValue<double>( ZOOM_BUFFER_SIZE );
-        double halfSize = bufferSize / 2;
-        double buffAmount = maxChannel * halfSize / 100;
-        graphMin = graphMin - buffAmount;
-        graphMax = graphMax + buffAmount;
-    }
-    m_plotManager->setAxisXRange( graphMin, graphMax );
-}
 
 QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent ){
     QString result;
@@ -1526,10 +1655,23 @@ void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kno
     }
 }
 
-
+void Profiler::_updatePlotBounds(){
+    //Update the graph.
+    //See if we need to add an additional buffer.
+    double graphMin = m_stateData.getValue<double>( ZOOM_MIN );
+    double graphMax = m_stateData.getValue<double>( ZOOM_MAX );
+    double maxChannel = _getMaxFrame();
+    if ( m_stateData.getValue<bool>( ZOOM_BUFFER) ){
+        double bufferSize = m_stateData.getValue<double>( ZOOM_BUFFER_SIZE );
+        double halfSize = bufferSize / 2;
+        double buffAmount = maxChannel * halfSize / 100;
+        graphMin = graphMin - buffAmount;
+        graphMax = graphMax + buffAmount;
+    }
+    m_plotManager->setAxisXRange( graphMin, graphMax );
+}
 
 void Profiler::_updatePlotData(){
-    //m_plotManager->clearData();
     int curveCount = m_plotCurves.size();
     for ( int i = 0; i < curveCount; i++ ){
         //Convert the data units, if necessary.

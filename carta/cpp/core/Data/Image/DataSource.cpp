@@ -53,7 +53,7 @@ DataSource::DataSource() :
 }
 
 
-int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceFrames ) const {
+int DataSource::_getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const {
     int frameIndex = 0;
     if (m_image ){
         AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( sourceFrameIndex );
@@ -67,7 +67,7 @@ int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceF
     return frameIndex;
 }
 
-std::vector<int> DataSource::_fitFramesToImage( const vector<int>& sourceFrames ) const {
+std::vector<int> DataSource::_fitFramesToImage( const std::vector<int>& sourceFrames ) const {
     int sourceFrameCount = sourceFrames.size();
     std::vector<int> outputFrames( sourceFrameCount );
     for ( int i = 0; i < sourceFrameCount; i++ ){

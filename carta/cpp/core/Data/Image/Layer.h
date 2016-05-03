@@ -395,7 +395,7 @@ protected:
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
-    virtual void _load( vector<int> frames, bool autoClip, double clipMinPercentile,
+    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
             double clipMaxPercentile ) = 0;
 
     /**

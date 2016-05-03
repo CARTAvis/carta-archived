@@ -997,7 +997,7 @@ void Controller::setAutoClip( bool autoClip ){
 
 QString Controller::setClipValue( double clipVal  ) {
     QString result;
-    if ( 0 <= clipVal && clipVal < 1 ){
+    if ( 0 <= clipVal && clipVal <= 1 ){
         double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
         double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
         double oldClipVal = oldClipValMax - oldClipValMin;
@@ -1010,7 +1010,7 @@ QString Controller::setClipValue( double clipVal  ) {
         }
     }
     else {
-        result = "Clip value must be in [0,1).";
+        result = "Clip value must be in [0,1].";
     }
     return result;
 }

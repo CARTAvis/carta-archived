@@ -1,4 +1,4 @@
-#include "IntensityUnits.h"
+#include "UnitsIntensity.h"
 #include "CartaLib/CartaLib.h"
 #include "State/UtilState.h"
 #include <QDebug>
@@ -8,17 +8,17 @@ namespace Carta {
 
 namespace Data {
 
-const QString IntensityUnits::UNIT_LIST = "intensityUnits";
-const QString IntensityUnits::CLASS_NAME = "IntensityUnits";
-const QString IntensityUnits::NAME_PEAK = "Fraction of Peak";
-const QString IntensityUnits::NAME_JYBEAM = "Jy/beam";
-const QString IntensityUnits::NAME_JYSR = "MJy/sr";
-const QString IntensityUnits::NAME_JYARCSEC = "Jy/arcsec^2";
-const QString IntensityUnits::NAME_JY = "Jy";
-const QString IntensityUnits::NAME_KELVIN = "Kelvin";
+const QString UnitsIntensity::UNIT_LIST = "units";
+const QString UnitsIntensity::CLASS_NAME = "UnitsIntensity";
+const QString UnitsIntensity::NAME_PEAK = "Fraction of Peak";
+const QString UnitsIntensity::NAME_JYBEAM = "Jy/beam";
+const QString UnitsIntensity::NAME_JYSR = "MJy/sr";
+const QString UnitsIntensity::NAME_JYARCSEC = "Jy/arcsec^2";
+const QString UnitsIntensity::NAME_JY = "Jy";
+const QString UnitsIntensity::NAME_KELVIN = "Kelvin";
 
 
-class IntensityUnits::Factory : public Carta::State::CartaObjectFactory {
+class UnitsIntensity::Factory : public Carta::State::CartaObjectFactory {
 public:
 
     Factory():
@@ -27,21 +27,21 @@ public:
 
     Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
-        return new IntensityUnits (path, id);
+        return new UnitsIntensity (path, id);
     }
 };
 
 
 
-bool IntensityUnits::m_registered =
-        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new IntensityUnits::Factory());
+bool UnitsIntensity::m_registered =
+        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new UnitsIntensity::Factory());
 
-IntensityUnits::IntensityUnits( const QString& path, const QString& id):
+UnitsIntensity::UnitsIntensity( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
     _initializeDefaultState();
 }
 
-QString IntensityUnits::getActualUnits( const QString& unitStr ) const {
+QString UnitsIntensity::getActualUnits( const QString& unitStr ) const {
     QString actualUnits;
     int dataCount = m_state.getArraySize( UNIT_LIST );
     for ( int i = 0; i < dataCount; i++ ){
@@ -57,17 +57,17 @@ QString IntensityUnits::getActualUnits( const QString& unitStr ) const {
 }
 
 
-QString IntensityUnits::getDefault() const {
+QString UnitsIntensity::getDefault() const {
     return NAME_JYBEAM;
 }
 
-void IntensityUnits::_initUnit( int * index, const QString& name ){
+void UnitsIntensity::_initUnit( int * index, const QString& name ){
     QString key = Carta::State::UtilState::getLookup( UNIT_LIST, *index );
     m_state.setValue<QString>( key, name );
     *index = *index + 1;
 }
 
-void IntensityUnits::_initializeDefaultState(){
+void UnitsIntensity::_initializeDefaultState(){
     m_state.insertArray( UNIT_LIST, 5 );
     int i = 0;
 
@@ -81,7 +81,7 @@ void IntensityUnits::_initializeDefaultState(){
 }
 
 
-IntensityUnits::~IntensityUnits(){
+UnitsIntensity::~UnitsIntensity(){
 
 }
 }

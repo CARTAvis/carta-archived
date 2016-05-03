@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "CartaLib/ProfileInfo.h"
 #include <QStringList>
 
 namespace Carta {
@@ -34,6 +35,21 @@ public:
      *      not recognized.
      */
     QString getActualStatistic( const QString& statStr ) const;
+
+
+    /**
+     * Returns the aggregate type corresponding to the string description.
+     * @param statStr - an identifier for a method of computing profiles.
+     * @return - the corresponding aggregate type.
+     */
+    Carta::Lib::ProfileInfo::AggregateType getTypeFor( const QString& statStr ) const;
+
+    /**
+     * Returns a string description of the aggregate type.
+     * @param agType - a method for generating profiles.
+     * @return - a string descriptor of the method.
+     */
+    QString typeToString( Carta::Lib::ProfileInfo::AggregateType agType ) const;
 
     const static QString CLASS_NAME;
     const static QString STAT_LIST;

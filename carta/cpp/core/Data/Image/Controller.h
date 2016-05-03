@@ -598,7 +598,7 @@ private:
     void _clearStatistics();
 
 
-    set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
+    std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
 

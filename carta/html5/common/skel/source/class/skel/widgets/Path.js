@@ -19,7 +19,7 @@ qx.Class.define("skel.widgets.Path", {
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
         this.FONTS = this.BASE_PATH + "Fonts";
-        this.INTENSITY_UNITS = this.BASE_PATH + "IntensityUnits";
+        this.INTENSITY_UNITS = this.BASE_PATH + "UnitsIntensity";
         this.LABEL_FORMATS = this.BASE_PATH + "LabelFormats";
         this.LAYER_COMPOSITION_MODES = this.BASE_PATH + "LayerCompositionModes";
         this.LAYOUT = this.BASE_PATH + "Layout";
@@ -30,12 +30,14 @@ qx.Class.define("skel.widgets.Path", {
         this.PLOT_STYLES = this.BASE_PATH + "ProfilePlotStyles";
         this.PREFERENCES = this.BASE_PATH + "Preferences";
         this.PREFERENCES_SAVE = this.BASE_PATH + "PreferencesSave";
+        this.PROFILE_FREQ_UNITS = this.BASE_PATH + "UnitsFrequency";
+        this.PROFILE_WAVE_UNITS = this.BASE_PATH + "UnitsWavelength";
         this.PROFILE_GEN_MODES = this.BASE_PATH + "GenerateModes";
         this.PROFILE_STATISTICS = this.BASE_PATH + "ProfileStatistics";
         this.REGION = this.BASE_PATH + this.REGION_DATA + this.SEP;
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
-        this.SPECTRAL_UNITS = this.BASE_PATH + "SpectralUnits";
+        this.SPECTRAL_UNITS = this.BASE_PATH + "UnitsSpectral";
         this.THEMES = this.BASE_PATH + "Themes";
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";

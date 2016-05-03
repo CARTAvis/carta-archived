@@ -38,12 +38,14 @@ class Plot2DManager;
 class Controller;
 class CurveData;
 class GenerateModes;
-class IntensityUnits;
 class LegendLocations;
 class LinkableImpl;
 class Layer;
 class Settings;
-class SpectralUnits;
+
+class UnitsIntensity;
+class UnitsSpectral;
+
 
 class Profiler : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -56,6 +58,11 @@ public:
     QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
+    /**
+     * Returns the units on the bottom axis of the profile.
+     * @return - the profile bottom axis units.
+     */
+    QString getAxisUnitsBottom() const;
 
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
@@ -88,6 +95,14 @@ public:
      *      an empty string otherwise.
      */
     QString profileRemove( const QString& name );
+
+    /**
+     * Set the rest frequency back to its original value for the given curve.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the rest frequency could not be reset; otherwise, an
+     *      empty string.
+     */
+    QString resetRestFrequency( const QString& curveName );
 
 
     virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
@@ -185,6 +200,34 @@ public:
     QString setPlotStyle( const QString& name, const QString& plotStyle );
 
     /**
+     * Set the rest frequency used to generate a profile for the given curve.
+     * @param freq - the rest frequency.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the rest frequency could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setRestFrequency( double freq, const QString& curveName );
+
+    /**
+     * Set the rest frequency units used to generate a profile for the given curve.
+     * @param restUnits - the rest frequency units.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the rest frequency units could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setRestUnits( const QString& restUnits, const QString& curveName );
+
+    /**
+     * Set whether or not rest frequency units are given in frequency or wavelength.
+     * @param restUnitsFreq - true if rest frequency units are specified as frequency;
+     *      false otherwise.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the type of rest frequency units could not be set;
+     *      otherwise, an empty string.
+     */
+    QString setRestUnitType( bool restUnitsFreq, const QString& curveName );
+
+    /**
      * Set the index of the profile settings tab that should be selected.
      * @param index - the index of the profile settings tab that should be selected.
      * @return - an error message if the tab index could not be set; an empty string otherwise.
@@ -204,7 +247,21 @@ public:
      */
     QString setZoomBufferSize( double zoomBufferSize );
 
+    /**
+     * Set the zoom range in world coordinates.
+     * @param zoomMin - the lower boundary of the zoom window.
+     * @param zoomMax - the upper boundary of the zoom window.
+     * @return - an error message if the zoom range could not be set; otherwise, an empty string.
+     */
     QString setZoomRange( double zoomMin, double zoomMax );
+
+    /**
+     * Set the zoom range as a percentage of the plot range.
+     * @param zoomMinPercent - a value in [0,100] indicating the lower boundary of the zoom window.
+     * @param zoomMaxPercent - a value in [0,100] indicating the upper boundary of the zoom window.
+     * @return - an error message if the zoom range could not be set as a percentage; otherwise,
+     *      an empty string.
+     */
     QString setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent );
 
 
@@ -261,6 +318,8 @@ private:
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
 
     void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
+    void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
+             int curveIndex, const QString& layerName, bool createNew = false );
 
     Controller* _getControllerSelected() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
@@ -328,8 +387,9 @@ private:
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
 
-    static SpectralUnits* m_spectralUnits;
-    static IntensityUnits* m_intensityUnits;
+    static UnitsSpectral* m_spectralUnits;
+    static UnitsIntensity* m_intensityUnits;
+
     static GenerateModes* m_generateModes;
 
 

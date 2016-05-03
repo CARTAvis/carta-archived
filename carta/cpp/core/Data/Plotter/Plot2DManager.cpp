@@ -45,7 +45,7 @@ Plot2DManager::Plot2DManager( const QString& path, const QString& id ):
 
 void Plot2DManager::addData( const Carta::Lib::Hooks::Plot2DResult* data){
     if ( m_plotGenerator ){
-        std::vector< pair<double,double> > plotData = data->getData();
+        std::vector< std::pair<double,double> > plotData = data->getData();
         const QString& name = data->getName();
         m_plotGenerator->addData( plotData, name );
     }

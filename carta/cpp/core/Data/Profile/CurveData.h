@@ -7,6 +7,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/ProfileInfo.h"
 #include <QColor>
 #include <QObject>
 
@@ -26,6 +27,8 @@ class LineStyles;
 class ProfileStatistics;
 class ProfilePlotStyles;
 class Region;
+class UnitsFrequency;
+class UnitsWavelength;
 
 class CurveData : public Carta::State::CartaObject {
 friend class Profiler;
@@ -60,11 +63,15 @@ public:
      */
     double getDataMax() const;
 
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> getImage() const;
+
     /**
      * Return an identifier for the style to use in drawing lines.
      * @return - an identifier for the style used to draw lines.
      */
     QString getLineStyle() const;
+
+    Carta::Lib::ProfileInfo getProfileInfo() const;
 
 
     /**
@@ -90,6 +97,7 @@ public:
      * @return - the rest frequency used for the profile.
      */
     double getRestFrequency() const;
+    QString getRestUnits() const;
 
     /**
      * Return the internal state of the curve as a string.
@@ -129,6 +137,8 @@ public:
      */
     bool isMatch( const QString& name ) const;
 
+    void resetRestFrequency();
+
     /**
      * Set the color to use in plotting the points of the curve.
      * @param color - the color to use in plotting curve points.
@@ -149,6 +159,10 @@ public:
      */
     QString setImageName( const QString& imageName );
 
+    ///void setProfileInfo( const Carta::Lib::ProfileInfo& info );
+
+    //void setImageRestInfo( double restFrequency, const QString& restUnits );
+
     /**
      * Set the line style (outline,solid, etc) for drawing the curve.
      * @param lineStyle - the style to be used for connecting the curve points.
@@ -162,7 +176,51 @@ public:
      */
     QString setName( const QString& curveName );
 
+    /**
+     * Set the line style to use in plotting the profile curve.
+     * @param plotStyle - the line style to be used in plotting the profile
+     *      curve.
+     * @return - an error message if the plotting style could not be set; otherwise,
+     *      an empty string.
+     */
     QString setPlotStyle( const QString& plotStyle );
+
+    /**
+     * Set the rest frequency to be used in calculating the profile.
+     * @param freq - the rest frequency to use in calculating the profile.
+     * @return - an error message if the rest frequency could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setRestFrequency( double freq );
+
+    /**
+     * Set the rest frequency and units that were used in calculating the profile.
+     * @param restFrequency - the rest frequency used in the calculation.
+     * @param restUnit - the units of rest frequency.
+     */
+    void setRestQuantity( double restFrequency, const QString& restUnit );
+
+    /**
+     * Set the units of rest frequency.
+     * @param restUnits - the rest frequency units.
+     * @return - an error message if the rest frequency units could not be set;
+     *      otherwise, and empty string.
+     */
+    QString setRestUnits( const QString& restUnits );
+
+    /**
+     * Set whether the rest units are frequency or wavelength.
+     * @param restUnitsFreq - true if rest frequency is specified as frequency; false,
+     *      if it is specified as wavelength.
+     */
+    void setRestUnitType( bool restUnitsFreq );
+
+    /**
+     * Set the method used to summarize profile points.
+     * @param stat - the method used to summarize profile points.
+     * @return - an error message if the method was unrecognized; an empty string otherwise.
+     */
+    QString setStatistic( const QString& stat );
 
     /**
      * Set the image that was used to generate the curve.
@@ -182,21 +240,27 @@ private:
     const static QString REGION_NAME;
     const static QString IMAGE_NAME;
     const static QString REST_FREQUENCY;
+    const static QString REST_FREQUENCY_UNITS;
+    const static QString REST_UNIT_FREQ;
+    const static QString REST_UNIT_WAVE;
 
     double _calculateRelativeError( double minValue, double maxValue ) const;
     void _calculateRelativeErrors( double& errorX, double& errorY ) const;
+    void _convertRestFrequency( const QString& oldUnits, const QString& newUnits );
     void _getMinMax(double* xmin, double* xmax, double* ymin,
             double* ymax ) const;
 
     void _initializeDefaultState();
     void _initializeStatics();
 
-
     void _saveCurve();
+
     static bool m_registered;
     static LineStyles* m_lineStyles;
     static ProfileStatistics* m_stats;
     static ProfilePlotStyles* m_plotStyles;
+    static UnitsFrequency* m_frequencyUnits;
+    static UnitsWavelength* m_wavelengthUnits;
 
     CurveData( const QString& path, const QString& id );
     class Factory;
@@ -204,6 +268,10 @@ private:
     std::vector<double> m_plotDataX;
     std::vector<double> m_plotDataY;
     std::shared_ptr<Region> m_region;
+
+    double m_restFrequency;
+    QString m_restUnits;
+
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_imageSource;
 
 	CurveData( const CurveData& other);

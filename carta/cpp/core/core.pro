@@ -87,12 +87,14 @@ HEADERS += \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
     Data/Profile/CurveData.h \
-    Data/Profile/IntensityUnits.h \
     Data/Profile/Profiler.h \
     Data/Profile/ProfilePlotStyles.h \
     Data/Profile/ProfileStatistics.h \
-    Data/Profile/SpectralUnits.h \
     Data/Profile/GenerateModes.h \
+    Data/Profile/UnitsFrequency.h \
+    Data/Profile/UnitsIntensity.h \
+    Data/Profile/UnitsSpectral.h \
+    Data/Profile/UnitsWavelength.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -210,12 +212,14 @@ SOURCES += \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
-    Data/Profile/IntensityUnits.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfilePlotStyles.cpp \
     Data/Profile/ProfileStatistics.cpp \
-    Data/Profile/SpectralUnits.cpp \
     Data/Profile/GenerateModes.cpp \
+    Data/Profile/UnitsFrequency.cpp \
+    Data/Profile/UnitsIntensity.cpp \
+    Data/Profile/UnitsSpectral.cpp \
+    Data/Profile/UnitsWavelength.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \

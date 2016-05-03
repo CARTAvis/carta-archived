@@ -45,9 +45,9 @@ casa::MFrequency::Types ProfileCASA::_determineRefFrame(
     return freqtype;
 }
 
-std::vector<double> ProfileCASA::_generateProfile( casa::ImageInterface < casa::Float > * imagePtr,
+Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInterface < casa::Float > * imagePtr,
         Carta::Lib::RegionInfo regionInfo, Carta::Lib::ProfileInfo profileInfo ) const {
-    std::vector<double> profileData;
+    std::vector<std::pair<double,double> > profileData;
     casa::CoordinateSystem cSys = imagePtr->coordinates();
     casa::uInt spectralAxis = 0;
     if ( cSys.hasSpectralAxis()){
@@ -58,8 +58,28 @@ std::vector<double> ProfileCASA::_generateProfile( casa::ImageInterface < casa::
         if ( tabCoord >= 0 ){
             spectralAxis = tabCoord;
         }
-
     }
+    Carta::Lib::Hooks::ProfileResult profileResult;
+
+    //Get the requested rest frequency & unit
+    double restFrequency = profileInfo.getRestFrequency();
+    QString restUnit = profileInfo.getRestUnit();
+
+    //No rest frequency was specified so use the rest frequency from the image.
+    if ( restUnit.trimmed().length() == 0 ){
+
+        //Fill in the image rest frequency & unit
+        if ( cSys.hasSpectralAxis() ){
+            double restFrequencyImage = cSys.spectralCoordinate().restFrequency();
+            QString restUnitImage = cSys.spectralCoordinate().worldAxisUnits()[0].c_str();
+            profileResult.setRestUnits( restUnitImage );
+            profileResult.setRestFrequency( restFrequencyImage );
+            restFrequency = restFrequencyImage;
+            restUnit = restUnitImage;
+        }
+    }
+
+
     Carta::Lib::RegionInfo::RegionType shape = regionInfo.getRegionType();
     std::vector<std::pair<double,double> > regionCorners = regionInfo.getCorners();
     int cornerCount = regionCorners.size();
@@ -71,38 +91,52 @@ std::vector<double> ProfileCASA::_generateProfile( casa::ImageInterface < casa::
     }
     casa::Record regionRecord = _getRegionRecord( shape, cSys, x, y);
 
-    casa::String pixelSpectralType( "default" );
-    casa::String unit( "pixel" );
+    QString spectralType = profileInfo.getSpectralType();
+    QString spectralUnit = profileInfo.getSpectralUnit();
+    if ( spectralType == "Channel"){
+        spectralUnit = "pixel";
+        spectralType = "default";
+    }
+    casa::String pixelSpectralType( spectralType.toStdString().c_str() );
+
+    casa::String unit( spectralUnit.toStdString().c_str() );
 
     casa::PixelValueManipulatorData::SpectralType specType
         = casa::PixelValueManipulatorData::spectralType( pixelSpectralType );
     casa::Vector<casa::Float> jyValues;
+    casa::Vector<casa::Double> xValues;
     try {
         std::shared_ptr<casa::ImageInterface<casa::Float> >image ( imagePtr->cloneII() );
         casa::PixelValueManipulator<casa::Float> pvm(image, &regionRecord, "");
         casa::ImageCollapserData::AggregateType funct = _getCombineMethod( profileInfo );
         casa::MFrequency::Types freqType = _determineRefFrame( image );
         casa::String frame = casa::String( casa::MFrequency::showType( freqType));
-        double restFrequency = profileInfo.getRestFrequency();
-        QString restUnit = profileInfo.getRestUnit();
+
         casa::Quantity restFreq( restFrequency, casa::Unit( restUnit.toStdString().c_str()));
         casa::Record result = pvm.getProfile( spectralAxis, funct, unit, specType,
                 &restFreq, frame );
+
         const casa::String VALUE_KEY( "values");
         if ( result.isDefined( VALUE_KEY )){
             result.get( VALUE_KEY, jyValues );
         }
 
-        int dataCount = jyValues.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            profileData.push_back( jyValues[i] );
+        const casa::String X_KEY( "coords");
+        if ( result.isDefined( X_KEY )){
+            result.get( X_KEY, xValues );
         }
 
+        int dataCount = jyValues.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            std::pair<double,double> dataPair(xValues[i], jyValues[i]);
+            profileData.push_back( dataPair );
+        }
+        profileResult.setData( profileData );
     }
     catch( casa::AipsError& error ){
         qDebug() << "Could not generate profile: "<<error.getMesg().c_str();
     }
-    return profileData;
+    return profileResult;
 }
 
 

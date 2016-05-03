@@ -75,6 +75,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             this._add( this.m_mapCombo );
             
             this.m_globalCheck = new qx.ui.form.CheckBox( "Global");
+            this.m_globalCheck.setToolTipText( "Check to change the color map for all images in the linked stack; uncheck to change the color map of the current image only.");
             skel.widgets.TestID.addTestId( this.m_globalCheck, "colorMapGlobal");
             this.m_globalCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 if ( this.m_id !== null ){

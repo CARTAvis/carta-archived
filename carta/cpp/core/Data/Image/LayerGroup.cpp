@@ -684,7 +684,7 @@ bool LayerGroup::_isEmpty() const {
 }
 
 
-void LayerGroup::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
+void LayerGroup::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile ){
     int childCount = m_children.size();
     for ( int i = 0; i < childCount; i++ ){

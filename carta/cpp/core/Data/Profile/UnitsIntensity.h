@@ -13,7 +13,7 @@ namespace Carta {
 
 namespace Data {
 
-class IntensityUnits : public Carta::State::CartaObject {
+class UnitsIntensity : public Carta::State::CartaObject {
 
 public:
 
@@ -36,7 +36,7 @@ public:
     const static QString CLASS_NAME;
     const static QString UNIT_LIST;
 
-    virtual ~IntensityUnits();
+    virtual ~UnitsIntensity();
 
 private:
 
@@ -51,11 +51,11 @@ private:
     void _initUnit( int * index, const QString& name);
 
     static bool m_registered;
-    IntensityUnits( const QString& path, const QString& id );
+    UnitsIntensity( const QString& path, const QString& id );
     class Factory;
 
-	IntensityUnits( const IntensityUnits& other);
-	IntensityUnits& operator=( const IntensityUnits& other );
+	UnitsIntensity( const UnitsIntensity& other);
+	UnitsIntensity& operator=( const UnitsIntensity& other );
 };
 }
 }

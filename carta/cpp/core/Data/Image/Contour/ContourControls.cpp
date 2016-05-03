@@ -96,7 +96,7 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
 QString ContourControls::deleteContourSet( const QString& contourSetName ){
     QString result;
     bool foundSet = false;
-    std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+    std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
     while ( it != m_dataContours.end() ){
        if ( (*it)->getName() == contourSetName ){
            foundSet = true;
@@ -272,7 +272,7 @@ std::vector<double> ContourControls::_getLevelsMinMax( double max , QString& err
 
 DataContours* ContourControls::_getContour( const QString& setName ) {
     DataContours* target = nullptr;
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+    for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
                    it != m_dataContours.end(); it++ ){
        if ( (*it)->getName() == setName ){
            target = ( *it ).get();
@@ -622,7 +622,7 @@ void ContourControls::_initializeCallbacks(){
 
 bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
     bool duplicateSet = false;
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+    for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
                 it != m_dataContours.end(); it++ ){
         if ( (*it)->getName() == contourSetName ){
             duplicateSet = true;
@@ -849,7 +849,7 @@ void ContourControls::_updateContourSetState(){
     m_stateData.resizeArray( CONTOUR_SETS, contourSetCount );
     std::set<Contour> drawContours;
     int i = 0;
-    for ( std::set<shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+    for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
             it != m_dataContours.end(); it++ ){
         QString lookup = Carta::State::UtilState::getLookup( CONTOUR_SETS, i );
         Carta::State::StateInterface dataState = (*it)->_getState();

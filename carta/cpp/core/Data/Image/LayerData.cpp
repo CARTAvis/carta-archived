@@ -518,7 +518,7 @@ bool LayerData::_isContourDraw() const {
     return contourDraw;
 }
 
-void LayerData::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
+void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile ){
     if ( m_dataSource ){
         m_dataSource->_load( frames, recomputeClipsOnNewFrame,
