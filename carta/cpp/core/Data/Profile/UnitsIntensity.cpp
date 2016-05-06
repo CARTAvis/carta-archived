@@ -58,7 +58,7 @@ QString UnitsIntensity::getActualUnits( const QString& unitStr ) const {
 
 
 QString UnitsIntensity::getDefault() const {
-    return NAME_JYBEAM;
+    return m_defaultUnit;
 }
 
 void UnitsIntensity::_initUnit( int * index, const QString& name ){
@@ -68,17 +68,49 @@ void UnitsIntensity::_initUnit( int * index, const QString& name ){
 }
 
 void UnitsIntensity::_initializeDefaultState(){
-    m_state.insertArray( UNIT_LIST, 5 );
+    m_state.insertArray( UNIT_LIST, 4 );
     int i = 0;
-
     _initUnit( &i, NAME_JYBEAM );
     _initUnit( &i, NAME_JYSR );
     _initUnit( &i, NAME_JYARCSEC );
-    _initUnit( &i, NAME_JY );
     _initUnit( &i, NAME_KELVIN );
-
+    m_defaultUnit = NAME_JYBEAM;
     m_state.flushState();
 }
+
+
+
+void UnitsIntensity::resetUnits( Carta::Lib::ProfileInfo::AggregateType stat ){
+    QStringList units;
+    if ( stat == Carta::Lib::ProfileInfo::AggregateType::SUM ){
+        const QString PIXELS = "*pixels";
+        units.append( NAME_JYBEAM + PIXELS );
+        units.append( NAME_JYSR + PIXELS );
+        units.append( NAME_JYARCSEC + PIXELS );
+        units.append( NAME_KELVIN + PIXELS );
+        m_defaultUnit = NAME_JYBEAM + PIXELS;
+    }
+    else if ( stat == Carta::Lib::ProfileInfo::AggregateType::FLUX_DENSITY ){
+        units.append( NAME_JY );
+        m_defaultUnit = NAME_JY;
+    }
+    else {
+        units.append( NAME_JYBEAM );
+        units.append( NAME_JYSR );
+        units.append( NAME_JYARCSEC );
+        units.append( NAME_KELVIN );
+        m_defaultUnit = NAME_JYBEAM;
+    }
+    int unitCount = units.size();
+    m_state.resizeArray( UNIT_LIST, unitCount );
+    for ( int i = 0; i < unitCount; i++ ){
+        QString key = Carta::State::UtilState::getLookup( UNIT_LIST, i );
+        m_state.setValue<QString>( key, units[i] );
+    }
+    m_state.flushState();
+}
+
+
 
 
 UnitsIntensity::~UnitsIntensity(){

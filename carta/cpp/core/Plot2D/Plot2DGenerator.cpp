@@ -165,10 +165,8 @@ std::pair<double,double> Plot2DGenerator::getRangeColor(bool* valid ) const {
 bool Plot2DGenerator::isSelectionOnCanvas( int xPos ) const {
     bool selectionOnCanvas = false;
     if ( xPos >= 0 ){
-        //Get the ratio of the canvas margin to the plot width;
-        float plotWidth = m_plot->size().width();
-        float canvasWidth = m_plot->canvas()->size().width();
-        float plotMargin = plotWidth - canvasWidth;
+        //Make sure the point is beyond the left canvas margin
+        float plotMargin = m_plot->axisWidget( QwtPlot::yLeft )->size().width();
         if ( xPos > plotMargin ){
             selectionOnCanvas = true;
         }
@@ -201,8 +199,6 @@ double Plot2DGenerator::getVLinePosition( bool* valid ) const {
 
 std::pair<double,double> Plot2DGenerator::getWorldPt(int x, int y, int width, int height ) const {
     QSize plotSize = m_plot->size();
-    //qDebug() << "plotSize width="<<plotSize.width()<<" height="<<plotSize.height();
-    //qDebug() << " ";
     QWidget* canvas = m_plot->canvas();
     QSize canvasSize = canvas->size();
     double xMargin = plotSize.width() - canvasSize.width();

@@ -64,18 +64,18 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             var minLabel = new qx.ui.basic.Label( "Min");
             minLabel.setTextAlign( "center");
             this.m_minClipText = new skel.widgets.CustomUI.NumericTextField( null, null);
+            this.m_minClipText.setTextId( 'profileZoomMinValue');
             this.m_minClipText.setToolTipText( "Smallest value on the horizontal axis.");
             this.m_minClipText.setIntegerOnly( false );
-            this.m_minClipText.setTextId( "profileZoomMinValue");
             this.m_minClipListenerId = this.m_minClipText.addListener( "textChanged", 
                     this._sendRangeCmd,  this );
       
             var valueLabel = new qx.ui.basic.Label( "Value:");
             valueLabel.setTextAlign( "right");
             this.m_percentMinClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
+            this.m_percentMinClipText.setTextId( 'profileZoomMinPercent');
             this.m_percentMinClipText.setToolTipText( "Percentage to zoom from the left on the horizontal axis; 0 is no left zoom.");
             this.m_percentMinClipText.setIntegerOnly( false );
-            this.m_percentMinClipText.setTextId( "profileZoomMinPercent");
             this.m_percentMinClipListenerId = this.m_percentMinClipText.addListener( "textChanged", 
                     this._sendRangePercentCmd, this );
             
@@ -88,8 +88,8 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             var maxLabel = new qx.ui.basic.Label( "Max");
             maxLabel.setTextAlign( "center");
             this.m_maxClipText = new skel.widgets.CustomUI.NumericTextField( null, null );
+            this.m_maxClipText.setTextId( 'profileZoomMaxValue');
             this.m_maxClipText.setToolTipText( "Largest value on the horizontal axis");
-            this.m_maxClipText.setTextId( "profileZoomMaxValue");
             this.m_maxClipText.setIntegerOnly( false );
             this.m_maxClipListenerId = this.m_maxClipText.addListener( "textChanged", 
                     this._sendRangeCmd, this );
@@ -97,9 +97,9 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
             var percentLabel = new qx.ui.basic.Label( "Percent:");
             percentLabel.setTextAlign( "right");
             this.m_percentMaxClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
+            this.m_percentMaxClipText.setTextId( 'profileZoomMaxPercent');
             this.m_percentMaxClipText.setToolTipText( "Percentage to zoom in from the right on the horizontal axis; 100 is no right zoom.");
             this.m_percentMaxClipText.setIntegerOnly( false );
-            this.m_percentMaxClipText.setTextId( "profileZoomMaxPercent");
             this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", 
                     this._sendRangePercentCmd, this );
             
@@ -214,8 +214,11 @@ qx.Class.define("skel.widgets.Profile.SettingsZoom", {
              }
          },
          
+         /**
+          * Update from the server containing information about zoom bounds.
+          * @param data {Object} - zoom bound information.
+          */
          dataUpdate : function( data ){
-             console.log( "Settings zoom data Update");
              this.setZoomBounds( data.zoomMin, data.zoomMax );
              this.setZoomPercents( data.zoomMinPercent, data.zoomMaxPercent );
              this.setBuffer( data.zoomBuffer );

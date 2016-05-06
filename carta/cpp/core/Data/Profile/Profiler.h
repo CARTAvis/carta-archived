@@ -41,6 +41,7 @@ class GenerateModes;
 class LegendLocations;
 class LinkableImpl;
 class Layer;
+class ProfileStatistics;
 class Settings;
 
 class UnitsIntensity;
@@ -65,6 +66,30 @@ public:
     QString getAxisUnitsBottom() const;
 
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns the upper limit of the zoom range on the x-axis.
+     * @return - the upper limit of the zoom range on the x-axis.
+     */
+    double getZoomMax() const;
+
+    /**
+     * Returns the lower limit of the zoom range on the x-axis.
+     * @return - the lower limit of the zoom range on the x-axis.
+     */
+    double getZoomMin() const;
+
+    /**
+     * Returns the percentile zoom for the lower bound of the x-axis.
+     * @return - the percentile zoom for the lower bound of the x-axis.
+     */
+    double getZoomMinPercent() const;
+
+    /**
+     * Returns the percentilee zoom for the upper bound of the x-axis.
+     * @return - the percentile zoom for the upper bound of the x-axis.
+     */
+    double getZoomMaxPercent() const;
 
     /**
      * Returns whether or not the object with the given id is already linked to this object.
@@ -228,6 +253,23 @@ public:
     QString setRestUnitType( bool restUnitsFreq, const QString& curveName );
 
     /**
+     * Set the number of significant digits to use in storing numbers.
+     * @param digits - the number of significant digits to use in storing numbers.
+     * @return - an error message if the number of significant digits could not be set;
+     *      otherwise, an empty string.
+     */
+    QString setSignificantDigits( int digits );
+
+    /**
+     * Set the method used to compute the profile.
+     * @param statStr - an identifier for a method used to summarize a profile.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error method if the statistic could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setStatistic( const QString& statStr, const QString& curveName );
+
+    /**
      * Set the index of the profile settings tab that should be selected.
      * @param index - the index of the profile settings tab that should be selected.
      * @return - an error message if the tab index could not be set; an empty string otherwise.
@@ -277,6 +319,7 @@ private slots:
     void _loadProfile( Controller* controller);
     void _movieFrame();
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
+    void _updateZoomRangeBasedOnPercent();
     QString _zoomToSelection();
 
 private:
@@ -301,7 +344,6 @@ private:
     const static QString ZOOM_MAX;
     const static QString ZOOM_MIN_PERCENT;
     const static QString ZOOM_MAX_PERCENT;
-    const static double ERROR_MARGIN;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
@@ -314,18 +356,20 @@ private:
             std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
             const QString& oldUnit, const QString& newUnit ) const;
     std::vector<double> _convertUnitsX( std::shared_ptr<CurveData> curveData,
-            const QString& newUnit = QString() ) const;
-    std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
+            const QString& newUnit ) const;
+    std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData,
+            const QString& newUnit ) const;
 
     void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
     void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
              int curveIndex, const QString& layerName, bool createNew = false );
 
     Controller* _getControllerSelected() const;
+    std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
-    double _getMaxFrame() const;
     QString _getLegendLocationsId() const;
+
     /**
      * Returns the server side id of the Profiler user preferences.
      * @return the unique server side id of the user preferences.
@@ -340,6 +384,8 @@ private:
 
     void _saveCurveState();
     void _saveCurveState( int index );
+
+    void _setErrorMargin();
 
     void _updateAvailableImages( Controller* controller );
 
@@ -376,20 +422,20 @@ private:
     //Plot data
     QList< std::shared_ptr<CurveData> > m_plotCurves;
 
-    QString m_leftUnit;
-    QString m_bottomUnit;
-
     //For a movie.
     int m_oldFrame;
     int m_currentFrame;
     int m_timerId;
+
+    //When two items with decimals are judged to be the same.
+    double m_errorMargin;
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
 
     static UnitsSpectral* m_spectralUnits;
     static UnitsIntensity* m_intensityUnits;
-
+    static ProfileStatistics* m_stats;
     static GenerateModes* m_generateModes;
 
 

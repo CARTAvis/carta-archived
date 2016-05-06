@@ -71,9 +71,13 @@ qx.Class.define("skel.widgets.Profile.SettingsProfilesRest", {
             checkContainer.setLayout( new qx.ui.layout.HBox(1));
             var typeLabel = new qx.ui.basic.Label( "Rest:");
             this.m_freqRadio = new qx.ui.form.RadioButton( "Frequency");
+            skel.widgets.TestID.addTestId( this.m_freqRadio, "profileFrequencyUnitType" ); 
+            this.m_freqRadio.setToolTipText( "Specify rest frequency in frequency units.")
             this.m_freqRadio.setValue( true );
             this.m_unitListenId = this.m_freqRadio.addListener( "changeValue", this._unitChanged, this );
             this.m_waveRadio = new qx.ui.form.RadioButton( "Wavelength");
+            skel.widgets.TestID.addTestId( this.m_waveRadio, "profileWaveUnitType" ); 
+            this.m_waveRadio.setToolTipText( "Specify rest frequency in wavelength units.");
             var typeGroup = new qx.ui.form.RadioGroup();
             typeGroup.add( this.m_freqRadio );
             typeGroup.add( this.m_waveRadio );
@@ -87,11 +91,19 @@ qx.Class.define("skel.widgets.Profile.SettingsProfilesRest", {
             var valueContainer = new qx.ui.container.Composite();
             valueContainer.setLayout( new qx.ui.layout.HBox(1));
             this.m_freqText = new skel.widgets.CustomUI.NumericTextField(0,null);
+            this.m_freqText.setTextId( "profileRestFrequency" );
             this.m_freqText.setIntegerOnly( false );
-            this.m_freqText.addListener( "textChanged", this._sendRestFreqCmd, this );
+            this.m_freqText.setToolTipText( "Specify the rest frequency to use in computing the profile.")
+            this.m_freqTextListenId = this.m_freqText.addListener( "textChanged", 
+                    this._sendRestFreqCmd, this );
             this.m_freqUnitsSelect = new skel.widgets.CustomUI.SelectBox();
-            this.m_freqUnitsSelect.addListener( "selectChanged", this._sendUnitsCmd, this );
+            skel.widgets.TestID.addTestId( this.m_freqUnitsSelect, "profileFrequencyUnits" ); 
+            this.m_freqUnitsSelect.setToolTipText( "Rest frequency units.");
+            this.m_freqUnitsSelectListenId = this.m_freqUnitsSelect.addListener( "selectChanged", 
+                    this._sendUnitsCmd, this );
             this.m_resetButton = new qx.ui.form.Button( "Reset");
+            skel.widgets.TestID.addTestId( this.m_resetButton, "profileRestReset" ); 
+            this.m_resetButton.setToolTipText( "Reset the rest frequency for the profile back to its original value." );
             this.m_resetButton.addListener( "execute", this._sendResetCmd, this );
             valueContainer.add( this.m_freqText );
             valueContainer.add( this.m_freqUnitsSelect );
@@ -135,7 +147,6 @@ qx.Class.define("skel.widgets.Profile.SettingsProfilesRest", {
                var path = skel.widgets.Path.getInstance();
                var cmd = this.m_id + path.SEP_COMMAND + "setRestUnitType";
                var params = "restFrequencyUnits:"+freqUnits+",name:"+this.m_curveName;
-               console.log( "Rest unit type changed params="+params);
                this.m_connector.sendCommand( cmd, params, null );
             }
         },
@@ -187,7 +198,12 @@ qx.Class.define("skel.widgets.Profile.SettingsProfilesRest", {
         update : function( curveInfo ){
             this.m_curveName = curveInfo.name;
             if ( this.m_freqText !== null ){
+                if ( this.m_freqTextListenId !== null ){
+                    this.m_freqText.removeListenerById( this.m_freqTextListenId );
+                }
                 this.m_freqText.setValue( curveInfo.restFrequency );
+                this.m_freqTextListenId = this.m_freqText.addListener( "textChanged", 
+                        this._sendRestFreqCmd, this );
             }
             var freq = curveInfo.restFrequencyUnits;
             if ( this.m_freqRadio.getValue() != freq ){
@@ -197,12 +213,19 @@ qx.Class.define("skel.widgets.Profile.SettingsProfilesRest", {
                 this.m_freqRadio.setValue( freq );
                 this.m_unitListenId = this.m_freqRadio.addListener( "changeValue", this._unitChanged, this );
             }
+            if ( this.m_freqUnitsSelectListenId !== null ){
+                this.m_freqUnitsSelect.removeListenerById( this.m_freqUnitsSelectListenId );
+            }
             if ( this.m_freqRadio.getValue()){
+                this.m_freqUnitsSelect.setSelectItems( this.m_unitsFreq );
                 this.m_freqUnitsSelect.setSelectValue( curveInfo.restUnitFreq );
             }
             else {
+                this.m_freqUnitsSelect.setSelectItems( this.m_unitsWave );
                 this.m_freqUnitsSelect.setSelectValue( curveInfo.restUnitWave );
             }
+            this.m_freqUnitsSelectListenId = this.m_freqUnitsSelect.addListener( "selectChanged", 
+                    this._sendUnitsCmd, this );
         },
         
         /**
@@ -239,7 +262,9 @@ qx.Class.define("skel.widgets.Profile.SettingsProfilesRest", {
         m_freqRadio : null,
         m_waveRadio : null,
         m_freqText : null,
+        m_freqTextListenId : null,
         m_freqUnitsSelect : null,
+        m_freqUnitsSelectListenId : null,
         m_resetButton : null
     },
     

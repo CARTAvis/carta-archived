@@ -7,6 +7,7 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
+#include "CartaLib/ProfileInfo.h"
 #include <QStringList>
 
 namespace Carta {
@@ -33,6 +34,13 @@ public:
      */
     QString getActualUnits( const QString& unitStr ) const;
 
+    /**
+     * Intensity units depend on how profile points are aggregate; reset
+     * the available intensity units based on the aggregation method.
+     * @param stat - the method used to aggregate profile points.
+     */
+    void resetUnits( Carta::Lib::ProfileInfo::AggregateType stat );
+
     const static QString CLASS_NAME;
     const static QString UNIT_LIST;
 
@@ -46,6 +54,8 @@ private:
     const static QString NAME_JYARCSEC;
     const static QString NAME_JY;
     const static QString NAME_KELVIN;
+
+    QString m_defaultUnit;
 
     void _initializeDefaultState();
     void _initUnit( int * index, const QString& name);

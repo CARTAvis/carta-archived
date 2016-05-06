@@ -66,7 +66,6 @@ const QString Histogram::FOOT_PRINT_REGION_ALL = "All Regions";
 const QString Histogram::FREQUENCY_UNIT = "rangeUnit";
 const QString Histogram::CLIP_MIN_PERCENT = "clipMinPercent";
 const QString Histogram::CLIP_MAX_PERCENT = "clipMaxPercent";
-const QString Histogram::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Histogram::SIZE_ALL_RESTRICT ="limitCubeSize";
 const QString Histogram::RESTRICT_SIZE_MAX = "cubeSizeMax";
 
@@ -196,7 +195,7 @@ void Histogram::_createHistogram( Controller* controller){
     bool minValid = controller->getIntensity( frameBounds.first, frameBounds.second, 0, &minIntensity );
     bool maxValid = controller->getIntensity( frameBounds.first, frameBounds.second, 1, &maxIntensity );
     if(minValid && maxValid){
-        int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+        int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
         minIntensity = Util::roundToDigits( minIntensity, significantDigits );
         maxIntensity = Util::roundToDigits( maxIntensity, significantDigits );
         m_stateData.setValue<double>(CLIP_MIN_PERCENT, 0 );
@@ -460,7 +459,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<bool>(SIZE_ALL_RESTRICT, true );
     m_state.insertValue<int>(RESTRICT_SIZE_MAX, 1000000 );
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
-    m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
+    m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 1 );
     m_state.flushState();
@@ -905,9 +904,9 @@ void Histogram::_initializeCallbacks(){
     addCommandCallback( "setSignificantDigits", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
-            std::set<QString> keys = {SIGNIFICANT_DIGITS};
+            std::set<QString> keys = {Util::SIGNIFICANT_DIGITS};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString digitsStr = dataValues[SIGNIFICANT_DIGITS];
+            QString digitsStr = dataValues[Util::SIGNIFICANT_DIGITS];
             bool validDigits = false;
             int digits = digitsStr.toInt( &validDigits );
             if ( validDigits ){
@@ -1221,7 +1220,7 @@ QString Histogram::setClipMax( double clipMaxClient, bool finish ){
             }
 
             //Set the max clip that will not exceed the maximum intensity of the image.
-            int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+            int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
             double clipMaxRounded = Util::roundToDigits( adjustedMax, significantDigits );
             if ( qAbs(clipMaxRounded - oldMax) > m_errorMargin){
                 m_stateData.setValue<double>(CLIP_MAX, clipMaxRounded );
@@ -1298,7 +1297,7 @@ QString Histogram::setClipMin( double clipMinClient, bool finish ){
             }
 
             //Decide if we need to change the actual clip min.
-            int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
+            int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS );
             double clipMinRounded = Util::roundToDigits( adjustedMin, significantDigits );
             if ( qAbs(clipMinRounded - oldMin) > m_errorMargin){
                 m_stateData.setValue<double>(CLIP_MIN, clipMinRounded );
@@ -1346,7 +1345,7 @@ QString Histogram::setClipMinPercent( double clipMinPercent, bool complete ){
      QString result;
      double oldMinPercent = m_stateData.getValue<double>(CLIP_MIN_PERCENT);
      double clipMaxPercent = m_stateData.getValue<double>(CLIP_MAX_PERCENT);
-     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
+     int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS );
      double clipMinPercentRounded = Util::roundToDigits( clipMinPercent, significantDigits );
      if( 0 <= clipMinPercentRounded && clipMinPercentRounded <= 100  ){
          if ( clipMinPercentRounded < clipMaxPercent ){
@@ -1406,7 +1405,7 @@ QString Histogram::setClipMaxPercent( double clipMaxPercent, bool complete ){
      QString result;
      double oldMaxPercent = m_stateData.getValue<double>(CLIP_MAX_PERCENT);
      double clipMinPercent = m_stateData.getValue<double>(CLIP_MIN_PERCENT);
-     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+     int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
      double clipMaxPercentRounded = Util::roundToDigits( clipMaxPercent, significantDigits );
      if( 0 <= clipMaxPercentRounded && clipMaxPercentRounded <= 100  ){
          double lookupPercent = clipMaxPercentRounded;
@@ -1485,7 +1484,7 @@ QString Histogram::setColorMin( double colorMin, bool finish ){
     double oldMin = m_stateData.getValue<double>(COLOR_MIN);
     double colorMax = m_stateData.getValue<double>(COLOR_MAX);
     double oldMinPercent = m_stateData.getValue<double>(COLOR_MIN_PERCENT);
-    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+    int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
     double colorMinRounded = Util::roundToDigits( colorMin, significantDigits );
     //Bypass the check that the min is less than the max if we are not finished
     //and planning to set the max.
@@ -1523,7 +1522,7 @@ QString Histogram::setColorMax( double colorMax, bool finish ){
     double oldMax = m_stateData.getValue<double>(COLOR_MAX);
     double colorMin = m_stateData.getValue<double>(COLOR_MIN);
     double oldMaxPercent = m_stateData.getValue<double>(COLOR_MAX_PERCENT);
-    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+    int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
     double colorMaxRounded = Util::roundToDigits( colorMax, significantDigits );
     //By pass checking that the new max is larger than the min if we are not
     //finished and are planning to set a new min.
@@ -1561,7 +1560,7 @@ QString Histogram::setColorMaxPercent( double colorMaxPercent, bool complete ){
      QString result;
      double oldMaxPercent = m_stateData.getValue<double>(COLOR_MAX_PERCENT);
      double colorMinPercent = m_stateData.getValue<double>(COLOR_MIN_PERCENT);
-     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+     int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
      double colorMaxPercentRounded = Util::roundToDigits( colorMaxPercent, significantDigits);
      if( 0 <= colorMaxPercentRounded && colorMaxPercentRounded <= 100  ){
          double lookupPercent = colorMaxPercentRounded;
@@ -1605,7 +1604,7 @@ QString Histogram::setColorMinPercent( double colorMinPercent, bool complete ){
      QString result;
      double oldMinPercent = m_stateData.getValue<double>(COLOR_MIN_PERCENT);
      double colorMaxPercent = m_stateData.getValue<double>(COLOR_MAX_PERCENT);
-     int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+     int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
      double colorMinPercentRounded = Util::roundToDigits( colorMinPercent, significantDigits );
      if( 0 <= colorMinPercentRounded && colorMinPercentRounded <= 100  ){
          if ( colorMinPercentRounded < colorMaxPercent || !complete){
@@ -1647,7 +1646,7 @@ QString Histogram::setColorMinPercent( double colorMinPercent, bool complete ){
 QString Histogram::setBinWidth( double binWidth ){
     QString result;
     double oldBinWidth = m_state.getValue<double>(BIN_WIDTH);
-    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+    int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
     double binWidthRounded = Util::roundToDigits( binWidth, significantDigits );
     if ( binWidthRounded > 0 ){
         if ( qAbs( oldBinWidth - binWidthRounded) > m_errorMargin ){
@@ -1679,7 +1678,7 @@ QString Histogram::setBinCount( int binCount ){
                 m_state.setValue<int>(BIN_COUNT, binCount );
                 double binWidth = _toBinWidth( binCount );
 
-                int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+                int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
                 m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
                 m_state.flushState();
                 _generateHistogram( nullptr );
@@ -1797,7 +1796,7 @@ QString Histogram::setPlaneRange( double planeMin, double planeMax){
         double storedMin = m_stateData.getValue<double>(PLANE_MIN);
         double storedMax = m_stateData.getValue<double>(PLANE_MAX);
         if ( planeMin <= planeMax ){
-            int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
+            int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
             bool changedState = false;
             if ( qAbs(planeMin - storedMin) > m_errorMargin){
                 m_stateData.setValue<double>(PLANE_MIN, Util::roundToDigits(planeMin, significantDigits ));
@@ -1855,8 +1854,8 @@ QString Histogram::setSignificantDigits( int digits ){
         result = "Invalid significant digits; must be positive:  "+QString::number( digits );
     }
     else {
-        if ( m_state.getValue<int>(SIGNIFICANT_DIGITS) != digits ){
-            m_state.setValue<int>(SIGNIFICANT_DIGITS, digits );
+        if ( m_state.getValue<int>(Util::SIGNIFICANT_DIGITS) != digits ){
+            m_state.setValue<int>(Util::SIGNIFICANT_DIGITS, digits );
             _setErrorMargin();
         }
     }
@@ -1864,7 +1863,7 @@ QString Histogram::setSignificantDigits( int digits ){
 }
 
 void Histogram::_setErrorMargin(){
-    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
+    int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS );
     m_errorMargin = 1.0/qPow(10,significantDigits);
 }
 

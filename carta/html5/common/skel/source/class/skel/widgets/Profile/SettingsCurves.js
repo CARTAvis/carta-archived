@@ -66,6 +66,7 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             
             var TABLE_WIDTH = 150;
             this.m_curveList  = new skel.widgets.CustomUI.ItemTable( "Profiles", TABLE_WIDTH);
+            this.m_curveList.setTestId( "profileTable");
             this.m_curveList.setToolTipText( "Select one or more profiles to customize the display." );
             this.m_curveList.setWidth( TABLE_WIDTH );
             this.m_curveList.addListener( "itemsSelected", this._updateColor, this );

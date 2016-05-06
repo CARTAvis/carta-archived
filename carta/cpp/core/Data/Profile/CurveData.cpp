@@ -88,12 +88,13 @@ void CurveData::_calculateRelativeErrors( double& errorX, double& errorY ) const
     double dataMaxX = -1 * dataMinX;
     double dataMinY = std::numeric_limits<double>::max();;
     double dataMaxY = -1 * dataMinY;
-    _getMinMax( &dataMinX, &dataMaxX, &dataMinY, &dataMaxY );
+    getMinMax( &dataMinX, &dataMaxX, &dataMinY, &dataMaxY );
     errorX = _calculateRelativeError( dataMinX, dataMaxX );
     errorY = _calculateRelativeError( dataMinY, dataMaxY );
 }
 
-void CurveData::_convertRestFrequency( const QString& oldUnits, const QString& newUnits ){
+void CurveData::_convertRestFrequency( const QString& oldUnits, const QString& newUnits,
+        int significantDigits, double errorMargin ){
     //Do conversion
     if ( m_imageSource ){
         std::vector<double> converted(1);
@@ -106,7 +107,11 @@ void CurveData::_convertRestFrequency( const QString& oldUnits, const QString& n
         try {
             result.forEach( lam );
             if ( converted.size() > 0 ){
-                m_state.setValue<double>(REST_FREQUENCY, converted[0]);
+                double roundedFreq = Util::roundToDigits( converted[0], significantDigits );
+                double oldFreq = m_state.getValue<double>( REST_FREQUENCY );
+                if ( qAbs( oldFreq - roundedFreq ) > errorMargin ){
+                    m_state.setValue<double>(REST_FREQUENCY, roundedFreq );
+                }
             }
         }
         catch( char*& error ){
@@ -191,17 +196,12 @@ QString CurveData::getCursorText( double x, double y, double* error ) const {
 }
 
 
-double CurveData::getDataMax() const {
-    return m_plotDataX.size();
-}
-
-
 std::shared_ptr<Carta::Lib::Image::ImageInterface> CurveData::getImage() const {
     return m_imageSource;
 }
 
 
-void CurveData::_getMinMax(double* xmin, double* xmax, double* ymin,
+void CurveData::getMinMax(double* xmin, double* xmax, double* ymin,
         double* ymax) const {
     int maxPoints = m_plotDataX.size();
     for (int i = 0; i < maxPoints; ++i) {
@@ -232,6 +232,16 @@ QString CurveData::getNameImage() const {
 
 QString CurveData::getNameRegion() const {
     return m_state.getValue<QString>( REGION_NAME );
+}
+
+
+std::vector< std::pair<double, double> > CurveData::getPlotData() const {
+    int dataCount = m_plotDataX.size();
+    std::vector<std::pair<double,double> > data( dataCount );
+    for ( int i = 0; i < dataCount; i++ ){
+        data[i] = std::pair<double,double>( m_plotDataX[i], m_plotDataY[i] );
+    }
+    return data;
 }
 
 
@@ -334,12 +344,12 @@ bool CurveData::isMatch( const QString& name ) const {
 
 
 void CurveData::resetRestFrequency(){
-    setRestFrequency( m_restFrequency );
+    bool restFreqSet = false;
+    setRestFrequency( m_restFrequency, 0, &restFreqSet );
     QString freqUnits = m_frequencyUnits->getActualUnits( m_restUnits );
     if ( !freqUnits.isEmpty() ){
         m_state.setValue<bool>(REST_FREQUENCY_UNITS, true );
         m_state.setValue<QString>( REST_UNIT_FREQ, freqUnits);
-
     }
     else {
         QString waveUnits = m_wavelengthUnits->getActualUnits( m_restUnits );
@@ -364,13 +374,25 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
     m_plotDataY = valsY;
 }
 
+void CurveData::setDataX( const std::vector<double>& valsX ){
+    CARTA_ASSERT( m_plotDataY.size() == valsX.size());
+    m_plotDataX = valsX;
+}
+
+void CurveData::setDataY( const std::vector<double>& valsY ){
+    CARTA_ASSERT( m_plotDataX.size() == valsY.size());
+    m_plotDataY = valsY;
+}
 
 
-QString CurveData::setRestFrequency( double freq ){
+
+QString CurveData::setRestFrequency( double freq, double errorMargin, bool* valueChanged ){
     QString result;
+    *valueChanged = false;
     if ( freq >= 0 ){
         double oldRestFrequency = m_state.getValue<double>( REST_FREQUENCY );
-        if ( freq != oldRestFrequency ){
+        if ( qAbs( freq - oldRestFrequency ) > errorMargin ){
+            *valueChanged = true;
             m_state.setValue<double>( REST_FREQUENCY, freq );
         }
     }
@@ -479,7 +501,7 @@ QString CurveData::setPlotStyle( const QString& plotStyle ){
     return result;
 }
 
-QString CurveData::setRestUnits( const QString& restUnits ){
+QString CurveData::setRestUnits( const QString& restUnits, int significantDigits, double errorMargin){
     bool freqUnits = m_state.getValue<bool>( REST_FREQUENCY_UNITS );
     QString result;
     QString actualUnits;
@@ -492,7 +514,7 @@ QString CurveData::setRestUnits( const QString& restUnits ){
     if ( !actualUnits.isEmpty() ){
         QString oldUnits = getRestUnits();
         if ( actualUnits != oldUnits ){
-            _convertRestFrequency( oldUnits, actualUnits );
+            _convertRestFrequency( oldUnits, actualUnits, significantDigits, errorMargin );
             if ( freqUnits ){
                 m_state.setValue<QString>( REST_UNIT_FREQ, actualUnits );
             }
@@ -507,7 +529,7 @@ QString CurveData::setRestUnits( const QString& restUnits ){
     return result;
 }
 
-void CurveData::setRestUnitType( bool restUnitsFreq ){
+void CurveData::setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin ){
     bool oldType = m_state.getValue<bool>( REST_FREQUENCY_UNITS );
     if ( oldType != restUnitsFreq ){
         m_state.setValue<bool>(REST_FREQUENCY_UNITS, restUnitsFreq );
@@ -519,7 +541,7 @@ void CurveData::setRestUnitType( bool restUnitsFreq ){
             oldUnits = newUnits;
             newUnits = tmpUnits;
         }
-        _convertRestFrequency( oldUnits, newUnits );
+        _convertRestFrequency( oldUnits, newUnits, significantDigits, errorMargin );
     }
 }
 

@@ -57,12 +57,12 @@ public:
      */
     QString getCursorText( double x, double y, double* error) const;
 
-    /**
-     * Return the maximum x- data value.
-     * @return - the maximum x- data value.
-     */
-    double getDataMax() const;
 
+
+    /**
+     * Returns the image that was used in the profile calculation.
+     * @return - the image used in the profile calculation.
+     */
     std::shared_ptr<Carta::Lib::Image::ImageInterface> getImage() const;
 
     /**
@@ -71,6 +71,27 @@ public:
      */
     QString getLineStyle() const;
 
+    /**
+     * Return the minimum and maximum x- and y-values of points on
+     * the curve.
+     * @param xmin - pointer to the curve minimum x-value.
+     * @param xmax - pointer to the curve maximum x-value.
+     * @param ymin - pointer to the curve minimum y-value.
+     * @param ymax - pointer to the curve maximum y-value.
+     */
+    void getMinMax(double* xmin, double* xmax, double* ymin,
+               double* ymax ) const;
+
+    /**
+     * Return the curve data.
+     * @return - the (x,y) pairs that make up the plot curve.
+     */
+    std::vector< std::pair<double, double> > getPlotData() const;
+
+    /**
+     * Return information for calculating a profile.
+     * @return - information for calculating a profile.
+     */
     Carta::Lib::ProfileInfo getProfileInfo() const;
 
 
@@ -97,6 +118,11 @@ public:
      * @return - the rest frequency used for the profile.
      */
     double getRestFrequency() const;
+
+    /**
+     * Return the units of rest frequency.
+     * @return - the rest frequency units.
+     */
     QString getRestUnits() const;
 
     /**
@@ -137,6 +163,9 @@ public:
      */
     bool isMatch( const QString& name ) const;
 
+    /**
+     * Set the rest frequency back to its original value.
+     */
     void resetRestFrequency();
 
     /**
@@ -153,15 +182,23 @@ public:
     void setData( const std::vector<double>& valsX, const std::vector<double>& valsY  );
 
     /**
+     * Set the x-values that comprise the curve.
+     * @param valsX - the x-coordinate values of the curve.
+     */
+    void setDataX( const std::vector<double>& valsX );
+
+    /**
+     * Set the y- data values that comprise the curve.
+     * @param valsY - the y-coordinate values of the curve.
+     */
+    void setDataY( const std::vector<double>& valsY );
+
+    /**
      * Set the name of the layer that is the source of profile.
      * @param imageName - an identifier for the layer that is the source of
      *  the profile.
      */
     QString setImageName( const QString& imageName );
-
-    ///void setProfileInfo( const Carta::Lib::ProfileInfo& info );
-
-    //void setImageRestInfo( double restFrequency, const QString& restUnits );
 
     /**
      * Set the line style (outline,solid, etc) for drawing the curve.
@@ -188,10 +225,13 @@ public:
     /**
      * Set the rest frequency to be used in calculating the profile.
      * @param freq - the rest frequency to use in calculating the profile.
+     * @param errorMargin - how far the new frequncy needs to be from the old one in
+     *      order to be recognized as different.
+     * @param valueChanged - set to true if the stored frequency value was changed.
      * @return - an error message if the rest frequency could not be set; otherwise,
      *      an empty string.
      */
-    QString setRestFrequency( double freq );
+    QString setRestFrequency( double freq, double errorMargin, bool* valueChanged );
 
     /**
      * Set the rest frequency and units that were used in calculating the profile.
@@ -203,17 +243,21 @@ public:
     /**
      * Set the units of rest frequency.
      * @param restUnits - the rest frequency units.
+     * @param significantDigits - the number of significant digits to store.
+     * @param errorMargin - required difference before deciding a value is significantly different.
      * @return - an error message if the rest frequency units could not be set;
      *      otherwise, and empty string.
      */
-    QString setRestUnits( const QString& restUnits );
+    QString setRestUnits( const QString& restUnits, int significantDigits, double errorMargin);
 
     /**
      * Set whether the rest units are frequency or wavelength.
      * @param restUnitsFreq - true if rest frequency is specified as frequency; false,
      *      if it is specified as wavelength.
+     * @param significantDigits - the number of significant digits to store.
+     * @param errorMargin - required difference before deciding a value is significantly different.
      */
-    void setRestUnitType( bool restUnitsFreq );
+    void setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin );
 
     /**
      * Set the method used to summarize profile points.
@@ -246,9 +290,9 @@ private:
 
     double _calculateRelativeError( double minValue, double maxValue ) const;
     void _calculateRelativeErrors( double& errorX, double& errorY ) const;
-    void _convertRestFrequency( const QString& oldUnits, const QString& newUnits );
-    void _getMinMax(double* xmin, double* xmax, double* ymin,
-            double* ymax ) const;
+    void _convertRestFrequency( const QString& oldUnits, const QString& newUnits,
+            int significantDigits, double errorMargin );
+
 
     void _initializeDefaultState();
     void _initializeStatics();

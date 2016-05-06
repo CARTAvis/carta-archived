@@ -30,14 +30,14 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             this.m_axesSettings = new skel.widgets.Profile.SettingsAxis();
             this.add( this.m_axesSettings );
             
-            this.m_zoomSettings = new skel.widgets.Profile.SettingsZoom();
-            this.add( this.m_zoomSettings );
-            
             this.m_canvasSettings = new skel.widgets.Profile.SettingsCanvas();
             this.add( this.m_canvasSettings );
             
             this.m_legendSettings = new skel.widgets.Profile.SettingsLegend();
             this.add( this.m_legendSettings );
+            
+            this.m_digitSettings = new skel.widgets.Profile.SettingsDigits();
+            this.add( this.m_digitSettings );
         },
         
         
@@ -57,16 +57,8 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             if ( this.m_canvasSettings !== null ){
                 this.m_canvasSettings.prefUpdate( profilePrefs );
             }
-        },
-        
-        /**
-         * Update data based server state.
-         * @param profileData {Object} - information about the data state
-         *      from the server.
-         */
-        dataUpdate : function( profileData ){
-            if ( this.m_zoomSettings !== null ){
-                this.m_zoomSettings.dataUpdate( profileData );
+            if ( this.m_digitSettings != null ){
+                this.m_digitSettings.prefUpdate( profilePrefs );
             }
         },
         
@@ -81,13 +73,13 @@ qx.Class.define("skel.widgets.Profile.SettingsDisplay", {
             this.m_axesSettings.setId( id );
             this.m_canvasSettings.setId( id );
             this.m_legendSettings.setId( id );
-            this.m_zoomSettings.setId( id );
+            this.m_digitSettings.setId( id );
         },
         
         m_id : null,
         m_axesSettings : null,
         m_canvasSettings : null,
         m_legendSettings : null,
-        m_zoomSettings : null
+        m_digitSettings : null
     }
 });

@@ -26,6 +26,7 @@ const QString Util::TYPE = "type";
 const QString Util::UNITS = "units";
 const QString Util::VISIBLE = "visible";
 const QString Util::POINTER_MOVE = "pointer-move";
+const QString Util::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Util::VIEW = "view";
 const int Util::MAX_COLOR = 255;
 

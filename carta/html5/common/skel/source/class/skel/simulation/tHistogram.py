@@ -19,11 +19,6 @@ class tHistogram( unittest.TestCase ):
         browser = selectBrowser._getBrowser()
         Util.setUp( self, browser )
 
-    def _getTextValue(self, driver, id):
-        textField = driver.find_element_by_id(id)
-        textValue = textField.get_attribute("value")
-        return textValue
-
     # Open histogram settings by clicking on the Histogram settings checkbox located on the menu bar
     def _openHistogramSettings(self, driver):
         histogramSettingsCheckbox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.form.CheckBox']/div[text()='Histogram Settings']")))
@@ -151,9 +146,9 @@ class tHistogram( unittest.TestCase ):
         self._openHistogramSettings( driver )
 
         # Look for the min and max zoom values and store their values.
-        minZoomValue = self._getTextValue( driver, "histogramZoomMinValue")
+        minZoomValue = Util._getTextValue( self, driver, "histogramZoomMinValue")
         print "Min zoom=", minZoomValue
-        maxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        maxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         print "Max zoom=", maxZoomValue
 
         # Find the min and max zoom percentages.  Decrease their values.
@@ -169,8 +164,8 @@ class tHistogram( unittest.TestCase ):
         time.sleep( timeout )
 
         # Get the new min and max zoom values.
-        newMinZoomValue = self._getTextValue( driver, "histogramZoomMinValue")
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        newMinZoomValue = Util._getTextValue( self, driver, "histogramZoomMinValue")
+        newMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
 
         # Check that the new min is larger than the old min
         print "oldMin=", minZoomValue," newMin=", newMinZoomValue
@@ -201,7 +196,7 @@ class tHistogram( unittest.TestCase ):
         self._openHistogramSettings( driver )
 
         # Get the max zoom value of the first image
-        maxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        maxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         print "First image maxZoomValue:", maxZoomValue
 
         # Load a different image in the same window
@@ -209,7 +204,7 @@ class tHistogram( unittest.TestCase ):
         time.sleep( timeout )
 
         # Check that the new max zoom value updates
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        newMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         self.assertNotEqual(float(newMaxZoomValue), float(maxZoomValue), "The histogram did not update when a new image was loaded.")
         print "Second image maxZoomValue:", newMaxZoomValue
 
@@ -241,7 +236,7 @@ class tHistogram( unittest.TestCase ):
         self._openHistogramSettings( driver )
 
         # Check that the histogram values are restored to default values
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        newMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         print "Zoom max value=", newMaxZoomValue
         self.assertEqual( float(newMaxZoomValue), 1, "Default values were not restored after image removal")
 
@@ -266,7 +261,7 @@ class tHistogram( unittest.TestCase ):
         time.sleep( timeout )
 
         # Record the Histogram max zoom value of the second image
-        secondMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue" )
+        secondMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue" )
         print "Second image maxZoomValue:", secondMaxZoomValue
 
         # Find and click on the animation window
@@ -284,7 +279,7 @@ class tHistogram( unittest.TestCase ):
         time.sleep( timeout )
 
         # Record the Histogram max zoom value of the first image
-        firstMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue" )
+        firstMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue" )
         print "First image maxZoomValue:", firstMaxZoomValue
 
         # Check that the Histogram updates its values
@@ -315,7 +310,7 @@ class tHistogram( unittest.TestCase ):
         self._openHistogramSettings( driver )
 
         # Record the max zoom value of the first image
-        maxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue" )
+        maxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue" )
         print "First image maxZoomValue:", maxZoomValue
         time.sleep( timeout )
 
@@ -330,7 +325,7 @@ class tHistogram( unittest.TestCase ):
 
         # Check that the second image is not linked to the Histogram
         # Check that the max zoom value did not change from the linking attempt to the second image
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        newMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         print "New maxZoomValue:", newMaxZoomValue
         self.assertEqual( float( maxZoomValue ), float( newMaxZoomValue), "Histogram should not link to second image.")
 
@@ -364,7 +359,7 @@ class tHistogram( unittest.TestCase ):
         self._openHistogramSettings( driver )
 
         # Check that the histogram values are default values
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        newMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         self.assertEqual( float(newMaxZoomValue), 1, "Histogram is linked to image after link was removed")
 
     # Test that we can change the linked image to the Histogram
@@ -401,7 +396,7 @@ class tHistogram( unittest.TestCase ):
         Util.link_second_image( self, driver, imageWindow2)
 
         # Check that the histogram values are not default values
-        newMaxZoomValue = self._getTextValue( driver, "histogramZoomMaxValue")
+        newMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         self.assertNotEqual( float(newMaxZoomValue), 1, "Histogram did not update to newly linked image")
 
     def tearDown(self):

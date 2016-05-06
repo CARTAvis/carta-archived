@@ -100,7 +100,6 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
     casa::String pixelSpectralType( spectralType.toStdString().c_str() );
 
     casa::String unit( spectralUnit.toStdString().c_str() );
-
     casa::PixelValueManipulatorData::SpectralType specType
         = casa::PixelValueManipulatorData::spectralType( pixelSpectralType );
     casa::Vector<casa::Float> jyValues;
@@ -113,6 +112,7 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
         casa::String frame = casa::String( casa::MFrequency::showType( freqType));
 
         casa::Quantity restFreq( restFrequency, casa::Unit( restUnit.toStdString().c_str()));
+
         casa::Record result = pvm.getProfile( spectralAxis, funct, unit, specType,
                 &restFreq, frame );
 
@@ -148,6 +148,18 @@ casa::ImageCollapserData::AggregateType ProfileCASA::_getCombineMethod( Carta::L
     }
     else if ( combineType == Carta::Lib::ProfileInfo::AggregateType::SUM ){
         collapseType = casa::ImageCollapserData::AggregateType::SUM;
+    }
+    else if ( combineType == Carta::Lib::ProfileInfo::AggregateType::VARIANCE ){
+        collapseType = casa::ImageCollapserData::AggregateType::VARIANCE;
+    }
+    else if ( combineType == Carta::Lib::ProfileInfo::AggregateType::MIN ){
+        collapseType = casa::ImageCollapserData::AggregateType::MIN;
+    }
+    else if ( combineType == Carta::Lib::ProfileInfo::AggregateType::MAX ){
+        collapseType = casa::ImageCollapserData::AggregateType::MAX;
+    }
+    else if ( combineType == Carta::Lib::ProfileInfo::AggregateType::RMS ){
+        collapseType = casa::ImageCollapserData::AggregateType::RMS;
     }
     else if ( combineType == Carta::Lib::ProfileInfo::AggregateType::FLUX_DENSITY ){
         collapseType = casa::ImageCollapserData::AggregateType::FLUX;

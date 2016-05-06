@@ -1,7 +1,9 @@
 #include "Plot2DProfile.h"
 #include "Data/Profile/ProfilePlotStyles.h"
-#include <qwt_painter.h>
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
+#include <qwt_painter.h>
+#include <qwt_symbol.h>
+
 #include <QDebug>
 
 namespace Carta {
@@ -30,17 +32,35 @@ void Plot2DProfile::drawLines (QPainter *painter, const QwtScaleMap &xMap,
     QPen curvePen( m_defaultColor );
     curvePen.setStyle( m_penStyle );
     painter->setPen( curvePen );
-
-    QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
+    if ( from != to ){
+        QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
+    }
+    else {
+        drawSymbol( painter, xMap, yMap, canvasRect, from, to );
+    }
 }
 
-void Plot2DProfile::drawSteps (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
-        const QRectF &canvasRect, int from, int to) const {
+
+void Plot2DProfile::drawSteps (QPainter *painter, const QwtScaleMap &xMap,
+        const QwtScaleMap &yMap, const QRectF &canvasRect, int from, int to) const {
     QPen curvePen( m_defaultColor );
     curvePen.setStyle( m_penStyle );
     painter->setPen( curvePen );
+    if ( from != to ){
+        QwtPlotCurve::drawSteps( painter, xMap, yMap, canvasRect, from, to );
+    }
+    else {
+        drawSymbol( painter, xMap, yMap, canvasRect, from, to );
+    }
+}
 
-    QwtPlotCurve::drawSteps( painter, xMap, yMap, canvasRect, from, to );
+void Plot2DProfile::drawSymbol( QPainter* painter, const QwtScaleMap & xMap,
+        const QwtScaleMap & yMap, const QRectF & canvasRect, int from, int to ) const{
+    QPen curvePen( m_defaultColor );
+    QBrush brush( m_defaultColor );
+    QSize symbolSize( 10, 10 );
+    QwtSymbol symbol ( QwtSymbol::Diamond, brush, curvePen, symbolSize );
+    drawSymbols( painter, symbol, xMap, yMap, canvasRect, from, to );
 }
 
 QwtGraphic Plot2DProfile::legendIcon( int /*index*/, const QSizeF& iconSize ) const {
@@ -67,7 +87,7 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
     int dataCount = datas.size();
     m_datasX.resize( dataCount );
     m_datasY.resize( dataCount );
-    if ( dataCount > 0 ){
+    if ( dataCount > 1 ){
         m_maxValueY = -1 * std::numeric_limits<double>::max();
         m_minValueY = std::numeric_limits<double>::max();
         for ( int i = 0; i < dataCount; i++ ){
@@ -80,6 +100,11 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
                 m_minValueY = m_datasY[i];
             }
         }
+    }
+    else if ( dataCount == 1 ){
+        const double INC = 0.0000001;
+        m_minValueY = m_datasY[0] - INC;
+        m_maxValueY = m_datasY[0] + INC;
     }
     //No data so just use bogus bounds
     else {
