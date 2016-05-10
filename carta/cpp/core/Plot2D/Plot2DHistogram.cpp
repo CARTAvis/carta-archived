@@ -1,5 +1,5 @@
 #include "Plot2DHistogram.h"
-#include "Data/Plotter/PlotStyles.h"
+#include "Data/Histogram/PlotStyles.h"
 #include <qwt_painter.h>
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <QDebug>

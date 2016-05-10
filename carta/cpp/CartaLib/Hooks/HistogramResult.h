@@ -6,6 +6,8 @@
 #include <vector>
 #include "Plot2DResult.h"
 
+#include <QDataStream>
+
 namespace Carta{
 namespace Lib{
 
@@ -41,10 +43,17 @@ class HistogramResult : public Plot2DResult {
 
     virtual ~HistogramResult(){}
 
+
+
   private:
       double m_frequencyMin;
       double m_frequencyMax;
 };
+
+//Serialization so that the histogram result can be generated in a separate process.
+QDataStream &operator<<(QDataStream& out, const Carta::Lib::Hooks::HistogramResult& result );
+QDataStream &operator>>(QDataStream& in, Carta::Lib::Hooks::HistogramResult& result );
+
 }
 }
 }

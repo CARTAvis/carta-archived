@@ -22,7 +22,7 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
         // monitor mouse move
         this.addListener( "mousemove", this._mouseMoveCB.bind(this));
         this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
-        this.addListener( "click", this._mouseClickCB.bind(this));
+        this.addListener( "dblclick", this._mouseDoubleClickCB.bind(this));
 
         this.m_viewId = viewId;
         this.m_connector = mImport( "connector");
@@ -57,7 +57,7 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
                 "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
         },
 
-        _mouseClickCB : function(ev) {
+        _mouseDoubleClickCB : function(ev) {
             var box = this.overlayWidget().getContentLocation( "box" );
             var pt = {
                 x: ev.getDocumentLeft() - box.left,

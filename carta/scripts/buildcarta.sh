@@ -1,5 +1,9 @@
 #!/bin/bash
 
+yell() { echo "$0: $*" >&2; }
+die() { yell "$*"; exit 111; }
+try() { "$@" || die "cannot $*"; }
+
 HOME=/home/developer
 export PATH=$PATH:$HOME/Qt/5.3/gcc_64/bin
 
@@ -17,7 +21,7 @@ cd $HOME/src/CARTAvis/carta/html5/common/skel
 mkdir $HOME/src/build
 cd $HOME/src/build
 qmake  CARTA_BUILD_TYPE=dev $HOME/src/CARTAvis/carta -r
-make -j 8
+try make
 find . -name "*.o" -exec rm -f {} \;
 find . -name "Makefile" -exec rm -f {} \;
 find . -name "*.h" -exec rm -f {} \;
@@ -43,7 +47,6 @@ then
 	ssh ubuntu@carta-develop.ddns.net "cd /cartasrc/dockerbuild; rm -rf ./build; tar xzf carta.latest.build.tgz; rm carta.latest.build.tgz"
 	ssh ubuntu@carta-develop.ddns.net "cd /cartasrc/carta_latest; rm -rf html5; tar xzf html5.tgz; rm html5.tgz"
 	ssh ubuntu@carta-develop.ddns.net "/cartasrc/copy2carta.sh"
-	ssh ubuntu@carta-develop.ddns.net "cd /cartasrc; rm -f cartaserver_latest.tgz; tar czf cartaserver_latest.tgz ./cartaserver ./carta_latest;"
 	ssh ubuntu@carta-develop.ddns.net "cd /cartasrc; rm -f carta_latest_ubuntu.tgz; tar czf carta_latest_ubuntu.tgz ./carta_latest;"
 else
 	echo "This is CI run will not transffer files to CYBERA servere"

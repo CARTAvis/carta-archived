@@ -27,7 +27,8 @@ class TransformsData;
 class ColorState : public QObject, public Carta::State::CartaObject {
 
     friend class Colormap;
-    friend class ControllerData;
+    friend class Layer;
+    friend class LayerData;
 
     Q_OBJECT
 
@@ -102,6 +103,11 @@ private:
      */
     void _replicateTo( Carta::State::StateInterface& other );
 
+    /**
+     * Reset the state.
+     * @param stateStr - a string representation for the new state.
+     */
+    void _resetState( const QString& stateStr );
 
     /**
      * Copy the state of this ColorState into the other state.

@@ -37,9 +37,11 @@ namespace Data {
 class Plot2DManager;
 class Controller;
 class CurveData;
+class GenerateModes;
 class IntensityUnits;
 class LegendLocations;
 class LinkableImpl;
+class Layer;
 class Settings;
 class SpectralUnits;
 
@@ -63,6 +65,29 @@ public:
      * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Generate a new profile based on default settings.
+     * @return - an error message if the new profile could not be generated; an empty
+     *      string otherwise.
+     */
+    QString profileNew();
+
+    /**
+     * Generate a new profile based on the given profile.
+     * @param baseName - an identifier for the profile to copy.
+     * @return - an error message if a copy of the given profile could not be
+     *      generated; an empty string otherwise.
+     */
+    QString profileCopy( const QString& baseName );
+
+    /**
+     * Delete the indicated profile.
+     * @param name - an identifier for the profile to delete.
+     * @return - an error message if the indicated profile could not be removed;
+     *      an empty string otherwise.
+     */
+    QString profileRemove( const QString& name );
 
 
     virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
@@ -93,6 +118,27 @@ public:
      * @return - one or more error messages if the color of the data set cannot be set.
      */
     QStringList setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount );
+
+    /**
+     * Change the name of a profile curve.
+     * @param id - the old name of the curve.
+     * @param newName - the new name of the curve.
+     */
+    QString setCurveName( const QString& id, const QString& newName );
+
+    /**
+     * Set which if any profiles should be automatically generated.
+     * @param modeStr - an identifier for a profile generate mode.
+     * @return - an error message if the profile generate mode was not recognized
+     *      or could not be set.
+     */
+    QString setGenerateMode( const QString& modeStr );
+
+    /**
+     * Set whether or not to show/hide grid lines on the plot.
+     * @param showLines - true to show grid lines; false otherwise.
+     */
+    void setGridLines( bool showLines );
 
     /**
      * Set the drawing style for the Profiler (outline, filled, etc).
@@ -130,11 +176,36 @@ public:
     void setLegendShow( bool showLegend );
 
     /**
+     * Set the plot style (continuous, step, etc).
+     * @param name - an identifier for a profile curve.
+     * @param plotStyle - an identifier for a plot style.
+     * @return - an error string if the plot style could not be set; otherwise, an
+     *      empty string.
+     */
+    QString setPlotStyle( const QString& name, const QString& plotStyle );
+
+    /**
      * Set the index of the profile settings tab that should be selected.
      * @param index - the index of the profile settings tab that should be selected.
      * @return - an error message if the tab index could not be set; an empty string otherwise.
      */
     QString setTabIndex( int index );
+
+    /**
+     * Set whether or not to add extra space at each end of the x-axis.
+     * @param zoomBuffer - true to add extra padding at each end of the x-axis; false otherwise.
+     */
+    void setZoomBuffer( bool zoomBuffer );
+
+    /**
+     * Set the amount of extra space to add to each end of the x-axis.
+     * @param zoomBufferSize - a percentage of the actual plot space to add to each end of the x-axis.
+     * @return - an error message if the buffer percentage could not be set.
+     */
+    QString setZoomBufferSize( double zoomBufferSize );
+
+    QString setZoomRange( double zoomMin, double zoomMax );
+    QString setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent );
 
 
     virtual ~Profiler();
@@ -145,22 +216,41 @@ protected:
     virtual void timerEvent( QTimerEvent* event );
 
 private slots:
-    void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
-    void _generateProfile( Controller* controller = nullptr );
+    void _cursorUpdate( double x, double y );
+    void _loadProfile( Controller* controller);
     void _movieFrame();
+    void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
+    QString _zoomToSelection();
 
 private:
     const static QString AXIS_UNITS_BOTTOM;
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
+    const static QString CURVE_SELECT;
+    const static QString GEN_MODE;
+    const static QString GRID_LINES;
+    const static QString IMAGES;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
+    const static QString REGIONS;
+    const static QString SHOW_TOOLTIP;
+    const static QString TOOL_TIPS;
     const static QString TAB_INDEX;
+    const static QString ZOOM_BUFFER;
+    const static QString ZOOM_BUFFER_SIZE;
+    const static QString ZOOM_MIN;
+    const static QString ZOOM_MAX;
+    const static QString ZOOM_MIN_PERCENT;
+    const static QString ZOOM_MAX_PERCENT;
+    const static double ERROR_MARGIN;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
+    void _assignCurveName( std::shared_ptr<CurveData>& profileCurve ) const;
+
+    void _clearData();
 
     //Convert axis units.
     void _convertX( std::vector<double>& converted,
@@ -170,8 +260,12 @@ private:
             const QString& newUnit = QString() ) const;
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
 
+    void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
+
     Controller* _getControllerSelected() const;
+    std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
+    double _getMaxFrame() const;
     QString _getLegendLocationsId() const;
     /**
      * Returns the server side id of the Profiler user preferences.
@@ -179,16 +273,18 @@ private:
      */
     QString _getPreferencesId() const;
 
-    int _findCurveIndex( const QString& curveName ) const;
+    int _findCurveIndex( const QString& curveId ) const;
 
     void _initializeDefaultState();
     void _initializeCallbacks();
     void _initializeStatics();
 
-    void _loadProfile( Controller* controller);
-
     void _saveCurveState();
     void _saveCurveState( int index );
+
+    void _updateAvailableImages( Controller* controller );
+
+    void _updatePlotBounds();
 
     //Notify the plot to redraw.
     void _updatePlotData();
@@ -234,6 +330,7 @@ private:
 
     static SpectralUnits* m_spectralUnits;
     static IntensityUnits* m_intensityUnits;
+    static GenerateModes* m_generateModes;
 
 
     static QList<QColor> m_curveColors;

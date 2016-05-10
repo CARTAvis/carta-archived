@@ -119,24 +119,18 @@ class tStatistics(unittest.TestCase):
         regionStatsNameCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"RegionStatsCombo")))
         ActionChains(driver).click( regionStatsNameCombo ).perform()
         
-        #Open settings
-        settingsCheck = Util.openSettings(self, driver, "Statistics", True )
-        
         #Uncheck the show image stats
-        showImageStats = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH,"//div[@id[starts-with(.,'ImageShowStats')]]/div[@qxclass='qx.ui.basic.Image']")))
-        Util.setChecked( self, driver, showImageStats, False )
-        
-        #Close the settings
-        Util.setChecked( self, driver, settingsCheck, False )
+        showImageStats = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"statsExpandCollapse")))
+        ActionChains( driver ).click( showImageStats ).perform()
         
         #Verify we do not see the image stats.
         try:
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"ImageStatsCombo")))
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(),'Shape:')]")))
         except Exception:
             print "Good - we did not see the image statistics"
             
         #Open the settings
-        Util.setChecked( self, driver, settingsCheck, True )
+        settingsCheck = Util.openSettings(self, driver, "Statistics", True )
         
         #Click the regions tab
         regionTab = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.tabview.TabButton']/div[contains(text(),'Region')]/..")))
@@ -159,21 +153,20 @@ class tStatistics(unittest.TestCase):
         #Open the settings
         Util.setChecked( self, driver, settingsCheck, True )
         
-        #Set both the image and region stats visible
+        #Set the region stats visible
         showRegionStats = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH,"//div[@id[starts-with(.,'RegionShowStats')]]/div[@qxclass='qx.ui.basic.Image']")))
         Util.setChecked( self, driver, showRegionStats, True )
-        imageTab = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.tabview.TabButton']/div[contains(text(),'Image')]/..")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", imageTab)
-        ActionChains(driver).click( imageTab ).perform()
-        showImageStats = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH,"//div[@id[starts-with(.,'ImageShowStats')]]/div[@qxclass='qx.ui.basic.Image']")))
-        Util.setChecked( self, driver, showImageStats, True)
         
         #Close the settings
         Util.setChecked( self, driver, settingsCheck, False)
         
+        #Set the image stats visible 
+        showImageStats = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"statsExpandCollapse")))
+        ActionChains( driver ).click( showImageStats ).perform()
+        
         #Verify that we can see both image and region stats.
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"RegionStatsCombo")))
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"ImageStatsCombo")))
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(),'Shape:')]")))
 
     def tearDown(self):
         # Close the browser

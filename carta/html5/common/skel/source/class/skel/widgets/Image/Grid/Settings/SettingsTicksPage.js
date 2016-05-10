@@ -94,10 +94,14 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
          * @param controls {Object} - server side grid settings.
          */
         setControls : function( controls ){
-            this._setShowTicks( controls.grid.showTicks );
-            this._setThickness( controls.grid.tick.width );
-            this._setLength( controls.grid.tickLength );
-            this._setTransparency( controls.grid.tick.alpha );
+            if ( typeof controls.grid.showTicks !== "undefined"){
+                this._setShowTicks( controls.grid.showTicks );
+            }
+            if ( typeof controls.grid.tick !== "undefined"){
+                this._setThickness( controls.grid.tick.width );
+                this._setLength( controls.grid.tickLength );
+                this._setTransparency( controls.grid.tick.alpha );
+            }
         },
         
         /**

@@ -54,16 +54,15 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
          */
         _layout : function(){
             this.m_statContainer.removeAll();
-            if ( this.m_showImageStats && this.m_stats !== null ){
+            if ( this.m_stats !== null ){
                 this.m_statContainer.add( this.m_statsImage );
-            }
-            var regionStats = this.m_statsRegions.isStats();
-            if ( regionStats ){
-                if ( this.m_showImageStats && this.m_showRegionStats ){
-                    this.m_statContainer.add( this.m_divWidget );
-                }
-                if ( this.m_showRegionStats ){
-                    this.m_statContainer.add( this.m_statsRegions );
+                
+                var regionStats = this.m_statsRegions.isStats();
+                if ( regionStats ){
+                    if ( this.m_showRegionStats ){
+                        this.m_statContainer.add( this.m_divWidget );
+                        this.m_statContainer.add( this.m_statsRegions );
+                    }
                 }
             }
         },
@@ -98,6 +97,7 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
          */
         setId : function( controlId ){
             this.m_id = controlId;
+            this.m_statsImage.setId( this.m_id );
             this._registerStatistics();
             this._registerStatisticsData();
         },
@@ -108,6 +108,7 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
          *      from the server; false if other data updates have previously happened.
          */
         _statsChanged : function( firstInit ){
+            
             this.m_statsImage.updateImages( this.m_stats );
             if ( 0 <= this.m_selectIndex && this.m_selectIndex < this.m_stats.length ){
                 //Image stats are always the first.
@@ -137,7 +138,7 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             if ( val ){
                 try {
                     var statPrefs = JSON.parse( val );
-                    this.m_showImageStats = statPrefs.showStatsImage;
+                    this.m_statsImage.setCollapse( !statPrefs.showStatsImage );
                     this.m_showRegionStats = statPrefs.showStatsRegion;
                     this.m_statsImage.setKeys( statPrefs.image );
                     this.m_statsRegions.setKeys( statPrefs.region );
@@ -177,7 +178,6 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
         m_sharedVar : null,
         m_sharedVarData : null,
         m_selectIndex : 0,
-        m_showImageStats : false,
         m_showRegionStats : false,
       
         m_stats : null,

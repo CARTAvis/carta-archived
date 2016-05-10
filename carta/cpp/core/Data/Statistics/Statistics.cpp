@@ -122,6 +122,9 @@ QString Statistics::getStateString( const QString& sessionId, SnapshotType type 
     if ( type == SNAPSHOT_PREFERENCES ){
         StateInterface prefState( "");
         prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
+        prefState.insertValue<bool>( SHOW_STATS_IMAGE, m_state.getValue<bool>(SHOW_STATS_IMAGE) );
+        prefState.insertValue<bool>( SHOW_STATS_REGION, m_state.getValue<bool>(SHOW_STATS_REGION) );
+
         prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
         prefState.insertValue<QString>( Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
         result = prefState.toString();
@@ -370,7 +373,12 @@ void Statistics::resetState( const QString& state ){
 
     QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
     m_state.setState( prefStr );
+    bool showImageStats = restoredState.getValue<bool>(SHOW_STATS_IMAGE);
+    m_state.setValue<bool>(SHOW_STATS_IMAGE, showImageStats );
+    m_state.setValue<bool>(SHOW_STATS_REGION, restoredState.getValue<bool>(SHOW_STATS_REGION));
+    m_state.setValue<bool>( "flush", true );
     m_state.flushState();
+    m_state.setValue<bool>("flush", false );
 }
 
 void Statistics::setShowStatsImage( bool showStats ){

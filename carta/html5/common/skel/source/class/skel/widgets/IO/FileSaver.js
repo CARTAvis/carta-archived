@@ -31,6 +31,7 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
         fileChanged : function( fullPath ){
             this.m_saveText.setValue( fullPath );
         },
+        
 
         /**
          * Initializes the UI.
@@ -55,6 +56,8 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
             locContainer.add( saveLabel );
             locContainer.add( this.m_saveText, {flex:1} );
             locContainer.add( browseButton );
+            
+            
             
             //Aspect Ratio
             var aspectLabel = new qx.ui.basic.Label( "Aspect Ratio:");
@@ -223,6 +226,8 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
             return heightValid;
         },
         
+       
+        
         /**
          * Notify the server that the preferred width of the saved image has changed.
          */
@@ -275,6 +280,8 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
                     skel.widgets.Path.CHANGE_VALUE, this._sendAspectRatioMode, this );
         },
         
+      
+        
         /**
          * Update the UI based on the server specified height.
          * @param height {Number} - the preferred height for saved images.
@@ -285,6 +292,8 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
                 this.m_heightText.setValue( height.toString() );
             }
         },
+        
+        
 
         /**
          * Stores the window that wants to add data.
@@ -306,11 +315,14 @@ qx.Class.define("skel.widgets.IO.FileSaver", {
         },
 
         m_connector : null,
+      
         m_aspectIgnoreRadio : null,
         m_aspectKeepRadio : null,
         m_aspectExpandRadio : null,
+      
         m_widthText : null,
         m_heightText : null,
+       
         m_sharedVar : null,
         m_saveText : null,
         m_target : null,

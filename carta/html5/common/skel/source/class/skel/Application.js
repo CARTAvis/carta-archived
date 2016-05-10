@@ -364,6 +364,8 @@ qx.Class.define( "skel.Application",
         
         
         _showFileSaver : function( message ){
+            
+            
             if( this.m_fileSaver === null ) {
                 this.m_fileSaver = new skel.widgets.IO.FileSaver();
             }

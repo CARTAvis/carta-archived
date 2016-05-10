@@ -100,7 +100,7 @@ QString Selection::setLowerBoundUser( int userLowerBound ){
 }
 
 void Selection::setUpperBound(int newUpperBound) {
-    if ( newUpperBound > 0 ){
+    if ( newUpperBound >= 1 ){
         int oldUpperBound = m_state.getValue<int>(HIGH_KEY );
         if ( newUpperBound != oldUpperBound ){
             m_state.setValue<int>(HIGH_KEY, newUpperBound);
@@ -186,7 +186,7 @@ QString Selection::setIndex(int frameValue) {
             if ( oldValue != frameValue ){
                 m_state.setValue<int>(INDEX_KEY, frameValue);
                 m_state.flushState();
-                emit indexChanged( false );
+                emit indexChanged( );
             }
         }
         else {

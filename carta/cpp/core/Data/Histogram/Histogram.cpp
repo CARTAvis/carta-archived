@@ -1,4 +1,5 @@
 #include "Histogram.h"
+#include "HistogramRenderService.h"
 #include "Data/Clips.h"
 #include "Data/Colormap/Colormap.h"
 #include "ChannelUnits.h"
@@ -10,7 +11,7 @@
 #include "Data/Util.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Plot2D/Plot2DGenerator.h"
-#include "Data/Plotter/PlotStyles.h"
+#include "Data/Histogram/PlotStyles.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Globals.h"
 #include "MainConfig.h"
@@ -66,6 +67,8 @@ const QString Histogram::FREQUENCY_UNIT = "rangeUnit";
 const QString Histogram::CLIP_MIN_PERCENT = "clipMinPercent";
 const QString Histogram::CLIP_MAX_PERCENT = "clipMaxPercent";
 const QString Histogram::SIGNIFICANT_DIGITS = "significantDigits";
+const QString Histogram::SIZE_ALL_RESTRICT ="limitCubeSize";
+const QString Histogram::RESTRICT_SIZE_MAX = "cubeSizeMax";
 
 Clips*  Histogram::m_clips = nullptr;
 PlotStyles* Histogram::m_graphStyles = nullptr;
@@ -92,11 +95,15 @@ Histogram::Histogram( const QString& path, const QString& id):
             m_linkImpl( new LinkableImpl( path )),
             m_preferences( nullptr),
             m_plotManager( new Plot2DManager( path, id ) ),
+            m_renderService( new HistogramRenderService()),
             m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)) {
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Settings* prefObj = objMan->createObject<Settings>();
     m_preferences.reset( prefObj );
+
+    connect( m_renderService.get(), SIGNAL(histogramResult()),
+            this, SLOT(_histogramRendered()));
 
     m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::HISTOGRAM) );
     m_plotManager->setTitleAxisY( "Count(pixels)" );
@@ -172,7 +179,6 @@ void Histogram::applyClips(){
        double colorMin = m_stateData.getValue<double>( COLOR_MIN );
        double colorMax = m_stateData.getValue<double>( COLOR_MAX );
        emit colorIntensityBoundsChanged( colorMin, colorMax );
-       _generateHistogram( false );
    }
 }
 
@@ -226,14 +232,14 @@ void Histogram::_createHistogram( Controller* controller){
 
         m_stateData.flushState();
     }
-    _generateHistogram( true, controller );
+    _generateHistogram( controller );
 }
 
 
 void Histogram::_finishClips (){
     m_stateData.flushState();
     m_plotManager->clearSelectionColor();
-    _generateHistogram( true );
+    _generateHistogram( nullptr );
 }
 
 void Histogram::_finishColor(){
@@ -244,20 +250,16 @@ void Histogram::_finishColor(){
 }
 
 
-void Histogram::_generateHistogram( bool newDataNeeded, Controller* controller ){
+void Histogram::_generateHistogram( Controller* controller ){
     Controller* activeController = controller;
-    if ( activeController == nullptr ){
+    if ( !activeController  ){
         activeController = _getControllerSelected();
     }
-    if ( newDataNeeded ){
+    if ( activeController ){
         _loadData( activeController );
     }
 
-    //Refresh the view
-    m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
-    m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
-    m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
-    m_plotManager->updatePlot();
+
 }
 
 QString Histogram::getStateString( const QString& sessionId, SnapshotType type ) const{
@@ -387,6 +389,28 @@ bool Histogram::getUseClipBuffer(){
     return useBuffer;
 }
 
+void Histogram::_histogramRendered(){
+    Carta::Lib::Hooks::HistogramResult result = m_renderService->getResult();
+    QString resultName = result.getName();
+    if ( resultName.startsWith( Util::ERROR)){
+        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+        hr->registerError( resultName );
+    }
+    else {
+        m_plotManager->addData( &result );
+        m_plotManager->updatePlot();
+        double freqLow = result.getFrequencyMin();
+        double freqHigh = result.getFrequencyMax();
+        setPlaneRange( freqLow, freqHigh);
+
+        //Refresh the view
+        m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
+        m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
+        m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
+        m_plotManager->updatePlot();
+    }
+}
+
 
 void Histogram::_initializeDefaultState(){
 
@@ -433,10 +457,12 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<bool>(GRAPH_COLORED, false );
     m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_ALL );
     m_state.insertValue<QString>(FREQUENCY_UNIT, m_channelUnits->getDefaultUnit());
+    m_state.insertValue<bool>(SIZE_ALL_RESTRICT, true );
+    m_state.insertValue<int>(RESTRICT_SIZE_MAX, 1000000 );
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
     m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
     //Default Tab
-    m_state.insertValue<int>( Util::TAB_INDEX, 0 );
+    m_state.insertValue<int>( Util::TAB_INDEX, 1 );
     m_state.flushState();
 
 }
@@ -712,6 +738,24 @@ void Histogram::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setCubeLimit", [=] (const QString & /*cmd*/,
+               const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+           std::set<QString> keys = {SIZE_ALL_RESTRICT};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString useCubeLimitStr = dataValues[*keys.begin()];
+           bool validBool = false;
+           bool cubeLimit = Util::toBool( useCubeLimitStr, &validBool );
+           if ( validBool ){
+               setLimitCubes( cubeLimit );
+           }
+           else {
+               result = "Placing a limit on cube sizes must be true/false:"+params;
+           }
+           Util::commandPostProcess( result );
+           return result;
+       });
+
     addCommandCallback( "setLogCount", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
@@ -747,6 +791,24 @@ void Histogram::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setCubeSizeLimit", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {RESTRICT_SIZE_MAX};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString sizeLimitStr = dataValues[RESTRICT_SIZE_MAX];
+            bool validLimit = false;
+            int sizeLimit = sizeLimitStr.toInt( &validLimit );
+            if ( validLimit ){
+                result = setCubeSizeLimit( sizeLimit );
+            }
+            else {
+                result = "Cube size limit must be a positive integer: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     addCommandCallback( "setPlaneMode", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -907,42 +969,40 @@ void Histogram::_loadData( Controller* controller ){
         minFrequency = m_stateData.getValue<double>(PLANE_MIN);
         maxFrequency = m_stateData.getValue<double>(PLANE_MAX);
     }
-
-    std::pair<int,int> frameBounds = _getFrameBounds();
-    int minChannel = frameBounds.first;
-    int maxChannel = frameBounds.second;
-    if ( planeMode == PLANE_MODE_CHANNEL ){
-        int chan = m_stateData.getValue<int>( PLANE_CHANNEL );
-        minChannel = chan;
-        maxChannel = chan;
-    }
-    double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
-    double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
-
     std::shared_ptr<DataSource> dataSource = controller->getDataSource();
     if ( dataSource ) {
-        std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image= dataSource->_getImage();
+        std::vector<int> imageDims = image->dims();
+        int dimCount = imageDims.size();
+        int pixelSize = 1;
+        for ( int i = 0; i < dimCount; i++ ){
+            pixelSize = pixelSize * imageDims[i];
+        }
+        std::pair<int,int> frameBounds = _getFrameBounds();
+        int minChannel = frameBounds.first;
+        int maxChannel = frameBounds.second;
+        bool restrictSize = m_state.getValue<bool>(SIZE_ALL_RESTRICT);
+        bool sizeExcessive = false;
+        if ( m_state.getValue<int>(RESTRICT_SIZE_MAX) <= pixelSize ){
+            sizeExcessive = true;
+        }
+        bool singleDefault = (planeMode == PLANE_MODE_ALL) && restrictSize &&
+               sizeExcessive;
+        if ( planeMode == PLANE_MODE_CHANNEL || singleDefault ){
+            int chan = m_stateData.getValue<int>( PLANE_CHANNEL );
+            minChannel = chan;
+            maxChannel = chan;
+        }
+        double minIntensity = _getBufferedIntensity( CLIP_MIN, CLIP_MIN_PERCENT );
+        double maxIntensity = _getBufferedIntensity( CLIP_MAX, CLIP_MAX_PERCENT );
+
+        std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
+
         m_plotManager->setPipeline( pipeline );
-        auto result = Globals::instance()-> pluginManager()
-                                  -> prepare <Carta::Lib::Hooks::HistogramHook>(image, binCount,
-                                          minChannel, maxChannel, minFrequency, maxFrequency, rangeUnits,
-                                          minIntensity, maxIntensity);
-        auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
-            m_plotManager->addData( &data );
-            m_plotManager->updatePlot();
-            double freqLow = data.getFrequencyMin();
-            double freqHigh = data.getFrequencyMax();
-            setPlaneRange( freqLow, freqHigh);
-        };
-        try {
-            result.forEach( lam );
-        }
-        catch( char*& error ){
-            QString errorStr( error );
-            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-            hr->registerError( errorStr );
-        }
+
+        m_renderService->renderHistogram(image,
+                    binCount, minChannel, maxChannel, minFrequency, maxFrequency,
+                    rangeUnits, minIntensity, maxIntensity, dataSource->_getFileName());
     }
     else {
         _resetDefaultStateData();
@@ -1033,7 +1093,7 @@ QString Histogram::setClipBuffer( int bufferAmount ){
         if ( oldBufferAmount != bufferAmount ){
             m_stateData.setValue<int>( CLIP_BUFFER_SIZE, bufferAmount );
             m_stateData.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1064,6 +1124,31 @@ std::pair<double, double> Histogram::getClipRange() const {
     double clipMax = m_stateData.getValue<double>(CLIP_MAX);
     std::pair<double, double> clipRangeValues(clipMin, clipMax);
     return clipRangeValues;
+}
+
+QString Histogram::setCubeSizeLimit(  int sizeLimit ){
+    QString result;
+    if ( sizeLimit <= 0 ){
+        result = "The cube size limit must be a positive integer.";
+    }
+    else {
+        int oldLimit = m_state.getValue<int>( RESTRICT_SIZE_MAX );
+        if ( oldLimit != sizeLimit ){
+            m_state.setValue<int>( RESTRICT_SIZE_MAX, sizeLimit );
+            m_state.flushState();
+            _generateHistogram( nullptr );
+        }
+    }
+    return result;
+}
+
+void Histogram::setLimitCubes( bool limitCubes ){
+    bool oldLimitCubes = m_state.getValue<bool>( SIZE_ALL_RESTRICT );
+    if ( limitCubes != oldLimitCubes ){
+        m_state.setValue<bool>( SIZE_ALL_RESTRICT, limitCubes );
+        m_state.flushState();
+        _generateHistogram( nullptr );
+    }
 }
 
 
@@ -1385,7 +1470,10 @@ QString Histogram::setColored( bool colored ){
     if ( colored != oldColored){
         m_state.setValue<bool>(GRAPH_COLORED, colored );
         m_state.flushState();
-        _generateHistogram( false );
+        if ( colored ){
+            _generateHistogram( nullptr );
+        }
+        m_plotManager->setColored( colored );
     }
     return result;
 }
@@ -1570,7 +1658,7 @@ QString Histogram::setBinWidth( double binWidth ){
                 m_state.setValue<double>( BIN_WIDTH, oldBinWidth );
             }
             m_state.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1594,7 +1682,7 @@ QString Histogram::setBinCount( int binCount ){
                 int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
                 m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
                 m_state.flushState();
-                _generateHistogram( true );
+                _generateHistogram( nullptr );
             }
         }
         else {
@@ -1616,7 +1704,7 @@ QString Histogram::_setCubeChannel( int channel ){
         if ( m_cubeChannel != channel ){
             m_cubeChannel = channel;
             if ( m_state.getValue<QString>(PLANE_MODE) == PLANE_MODE_SINGLE ){
-                _generateHistogram( true );
+                _generateHistogram( nullptr );
             }
         }
     }
@@ -1637,7 +1725,7 @@ QString Histogram::setPlaneChannel( int channel ){
         if ( oldChannel != channel ){
             m_stateData.setValue<int>( PLANE_CHANNEL, channel );
             if ( m_state.getValue<QString>(PLANE_MODE) == PLANE_MODE_CHANNEL ){
-                _generateHistogram( true );
+                _generateHistogram( nullptr );
             }
         }
     }
@@ -1651,7 +1739,7 @@ QString Histogram::setLogCount( bool logCount ){
     if ( logCount != oldLogCount ){
         m_state.setValue<bool>(GRAPH_LOG_COUNT, logCount );
         m_state.flushState();
-        _generateHistogram( false );
+        m_plotManager->setLogScale( logCount );
     }
     return result;
 }
@@ -1666,7 +1754,7 @@ QString Histogram::setPlaneMode( const QString& planeModeStr ){
         if ( actualPlaneMode != oldPlaneMode ){
             m_state.setValue<QString>(PLANE_MODE, actualPlaneMode );
             m_state.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1693,7 +1781,7 @@ QString Histogram::_set2DFootPrint( const QString& params ){
         if ( footPrintStr != oldFootPrint){
             m_state.setValue<QString>(FOOT_PRINT, footPrintStr );
             m_state.flushState();
-            _generateHistogram( true );
+            _generateHistogram( nullptr );
         }
     }
     else {
@@ -1724,7 +1812,7 @@ QString Histogram::setPlaneRange( double planeMin, double planeMax){
                 m_stateData.flushState();
                 QString planeMode = m_state.getValue<QString>(PLANE_MODE);
                 if ( planeMode == PLANE_MODE_RANGE ){
-                    _generateHistogram( true );
+                    _generateHistogram( nullptr );
                 }
             }
         }
@@ -1788,7 +1876,7 @@ QString Histogram::setGraphStyle( const QString& styleStr ){
         if ( actualStyle != oldStyle ){
             m_state.setValue<QString>(GRAPH_STYLE, actualStyle );
             m_state.flushState();
-            _generateHistogram( false );
+            m_plotManager->setStyle( styleStr );
         }
     }
     else {
@@ -1820,7 +1908,7 @@ QString Histogram::setUseClipBuffer( bool useBuffer ){
     if ( useBuffer != oldUseBuffer ){
         m_state.setValue<bool>(CLIP_BUFFER, useBuffer );
         m_state.flushState();
-        _generateHistogram( true );
+        _generateHistogram( nullptr );
     }
     return result;
 }
@@ -1854,7 +1942,7 @@ void Histogram::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kn
         _setCubeChannel( spectralFrame );
         QString mode = m_state.getValue<QString>(PLANE_MODE);
         if ( mode == PLANE_MODE_SINGLE ){
-            _generateHistogram(true, controller );
+            _generateHistogram(controller );
         }
     }
 }
@@ -1897,9 +1985,6 @@ void Histogram::_updateColorSelection(){
         }
         setRangeColor( minRange, maxRange );
     }
-    else {
-        _generateHistogram( valid );
-    }
 }
 
 QString Histogram::_zoomToSelection(){
@@ -1916,9 +2001,6 @@ QString Histogram::_zoomToSelection(){
         if ( minRange < maxRange ){
             result = setClipRange( minRange, maxRange );
         }
-    }
-    else {
-        _generateHistogram( valid );
     }
     return result;
 }

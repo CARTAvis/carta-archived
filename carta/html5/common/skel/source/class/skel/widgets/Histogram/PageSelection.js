@@ -45,6 +45,7 @@ qx.Class.define("skel.widgets.Histogram.PageSelection", {
             if ( this.m_cubeSettings !== null ){
                 this.m_cubeSettings.setPlaneMode( hist.planeMode );
                 this.m_cubeSettings.setUnit( hist.rangeUnit );
+                this.m_cubeSettings.setCubeAllLimits( hist.limitCubeSize, hist.cubeSizeMax);
             }
            
             if ( this.m_twoDSettings !== null ){

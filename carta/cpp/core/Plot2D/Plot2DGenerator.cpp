@@ -5,6 +5,7 @@
 #include "Plot2DLine.h"
 #include "Plot.h"
 #include <qwt_scale_engine.h>
+#include <qwt_scale_widget.h>
 #include <qwt_plot_renderer.h>
 #include "Data/Plotter/LegendLocations.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
@@ -19,6 +20,7 @@ const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
 Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     m_rangeColor( nullptr ),
     m_vLine( nullptr ),
+    m_gridLines( nullptr),
     m_font( "Helvetica", 10){
     m_legendVisible = false;
     m_logScale = false;
@@ -67,7 +69,7 @@ void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
        else if ( m_plotType == PlotType::HISTOGRAM ){
            //For right now, just one histogram plot
            if ( m_datas.size() > 0 ){
-               return;
+               clearData();
            }
            pData.reset( new Plot2DHistogram() );
        }
@@ -121,7 +123,6 @@ std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( const QString& id, bo
     *valid = false;
     std::shared_ptr<Plot2D> plotData = _findData(id);
     if ( plotData ){
-        qDebug() << "Generator found data & getting bounds from plot data";
         result = plotData->getBoundsY();
         *valid = true;
     }
@@ -198,7 +199,46 @@ double Plot2DGenerator::getVLinePosition( bool* valid ) const {
     return pos;
 }
 
+std::pair<double,double> Plot2DGenerator::getWorldPt(int x, int y, int width, int height ) const {
+    QSize plotSize = m_plot->size();
+    //qDebug() << "plotSize width="<<plotSize.width()<<" height="<<plotSize.height();
+    //qDebug() << " ";
+    QWidget* canvas = m_plot->canvas();
+    QSize canvasSize = canvas->size();
+    double xMargin = plotSize.width() - canvasSize.width();
+    //double yMargin = plotSize.height() - canvasSize.height();
+    //Space between edge of canvas and where 0 is.
+    const int WHITE_OFFSET = 8;
+    int marginSpaceX = xMargin - WHITE_OFFSET;
+    //int marginSpaceY = yMargin;
+    //qDebug() << "screen x="<<x<<" y="<<y<<" width="<<width<<" height="<<height;
+    double widthStretch = (width*1.0  - marginSpaceX) / (plotSize.width() - marginSpaceX );
+    double heightStretch = (height*1.0 /*- marginSpaceY*/ ) / (plotSize.height() /*- marginSpaceY*/ );
+    //qDebug() << "widthStretch="<<widthStretch<<" heightStretch="<<heightStretch;
 
+    double canvasX = ( x - marginSpaceX ) / widthStretch;
+    double canvasY = ( y /*- marginSpaceY */) / heightStretch;
+    //qDebug() << "canvas pt x="<<canvasX<<" y="<<canvasY;
+    std::pair<double,double> worldPt;
+    //if ( canvasX > 0 && canvasY > 0 ){
+
+        double xValue = m_plot->invTransform( QwtPlot::xBottom, canvasX );
+        double yValue = m_plot->invTransform( QwtPlot::yLeft, canvasY );
+        //double xZeroValue = m_plot->invTransform( QwtPlot::xBottom, 0 );
+        //qDebug() << "Zero is being mapped to "<<xZeroValue;
+        //qDebug() << "Plot value x="<<xValue<<" y="<<yValue;
+        worldPt = std::pair<double,double>( xValue, yValue );
+    //}
+    return worldPt;
+}
+
+void Plot2DGenerator::removeData( const QString& dataName ){
+    std::shared_ptr<Plot2D> pData = _findData( dataName );
+    if ( pData ){
+        pData->detachFromPlot();
+        m_datas.removeOne( pData );
+    }
+}
 
 void Plot2DGenerator::setAxisXRange( double min, double max ){
     m_plot->setAxisScale( QwtPlot::xBottom, min, max );
@@ -239,6 +279,28 @@ void Plot2DGenerator::setColored( bool colored, const QString& id ){
             plotData->setColored( colored );
         }
     }
+}
+
+void Plot2DGenerator::setCurveName( const QString& oldName, const QString& newName ){
+    std::shared_ptr<Plot2D> plotData = _findData( oldName );
+    if ( plotData ){
+        plotData->setId( newName );
+    }
+}
+
+void Plot2DGenerator::setGridLines( bool showGrid ){
+    if ( !m_gridLines ){
+        m_gridLines = new QwtPlotGrid();
+        m_gridLines->enableX( false );
+        m_gridLines->enableY( true );
+    }
+    if ( showGrid ){
+        m_gridLines->attach( m_plot );
+    }
+    else {
+        m_gridLines->detach();
+    }
+    m_plot->replot();
 }
 
 
@@ -435,7 +497,7 @@ void Plot2DGenerator::setTitleAxisY( const QString& title){
 }
 
 
-QImage * Plot2DGenerator::toImage( int width, int height ) const {
+QImage Plot2DGenerator::toImage( int width, int height ) const {
     QwtPlotRenderer renderer;
     if ( width <= 0 ){
         width = m_width;
@@ -443,8 +505,9 @@ QImage * Plot2DGenerator::toImage( int width, int height ) const {
     if ( height <= 0 ){
         height = m_height;
     }
-    QImage * plotImage =new QImage(width, height, QImage::Format_RGB32);
-    renderer.renderTo(m_plot, *plotImage );
+    m_plot->resize( width, height );
+    QImage plotImage(width, height, QImage::Format_RGB32);
+    renderer.renderTo(m_plot, plotImage );
     return plotImage;
 }
 
@@ -500,6 +563,7 @@ Plot2DGenerator::~Plot2DGenerator(){
         delete m_vLine;
     }
     delete m_range;
+    delete m_plot;
 }
 }
 }

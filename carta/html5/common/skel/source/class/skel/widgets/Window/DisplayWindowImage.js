@@ -203,7 +203,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var path = skel.widgets.Path.getInstance();
             if (pluginId == path.ANIMATOR || /*pluginId == this.m_pluginId ||*/
                     pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN || 
-                    pluginId == path.STATISTICS ) {
+                    pluginId == path.STATISTICS || pluginId == path.PROFILE ) {
                 linkable = true;
             }
             return linkable;
@@ -289,16 +289,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
-        _sharedVarDataCB : function(){
-            var val = this.m_sharedVarData.get();
+        _sharedVarStackCB : function(){
+            var val = this.m_sharedVarStack.get();
             if ( val ){
                 try {
                     var winObj = JSON.parse( val );
                     this.m_datas = [];
-                    this.m_regions = [];
                     //Add close menu buttons for all the images that are loaded.
-                    var dataObjs = winObj.data;
-                    var regionObjs = winObj.regions;
+                    var dataObjs = winObj.layers;
                     var visibleData = false;
                     if ( dataObjs ){
                         for ( var j = 0; j < dataObjs.length; j++ ){
@@ -322,16 +320,39 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             this.m_view.setVisibility( "hidden" );
                         }
                     }
+                   
+                    var dataCmd = skel.Command.Data.CommandData.getInstance();
+                    dataCmd.datasChanged();
+                    this._initContextMenu();
+                }
+                catch( err ){
+                    console.log( "DisplayWindowImage could not parse: "+val );
+                    console.log( "Error: "+err);
+                }
+            }
+        },
+        
+        /**
+         * Update window specific elements from the shared variable.
+         * @param winObj {String} represents the server state of this window.
+         */
+        _sharedVarDataCB : function(){
+            var val = this.m_sharedVarData.get();
+            if ( val ){
+                try {
+                    var winObj = JSON.parse( val );
+                    this.m_regions = [];
+                    //Add close menu buttons for all the images that are loaded.
+                    var regionObjs = winObj.regions;
+                   
                     if ( regionObjs ){
-                        for ( i = 0; i < regionObjs.length; i++ ){
+                        for ( var i = 0; i < regionObjs.length; i++ ){
                             var regionId = regionObjs[i].id;
                             var regionType = regionObjs[i].regionType;
                             var vertices = regionObjs[i].corners;
                             this.m_regions[i] = new skel.widgets.Image.Region( regionId, regionType, vertices );
                         }
                     }
-                    var dataCmd = skel.Command.Data.CommandData.getInstance();
-                    dataCmd.datasChanged();
                     this._initContextMenu();
                 }
                 catch( err ){
@@ -352,6 +373,38 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
         
         /**
+         * Callback for when the registration is complete and an id is available.
+         * @param anObject {skel.widgets.Image.Stack.StackControls}.
+         */
+        _registrationStackCallback : function( anObject ){
+            return function( id ){
+                anObject._setStackId( id );
+            };
+        },
+        
+
+        /**
+         * Register to get updates on stack data settings from the server.
+         */
+        _registerControlsStack : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_identifier + path.SEP_COMMAND + "registerStack";
+            var params = "";
+            this.m_connector.sendCommand( cmd, params, this._registrationStackCallback( this));
+        },
+        
+        /**
+         * Set the identifier for the server-side object that manages the stack.
+         * @param id {String} - the server-side id of the object that manages the stack.
+         */
+        _setStackId : function( id ){
+            this.m_stackId = id;
+            this.m_sharedVarStack = this.m_connector.getSharedVar( id );
+            this.m_sharedVarStack.addCB(this._sharedVarStackCB.bind(this));
+            this._sharedVarStackCB();
+        },
+        
+        /**
          * Implemented to initialize the context menu.
          */
         windowIdInitialized : function() {
@@ -360,6 +413,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +path.DATA );
             this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
             this._sharedVarDataCB();
+            this._registerControlsStack();
             this._initStatistics();
             this._dataLoadedCB();
             
@@ -388,6 +442,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_datas : [],
         m_regions : [],
         m_sharedVarData : null,
+        m_sharedVarStack : null,
+        m_stackId : null,
        
         m_view : null,
         m_viewContent : null,

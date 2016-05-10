@@ -47,9 +47,11 @@ qx.Class.define("skel.Command.Data.CommandDataCloses", {
                         var closes = activeWins[i].getDatas();
                         var path = skel.widgets.Path.getInstance();
                         for ( var j = 0; j < closes.length; j++ ){
-                            this.m_cmds[k] = new skel.Command.Data.CommandDataClose( closes[j].file, 
-                                    path.IMAGE_DATA,path.CLOSE_IMAGE );
-                            k++;
+                            if ( closes[j].name.length > 0 ){
+                                this.m_cmds[k] = new skel.Command.Data.CommandDataClose( closes[j].name,
+                                    path.IMAGE_DATA,path.CLOSE_IMAGE, closes[j].id );
+                                k++;
+                            }
                         }
                         var closeRegions = activeWins[i].getRegions();
                         for ( j = 0; j < closeRegions.length; j++ ){

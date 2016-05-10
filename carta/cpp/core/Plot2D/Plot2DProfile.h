@@ -62,6 +62,12 @@ public:
     virtual void setData ( std::vector<std::pair<double,double> > data ) Q_DECL_OVERRIDE;
 
     /**
+     * Set the draw style for the data (continuous, step, etc).
+     * @param style - an identifier for a draw style.
+     */
+    virtual void setDrawStyle( const QString& style );
+
+    /**
      * Set an identifier for this data set.
      * @param id - an identifier for this data set.
      */
@@ -82,6 +88,9 @@ protected:
 
     virtual void drawLines (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
             const QRectF &canvasRect, int from, int to) const;
+    virtual void drawSteps (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
+            const QRectF &canvasRect, int from, int to) const;
+
 private:
 
     std::vector<double> m_datasX;

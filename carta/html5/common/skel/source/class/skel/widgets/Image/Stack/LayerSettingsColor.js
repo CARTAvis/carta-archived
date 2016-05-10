@@ -6,7 +6,7 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
+qx.Class.define("skel.widgets.Image.Stack.LayerSettingsColor", {
     extend : qx.ui.core.Widget,
 
     /**
@@ -17,6 +17,10 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
         this.m_connector = mImport("connector");
         this.m_serverUpdate = false;
         this._init( );
+    },
+    
+    statics : {
+        TYPE : "color"
     },
 
     members : {
@@ -66,6 +70,14 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             return colorArray;
         },
         
+        /**
+         * Return an identifier for the type of layer settings.
+         * @return {String} - an identifier for the type of layer settings.
+         */
+        getType : function(){
+            return skel.widgets.Image.Stack.LayerSettingsColor.TYPE;
+        },
+        
         
         /*
          * Initializes the UI.
@@ -90,12 +102,17 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
                     "Set the transparency.", "Slide to set the transparency.",
                     "maskAlphaTextField", "maskAlphaSlider", false);
             this.m_transparency.setNotify( true );
-            this.m_transparency.addListener( "textSliderChanged", this._setPreviewColor, this );
+            this.m_transparency.addListener( "textSliderChanged", function(msg){
+                this._setPreviewColor;
+                this._sendTransparency(msg);
+            }, this );
+            
             transContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
             transContainer.add( this.m_transparency );
             transContainer.add( new qx.ui.core.Spacer(2), {flex:1} );
             this._add( transContainer );
         },
+        
         
         /**
          * Initialize the preset colors.
@@ -128,6 +145,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this._add( presetContainer );
         },
         
+        
         /**
          * Initialize the color preview.
          */
@@ -139,6 +157,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this.m_preview.setHeight( 20 );
             this._add( this.m_preview );
         },
+        
         
         /**
          * Returns true if the user has selected blue.
@@ -152,6 +171,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             return blueSelected;
         },
         
+        
         /**
          * Returns true if the user has selected green.
          * @return {boolean} - true if the user has selected green; false otherwise.
@@ -164,6 +184,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             return greenSelected;
         },
         
+        
         /**
          * Returns true if the user has selected red.
          * @return {boolean} - true if the user has selected red; false otherwise.
@@ -175,6 +196,7 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             }
             return redSelected;
         },
+        
         
         /**
          * Return true if the user has selected white.
@@ -261,6 +283,93 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this.m_presetNone.setDecorator( this.m_BORDER_NONE );
         },
         
+
+        /**
+         * Notification that the RGB value of the color mask
+         * has changed.
+         */
+        _primaryColorChanged : function(){
+            this._updatePresets();
+            this._sendMaskColorCmd();
+        },
+        
+        /**
+         * Notify the server that the mask color has changed.
+         */
+        _sendMaskColorCmd : function(){
+            if ( this.m_id !== null && !this.m_serverUpdate ){
+                var colorArray = this._getColorAsRGB();
+                var params = "id:"+ this.m_layerId+",red:"+colorArray[0]+",green:"+colorArray[1]+",blue:"+colorArray[2];
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setMaskColor";
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        /**
+         * Send a command to the server to change the transparency.
+         * @param msg {Object} - information about the transparency to send.
+         */
+        _sendTransparency : function( msg ){
+            var transp = msg.getData().value;
+            var params = "id:"+ this.m_layerId+",alpha:"+transp;
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setMaskAlpha";
+            this.m_connector.sendCommand( cmd, params, function(){});
+        },
+ 
+        /**
+         * Update the UI with mask information from the server.
+         * @param mask {Object} - mask information from the server.
+         */
+        setControls : function( mask ){
+            this.m_transparency.setValue( mask.alpha );
+            this.m_serverUpdate = true;
+            if ( mask.red == 255 && mask.blue == 0 && mask.green == 0){
+                this._presetRedSelected();
+            }
+            else if ( mask.red == 0 && mask.blue == 255 && mask.green == 0 ){
+                this._presetBlueSelected();
+            }
+            else if ( mask.red == 0 && mask.blue == 0 && mask.green == 255 ){
+                this._presetGreenSelected();
+            }
+            else {
+                this._presetNoneSelected();
+            }
+            this.m_serverUpdate = false;
+        },
+       
+        
+        /**
+         * Set the id of the server-side object that handles mask information.
+         * @param id {String} - server-side identifier of object handling mask information.
+         */
+        setId : function( id ){
+            this.m_id = id;
+        },
+        
+        /**
+         * Set an identifier for the layer.
+         * @param id {String} - an identifier for the layer.
+         */
+        setLayerId : function( id ){
+            this.m_layerId = id;
+        },
+
+        
+        /**
+         * Update the preview panel with the latest color information.
+         */
+        _setPreviewColor : function(){
+            var rgbArray = this._getColorAsRGB();
+            var alpha = this.m_transparency.getValue();
+            var alphaNorm = alpha / 255;
+            var hexStr = qx.util.ColorUtil.rgbToHexString(rgbArray );
+            this.m_preview.setBackgroundColor( hexStr );
+            this.m_preview.setOpacity( alphaNorm );
+        },
+        
         /**
          * Update the selected states of the presets based on the
          * RGB color values.
@@ -288,92 +397,11 @@ qx.Class.define("skel.widgets.Image.Stack.MaskControlsColor", {
             this._setPreviewColor();
         },
         
-        /**
-         * Notification that the RGB value of the color mask
-         * has changed.
-         */
-        _primaryColorChanged : function(){
-            this._updatePresets();
-            this._sendMaskColorCmd();
-        },
-        
-        /**
-         * Notify the server that the mask color has changed.
-         */
-        _sendMaskColorCmd : function(){
-            if ( this.m_id !== null && !this.m_serverUpdate ){
-                var colorArray = this._getColorAsRGB();
-                var params = "red:"+colorArray[0]+",green:"+colorArray[1]+",blue:"+colorArray[2];
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setMaskColor";
-                this.m_connector.sendCommand( cmd, params, function(){});
-            }
-        },
- 
-        /**
-         * Update the UI with mask information from the server.
-         * @param mask {Object} - mask information from the server.
-         */
-        setControls : function( mask ){
-            this.m_serverUpdate = true;
-            if ( mask.red == 255 && mask.blue == 0 && mask.green == 0){
-                this._presetRedSelected();
-            }
-            else if ( mask.red == 0 && mask.blue == 255 && mask.green == 0 ){
-                this._presetBlueSelected();
-            }
-            else if ( mask.red == 0 && mask.blue == 0 && mask.green == 255 ){
-                this._presetGreenSelected();
-            }
-            else {
-                this._presetNoneSelected();
-            }
-            this.m_transparency.setValue( mask.alpha );
-            this._setControlsEnabled( mask.alphaSupport, mask.colorSupport );
-            this.m_serverUpdate = false;
-        },
-        
-        /**
-         * Enable/disable mask controls based on the type of filter being applied.
-         * @param enabledTransparency {boolean} - true if a filter supporting transparency
-         *      is being applied; false, otherwise.
-         * @param enabledColor {boolean} - true if a filter supporting color is being
-         *      applied; false, otherwise.
-         */
-        _setControlsEnabled : function( enabledTransparency, enabledColor ){
-            this.m_presetRed.setEnabled( enabledColor );
-            this.m_presetGreen.setEnabled( enabledColor );
-            this.m_presetBlue.setEnabled( enabledColor );
-            this.m_presetNone.setEnabled( enabledColor );
-           
-            this.m_transparency.setEnabled( enabledTransparency );
-        },
-        
-        /**
-         * Set the id of the server-side object that handles mask information.
-         * @param id {String} - server-side identifier of object handling mask information.
-         */
-        setId : function( id ){
-            this.m_id = id;
-            this.m_transparency.setId( id );
-        },
-
-        
-        /**
-         * Update the preview panel with the latest color information.
-         */
-        _setPreviewColor : function(){
-            var rgbArray = this._getColorAsRGB();
-            var alpha = this.m_transparency.getValue();
-            var alphaNorm = alpha / 255;
-            var hexStr = qx.util.ColorUtil.rgbToHexString(rgbArray );
-            this.m_preview.setBackgroundColor( hexStr );
-            this.m_preview.setOpacity( alphaNorm );
-        },
         
         
         m_connector : null,
         m_id : null,
+        m_layerId : null,
         m_presetRed : null,
         m_presetGreen : null,
         m_presetBlue : null,

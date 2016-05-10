@@ -106,11 +106,19 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsLabelPage", {
          * @param controls {Object} - information about the grid control settings from the server.
          */
         setControls : function( controls ){
-            this.m_fontSizeSpin.setValue( controls.grid.font.size );
-            this.m_familyCombo.setComboValue( controls.grid.font.family );
-            this.m_gridLabels.setControls( controls.grid.labelFormats );
-            this.m_decimalSpin.setMaximum( controls.grid.decimalsMax );
-            this.m_decimalSpin.setValue( controls.grid.decimals );
+            if ( typeof controls.grid.font !== "undefined"){
+                this.m_fontSizeSpin.setValue( controls.grid.font.size );
+                this.m_familyCombo.setComboValue( controls.grid.font.family );
+            }
+            if ( typeof controls.grid.labelFormats !== "undefined"){
+                this.m_gridLabels.setControls( controls.grid.labelFormats );
+            }
+            if ( typeof controls.grid.decimalsMax !== "undefined"){
+                this.m_decimalSpin.setMaximum( controls.grid.decimalsMax );
+            }
+            if ( typeof controls.grid.decimals !== "undefined"){
+                this.m_decimalSpin.setValue( controls.grid.decimals );
+            }
         },
         
         /**

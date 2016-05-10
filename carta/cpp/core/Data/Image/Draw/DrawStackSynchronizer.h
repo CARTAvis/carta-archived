@@ -5,11 +5,13 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/VectorGraphics/VGList.h"
+#include "Data/Image/RenderRequest.h"
+#include "Data/Image/RenderResponse.h"
 
 #include <QString>
 #include <QList>
 #include <QObject>
-#include <QImage>
 
 #include <memory>
 
@@ -22,12 +24,12 @@ namespace Carta {
 namespace Carta {
 namespace Data {
 
-class ControllerData;
+class Layer;
 
 
 class DrawStackSynchronizer: public QObject {
 
-    friend class Controller;
+    friend class Stack;
 
     Q_OBJECT
 
@@ -44,18 +46,6 @@ public:
      * @return - the size of the stack view on the client.
      */
     QSize getClientSize() const;
-
-    /**
-     * Set the potential data that are layers in the stack if they are visible.
-     * @param layers- a list of potential stack layers.
-     */
-    void setLayers( QList< std::shared_ptr<ControllerData> > layers);
-
-    /**
-     * Set the top index in the stack.
-     * @param index - the top stack index.
-     */
-    void setSelectIndex( int index );
 
 
     virtual ~DrawStackSynchronizer();
@@ -76,16 +66,17 @@ private slots:
     /**
     * Notification that a stack layer has changed its image or vector graphics.
     */
-    void _scheduleFrameRepaint();
+    void _scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& response );
 
 private:
 
-    void _render( QList<std::shared_ptr<ControllerData> >& datas,
-            std::vector<int> frames, const Carta::Lib::KnownSkyCS& cs, int gridIndex );
+    void _render( QList<std::shared_ptr<Layer> >& datas,
+            const std::shared_ptr<RenderRequest>& request );
 
     //Data View
     std::unique_ptr<Carta::Lib::LayeredRemoteVGView> m_view;
-    QList< std::shared_ptr<ControllerData> > m_layers;
+    QList< std::shared_ptr<Layer> > m_layers;
+    QMap<QString, std::shared_ptr<RenderResponse> > m_images;
     bool m_repaintFrameQueued;
 
     int m_renderCount;

@@ -226,12 +226,6 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setClipValue( imageView, clipValue );
     }
 
-    /*else if ( cmd == "saveimage" ) {
-        QString imageView = args["imageView"].toString();
-        QString filename = args["filename"].toString();
-        result = m_scriptFacade->saveImage( imageView, filename );
-    }*/
-
     else if ( cmd == "centeronpixel" ) {
         QString imageView = args["imageView"].toString();
         double x = args["xval"].toDouble();
@@ -726,7 +720,7 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
     }
 
     else {
-        qDebug() << "Unknown command, sending error back";
+        qDebug() << "Unknown command " + cmd+", sending error back";
         key = "error";
         result.append("Unknown command");
     }
@@ -761,24 +755,13 @@ ScriptedCommandInterpreter::asyncMessageReceivedCB( TagMessage tm )
     QJsonObject jo = jm.doc().object();
     QString cmd = jo["cmd"].toString().toLower();
     auto args = jo["args"].toObject();
-    if ( cmd == "savefullimage" ) {
+    if ( cmd == "saveimage" ) {
         QString imageView = args["imageView"].toString();
         QString filename = args["filename"].toString();
         int width = args["width"].toInt();
         int height = args["height"].toInt();
-        double scale = args["scale"].toDouble();
         QString aspectStr = args["aspectRatioMode"].toString().toLower();
-        /*Qt::AspectRatioMode aspectRatioMode;
-        if ( aspectStr == "keep" ){
-            aspectRatioMode = Qt::KeepAspectRatio;
-        }
-        else if ( aspectStr == "expand" ){
-            aspectRatioMode = Qt::KeepAspectRatioByExpanding;
-        }
-        else {
-            aspectRatioMode = Qt::IgnoreAspectRatio;
-        }*/
-        m_scriptFacade->saveFullImage( imageView, filename, width, height, scale,/* aspectRatioMode*/aspectStr );
+        m_scriptFacade->saveImage( imageView, filename, width, height, aspectStr );
     }
 
 } // asyncMessageReceivedCB

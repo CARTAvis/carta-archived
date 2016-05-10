@@ -47,7 +47,7 @@ qx.Class.define("skel.Command.Data.CommandDataHide", {
                         var closes = activeWins[i].getDatas();
                         for ( var j = 0; j < closes.length; j++ ){
                             if ( closes[j].visible ){
-                                this.m_cmds[k] = new skel.Command.Data.CommandDataHideImage( closes[j].file, j);
+                                this.m_cmds[k] = new skel.Command.Data.CommandDataHideImage( closes[j].name, closes[j].id);
                                 k++;
                             }
                         }

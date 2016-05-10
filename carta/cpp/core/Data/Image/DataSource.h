@@ -9,8 +9,6 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 
-
-#include <QImage>
 #include <memory>
 
 class CoordinateFormatterInterface;
@@ -43,7 +41,7 @@ class CoordinateSystems;
 
 class DataSource : public QObject {
 
-friend class ControllerData;
+friend class LayerData;
 friend class Histogram;
 friend class Profiler;
 
@@ -297,7 +295,7 @@ private:
     void _initializeSingletons( );
 
     /**
-     * Return a QImage representation of this data.
+     * Generate a QImage representation of this data.
      * @param -frames a list of frames to load, one for each axis.
      * @param - recomputeClipsOnNewFrame - true if the clips should be recalculated when the frame
      *      is changed; false otherwise.
@@ -400,11 +398,14 @@ private:
 
 
     /**
-     * Returns whether or not the data was successfully loaded.
+     * Attempts to load an image file.
      * @param fileName an identifier for the location of a data source.
-     * @return true if the data souce was successfully loaded; false otherwise.
+     * @param success - set to true if the image file is successfully loaded; otherwise,
+     *      set to false.
+     * @return - an error message if the image was not successfully loaded; otherwise,
+     *      an empty string.
      */
-    bool _setFileName( const QString& fileName );
+    QString _setFileName( const QString& fileName, bool* success );
 
 
     /**
