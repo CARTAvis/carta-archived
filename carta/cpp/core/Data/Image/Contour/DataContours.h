@@ -162,8 +162,6 @@ private:
 
     class Factory;
 
-
-
 	DataContours( const DataContours& other);
 	DataContours& operator=( const DataContours& other );
 };

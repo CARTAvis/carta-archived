@@ -442,7 +442,7 @@ private:
     static QList<QColor> m_curveColors;
 
 	Profiler( const Profiler& other);
-	Profiler operator=( const Profiler& other );
+	Profiler& operator=( const Profiler& other );
 };
 }
 }

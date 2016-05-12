@@ -319,7 +319,7 @@ private:
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_imageSource;
 
 	CurveData( const CurveData& other);
-	CurveData operator=( const CurveData& other );
+	CurveData& operator=( const CurveData& other );
 };
 }
 }

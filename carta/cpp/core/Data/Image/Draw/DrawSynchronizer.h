@@ -99,6 +99,9 @@ private:
     std::shared_ptr<Carta::Lib::IContourGeneratorService> m_cec;
     std::vector<QPen> m_pens;
 
+    DrawSynchronizer( const DrawSynchronizer& other);
+    DrawSynchronizer& operator=( const DrawSynchronizer& other );
+
 };
 
 

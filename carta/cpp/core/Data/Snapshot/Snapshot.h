@@ -74,7 +74,6 @@ private:
 
     void _initializeState( const QString& name );
     Carta::State::StateInterface m_state;
-
 };
 
 

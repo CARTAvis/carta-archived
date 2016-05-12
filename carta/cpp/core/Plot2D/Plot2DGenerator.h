@@ -333,6 +333,9 @@ private:
     bool m_logScale;
     QFont m_font;
     PlotType m_plotType;
+
+    Plot2DGenerator( const Plot2DGenerator& other);
+    Plot2DGenerator& operator=( const Plot2DGenerator& other );
 };
 }
 }

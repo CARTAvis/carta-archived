@@ -192,8 +192,11 @@ void Histogram::_createHistogram( Controller* controller){
     double minIntensity = 0;
     double maxIntensity = 0;
     std::pair<int,int> frameBounds = _getFrameBounds();
-    bool minValid = controller->getIntensity( frameBounds.first, frameBounds.second, 0, &minIntensity );
-    bool maxValid = controller->getIntensity( frameBounds.first, frameBounds.second, 1, &maxIntensity );
+    int index = 0;
+    bool minValid = controller->getIntensity( frameBounds.first, frameBounds.second,
+            0, &minIntensity, &index );
+    bool maxValid = controller->getIntensity( frameBounds.first, frameBounds.second,
+            1, &maxIntensity, &index );
     if(minValid && maxValid){
         int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
         minIntensity = Util::roundToDigits( minIntensity, significantDigits );
@@ -303,7 +306,9 @@ double Histogram::_getBufferedIntensity( const QString& clipKey, const QString& 
             if ( controller != nullptr ){
                 double actualIntensity = intensity;
                 std::pair<int,int> frameBounds = _getFrameBounds();
-                bool intensityValid = controller->getIntensity( frameBounds.first, frameBounds.second, percentile, &actualIntensity );
+                int index = 0;
+                bool intensityValid = controller->getIntensity( frameBounds.first,
+                        frameBounds.second, percentile, &actualIntensity, &index );
                 if ( intensityValid ){
                     intensity = actualIntensity;
                 }
@@ -1212,7 +1217,8 @@ QString Histogram::setClipMax( double clipMaxClient, bool finish ){
         double imageMaxIntensity = 0;
         Controller* controller = _getControllerSelected();
         if ( controller != nullptr ){
-            double maxIntensityValid = controller->getIntensity( 1, &imageMaxIntensity  );
+            int index = 0;
+            double maxIntensityValid = controller->getIntensity( 1, &imageMaxIntensity, &index  );
             if ( maxIntensityValid ){
                 if ( clipMaxClient < imageMaxIntensity ){
                     adjustedMax = imageMaxIntensity;
@@ -1230,7 +1236,8 @@ QString Histogram::setClipMax( double clipMaxClient, bool finish ){
                     if ( controller != nullptr ){
                         std::pair<int,int> bounds = _getFrameBounds();
                         double clipUpperBound;
-                        controller->getIntensity( bounds.first, bounds.second, 1, &clipUpperBound );
+                        int index;
+                        controller->getIntensity( bounds.first, bounds.second, 1, &clipUpperBound, &index );
                         double clipMaxPercent = controller->getPercentile(bounds.first, bounds.second, clipMaxClient );
                         if ( clipMaxPercent >= 0 ){
                             clipMaxPercent = Util::roundToDigits(clipMaxPercent * 100, significantDigits);
@@ -1289,7 +1296,8 @@ QString Histogram::setClipMin( double clipMinClient, bool finish ){
         if ( controller != nullptr ){
             double imageMinIntensity = 0;
             double minIntensityValid = false;
-            minIntensityValid = controller->getIntensity( 0, &imageMinIntensity  );
+            int index = 0;
+            minIntensityValid = controller->getIntensity( 0, &imageMinIntensity, &index  );
             if ( minIntensityValid ){
                 if ( clipMinClient < imageMinIntensity ){
                     adjustedMin = imageMinIntensity;
@@ -1356,7 +1364,9 @@ QString Histogram::setClipMinPercent( double clipMinPercent, bool complete ){
                      double clipMin = 0;
                      double cMin = clipMinPercentRounded / 100.0;
                      std::pair<int,int> bounds = _getFrameBounds();
-                     bool validIntensity = controller->getIntensity( bounds.first, bounds.second, cMin, &clipMin);
+                     int index = 0;
+                     bool validIntensity = controller->getIntensity( bounds.first, bounds.second,
+                             cMin, &clipMin, &index );
                      if(validIntensity){
                          double oldClipMin = m_stateData.getValue<double>(CLIP_MIN);
                          if(qAbs(oldClipMin - clipMin) > m_errorMargin){
@@ -1417,7 +1427,9 @@ QString Histogram::setClipMaxPercent( double clipMaxPercent, bool complete ){
                      double clipMax = 0;
                      double decPercent = lookupPercent / 100.0;
                      std::pair<int,int> bound = _getFrameBounds();
-                     bool validIntensity = controller->getIntensity(bound.first,bound.second, decPercent, &clipMax);
+                     int index = 0;
+                     bool validIntensity = controller->getIntensity(bound.first, bound.second,
+                             decPercent, &clipMax, &index );
                      if(validIntensity){
                          double oldClipMax = m_stateData.getValue<double>(CLIP_MAX);
                          if(qAbs(oldClipMax - clipMax) > m_errorMargin){
@@ -1533,7 +1545,8 @@ QString Histogram::setColorMax( double colorMax, bool finish ){
             if ( controller != nullptr ){
                 std::pair<int,int> bounds = _getFrameBounds();
                 double colorUpperBound;
-                controller->getIntensity( bounds.first, bounds.second, 1, &colorUpperBound );
+                int index = 0;
+                controller->getIntensity( bounds.first, bounds.second, 1, &colorUpperBound, &index );
                 double colorMaxPercent = controller->getPercentile(bounds.first, bounds.second, colorMaxRounded );
                 if ( colorMaxPercent >= 0 ){
                     colorMaxPercent = colorMaxPercent * 100;
@@ -1572,7 +1585,9 @@ QString Histogram::setColorMaxPercent( double colorMaxPercent, bool complete ){
                      double colorMax = 0;
                      double decPercent = lookupPercent / 100.0;
                      std::pair<int,int> bound = _getFrameBounds();
-                     bool validIntensity = controller->getIntensity(bound.first,bound.second, decPercent, &colorMax);
+                     int index = 0;
+                     bool validIntensity = controller->getIntensity(bound.first,bound.second,
+                             decPercent, &colorMax, &index);
                      if(validIntensity){
                          double oldColorMax = m_stateData.getValue<double>(COLOR_MAX);
                          if(qAbs(oldColorMax - colorMax) > m_errorMargin){
@@ -1615,7 +1630,9 @@ QString Histogram::setColorMinPercent( double colorMinPercent, bool complete ){
                      double colorMin = 0;
                      double cMin = colorMinPercentRounded / 100.0;
                      std::pair<int,int> bounds = _getFrameBounds();
-                     bool validIntensity = controller->getIntensity( bounds.first, bounds.second, cMin, &colorMin);
+                     int index = 0;
+                     bool validIntensity = controller->getIntensity( bounds.first, bounds.second,
+                             cMin, &colorMin, &index );
                      if(validIntensity){
                          double oldColorMin = m_stateData.getValue<double>(COLOR_MIN);
                          if(qAbs(oldColorMin - colorMin) > m_errorMargin){

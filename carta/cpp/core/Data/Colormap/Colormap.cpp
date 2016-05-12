@@ -1,13 +1,22 @@
 #include "Colormap.h"
 #include "ColorState.h"
 #include "Data/Settings.h"
+#include "Data/Colormap/Colormaps.h"
+#include "Data/Error/ErrorManager.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/DataSource.h"
 #include "Data/Histogram/Histogram.h"
+#include "Data/Units/UnitsIntensity.h"
+#include "Data/Units/UnitsFrequency.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "State/UtilState.h"
 #include "ImageView.h"
-#include "CartaLib/PixelPipeline/IPixelPipeline.h"
+#include "Globals.h"
+#include "PluginManager.h"
+#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
+#include "CartaLib/Hooks/ConversionIntensityHook.h"
+#include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include <QtCore/qmath.h>
 #include <set>
 
@@ -18,8 +27,15 @@ namespace Carta {
 namespace Data {
 
 const QString Colormap::CLASS_NAME = "Colormap";
+const QString Colormap::COLOR_STOPS = "stops";
+const QString Colormap::GLOBAL = "global";
+const QString Colormap::IMAGE_UNITS = "imageUnits";
 const QString Colormap::INTENSITY_MIN = "intensityMin";
 const QString Colormap::INTENSITY_MAX = "intensityMax";
+const QString Colormap::INTENSITY_MIN_INDEX = "intensityMinIndex";
+const QString Colormap::INTENSITY_MAX_INDEX = "intensityMaxIndex";
+const QString Colormap::SIGNIFICANT_DIGITS = "significantDigits";
+const QString Colormap::TAB_INDEX = "tabIndex";
 
 
 class Colormap::Factory : public Carta::State::CartaObjectFactory {
@@ -31,6 +47,7 @@ public:
 
 bool Colormap::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormap::Factory());
+UnitsIntensity* Colormap::m_intensityUnits = nullptr;
 
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
@@ -43,13 +60,15 @@ Colormap::Colormap( const QString& path, const QString& id):
     m_settings.reset( prefObj );
 
     ColorState* colorStateObj = objMan->createObject<ColorState>();
-    m_stateColorGlobal.reset( colorStateObj );
     connect( colorStateObj, SIGNAL( colorStateChanged()), this, SLOT( _colorStateChanged()));
-    m_stateColorGlobal->_initializeDefaultState( m_state );
-    m_stateColors.push_back( m_stateColorGlobal);
+    colorStateObj->_initializeDefaultState( m_state );
+    m_stateColors.push_back( std::shared_ptr<ColorState>(colorStateObj));
+
     _colorStateChanged();
 
+    _initializeStatics();
     _initializeDefaultState();
+    _setErrorMargin();
     _initializeCallbacks();
 }
 
@@ -60,9 +79,12 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
     if ( target != nullptr ){
         objAdded = m_linkImpl->addLink( target );
         if ( objAdded ){
-            target->_setColorMapGlobal( m_stateColorGlobal );
             connect( target, SIGNAL(colorChanged(Controller*)), this, SLOT(_setColorStates(Controller*)));
             _setColorStates( target );
+            connect( target, SIGNAL(clipsChanged(double,double)), this, SLOT(_updateIntensityBounds(double,double)));
+            connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT( _dataChanged(Controller*)));
+            _dataChanged( target );
+
         }
     }
     else {
@@ -72,7 +94,7 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
             if ( objAdded ){
                 connect( this, SIGNAL(colorMapChanged()), hist, SLOT( updateColorMap()));
                 hist->updateColorMap();
-                connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double)), this, SLOT(_updateIntensityBounds( double, double )));
+                //connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double)), this, SLOT(_updateIntensityBounds( double, double )));
             }
         }
         else {
@@ -90,9 +112,47 @@ void Colormap::clear(){
 
 void Colormap::_colorStateChanged(){
     if ( m_stateColors.size() > 0 ){
+        emit colorMapChanged();
+
+        //Calculate new stops based on the pixel pipeline
+        _calculateColorStops();
+
+        //Copy the latest color information into this state so the
+        //view will update.
         m_stateColors[0]->_replicateTo( m_state );
         m_state.flushState();
-        emit colorMapChanged();
+    }
+}
+
+void Colormap::_calculateColorStops(){
+    Controller* controller = _getControllerSelected();
+    if ( controller ){
+        std::shared_ptr<DataSource> dSource = controller->getDataSource();
+        if ( dSource  ){
+            QString nameStr = m_state.getValue<QString>(ColorState::COLOR_MAP_NAME);
+            Colormaps* cMaps = Util::findSingletonObject<Colormaps>();
+            std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = cMaps->getColorMap( nameStr );
+
+            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipe = dSource->_getPipeline();
+            if ( pipe ){
+                QStringList buff;
+                for ( int i = 0; i < 100; i++ ){
+                    float val = i / 100.0f;
+                    Carta::Lib::PixelPipeline::NormRgb normRgb;
+                    pipe->convert( val, normRgb );
+                    QColor mapColor;
+                    if ( normRgb[0] >= 0 && normRgb[1] >= 0 && normRgb[2] >= 0 ){
+                        mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2] );
+                    }
+                    QString hexStr = mapColor.name();
+                    if ( i < 99 ){
+                        hexStr = hexStr + ",";
+                    }
+                    buff.append( hexStr );
+                }
+                m_state.setValue<QString>( COLOR_STOPS, buff.join("") );
+            }
+        }
     }
 }
 
@@ -144,7 +204,6 @@ QString Colormap::_commandSetColorMix( const QString& params ){
 
     bool validGreen = false;
     double greenValue = dataValues[Util::GREEN].toDouble(&validGreen);
-
     if ( validRed && validBlue && validGreen ){
         result = setColorMix( redValue, greenValue, blueValue );
     }
@@ -164,12 +223,129 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     return result;
 }
 
+std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, const QString& newUnit ){
+    double minValue = m_stateData.getValue<double>( INTENSITY_MIN );
+    double maxValue = m_stateData.getValue<double>( INTENSITY_MAX );
+    return _convertIntensity( oldUnit, newUnit, minValue, maxValue );
+}
+
+std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, const QString& newUnit,
+        double minValue, double maxValue ){
+    std::vector<double> converted(2);
+    converted[0] = minValue;
+    converted[1] = maxValue;
+    std::pair<double,double> convertedIntensity(converted[0],converted[1]);
+
+    std::vector<double> valuesX(2);
+    valuesX[0] = m_stateData.getValue<int>( INTENSITY_MIN_INDEX );
+    valuesX[1] = m_stateData.getValue<int>( INTENSITY_MAX_INDEX );
+
+    Controller* controller = _getControllerSelected();
+    if ( controller ){
+        std::shared_ptr<DataSource> dataSource = controller->getDataSource();
+        if ( dataSource ){
+            std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSource->_getImage();
+            if ( image ){
+                //First, we need to make sure the x-values are in Hertz.
+                std::vector<double> hertzValues;
+                auto result = Globals::instance()-> pluginManager()
+                                                         -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(image,
+                                                                 "", UnitsFrequency::UNIT_HZ, valuesX );
+                auto lam = [&hertzValues] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
+                    hertzValues = data;
+                };
+                try {
+                    result.forEach( lam );
+                }
+                catch( char*& error ){
+                    QString errorStr( error );
+                    ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                    hr->registerError( errorStr );
+                }
+
+                //Now we convert the intensity units
+                auto result2 = Globals::instance()-> pluginManager()
+                                                                -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image,
+                                                                        oldUnit, newUnit, hertzValues, converted,
+                                                                        1, "" );;
+
+                auto lam2 = [&convertedIntensity] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
+                    if ( data.size() == 2 ){
+                        convertedIntensity.first = data[0];
+                        convertedIntensity.second = data[1];
+                    }
+                };
+                try {
+                    result2.forEach( lam2 );
+                }
+                catch( char*& error ){
+                    QString errorStr( error );
+                    ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                    hr->registerError( errorStr );
+                }
+            }
+        }
+    }
+    return convertedIntensity;
+}
+
+
+void Colormap::_dataChanged( Controller* controller ){
+    if ( controller ){
+        double colorMinPercent = controller->getClipPercentileMin();
+        double colorMaxPercent = controller->getClipPercentileMax();
+        _updateIntensityBounds( colorMinPercent, colorMaxPercent );
+    }
+}
+
+
+
+Controller* Colormap::_getControllerSelected() const {
+    //We are only supporting one linked controller.
+    Controller* controller = nullptr;
+    int linkCount = m_linkImpl->getLinkCount();
+    for ( int i = 0; i < linkCount; i++ ){
+        CartaObject* obj = m_linkImpl->getLink(i );
+        Controller* control = dynamic_cast<Controller*>( obj);
+        if ( control != nullptr){
+            controller = control;
+            break;
+        }
+    }
+    return controller;
+}
+
+QString Colormap::getImageUnits() const {
+    return m_state.getValue<QString>( IMAGE_UNITS );
+}
+
+std::pair<int,double> Colormap::_getIntensityForPercent( double percent, bool* valid ) const {
+    *valid = false;
+    std::pair<int,double> value(0, percent);
+    Controller* controller = _getControllerSelected();
+    if ( controller != nullptr ){
+        std::pair<int,int> bounds(-1,-1);
+        int index = 0;
+        double intValue = 0;
+        bool validIntensity = controller->getIntensity( -1, -1, percent, &intValue, &index );
+        if ( validIntensity ){
+            value= std::pair<int,double>( index, intValue );
+            *valid = true;
+        }
+    }
+    return value;
+}
+
 QList<QString> Colormap::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 
 QString Colormap::_getPreferencesId() const {
     return m_settings->getPath();
+}
+
+int Colormap::getSignificantDigits() const {
+    return m_state.getValue<int>( SIGNIFICANT_DIGITS );
 }
 
 QString Colormap::getStateString( const QString& sessionId, SnapshotType type ) const{
@@ -188,11 +364,24 @@ QString Colormap::getStateString( const QString& sessionId, SnapshotType type ) 
 }
 
 
+int Colormap::getTabIndex() const {
+    return m_state.getValue<int>( Util::TAB_INDEX );
+}
+
 void Colormap::_initializeDefaultState(){
+
+    m_state.insertValue<bool>( GLOBAL, true );
+    m_state.insertValue<QString>( COLOR_STOPS, "");
+    m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
+    m_state.insertValue<int>(TAB_INDEX, 0 );
+    m_state.insertValue<QString>( IMAGE_UNITS, m_intensityUnits->getDefault() );
+    m_state.flushState();
 
     //Image dependent intensity bounds
     m_stateData.insertValue<double>( INTENSITY_MIN, 0 );
     m_stateData.insertValue<double>( INTENSITY_MAX, 1 );
+    m_stateData.insertValue<int>( INTENSITY_MIN_INDEX, 0 );
+    m_stateData.insertValue<int>( INTENSITY_MAX_INDEX, 0 );
     m_stateData.flushState();
 
     //Mouse
@@ -363,9 +552,9 @@ void Colormap::_initializeCallbacks(){
     addCommandCallback( "setSignificantDigits", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
                 QString result;
-                std::set<QString> keys = {ColorState::SIGNIFICANT_DIGITS};
+                std::set<QString> keys = {SIGNIFICANT_DIGITS};
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString digitsStr = dataValues[ColorState::SIGNIFICANT_DIGITS];
+                QString digitsStr = dataValues[SIGNIFICANT_DIGITS];
                 bool validDigits = false;
                 int digits = digitsStr.toInt( &validDigits );
                 if ( validDigits ){
@@ -416,7 +605,7 @@ void Colormap::_initializeCallbacks(){
 
     addCommandCallback( "setGlobal", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {ColorState::GLOBAL};
+            std::set<QString> keys = {GLOBAL};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString globalStr = dataValues[*keys.begin()];
             bool validBool = false;
@@ -427,6 +616,37 @@ void Colormap::_initializeCallbacks(){
             }
             else {
                 result = "Please specify true/false when setting whether or not the color map is global: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setImageUnits", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {IMAGE_UNITS};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString unitsStr = dataValues[*keys.begin()];
+        QString result = setImageUnits( unitsStr );
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setIntensityRange", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {INTENSITY_MIN, INTENSITY_MAX};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString intMinStr = dataValues[INTENSITY_MIN];
+            QString intMaxStr = dataValues[INTENSITY_MAX];
+            bool validMin = false;
+            bool validMax = false;
+            double intMin = intMinStr.toDouble( &validMin );
+            double intMax = intMaxStr.toDouble( &validMax );
+            QString result;
+            if ( validMin && validMax ){
+                result = setIntensityRange( intMin, intMax );
+            }
+            else {
+                result = "Color map intensity bounds must be numbers: "+params;
             }
             Util::commandPostProcess( result );
             return result;
@@ -451,6 +671,13 @@ void Colormap::_initializeCallbacks(){
         });
 }
 
+void Colormap::_initializeStatics(){
+    //Intensity units
+    if ( m_intensityUnits == nullptr ){
+        m_intensityUnits = Util::findSingletonObject<UnitsIntensity>();
+    }
+}
+
 bool Colormap::isBorderDefault() const {
     bool borderDefault = false;
     if ( m_stateColors.size() > 0 ){
@@ -459,12 +686,8 @@ bool Colormap::isBorderDefault() const {
     return borderDefault;
 }
 
-bool Colormap::_isGlobal() const {
-    bool global = true;
-    if ( m_stateColors.size() > 0 ){
-        global = m_stateColors[0]->_isGlobal();
-    }
-    return global;
+bool Colormap::isGlobal() const {
+   return m_state.getValue<bool>( GLOBAL );
 }
 
 bool Colormap::isInverted() const {
@@ -475,14 +698,6 @@ bool Colormap::isInverted() const {
     return inverted;
 }
 
-bool Colormap::isNanDefault() const {
-    bool nanDefault = false;
-    if ( m_stateColors.size() > 0 ){
-        nanDefault = m_stateColors[0]->_isNanDefault();
-    }
-    return nanDefault;
-}
-
 bool Colormap::isLinked( const QString& linkId ) const {
     bool linked = false;
     CartaObject* obj = m_linkImpl->searchLinks( linkId );
@@ -490,6 +705,14 @@ bool Colormap::isLinked( const QString& linkId ) const {
         linked = true;
     }
     return linked;
+}
+
+bool Colormap::isNanDefault() const {
+    bool nanDefault = false;
+    if ( m_stateColors.size() > 0 ){
+        nanDefault = m_stateColors[0]->_isNanDefault();
+    }
+    return nanDefault;
 }
 
 
@@ -507,20 +730,6 @@ void Colormap::refreshState(){
     m_settings->refreshState();
     m_linkImpl->refreshState();
 }
-
-void Colormap::resetState( const QString& state ){
-    Carta::State::StateInterface restoredState( "");
-    restoredState.setState( state );
-
-    QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
-    m_settings->resetStateString( settingStr );
-
-    QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
-    m_state.setState( prefStr );
-    m_state.flushState();
-}
-
-
 
 QString Colormap::removeLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
@@ -546,6 +755,22 @@ QString Colormap::removeLink( CartaObject* cartaObject ){
     }
     return result;
 }
+
+
+void Colormap::resetState( const QString& state ){
+    Carta::State::StateInterface restoredState( "");
+    restoredState.setState( state );
+
+    QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
+    m_settings->resetStateString( settingStr );
+
+    QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
+    m_state.setState( prefStr );
+    m_state.flushState();
+}
+
+
+
 
 QString Colormap::setBorderAlpha( int alphaValue ){
     int stateColorCount = m_stateColors.size();
@@ -578,9 +803,11 @@ QString Colormap::setBorderColor( int redValue, int greenValue, int blueValue){
             break;
         }
     }
-    if ( result.isEmpty() ){
-        _colorStateChanged();
-    }
+
+        if ( result.isEmpty() ){
+            _colorStateChanged();
+        }
+
     return result;
 }
 
@@ -596,6 +823,7 @@ QString Colormap::setBorderDefault( bool borderDefault ) {
     else {
         _colorStateChanged();
     }
+
     return result;
 }
 
@@ -630,34 +858,22 @@ QString Colormap::setColorMix( double redValue, double greenValue, double blueVa
 }
 
 
-QString Colormap::setInvert( bool invert ){
-    int stateColorCount = m_stateColors.size();
-    QString result;
-    for ( int i = 0; i < stateColorCount; i++ ){
-        m_stateColors[i]->_setInvert( invert );
-    }
-    if ( stateColorCount == 0 ){
-        result = "There were no color maps to invert.";
-    }
-    else {
-        _colorStateChanged();
-    }
-    return result;
-}
+void Colormap::_setColorStates( Controller* controller ){
+    if ( controller ){
+        bool global = m_state.getValue<bool>( GLOBAL );
+        std::vector< std::shared_ptr<ColorState> > selectedColorStates = controller->getSelectedColorStates( global);
+        int stateColorCount = selectedColorStates.size();
+        if ( stateColorCount > 0 ){
+            m_stateColors.clear();
 
-QString Colormap::setGamma( double gamma ){
-    int stateColorCount = m_stateColors.size();
-    QString result;
-    for ( int i = 0; i < stateColorCount; i++ ){
-        result = m_stateColors[i]->_setGamma( gamma );
-        if ( !result.isEmpty()){
-            break;
+            for ( int i = 0; i < stateColorCount; i++ ){
+                m_stateColors.push_back( selectedColorStates[i] );
+            }
+
+            //Update the state the client is listening to.
+            _colorStateChanged();
         }
     }
-    if ( result.isEmpty() ){
-        _colorStateChanged();
-    }
-    return result;
 }
 
 QString Colormap::setDataTransform( const QString& transformString){
@@ -675,34 +891,115 @@ QString Colormap::setDataTransform( const QString& transformString){
     return result;
 }
 
+void Colormap::_setErrorMargin( ){
+    int significantDigits = getSignificantDigits();
+    m_errorMargin = 1.0/qPow(10,significantDigits);
+}
 
-void Colormap::_setColorStates( Controller* controller ){
-    std::vector< std::shared_ptr<ColorState> > selectedColorStates = controller->getSelectedColorStates();
-    int stateColorCount = selectedColorStates.size();
-    if ( stateColorCount > 0 ){
-        m_stateColors.clear();
 
-        for ( int i = 0; i < stateColorCount; i++ ){
-            m_stateColors.push_back( selectedColorStates[i] );
+QString Colormap::setGamma( double gamma ){
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    int digits = getSignificantDigits();
+    for ( int i = 0; i < stateColorCount; i++ ){
+        result = m_stateColors[i]->_setGamma( gamma, m_errorMargin, digits );
+        if ( !result.isEmpty()){
+            break;
         }
+    }
+    if ( result.isEmpty() ){
+        _colorStateChanged();
+    }
+    return result;
+}
 
-        //Update the state the client is listening to.
+void Colormap::setGlobal( bool global ){
+    //Update the color maps based on whether we should make a change
+    //to all of them or only the selected ones.
+    bool oldGlobal = isGlobal();
+    if ( global != oldGlobal ){
+        m_state.setValue<bool>(GLOBAL, global );
+
+        //Update the list of color states based on the global
+        //flag.
+        Controller* controller = _getControllerSelected();
+        _setColorStates( controller );
+
         _colorStateChanged();
     }
 }
 
-void Colormap::setGlobal( bool global ){
-    //Notify all the controllers to replace their global color maps with
-    //individual ones or vice versa.
-    int linkCount = m_linkImpl->getLinkCount();
-    for ( int i = 0; i < linkCount; i++ ){
-        CartaObject* obj = m_linkImpl->getLink( i );
-        Controller* controller = dynamic_cast<Controller*>(obj);
-        if ( controller != nullptr ){
-           controller->_setColorMapUseGlobal( global );
+
+
+QString Colormap::setIntensityRange( double minValue, double maxValue ){
+    QString result;
+    if ( minValue < maxValue ){
+        double minRounded = Util::roundToDigits( minValue, getSignificantDigits() );
+        double maxRounded = Util::roundToDigits( maxValue, getSignificantDigits() );
+        double oldMin = m_stateData.getValue<double>( INTENSITY_MIN );
+        double oldMax = m_stateData.getValue<double>( INTENSITY_MAX );
+        if ( qAbs( minRounded - oldMin) > m_errorMargin ||
+                qAbs( maxRounded - oldMax) > m_errorMargin ){
+            //Store the values.
+            m_stateData.setValue<double>( INTENSITY_MIN, minRounded );
+            m_stateData.setValue<double>( INTENSITY_MAX, maxRounded );
+            m_stateData.flushState();
+            _updateImageClips();
+            _colorStateChanged();
+
+
         }
     }
+    else {
+        result = "The minimum intensity bound must be less than the maximum";
+    }
+    return result;
 }
+
+QString Colormap::setInvert( bool invert ){
+    int stateColorCount = m_stateColors.size();
+    QString result;
+    for ( int i = 0; i < stateColorCount; i++ ){
+        m_stateColors[i]->_setInvert( invert );
+    }
+    if ( stateColorCount == 0 ){
+        result = "There were no color maps to invert.";
+    }
+    else {
+        _colorStateChanged();
+    }
+    return result;
+}
+
+
+QString Colormap::setImageUnits( const QString& unitsStr ){
+    QString result;
+    QString actualUnits = m_intensityUnits->getActualUnits( unitsStr);
+    if ( !actualUnits.isEmpty() ){
+        QString oldUnits = m_state.getValue<QString>( IMAGE_UNITS );
+        if ( oldUnits != actualUnits ){
+
+            //Convert intensity values
+            std::pair<double,double> values = _convertIntensity( oldUnits, actualUnits );
+
+            //Set the units
+            m_state.setValue<QString>( IMAGE_UNITS, actualUnits );
+            m_state.flushState();
+
+            //Set the converted values
+            double intMin = Util::roundToDigits( values.first, getSignificantDigits() );
+            m_stateData.setValue<double>( INTENSITY_MIN, intMin );
+            double intMax = Util::roundToDigits( values.second, getSignificantDigits() );
+            m_stateData.setValue<double>( INTENSITY_MAX, intMax );
+            m_stateData.flushState();
+        }
+    }
+    else {
+        result = "Unrecognized units: "+unitsStr;
+    }
+    return result;
+}
+
 
 QString Colormap::setNanColor( int redValue, int greenValue, int blueValue){
     int stateColorCount = m_stateColors.size();
@@ -734,6 +1031,7 @@ QString Colormap::setNanDefault( bool nanDefault ) {
     else {
         _colorStateChanged();
     }
+
     return result;
 }
 
@@ -749,20 +1047,21 @@ QString Colormap::setReverse( bool reverse ){
     else {
         _colorStateChanged();
     }
+
     return result;
 }
 
 QString Colormap::setSignificantDigits( int digits ){
-    int stateColorCount = m_stateColors.size();
     QString result;
-    for ( int i = 0; i < stateColorCount; i++ ){
-       result = m_stateColors[i]->_setSignificantDigits( digits );
-       if ( !result.isEmpty() ){
-           break;
-       }
+    if ( digits <= 0 ){
+        result = "Invalid colormap significant digits; must be positive:  "+QString::number( digits );
     }
-    if ( result.isEmpty() ){
-        _colorStateChanged();
+    else {
+        if ( getSignificantDigits() != digits ){
+            m_state.setValue<int>(SIGNIFICANT_DIGITS, digits );
+            _setErrorMargin();
+            //emit colorStateChanged();
+        }
     }
     return result;
 }
@@ -770,15 +1069,10 @@ QString Colormap::setSignificantDigits( int digits ){
 QString Colormap::setTabIndex( int index ){
     QString result;
     if ( index >= 0 ){
-        int stateColorCount = m_stateColors.size();
-        for ( int i = 0; i < stateColorCount; i++ ){
-            result = m_stateColors[i]->_setTabIndex( index );
-            if ( !result.isEmpty() ){
-                break;
-            }
-        }
-        if ( result.isEmpty()){
-            _colorStateChanged();
+        int oldTabIndex = getTabIndex();
+        if ( oldTabIndex != index ){
+            m_state.setValue<int>( Util::TAB_INDEX, index );
+            m_state.flushState();
         }
     }
     else {
@@ -787,21 +1081,70 @@ QString Colormap::setTabIndex( int index ){
     return result;
 }
 
-void Colormap::_updateIntensityBounds( double minIntensity, double maxIntensity ){
-    double oldMinIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
-    bool intensityChanged = false;
-    if ( oldMinIntensity != minIntensity ){
-        intensityChanged = true;
-        m_stateData.setValue<double>( INTENSITY_MIN, minIntensity );
-    }
+void Colormap::_updateImageClips(){
+    double minClip = m_stateData.getValue<double>( INTENSITY_MIN );
+    double maxClip = m_stateData.getValue<double>( INTENSITY_MAX );
 
-    double oldMaxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
-    if ( oldMaxIntensity != maxIntensity ){
-        intensityChanged = true;
-        m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
+    //Change intensity values back to image units.
+    Controller* controller = _getControllerSelected();
+    if ( controller ){
+        QString imageUnits = controller->getPixelUnits();
+        QString curUnits = getImageUnits();
+        if ( imageUnits != curUnits ){
+            //Convert intensity values
+            std::pair<double,double> values = _convertIntensity( curUnits, imageUnits );
+            minClip = values.first;
+            maxClip = values.second;
+        }
+
+        double minClipPercentile = controller->getPercentile( -1, -1, minClip );
+        double maxClipPercentile = controller->getPercentile( -1, -1, maxClip );
+        controller->applyClips( minClipPercentile, maxClipPercentile );
     }
-    if ( intensityChanged ){
-        m_stateData.flushState();
+}
+
+void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
+    bool validMin = false;
+    bool validMax = false;
+    std::pair<int,double> minValue = _getIntensityForPercent( minPercent, &validMin );
+    std::pair<int,double> maxValue = _getIntensityForPercent( maxPercent, &validMax );
+    if ( validMin && validMax ){
+
+        double minInt = minValue.second;
+        double maxInt = maxValue.second;
+
+        //Convert the units if we need to.
+        Controller* controller = _getControllerSelected();
+        if ( controller ){
+              QString imageUnits = controller->getPixelUnits();
+              QString curUnits = getImageUnits();
+              if ( imageUnits != curUnits ){
+                  std::pair<double,double> values =
+                         _convertIntensity( imageUnits, curUnits, minInt, maxInt );
+                  minInt = values.first;
+                  maxInt = values.second;
+              }
+
+              double minIntensity = Util::roundToDigits( minInt, getSignificantDigits());
+              double maxIntensity = Util::roundToDigits( maxInt, getSignificantDigits());
+              double oldMinIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
+              bool intensityChanged = false;
+              if ( qAbs( oldMinIntensity - minIntensity ) > m_errorMargin ){
+                  intensityChanged = true;
+                  m_stateData.setValue<double>( INTENSITY_MIN, minIntensity );
+                  m_stateData.setValue<int>(INTENSITY_MIN_INDEX, minValue.first );
+              }
+
+              double oldMaxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
+              if ( qAbs( oldMaxIntensity - maxIntensity ) > m_errorMargin ){
+                  intensityChanged = true;
+                  m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
+                  m_stateData.setValue<int>( INTENSITY_MAX_INDEX, maxValue.first );
+              }
+              if ( intensityChanged ){
+                  m_stateData.flushState();
+              }
+        }
     }
 }
 

@@ -4,8 +4,8 @@
 #include "Data/Plotter/LineStyles.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/ProfilePlotStyles.h"
-#include "Data/Profile/UnitsFrequency.h"
-#include "Data/Profile/UnitsWavelength.h"
+#include "Data/Units/UnitsFrequency.h"
+#include "Data/Units/UnitsWavelength.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 

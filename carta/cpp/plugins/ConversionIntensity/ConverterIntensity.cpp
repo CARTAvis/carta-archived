@@ -321,7 +321,8 @@ double ConverterIntensity::convertQuantity( double yValue, double frequencyValue
     double convertedYValue = yValue;
     if ( oldUnits != KELVIN && newUnits != KELVIN ) {
         convertedYValue = convertNonKelvinUnits( yValue, oldUnits, newUnits, beamArea );
-    } else if ( oldUnits == KELVIN && newUnits != KELVIN ) {
+    }
+    else if ( oldUnits == KELVIN && newUnits != KELVIN ) {
         if ( beamSolidAngle > 0 ) {
             //kelvin * solidAngle * 2 * 1.38 x 10^-23 * freq^2 / (10^-32 x (3 x 10^8)^2)
             double num = yValue * beamSolidAngle * FREQUENCY_FACTOR * pow( frequencyValue, 2);

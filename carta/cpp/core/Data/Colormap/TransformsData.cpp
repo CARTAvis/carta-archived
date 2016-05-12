@@ -2,9 +2,7 @@
 #include "Data/Util.h"
 #include "State/UtilState.h"
 
-
 #include <QDebug>
-#include <set>
 
 namespace Carta {
 
@@ -12,7 +10,6 @@ namespace Data {
 
 const QString TransformsData::DATA_TRANSFORMS = "dataTransforms";
 const QString TransformsData::CLASS_NAME = "TransformsData";
-const QString TransformsData::TRANSFORM_COUNT = "dataTransformCount";
 const QString TransformsData::TRANSFORM_NONE = "None";
 const QString TransformsData::TRANSFORM_ROOT = "Square Root";
 const QString TransformsData::TRANSFORM_SQUARE = "Square";
@@ -41,7 +38,10 @@ TransformsData::TransformsData( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
 
     _initializeDefaultState();
-    _initializeCallbacks();
+}
+
+QString TransformsData::getDefault() const {
+    return TRANSFORM_NONE;
 }
 
 
@@ -65,7 +65,6 @@ void TransformsData::_initializeDefaultState(){
     m_transforms.push_back(TRANSFORM_POLY );
 
     int transformCount = m_transforms.size();
-    m_state.insertValue<int>( TRANSFORM_COUNT, transformCount );
     m_state.insertArray( DATA_TRANSFORMS, transformCount );
     for ( int i = 0; i < transformCount; i++ ){
         QString arrayIndexStr = Carta::State::UtilState::getLookup(DATA_TRANSFORMS, QString::number(i));
@@ -74,15 +73,6 @@ void TransformsData::_initializeDefaultState(){
     m_state.flushState();
 }
 
-
-void TransformsData::_initializeCallbacks(){
-    addCommandCallback( "getTransformsData", [=] (const QString & /*cmd*/,
-                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QStringList dataTransformList = getTransformsData();
-        QString result = dataTransformList.join( ",");
-        return result;
-     });
-}
 
 bool TransformsData::isTransform( const QString& name, QString& actualName ) const {
     int transformCount = m_transforms.size();

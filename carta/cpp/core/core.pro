@@ -91,10 +91,6 @@ HEADERS += \
     Data/Profile/ProfilePlotStyles.h \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/GenerateModes.h \
-    Data/Profile/UnitsFrequency.h \
-    Data/Profile/UnitsIntensity.h \
-    Data/Profile/UnitsSpectral.h \
-    Data/Profile/UnitsWavelength.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -102,6 +98,10 @@ HEADERS += \
     Data/Snapshot/Snapshot.h \
     Data/Snapshot/SnapshotsFile.h \
     Data/Statistics/Statistics.h \
+    Data/Units/UnitsFrequency.h \
+    Data/Units/UnitsIntensity.h \
+    Data/Units/UnitsSpectral.h \
+    Data/Units/UnitsWavelength.h \
     Data/Util.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
@@ -216,16 +216,16 @@ SOURCES += \
     Data/Profile/ProfilePlotStyles.cpp \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/GenerateModes.cpp \
-    Data/Profile/UnitsFrequency.cpp \
-    Data/Profile/UnitsIntensity.cpp \
-    Data/Profile/UnitsSpectral.cpp \
-    Data/Profile/UnitsWavelength.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
     Data/Statistics/Statistics.cpp \
+    Data/Units/UnitsFrequency.cpp \
+    Data/Units/UnitsIntensity.cpp \
+    Data/Units/UnitsSpectral.cpp \
+    Data/Units/UnitsWavelength.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

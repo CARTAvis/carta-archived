@@ -91,8 +91,8 @@ qx.Class.define("skel.widgets.CustomUI.SelectBox", {
          */
        setSelectItems : function ( items ){
            this.removeListenerById( this.m_selectListener );
-           this.removeAll();
            var oldValue = this.getValue();
+           this.removeAll();
            for ( var i = 0; i < items.length; i++ ){
                var newValue = items[i]+"";
                var tempItem = new qx.ui.form.ListItem( newValue );

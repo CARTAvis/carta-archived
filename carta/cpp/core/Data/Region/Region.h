@@ -106,6 +106,8 @@ private:
     // is created graphically, the id will be just an index.
     void _setUserId( const QString& fileName, int index );
 
+    Region( const Region& other);
+    Region& operator=( const Region& other );
 
 };
 }

@@ -194,7 +194,6 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
          * @param bluePercent {Number} a decimal in [0,1] indicating the blue percentage.
          */
         setMix : function( redPercent, greenPercent, bluePercent ){
-            this.m_colorCanvas.setScales( redPercent, greenPercent, bluePercent );
             this.m_redSlider.removeListenerById( this.m_redSliderListenerId );
             this.m_greenSlider.removeListenerById( this.m_greenSliderListenerId );
             this.m_blueSlider.removeListenerById( this.m_blueSliderListenerId );
@@ -216,19 +215,11 @@ qx.Class.define("skel.widgets.Colormap.ColorMix", {
         },
         
         /**
-         * Invert the colors in the mix.
-         * @param invert {boolean} - invert the colors in the mix.
+         * Set specific color values along the map.
+         * @param stops {String} - list of hex color values.
          */
-        setInvert : function( invert ){
-            this.m_colorCanvas.setInvert( invert );
-        },
-        
-        /**
-         * Reverse the colors in the mix.
-         * @param reverse {boolean} - reverse the colors in the mix.
-         */
-        setReverse : function( reverse ){
-            this.m_colorCanvas.setReverse( reverse );
+        setStops : function( stops ){
+            this.m_colorCanvas.setStops( stops );
         },
         
         /**

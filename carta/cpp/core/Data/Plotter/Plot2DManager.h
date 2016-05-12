@@ -368,7 +368,7 @@ private:
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
 	Plot2DManager( const Plot2DManager& other);
-	Plot2DManager operator=( const Plot2DManager& other );
+	Plot2DManager& operator=( const Plot2DManager& other );
 };
 }
 }

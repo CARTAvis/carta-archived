@@ -198,8 +198,9 @@ QString ContourControls::_generatePercentile( const QString& contourSetName ){
                 int percentCount = percentileLevels.size();
                 std::vector<double> levels( percentCount );
                 bool validIntensities = false;
+                int intensityIndex = 0;
                 for ( int i = 0; i < percentCount; i++ ){
-                    validIntensities = m_percentIntensityMap->getIntensity( percentileLevels[i]/100, &levels[i] );
+                    validIntensities = m_percentIntensityMap->getIntensity( percentileLevels[i]/100, &levels[i], &intensityIndex );
                     if ( !validIntensities ){
                         break;
                     }

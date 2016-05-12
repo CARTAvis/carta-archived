@@ -66,7 +66,6 @@ void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
 }
 
 QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex,
-        std::shared_ptr<ColorState> colorState,
         QSize viewSize ) {
     QString result;
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -80,20 +79,16 @@ QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackI
     //If we are making a new layer, see if there is a selected group.  If so,
     //add to the group.  If not, add to this group.
     if ( *success ){
-        if ( colorState ){
-            targetSource->_setColorMapGlobal( colorState );
-        }
         targetSource->_viewResize( viewSize );
         _setColorSupport( targetSource );
         std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
-        if (selectedGroup && colorState ){
+        if (selectedGroup ){
             selectedGroup->_addLayer( std::shared_ptr<Layer>(targetSource) );
         }
         else {
             m_children.append( std::shared_ptr<Layer>(targetSource) );
             *stackIndex = m_children.size() - 1;
         }
-
     }
     else {
         delete targetSource;
@@ -453,11 +448,13 @@ int LayerGroup::_getIndexCurrent( ) const {
     return dataIndex;
 }
 
-bool LayerGroup::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
+bool LayerGroup::_getIntensity( int frameLow, int frameHigh, double percentile,
+        double* intensity, int* intensityIndex ) const {
     bool intensityFound = false;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        intensityFound = m_children[dataIndex]->_getIntensity( frameLow, frameHigh, percentile, intensity );
+        intensityFound = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
+                percentile, intensity, intensityIndex );
     }
     return intensityFound;
 }
@@ -812,12 +809,6 @@ void LayerGroup::_resetPan( ){
 }
 
 
-void LayerGroup::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
-    for ( std::shared_ptr<Layer> layer : m_children ){
-        layer->_setColorMapGlobal( colorState );
-    }
-}
-
 void LayerGroup::_setColorSupport( Layer* layer ){
     QString compMode = _getCompositionMode();
     bool colorSupport = m_compositionModes->isColorSupport( compMode );
@@ -976,10 +967,13 @@ bool LayerGroup::_setSelected( QStringList& names){
     return stateChanged;
 }
 
-std::vector< std::shared_ptr<ColorState> >  LayerGroup::_getSelectedColorStates(){
+std::vector< std::shared_ptr<ColorState> >  LayerGroup::_getSelectedColorStates( bool global ){
     std::vector< std::shared_ptr<ColorState> > colorStates;
-    for ( std::shared_ptr<Layer> layer : m_children ){
-        std::vector<std::shared_ptr<ColorState> > layerColorStates = layer->_getSelectedColorStates();
+    int childCount = m_children.size();
+    int currentIndex = _getIndexCurrent();
+    for ( int j = 0; j < childCount; j++  ){
+        int index = (currentIndex + j) % childCount;
+        std::vector<std::shared_ptr<ColorState> > layerColorStates = m_children[index]->_getSelectedColorStates( global );
         int layerStateCount = layerColorStates.size();
         for ( int i = 0; i < layerStateCount; i++ ){
             colorStates.push_back( layerColorStates[i] );

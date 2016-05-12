@@ -558,6 +558,11 @@ Plot2DGenerator::~Plot2DGenerator(){
         m_vLine->detach();
         delete m_vLine;
     }
+    if ( m_gridLines ){
+        m_gridLines->detach();
+        delete m_gridLines;
+    }
+    delete m_gridLines;
     delete m_range;
     delete m_plot;
 }

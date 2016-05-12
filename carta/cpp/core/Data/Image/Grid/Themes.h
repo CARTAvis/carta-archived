@@ -64,7 +64,6 @@ private:
 
     class Factory;
 
-
 	Themes( const Themes& other);
 	Themes& operator=( const Themes& other );
 };

@@ -230,13 +230,15 @@ protected:
 
     /**
      * Returns the intensity corresponding to a given percentile.
-     * @param frameLow a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
+     * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
+     * @param percentile - a number [0,1] for which an intensity is desired.
+     * @param intensity - the computed intensity corresponding to the percentile.
+     * @param intensityIndex - the frame where maximum intensity was found.
      * @return true if the computed intensity is valid; otherwise false.
      */
-    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const = 0;
+    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile,
+            double* intensity, int* intensityIndex ) const = 0;
 
     /**
      * Return the current layer.
@@ -335,7 +337,13 @@ protected:
      */
     virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const = 0;
 
-    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() = 0;
+    /**
+     * Return the color states that are eligible for state changes.
+     * @param global - whether color state changes apply to all color maps or only to those that
+     *      correspond to selected images.
+     * @return - a list of color states whose states may be changed.
+     */
+    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) = 0;
 
 
     /**
@@ -441,12 +449,6 @@ protected:
      * Reset the zoom to the original value.
      */
     virtual void _resetZoom( ) = 0;
-
-    /**
-     * Reset the color map information for this data.
-     * @param colorState - stored information about the color map.
-     */
-    virtual void _setColorMapGlobal( std::shared_ptr<ColorState> colorState ) = 0;
 
     /**
      * Set the mode used to compose this layer.

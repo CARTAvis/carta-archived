@@ -487,7 +487,7 @@ private:
     Carta::State::StateInterface m_stateData;
 
 	Histogram( const Histogram& other);
-	Histogram operator=( const Histogram& other );
+	Histogram& operator=( const Histogram& other );
 };
 }
 }

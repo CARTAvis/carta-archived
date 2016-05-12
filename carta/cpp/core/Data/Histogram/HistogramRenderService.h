@@ -84,6 +84,9 @@ private:
     HistogramRenderWorker* m_worker;
     HistogramRenderThread* m_renderThread;
     bool m_renderQueued;
+
+    HistogramRenderService( const HistogramRenderService& other);
+    HistogramRenderService& operator=( const HistogramRenderService& other );
 };
 }
 }

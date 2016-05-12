@@ -43,6 +43,9 @@ private:
      */
     RegionFactory();
 
+    RegionFactory( const RegionFactory& other);
+    RegionFactory& operator=( const RegionFactory& other );
+
 };
 }
 }

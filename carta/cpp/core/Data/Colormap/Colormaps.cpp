@@ -42,37 +42,10 @@ bool Colormaps::m_registered =
 Colormaps::Colormaps( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
     _initializeDefaultState();
-    _initializeCallbacks();
 }
 
 
-QString Colormaps::_commandGetColorStops( const QString& params ){
-    QString result;
-    std::set<QString> keys = {Util::NAME};
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString nameStr = dataValues[*keys.begin()];
-    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = getColorMap( nameStr );
-    if ( map != nullptr ){
-        QStringList buff;
-        for ( int i = 0; i < 100; i++ ){
-            float val = i / 100.0f;
-            Carta::Lib::PixelPipeline::NormRgb normRgb;
-            map->convert( val, normRgb );
-            QColor mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2]);
-            QString hexStr = mapColor.name();
-            if ( i < 99 ){
-                hexStr = hexStr + ",";
-            }
-            buff.append( hexStr );
-        }
-        result = buff.join( "");
-    }
-    else {
-        result = "Invalid color map: "+ params;
-        qWarning() << result;
-    }
-    return result;
-}
+
 
 QStringList Colormaps::getColorMaps() const {
     QStringList buff;
@@ -119,13 +92,6 @@ std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed>  Colormaps::getColorM
     return map;
 }
 
-void Colormaps::_initializeCallbacks(){
-    addCommandCallback( "getColorStops", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-            QString result = _commandGetColorStops( params );
-            return result;
-        });
-}
 
 bool Colormaps::isMap( const QString& name ) const {
     int colorMapCount = m_colormaps.size();

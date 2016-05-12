@@ -76,7 +76,7 @@ private slots:
 
 private:
 
-    QString _addDataImage(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success );
+    QString _addDataImage(const QString& fileName, bool* success );
     QString _addDataRegion(const QString& fileName, bool* success );
 
     QString _closeRegion( const QString& regionId );

@@ -240,7 +240,13 @@ protected:
      */
     virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const Q_DECL_OVERRIDE;
 
-    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() Q_DECL_OVERRIDE;
+    /**
+     * Return the color states that are eligible for state changes.
+     * @param global - whether color state changes apply to all color maps or only to those that
+     *      correspond to selected images.
+     * @return - a list of color states whose states may be changed.
+     */
+    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) Q_DECL_OVERRIDE;
 
     /**
      * Return the state of this layer.
@@ -301,13 +307,15 @@ protected:
 
     /**
      * Returns the intensity corresponding to a given percentile.
-     * @param frameLow a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
+     * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
+     * @param percentile - a number [0,1] for which an intensity is desired.
+     * @param intensity - the computed intensity corresponding to the percentile.
+     * @param intensityIndex - the frame where maximum intensity was found.
      * @return true if the computed intensity is valid; otherwise false.
      */
-    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const Q_DECL_OVERRIDE;
+    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile,
+            double* intensity, int* intensityIndex ) const Q_DECL_OVERRIDE;
 
 
     /**
@@ -351,12 +359,6 @@ protected:
      * @param restoreeState - the new layer state.
      */
     virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
-
-    /**
-     * Reset the color map information for this data.
-     * @param colorState - stored information about the color map.
-     */
-    virtual void _setColorMapGlobal( std::shared_ptr<ColorState> colorState ) Q_DECL_OVERRIDE;
 
     virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
 

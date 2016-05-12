@@ -98,6 +98,8 @@ private:
 
     std::vector<double> m_datasX;
     std::vector<double> m_datasY;
+    Plot2DProfile( const Plot2DProfile& other);
+    Plot2DProfile& operator=( const Plot2DProfile& other );
 
 };
 

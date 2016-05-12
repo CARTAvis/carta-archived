@@ -133,6 +133,8 @@ public:
 private:
     Util();
     virtual ~Util();
+    Util( const Util& other);
+    Util& operator=( const Util& other );
     static const QString TRUE;
     static const QString FALSE;
 
