@@ -14,8 +14,6 @@ const QString Region::CORNERS = "corners";
 const QString Region::REGION_POLYGON = "Polygon";
 const QString Region::REGION_ELLIPSE = "Ellipse";
 const QString Region::REGION_TYPE = "regionType";
-const QString Region::XCOORD = "x";
-const QString Region::YCOORD = "y";
 
 class Region::Factory : public Carta::State::CartaObjectFactory {
 public:
@@ -42,8 +40,8 @@ void Region::addCorners( const std::vector< std::pair<double,double> >& corners 
     m_state.resizeArray( CORNERS, cornerCount );
     for ( int i = 0; i < cornerCount; i++ ){
         QString eleLookup = Carta::State::UtilState::getLookup( CORNERS, i );
-        QString xLookup = Carta::State::UtilState::getLookup( eleLookup, XCOORD );
-        QString yLookup = Carta::State::UtilState::getLookup( eleLookup, YCOORD );
+        QString xLookup = Carta::State::UtilState::getLookup( eleLookup, Util::XCOORD );
+        QString yLookup = Carta::State::UtilState::getLookup( eleLookup, Util::YCOORD );
         m_state.insertValue<double>( xLookup, corners[i].first );
         m_state.insertValue<double>( yLookup, corners[i].second );
     }
@@ -57,8 +55,8 @@ std::shared_ptr<Carta::Lib::RegionInfo> Region::getInfo() const {
     std::vector< std::pair<double,double> > corners( cornerCount );
     for( int i = 0; i < cornerCount; i++ ){
         QString eleLookup = Carta::State::UtilState::getLookup( CORNERS, i );
-        QString xLookup = Carta::State::UtilState::getLookup( eleLookup, XCOORD );
-        QString yLookup = Carta::State::UtilState::getLookup( eleLookup, YCOORD );
+        QString xLookup = Carta::State::UtilState::getLookup( eleLookup, Util::XCOORD );
+        QString yLookup = Carta::State::UtilState::getLookup( eleLookup, Util::YCOORD );
         double xValue = m_state.getValue<double>( xLookup );
         double yValue = m_state.getValue<double>( yLookup );
         corners[i] = std::pair<double,double>( xValue, yValue );
@@ -133,8 +131,8 @@ void Region::_restoreState( const QString& stateStr ){
     m_state.resizeArray( CORNERS, cornerCount );
     for ( int i = 0; i < cornerCount; i++ ){
         QString eleLookup = Carta::State::UtilState::getLookup( CORNERS, i );
-        QString xLookup = Carta::State::UtilState::getLookup( eleLookup, XCOORD );
-        QString yLookup = Carta::State::UtilState::getLookup( eleLookup, YCOORD );
+        QString xLookup = Carta::State::UtilState::getLookup( eleLookup, Util::XCOORD );
+        QString yLookup = Carta::State::UtilState::getLookup( eleLookup, Util::YCOORD );
         double xValue = dataState.getValue<double>( xLookup );
         double yValue = dataState.getValue<double>( yLookup );
         m_state.insertValue<double>( xLookup, xValue );

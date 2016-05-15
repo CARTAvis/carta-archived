@@ -128,6 +128,8 @@ public:
      static const QString UNITS;
      static const QString VISIBLE;
      static const QString VIEW;
+     static const QString XCOORD;
+     static const QString YCOORD;
      static const int MAX_COLOR;
 
 private:

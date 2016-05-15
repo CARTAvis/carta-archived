@@ -2,6 +2,7 @@
 #include "ColorState.h"
 #include "Data/Settings.h"
 #include "Data/Colormap/Colormaps.h"
+#include "Data/Colormap/Gamma.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/DataSource.h"
@@ -48,6 +49,7 @@ public:
 bool Colormap::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new Colormap::Factory());
 UnitsIntensity* Colormap::m_intensityUnits = nullptr;
+Gamma* Colormap::m_gammaTransform = nullptr;
 
 Colormap::Colormap( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
@@ -520,32 +522,45 @@ void Colormap::_initializeCallbacks(){
                 result = "Invalid color scale: "+params;
             }
             else {
-                double oldScale1 = m_state.getValue<double>(ColorState::SCALE_1);
-                double oldScale2 = m_state.getValue<double>(ColorState::SCALE_2);
-                bool changedState = false;
-                if ( scale1 != oldScale1 ){
-                    m_state.setValue<double>(ColorState::SCALE_1, scale1 );
-                    changedState = true;
-                }
-                if ( scale2 != oldScale2 ){
-                    m_state.setValue<double>(ColorState::SCALE_2, scale2 );
-                    changedState = true;
-                }
-                if ( changedState ){
-                    m_state.flushState();
-                    //Calculate the new gamma
-                    double maxndig = 10;
-                    double ndig = (scale2 + 1) / 2 * maxndig;
-                    double expo = std::pow( 2.0, ndig);
-                    double xx = std::pow(scale1 * 2, 3) / 8.0;
-                    double gamma = fabs(xx) * expo + 1;
-                    if( scale1 < 0){
-                        gamma = 1 / gamma;
+                bool scaleChanged = false;
+                int stateColorCount = m_stateColors.size();
+                for ( int i = 0; i < stateColorCount; i++ ){
+                    bool scaleChanged1 = m_stateColors[i]->_setGammaX( scale1, m_errorMargin, getSignificantDigits() );
+                    bool scaleChanged2 = m_stateColors[i]->_setGammaY( scale2, m_errorMargin, getSignificantDigits() );
+                    if ( scaleChanged1 || scaleChanged2 ){
+                        scaleChanged = true;
                     }
+                }
+                if ( scaleChanged ){
+                    double gamma = m_gammaTransform->getGamma( scale1, scale2 );
                     result = setGamma( gamma );
                 }
             }
         }
+        return result;
+    });
+
+    addCommandCallback( "setGamma", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {ColorState::GAMMA};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString gammaStr = dataValues[ColorState::GAMMA];
+        bool validDigits = false;
+        double gamma = gammaStr.toDouble( &validDigits );
+        if ( validDigits ){
+            std::pair<double,double> position = m_gammaTransform->find( gamma );
+            int stateCount = m_stateColors.size();
+            for ( int i = 0; i < stateCount; i++ ){
+                m_stateColors[i]->_setGammaX( position.first, m_errorMargin, getSignificantDigits() );
+                m_stateColors[i]->_setGammaY( position.second, m_errorMargin, getSignificantDigits() );
+            }
+            result = setGamma( gamma );
+        }
+        else {
+            result = "Colormap gamma must be a number: "+params;
+        }
+        Util::commandPostProcess( result );
         return result;
     });
 
@@ -675,6 +690,10 @@ void Colormap::_initializeStatics(){
     //Intensity units
     if ( m_intensityUnits == nullptr ){
         m_intensityUnits = Util::findSingletonObject<UnitsIntensity>();
+    }
+    //Gamma transform
+    if ( m_gammaTransform == nullptr ){
+        m_gammaTransform = Util::findSingletonObject<Gamma>();
     }
 }
 

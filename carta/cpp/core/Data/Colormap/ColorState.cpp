@@ -261,6 +261,10 @@ void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
 
     double gamma = m_state.getValue<double>( GAMMA );
     otherState.setValue<double>(GAMMA, gamma );
+    double scale1 = m_state.getValue<double>( SCALE_1 );
+    otherState.setValue<double>( SCALE_1, scale1 );
+    double scale2 = m_state.getValue<double>( SCALE_2 );
+    otherState.setValue<double>( SCALE_2, scale2 );
     QString dataTransform = m_state.getValue<QString>( TRANSFORM_DATA );
     otherState.setValue<QString>(TRANSFORM_DATA, dataTransform);
 
@@ -410,13 +414,35 @@ QString ColorState::_setDataTransform( const QString& transformString ){
 QString ColorState::_setGamma( double gamma, double errorMargin, int significantDigits ){
     QString result;
     double oldGamma = m_state.getValue<double>( GAMMA );
-    if ( qAbs( gamma - oldGamma) > errorMargin ){
-        m_state.setValue<double>(GAMMA, Util::roundToDigits(gamma, significantDigits ));
+    double roundedGamma = Util::roundToDigits(gamma, significantDigits );
+    if ( qAbs( roundedGamma - oldGamma) > errorMargin ){
+        m_state.setValue<double>(GAMMA, roundedGamma );
         emit colorStateChanged();
     }
     return result;
 }
 
+bool ColorState::_setGammaX( double xValue, double errorMargin, int significantDigits ){
+    bool changed = false;
+    double xValueOld = m_state.getValue<double>( SCALE_1 );
+    double xValueRounded = Util::roundToDigits( xValue, significantDigits );
+    if ( qAbs( xValueRounded - xValueOld ) > errorMargin ){
+        m_state.setValue<double>(SCALE_1, xValueRounded);
+        changed = true;
+    }
+    return changed;
+}
+
+bool ColorState::_setGammaY( double yValue, double errorMargin, int significantDigits ){
+    bool changed = false;
+    double yValueOld = m_state.getValue<double>( SCALE_2 );
+    double yValueRounded = Util::roundToDigits( yValue, significantDigits );
+    if ( qAbs( yValueRounded - yValueOld ) > errorMargin ){
+        m_state.setValue<double>(SCALE_2, yValueRounded);
+        changed = true;
+    }
+    return changed;
+}
 
 void ColorState::_setInvert( bool invert ){
     bool oldInvert = m_state.getValue<bool>(INVERT );

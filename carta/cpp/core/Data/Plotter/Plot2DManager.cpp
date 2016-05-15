@@ -18,7 +18,7 @@ namespace Data {
 const QString Plot2DManager::CLASS_NAME = "Plot2DManager";
 const QString Plot2DManager::DATA_PATH = "dataPath";
 const QString Plot2DManager::CURSOR_TEXT = "cursorText";
-const QString Plot2DManager::X_COORDINATE = "x";
+
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
@@ -78,9 +78,9 @@ void Plot2DManager::clearSelectionColor(){
 
 
 void Plot2DManager::endSelection(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
+    std::set<QString> keys = {Util::XCOORD};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
+    QString xstr = dataValues[Util::XCOORD];
     m_selectionEnd = xstr.toDouble();
     if ( m_plotGenerator ){
         m_plotGenerator->setSelectionMode( false );
@@ -93,9 +93,9 @@ void Plot2DManager::endSelection(const QString& params ){
 
 
 void Plot2DManager::endSelectionColor(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
+    std::set<QString> keys = {Util::XCOORD};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
+    QString xstr = dataValues[Util::XCOORD];
     m_selectionEnd = xstr.toDouble();
     if ( m_plotGenerator ){
         m_plotGenerator->setSelectionModeColor( false );
@@ -439,9 +439,9 @@ void Plot2DManager::setVLinePosition( double xPos ){
 
 
 void Plot2DManager::startSelection(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
+    std::set<QString> keys = {Util::XCOORD};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
+    QString xstr = dataValues[Util::XCOORD];
     double proposedStart = xstr.toDouble();
     bool onTarget = m_plotGenerator->isSelectionOnCanvas( proposedStart );
     if ( onTarget ){
@@ -455,9 +455,9 @@ void Plot2DManager::startSelection(const QString& params ){
 
 
 void Plot2DManager::startSelectionColor(const QString& params ){
-    std::set<QString> keys = {X_COORDINATE};
+    std::set<QString> keys = {Util::XCOORD};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString xstr = dataValues[X_COORDINATE];
+    QString xstr = dataValues[Util::XCOORD];
     m_selectionEnabledColor = true;
     m_selectionStart = xstr.toDouble();
     if ( m_plotGenerator ){

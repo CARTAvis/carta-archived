@@ -14,6 +14,7 @@
 #include "Data/Image/LayerCompositionModes.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
+#include "Data/Colormap/Gamma.h"
 #include "Data/Colormap/TransformsData.h"
 #include "Data/Colormap/TransformsImage.h"
 #include "Data/Error/ErrorManager.h"
@@ -82,6 +83,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<Colormaps>();
     Util::findSingletonObject<TransformsData>();
     Util::findSingletonObject<TransformsImage>();
+    Util::findSingletonObject<Gamma>();
     Util::findSingletonObject<ErrorManager>();
     Util::findSingletonObject<Fonts>();
     Util::findSingletonObject<LabelFormats>();
@@ -1102,6 +1104,8 @@ ViewManager::~ViewManager(){
     obj =  Util::findSingletonObject<TransformsData>();
     delete obj;
     obj =  Util::findSingletonObject<TransformsImage>();
+    delete obj;
+    obj = Util::findSingletonObject<Gamma>();
     delete obj;
     obj =  Util::findSingletonObject<ErrorManager>();
     delete obj;

@@ -24,16 +24,16 @@ qx.Class.define("skel.widgets.Colormap.PageTransform", {
          */
         _init : function( ) {
             this.setPadding( 0, 0, 0, 0 );
-            this.setMargin( 1, 1, 1, 1 );
             this._setLayout(new qx.ui.layout.HBox(2));
            
+            this.m_preferences = new skel.widgets.CustomUI.SignificantDigits();
             this.m_transformSettings = new skel.widgets.Colormap.ColorTransform();
             this.m_modelSettings = new skel.widgets.Colormap.ColorModel();
-            this.m_preferences = new skel.widgets.CustomUI.SignificantDigits();
-           
-            this.add( this.m_transformSettings );
-            this.add( this.m_modelSettings );
+            
             this.add( this.m_preferences );
+            this.add( this.m_modelSettings );
+            this.add( this.m_transformSettings );
+            
         },
         
                 
@@ -46,6 +46,7 @@ qx.Class.define("skel.widgets.Colormap.PageTransform", {
             if ( this.m_modelSettings !== null ){
                 this.m_transformSettings.setControls( controls);
                 this.m_modelSettings.setGamma( controls.gamma );
+                this.m_modelSettings.setGammaPosition( controls.scale1, controls.scale2 );
                 this.m_preferences.setControls( controls );
             }
         },

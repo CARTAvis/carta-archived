@@ -343,7 +343,6 @@ private slots:
 private:
 
     const static QString DATA_PATH;
-    const static QString X_COORDINATE;
 
     void _initializeDefaultState();
     void _initializeCallbacks();

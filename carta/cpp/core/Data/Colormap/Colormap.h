@@ -26,6 +26,7 @@ namespace Data {
 
 class ColorState;
 class Controller;
+class Gamma;
 class Settings;
 class UnitsIntensity;
 
@@ -322,6 +323,8 @@ private:
 
     //Image units
     static UnitsIntensity* m_intensityUnits;
+    //Gamma
+    static Gamma* m_gammaTransform;
 
     Carta::State::StateInterface m_stateData;
 

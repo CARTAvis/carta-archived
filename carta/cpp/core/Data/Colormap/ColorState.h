@@ -172,6 +172,9 @@ private:
     bool _setColor( const QString& key, const QString& majorKey, const QString& userId,
             int colorAmount, QString& errorMsg );
 
+    bool _setGammaX( double xValue, double errorMargin, int significantDigits );
+    bool _setGammaY( double xValue, double errorMargin, int significantDigits );
+
     void _setNanDefault( bool defaultNan );
 
     /**

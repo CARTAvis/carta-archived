@@ -31,6 +31,7 @@ HEADERS += \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
     Data/Colormap/ColorState.h \
+    Data/Colormap/Gamma.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
     Data/DataLoader.h \
@@ -159,6 +160,7 @@ SOURCES += \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
     Data/Colormap/ColorState.cpp \
+    Data/Colormap/Gamma.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \

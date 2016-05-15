@@ -19,6 +19,7 @@ qx.Class.define("skel.widgets.Path", {
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
         this.FONTS = this.BASE_PATH + "Fonts";
+        this.GAMMA = this.BASE_PATH + "Gamma";
         this.INTENSITY_UNITS = this.BASE_PATH + "UnitsIntensity";
         this.LABEL_FORMATS = this.BASE_PATH + "LabelFormats";
         this.LAYER_COMPOSITION_MODES = this.BASE_PATH + "LayerCompositionModes";
@@ -74,6 +75,7 @@ qx.Class.define("skel.widgets.Path", {
         DATA_LOADER : "DataLoader",
         ERROR_HANDLER : "",
         FONTS : "",
+        GAMMA : "",
         GRID_PLUGIN : "GridControls",
         HIDDEN : "Hidden",
         HIDE_IMAGE : "hideImage",

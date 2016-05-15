@@ -76,8 +76,6 @@ private:
     const static QString REGION_POLYGON;
     const static QString REGION_ELLIPSE;
 
-    const static QString XCOORD;
-    const static QString YCOORD;
     void _initializeCallbacks();
     void _initializeState();
 
