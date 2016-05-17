@@ -499,14 +499,27 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_lowBoundsSpinner.setToolTipText( "Set a lower bound for valid values.");
             this.m_slider = new qx.ui.form.Slider();
             this.m_slider.addListener(skel.widgets.Path.CHANGE_VALUE, function( ev ) {
-                if (this.m_inUpdateState) {
-                    return;
-                }
-                
-                if ( this.m_frame != this.m_slider.getValue()){
-                    this._sendFrame(this.m_slider.getValue());
+                var sliderValue = this.m_slider.getValue();
+                if ( this.m_frame != sliderValue){
+                    this._sendFrame( sliderValue );
                 }
             }, this);
+           
+            //Added because of issue #154.  If you click somewhere in the slider
+            //it should move to that position.
+            this.m_slider.addListener( "click", function(ev){
+                var box = this.m_slider.getContentLocation();
+                var left = ev.getDocumentLeft() - box.left;
+                var width = this.m_slider.getBounds().width;
+                if ( width > 0 ){
+                    var min = this.m_slider.getMinimum();
+                    var max = this.m_slider.getMaximum();
+                    var newValue = min + left / width * ( max - min );
+                    if ( Math.abs( this.m_slider.getValue() - newValue ) > 1 ){
+                        this.m_slider.setValue( Math.round(newValue) );
+                    }
+                }
+            }, this );
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
             this.m_highBoundsSpinner.addListener("changeValue", this._highChanged, this); 
@@ -946,7 +959,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_sharedVar : null,
         m_sharedVarSelection : null,
         m_identifier : null,
-        m_inUpdateState : false,
         
         m_available : true,
         m_frame : null,
