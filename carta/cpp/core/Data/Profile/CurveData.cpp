@@ -12,6 +12,7 @@
 #include "Globals.h"
 #include <QtCore/qmath.h>
 #include <QDebug>
+#include <cmath>
 
 namespace Carta {
 

@@ -9,6 +9,7 @@
 
 #include <QDebug>
 #include <QDir>
+#include <cmath>
 
 using Carta::Lib::AxisInfo;
 
