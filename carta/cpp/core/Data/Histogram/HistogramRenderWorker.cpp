@@ -59,7 +59,9 @@ bool HistogramRenderWorker::setParameters(std::shared_ptr<Carta::Lib::Image::Ima
         m_fileName = fileName;
         paramsChanged = true;
     }
-    m_dataSource = dataSource;
+    if ( m_dataSource.get() != dataSource.get() ){
+        m_dataSource = dataSource;
+    }
     return paramsChanged;
 }
 

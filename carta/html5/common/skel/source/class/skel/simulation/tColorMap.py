@@ -71,7 +71,7 @@ class tColorMap(unittest.TestCase):
             
     # Load 3 images
     # Select the bottom two in the stack
-    # Turn of global in the color map
+    # Turn off 'apply all' in the color map
     # Change the color map
     # Check that the first two have the changed color map and the third does not
     def test_notGlobalIsNotGlobal(self):    
@@ -98,8 +98,19 @@ class tColorMap(unittest.TestCase):
         autoSelectCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "autoSelectImages")))
         ActionChains(driver).click( autoSelectCheck ).perform()
         
+        # Find the colormap window.
+        colorWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowColormap']")))
+        ActionChains(driver).click(colorWindow).perform()
+        time.sleep( timeout )
+        
+        #Open the colormap settings
+        Util.openSettings( self, driver, "Colormap", True )
+        Util.clickTab( driver, "Color Map")
+        time.sleep( timeout );
+        
         #Uncheck using a global color map
         globalCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "colorMapGlobal")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", globalCheck)
         ActionChains(driver).click( globalCheck ).perform()
         
         #Choose a new color map
@@ -114,14 +125,17 @@ class tColorMap(unittest.TestCase):
         #Animate through images.  Make sure the first and second ones are using the old map 
         #and the third is not
         self._nextImage( driver )
+        time.sleep( timeout )
         imageMapName = self._getColorMapName( driver )
         print "Image 1 name=",imageMapName
         self.assertTrue( imageMapName == oldMapName, "Color map name 1 incorrect")
         self._nextImage( driver )
+        time.sleep( timeout )
         imageMapName = self._getColorMapName( driver )
         print "Image 2 name=",imageMapName
         self.assertTrue( imageMapName == oldMapName, "Color map name 2 incorrect")
         self._nextImage( driver )
+        time.sleep( timeout )
         imageMapName = self._getColorMapName( driver )
         print "Image 3 name=",imageMapName
         self.assertTrue( imageMapName == newMapName, "Color map name 3 incorrect")

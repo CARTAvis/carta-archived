@@ -14,6 +14,7 @@
 #include "Data/Plotter/LegendLocations.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Data/Plotter/LineStyles.h"
+#include "Data/Profile/ProfileRenderService.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Units/UnitsFrequency.h"
 #include "Data/Units/UnitsIntensity.h"
@@ -89,11 +90,17 @@ Profiler::Profiler( const QString& path, const QString& id):
             m_preferences( nullptr),
             m_plotManager( new Plot2DManager( path, id ) ),
             m_legendLocations( nullptr),
-            m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA)){
+            m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA) ),
+            m_renderService( new ProfileRenderService() ){
 
     m_oldFrame = 0;
     m_currentFrame = 0;
     m_timerId = 0;
+
+    connect( m_renderService.get(),
+            SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&,int,const QString&,bool,std::shared_ptr<Carta::Lib::Image::ImageInterface>)),
+            this,
+            SLOT(_profileRendered(const Carta::Lib::Hooks::ProfileResult&,int,const QString&,bool, std::shared_ptr<Carta::Lib::Image::ImageInterface>)));
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Settings* prefObj = objMan->createObject<Settings>();
@@ -342,12 +349,14 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
 }
 
 
+
+
 void Profiler::_generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
         int curveIndex, const QString& layerName, bool createNew ){
     std::vector < int > pos( image-> dims().size(), 0 );
     int axis = _getExtractionAxisIndex( image );
     if ( axis >= 0 ){
-        Profiles::PrincipalAxisProfilePath path( axis, pos );
+        //Profiles::PrincipalAxisProfilePath path( axis, pos );
 
         Carta::Lib::ProfileInfo profInfo;
         if ( curveIndex >= 0 ){
@@ -362,7 +371,9 @@ void Profiler::_generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface>
         }
         profInfo.setSpectralType( typeStr );
         Carta::Lib::RegionInfo regionInfo;
-        auto result = Globals::instance()-> pluginManager()
+        m_renderService->renderProfile(image, regionInfo, profInfo, curveIndex, layerName, createNew );
+
+        /*auto result = Globals::instance()-> pluginManager()
                       -> prepare <Carta::Lib::Hooks::ProfileHook>(image,
                               regionInfo, profInfo);
         auto lam = [=] ( const Carta::Lib::Hooks::ProfileHook::ResultType &result ) {
@@ -409,7 +420,7 @@ void Profiler::_generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface>
         }
         catch( char*& error ){
             qDebug() << "Profiler could not get data: caught error: " << error;
-        }
+        }*/
 
         /*Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
         Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
@@ -1119,6 +1130,7 @@ void Profiler::_loadProfile( Controller* controller ){
     }
 
     //Make profiles for any new data that has been loaded.
+    bool generates = false;
     for ( int i = 0; i < dataCount; i++ ) {
         QString layerName = layers[i]->_getLayerName();
         int curveCount = m_plotCurves.size();
@@ -1131,12 +1143,16 @@ void Profiler::_loadProfile( Controller* controller ){
             }
         }
         if ( profileIndex < 0 ){
+            generates = true;
             _generateData( layers[i]);
         }
     }
     _saveCurveState();
-
-    _updatePlotData();
+    //If we removed some curves but did not generate any new ones, the plot
+    //needs to get updated (it will be updated automatically if a new curve is generated.
+    if ( removeIndices.size() > 0 && !generates ){
+        _updatePlotData();
+    }
 }
 
 
@@ -1216,6 +1232,56 @@ QString Profiler::profileRemove( const QString& name ){
         result = "Could not find profile curve "+name+" to remove.";
     }
     return result;
+}
+
+
+void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
+        int curveIndex, const QString& layerName, bool createNew,
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image){
+    QString errorMessage = result.getError();
+    if ( !errorMessage.isEmpty() ){
+        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+        hr->registerError( errorMessage );
+    }
+    else {
+        std::vector< std::pair<double,double> > data = result.getData();
+        int dataCount = data.size();
+        if ( dataCount > 0 ){
+            std::vector<double> plotDataX( dataCount );
+            std::vector<double> plotDataY( dataCount );
+
+            for( int i = 0 ; i < dataCount; i ++ ){
+                plotDataX[i] = data[i].first;
+                plotDataY[i] = data[i].second;
+            }
+
+            std::shared_ptr<CurveData> profileCurve( nullptr );
+            if ( curveIndex < 0 || createNew ){
+                Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+                profileCurve.reset( objMan->createObject<CurveData>() );
+                profileCurve->setImageName( layerName );
+                double restFrequency = result.getRestFrequency();
+                int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
+                double restRounded = Util::roundToDigits( restFrequency, significantDigits );
+                QString restUnit = result.getRestUnits();
+                profileCurve->setRestQuantity( restRounded, restUnit );
+                _assignCurveName( profileCurve );
+                _assignColor( profileCurve );
+                m_plotCurves.append( profileCurve );
+                profileCurve->setSource( image );
+
+            }
+            else {
+                profileCurve = m_plotCurves[curveIndex];
+            }
+
+            profileCurve->setData( plotDataX, plotDataY );
+            _saveCurveState();
+            _updateZoomRangeBasedOnPercent();
+            _updatePlotBounds();
+            _updatePlotData();
+        }
+    }
 }
 
 

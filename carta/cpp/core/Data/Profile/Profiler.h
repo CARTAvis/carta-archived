@@ -10,7 +10,7 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "CartaLib/IImage.h"
-#include "ProfileExtractor.h"
+#include "CartaLib/Hooks/ProfileResult.h"
 
 #include <QObject>
 
@@ -41,6 +41,7 @@ class GenerateModes;
 class LegendLocations;
 class LinkableImpl;
 class Layer;
+class ProfileRenderService;
 class ProfileStatistics;
 class Settings;
 
@@ -318,6 +319,9 @@ private slots:
     void _cursorUpdate( double x, double y );
     void _loadProfile( Controller* controller);
     void _movieFrame();
+    void _profileRendered( const Carta::Lib::Hooks::ProfileResult& result,
+            int curveIndex, const QString& layerName, bool createNew,
+            std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateZoomRangeBasedOnPercent();
     QString _zoomToSelection();
@@ -440,6 +444,9 @@ private:
 
 
     static QList<QColor> m_curveColors;
+
+    //Compute the profile in a thread
+    std::unique_ptr<ProfileRenderService> m_renderService;
 
 	Profiler( const Profiler& other);
 	Profiler& operator=( const Profiler& other );

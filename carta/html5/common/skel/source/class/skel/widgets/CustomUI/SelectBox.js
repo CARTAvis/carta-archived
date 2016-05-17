@@ -93,21 +93,23 @@ qx.Class.define("skel.widgets.CustomUI.SelectBox", {
            this.removeListenerById( this.m_selectListener );
            var oldValue = this.getValue();
            this.removeAll();
+           var selection = [];
            for ( var i = 0; i < items.length; i++ ){
                var newValue = items[i]+"";
+              
                var tempItem = new qx.ui.form.ListItem( newValue );
+               if ( newValue == oldValue ){
+                   selection.push( tempItem );
+               }
                this.add( tempItem );
            }
           
            //Try to reset the old selection
            if ( oldValue !== null ){ 
                if ( items.length > 0 ){
-                   var selection = [];
-                   selection.push( oldValue );
                    this.setSelection( selection );
                }
            }
-           
            //Select the first item
            else if ( items.length > 0 ){
                var selectables = this.getSelectables(true);

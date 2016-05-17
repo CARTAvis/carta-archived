@@ -251,6 +251,7 @@ class tHistogram( unittest.TestCase ):
         # Load two images in the same image window
         Util.load_image( self, driver, "Default")
         Util.load_image( self, driver, "aH.fits")
+        time.sleep( timeout )
 
         # Find and select the histogram
         histWindow = self._getHistogramWindow( driver )

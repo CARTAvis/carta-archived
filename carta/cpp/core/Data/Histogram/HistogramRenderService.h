@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <QObject>
-#include <memory>
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/Hooks/HistogramResult.h"
+#include <QObject>
+#include <memory>
 
 namespace Carta {
 namespace Lib {
@@ -33,13 +33,6 @@ public:
      * Constructor.
      */
     explicit HistogramRenderService( QObject * parent = 0 );
-
-
-    /**
-     * Returns the appropriate data for generating a histogram.
-     * @return - the data needed for plotting a histogram.
-     */
-    Carta::Lib::Hooks::HistogramResult getResult() const;
 
     /**
      * Initiates the process of rendering thee histogram.
@@ -69,7 +62,7 @@ signals:
     /**
      * Notification that new histogram data has been computed.
      */
-    void histogramResult( );
+    void histogramResult( const Carta::Lib::Hooks::HistogramResult& result );
 
 private slots:
 
@@ -80,10 +73,12 @@ private:
                 int binCount, int minChannel, int maxChannel, double minFrequency, double maxFrequency,
                 const QString& rangeUnits, double minIntensity, double maxIntensity,
                 const QString& fileName);
-    Carta::Lib::Hooks::HistogramResult m_result;
     HistogramRenderWorker* m_worker;
     HistogramRenderThread* m_renderThread;
     bool m_renderQueued;
+
+
+
 
     HistogramRenderService( const HistogramRenderService& other);
     HistogramRenderService& operator=( const HistogramRenderService& other );

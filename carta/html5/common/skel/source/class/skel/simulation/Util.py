@@ -332,5 +332,5 @@ def verifyAnimatorUpperBound(unittest, driver, expectedCount, animatorName):
     fullId = animatorName + "AnimatorUpperBound"
     animatorLabel = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, fullId ) ) )
     upperBound = animatorLabel.text
-    print "Animator upper bound=", upperBound
+    print "Animator upper bound=", upperBound, " expected bound=", expectedCount
     unittest.assertEqual( upperBound, str(expectedCount), "Animator upper bound was not correct")

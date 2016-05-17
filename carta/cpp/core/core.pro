@@ -90,6 +90,9 @@ HEADERS += \
     Data/Profile/CurveData.h \
     Data/Profile/Profiler.h \
     Data/Profile/ProfilePlotStyles.h \
+    Data/Profile/ProfileRenderService.h \
+    Data/Profile/ProfileRenderThread.h \
+    Data/Profile/ProfileRenderWorker.h \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
@@ -216,6 +219,9 @@ SOURCES += \
     Data/Profile/CurveData.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfilePlotStyles.cpp \
+    Data/Profile/ProfileRenderService.cpp \
+    Data/Profile/ProfileRenderThread.cpp \
+    Data/Profile/ProfileRenderWorker.cpp \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \

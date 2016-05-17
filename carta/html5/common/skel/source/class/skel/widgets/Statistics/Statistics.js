@@ -30,13 +30,6 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             
             //Image Statistics
             this.m_statsImage = new skel.widgets.Statistics.StatisticsImage();
-            this.m_statsImage.addListener( "imageChanged", function(evt){
-                var data = evt.getData();
-                if ( this.m_selectIndex != data.index ){
-                    this.m_selectIndex = data.index;
-                    this._statsChanged();
-                }
-            }, this );
             
             //Divider
             this.m_divWidget = new qx.ui.core.Widget();
@@ -46,6 +39,14 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             //RegionStatistics
             this.m_statsRegions = new skel.widgets.Statistics.StatisticsRegion();
             this._add( this.m_statContainer );
+            
+            this.m_statsImage.addListener( "imageChanged", function(evt){
+                var data = evt.getData();
+                if ( this.m_selectIndex != data.index ){
+                    this.m_selectIndex = data.index;
+                    this._statsChanged();
+                }
+            }, this );
         },
        
         
@@ -56,7 +57,6 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             this.m_statContainer.removeAll();
             if ( this.m_stats !== null ){
                 this.m_statContainer.add( this.m_statsImage );
-                
                 var regionStats = this.m_statsRegions.isStats();
                 if ( regionStats ){
                     if ( this.m_showRegionStats ){
@@ -108,7 +108,6 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
          *      from the server; false if other data updates have previously happened.
          */
         _statsChanged : function( firstInit ){
-            
             this.m_statsImage.updateImages( this.m_stats );
             if ( 0 <= this.m_selectIndex && this.m_selectIndex < this.m_stats.length ){
                 //Image stats are always the first.

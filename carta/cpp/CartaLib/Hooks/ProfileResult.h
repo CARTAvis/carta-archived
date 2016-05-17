@@ -26,6 +26,12 @@ class ProfileResult {
   	std::vector< std::pair<double,double> > getData() const;
 
   	/**
+  	 * Return information about any errors that prevented the computation of a profile.
+  	 * @return - an error message or an empty string if no errors were encountered.
+  	 */
+    QString getError() const;
+
+  	/**
   	 * Returns the image rest frequency units.
   	 * @return - the image rest frequency units.
   	 */
@@ -42,6 +48,12 @@ class ProfileResult {
   	 * @param data - the (x,y) data pairs that make up a profile.
   	 */
   	void setData( const std::vector< std::pair<double,double> >& data );
+
+  	/**
+  	 * Set an error message if there was a problem computing the profile.
+  	 * @param errorMessage - a description of the problem.
+  	 */
+  	void setError( const QString& errorMsg );
 
   	/**
   	 * Store the image rest frequency.
@@ -61,9 +73,12 @@ class ProfileResult {
       std::vector< std::pair<double,double> > m_data;
       double m_restFrequency;
       QString m_restUnits;
+      QString m_errorMessage;
 };
 
-
+//Serialization so that the profile result can be generated in a separate process.
+QDataStream &operator<<(QDataStream& out, const Carta::Lib::Hooks::ProfileResult& result );
+QDataStream &operator>>(QDataStream& in, Carta::Lib::Hooks::ProfileResult& result );
 
 }
 }

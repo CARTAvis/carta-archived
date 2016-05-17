@@ -31,6 +31,27 @@ QString ProfileInfo::getSpectralUnit() const {
     return m_spectralUnit;
 }
 
+bool ProfileInfo::operator==( const ProfileInfo& rhs ) {
+    bool equalProfiles = false;
+    if ( m_aggregateType == rhs.m_aggregateType ){
+        if ( m_restUnit == rhs.m_restUnit ){
+            if ( m_spectralType == rhs.m_spectralType ){
+                if ( m_spectralUnit == rhs.m_spectralUnit ){
+                    const double ERROR_MARGIN = 0.000001;
+                    if ( fabs( m_restFrequency - rhs.m_restFrequency ) < ERROR_MARGIN ){
+                        equalProfiles = true;
+                    }
+                }
+            }
+        }
+    }
+    return equalProfiles;
+}
+
+bool ProfileInfo::operator!=( const ProfileInfo& rhs ) {
+    return !( *this== rhs );
+}
+
 void ProfileInfo::setAggregateType( const ProfileInfo::AggregateType & knownType ){
     m_aggregateType = knownType;
 }

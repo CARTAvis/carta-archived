@@ -509,6 +509,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this);
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
+            this.m_highBoundsSpinner.addListener("changeValue", this._highChanged, this); 
             skel.widgets.TestID.addTestId( this.m_highBoundsSpinner, this.m_title+"UpperBoundSpin");
             this.m_highBoundsSpinner.setToolTipText( "Set an upper bound for valid values");
             var sliderComposite = new qx.ui.container.Composite();

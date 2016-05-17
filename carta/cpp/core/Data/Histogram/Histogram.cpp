@@ -101,8 +101,10 @@ Histogram::Histogram( const QString& path, const QString& id):
     Settings* prefObj = objMan->createObject<Settings>();
     m_preferences.reset( prefObj );
 
-    connect( m_renderService.get(), SIGNAL(histogramResult()),
-            this, SLOT(_histogramRendered()));
+    connect( m_renderService.get(),
+            SIGNAL(histogramResult(const Carta::Lib::Hooks::HistogramResult& )),
+            this,
+            SLOT(_histogramRendered(const Carta::Lib::Hooks::HistogramResult& )));
 
     m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::HISTOGRAM) );
     m_plotManager->setTitleAxisY( "Count(pixels)" );
@@ -393,8 +395,7 @@ bool Histogram::getUseClipBuffer(){
     return useBuffer;
 }
 
-void Histogram::_histogramRendered(){
-    Carta::Lib::Hooks::HistogramResult result = m_renderService->getResult();
+void Histogram::_histogramRendered(const Carta::Lib::Hooks::HistogramResult& result){
     QString resultName = result.getName();
     if ( resultName.startsWith( Util::ERROR)){
         ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
@@ -1003,7 +1004,6 @@ void Histogram::_loadData( Controller* controller ){
         std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
 
         m_plotManager->setPipeline( pipeline );
-
         m_renderService->renderHistogram(image,
                     binCount, minChannel, maxChannel, minFrequency, maxFrequency,
                     rangeUnits, minIntensity, maxIntensity, dataSource->_getFileName());

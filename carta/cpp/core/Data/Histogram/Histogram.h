@@ -363,7 +363,7 @@ private slots:
     void _createHistogram( Controller* );
 
     //Notification that new histogram data has been produced.
-    void _histogramRendered();
+    void _histogramRendered(const Carta::Lib::Hooks::HistogramResult& result);
 
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateColorClips( double colorMinPercent, double colorMaxPercent);

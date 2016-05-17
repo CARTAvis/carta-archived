@@ -41,6 +41,7 @@
 #include "State/UtilState.h"
 
 #include <QDir>
+#include <QTime>
 #include <QDebug>
 
 namespace Carta {

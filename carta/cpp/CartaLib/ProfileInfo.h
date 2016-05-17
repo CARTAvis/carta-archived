@@ -60,6 +60,20 @@ public:
     QString getSpectralUnit() const;
 
     /**
+     * Equality operator.
+     * @param rhs - the other ProfileInfo to compare to.
+     * @return true if the other ProfileInfo matches this one; false otherwise.
+     */
+    bool operator==( const ProfileInfo& rhs );
+
+    /**
+     * Inequality operator.
+     * @param rhs - the other ProfileInfo to compare to.
+     * @return true if the other ProfileInfo does not match this one; false otherwise.
+     */
+    bool operator!=( const ProfileInfo& rhs );
+
+    /**
      * Set the method used for aggregating data.
      * @param aggType - the method used for aggregating data.
      */
