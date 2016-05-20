@@ -345,6 +345,36 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->closeImage( imageView, imageName );
     }
 
+    else if ( cmd == "showimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->showImage( imageView, imageName);
+    }
+
+    else if ( cmd == "hideimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->hideImage( imageView, imageName );
+    }
+
+    else if ( cmd == "setcompositionmode" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->setCompositionMode( imageView, imageName );
+    }
+
+    else if ( cmd == "setstackselectauto" ) {
+        QString imageView = args["imageView"].toString();
+        QString stackSelectFlag = args["stackSelectFlag "].toString();
+        result = m_scriptFacade->setStackSelectAuto( imageView, stackSelectFlag );
+    }
+
+    else if ( cmd == "setpanzoomall" ) {
+        QString imageView = args["imageView"].toString();
+        QString stackSelectFlag = args["setPanZoomAllFlag"].toString();
+        result = m_scriptFacade->setStackSelectAuto( imageView, stackSelectFlag );
+    }
+
     /// Section: Grid Commands
     /// ----------------------------------
     /// These commands also come from the Python Image class. They allow

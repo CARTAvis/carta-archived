@@ -442,6 +442,51 @@ public:
      */
     QStringList closeImage( const QString& controlId, const QString& imageName );
 
+
+    /**
+     * Show Image
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image to close.
+     * @return error information if the image could not be closed.
+     */
+    QStringList showImage( const QString& controlId, const QString& imageName );
+
+
+    /**
+     * Close image
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image to close.
+     * @return error information if the image could not be closed.
+     */
+    QStringList hideImage( const QString& controlId, const QString& imageName );
+
+
+    /**
+     * Set whether or not selection of layers in the stack should be based on the
+     * current layer or whether the user wants to make a manual selection.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image to close.
+     * @return error information if the image could not be closed.
+     */
+    QStringList setStackSelectAuto( const QString& controlId, const QString& stackSelectAutoFlagStr);
+
+    /**
+     * Set whether or not to apply a composition mode to the image
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image to close.
+     * @return error information if the image could not be closed.
+     */
+    QStringList setCompositionMode( const QString& controlId, const QString& imageName);
+
+    /**
+     * Set whether or not a pan/zoom operation should affect all layers in the stack
+     * or just the top layer.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image to close.
+     * @return error information if the image could not be closed.
+     */
+    QStringList setPanZoomAll(const QString& controlId, const QString& setPanZoomAllFlagStr);
+
     /**
      * Set the amount of extra space on each side of the clip bounds.
      * @param histogramId the unique server-side id of an object managing a histogram.
@@ -498,7 +543,7 @@ public:
      * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentile a number [0,1] for which an intensity is desired.
      */
-    QStringList getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ); 
+    QStringList getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile );
 
     /**
      * Set the number of bins in the histogram.
