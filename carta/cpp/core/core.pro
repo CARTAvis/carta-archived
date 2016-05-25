@@ -46,6 +46,7 @@ HEADERS += \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
+    Data/Image/DataFactory.h \
     Data/Image/LayerGroup.h \
     Data/Image/Stack.h \
     Data/Image/Layer.h \
@@ -167,6 +168,7 @@ SOURCES += \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
+    Data/Image/DataFactory.cpp \
     Data/Image/LayerData.cpp \
     Data/Image/Layer.cpp \
     Data/Image/LayerGroup.cpp \

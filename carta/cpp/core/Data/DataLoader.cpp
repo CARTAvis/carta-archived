@@ -35,6 +35,7 @@ QString DataLoader::fakeRootDirName = "RootDirectory";
 const QString DataLoader::CLASS_NAME = "DataLoader";
 const QString DataLoader::DIR = "dir";
 const QString DataLoader::CRTF = ".crtf";
+const QString DataLoader::REG = ".reg";
 
 bool DataLoader::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
@@ -188,7 +189,7 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
             }
         }
         else if (dit.fileInfo().isFile()) {
-            if (fileName.endsWith(".fits") || fileName.endsWith( CRTF )) {
+            if (fileName.endsWith(".fits") || fileName.endsWith( CRTF ) || fileName.endsWith( REG )) {
                 _makeFileNode(dirArray, fileName);
             }
         }

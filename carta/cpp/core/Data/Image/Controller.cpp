@@ -1,6 +1,7 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/DataFactory.h"
 #include "Data/Image/Stack.h"
 #include "Data/Image/DataSource.h"
 #include "Data/Image/Grid/AxisMapper.h"
@@ -114,16 +115,8 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 }
 
 QString Controller::addData(const QString& fileName, bool* success) {
-    //Decide on the type of data we are adding based on the file
-    //suffix.
     *success = false;
-    QString result;
-    if ( fileName.endsWith( DataLoader::CRTF) ){
-        result = _addDataRegion( fileName, success );
-    }
-    else {
-        result = _addDataImage( fileName, success );
-    }
+    QString result = DataFactory::addData( this, fileName, success );
     return result;
 }
 
@@ -143,16 +136,12 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-QString Controller::_addDataRegion(const QString& fileName, bool* success) {
-    QString result = m_stack->_addDataRegion( fileName, success );
-    if ( success ){
+
+void Controller::_addDataRegions( std::vector<std::shared_ptr<Region> > regions ){
+    if ( regions.size() > 0 ){
+        m_stack->_addDataRegions( regions );
         emit dataChangedRegion( this );
     }
-    else {
-        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-        hr->registerError( result );
-    }
-    return result;
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){

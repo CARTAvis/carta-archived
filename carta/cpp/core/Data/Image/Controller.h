@@ -49,6 +49,7 @@ class Controller: public QObject, public Carta::State::CartaObject,
 
     friend class Animator;
     friend class Colormap;
+    friend class DataFactory;
     friend class Profiler;
 
     Q_OBJECT
@@ -588,7 +589,7 @@ private:
     class Factory;
 
     /// Add a region to the stack from a file.
-    QString _addDataRegion(const QString& fileName, bool* success );
+    void _addDataRegions( std::vector<std::shared_ptr<Region> > regions );
 
     /// Add an image to the stack from a file.
     QString _addDataImage( const QString& fileName, bool* success );

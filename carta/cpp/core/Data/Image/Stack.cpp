@@ -64,35 +64,12 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-QString Stack::_addDataRegion(const QString& fileName, bool* success ) {
-    QString msg;
-    int selectIndex = _getSelectImageIndex();
-    if ( selectIndex >= 0 ){
-
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_children[selectIndex]->_getImage();
-        auto result = Globals::instance()-> pluginManager()
-                                -> prepare <Carta::Lib::Hooks::LoadRegion>(fileName, image );
-        auto lam = [=] ( const Carta::Lib::Hooks::LoadRegion::ResultType &data ) {
-            int regionCount = data.size();
-            for ( int i = 0; i < regionCount; i++ ){
-               if ( data[i] ){
-                   std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
-                   regionPtr -> _setUserId( fileName, i );
-                   m_regions.push_back( regionPtr );
-               }
-            }
-        };
-        try {
-            result.forEach( lam );
-            _saveStateRegions();
-            *success = true;
-        }
-        catch( char*& error ){
-            msg = QString( error );
-            *success = false;
-        }
+void Stack::_addDataRegions( std::vector<std::shared_ptr<Region>> regions ){
+    int count = regions.size();
+    for ( int i = 0; i < count; i++ ){
+        m_regions.push_back( regions[i]);
     }
-    return msg;
+    _saveStateRegions();
 }
 
 

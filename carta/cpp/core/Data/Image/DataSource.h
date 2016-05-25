@@ -42,6 +42,7 @@ class CoordinateSystems;
 class DataSource : public QObject {
 
 friend class LayerData;
+friend class DataFactory;
 friend class Histogram;
 friend class Profiler;
 friend class Colormap;

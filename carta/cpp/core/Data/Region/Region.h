@@ -14,6 +14,7 @@ namespace Data {
 
 class Region : public Carta::State::CartaObject {
     friend class RegionFactory;
+    friend class DataFactory;
     friend class Stack;
 public:
 
