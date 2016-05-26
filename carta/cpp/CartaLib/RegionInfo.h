@@ -57,6 +57,20 @@ public:
     bool isCorner( std::pair<double,double> pt ) const;
 
     /**
+     * Equality operator.
+     * @param rhs - the other RegionInfo to compare to.
+     * @return true if the other RegionInfo matches this one; false otherwise.
+     */
+    bool operator==( const RegionInfo& rhs );
+
+    /**
+     * Inequality operator.
+     * @param rhs - the other RegionInfo to compare to.
+     * @return true if the other RegionInfo does not match this one; false otherwise.
+     */
+    bool operator!=( const RegionInfo& rhs );
+
+    /**
      * Set region corners.
      * @param corners - a new list or region corners.
      */
@@ -74,6 +88,8 @@ private:
     std::vector<std::pair<double,double> > m_corners;
 
 };
+
+
 }
 }
 

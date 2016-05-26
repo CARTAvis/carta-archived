@@ -6,6 +6,7 @@
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
 #include "Data/Image/Grid/Themes.h"
+#include "Data/Image/Grid/Fonts.h"
 #include "Data/Image/Grid/LabelFormats.h"
 #include "Data/Image/Contour/ContourGenerateModes.h"
 #include "Data/Image/Contour/ContourSpacingModes.h"
@@ -13,6 +14,7 @@
 #include "Data/Image/LayerCompositionModes.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
+#include "Data/Colormap/Gamma.h"
 #include "Data/Colormap/TransformsData.h"
 #include "Data/Colormap/TransformsImage.h"
 #include "Data/Error/ErrorManager.h"
@@ -25,18 +27,21 @@
 #include "Data/Preferences/Preferences.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/Profile/ProfilePlotStyles.h"
-#include "Data/Profile/IntensityUnits.h"
 #include "Data/Profile/Profiler.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/GenerateModes.h"
-#include "Data/Profile/SpectralUnits.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics/Statistics.h"
 #include "Data/ViewPlugins.h"
+#include "Data/Units/UnitsFrequency.h"
+#include "Data/Units/UnitsIntensity.h"
+#include "Data/Units/UnitsSpectral.h"
+#include "Data/Units/UnitsWavelength.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 
 #include <QDir>
+#include <QTime>
 #include <QDebug>
 
 namespace Carta {
@@ -79,7 +84,9 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<Colormaps>();
     Util::findSingletonObject<TransformsData>();
     Util::findSingletonObject<TransformsImage>();
+    Util::findSingletonObject<Gamma>();
     Util::findSingletonObject<ErrorManager>();
+    Util::findSingletonObject<Fonts>();
     Util::findSingletonObject<LabelFormats>();
     Util::findSingletonObject<ProfilePlotStyles>();
     Util::findSingletonObject<Preferences>();
@@ -92,12 +99,13 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<ContourStyles>();
     Util::findSingletonObject<LayerCompositionModes>();
     Util::findSingletonObject<PlotStyles>();
-
-    Util::findSingletonObject<SpectralUnits>();
-    Util::findSingletonObject<IntensityUnits>();
     Util::findSingletonObject<LineStyles>();
     Util::findSingletonObject<ProfileStatistics>();
     Util::findSingletonObject<GenerateModes>();
+    Util::findSingletonObject<UnitsFrequency>();
+    Util::findSingletonObject<UnitsIntensity>();
+    Util::findSingletonObject<UnitsSpectral>();
+    Util::findSingletonObject<UnitsWavelength>();
     _initCallbacks();
     _initializeDefaultState();
     _makeDataLoader();
@@ -1089,7 +1097,62 @@ ViewManager::~ViewManager(){
     _clearProfilers( 0, m_profilers.size() );
     _clearControllers( 0, m_controllers.size() );
 
-    //objMan->printObjects();
+    //Delete the statics
+    CartaObject* obj = Util::findSingletonObject<Clips>();
+    delete obj;
+    obj = Util::findSingletonObject<Colormaps>();
+    delete obj;
+    obj =  Util::findSingletonObject<TransformsData>();
+    delete obj;
+    obj =  Util::findSingletonObject<TransformsImage>();
+    delete obj;
+    obj = Util::findSingletonObject<Gamma>();
+    delete obj;
+    obj =  Util::findSingletonObject<ErrorManager>();
+    delete obj;
+    obj =  Util::findSingletonObject<LabelFormats>();
+    delete obj;
+    obj =  Util::findSingletonObject<ProfilePlotStyles>();
+    delete obj;
+    obj =  Util::findSingletonObject<Preferences>();
+    delete obj;
+    obj =  Util::findSingletonObject<PreferencesSave>();
+    delete obj;
+    obj =  Util::findSingletonObject<ChannelUnits>();
+    delete obj;
+    obj =  Util::findSingletonObject<CoordinateSystems>();
+    delete obj;
+    obj =  Util::findSingletonObject<Themes>();
+    delete obj;
+    obj =  Util::findSingletonObject<ContourGenerateModes>();
+    delete obj;
+    obj =  Util::findSingletonObject<ContourSpacingModes>();
+    delete obj;
+    obj =  Util::findSingletonObject<ContourStyles>();
+    delete obj;
+    obj =  Util::findSingletonObject<LayerCompositionModes>();
+    delete obj;
+    obj =  Util::findSingletonObject<PlotStyles>();
+    delete obj;
+    obj =  Util::findSingletonObject<LineStyles>();
+    delete obj;
+    obj =  Util::findSingletonObject<ProfileStatistics>();
+    delete obj;
+    obj =  Util::findSingletonObject<GenerateModes>();
+    delete obj;
+    obj =  Util::findSingletonObject<UnitsFrequency>();
+    delete obj;
+    obj =  Util::findSingletonObject<UnitsIntensity>();
+    delete obj;
+    obj =  Util::findSingletonObject<UnitsSpectral>();
+    delete obj;
+    obj =  Util::findSingletonObject<UnitsWavelength>();
+    delete obj;
+    obj = Util::findSingletonObject<Fonts>();
+    delete obj;
+
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    objMan->printObjects();
 }
 }
 }

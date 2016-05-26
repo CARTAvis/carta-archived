@@ -21,6 +21,12 @@ class TransformsData : public Carta::State::CartaObject {
 public:
 
     /**
+     * Return the default data transform.
+     * @return - the default data transform.
+     */
+    QString getDefault() const;
+
+    /**
      * Returns true if the name represents a valid data transform; false, otherwise.
      * @param name a QString identifying a data transform.
      * @param actualName the actual name of the transform in case of a case mismatch
@@ -41,13 +47,11 @@ public:
     const static QString CLASS_NAME;
 private:
     void _initializeDefaultState();
-    void _initializeCallbacks();
 
     std::vector < QString > m_transforms;
 
     static bool m_registered;
     const static QString DATA_TRANSFORMS;
-    const static QString TRANSFORM_COUNT;
     const static QString TRANSFORM_NONE;
     const static QString TRANSFORM_ROOT;
     const static QString TRANSFORM_POLY;

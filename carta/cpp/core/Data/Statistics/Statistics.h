@@ -133,7 +133,7 @@ private:
     Carta::State::StateInterface m_stateData;
 
 	Statistics( const Statistics& other);
-	Statistics operator=( const Statistics& other );
+	Statistics& operator=( const Statistics& other );
 };
 }
 }

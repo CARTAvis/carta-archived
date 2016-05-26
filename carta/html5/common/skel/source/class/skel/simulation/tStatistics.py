@@ -105,15 +105,15 @@ class tStatistics(unittest.TestCase):
         # Load a specific image.
         imageWindow = Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
         
+         # Load a region file.
+        Util.load_image( self, driver, "region.crtf")
+        
         # Replace the histogram window with the statistics window.
         self.show_statistics_window(driver)
         time.sleep( timeout )
         
         #Check that we see image stats.
         imageStatsNameCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"ImageStatsCombo")))
-        
-        # Load a region file.
-        Util.load_image( self, driver, "region.crtf")
         
         #Check that we see region stats.
         regionStatsNameCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"RegionStatsCombo")))

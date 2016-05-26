@@ -56,6 +56,9 @@ private:
 
     Carta::Lib::VectorGraphics::VGList m_vgList;
     qint64 m_lastRepaintId = - 1;
+
+    SaveView( const SaveView& other);
+    SaveView& operator=( const SaveView& other );
 };
 }
 }

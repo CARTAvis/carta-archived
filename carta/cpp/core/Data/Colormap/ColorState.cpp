@@ -1,6 +1,8 @@
 #include "ColorState.h"
 #include "Colormaps.h"
 #include "TransformsData.h"
+#include "TransformsImage.h"
+
 #include "Data/Util.h"
 #include "State/StateInterface.h"
 #include "State/UtilState.h"
@@ -19,8 +21,8 @@ const QString ColorState::COLOR_MAP_NAME = "colorMapName";
 const QString ColorState::COLORED_OBJECT = "coloredObject";
 const QString ColorState::REVERSE = "reverse";
 const QString ColorState::INVERT = "invert";
-const QString ColorState::GLOBAL = "global";
 const QString ColorState::COLOR_MIX = "colorMix";
+
 const QString ColorState::INTENSITY_MIN = "intensityMin";
 const QString ColorState::INTENSITY_MAX = "intensityMax";
 const QString ColorState::NAN_COLOR = "nanColor";
@@ -28,12 +30,14 @@ const QString ColorState::NAN_DEFAULT = "nanDefault";
 const QString ColorState::SCALE_1 = "scale1";
 const QString ColorState::SCALE_2 = "scale2";
 const QString ColorState::GAMMA = "gamma";
-const QString ColorState::SIGNIFICANT_DIGITS = "significantDigits";
+
 const QString ColorState::TRANSFORM_IMAGE = "imageTransform";
 const QString ColorState::TRANSFORM_DATA = "dataTransform";
 
 Colormaps* ColorState::m_colors = nullptr;
 TransformsData* ColorState::m_dataTransforms = nullptr;
+TransformsImage* ColorState::m_imageTransforms = nullptr;
+
 
 class ColorState::Factory : public Carta::State::CartaObjectFactory {
 
@@ -50,9 +54,10 @@ bool ColorState::m_registered =
 
 ColorState::ColorState( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
-    _initializeDefaultState( m_state );
     _initializeStatics();
-    _setErrorMargin();
+    _initializeDefaultState( m_state );
+
+
 }
 
 int ColorState::_getBorderGreen() const {
@@ -76,9 +81,11 @@ int ColorState::_getBorderTransparency() const {
     return m_state.getValue<int>( alphaLookup );
 }
 
+
 QString ColorState::_getColorMap() const {
     return m_state.getValue<QString>( COLOR_MAP_NAME );
 }
+
 
 QString ColorState::_getDataTransform() const {
     return m_state.getValue<QString>( TRANSFORM_DATA );
@@ -131,7 +138,6 @@ void ColorState::_initializeDefaultState( Carta::State::StateInterface& state ){
     state.insertValue<QString>( COLOR_MAP_NAME, "Gray" );
     state.insertValue<bool>(REVERSE, false);
     state.insertValue<bool>(INVERT, false );
-    state.insertValue<bool>(GLOBAL, true );
     state.insertValue<bool>(NAN_DEFAULT, true );
     state.insertValue<bool>(BORDER_DEFAULT, true );
 
@@ -148,9 +154,9 @@ void ColorState::_initializeDefaultState( Carta::State::StateInterface& state ){
     QString blueKey = Carta::State::UtilState::getLookup( COLOR_MIX, Util::BLUE );
     state.insertValue<double>( blueKey, 1 );
 
-    state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
-    state.insertValue<QString>(TRANSFORM_IMAGE, "Gamma");
-    state.insertValue<QString>(TRANSFORM_DATA, "None");
+
+    state.insertValue<QString>(TRANSFORM_IMAGE, m_imageTransforms->getDefault());
+    state.insertValue<QString>(TRANSFORM_DATA, m_dataTransforms->getDefault());
 
     //Nan color
     state.insertObject( NAN_COLOR );
@@ -173,9 +179,6 @@ void ColorState::_initializeDefaultState( Carta::State::StateInterface& state ){
     state.insertValue<int>( greenLookup, 0 );
     alphaLookup = Carta::State::UtilState::getLookup( BORDER_COLOR, Util::ALPHA );
     state.insertValue<int>( alphaLookup, 255 );
-
-    //Default Tab
-    state.insertValue<int>( Util::TAB_INDEX, 0 );
 }
 
 
@@ -190,11 +193,13 @@ void ColorState::_initializeStatics(){
     if ( m_dataTransforms == nullptr ){
         m_dataTransforms = Util::findSingletonObject<TransformsData>();
     }
+
+    //Image transforms
+    if ( m_imageTransforms == nullptr ){
+        m_imageTransforms = Util::findSingletonObject<TransformsImage>();
+    }
 }
 
-bool ColorState::_isGlobal() const {
-    return m_state.getValue<bool>( GLOBAL );
-}
 
 bool ColorState::_isBorderDefault() const {
     return m_state.getValue<bool>( BORDER_DEFAULT );
@@ -212,6 +217,7 @@ bool ColorState::_isInverted() const {
     return m_state.getValue<bool>( INVERT );
 }
 
+
 void ColorState::_replicateTo( ColorState* otherState ){
     if ( otherState != nullptr ){
         _replicateTo( otherState->m_state );
@@ -222,8 +228,6 @@ void ColorState::_replicateTo( ColorState* otherState ){
 void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
     QString colorMapName = m_state.getValue<QString>(COLOR_MAP_NAME );
     otherState.setValue<QString>(COLOR_MAP_NAME, colorMapName );
-    bool global = _isGlobal();
-    otherState.setValue<bool>( GLOBAL, global );
     bool inverted = _isInverted();
     otherState.setValue<bool>( INVERT, inverted );
     bool reversed = _isReversed();
@@ -257,6 +261,10 @@ void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
 
     double gamma = m_state.getValue<double>( GAMMA );
     otherState.setValue<double>(GAMMA, gamma );
+    double scale1 = m_state.getValue<double>( SCALE_1 );
+    otherState.setValue<double>( SCALE_1, scale1 );
+    double scale2 = m_state.getValue<double>( SCALE_2 );
+    otherState.setValue<double>( SCALE_2, scale2 );
     QString dataTransform = m_state.getValue<QString>( TRANSFORM_DATA );
     otherState.setValue<QString>(TRANSFORM_DATA, dataTransform);
 
@@ -273,14 +281,13 @@ void ColorState::_replicateTo( Carta::State::StateInterface& otherState ){
     otherState.setValue<int>( greenKey, green );
     otherState.setValue<int>( blueKey, blue );
     otherState.setValue<int>( alphaKey, alpha );
-
-    int tabIndex = m_state.getValue<int>( Util::TAB_INDEX );
-    otherState.setValue<int>( Util::TAB_INDEX, tabIndex );
 }
+
 
 void ColorState::_resetState( const QString& stateStr ){
     m_state.setState( stateStr );
 }
+
 
 QString ColorState::_setBorderAlpha( int alphaValue ){
     QString result;
@@ -306,6 +313,7 @@ QString ColorState::_setBorderColor( int redValue, int greenValue, int blueValue
     return result;
 }
 
+
 void ColorState::_setBorderDefault( bool useDefault ){
     bool oldBorderDefault = m_state.getValue<bool>( BORDER_DEFAULT );
     if ( useDefault != oldBorderDefault ){
@@ -316,6 +324,7 @@ void ColorState::_setBorderDefault( bool useDefault ){
         emit colorStateChanged();
     }
 }
+
 
 bool ColorState::_setColor( const QString& key, const QString& majorKey, const QString& userId,
         int colorAmount, QString& errorMsg ){
@@ -354,7 +363,8 @@ bool ColorState::_setColorMix( const QString& key, double colorPercent, QString&
     else {
         QString mixKey = Carta::State::UtilState::getLookup( COLOR_MIX, key );
         double oldColorPercent = m_state.getValue<double>( mixKey );
-        if ( abs( colorPercent - oldColorPercent ) >= 0.001f ){
+        double diff = fabs( colorPercent - oldColorPercent);
+        if ( diff >= 0.001f ){
             m_state.setValue<double>( mixKey, colorPercent );
             colorChanged = true;
         }
@@ -400,29 +410,38 @@ QString ColorState::_setDataTransform( const QString& transformString ){
     return result;
 }
 
-void ColorState::_setErrorMargin(){
-    int significantDigits = m_state.getValue<int>(SIGNIFICANT_DIGITS );
-    m_errorMargin = 1.0/qPow(10,significantDigits);
-}
 
-
-QString ColorState::_setGamma( double gamma ){
+QString ColorState::_setGamma( double gamma, double errorMargin, int significantDigits ){
     QString result;
     double oldGamma = m_state.getValue<double>( GAMMA );
-
-    if ( qAbs( gamma - oldGamma) > m_errorMargin ){
-        int digits = m_state.getValue<int>(SIGNIFICANT_DIGITS);
-        m_state.setValue<double>(GAMMA, Util::roundToDigits(gamma, digits ));
+    double roundedGamma = Util::roundToDigits(gamma, significantDigits );
+    if ( qAbs( roundedGamma - oldGamma) > errorMargin ){
+        m_state.setValue<double>(GAMMA, roundedGamma );
         emit colorStateChanged();
     }
     return result;
 }
 
-void ColorState::_setGlobal( bool global ){
-    bool oldGlobal = m_state.getValue<bool>(GLOBAL);
-    if ( global != oldGlobal ){
-        m_state.setValue<bool>(GLOBAL, global);
+bool ColorState::_setGammaX( double xValue, double errorMargin, int significantDigits ){
+    bool changed = false;
+    double xValueOld = m_state.getValue<double>( SCALE_1 );
+    double xValueRounded = Util::roundToDigits( xValue, significantDigits );
+    if ( qAbs( xValueRounded - xValueOld ) > errorMargin ){
+        m_state.setValue<double>(SCALE_1, xValueRounded);
+        changed = true;
     }
+    return changed;
+}
+
+bool ColorState::_setGammaY( double yValue, double errorMargin, int significantDigits ){
+    bool changed = false;
+    double yValueOld = m_state.getValue<double>( SCALE_2 );
+    double yValueRounded = Util::roundToDigits( yValue, significantDigits );
+    if ( qAbs( yValueRounded - yValueOld ) > errorMargin ){
+        m_state.setValue<double>(SCALE_2, yValueRounded);
+        changed = true;
+    }
+    return changed;
 }
 
 void ColorState::_setInvert( bool invert ){
@@ -463,37 +482,6 @@ void ColorState::_setReverse( bool reverse ){
         m_state.flushState();
         emit colorStateChanged();
     }
-}
-
-
-QString ColorState::_setSignificantDigits( int digits ){
-    QString result;
-    if ( digits <= 0 ){
-        result = "Invalid significant digits; must be positive:  "+QString::number( digits );
-    }
-    else {
-        if ( m_state.getValue<int>(SIGNIFICANT_DIGITS) != digits ){
-            m_state.setValue<int>(SIGNIFICANT_DIGITS, digits );
-            _setErrorMargin();
-            emit colorStateChanged();
-        }
-    }
-    return result;
-}
-
-QString ColorState::_setTabIndex( int index ){
-    QString result;
-    if ( index >= 0 ){
-        int oldIndex = m_state.getValue<int>( Util::TAB_INDEX );
-        if ( index != oldIndex ){
-            m_state.setValue<int>( Util::TAB_INDEX, index );
-            emit colorStateChanged();
-        }
-    }
-    else {
-        result = "Colormap settings tab index must be nonnegative: "+ QString::number(index);
-    }
-    return result;
 }
 
 

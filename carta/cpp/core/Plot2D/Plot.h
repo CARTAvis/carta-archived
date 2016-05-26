@@ -60,6 +60,8 @@ private:
     QwtPlot::LegendPosition _calculatePosition( const QString& pos ) const;
     QwtLegend* m_externalLegend;
     QwtPlotLegendItem* m_legendItem;
+    Plot( const Plot& other);
+    Plot& operator=( const Plot& other );
 };
 
 }

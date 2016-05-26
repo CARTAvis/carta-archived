@@ -98,7 +98,7 @@ qx.Class.define("skel.widgets.Profile.SettingsAxis", {
                 if ( val ){
                     try {
                         var obj = JSON.parse( val );
-                        var units = obj.spectralUnits;
+                        var units = obj.units;
                         this.m_axisBottom.setSelectItems( units );
                     }
                     catch( err ){
@@ -118,7 +118,7 @@ qx.Class.define("skel.widgets.Profile.SettingsAxis", {
                 if ( val ){
                     try {
                         var obj = JSON.parse( val );
-                        var units = obj.intensityUnits;
+                        var units = obj.units;
                         this.m_axisLeft.setSelectItems( units );
                     }
                     catch( err ){

@@ -140,6 +140,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
+        time.sleep( timeout )
 
         # Record last channel value of the test image
         self._getLastValue( driver, "Channel" )
@@ -162,6 +163,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Click the channel tape deck increment button
         self._getNextValue( driver, "Channel" )
+        time.sleep( timeout )
 
         # Check that the channel is at the last channel value
         currChannelValue = self._getCurrentValue( driver, "Channel" )
@@ -196,6 +198,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Click the image increment button
         self._getNextValue( driver, "Image" )
+        time.sleep( timeout )
 
         # Check that the Animator is at the last image value
         currImageValue = self._getCurrentValue( driver, "Image" )
@@ -204,6 +207,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Click the image increment button again
         self._getNextValue( driver, "Image" )
+        time.sleep( timeout )
         currImageValue = self._getCurrentValue( driver, "Image" )
         print "Current image", currImageValue
         self.assertEqual( int(firstImageValue), int(currImageValue), "Image Animator did not jump to first image")
@@ -532,6 +536,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
+        time.sleep( timeout )
 
         # Go to the last channel value and record the frame value
         self._getLastValue( driver, "Channel" )

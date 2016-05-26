@@ -87,6 +87,13 @@ def get_window_count(unittest, driver):
      windowList = driver.find_elements_by_xpath("//div[@qxclass='qx.ui.window.Desktop']")
      windowCount = len( windowList )
      return windowCount
+ 
+# Return the value of the text field with the given id.
+def _getTextValue(self, driver, id):
+    textField = driver.find_element_by_id( id )
+    driver.execute_script( "arguments[0].scrollIntoView(true);", textField)
+    textValue = textField.get_attribute("value")
+    return textValue
 
 
 # Determine whether the check box is checked
@@ -325,5 +332,5 @@ def verifyAnimatorUpperBound(unittest, driver, expectedCount, animatorName):
     fullId = animatorName + "AnimatorUpperBound"
     animatorLabel = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, fullId ) ) )
     upperBound = animatorLabel.text
-    print "Animator upper bound=", upperBound
+    print "Animator upper bound=", upperBound, " expected bound=", expectedCount
     unittest.assertEqual( upperBound, str(expectedCount), "Animator upper bound was not correct")

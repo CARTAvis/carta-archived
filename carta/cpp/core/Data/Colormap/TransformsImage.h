@@ -20,6 +20,12 @@ class TransformsImage : public Carta::State::CartaObject {
 public:
 
     /**
+     * Return the default image transform.
+     * @return - the default image transform.
+     */
+    QString getDefault() const;
+
+    /**
      * Returns true if the name represents a valid image transform; false, otherwise.
      * @param name a QString identifying an image transform.
      * @return true if the name represents a valid image transform; false, otherwise.
@@ -43,7 +49,8 @@ private:
 
     static bool m_registered;
     const static QString IMAGE_TRANSFORMS;
-    const static QString TRANSFORM_COUNT;
+    const static QString GAMMA;
+
     TransformsImage( const QString& path, const QString& id );
 
     class Factory;

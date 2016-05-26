@@ -3,7 +3,6 @@
 #include "State/UtilState.h"
 
 #include <QDebug>
-#include <set>
 
 namespace Carta {
 
@@ -11,7 +10,7 @@ namespace Data {
 
 const QString TransformsImage::IMAGE_TRANSFORMS = "imageTransforms";
 const QString TransformsImage::CLASS_NAME = "TransformsImage";
-const QString TransformsImage::TRANSFORM_COUNT = "imageTransformCount";
+const QString TransformsImage::GAMMA = "Gamma";
 
 class TransformsImage::Factory : public Carta::State::CartaObjectFactory {
 
@@ -35,7 +34,6 @@ TransformsImage::TransformsImage( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
 
     _initializeDefaultState();
-    _initializeCallbacks();
 }
 
 
@@ -52,10 +50,9 @@ void TransformsImage::_initializeDefaultState(){
 
     // get all TransformsImage provided by core
     //hard-code the possible transforms until Pavol's code is available.
-    m_transforms.push_back("Gamma");
+    m_transforms.push_back( GAMMA );
 
     int transformCount = m_transforms.size();
-    m_state.insertValue<int>( TRANSFORM_COUNT, transformCount );
     m_state.insertArray( IMAGE_TRANSFORMS, transformCount );
     for ( int i = 0; i < transformCount; i++ ){
         QString arrayIndexStr = Carta::State::UtilState::getLookup(IMAGE_TRANSFORMS, QString::number(i));
@@ -65,14 +62,10 @@ void TransformsImage::_initializeDefaultState(){
 }
 
 
-void TransformsImage::_initializeCallbacks(){
-    addCommandCallback( "getTransformsImage", [=] (const QString & /*cmd*/,
-                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QStringList dataTransformList = getTransformsImage();
-        QString result = dataTransformList.join( ",");
-        return result;
-     });
+QString TransformsImage::getDefault() const {
+    return GAMMA;
 }
+
 
 bool TransformsImage::isTransform( const QString& name ) const {
     int transformCount = m_transforms.size();
@@ -85,7 +78,6 @@ bool TransformsImage::isTransform( const QString& name ) const {
     }
     return validTransform;
 }
-
 
 
 TransformsImage::~TransformsImage(){

@@ -117,6 +117,9 @@ private:
     int m_renderCount;
     //Count of images that have been redrawn to date.
     int m_redrawCount;
+
+    SaveService( const SaveService& other);
+    SaveService& operator=( const SaveService& other );
 };
 }
 }

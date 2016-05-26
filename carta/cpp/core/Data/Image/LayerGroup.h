@@ -48,11 +48,9 @@ protected:
      * @param success - set to true if the image file is successfully loaded.
      * @param stackIndex - set to the index of the image in this group if it is loaded
      *      in this group.
-     * @param colorState - information about the color display for the image.
      * @param viewSize - the current client view size.
      */
     QString _addData(const QString& fileName, bool* success, int* stackIndex,
-                      std::shared_ptr<ColorState> colorState=std::shared_ptr<ColorState>(nullptr),
                       QSize viewSize=QSize()  );
 
 
@@ -194,13 +192,15 @@ protected:
 
     /**
      * Returns the intensity corresponding to a given percentile.
-     * @param frameLow a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
+     * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
+     * @param percentile - a number [0,1] for which an intensity is desired.
+     * @param intensity - the computed intensity corresponding to the percentile.
+     * @param intensityIndex - the frame where maximum intensity was found.
      * @return true if the computed intensity is valid; otherwise false.
      */
-    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const Q_DECL_OVERRIDE;
+    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile,
+            double* intensity, int* intensityIndex ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the current layer.
@@ -275,7 +275,13 @@ protected:
      */
     virtual QSize _getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const Q_DECL_OVERRIDE;
 
-    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates() Q_DECL_OVERRIDE;
+    /**
+     * Return the color states that are eligible for state changes.
+     * @param global - whether color state changes apply to all color maps or only to those that
+     *      correspond to selected images.
+     * @return - a list of color states whose states may be changed.
+     */
+    virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) Q_DECL_OVERRIDE;
 
     /**
      * Returns the location on the screen corresponding to a location in image coordinates.
@@ -334,7 +340,7 @@ protected:
      * @param clipMinPercentile the minimum clip value.
      * @param clipMaxPercentile the maximum clip value.
      */
-    virtual void _load( vector<int> frames, bool autoClip, double clipMinPercentile,
+    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
                double clipMaxPercentile ) Q_DECL_OVERRIDE;
 
     /**
@@ -364,11 +370,6 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
-    /**
-     * Reset the color map information for this data.
-     * @param colorState - stored information about the color map.
-     */
-    virtual void _setColorMapGlobal( std::shared_ptr<ColorState> colorState ) Q_DECL_OVERRIDE;
 
     /**
      * Set the mode used to compose this layer.

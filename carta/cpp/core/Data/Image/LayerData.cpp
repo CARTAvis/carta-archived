@@ -54,10 +54,17 @@ LayerData::LayerData(const QString& path, const QString& id) :
         m_renderQueued = false;
 
         _initializeState();
+
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        ColorState* colorObj = objMan->createObject<ColorState>();
+        m_stateColor.reset( colorObj );
+        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
+
+
         DataGrid* gridObj = objMan->createObject<DataGrid>();
         m_dataGrid.reset( gridObj );
         m_dataGrid->_initializeGridRenderer();
+        _colorChanged();
 
         std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
         std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
@@ -159,56 +166,14 @@ std::shared_ptr<ColorState> LayerData::_getColorState(){
     return m_stateColor;
 }
 
-std::vector< std::shared_ptr<ColorState> >  LayerData::_getSelectedColorStates(){
+std::vector< std::shared_ptr<ColorState> >  LayerData::_getSelectedColorStates( bool global){
     std::vector< std::shared_ptr<ColorState> > colorStates;
-    if ( _isSelected() ){
+    if ( _isSelected() || global ){
         colorStates.push_back( m_stateColor );
     }
     return colorStates;
 }
 
-void LayerData::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
-
-    if ( m_stateColor ){
-        //Decide if we are going to use our own separate map that is a copy of our current
-        //one or reset to a shared global color map based on whether the passed in map
-        //is null
-        if ( _isSelected() ){
-            bool colorReset = false;
-            if ( colorState ){
-                _clearColorMap();
-                colorReset = true;
-                m_stateColor = colorState;
-            }
-            else {
-                //We are going to use our own color map
-                if ( m_stateColor->_isGlobal() ){
-                    if ( m_stateColor ){
-                        disconnect( m_stateColor.get() );
-                    }
-                    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                    ColorState* cObject = objMan->createObject<ColorState>();
-                    if ( m_stateColor.get() != nullptr ){
-                        m_stateColor->_replicateTo( cObject );
-                    }
-                    cObject->_setGlobal( false );
-                    m_stateColor.reset (cObject);
-                    colorReset = true;
-                }
-            }
-            if ( colorReset ){
-                _colorChanged( );
-                connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
-            }
-        }
-    }
-    //If ours is null, just use the one provided, no questions asked.
-    else if (colorState){
-        m_stateColor = colorState;
-        _colorChanged();
-        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
-    }
-}
 
 std::shared_ptr<DataContours> LayerData::_getContour( const QString& name ){
     std::shared_ptr<DataContours> contourSet;
@@ -320,10 +285,12 @@ QPointF LayerData::_getImagePt( QPointF screenPt, bool* valid ) const {
 }
 
 
-bool LayerData::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
+bool LayerData::_getIntensity( int frameLow, int frameHigh, double percentile,
+        double* intensity, int* intensityIndex ) const {
     bool intensityFound = false;
     if ( m_dataSource ){
-        intensityFound = m_dataSource->_getIntensity( frameLow, frameHigh, percentile, intensity );
+        intensityFound = m_dataSource->_getIntensity( frameLow, frameHigh, percentile,
+                intensity, intensityIndex );
     }
     return intensityFound;
 }
@@ -518,7 +485,7 @@ bool LayerData::_isContourDraw() const {
     return contourDraw;
 }
 
-void LayerData::_load(vector<int> frames, bool recomputeClipsOnNewFrame,
+void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile ){
     if ( m_dataSource ){
         m_dataSource->_load( frames, recomputeClipsOnNewFrame,
@@ -739,7 +706,9 @@ void LayerData::_resetState( const Carta::State::StateInterface& restoreState ){
         if ( ! m_stateColor ){
             Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
             ColorState* cObject = objMan->createObject<ColorState>();
+
             m_stateColor.reset( cObject);
+            connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
         }
         m_stateColor->_resetState( colorState );
     }
@@ -887,7 +856,8 @@ void LayerData::_updateColor(){
         m_dataSource->_setColorMap( mapName );
         m_dataSource->_setTransformData( m_stateColor->_getDataTransform() );
         m_dataSource->_setGamma( m_stateColor->_getGamma() );
-        m_dataSource->_setColorReversed( m_stateColor->_isReversed() );
+        bool reversed = m_stateColor->_isReversed();
+        m_dataSource->_setColorReversed( reversed );
         m_dataSource->_setColorInverted( m_stateColor->_isInverted() );
         double redAmount = m_stateColor->_getMixRed();
         double greenAmount = m_stateColor->_getMixGreen();

@@ -10,7 +10,7 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "CartaLib/IImage.h"
-#include "ProfileExtractor.h"
+#include "CartaLib/Hooks/ProfileResult.h"
 
 #include <QObject>
 
@@ -38,12 +38,16 @@ class Plot2DManager;
 class Controller;
 class CurveData;
 class GenerateModes;
-class IntensityUnits;
 class LegendLocations;
 class LinkableImpl;
 class Layer;
+class ProfileRenderService;
+class ProfileStatistics;
 class Settings;
-class SpectralUnits;
+
+class UnitsIntensity;
+class UnitsSpectral;
+
 
 class Profiler : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -56,8 +60,37 @@ public:
     QString removeLink( CartaObject* cartaObject) Q_DECL_OVERRIDE;
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
+    /**
+     * Returns the units on the bottom axis of the profile.
+     * @return - the profile bottom axis units.
+     */
+    QString getAxisUnitsBottom() const;
 
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns the upper limit of the zoom range on the x-axis.
+     * @return - the upper limit of the zoom range on the x-axis.
+     */
+    double getZoomMax() const;
+
+    /**
+     * Returns the lower limit of the zoom range on the x-axis.
+     * @return - the lower limit of the zoom range on the x-axis.
+     */
+    double getZoomMin() const;
+
+    /**
+     * Returns the percentile zoom for the lower bound of the x-axis.
+     * @return - the percentile zoom for the lower bound of the x-axis.
+     */
+    double getZoomMinPercent() const;
+
+    /**
+     * Returns the percentilee zoom for the upper bound of the x-axis.
+     * @return - the percentile zoom for the upper bound of the x-axis.
+     */
+    double getZoomMaxPercent() const;
 
     /**
      * Returns whether or not the object with the given id is already linked to this object.
@@ -88,6 +121,14 @@ public:
      *      an empty string otherwise.
      */
     QString profileRemove( const QString& name );
+
+    /**
+     * Set the rest frequency back to its original value for the given curve.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the rest frequency could not be reset; otherwise, an
+     *      empty string.
+     */
+    QString resetRestFrequency( const QString& curveName );
 
 
     virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
@@ -185,6 +226,51 @@ public:
     QString setPlotStyle( const QString& name, const QString& plotStyle );
 
     /**
+     * Set the rest frequency used to generate a profile for the given curve.
+     * @param freq - the rest frequency.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the rest frequency could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setRestFrequency( double freq, const QString& curveName );
+
+    /**
+     * Set the rest frequency units used to generate a profile for the given curve.
+     * @param restUnits - the rest frequency units.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the rest frequency units could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setRestUnits( const QString& restUnits, const QString& curveName );
+
+    /**
+     * Set whether or not rest frequency units are given in frequency or wavelength.
+     * @param restUnitsFreq - true if rest frequency units are specified as frequency;
+     *      false otherwise.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error message if the type of rest frequency units could not be set;
+     *      otherwise, an empty string.
+     */
+    QString setRestUnitType( bool restUnitsFreq, const QString& curveName );
+
+    /**
+     * Set the number of significant digits to use in storing numbers.
+     * @param digits - the number of significant digits to use in storing numbers.
+     * @return - an error message if the number of significant digits could not be set;
+     *      otherwise, an empty string.
+     */
+    QString setSignificantDigits( int digits );
+
+    /**
+     * Set the method used to compute the profile.
+     * @param statStr - an identifier for a method used to summarize a profile.
+     * @param curveName - an identifier for a profile curve.
+     * @return - an error method if the statistic could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setStatistic( const QString& statStr, const QString& curveName );
+
+    /**
      * Set the index of the profile settings tab that should be selected.
      * @param index - the index of the profile settings tab that should be selected.
      * @return - an error message if the tab index could not be set; an empty string otherwise.
@@ -204,7 +290,21 @@ public:
      */
     QString setZoomBufferSize( double zoomBufferSize );
 
+    /**
+     * Set the zoom range in world coordinates.
+     * @param zoomMin - the lower boundary of the zoom window.
+     * @param zoomMax - the upper boundary of the zoom window.
+     * @return - an error message if the zoom range could not be set; otherwise, an empty string.
+     */
     QString setZoomRange( double zoomMin, double zoomMax );
+
+    /**
+     * Set the zoom range as a percentage of the plot range.
+     * @param zoomMinPercent - a value in [0,100] indicating the lower boundary of the zoom window.
+     * @param zoomMaxPercent - a value in [0,100] indicating the upper boundary of the zoom window.
+     * @return - an error message if the zoom range could not be set as a percentage; otherwise,
+     *      an empty string.
+     */
     QString setZoomRangePercent( double zoomMinPercent, double zoomMaxPercent );
 
 
@@ -219,7 +319,11 @@ private slots:
     void _cursorUpdate( double x, double y );
     void _loadProfile( Controller* controller);
     void _movieFrame();
+    void _profileRendered( const Carta::Lib::Hooks::ProfileResult& result,
+            int curveIndex, const QString& layerName, bool createNew,
+            std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
+    void _updateZoomRangeBasedOnPercent();
     QString _zoomToSelection();
 
 private:
@@ -244,7 +348,6 @@ private:
     const static QString ZOOM_MAX;
     const static QString ZOOM_MIN_PERCENT;
     const static QString ZOOM_MAX_PERCENT;
-    const static double ERROR_MARGIN;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
@@ -257,16 +360,20 @@ private:
             std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
             const QString& oldUnit, const QString& newUnit ) const;
     std::vector<double> _convertUnitsX( std::shared_ptr<CurveData> curveData,
-            const QString& newUnit = QString() ) const;
-    std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData ) const;
+            const QString& newUnit ) const;
+    std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData,
+            const QString& newUnit ) const;
 
     void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
+    void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
+             int curveIndex, const QString& layerName, bool createNew = false );
 
     Controller* _getControllerSelected() const;
+    std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
-    double _getMaxFrame() const;
     QString _getLegendLocationsId() const;
+
     /**
      * Returns the server side id of the Profiler user preferences.
      * @return the unique server side id of the user preferences.
@@ -281,6 +388,8 @@ private:
 
     void _saveCurveState();
     void _saveCurveState( int index );
+
+    void _setErrorMargin();
 
     void _updateAvailableImages( Controller* controller );
 
@@ -317,26 +426,30 @@ private:
     //Plot data
     QList< std::shared_ptr<CurveData> > m_plotCurves;
 
-    QString m_leftUnit;
-    QString m_bottomUnit;
-
     //For a movie.
     int m_oldFrame;
     int m_currentFrame;
     int m_timerId;
 
+    //When two items with decimals are judged to be the same.
+    double m_errorMargin;
+
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
 
-    static SpectralUnits* m_spectralUnits;
-    static IntensityUnits* m_intensityUnits;
+    static UnitsSpectral* m_spectralUnits;
+    static UnitsIntensity* m_intensityUnits;
+    static ProfileStatistics* m_stats;
     static GenerateModes* m_generateModes;
 
 
     static QList<QColor> m_curveColors;
 
+    //Compute the profile in a thread
+    std::unique_ptr<ProfileRenderService> m_renderService;
+
 	Profiler( const Profiler& other);
-	Profiler operator=( const Profiler& other );
+	Profiler& operator=( const Profiler& other );
 };
 }
 }

@@ -19,6 +19,12 @@ class tSnapshotData(tSnapshot.tSnapshot):
     def setUp(self):
         browser = selectBrowser._getBrowser()
         Util.setUp(self, browser)
+        
+    def open_restore(self, driver):
+        sessionButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Session']/..")))
+        ActionChains( driver ).click( sessionButton ).perform();
+        ActionChains(driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+
 
     def _verifyImage(self, driver, count ):
         #Get the upper bound of images from the image animator
@@ -83,8 +89,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         Util._changeElementText( self, driver, indexText, 0)
 
         # Click the restore sessions button
-        self._clickSessionButton( driver )
-        self._clickSessionRestoreButton( driver )
+        self.open_restore( driver )
 
         # Select tSnapshotData in the restore combo box
         self._selectRestoreSnapshot( driver, "tSnapshotData")
@@ -98,7 +103,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
 
         # Verify the animator channel is back to the last one
         channelVal = indexText.get_attribute( "value")
-        print "Channel value=",channelVal
+        print "Channel value=",channelVal, " lastChannel=", lastChannel
         self.assertEqual( channelVal, lastChannel, "Channel animator did not get restored to last channel")
 
 
@@ -156,8 +161,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         self._verifyImage( driver, 2)
 
         # Click the restore sessions button
-        self._clickSessionButton( driver )
-        self._clickSessionRestoreButton( driver )
+        self.open_restore( driver )
 
         # Select tSnapshotData in the restore combo box
         self._selectRestoreSnapshot( driver, "tSnapshotData")
@@ -171,6 +175,8 @@ class tSnapshotData(tSnapshot.tSnapshot):
 
         # Verify that only the original two images are loaded
         self._verifyImage( driver, 1 )
+        
+    
     
     # Test that a data snapshot can be taken with 3 images loaded and that they
     # will all be restored if the snapshot is reloaded.
@@ -221,8 +227,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         self._verifyImage( driver, 0 )
         
          # Click the restore sessions button
-        self._clickSessionButton( driver )
-        self._clickSessionRestoreButton( driver )
+        self.open_restore( driver )
 
         # Select tSnapshotData in the restore combo box
         self._selectRestoreSnapshot( driver, "tSnapshotData")
@@ -295,8 +300,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
             print "Test passed - all images are gone"
         
         # Click the restore sessions button
-        self._clickSessionButton( driver )
-        self._clickSessionRestoreButton( driver )
+        self.open_restore( driver )
         
         # Select tSnapshotData in the restore combo box
         self._selectRestoreSnapshot( driver, "tSnapshotData")

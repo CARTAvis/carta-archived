@@ -53,7 +53,7 @@ DataSource::DataSource() :
 }
 
 
-int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceFrames ) const {
+int DataSource::_getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const {
     int frameIndex = 0;
     if (m_image ){
         AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( sourceFrameIndex );
@@ -67,7 +67,7 @@ int DataSource::_getFrameIndex( int sourceFrameIndex, const vector<int>& sourceF
     return frameIndex;
 }
 
-std::vector<int> DataSource::_fitFramesToImage( const vector<int>& sourceFrames ) const {
+std::vector<int> DataSource::_fitFramesToImage( const std::vector<int>& sourceFrames ) const {
     int sourceFrameCount = sourceFrames.size();
     std::vector<int> outputFrames( sourceFrameCount );
     for ( int i = 0; i < sourceFrameCount; i++ ){
@@ -330,7 +330,8 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
-bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const {
+bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile,
+        double* intensity, int* intensityIndex ) const {
     bool intensityFound = false;
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
@@ -338,11 +339,15 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
         Carta::Lib::NdArray::TypedView<double> view( rawData, false );
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
+        int index = 0;
+        std::vector < int > allIndices;
         std::vector < double > allValues;
-        view.forEach( [& allValues] ( const double  val ) {
+        view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( val );
+                allIndices.push_back( index );
             }
+            index++;
         }
         );
 
@@ -354,6 +359,13 @@ bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile, 
             }
             std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
             *intensity = allValues[locationIndex];
+            int divisor = 1;
+            std::vector<int> dims = m_image->dims();
+            for ( int i = 0; i < spectralIndex; i++ ){
+                divisor = divisor * dims[i];
+            }
+            int specIndex = allIndices[locationIndex ]/divisor;
+            *intensityIndex = specIndex;
             intensityFound = true;
         }
     }

@@ -53,10 +53,10 @@ Stack::Stack(const QString& path, const QString& id) :
     _initializeSelections();
 }
 
-QString Stack::_addDataImage(const QString& fileName, std::shared_ptr<ColorState> colorState, bool* success ) {
+QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     int stackIndex = -1;
     QSize viewSize = m_stackDraw->getClientSize();
-    QString result = _addData( fileName, success, &stackIndex, colorState, viewSize);
+    QString result = _addData( fileName, success, &stackIndex, viewSize);
     if ( *success && stackIndex >= 0 ){
         _resetFrames( stackIndex );
         _saveState();
@@ -64,35 +64,12 @@ QString Stack::_addDataImage(const QString& fileName, std::shared_ptr<ColorState
     return result;
 }
 
-QString Stack::_addDataRegion(const QString& fileName, bool* success ) {
-    QString msg;
-    int selectIndex = _getSelectImageIndex();
-    if ( selectIndex >= 0 ){
-
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_children[selectIndex]->_getImage();
-        auto result = Globals::instance()-> pluginManager()
-                                -> prepare <Carta::Lib::Hooks::LoadRegion>(fileName, image );
-        auto lam = [=] ( const Carta::Lib::Hooks::LoadRegion::ResultType &data ) {
-            int regionCount = data.size();
-            for ( int i = 0; i < regionCount; i++ ){
-               if ( data[i] ){
-                   std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
-                   regionPtr -> _setUserId( fileName, i );
-                   m_regions.push_back( regionPtr );
-               }
-            }
-        };
-        try {
-            result.forEach( lam );
-            _saveStateRegions();
-            *success = true;
-        }
-        catch( char*& error ){
-            msg = QString( error );
-            *success = false;
-        }
+void Stack::_addDataRegions( std::vector<std::shared_ptr<Region>> regions ){
+    int count = regions.size();
+    for ( int i = 0; i < count; i++ ){
+        m_regions.push_back( regions[i]);
     }
-    return msg;
+    _saveStateRegions();
 }
 
 
@@ -210,6 +187,16 @@ QStringList Stack::getCoordinates( double x, double y,
     return _getCoordinates( x, y, system, indices );
 }
 
+
+QString Stack::_getCurrentId() const {
+    QString id = "";
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        id = m_children[dataIndex]->_getLayerId();
+    }
+    return id;
+}
+
 QString Stack::_getCursorText( int mouseX, int mouseY ){
     int dataIndex = _getIndexCurrent();
     QString cursorText;
@@ -254,6 +241,28 @@ int Stack::_getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     return upperBound;
 }
 
+
+std::vector<int> Stack::_getImageSlice() const {
+    std::vector<int> result;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        int dimensions = m_children[dataIndex] -> _getDimension();
+        result.resize( dimensions );
+        Carta::Lib::AxisInfo::KnownType axisXType = _getAxisXType();
+        Carta::Lib::AxisInfo::KnownType axisYType = _getAxisYType();
+        for ( int i = 0; i < dimensions; i++ ){
+            Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i );
+            if ( type == axisXType || type == axisYType ){
+                result[i] = -1;
+            }
+            else {
+                result[i] = _getFrame( type );
+            }
+        }
+    }
+    return result;
+}
+
 int Stack::_getIndex( const QString& layerId) const {
     int index = -1;
     int dataCount = m_children.size();
@@ -265,6 +274,7 @@ int Stack::_getIndex( const QString& layerId) const {
     }
     return index;
 }
+
 
 int Stack::_getIndexCurrent( ) const {
     int dataIndex = -1;
@@ -305,55 +315,6 @@ int Stack::_getSelectImageIndex() const {
         selectImageIndex = m_selectImage->getIndex();
     }
     return selectImageIndex;
-}
-
-void Stack::_initializeSelections(){
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    m_selectImage = objMan->createObject<Selection>();
-    connect( m_selectImage, SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
-    int axisCount = static_cast<int>(AxisInfo::KnownType::OTHER);
-    m_selects.resize( axisCount );
-    for ( int i = 0; i < axisCount; i++ ){
-        m_selects[i] = objMan->createObject<Selection>();
-        connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
-    }
-}
-
-void Stack::_initializeState(){
-    int regionCount = m_regions.size();
-    m_state.insertArray(REGIONS, regionCount );
-    m_state.setValue<QString>( LayerGroup::COMPOSITION_MODE, LayerCompositionModes::NONE );
-    m_state.flushState();
-}
-
-QString Stack::_getCurrentId() const {
-    QString id = "";
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        id = m_children[dataIndex]->_getLayerId();
-    }
-    return id;
-}
-
-std::vector<int> Stack::_getImageSlice() const {
-    std::vector<int> result;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        int dimensions = m_children[dataIndex] -> _getDimension();
-        result.resize( dimensions );
-        Carta::Lib::AxisInfo::KnownType axisXType = _getAxisXType();
-        Carta::Lib::AxisInfo::KnownType axisYType = _getAxisYType();
-        for ( int i = 0; i < dimensions; i++ ){
-            Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i );
-            if ( type == axisXType || type == axisYType ){
-                result[i] = -1;
-            }
-            else {
-                result[i] = _getFrame( type );
-            }
-        }
-    }
-    return result;
 }
 
 std::vector<Carta::Lib::RegionInfo> Stack::_getRegions() const {
@@ -402,6 +363,26 @@ void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyA
         }
         emit viewLoad( );
     }
+}
+
+void Stack::_initializeSelections(){
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    m_selectImage = objMan->createObject<Selection>();
+    connect( m_selectImage, SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
+    int axisCount = static_cast<int>(AxisInfo::KnownType::OTHER);
+    m_selects.resize( axisCount );
+    for ( int i = 0; i < axisCount; i++ ){
+        m_selects[i] = objMan->createObject<Selection>();
+        connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
+    }
+}
+
+
+void Stack::_initializeState(){
+    int regionCount = m_regions.size();
+    m_state.insertArray(REGIONS, regionCount );
+    m_state.setValue<QString>( LayerGroup::COMPOSITION_MODE, LayerCompositionModes::NONE );
+    m_state.flushState();
 }
 
 void Stack::_load( bool recomputeClipsOnNewFrame,

@@ -71,6 +71,8 @@ private:
     QVector< QwtIntervalSample > m_data;
     mutable double m_lastY;
     mutable double m_lastX;
+    Plot2DHistogram( const Plot2DHistogram& other);
+    Plot2DHistogram& operator=( const Plot2DHistogram& other );
 };
 
 }

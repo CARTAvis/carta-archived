@@ -31,6 +31,7 @@ HEADERS += \
     Data/Colormap/Colormap.h \
     Data/Colormap/Colormaps.h \
     Data/Colormap/ColorState.h \
+    Data/Colormap/Gamma.h \
     Data/Colormap/TransformsData.h \
     Data/Colormap/TransformsImage.h \
     Data/DataLoader.h \
@@ -45,6 +46,7 @@ HEADERS += \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
+    Data/Image/DataFactory.h \
     Data/Image/LayerGroup.h \
     Data/Image/Stack.h \
     Data/Image/Layer.h \
@@ -87,11 +89,12 @@ HEADERS += \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
     Data/Profile/CurveData.h \
-    Data/Profile/IntensityUnits.h \
     Data/Profile/Profiler.h \
     Data/Profile/ProfilePlotStyles.h \
+    Data/Profile/ProfileRenderService.h \
+    Data/Profile/ProfileRenderThread.h \
+    Data/Profile/ProfileRenderWorker.h \
     Data/Profile/ProfileStatistics.h \
-    Data/Profile/SpectralUnits.h \
     Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
     Data/Region/RegionFactory.h \
@@ -100,6 +103,10 @@ HEADERS += \
     Data/Snapshot/Snapshot.h \
     Data/Snapshot/SnapshotsFile.h \
     Data/Statistics/Statistics.h \
+    Data/Units/UnitsFrequency.h \
+    Data/Units/UnitsIntensity.h \
+    Data/Units/UnitsSpectral.h \
+    Data/Units/UnitsWavelength.h \
     Data/Util.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
@@ -157,9 +164,11 @@ SOURCES += \
     Data/Colormap/Colormap.cpp \
     Data/Colormap/Colormaps.cpp \
     Data/Colormap/ColorState.cpp \
+    Data/Colormap/Gamma.cpp \
     Data/Colormap/TransformsData.cpp \
     Data/Colormap/TransformsImage.cpp \
     Data/Image/Controller.cpp \
+    Data/Image/DataFactory.cpp \
     Data/Image/LayerData.cpp \
     Data/Image/Layer.cpp \
     Data/Image/LayerGroup.cpp \
@@ -210,11 +219,12 @@ SOURCES += \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
-    Data/Profile/IntensityUnits.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfilePlotStyles.cpp \
+    Data/Profile/ProfileRenderService.cpp \
+    Data/Profile/ProfileRenderThread.cpp \
+    Data/Profile/ProfileRenderWorker.cpp \
     Data/Profile/ProfileStatistics.cpp \
-    Data/Profile/SpectralUnits.cpp \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionFactory.cpp \
@@ -222,6 +232,10 @@ SOURCES += \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
     Data/Statistics/Statistics.cpp \
+    Data/Units/UnitsFrequency.cpp \
+    Data/Units/UnitsIntensity.cpp \
+    Data/Units/UnitsSpectral.cpp \
+    Data/Units/UnitsWavelength.cpp \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \

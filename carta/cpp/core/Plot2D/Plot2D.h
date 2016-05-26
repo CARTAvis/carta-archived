@@ -126,6 +126,9 @@ protected:
     double m_minValueY;
     QString m_id;
 
+    Plot2D( const Plot2D& other);
+    Plot2D& operator=( const Plot2D& other );
+
 };
 
 }

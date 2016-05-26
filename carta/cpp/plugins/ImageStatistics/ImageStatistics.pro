@@ -27,8 +27,8 @@ casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
 LIBS += $${casacoreLIBS}
 LIBS += -L$${WCSLIBDIR}/lib -lwcs
 LIBS += -L$${CFITSIODIR}/lib -lcfitsio
-LIBS += -L$${IMAGEANALYSISDIR}/lib -limageanalysis
-LIBS += -L$$OUT_PWD/../../plugins/CasaImageLoader -lplugin
+#LIBS += -L$${IMAGEANALYSISDIR}/lib -limageanalysis
+#LIBS += -L$$OUT_PWD/../../plugins/CasaImageLoader -lplugin
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 

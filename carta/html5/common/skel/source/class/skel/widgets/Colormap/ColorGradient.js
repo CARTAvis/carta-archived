@@ -1,10 +1,7 @@
 /**
  * Displays a color map as a gradient.
  */
-/*global mImport */
-/*******************************************************************************
- * @ignore( mImport)
- ******************************************************************************/
+
 
 qx.Class.define("skel.widgets.Colormap.ColorGradient", {
     extend: qx.ui.embed.Canvas,
@@ -28,11 +25,9 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          */
         _addStop : function( gradient, stopIndex, posIndex ){
             var floatStop = posIndex / this.m_stops.length;
-            var redHex = this._processColor( this.m_stops[stopIndex], 1, this.m_scaleRed );
-            var greenHex = this._processColor( this.m_stops[stopIndex], 3, this.m_scaleGreen );
-            var blueHex = this._processColor( this.m_stops[stopIndex], 5, this.m_scaleBlue );
-            var stop = "#"+redHex+greenHex+blueHex;
-            gradient.addColorStop( floatStop, stop );
+            if ( this.m_stops[stopIndex].indexOf("#") >= 0 ){
+                gradient.addColorStop( floatStop, this.m_stops[stopIndex] );
+            }
         },
         
         /**
@@ -81,47 +76,8 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             this.setAllowGrowY( true );
             this.setMinWidth( 100 );
             this.setMinHeight( 25 );
-            this.m_connector = mImport("connector");
         },
         
-        /**
-         * Reads a color from the hex representation and applies inversion and scaling,
-         * if appropriate.
-         * @param stop {String} the hex representation of a color.
-         * @param hexIndex {Number} the index of the color in the hex representation.
-         * @param scale {Number} a scaling factor for the color.
-         */
-        _processColor : function ( stop, hexIndex, scale ){
-            var start = hexIndex;
-            var end = hexIndex + 2;
-            if ( stop.substring(0,1) === "0"){
-                start = 1;
-            }
-            var colorHex = stop.substring( start, end );
-            var rgbColor = parseInt( colorHex, 16 );
-            if ( this.m_invert ){
-                rgbColor = 255 - rgbColor;
-            }
-            rgbColor = Math.round(rgbColor * scale);
-            var processedHex = rgbColor.toString( 16 );
-            if ( processedHex.length == 1 ){
-                processedHex = "0"+processedHex;
-            }
-            return processedHex;
-        },
-        
-        /**
-         * Requests information from the server about the colors comprising the 
-         *      current color gradient.
-         */
-        _sendUpdateStopsCmd : function(){
-            if ( this.m_connector !== null && this.m_name !== null ){
-                var params = "name:"+this.m_name;
-                var path = skel.widgets.Path.getInstance();
-                var cmd = path.COLORMAPS + path.SEP_COMMAND + "getColorStops";
-                this.m_connector.sendCommand( cmd, params, this._updateColorStops(this));
-            }
-        },
         
         /**
          * Sets the name of the color map to display in the gradient.
@@ -130,10 +86,8 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
         setColorName : function( colorMapName ){
             if ( this.m_name !== colorMapName ){
                 this.m_name = colorMapName;
-                this._sendUpdateStopsCmd();
             }
         },
-        
         
         /**
          * Set whether or not to invert the color map.
@@ -157,46 +111,19 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             }
         },
         
-        /**
-         * Set scale values for the colors in the map.
-         * @param redValue {Number} the amount of red scaling, range [0,1].
-         * @param greenValue {Number} the amount of green scaling, range [0,1].
-         * @param blueValue {Number} the amount of blue scaling, range [0,1].
-         */
-        setScales : function( redValue, greenValue, blueValue ){
-            var scalesChanged = false;
-            if ( this.m_scaleRed != redValue ){
-                this.m_scaleRed = redValue;
-                scalesChanged = true;
-            }
-            if ( this.m_scaleGreen != greenValue ){
-                this.m_scaleGreen = greenValue;
-                scalesChanged = true;
-            }
-            if ( this.m_scaleBlue != blueValue ){
-                this.m_scaleBlue = blueValue;
-                scalesChanged = true;
-            }
-            if ( scalesChanged ){
-                this.update();
-            }
-        },
         
         /**
          * Returns a callback for updating the display with new color stops.
          * @param anObject {skel.widgets.ColorMap.ColorGradient}.
          * @return {Function} the callback for updating the gradient color stops.
          */
-        _updateColorStops : function( anObject ){
-            return function( colorStops ){
-                if ( colorStops !==null && colorStops != anObject.m_stops ){
-                    anObject.m_stops = colorStops.split(",");
-                    anObject.update();
-                }
-            };
+        setStops : function( colorStops ){
+            if ( colorStops !==null  ){
+                this.m_stops = colorStops.split(",");
+                this.update();
+            }
         },
         
-        m_connector : null,
         m_scaleRed : 1,
         m_scaleBlue : 1,
         m_scaleGreen : 1,

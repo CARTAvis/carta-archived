@@ -79,7 +79,6 @@ private:
 
     class Factory;
 
-
 	Fonts( const Fonts& other);
 	Fonts& operator=( const Fonts& other );
 };

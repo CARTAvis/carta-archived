@@ -10,7 +10,7 @@ const QString GenerateModes::GEN_LIST = "genModes";
 const QString GenerateModes::CLASS_NAME = "GenerateModes";
 const QString GenerateModes::GEN_ALL = "All";
 const QString GenerateModes::GEN_CURRENT = "Current";
-const QString GenerateModes::GEN_CUSTOM = "Custom";
+//const QString GenerateModes::GEN_CUSTOM = "Custom";
 const QString GenerateModes::GEN_NO_SINGLE_PLANES = "Exclude Single Plane";
 
 
@@ -59,12 +59,12 @@ QString GenerateModes::getDefault() const {
 
 
 void GenerateModes::_initializeDefaultState(){
-    m_state.insertArray( GEN_LIST, 4 );
+    m_state.insertArray( GEN_LIST, 3 );
     int i = 0;
 
     _initMode( &i, GEN_CURRENT );
     _initMode( &i, GEN_ALL );
-    _initMode( &i, GEN_CUSTOM );
+   // _initMode( &i, GEN_CUSTOM );
     _initMode( &i, GEN_NO_SINGLE_PLANES );
 
     m_state.flushState();

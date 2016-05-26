@@ -23,6 +23,8 @@ namespace Data {
 class Colormaps;
 class Controller;
 class TransformsData;
+class TransformsImage;
+
 
 class ColorState : public QObject, public Carta::State::CartaObject {
 
@@ -82,7 +84,6 @@ private:
     void _initializeStatics();
 
     bool _isBorderDefault() const;
-    bool _isGlobal() const;
     bool _isNanDefault() const;
 
     /**
@@ -150,25 +151,14 @@ private:
      */
     QString _setDataTransform( const QString& transformString);
 
-
-    /**
-     * Set the error margin used to determine when two doubles are equal.
-     */
-    void _setErrorMargin();
-
     /**
      * Set the gamma color map parameter.
-     * @param gamma a parameter for color mapping.
+     * @param gamma - a parameter for color mapping.
+     * @param errorMargin - the error margin required to recognize a difference in gamma values.
+     * @param significantDigits - the number of digits to retain for display purposes.
      * @return error information if gamma could not be set.
      */
-    QString _setGamma( double gamma );
-
-    /**
-     * Set whether or not this is the global color state.
-     * @param global - true if it is the global color state; false, if it just applies
-     *      to a single layer on the stack.
-     */
-    void _setGlobal( bool global );
+    QString _setGamma( double gamma, double errorMargin, int significantDigits );
 
     /**
      * Invert the current colormap.
@@ -182,6 +172,9 @@ private:
     bool _setColor( const QString& key, const QString& majorKey, const QString& userId,
             int colorAmount, QString& errorMsg );
 
+    bool _setGammaX( double xValue, double errorMargin, int significantDigits );
+    bool _setGammaY( double xValue, double errorMargin, int significantDigits );
+
     void _setNanDefault( bool defaultNan );
 
     /**
@@ -191,28 +184,10 @@ private:
      */
     void _setReverse( bool reverse );
 
-    /**
-     * Set the number of significant digits to use/display in colormap calculations.
-     * @param digits - the number of significant digits to use in calculations.
-     * @return an error message if the significant digits could not be sent; an
-     *      empty string otherwise.
-     */
-    QString _setSignificantDigits( int digits );
-
-    /**
-     * Set the index of the tab that should be selected.
-     * @param index - the index of the tab that should be selected.
-     * @return an error message if the tab index could not be set; an empty string
-     *  otherwise.
-     */
-    QString _setTabIndex( int index );
-
-
     static bool m_registered;
     const static QString COLOR_MAP_NAME;
     const static QString REVERSE;
     const static QString INVERT;
-    const static QString GLOBAL;
     const static QString COLORED_OBJECT;
     const static QString COLOR_MIX;
 
@@ -225,7 +200,7 @@ private:
     const static QString BORDER_DEFAULT;
     const static QString NAN_COLOR;
     const static QString NAN_DEFAULT;
-    const static QString SIGNIFICANT_DIGITS;
+
     const static QString TRANSFORM_IMAGE;
     const static QString TRANSFORM_DATA;
 
@@ -233,15 +208,12 @@ private:
 
     class Factory;
 
-
     //Supported color maps
     static Colormaps* m_colors;
 
     //Supported data transforms
     static TransformsData* m_dataTransforms;
-
-
-    double m_errorMargin;
+    static TransformsImage* m_imageTransforms;
 
 	ColorState( const ColorState& other);
 	ColorState& operator=( const ColorState& other );

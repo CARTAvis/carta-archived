@@ -1,6 +1,7 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/DataFactory.h"
 #include "Data/Image/Stack.h"
 #include "Data/Image/DataSource.h"
 #include "Data/Image/Grid/AxisMapper.h"
@@ -15,11 +16,9 @@
 
 #include "Data/Region/Region.h"
 
-
 #include "Data/Util.h"
 #include "ImageView.h"
 #include "CartaLib/IImage.h"
-#include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "Globals.h"
 
 #include <QtCore/QDebug>
@@ -116,22 +115,14 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 }
 
 QString Controller::addData(const QString& fileName, bool* success) {
-    //Decide on the type of data we are adding based on the file
-    //suffix.
     *success = false;
-    QString result;
-    if ( fileName.endsWith( DataLoader::CRTF) ){
-        result = _addDataRegion( fileName, success );
-    }
-    else {
-        result = _addDataImage( fileName, success );
-    }
+    QString result = DataFactory::addData( this, fileName, success );
     return result;
 }
 
 
 QString Controller::_addDataImage(const QString& fileName, bool* success ) {
-    QString result = m_stack->_addDataImage( fileName, m_stateColor, success );
+    QString result = m_stack->_addDataImage( fileName, success );
     if ( *success ){
         if ( isStackSelectAuto() ){
             QStringList selectedLayers;
@@ -145,16 +136,12 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-QString Controller::_addDataRegion(const QString& fileName, bool* success) {
-    QString result = m_stack->_addDataRegion( fileName, success );
-    if ( success ){
+
+void Controller::_addDataRegions( std::vector<std::shared_ptr<Region> > regions ){
+    if ( regions.size() > 0 ){
+        m_stack->_addDataRegions( regions );
         emit dataChangedRegion( this );
     }
-    else {
-        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-        hr->registerError( result );
-    }
-    return result;
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
@@ -182,7 +169,6 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
         else {
             result = "Maximum intensity percentile invalid [0,1]: "+ QString::number( maxIntensityPercentile);
         }
-
         if( clipsChangedValue ){
             m_state.flushState();
             _loadViewQueued();
@@ -349,14 +335,17 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-bool Controller::getIntensity( double percentile, double* intensity ) const{
+bool Controller::getIntensity( double percentile, double* intensity,
+        int* intensityIndex ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    bool validIntensity = getIntensity( currentFrame, currentFrame, percentile, intensity );
+    bool validIntensity = getIntensity( currentFrame, currentFrame, percentile, intensity, intensityIndex );
     return validIntensity;
 }
 
-bool Controller::getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const{
-    bool validIntensity = m_stack->_getIntensity( frameLow, frameHigh, percentile, intensity );
+bool Controller::getIntensity( int frameLow, int frameHigh, double percentile,
+        double* intensity, int* intensityIndex ) const{
+    bool validIntensity = m_stack->_getIntensity( frameLow, frameHigh, percentile,
+            intensity, intensityIndex );
     return validIntensity;
 }
 
@@ -410,8 +399,8 @@ int Controller::getSelectImageIndex() const {
 }
 
 
-std::vector< std::shared_ptr<ColorState> >  Controller::getSelectedColorStates(){
-    std::vector< std::shared_ptr<ColorState> > colorStates = m_stack->_getSelectedColorStates();
+std::vector<std::shared_ptr<ColorState> > Controller::getSelectedColorStates( bool global ){
+    std::vector<std::shared_ptr<ColorState> > colorStates = m_stack->_getSelectedColorStates( global );
     return colorStates;
 }
 
@@ -930,6 +919,7 @@ void Controller::resetStateData( const QString& state ){
     //Notify others there has been a change to the data.
     emit dataChanged( this );
     emit dataChangedRegion( this );
+    emit colorChanged( this );
 
     //Reset the state of the grid controls based on the selected image.
     StateInterface gridState = m_stack->_getGridState();
@@ -997,7 +987,7 @@ void Controller::setAutoClip( bool autoClip ){
 
 QString Controller::setClipValue( double clipVal  ) {
     QString result;
-    if ( 0 <= clipVal && clipVal < 1 ){
+    if ( 0 <= clipVal && clipVal <= 1 ){
         double oldClipValMin = m_state.getValue<double>( CLIP_VALUE_MIN );
         double oldClipValMax = m_state.getValue<double>( CLIP_VALUE_MAX );
         double oldClipVal = oldClipValMax - oldClipValMin;
@@ -1010,7 +1000,7 @@ QString Controller::setClipValue( double clipVal  ) {
         }
     }
     else {
-        result = "Clip value must be in [0,1).";
+        result = "Clip value must be in [0,1].";
     }
     return result;
 }
@@ -1040,22 +1030,6 @@ void Controller::setFrameImage( int val) {
         _updateCursorText( true );
         emit dataChanged( this );
     }
-}
-
-
-void Controller::_setColorMapGlobal( std::shared_ptr<ColorState> colorState ){
-    m_stateColor = colorState;
-}
-
-void Controller::_setColorMapUseGlobal( bool global ) {
-    //Reset the color maps.
-    if ( global ){
-        m_stack->_setColorMapGlobal( m_stateColor );
-    }
-    else {
-        m_stack->_setColorMapGlobal( nullptr );
-    }
-    emit colorChanged( this );
 }
 
 

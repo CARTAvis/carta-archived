@@ -122,16 +122,21 @@ public:
      static const QString NAME;
      static const QString PEN_WIDTH;
      static const QString POINTER_MOVE;
+     static const QString SIGNIFICANT_DIGITS;
      static const QString TAB_INDEX;
      static const QString TYPE;
      static const QString UNITS;
      static const QString VISIBLE;
      static const QString VIEW;
+     static const QString XCOORD;
+     static const QString YCOORD;
      static const int MAX_COLOR;
 
 private:
     Util();
     virtual ~Util();
+    Util( const Util& other);
+    Util& operator=( const Util& other );
     static const QString TRUE;
     static const QString FALSE;
 

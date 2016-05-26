@@ -58,6 +58,31 @@ RegionInfo::~RegionInfo(){
 
 }
 
+bool RegionInfo::operator==( const RegionInfo& rhs ) {
+    bool equalRegions = false;
+    if ( m_regionType == rhs.m_regionType ){
+        if ( m_corners.size() == rhs.m_corners.size() ){
+            int cornerCount = m_corners.size();
+            const double ERROR_MARGIN = 0.000001;
+            int i = 0;
+            for ( ; i < cornerCount; i++ ){
+                if ( fabs( m_corners[i].first - rhs.m_corners[i].first ) >= ERROR_MARGIN ||
+                    fabs( m_corners[i].second - rhs.m_corners[i].second ) >= ERROR_MARGIN ){
+                    break;
+                }
+            }
+            if ( i == cornerCount ){
+                equalRegions = true;
+            }
+        }
+    }
+    return equalRegions;
+
+}
+bool RegionInfo::operator!=( const RegionInfo& rhs ) {
+    return !( *this== rhs );
+}
+
 }
 }
 

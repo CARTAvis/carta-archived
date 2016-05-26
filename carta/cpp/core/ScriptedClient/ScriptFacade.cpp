@@ -1069,7 +1069,8 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, 
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            valid = controller->getIntensity( frameLow, frameHigh, percentile, &intensity );
+            int index = 0;
+            valid = controller->getIntensity( frameLow, frameHigh, percentile, &intensity, &index );
             if ( valid ) {
                 resultList = QStringList( QString::number( intensity ) );
             }

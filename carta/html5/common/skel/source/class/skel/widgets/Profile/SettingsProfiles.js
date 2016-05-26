@@ -50,6 +50,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 var selectIndex = curveUpdate.selectCurve;
                 this._updateSelection( selectIndex );
                 this.m_genSelect.setSelectValue( curveUpdate.genMode );
+                this.m_statSelect.setSelectValue( curveUpdate.stat );
             }
         },
         
@@ -61,27 +62,15 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
             
-            
             var overallContainer = new qx.ui.container.Composite();
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
-            
-            //Init generate.
-            var genContainer = new qx.ui.container.Composite();
-            genContainer.setLayout( new qx.ui.layout.HBox(1));
-            this.m_genSelect = new skel.widgets.CustomUI.SelectBox();
-            this.m_genSelect.addListener( "changeValue", this._genModeChangedCB, this );
-            var genLabel = new qx.ui.basic.Label( "Auto Generate:");
-            genContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-            genContainer.add( genLabel );
-            genContainer.add( this.m_genSelect );
-            genContainer.add( new qx.ui.core.Spacer(1), {flex:1});
-            overallContainer.add( genContainer );
             
             //Custom Name
             var nameContainer = new qx.ui.container.Composite();
             nameContainer.setLayout( new qx.ui.layout.HBox(1));
             this.m_nameSelect = new qx.ui.form.ComboBox();
             this.m_nameSelect.addListener( "changeValue", this._nameChangedCB, this );
+            skel.widgets.TestID.addTestId( this.m_nameSelect, "profileNameSelect" ); 
             this.m_nameSelect.setToolTipText( "Specify a custom name for the profile.");
             var nameLabel = new qx.ui.basic.Label( "Name:");
             nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
@@ -113,16 +102,13 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             selectContainer.add( this.m_regionSelect, {row:0, column:3} );
             
             //Initialize rest frequency
-            gridLayout.setRowAlign( 1, "right", "middle");
-            var restFreqLabel = new qx.ui.basic.Label( "Rest Frequency:");
-            this.m_restFreqText = new skel.widgets.CustomUI.NumericTextField( 0, null );
-            this.m_restFreqText.setToolTipText( "Specify the rest frequency.");
-            selectContainer.add( restFreqLabel, {row:1, column:0});
-            selectContainer.add( this.m_restFreqText, {row:1, column:1} );
+            this.m_restWidget = new skel.widgets.Profile.SettingsProfilesRest("","");
+            selectContainer.add( this.m_restWidget, {row:1, column:0, colSpan:2, rowSpan:2} );
             
             //Initialize the statistic
             var statLabel = new qx.ui.basic.Label( "Statistic:");
             this.m_statSelect = new skel.widgets.CustomUI.SelectBox();
+            this.m_statSelect.addListener( "selectChanged", this._sendStatCmd, this );
             this.m_statSelect.setToolTipText( "Specify the method used to generate the profile.");
             selectContainer.add( statLabel, {row:1, column:2});
             selectContainer.add( this.m_statSelect, {row:1, column:3});
@@ -142,6 +128,12 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             var butContainer = new qx.ui.container.Composite();
             butContainer.setLayout( new qx.ui.layout.HBox(1));
             butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
+            this.m_genSelect = new skel.widgets.CustomUI.SelectBox();
+            skel.widgets.TestID.addTestId( this.m_genSelect, "profileGenerateMode" ); 
+            this.m_genSelect.setToolTipText( "Specify which images should be profiled by default when they are loaded.")
+            this.m_genSelect.addListener( "selectChanged", this._genModeChangedCB, this );
+            var genLabel = new qx.ui.basic.Label( "Auto Generate:");
+           
             this.m_addButton = new qx.ui.form.Button( "New");
             this.m_addButton.setToolTipText( "Create a new profile using default settings.");
             this.m_addButton.addListener( "execute", this._sendNewCmd, this );
@@ -149,12 +141,15 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_copyButton.setToolTipText( "Create a new profile using the same settings as the selected profile.");
             this.m_copyButton.addListener( "execute", this._sendCopyCmd, this );
             this.m_removeButton = new qx.ui.form.Button( "Remove");
+            skel.widgets.TestID.addTestId( this.m_removeButton, "profileRemoveButton" ); 
             this.m_removeButton.setToolTipText( "Delete the selected profile.");
             this.m_removeButton.addListener( "execute",this._sendRemoveCmd, this );
+            butContainer.add( genLabel );
+            butContainer.add( this.m_genSelect );
+            butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             butContainer.add( this.m_addButton );
             butContainer.add( this.m_copyButton );
             butContainer.add( this.m_removeButton );
-            butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             return butContainer;
         },
         
@@ -270,6 +265,21 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             }
         },
         
+        /**
+         * Send a command to the server to change the method used to summarize
+         * profile points.
+         */
+        _sendStatCmd : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var newName = this.m_nameSelect.getValue();
+                var newStat = this.m_statSelect.getValue();
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setStatistic";
+                var params = "name:"+newName+",stat:"+newStat;
+                this.m_connector.sendCommand( cmd, params, null );
+            }
+        },
+        
         
         /**
          * Set the server side id of the object managing profile information.
@@ -277,6 +287,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
          */
         setId : function( id ){
             this.m_id = id;
+            this.m_restWidget.setId( id );
         },
         
         /**
@@ -353,8 +364,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 if ( imageName != this.m_imageSelect.getValue() ){
                     this.m_imageSelect.setSelectValue( imageName );
                 }
-                var restFreq = Number(this.m_curveInfo[selectIndex].restFrequency);
-                this.m_restFreqText.setValue( restFreq );
+                this.m_restWidget.update( this.m_curveInfo[selectIndex] );
                 var statName = this.m_curveInfo[selectIndex].stat;
                 if ( statName != this.m_statSelect.getValue() ){
                     this.m_statSelect.setSelectValue( statName );
@@ -371,7 +381,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         m_genSelect : null,
         m_nameSelect : null,
         m_regionSelect : null,
-        m_restFreqText : null,
+        m_restWidget : null,
         m_statSelect : null,
         m_connector : null,
         m_sharedVarStats : null,
