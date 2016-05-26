@@ -268,6 +268,33 @@ QStringList ScriptFacade::invertColorMap( const QString& colormapId, const QStri
     return resultList;
 }
 
+QStringList ScriptFacade::setNanDefault( const QString& colormapId, const QString& nanDefaultStr ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( colormapId );
+    if ( obj != nullptr ){
+        Carta::Data::Colormap* colormap = dynamic_cast<Carta::Data::Colormap*>(obj);
+        if ( colormap != nullptr ){
+            bool nanDefault = false;
+            bool validBool = true;
+            nanDefault = Carta::Data::Util::toBool( nanDefaultStr, &validBool );
+            if ( validBool ){
+                QString result = colormap->setNanDefault(nanDefault);
+                resultList = QStringList( result );
+            }
+             else {
+                resultList = _logErrorMessage( ERROR, "An unrecognized parameter was passed to set nan default: " + nanDefaultStr );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, COLORMAP_VIEW_NOT_FOUND + colormapId );
+    }
+    return resultList;
+}
+
 QStringList ScriptFacade::setColorMix( const QString& colormapId, double red, double green, double blue ){
     QStringList resultList;
     Carta::State::CartaObject* obj = _getObject( colormapId );
@@ -922,6 +949,206 @@ QStringList ScriptFacade::closeImage( const QString& controlId, const QString& i
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
             QString result = controller->closeImage( imageName );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::showImage( const QString& controlId, const QString& imageName ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setImageVisibility( imageName, true );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::hideImage( const QString& controlId, const QString& imageName ) {
+    QStringList resultList;
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setImageVisibility( imageName, false );
+            resultList = QStringList( result );
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+    }
+    if ( resultList.length() == 0 ) {
+        resultList = QStringList("");
+    }
+    return resultList;
+}
+
+
+QStringList ScriptFacade::setPanZoomAll(const QString& controlId, const QString& setPanZoomAllFlagStr) {
+    QStringList resultList;
+
+    bool validBool = false;
+    bool setPanZoomAllFlag= Carta::Data::Util::toBool( setPanZoomAllFlagStr, &validBool );
+    if ( validBool ) {
+        Carta::State::CartaObject* obj = _getObject( controlId );
+        if ( obj != nullptr ){
+            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+            if ( controller != nullptr ){
+                controller->setPanZoomAll( setPanZoomAllFlag );
+                resultList = QStringList( "" );
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+        }
+        if ( resultList.length() == 0 ) {
+            resultList = QStringList("");
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "Set Pan Zoom All Flag must be true/false " + setPanZoomAllFlagStr);
+    }
+    return resultList;
+}
+
+
+QStringList ScriptFacade::setMaskAlpha(const QString& controlId, const QString& imageName, const QString& alphaAmountStr) {
+    QStringList resultList;
+
+    bool validInt = false;
+    int alphaAmount = alphaAmountStr.toInt( &validInt );
+    if ( validInt && alphaAmount >= 0 && alphaAmount <= 255 ) {
+        Carta::State::CartaObject* obj = _getObject( controlId );
+        if ( obj != nullptr ){
+            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+            if ( controller != nullptr ){
+                resultList = QStringList(controller->setMaskAlpha( imageName, alphaAmount ));
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+        }
+        if ( resultList.length() == 0 ) {
+            resultList = QStringList("");
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "alphaAmount  must be valid int between 0 and 255 " + alphaAmountStr );
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setMaskColor(const QString& controlId, const QString& imageName,
+                                       const QString& redAmountStr, const QString& greenAmountStr,
+                                       const QString& blueAmountStr) {
+    QStringList resultList;
+
+    bool validIntRed = false;
+    int redAmount = redAmountStr.toInt( &validIntRed );
+
+    bool validIntGreen = false;
+    int greenAmount = greenAmountStr.toInt(&validIntRed );
+
+    bool validIntBlue = false;
+    int blueAmount = blueAmountStr.toInt( &validIntRed );
+
+    if ( validIntRed &&  validIntGreen && validIntBlue &&
+         redAmount >= 0 && redAmount <= 255 &&
+         greenAmount >= 0 && greenAmount <= 255 &&
+         blueAmount >= 0 && blueAmount <= 255 ) {
+        Carta::State::CartaObject* obj = _getObject( controlId );
+        if ( obj != nullptr ){
+            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+            if ( controller != nullptr ){
+                resultList = controller->setMaskColor( imageName, redAmount, greenAmount, blueAmount );
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+        }
+        if ( resultList.length() == 0 ) {
+            resultList = QStringList("");
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "redAmount/greenAmount/blueAmount  must be valid int between 0 and 255 " + redAmountStr
+                 + "/" + greenAmountStr + "/" + blueAmountStr);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setStackSelectAuto( const QString& controlId, const QString& stackSelectFlagStr) {
+    QStringList resultList;
+
+    bool validBool = false;
+    bool stackSelectFlag = Carta::Data::Util::toBool( stackSelectFlagStr, &validBool );
+    if ( validBool ) {
+        Carta::State::CartaObject* obj = _getObject( controlId );
+        if ( obj != nullptr ){
+            Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+            if ( controller != nullptr ){
+                controller->setStackSelectAuto( stackSelectFlag );
+                resultList = QStringList( "" );
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+            }
+        }
+        else {
+            resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+        }
+        if ( resultList.length() == 0 ) {
+            resultList = QStringList("");
+        }
+    }
+    else {
+        resultList = _logErrorMessage( ERROR, "Set Stack Select Auto parameter must be true/false " + stackSelectFlagStr);
+    }
+    return resultList;
+}
+
+QStringList ScriptFacade::setCompositionMode( const QString& controlId, const QString& imageName) {
+    QStringList resultList;
+
+    Carta::State::CartaObject* obj = _getObject( controlId );
+    if ( obj != nullptr ){
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+        if ( controller != nullptr ){
+            QString result = controller->setCompositionMode(imageName, "mode");
             resultList = QStringList( result );
         }
         else {

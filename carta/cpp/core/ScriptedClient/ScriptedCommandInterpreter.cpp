@@ -193,6 +193,12 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         result = m_scriptFacade->setDataTransform( colormapId, transform );
     }
 
+    else if ( cmd == "setnandefault" ) {
+        QString colormapId = args["colormapId"].toString();
+        QString nanDefaultString = args["nanDefaultString"].toString().toLower();
+        result = m_scriptFacade->setNanDefault( colormapId, nanDefaultString);
+    }
+
     /// Section: Image/Controller Commands
     /// ----------------------------------
     /// These commands come from the Python Image class. They allow
@@ -343,6 +349,52 @@ ScriptedCommandInterpreter::tagMessageReceivedCB( TagMessage tm )
         QString imageView = args["imageView"].toString();
         QString imageName = args["imageName"].toString();
         result = m_scriptFacade->closeImage( imageView, imageName );
+    }
+
+    else if ( cmd == "showimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->showImage( imageView, imageName);
+    }
+
+    else if ( cmd == "hideimage" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->hideImage( imageView, imageName );
+    }
+
+    else if ( cmd == "setcompositionmode" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        result = m_scriptFacade->setCompositionMode( imageView, imageName );
+    }
+
+    else if ( cmd == "setstackselectauto" ) {
+        QString imageView = args["imageView"].toString();
+        QString stackSelectFlag = args["stackSelectFlag "].toString();
+        result = m_scriptFacade->setStackSelectAuto( imageView, stackSelectFlag );
+    }
+
+    else if ( cmd == "setpanzoomall" ) {
+        QString imageView = args["imageView"].toString();
+        QString setPanZoomAllFlag = args["setPanZoomAllFlag"].toString();
+        result = m_scriptFacade->setPanZoomAll( imageView, setPanZoomAllFlag );
+    }
+
+    else if ( cmd == "setmaskalpha" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        QString alphaAmount = args["alphaAmount"].toString();
+        result = m_scriptFacade->setMaskAlpha( imageView, imageName, alphaAmount );
+    }
+
+    else if ( cmd == "setmaskcolor" ) {
+        QString imageView = args["imageView"].toString();
+        QString imageName = args["imageName"].toString();
+        QString redAmount = args["redAmount"].toString();
+        QString greenAmount = args["greenAmount"].toString();
+        QString blueAmount = args["blueAmount"].toString();
+        result = m_scriptFacade->setMaskColor( imageView, imageName, redAmount, greenAmount, blueAmount );
     }
 
     /// Section: Grid Commands

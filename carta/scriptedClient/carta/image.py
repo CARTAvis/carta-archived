@@ -510,7 +510,7 @@ class Image(CartaView):
     def centerOnCoordinate(self, skyCoord):
         """
         Centers the image on an Astropy SkyCoord object.
-        
+
         Astropy needs to be installed for this command to work. See
         http://www.astropy.org for more information about Astropy and
         how to install it.
@@ -646,7 +646,7 @@ class Image(CartaView):
     def setGridAxesColor(self, red, green, blue):
         """
         Set the color of the grid axes.
-        
+
         Parameters
         ----------
         red: integer
@@ -1337,7 +1337,7 @@ class Image(CartaView):
                                      imageView=self.getId(), value=value)
         return result
 
-    def setContourLevels(self, contourName, levels):
+    def  setContourLevels(self, contourName, levels):
         """
         Update the contour levels within the given contour set.
 
@@ -1357,6 +1357,96 @@ class Image(CartaView):
         result = self.con.cmdTagList("setContourLevels",
                                      imageView=self.getId(),
                                      contourName=contourName, levels=levels)
+        return result
+
+    def showImage(self, imageName):
+        """
+        Show the image.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("showImage", imageName, imageView=self.getId())
+        return result
+
+    def hideImage(self, imageName):
+        """
+        Hide the image.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("hideImage",  imageName, imageView=self.getId())
+        return result
+
+    def setStackSelectAuto(self, stackSelectFlag = 'true'):
+        """
+        Set whether or not selection of layers in the stack should be based on the
+        current layer or whether the user wants to make a manual selection.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("setStackSelectAuto", imageView=self.getId(), stackSelectFlag)
+        return result
+
+    def setPanZoomAll(self, setPanZoomAllFlag = 'true'):
+        """
+        Set whether or not a pan/zoom operation should affect all layers in the stack
+        or just the top layer.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("setPanZoomAll", imageView=self.getId(), setPanZoomAllFlag)
+        return result
+
+    def setMaskAlpha(self, imageName, alphaAmount = 0):
+        """
+        Set the transparency of the layer.
+        alphaAmount - the transparency level in [0,255] with 255 being opaque.
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("setMaskAlpha", imageView=self.getId(), imageName, alphaAmount)
+        return result
+
+    def setMaskColor(self, imageName, redAmount = 0, greenAmount = 0, blueAmount = 0):
+        """
+        Set the color to use for the mask.
+        redAmount - the amount of red in [0,255].
+        greenAmount - the amount of green in [0,255].
+        blueAmount - the amount of blue in [0,255].
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("setMaskAlpha", imageView=self.getId(), imageName, redAmount, greenAmount, blueAmount)
+        return result
+
+    def setCompositionMode(self, imageName ):
+        """
+        Set whether or not to apply a composition mode to the image
+
+        Returns
+        -------
+        list
+            Error message if an error occurred; nothing otherwise.
+        """
+        result = self.con.cmdTagList("setCompositionMode", imageView=self.getId(), imageName)
         return result
 
     def isEmpty(self):
