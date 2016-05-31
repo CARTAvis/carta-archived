@@ -10,8 +10,8 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
-#include "Data/Image/RenderRequest.h"
-#include "Data/Image/RenderResponse.h"
+#include "Data/Image/Render/RenderRequest.h"
+#include "Data/Image/Render/RenderResponse.h"
 #include <QImage>
 #include <QStack>
 #include <set>
@@ -59,9 +59,9 @@ public:
 
 
 signals:
-    virtual void contourSetRemoved( const QString& name );
-    virtual void contourSetAdded(Layer* data, const QString& name );
-    virtual void colorStateChanged();
+    void contourSetRemoved( const QString& name );
+    void contourSetAdded(Layer* data, const QString& name );
+    void colorStateChanged();
 
 
     //Notification that a new image has been produced.

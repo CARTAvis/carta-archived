@@ -38,6 +38,7 @@ class LayerData;
 class Stack;
 class DataSource;
 class DisplayControls;
+class DrawStackSynchronizer;
 class GridControls;
 class ContourControls;
 class Settings;
@@ -50,6 +51,8 @@ class Controller: public QObject, public Carta::State::CartaObject,
     friend class Animator;
     friend class Colormap;
     friend class DataFactory;
+    friend class ImageContext;
+    friend class ImageZoom;
     friend class Profiler;
 
     Q_OBJECT
@@ -558,6 +561,8 @@ signals:
 
 
 
+
+
 protected:
     virtual QString getSnapType(CartaObject::SnapshotType snapType) const Q_DECL_OVERRIDE;
 
@@ -611,6 +616,8 @@ private:
     void _initializeState();
     void _initializeCallbacks();
 
+    void _renderZoom();
+
 
     /**
      * Make a frame selection.
@@ -618,12 +625,18 @@ private:
      * @param frameIndex  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
+
     QString _setLayersSelected( const QStringList indices);
 
+    //Set draw zoom & context views.
+    void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> stackDraw );
+    void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
 
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
     void _updateDisplayAxes( /*int targetIndex*/ );
+
+
 
     static bool m_registered;
 
@@ -638,7 +651,7 @@ private:
     static const QString CENTER;
     static const QString STACK_SELECT_AUTO;
 
-    static const QString ZOOM;
+
 
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;

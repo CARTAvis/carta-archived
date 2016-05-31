@@ -222,12 +222,6 @@ private:
     std::shared_ptr<Carta::Core::ImageRenderService::Service> _getRenderer() const;
 
     /**
-     * Return the zoom factor for this image.
-     * @return the zoom multiplier.
-     */
-    double _getZoom() const;
-
-    /**
      * Get the dimensions of the image viewer (window size).
      * @return the image viewer dimensions.
      */

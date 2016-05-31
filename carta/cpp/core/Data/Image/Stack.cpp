@@ -2,6 +2,7 @@
 
 #include "Data/Image/LayerCompositionModes.h"
 #include "Data/Image/Draw/DrawStackSynchronizer.h"
+#include "Data/Image/Draw/DrawImageViewsSynchronizer.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Save/SaveService.h"
 #include "Data/Preferences/PreferencesSave.h"
@@ -29,6 +30,7 @@ namespace Data {
 
 const QString Stack::CLASS_NAME = "Stack";
 const QString Stack::REGIONS = "regions";
+const int Stack::ENLARGE = 10;
 
 
 class Stack::Factory : public Carta::State::CartaObjectFactory {
@@ -48,6 +50,7 @@ bool Stack::m_registered =
 Stack::Stack(const QString& path, const QString& id) :
     LayerGroup( CLASS_NAME, path, id),
     m_stackDraw(nullptr),
+    m_imageDraws( new DrawImageViewsSynchronizer() ),
     m_selectImage(nullptr){
     _initializeState();
     _initializeSelections();
@@ -205,6 +208,19 @@ QString Stack::_getCursorText( int mouseX, int mouseY ){
         cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY, frameIndices );
     }
     return cursorText;
+}
+
+QList<std::shared_ptr<Layer> > Stack::_getDrawChildren() const {
+    QList<std::shared_ptr<Layer> > datas;
+    int dataCount = m_children.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        bool visible = m_children[i]->_isVisible();
+        bool empty = m_children[i]->_isEmpty();
+        if ( visible && !empty ){
+            datas.append( m_children[i] );
+        }
+    }
+    return datas;
 }
 
 int Stack::_getFrame( AxisInfo::KnownType axisType ) const {
@@ -461,29 +477,46 @@ QString Stack::_moveSelectedLayers( bool moveDown ){
 void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex){
     std::vector<int> frames =_getFrameIndices();
     const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
-    QSize size;
-    std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs, false, size));
+    std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs));
     request->setTopIndex( gridIndex );
-    m_stackDraw->_render( datas, /*frames, cs, gridIndex, size*/ request);
+    request->setRequestMain( true );
+    request->setRequestContext( true );
+    m_imageDraws->render( datas, request);
 }
 
 
 
 void Stack::_renderAll(){
     int gridIndex = _getIndexCurrent();
-    QList<std::shared_ptr<Layer> > datas;
-    int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        bool visible = m_children[i]->_isVisible();
-        bool empty = m_children[i]->_isEmpty();
-        if ( visible && !empty ){
-            datas.append( m_children[i] );
-        }
-    }
+    QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
     _render( datas, gridIndex );
 }
 
-
+void Stack::_renderZoom( int mouseX, int mouseY){
+    if ( m_imageDraws->isZoomView()){
+        bool validPt = false;
+        QPointF screenPt( mouseX, mouseY );
+        QPointF panPt = _getImagePt( screenPt, &validPt );
+        double zoomFactor = _getZoom();
+        std::vector<int> frames =_getFrameIndices();
+        const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
+        std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs));
+        int gridIndex = _getIndexCurrent();
+        request->setTopIndex( gridIndex );
+        request->setRequestZoom( true );
+        request->setPan( panPt);
+        request->setZoom( zoomFactor * ENLARGE );
+        if ( validPt ){
+            QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
+            m_imageDraws->render( datas, request);
+        }
+        else {
+            //Clear the screen.
+            QList<std::shared_ptr<Layer> > datas;
+            m_imageDraws->render( datas, request );
+        }
+    }
+}
 
 QString Stack::_resetFrames( int val ){
     //Set the image frame.
@@ -600,8 +633,8 @@ QString Stack::_saveImage( const QString& saveName ){
     connect( m_saveService, SIGNAL(saveImageResult(bool) ),
             this, SLOT(_saveImageResultCB(bool) ) );
     std::vector<int> frameIndices = _getFrameIndices();
-    std::shared_ptr<RenderRequest> request( new RenderRequest( frameIndices,
-            _getCoordinateSystem(), false, QSize(width, height )));
+    std::shared_ptr<RenderRequest> request( new RenderRequest( frameIndices, _getCoordinateSystem()));
+    request->setOutputSize( QSize(width, height) );
     request->setTopIndex( _getIndexCurrent());
     bool saveStarted = m_saveService->saveImage(/*frameIndices, _getCoordinateSystem()*/request);
     if ( !saveStarted ){
@@ -686,6 +719,8 @@ QString Stack::_setFrameImage( int val ){
     return layerId;
 }
 
+
+
 bool Stack::_setLayerName( const QString& id, const QString& name ){
     bool nameSet = LayerGroup::_setLayerName( id, name );
     if ( nameSet ){
@@ -766,7 +801,16 @@ bool Stack::_setSelected( QStringList& names){
 
 void Stack::_setViewName( const QString& viewName ){
     m_stackDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
+    m_imageDraws->setViewDraw( m_stackDraw );
     connect( m_stackDraw.get(), SIGNAL(viewResize()), this, SLOT(_viewResize()));
+}
+
+void Stack::_setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawContext ){
+    m_imageDraws->setViewDrawContext( drawContext );
+}
+
+void Stack::_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom ){
+    m_imageDraws->setViewDrawZoom( drawZoom );
 }
 
 bool Stack::_setVisible( const QString& id, bool visible ){

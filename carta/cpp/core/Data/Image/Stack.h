@@ -16,6 +16,7 @@ namespace Carta {
 namespace Data {
 
 class DrawStackSynchronizer;
+class DrawImageViewsSynchronizer;
 class Region;
 class Selection;
 class SaveService;
@@ -87,6 +88,7 @@ private:
     std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
 
     QString _getCursorText( int mouseX, int mouseY );
+    QList<std::shared_ptr<Layer> > _getDrawChildren() const;
     int _getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;
     int _getFrameUpperBound( Carta::Lib::AxisInfo::KnownType axisType ) const;
     std::vector<int> _getFrameIndices( ) const;
@@ -124,6 +126,7 @@ private:
     QString _moveSelectedLayers( bool moveDown );
     void _render(QList<std::shared_ptr<Layer> > datas, int gridIndex);
     void _renderAll();
+    void _renderZoom( int mouseX, int mouseY);
 
     QString _reorderImages( const std::vector<int> & indices );
     QString _resetFrames( int val);
@@ -156,12 +159,17 @@ private:
                QString& errorMsg );
     void _setFrameAxis(int value, Carta::Lib::AxisInfo::KnownType axisType);
     QString _setFrameImage( int val );
+
     void _setMaskAlpha( const QString& id, int alphaAmount, QString& result );
 
     void _setMaskColor( const QString& id, int redAmount,
                        int greenAmount, int blueAmount, QStringList& result );
     void _setPan( double imgX, double imgY, bool all );
+
     void _setViewName( const QString& viewName );
+    void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawStack );
+    void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
+
     void _setZoomLevel( double zoomFactor, bool zoomPanAll );
 
 
@@ -182,8 +190,11 @@ private:
     class Factory;
     static bool m_registered;
     static const QString REGIONS;
+    static const int ENLARGE;
 
-    std::unique_ptr<DrawStackSynchronizer> m_stackDraw;
+    std::shared_ptr<DrawStackSynchronizer> m_stackDraw;
+    std::unique_ptr<DrawImageViewsSynchronizer> m_imageDraws;
+
     Selection* m_selectImage;
     std::vector<Selection*> m_selects;
     QList<std::shared_ptr<Region> > m_regions;

@@ -7,6 +7,8 @@
 #include "State/UtilState.h"
 #include "State/StateInterface.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/ImageContext.h"
+#include "Data/Image/ImageZoom.h"
 #include "Data/Histogram/Histogram.h"
 #include "Data/Profile/Profiler.h"
 #include "Data/Statistics/Statistics.h"
@@ -454,8 +456,10 @@ void Layout::setLayoutDeveloper(){
 
     //LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
     //rightBottom->setChildFirst( colorLeaf );
-    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
-    rightBottom->setChildFirst( histLeaf );
+    //LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
+    //rightBottom->setChildFirst( histLeaf );
+    LayoutNode* contextLeaf = NodeFactory::makeLeaf( ImageContext::CLASS_NAME );
+    rightBottom->setChildFirst( contextLeaf );
 
     LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
     rightBottom->setChildSecond( animLeaf );
@@ -467,8 +471,10 @@ void Layout::setLayoutDeveloper(){
     //right->setChildFirst( histLeaf );
     //LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
     //right->setChildFirst( statLeaf );
-    LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
-    right->setChildFirst( profLeaf );
+    //LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
+    //right->setChildFirst( profLeaf );
+    LayoutNode* imageZoomLeaf = NodeFactory::makeLeaf( ImageZoom::CLASS_NAME );
+    right->setChildFirst( imageZoomLeaf );
     right->setChildSecond( rightBottom );
 
     m_layoutRoot->setHorizontal( true );

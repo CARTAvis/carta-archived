@@ -5,7 +5,7 @@
 #include "Data/Colormap/ColorState.h"
 #include "Data/DataLoader.h"
 #include "Data/Image/LayerCompositionModes.h"
-#include "Data/Image/RenderRequest.h"
+#include "Data/Image/Render/RenderRequest.h"
 #include "State/UtilState.h"
 
 #include <QDebug>

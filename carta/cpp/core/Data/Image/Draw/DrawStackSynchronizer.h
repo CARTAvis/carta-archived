@@ -6,8 +6,8 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/VectorGraphics/VGList.h"
-#include "Data/Image/RenderRequest.h"
-#include "Data/Image/RenderResponse.h"
+#include "Data/Image/Render/RenderRequest.h"
+#include "Data/Image/Render/RenderResponse.h"
 
 #include <QString>
 #include <QList>
@@ -29,7 +29,7 @@ class Layer;
 
 class DrawStackSynchronizer: public QObject {
 
-    friend class Stack;
+    friend class DrawImageViewsSynchronizer;
 
     Q_OBJECT
 
@@ -51,10 +51,18 @@ public:
     virtual ~DrawStackSynchronizer();
 
 signals:
+
     /**
      * The view has been resized.
      */
     void viewResize();
+
+    /**
+     * The view has been redrawn.
+     * @param drawn - true if an image was drawn; false otherwise (for example if the
+     *      view has not been resized and is too small.
+     */
+    void done( bool drawn );
 
 private slots:
 
@@ -73,8 +81,13 @@ private:
     void _render( QList<std::shared_ptr<Layer> >& datas,
             const std::shared_ptr<RenderRequest>& request );
 
+
+
     //Data View
     std::unique_ptr<Carta::Lib::LayeredRemoteVGView> m_view;
+
+
+
     QList< std::shared_ptr<Layer> > m_layers;
     QMap<QString, std::shared_ptr<RenderResponse> > m_images;
     bool m_repaintFrameQueued;

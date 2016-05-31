@@ -53,7 +53,7 @@ const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
-const QString Controller::ZOOM = "zoom";
+
 
 const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
@@ -577,6 +577,7 @@ void Controller::_initializeCallbacks(){
             int mouseY = mouseList[1].toInt( &validY );
             if ( validX && validY ){
                 _updateCursor( mouseX, mouseY );
+                _renderZoom();
             }
         }
 
@@ -616,7 +617,7 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
-    addCommandCallback( ZOOM, [=] (const QString & /*cmd*/,
+    addCommandCallback( Util::ZOOM, [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
         bool error = false;
         auto vals = Util::string2VectorDouble( params, &error );
@@ -836,16 +837,19 @@ void Controller::_initializeCallbacks(){
 
 
 void Controller::_initializeState(){
+
     //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
     m_state.insertValue<bool>(PAN_ZOOM_ALL, true );
     m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
+
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 0 );
     m_state.flushState();
 
+    //Mouse state
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(CURSOR, "");
     m_stateMouse.insertValue<QString>(Util::POINTER_MOVE, "");
@@ -883,6 +887,12 @@ void Controller::_notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis ){
 
 void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
     m_stack->_removeContourSet( contourSet );
+}
+
+void Controller::_renderZoom(){
+    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
+    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
+    m_stack->_renderZoom( mouseX, mouseY );
 }
 
 
@@ -1031,6 +1041,9 @@ void Controller::setFrameImage( int val) {
         emit dataChanged( this );
     }
 }
+
+
+
 
 
 QString Controller::setImageVisibility( /*int dataIndex*/const QString& idStr, bool visible ){
@@ -1183,6 +1196,13 @@ QString Controller::setTabIndex( int index ){
     return result;
 }
 
+void Controller::_setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawContext ){
+    m_stack->_setViewDrawContext( drawContext );
+}
+
+void Controller::_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom ){
+    m_stack->_setViewDrawZoom( drawZoom );
+}
 
 void Controller::setZoomLevel( double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
@@ -1247,6 +1267,7 @@ void Controller::updatePan( double centerX , double centerY){
     m_stack->_updatePan( centerX, centerY, zoomPanAll );
     _updateCursorText( true );
 }
+
 
 
 Controller::~Controller(){

@@ -456,6 +456,7 @@ private:
     static const QString LAYER_COLOR;
     static const QString LAYER_ALPHA;
     static const QString MASK;
+    static const QString PAN;
 
 
     std::unique_ptr<DataGrid> m_dataGrid;

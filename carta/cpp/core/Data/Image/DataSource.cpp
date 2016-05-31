@@ -197,7 +197,14 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
 }
 
 QPointF DataSource::_getCenter() const{
-    return m_renderService->pan();
+    QPointF center( nan(""), nan(""));
+    if ( m_permuteImage != nullptr ){
+         double xCenter =  m_permuteImage-> dims()[0] / 2.0;
+         double yCenter = m_permuteImage-> dims()[1] / 2.0;
+         center.setX( xCenter );
+         center.setY( yCenter );
+     }
+    return center;
 }
 
 std::vector<AxisDisplayInfo> DataSource::_getAxisDisplayInfo() const {
@@ -560,13 +567,6 @@ QString DataSource::_getViewIdCurrent( const std::vector<int>& frames ) const {
    return renderId;
 }
 
-double DataSource::_getZoom() const {
-    double zoom = ZOOM_DEFAULT;
-    if ( m_renderService != nullptr ){
-        zoom = m_renderService-> zoom();
-    }
-    return zoom;
-}
 
 QSize DataSource::_getOutputSize() const {
     QSize size;

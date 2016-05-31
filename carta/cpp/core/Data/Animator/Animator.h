@@ -5,14 +5,16 @@
 
 #pragma once
 
-#include <memory>
-#include <QObject>
+
 #include <State/StateInterface.h>
 #include <State/ObjectManager.h>
 #include "Data/ILinkable.h"
 #include "AnimatorType.h"
 #include "Data/LinkableImpl.h"
 #include "CartaLib/AxisInfo.h"
+
+#include <memory>
+#include <QObject>
 
 class IConnector;
 

@@ -61,6 +61,7 @@ HEADERS += \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
     Data/Image/Draw/DrawGroupSynchronizer.h \
+    Data/Image/Draw/DrawImageViewsSynchronizer.h \
     Data/Image/Draw/DrawSynchronizer.h \
     Data/Image/Draw/DrawStackSynchronizer.h \
     Data/Image/Grid/AxisMapper.h \
@@ -69,10 +70,12 @@ HEADERS += \
     Data/Image/Grid/GridControls.h \
     Data/Image/Grid/Themes.h \
     Data/Image/Grid/LabelFormats.h \
+    Data/Image/ImageContext.h \
+    Data/Image/ImageZoom.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Image/LayerCompositionModes.h \
-    Data/Image/RenderRequest.h \
-    Data/Image/RenderResponse.h \
+    Data/Image/Render/RenderRequest.h \
+    Data/Image/Render/RenderResponse.h \
     Data/Image/Save/SaveService.h \
     Data/Image/Save/SaveView.h \
     Data/Image/Save/SaveViewLayered.h \
@@ -189,11 +192,14 @@ SOURCES += \
     Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
     Data/Image/Draw/DrawGroupSynchronizer.cpp \
+    Data/Image/Draw/DrawImageViewsSynchronizer.cpp \
     Data/Image/Draw/DrawSynchronizer.cpp \
     Data/Image/Draw/DrawStackSynchronizer.cpp \
+    Data/Image/ImageContext.cpp \
+    Data/Image/ImageZoom.cpp \
     Data/Image/LayerCompositionModes.cpp \
-    Data/Image/RenderRequest.cpp \
-    Data/Image/RenderResponse.cpp \
+    Data/Image/Render/RenderRequest.cpp \
+    Data/Image/Render/RenderResponse.cpp \
     Data/Image/Save/SaveService.cpp \
     Data/Image/Save/SaveView.cpp \
     Data/Image/Save/SaveViewLayered.cpp \

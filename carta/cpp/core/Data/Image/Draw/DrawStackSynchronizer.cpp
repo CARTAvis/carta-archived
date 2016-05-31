@@ -25,17 +25,19 @@ QSize DrawStackSynchronizer::getClientSize() const {
 
 void DrawStackSynchronizer::_repaintFrameNow(){
     m_view->scheduleRepaint();
+
 }
 
 
 void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
         const std::shared_ptr<RenderRequest>& request ){
     if ( m_repaintFrameQueued ){
+        emit done( false );
         return;
     }
     QSize clientSize = getClientSize();
-
     if ( clientSize.width() <= 1 || clientSize.height() <= 1 ){
+        emit done( false );
         return;
     }
     m_repaintFrameQueued = true;
@@ -56,20 +58,22 @@ void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
                 topOfStack = true;
             }
             std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(
-                                   request->getFrames(), request->getCoordinateSystem(),
-                                   topOfStack, request->getOutputSize() ));
+                                   *request ));
+            layerRequest->setStackTop( topOfStack );
             datas[i]->_viewResize( clientSize );
             datas[i]->_render( /*frames, cs, topOfStack, size*/layerRequest );
         }
     }
     if ( dataCount == 0 ){
         m_view->resetLayers();
+        emit done( true );
         m_repaintFrameQueued = false;
         QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     }
 }
 
 void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& response ){
+
     if ( !m_repaintFrameQueued ){
         return;
     }
@@ -79,7 +83,6 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
     if ( m_renderCount != m_redrawCount ) {
         return;
     }
-
     m_view->resetLayers();
 
     //We want the selected index to be the last one in the stack.
@@ -107,11 +110,14 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
         }
     }
     m_repaintFrameQueued = false;
+    emit done( true );
     QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     for ( int i = 0; i < dataCount; i++ ){
         m_layers[i]->_renderDone();
     }
 }
+
+
 
 
 DrawStackSynchronizer::~DrawStackSynchronizer(){

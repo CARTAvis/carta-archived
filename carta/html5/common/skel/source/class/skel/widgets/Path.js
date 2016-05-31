@@ -80,6 +80,8 @@ qx.Class.define("skel.widgets.Path", {
         HIDDEN : "Hidden",
         HIDE_IMAGE : "hideImage",
         HISTOGRAM_PLUGIN : "Histogram",
+        IMAGE_CONTEXT : "ImageContext",
+        IMAGE_ZOOM : "ImageZoom",
         IMAGE_DATA : "image",
         INTENSITY_UNITS : "",
         LABEL_FORMATS : "",

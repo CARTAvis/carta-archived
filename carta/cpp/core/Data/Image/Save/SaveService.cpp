@@ -1,8 +1,8 @@
 #include "Data/Image/Save/SaveService.h"
 #include "Data/Image/Save/SaveViewLayered.h"
 #include "Data/Image/Layer.h"
-#include "Data/Image/RenderResponse.h"
-#include "Data/Image/RenderRequest.h"
+#include "Data/Image/Render/RenderResponse.h"
+#include "Data/Image/Render/RenderRequest.h"
 
 
 namespace Carta
@@ -55,10 +55,8 @@ bool SaveService::saveImage( const std::shared_ptr<RenderRequest>& request){
                 if ( i == m_selectIndex ){
                     topOfStack = true;
                 }
-                QSize saveSize = _getSaveSize( request );
-                std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(
-                                                  request->getFrames(), request->getCoordinateSystem(),
-                                                  topOfStack, saveSize ));
+                std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(*request));
+                layerRequest->setStackTop( topOfStack );
                 m_layers[i]->_render( layerRequest );
                 stackIndex++;
             }

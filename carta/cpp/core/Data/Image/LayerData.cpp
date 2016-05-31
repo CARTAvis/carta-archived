@@ -30,6 +30,8 @@ const QString LayerData::MASK = "mask";
 const QString LayerData::LAYER_COLOR="colorSupport";
 const QString LayerData::LAYER_ALPHA="alphaSupport";
 
+const QString LayerData::PAN = "pan";
+
 
 class LayerData::Factory : public Carta::State::CartaObjectFactory {
 
@@ -155,10 +157,11 @@ std::vector<AxisInfo::KnownType> LayerData::_getAxisTypes() const {
 
 
 QPointF LayerData::_getCenterPixel() const {
-    QPointF center = QPointF( nan(""), nan("") );
-    if ( m_dataSource ){
-        center = m_dataSource->_getCenter();
-    }
+    QPointF center;
+    QString centerXKey = Carta::State::UtilState::getLookup( PAN, Util::XCOORD );
+    QString centerYKey = Carta::State::UtilState::getLookup( PAN, Util::YCOORD );
+    center.setX( m_state.getValue<double>( centerXKey) );
+    center.setY( m_state.getValue<double>( centerYKey) );
     return center;
 }
 
@@ -444,10 +447,7 @@ QString LayerData::_getStateString( bool truncatePaths ) const{
 }
 
 double LayerData::_getZoom() const {
-    double zoom = DataSource::ZOOM_DEFAULT;
-    if ( m_dataSource ){
-        zoom = m_dataSource-> _getZoom();
-    }
+    double zoom = m_state.getValue<double>( Util::ZOOM );
     return zoom;
 }
 
@@ -471,6 +471,14 @@ void LayerData::_initializeState() {
     m_state.insertValue<bool>( layerColorKey, false );
     QString layerAlphaKey = Carta::State::UtilState::getLookup( MASK, LAYER_ALPHA );
     m_state.insertValue<bool>( layerAlphaKey, true );
+
+    //Pan and zoom
+    m_state.insertValue<double>( Util::ZOOM, DataSource::ZOOM_DEFAULT );
+    m_state.insertObject( PAN );
+    QString panXKey = Carta::State::UtilState::getLookup( PAN, Util::XCOORD );
+    QString panYKey = Carta::State::UtilState::getLookup( PAN, Util::YCOORD );
+    m_state.insertValue<double>( panXKey, 0 );
+    m_state.insertValue<double>( panYKey, 0 );
 }
 
 bool LayerData::_isContourDraw() const {
@@ -496,13 +504,9 @@ void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
                 gridService->setInputImage( m_dataSource->_getImage() );
             }
         }
+
     }
 }
-
-
-
-
-
 
 
 void LayerData::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
@@ -565,8 +569,8 @@ void LayerData::_renderingDone(
     }
     std::shared_ptr<RenderResponse> response( new RenderResponse(qImage, vectorGraphics, _getLayerId()) );
     emit renderingDone( response );
-
 }
+
 
 void LayerData::_renderStart(){
 
@@ -585,10 +589,30 @@ void LayerData::_renderStart(){
     QSize renderSize = m_viewSize;
     if ( !outputSize.isNull() && !outputSize.isEmpty() &&
             outputSize.width() > 0 && outputSize.height() > 0  ){
+        qDebug() << "Width and height from request";
         renderSize = outputSize;
     }
-
+    qDebug() << "Using view width="<<renderSize.width()<<" height="<<renderSize.height();
     m_dataSource->_viewResize( renderSize );
+
+    //Use the zoom and pan from the render request, if they have been set;
+    //otherwise, use the ones from our state.
+    if ( request->isZoomSet() ){
+        m_dataSource->_setZoom( request->getZoom());
+    }
+    else {
+        m_dataSource->_setZoom( _getZoom() );
+    }
+
+    if ( request->isPanSet() ){
+        QPointF currPan = request->getPan();
+        m_dataSource->_setPan( currPan.x(), currPan.y() );
+    }
+    else {
+        QPointF currPan = _getCenterPixel();
+        m_dataSource->_setPan( currPan.x(), currPan.y());
+    }
+
     gridService-> setOutputSize( renderSize );
 
     int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
@@ -727,32 +751,38 @@ void LayerData::_resetState( const Carta::State::StateInterface& restoreState ){
     m_state.setValue<bool>( layerColorKey, restoreState.getValue<bool>(layerColorKey) );
     QString layerAlphaKey = Carta::State::UtilState::getLookup( MASK, LAYER_ALPHA );
     m_state.setValue<bool>( layerAlphaKey, restoreState.getValue<bool>(layerAlphaKey) );
+
+    m_state.setValue<double>( Util::ZOOM, restoreState.getValue<double>( Util::ZOOM ));
+    QString panXKey = Carta::State::UtilState::getLookup( PAN, Util::XCOORD );
+    QString panYKey = Carta::State::UtilState::getLookup( PAN, Util::YCOORD );
+    m_state.setValue<double>( panXKey, restoreState.getValue<double>( panXKey ));
+    m_state.setValue<double>( panYKey, restoreState.getValue<double>( panYKey ));
 }
 
 
 void LayerData::_resetZoom( ){
-    if ( m_dataSource ){
-        m_dataSource->_resetZoom();
-    }
+    _setZoom( DataSource::ZOOM_DEFAULT );
 }
 
 
 void LayerData::_resetPan( ){
-    if ( m_dataSource ){
-        m_dataSource->_resetPan();
-    }
+    QPointF panValue = m_dataSource->_getCenter();
+    _setPan( panValue.x(), panValue.y() );
 }
 
 
 QString LayerData::_setFileName( const QString& fileName, bool * success ){
     QString result = m_dataSource->_setFileName( fileName, success );
     if ( *success){
-        DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
-        QString shortName = dLoader->getShortName( fileName );
-        //m_state.setValue<QString>(DataSource::DATA_PATH, fileName );
+
+        //Reset the pan and zoom when the image is loaded.
+        _resetPan();
+        _resetZoom();
 
         //Default is to have the layer name match the file name, unless
         //the user has explicitly set it.
+        DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+        QString shortName = dLoader->getShortName( fileName );
         QString layerName = m_state.getValue<QString>( LAYER_NAME );
         if ( layerName.isEmpty() || layerName.length() == 0 ){
             m_state.setValue<QString>( LAYER_NAME, shortName );
@@ -807,16 +837,17 @@ bool LayerData::_setMaskAlpha( const QString& id, int alphaAmount ){
     return changed;
 }
 
+
 void LayerData::_setMaskAlphaDefault(){
     _setMaskAlpha( _getLayerId(), 255);
 }
 
 
-
 void LayerData::_setPan( double imgX, double imgY ){
-    if ( m_dataSource ){
-        m_dataSource-> _setPan( imgX, imgY );
-    }
+    QString panKeyX = Carta::State::UtilState::getLookup( PAN, Util::XCOORD );
+    QString panKeyY = Carta::State::UtilState::getLookup( PAN, Util::YCOORD );
+    m_state.setValue<double>( panKeyX, imgX );
+    m_state.setValue<double>( panKeyY, imgY );
 }
 
 void LayerData::_setSupportAlpha( bool supportAlpha ){
@@ -837,8 +868,9 @@ void LayerData::_setSupportColor( bool supportColor ){
 
 
 void LayerData::_setZoom( double zoomAmount){
-    if ( m_dataSource ){
-        m_dataSource-> _setZoom( zoomAmount );
+    double oldZoom = m_state.getValue<double>( Util::ZOOM );
+    if ( oldZoom != zoomAmount ){
+        m_state.setValue<double>( Util::ZOOM, zoomAmount );
     }
 }
 
