@@ -126,6 +126,7 @@ private:
     QString _moveSelectedLayers( bool moveDown );
     void _render(QList<std::shared_ptr<Layer> > datas, int gridIndex);
     void _renderAll();
+    void _renderContext();
     void _renderZoom( int mouseX, int mouseY);
 
     QString _reorderImages( const std::vector<int> & indices );

@@ -13,7 +13,9 @@ namespace Carta {
 
 namespace Data {
 
+class Controller;
 class LinkableImpl;
+class DrawStackSynchronizer;
 
 class ImageZoom : public QObject, public Carta::State::CartaObject,  public ILinkable  {
 
@@ -60,17 +62,13 @@ signals:
 
 private slots:
 
-    /**
-     * Update the size of the plot.
-     * @param size - the new size of the plot in pixels.
-     */
-    void _updateSize( const QSize& size );
+    void _viewResize();
 
 private:
 
     class Factory;
     ImageZoom( const QString& path, const QString& id );
-
+    Controller* _getControllerSelected() const;
     void _initializeDefaultState();
     void _initializeCallbacks();
 
@@ -82,6 +80,8 @@ private:
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
+
+    std::shared_ptr<DrawStackSynchronizer> m_zoomDraw;
 
     static bool m_registered;
     ImageZoom( const ImageZoom& other);

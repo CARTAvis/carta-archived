@@ -93,7 +93,6 @@ void SaveService::_scheduleSave( const std::shared_ptr<RenderResponse>& response
     for ( int i = 0; i < dataCount; i++ ){
         int dIndex = ( m_selectIndex + i + 1) % dataCount;
         m_layers[dIndex]->disconnect( this );
-        m_layers[dIndex]->_viewReset();
         if ( m_layers[dIndex]->_isVisible() ){
             QString layerId = m_layers[dIndex]->_getLayerId();
             if ( m_images.contains( layerId ) ){

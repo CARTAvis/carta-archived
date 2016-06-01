@@ -586,14 +586,7 @@ void LayerData::_renderStart(){
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
     std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
 
-    QSize renderSize = m_viewSize;
-    if ( !outputSize.isNull() && !outputSize.isEmpty() &&
-            outputSize.width() > 0 && outputSize.height() > 0  ){
-        qDebug() << "Width and height from request";
-        renderSize = outputSize;
-    }
-    qDebug() << "Using view width="<<renderSize.width()<<" height="<<renderSize.height();
-    m_dataSource->_viewResize( renderSize );
+    m_dataSource->_viewResize( outputSize );
 
     //Use the zoom and pan from the render request, if they have been set;
     //otherwise, use the ones from our state.
@@ -613,14 +606,14 @@ void LayerData::_renderStart(){
         m_dataSource->_setPan( currPan.x(), currPan.y());
     }
 
-    gridService-> setOutputSize( renderSize );
+    gridService-> setOutputSize( outputSize );
 
     int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
     int rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
     int topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
     int bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
-    int outWidth = renderSize.width() - leftMargin - rightMargin;
-    int outHeight = renderSize.height() - topMargin - bottomMargin;
+    int outWidth = outputSize.width() - leftMargin - rightMargin;
+    int outHeight = outputSize.height() - topMargin - bottomMargin;
     QRectF outputRect( leftMargin, topMargin, outWidth, outHeight );
 
     QPointF topLeft = outputRect.topLeft();
@@ -920,19 +913,6 @@ void LayerData::_updateColor(){
         Layer::_updateColor();
     }
 }
-
-void LayerData::_viewResize( const QSize& newSize ){
-    m_viewSize = newSize;
-    if ( m_dataSource ){
-        m_dataSource->_viewResize( newSize );
-    }
-}
-
-void LayerData::_viewReset(){
-    _viewResize( m_viewSize );
-    _setPan( m_viewPan.x(), m_viewPan.y() );
-}
-
 
 
 LayerData::~LayerData() {

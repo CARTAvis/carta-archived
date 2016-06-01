@@ -15,7 +15,9 @@ namespace Carta {
 
 namespace Data {
 
+class Controller;
 class LinkableImpl;
+class DrawStackSynchronizer;
 
 
 class ImageContext : public QObject, public Carta::State::CartaObject,  public ILinkable  {
@@ -67,10 +69,9 @@ signals:
 private slots:
 
     /**
-     * Update the size of the plot.
-     * @param size - the new size of the plot in pixels.
+     * Redraw the context image.
      */
-    void _viewResize();
+    void _contextChanged();
 
 private:
 
@@ -82,6 +83,7 @@ private:
     ImageContext( const QString& path, const QString& id );
     class Factory;
 
+    Controller* _getControllerSelected() const;
     void _initializeDefaultState();
     void _initializeCallbacks();
 

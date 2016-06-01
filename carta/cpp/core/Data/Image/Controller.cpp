@@ -895,6 +895,10 @@ void Controller::_renderZoom(){
     m_stack->_renderZoom( mouseX, mouseY );
 }
 
+void Controller::_renderContext(){
+    m_stack->_renderContext();
+}
+
 
 void Controller::resetState( const QString& state ){
     StateInterface restoredState( "");

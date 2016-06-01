@@ -5,6 +5,7 @@
 
 #pragma once
 #include <QObject>
+#include <QQueue>
 #include <memory>
 
 
@@ -26,6 +27,12 @@ public:
      * Constructor.
      */
     DrawImageViewsSynchronizer( QObject* parent = nullptr);
+
+    /**
+     * Returns true if there is support for a context view; false otherwise.
+     * @return - true if a context view is supported; false otherwise.
+     */
+    bool isContextView() const;
 
     /**
      * Returns true if the infrastructure is in place to support a zoom view;
@@ -55,11 +62,9 @@ public:
 
     /**
      * Start a synchronized rendering.
-     * @param datas - the layers to draw.
      * @param request - information about draw parameters that should be used.
      */
-    void render( QList<std::shared_ptr<Layer> >& datas,
-               const std::shared_ptr<RenderRequest>& request );
+    void render( const std::shared_ptr<RenderRequest>& request );
 
     virtual ~DrawImageViewsSynchronizer();
 
@@ -86,16 +91,13 @@ private:
      */
     void _startNextDraw();
 
-    bool m_doneMain = true;
-    bool m_doneContext = true;
-    bool m_doneZoom = true;
-
-    QList<std::shared_ptr<Layer> > m_datas;
-    std::shared_ptr<RenderRequest> m_request;
+    bool m_busy;
 
     std::shared_ptr<DrawStackSynchronizer> m_drawMain;
     std::shared_ptr<DrawStackSynchronizer> m_drawContext;
     std::shared_ptr<DrawStackSynchronizer> m_drawZoom;
+
+    QQueue<std::shared_ptr<RenderRequest> > m_requests;
 
     DrawImageViewsSynchronizer( const DrawImageViewsSynchronizer& other);
     DrawImageViewsSynchronizer& operator=( const DrawImageViewsSynchronizer& other );

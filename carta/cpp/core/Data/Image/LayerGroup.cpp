@@ -66,8 +66,7 @@ void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
     }
 }
 
-QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex,
-        QSize viewSize ) {
+QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex ) {
     QString result;
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     LayerData* targetSource = objMan->createObject<LayerData>();
@@ -80,7 +79,6 @@ QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackI
     //If we are making a new layer, see if there is a selected group.  If so,
     //add to the group.  If not, add to this group.
     if ( *success ){
-        targetSource->_viewResize( viewSize );
         _setColorSupport( targetSource );
         std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
         if (selectedGroup ){
@@ -1026,19 +1024,6 @@ void LayerGroup::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     for ( std::shared_ptr<Layer> node : m_children ){
         node->_updateClips( view,  minClipPercentile, maxClipPercentile, frames );
-    }
-}
-
-void LayerGroup::_viewReset(){
-    for ( std::shared_ptr<Layer> node : m_children){
-        node->_viewReset();
-    }
-}
-
-void LayerGroup::_viewResize( const QSize& newSize ){
-    m_drawSync->viewResize( newSize );
-    for ( std::shared_ptr<Layer> node : m_children){
-        node->_viewResize( newSize );
     }
 }
 

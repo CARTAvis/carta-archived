@@ -548,16 +548,6 @@ protected:
     virtual void _updateColor();
 
     /**
-     * Reset the view to its previous state after a save.
-     */
-    virtual void _viewReset() = 0;
-
-    /**
-     * Resize the view of the image.
-     */
-    virtual void _viewResize( const QSize& newSize ) = 0;
-
-    /**
      *  Constructor.
      */
     Layer( const QString& className, const QString& path, const QString& id );

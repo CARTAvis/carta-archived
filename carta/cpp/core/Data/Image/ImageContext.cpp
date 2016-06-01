@@ -37,7 +37,8 @@ bool ImageContext::m_registered =
 ImageContext::ImageContext( const QString& path, const QString& id ):
                 CartaObject( CLASS_NAME, path, id ),
                 m_linkImpl( new LinkableImpl( path )),
-                m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
+                m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)),
+                m_contextDraw( nullptr ){
 
     _initializeDefaultState();
     _initializeCallbacks();
@@ -56,15 +57,31 @@ QString ImageContext::addLink( CartaObject* cartaObject ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
             QString viewName = Carta::State::UtilState::getLookup( getPath(), Util::VIEW);
-            m_contextDraw = new DrawStackSynchronizer(makeRemoteView( viewName));
-            controller->_setViewDrawContext( contextDraw );
-            connect( m_contextDraw.get(), SIGNAL(viewResize()), this, SLOT(_viewResize()));
+            m_contextDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
+            controller->_setViewDrawContext( m_contextDraw );
+            connect( m_contextDraw.get(), SIGNAL(viewResize()), this, SLOT(_contextChanged()));
+            connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_contextChanged()));
         }
     }
     else {
         result = "Image context only supports linking to images";
     }
     return result;
+}
+
+Controller* ImageContext::_getControllerSelected() const {
+    //We are only supporting one linked controller.
+    Controller* controller = nullptr;
+    int linkCount = m_linkImpl->getLinkCount();
+    for ( int i = 0; i < linkCount; i++ ){
+        CartaObject* obj = m_linkImpl->getLink(i );
+        Controller* control = dynamic_cast<Controller*>( obj);
+        if ( control != nullptr){
+            controller = control;
+            break;
+        }
+    }
+    return controller;
 }
 
 QList<QString> ImageContext::getLinks() const {
@@ -145,7 +162,7 @@ QString ImageContext::removeLink( CartaObject* cartaObject ){
         linkRemoved = m_linkImpl->removeLink( controller );
         if ( linkRemoved  ){
             controller->disconnect( this );
-           // _resetAnimationParameters(-1);
+            controller->_setViewDrawContext( std::shared_ptr<DrawStackSynchronizer>( nullptr) );
         }
     }
     else {
@@ -155,12 +172,11 @@ QString ImageContext::removeLink( CartaObject* cartaObject ){
 }
 
 
-void ImageContext::_viewResize(){
+void ImageContext::_contextChanged(){
     int linkCount = m_linkImpl->getLinkCount();
     if ( linkCount > 0 ){
         Controller* alt = dynamic_cast<Controller*>( m_linkImpl->getLink(0) );
-        qDebug() << "Imagecontext renderZoom";
-        alt->_renderZoom();
+        alt->_renderContext();
     }
 }
 

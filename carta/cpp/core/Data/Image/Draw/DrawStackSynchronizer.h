@@ -78,8 +78,7 @@ private slots:
 
 private:
 
-    void _render( QList<std::shared_ptr<Layer> >& datas,
-            const std::shared_ptr<RenderRequest>& request );
+    void _render( const std::shared_ptr<RenderRequest>& request );
 
 
 

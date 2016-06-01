@@ -8,11 +8,13 @@
 #include <QPointF>
 #include <QString>
 #include <QSize>
-
+#include <QList>
 
 namespace Carta {
 
 namespace Data {
+
+class Layer;
 
 class RenderRequest {
 
@@ -23,6 +25,12 @@ public:
      */
     RenderRequest( const std::vector<int>& frames,
             const Carta::Lib::KnownSkyCS& cs );
+
+    /**
+     * Return the layers that will be rendered.
+     * @return - a list of layers to be rendered.
+     */
+    QList<std::shared_ptr<Layer> > getData() const;
 
     /**
      * Returns the frame indices of the request.
@@ -98,6 +106,12 @@ public:
     QSize getOutputSize() const;
 
     /**
+     * Set the list of layers to be rendered.
+     * @param datas - the list of layers to be rendered.
+     */
+    void setData(QList<std::shared_ptr<Layer> > datas);
+
+    /**
      * Set the pan value that should be used for rendering.
      * @param pan - the pan value that should be used for rendering.
      */
@@ -161,6 +175,7 @@ private:
     bool m_requestZoom;
     QPointF m_pan;
     QSize m_outputSize;
+    QList<std::shared_ptr<Layer> > m_datas;
 
     RenderRequest& operator=( const RenderRequest& other );
 };

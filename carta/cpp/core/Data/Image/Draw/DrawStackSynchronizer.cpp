@@ -29,8 +29,7 @@ void DrawStackSynchronizer::_repaintFrameNow(){
 }
 
 
-void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
-        const std::shared_ptr<RenderRequest>& request ){
+void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& request ){
     if ( m_repaintFrameQueued ){
         emit done( false );
         return;
@@ -41,6 +40,7 @@ void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
         return;
     }
     m_repaintFrameQueued = true;
+    QList<std::shared_ptr<Layer> > datas = request->getData();
     int dataCount = datas.size();
     m_images.clear();
     m_layers = datas;
@@ -60,8 +60,7 @@ void DrawStackSynchronizer::_render( QList<std::shared_ptr<Layer> >& datas,
             std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(
                                    *request ));
             layerRequest->setStackTop( topOfStack );
-            datas[i]->_viewResize( clientSize );
-            datas[i]->_render( /*frames, cs, topOfStack, size*/layerRequest );
+            datas[i]->_render( layerRequest );
         }
     }
     if ( dataCount == 0 ){

@@ -1,5 +1,5 @@
 #include "LayerGroup.h"
-
+#include "Data/Image/DataSource.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "Data/Image/Draw/DrawStackSynchronizer.h"
 #include "Data/Image/Draw/DrawImageViewsSynchronizer.h"
@@ -58,8 +58,7 @@ Stack::Stack(const QString& path, const QString& id) :
 
 QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     int stackIndex = -1;
-    QSize viewSize = m_stackDraw->getClientSize();
-    QString result = _addData( fileName, success, &stackIndex, viewSize);
+    QString result = _addData( fileName, success, &stackIndex);
     if ( *success && stackIndex >= 0 ){
         _resetFrames( stackIndex );
         _saveState();
@@ -481,7 +480,8 @@ void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex){
     request->setTopIndex( gridIndex );
     request->setRequestMain( true );
     request->setRequestContext( true );
-    m_imageDraws->render( datas, request);
+    request->setData( datas );
+    m_imageDraws->render( request);
 }
 
 
@@ -490,6 +490,23 @@ void Stack::_renderAll(){
     int gridIndex = _getIndexCurrent();
     QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
     _render( datas, gridIndex );
+}
+
+void Stack::_renderContext(){
+    if ( m_imageDraws->isContextView()){
+        std::vector<int> frames =_getFrameIndices();
+        const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
+        std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs));
+        int gridIndex = _getIndexCurrent();
+        request->setTopIndex( gridIndex );
+        request->setRequestContext( true );
+        request->setZoom( DataSource::ZOOM_DEFAULT );
+        request->setPan(  QPointF(nan(""), nan("")) );
+        QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
+        request->setData( datas );
+        m_imageDraws->render( request);
+
+    }
 }
 
 void Stack::_renderZoom( int mouseX, int mouseY){
@@ -508,12 +525,14 @@ void Stack::_renderZoom( int mouseX, int mouseY){
         request->setZoom( zoomFactor * ENLARGE );
         if ( validPt ){
             QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
-            m_imageDraws->render( datas, request);
+            request->setData( datas );
+            m_imageDraws->render( request);
         }
         else {
             //Clear the screen.
             QList<std::shared_ptr<Layer> > datas;
-            m_imageDraws->render( datas, request );
+            request->setData( datas );
+            m_imageDraws->render( request );
         }
     }
 }
@@ -732,14 +751,11 @@ bool Stack::_setLayerName( const QString& id, const QString& name ){
 bool Stack::_setLayersGrouped( bool grouped  ){
     bool operationPerformed = LayerGroup::_setLayersGrouped( grouped );
     if ( operationPerformed ){
-        _viewResize();
         emit viewLoad();
         _saveState();
     }
     return operationPerformed;
 }
-
-
 
 
 void Stack::_setMaskColor( const QString& id, int redAmount,
@@ -913,11 +929,7 @@ void Stack::_updateZoom( double centerX, double centerY, double zoomFactor,
 }
 
 void Stack::_viewResize(){
-    QSize clientSize = m_stackDraw->getClientSize();
-    for ( int i = 0; i < m_children.size(); i++ ){
-        m_children[i]->_viewResize( clientSize );
-    }
-    viewLoad();
+    emit viewLoad();
 }
 
 

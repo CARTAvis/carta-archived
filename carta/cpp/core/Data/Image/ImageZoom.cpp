@@ -35,7 +35,8 @@ bool ImageZoom::m_registered =
 ImageZoom::ImageZoom( const QString& path, const QString& id ):
                 CartaObject( CLASS_NAME, path, id ),
                 m_linkImpl( new LinkableImpl( path )),
-                m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)){
+                m_stateMouse(UtilState::getLookup(path, ImageView::VIEW)),
+                m_zoomDraw( nullptr ){
 
     _initializeDefaultState();
     _initializeCallbacks();
@@ -53,11 +54,9 @@ QString ImageZoom::addLink( CartaObject* cartaObject ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
             QString viewName = Carta::State::UtilState::getLookup( getPath(), Util::VIEW);
-            std::shared_ptr<DrawStackSynchronizer> zoomDraw(
-                    new DrawStackSynchronizer(makeRemoteView( viewName)));
-            controller->_setViewDrawZoom( zoomDraw );
-
-
+            m_zoomDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
+            controller->_setViewDrawZoom( m_zoomDraw );
+            connect( m_zoomDraw.get(), SIGNAL(viewResize()), this, SLOT(_viewResize()));
         }
     }
     else {
@@ -147,7 +146,7 @@ QString ImageZoom::removeLink( CartaObject* cartaObject ){
         linkRemoved = m_linkImpl->removeLink( controller );
         if ( linkRemoved  ){
             controller->disconnect( this );
-           // _resetAnimationParameters(-1);
+            controller->_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer>( nullptr) );
         }
     }
     else {
@@ -157,12 +156,35 @@ QString ImageZoom::removeLink( CartaObject* cartaObject ){
 }
 
 
-void ImageZoom::_updateSize( const QSize& /*size*/ ){
+Controller* ImageZoom::_getControllerSelected() const {
+    //We are only supporting one linked controller.
+    Controller* controller = nullptr;
+    int linkCount = m_linkImpl->getLinkCount();
+    for ( int i = 0; i < linkCount; i++ ){
+        CartaObject* obj = m_linkImpl->getLink(i );
+        Controller* control = dynamic_cast<Controller*>( obj);
+        if ( control != nullptr){
+            controller = control;
+            break;
+        }
+    }
+    return controller;
+}
 
+void ImageZoom::_viewResize(){
+    int linkCount = m_linkImpl->getLinkCount();
+    if ( linkCount > 0 ){
+        Controller* alt = dynamic_cast<Controller*>( m_linkImpl->getLink(0) );
+        alt->_renderZoom();
+    }
 }
 
 
 ImageZoom::~ImageZoom(){
+    Controller* cont = _getControllerSelected();
+    if ( cont ){
+        cont->_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer>( nullptr) );
+    }
     unregisterView();
 }
 }

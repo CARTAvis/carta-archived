@@ -31,6 +31,11 @@ Carta::Lib::KnownSkyCS RenderRequest::getCoordinateSystem() const {
     return m_cs;
 }
 
+QList<std::shared_ptr<Layer> > RenderRequest::getData() const {
+    return m_datas;
+}
+
+
 
 double RenderRequest::getZoom() const {
     return m_zoom;
@@ -85,6 +90,10 @@ bool RenderRequest::isZoomSet() const {
         zoomSet = true;
     }
     return zoomSet;
+}
+
+void RenderRequest::setData( QList<std::shared_ptr<Layer> > datas ){
+    m_datas = datas;
 }
 
 

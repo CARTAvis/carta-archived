@@ -409,15 +409,6 @@ protected:
 
     virtual void _updateColor() Q_DECL_OVERRIDE;
 
-    /**
-     * Reset the view to its previous state after a save.
-     */
-    virtual void _viewReset() Q_DECL_OVERRIDE;
-
-    /**
-     * Resize the view of the image.
-     */
-    virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
 
 protected slots:
     virtual void _colorChanged() Q_DECL_OVERRIDE;

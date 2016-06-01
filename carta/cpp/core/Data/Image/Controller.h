@@ -617,6 +617,7 @@ private:
     void _initializeCallbacks();
 
     void _renderZoom();
+    void _renderContext();
 
 
     /**

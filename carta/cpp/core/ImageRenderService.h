@@ -169,6 +169,10 @@ public:
     virtual QPointF
     img2screen( const QPointF & p ) override;
 
+    virtual QPointF
+    img2screen( const QPointF& p, const QPointF& pan,
+            double zoom, const QSize& outputSize ) const override;
+
     /// the inverse of img2screen()
     /// \param p coordinates to convert
     /// \return converted coordinates

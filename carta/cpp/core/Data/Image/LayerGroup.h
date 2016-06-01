@@ -48,10 +48,8 @@ protected:
      * @param success - set to true if the image file is successfully loaded.
      * @param stackIndex - set to the index of the image in this group if it is loaded
      *      in this group.
-     * @param viewSize - the current client view size.
      */
-    QString _addData(const QString& fileName, bool* success, int* stackIndex,
-                      QSize viewSize=QSize()  );
+    QString _addData(const QString& fileName, bool* success, int* stackIndex);
 
 
 
@@ -441,17 +439,6 @@ protected:
 
     virtual void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) Q_DECL_OVERRIDE;
-
-    /**
-     * Reset the view to its previous state after a save.
-     */
-    virtual void _viewReset() Q_DECL_OVERRIDE;
-
-    /**
-     * Resize the view of the image.
-     */
-    virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
-
 
     /**
      *  Constructor.
