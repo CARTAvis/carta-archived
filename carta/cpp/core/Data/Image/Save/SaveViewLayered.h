@@ -73,6 +73,9 @@ class SaveViewLayered {
         std::vector < RasterLayerInfo > m_rasterLayers;
         std::vector < VGLayerInfo > m_vgLayers;
 
+        SaveViewLayered( const SaveViewLayered& other);
+        SaveViewLayered& operator=( const SaveViewLayered& other );
+
 };
 }
 }

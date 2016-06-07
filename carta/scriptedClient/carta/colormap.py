@@ -74,6 +74,16 @@ class Colormap(CartaView):
                                      interpolatedString=str(interpolatedStr))
         return result
 
+    def setNanDefault(self, nanDefault = 'TRUE'):
+        """
+        Set whether or not to use the default nan color (bottom of the color
+        map).
+        """
+        result = self.con.cmdTagList("setNanDefault",
+                                     colormapId=self.getId(),
+                                     nanDefaultString=str(nanDefault))
+        return result
+
     def invertColormap(self, invertStr='toggle'):
         """
         Invert the colormap.

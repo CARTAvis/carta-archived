@@ -22,12 +22,14 @@ namespace State {
 QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
         "CoordinateSystems","DataLoader","ErrorManager",
-        "GenerateModes","Fonts","IntensityUnits",
+        "Gamma","GenerateModes","Fonts",
         "LabelFormats","Layout","LayerCompositionModes","LineStyles",
          "PlotStyles", "ProfilePlotStyles",
          "Preferences", "PreferencesSave","ProfileStatistics",
-         "SpectralUnits", "TransformsImage","TransformsData",
-         "Themes","ViewManager"};
+          "TransformsImage","TransformsData",
+         "Themes",
+         "UnitsFrequency","UnitsIntensity","UnitsSpectral","UnitsWavelength",
+         "ViewManager"};
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
@@ -182,6 +184,8 @@ const QString ObjectManager::DestroyObject = "DestroyObject";
 const QString ObjectManager::STATE_ARRAY = "states";
 const QString ObjectManager::STATE_ID = "id";
 const QString ObjectManager::STATE_VALUE = "state";
+
+std::shared_ptr<ObjectManager> ObjectManager::m_om = nullptr;
 
 ObjectManager::ObjectManager ()
 :       m_root( "CartaObjects"),
@@ -348,13 +352,15 @@ ObjectManager *
 ObjectManager::objectManager ()
 {
     // Implements a singleton pattern
-
-    static ObjectManager * om = new ObjectManager ();
-
-    return om;
+    if ( !m_om ){
+        m_om.reset( new ObjectManager() );
+    }
+    return m_om.get();
 }
 
+ObjectManager::~ObjectManager (){
 
+}
 
 bool
 ObjectManager::registerClass (const QString & className, CartaObjectFactory * factory)

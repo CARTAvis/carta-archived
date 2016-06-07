@@ -42,8 +42,10 @@ class CoordinateSystems;
 class DataSource : public QObject {
 
 friend class LayerData;
+friend class DataFactory;
 friend class Histogram;
 friend class Profiler;
+friend class Colormap;
 
 Q_OBJECT
 
@@ -195,13 +197,15 @@ private:
     
     /**
      * Returns the intensity corresponding to a given percentile.
-     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentile - a number [0,1] for which an intensity is desired.
+     * @param intensity - the computed intensity corresponding to the percentile.
+     * @param intensityIndex - location where the maximum intensity was found.
      * @return true if the computed intensity is valid; otherwise false.
      */
-    bool _getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
+    bool _getIntensity( int frameLow, int frameHigh, double percentile,
+            double* intensity, int* locationIndex ) const;
     
     /**
      * Returns the color used to draw nan pixels.

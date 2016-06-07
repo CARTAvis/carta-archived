@@ -52,8 +52,6 @@ public:
 private:
 
     void _initializeDefaultState();
-    void _initializeCallbacks();
-    QString _commandGetColorStops( const QString& params );
 
     std::vector < std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> > m_colormaps;
 

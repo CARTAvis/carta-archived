@@ -65,6 +65,13 @@ private:
             const casa::Vector<casa::MDirection>& directions ) const;
 
     /**
+     * Returns true if the region is a casa region; false otherwise.
+     * @param fileName - the absolute path to a file containing the region.
+     * @return - true if the file is a recognized region in CASA format; false otherwise.
+     */
+    bool _isCASARegion( const QString& fileName ) const;
+
+    /**
      * Load one or more regions based on the name of a file specifying regions in CASA format
      * and an image that will contain the region.
      * @param fileName - path to a .crtf file specifying one or more regions in CASA format.

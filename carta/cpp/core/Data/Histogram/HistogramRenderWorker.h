@@ -71,6 +71,9 @@ private:
     double m_maxIntensity;
     QString m_fileName;
     Carta::Lib::Hooks::HistogramResult m_result;
+
+    HistogramRenderWorker( const HistogramRenderWorker& other);
+    HistogramRenderWorker& operator=( const HistogramRenderWorker& other );
 };
 }
 }

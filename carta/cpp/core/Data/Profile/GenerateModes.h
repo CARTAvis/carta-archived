@@ -69,7 +69,7 @@ private:
 
     const static QString GEN_CURRENT;
     const static QString GEN_ALL;
-    const static QString GEN_CUSTOM;
+    //const static QString GEN_CUSTOM;
     const static QString GEN_NO_SINGLE_PLANES;
 
     void _initializeDefaultState();

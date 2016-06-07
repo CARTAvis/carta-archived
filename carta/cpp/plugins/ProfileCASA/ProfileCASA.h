@@ -6,6 +6,7 @@
 #include "CartaLib/IPlugin.h"
 #include "CartaLib/RegionInfo.h"
 #include "CartaLib/ProfileInfo.h"
+#include "CartaLib/Hooks/ProfileResult.h"
 #include "plugins/CasaImageLoader/CCImage.h"
 #include <imageanalysis/ImageAnalysis/ImageCollapserData.h>
 
@@ -34,7 +35,7 @@ public:
 private:
     casa::MFrequency::Types _determineRefFrame(
             std::shared_ptr<casa::ImageInterface<casa::Float> > img ) const;
-    std::vector<double> _generateProfile( casa::ImageInterface < casa::Float > * imagePtr,
+    Carta::Lib::Hooks::ProfileResult _generateProfile( casa::ImageInterface < casa::Float > * imagePtr,
             Carta::Lib::RegionInfo regionInfo, Carta::Lib::ProfileInfo profileInfo ) const;
     casa::ImageCollapserData::AggregateType _getCombineMethod( Carta::Lib::ProfileInfo profileInfo ) const;
     casa::ImageRegion* _getEllipsoid(const casa::CoordinateSystem& cSys,

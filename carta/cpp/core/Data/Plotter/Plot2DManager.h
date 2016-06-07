@@ -343,7 +343,6 @@ private slots:
 private:
 
     const static QString DATA_PATH;
-    const static QString X_COORDINATE;
 
     void _initializeDefaultState();
     void _initializeCallbacks();
@@ -368,7 +367,7 @@ private:
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
 	Plot2DManager( const Plot2DManager& other);
-	Plot2DManager operator=( const Plot2DManager& other );
+	Plot2DManager& operator=( const Plot2DManager& other );
 };
 }
 }

@@ -21,9 +21,6 @@ class CoordinateFormatterInterface;
 
 namespace Carta {
     namespace Lib {
-        namespace PixelPipeline {
-            class CustomizablePixelPipeline;
-        }
         namespace Image {
             class ImageInterface;
         }
@@ -52,6 +49,7 @@ class Controller: public QObject, public Carta::State::CartaObject,
 
     friend class Animator;
     friend class Colormap;
+    friend class DataFactory;
     friend class Profiler;
 
     Q_OBJECT
@@ -215,21 +213,24 @@ public:
 
     /**
      * Returns the intensity corresponding to a given percentile in the current frame.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
+     * @param percentile - a number [0,1] for which an intensity is desired.
+     * @param intensity - the computed intensity corresponding to the percentile.
+     * @param intensityIndex - frame index where maximum intensity was found.
      * @return true if the computed intensity is valid; otherwise false.
      */
-    bool getIntensity( double percentile, double* intensity ) const;
+    bool getIntensity( double percentile, double* intensity, int* intensityIndex ) const;
 
     /**
      * Returns the intensity corresponding to a given percentile.
-     * @param frameLow a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentile a number [0,1] for which an intensity is desired.
-     * @param intensity the computed intensity corresponding to the percentile.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentile - a number [0,1] for which an intensity is desired.
+     * @param intensity - the computed intensity corresponding to the percentile.
+     * @param intensityIndex - frame index where maximum intensity was found.
      * @return true if the computed intensity is valid; otherwise false.
      */
-    bool getIntensity( int frameLow, int frameHigh, double percentile, double* intensity ) const;
+    bool getIntensity( int frameLow, int frameHigh, double percentile,
+            double* intensity, int* intensityIndex ) const;
 
     /**
      * Get the dimensions of the image viewer (window size).
@@ -290,10 +291,12 @@ public:
     /**
      * Get the color map information for the data sources that have been
      * selected.
+     * @param global - whether color changes apply globally or only to data sources
+     *      that are selected.
      * @return - a list containing color map information for the data sources
      *      that have been selected.
      */
-    std::vector< std::shared_ptr<ColorState> > getSelectedColorStates();
+    std::vector<std::shared_ptr<ColorState> > getSelectedColorStates( bool global );
 
     /**
      * Return a count of the number of image layers in the stack.
@@ -586,7 +589,7 @@ private:
     class Factory;
 
     /// Add a region to the stack from a file.
-    QString _addDataRegion(const QString& fileName, bool* success );
+    void _addDataRegions( std::vector<std::shared_ptr<Region> > regions );
 
     /// Add an image to the stack from a file.
     QString _addDataImage( const QString& fileName, bool* success );
@@ -598,7 +601,7 @@ private:
     void _clearStatistics();
 
 
-    set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
+    std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
 
@@ -608,19 +611,6 @@ private:
     void _initializeState();
     void _initializeCallbacks();
 
-    /**
-     * Set whether or not the selected layers should be using the global
-     * colormap.
-     * @param global - true if selected layers should use the global color map;
-     *      false, otherwise.
-     */
-    void _setColorMapUseGlobal( bool global );
-
-    /**
-     * Set the global color map..
-     * @param colorState - the global color map information.
-     */
-    void _setColorMapGlobal( std::shared_ptr<ColorState> colorState );
 
     /**
      * Make a frame selection.
@@ -657,8 +647,6 @@ private:
 
     //Data available to and managed by this controller.
     std::unique_ptr<Stack> m_stack;
-
-    std::shared_ptr<ColorState> m_stateColor;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.

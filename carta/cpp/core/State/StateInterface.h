@@ -5,8 +5,6 @@
 
 #include <QtCore/QString>
 
-using namespace std;
-
 namespace Carta {
 
 namespace State {

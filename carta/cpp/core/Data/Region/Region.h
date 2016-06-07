@@ -14,6 +14,7 @@ namespace Data {
 
 class Region : public Carta::State::CartaObject {
     friend class RegionFactory;
+    friend class DataFactory;
     friend class Stack;
 public:
 
@@ -76,8 +77,6 @@ private:
     const static QString REGION_POLYGON;
     const static QString REGION_ELLIPSE;
 
-    const static QString XCOORD;
-    const static QString YCOORD;
     void _initializeCallbacks();
     void _initializeState();
 
@@ -106,6 +105,8 @@ private:
     // is created graphically, the id will be just an index.
     void _setUserId( const QString& fileName, int index );
 
+    Region( const Region& other);
+    Region& operator=( const Region& other );
 
 };
 }

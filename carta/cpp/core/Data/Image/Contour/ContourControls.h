@@ -218,7 +218,7 @@ private:
 
     class Factory;
 
-    std::set<shared_ptr<DataContours> > m_dataContours;
+    std::set<std::shared_ptr<DataContours> > m_dataContours;
 
     std::shared_ptr<DataContours> m_drawContours;
     std::shared_ptr<GeneratorState> m_generatorState;

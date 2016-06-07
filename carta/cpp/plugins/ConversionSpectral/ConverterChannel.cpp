@@ -27,12 +27,20 @@ casa::Vector<double> ConverterChannel::convert( const casa::Vector<double>& oldV
             QString worldUnit(worldUnitsVector[0].c_str());
             if ( worldUnit == newUnits ) {
                 resultValues[i] = result;
-            } else {
-                Converter* helper = Converter::getConverter( worldUnit, newUnits);
-                resultValues[i] = helper->convert( result, spectralCoordinate );
-                delete helper;
             }
-        } else {
+            else {
+                qDebug() << "worldUnit="<<worldUnit<<" newUnit="<<newUnits;
+                Converter* helper = Converter::getConverter( worldUnit, newUnits);
+                if ( helper != nullptr ){
+                    resultValues[i] = helper->convert( result, spectralCoordinate );
+                    delete helper;
+                }
+                else {
+                    qDebug() << "Could not convert from "<<worldUnit<<" to "<<newUnits;
+                }
+            }
+        }
+        else {
             qDebug() << "Could not convert channel="<<oldValues[i];
         }
     }

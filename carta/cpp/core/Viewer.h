@@ -13,6 +13,7 @@ namespace Carta {
 namespace Data {
 class ViewManager;
 }
+
 }
 
 ///

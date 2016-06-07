@@ -53,16 +53,47 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
         
         
         /**
+         * Whether or not color map changes should be applied to all color maps
+         * has changed in the UI.
+         */
+        _globalChanged : function(){
+            if ( this.m_id !== null ){
+                var global = this.m_globalCheck.getValue();
+                //Send a command to the server to let them know the map changed.
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setGlobal";
+                var params = "global:"+global;
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        
+        /**
          * Initializes the UI.
          */
         _init : function(  ) {
-            var widgetLayout = new qx.ui.layout.HBox();
+            var widgetLayout = new qx.ui.layout.VBox();
             this._setLayout(widgetLayout);
             
-            this._add( new qx.ui.core.Spacer(), {flex:1});
             this._initInvertReverse();
-            this._add( new qx.ui.core.Spacer(), {flex:1});
-
+            this._initApplyAll();
+        },
+        
+        
+        /**
+         * Initialize the 'Apply All' functionality.
+         */
+        _initApplyAll : function(){
+            this.m_globalCheck = new qx.ui.form.CheckBox( "Apply All");
+            this.m_globalCheck.setToolTipText( "Apply color map settings to all images in the stack.");
+            skel.widgets.TestID.addTestId( this.m_globalCheck, "colorMapGlobal");
+            this.m_globalListenId = this.m_globalCheck.addListener( skel.widgets.Path.CHANGE_VALUE, this._globalChanged, this );
+            var allComposite = new qx.ui.container.Composite();
+            allComposite.setLayout(new qx.ui.layout.HBox(1));
+            allComposite.add( new qx.ui.core.Spacer(1), {flex:1});
+            allComposite.add( this.m_globalCheck );
+            allComposite.add( new qx.ui.core.Spacer(1), {flex:1});
+            this._add( allComposite );
         },
         
         /**
@@ -89,11 +120,27 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             }, this );
             
             var mapComposite = new qx.ui.container.Composite();
-            mapComposite.setLayout(new qx.ui.layout.VBox(1));
-            
+            mapComposite.setLayout(new qx.ui.layout.HBox(1));
+            mapComposite.add( new qx.ui.core.Spacer(1), {flex:1});
             mapComposite.add( this.m_reverseCheck );
             mapComposite.add( this.m_invertCheck );
+            mapComposite.add( new qx.ui.core.Spacer(1), {flex:1});
             this._add( mapComposite );
+        },
+        
+        /**
+         * Server update as to whether this is a global colormap.
+         * @param globalMap {boolean} - true if this is a global color map;
+         *      false otherwise.
+         */
+        setGlobal : function( globalMap ){
+            if ( this.m_globalCheck.getValue() != globalMap ){
+                if ( this.m_globalListenId != null ){
+                    this.m_globalCheck.removeListenerById( this.m_globalListenId );
+                }
+                this.m_globalCheck.setValue( globalMap );
+                this.m_globalListenId = this.m_globalCheck.addListener( skel.widgets.Path.CHANGE_VALUE, this._globalChanged, this );
+            }
         },
         
         /**
@@ -126,7 +173,8 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
             }
         },
         
-        
+        m_globalCheck : null,
+        m_globalListenId : null,
         m_invertCheck : null,
         m_reverseCheck : null,
         

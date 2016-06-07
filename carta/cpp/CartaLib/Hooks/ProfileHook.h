@@ -4,11 +4,12 @@
  **/
 
 #pragma once
-
+#include "ProfileResult.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
 #include "CartaLib/RegionInfo.h"
 #include "CartaLib/ProfileInfo.h"
+#include "CartaLib/Hooks/ProfileResult.h"
 
 namespace Carta
 {
@@ -19,13 +20,16 @@ class ImageInterface;
 }
 namespace Hooks
 {
+
+
+
 class ProfileHook : public BaseHook
 {
     CARTA_HOOK_BOILER1( ProfileHook );
 
 public:
-   //The intensity counts
-   typedef std::vector<double> ResultType;
+   //The results from generating a profile.
+    typedef Carta::Lib::Hooks::ProfileResult ResultType;
 
     /**
      * @brief Params

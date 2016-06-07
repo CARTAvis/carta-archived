@@ -11,6 +11,7 @@
 #include "imageanalysis/Annotations/AnnEllipse.h"
 
 #include <QDebug>
+#include <QFile>
 
 
 RegionCASA::RegionCASA(QObject *parent) :
@@ -29,21 +30,30 @@ void RegionCASA::_addCorners( std::shared_ptr<Carta::Lib::RegionInfo>& rInfo,
 
 bool RegionCASA::handleHook(BaseHook & hookData){
     qDebug() << "RegionCASA plugin is handling hook #" << hookData.hookId();
+    bool hookHandled = false;
     if( hookData.is<Carta::Lib::Hooks::Initialize>()) {
-        return true;
+        hookHandled = true;
     }
     else if( hookData.is<Carta::Lib::Hooks::LoadRegion>()) {
         Carta::Lib::Hooks::LoadRegion & hook
                 = static_cast<Carta::Lib::Hooks::LoadRegion &>( hookData);
         QString fileName = hook.paramsPtr->fileName;
         if ( fileName.length() > 0 ){
-            std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr = hook.paramsPtr->image;
-            hook.result = _loadRegion( fileName, imagePtr );
-            return true;
+            //Before going to a lot of trouble, make sure we can open the file and that it has
+            //the potential to be a CASA region.
+            bool casaRegion = _isCASARegion( fileName );
+            if ( casaRegion ){
+                std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr = hook.paramsPtr->image;
+                hook.result = _loadRegion( fileName, imagePtr );
+            }
+            else {
+                //Not a casa region so return an empty vector.
+                hook.result = std::vector<std::shared_ptr<Carta::Lib::RegionInfo> >();
+            }
+            hookHandled = true;
         }
     }
-    qWarning() << "Sorry, RegionCASA doesn't know how to handle this hook";
-    return false;
+    return hookHandled;
 }
 
 std::vector<HookId> RegionCASA::getInitialHookList(){
@@ -77,9 +87,23 @@ RegionCASA::_getPixelVertices( const casa::AnnotationBase::Direction& corners,
 }
 
 
+bool RegionCASA::_isCASARegion( const QString& fileName ) const {
+    bool casaRegion = false;
+    QFile inputFile( fileName );
+    if ( inputFile.open( QIODevice::ReadOnly ) ){
+        QString firstLine = inputFile.readLine();
+        if ( firstLine.contains( "#CRTF" ) ){
+            casaRegion = true;
+        }
+    }
+    return casaRegion;
+}
+
+
 std::vector< std::shared_ptr<Carta::Lib::RegionInfo> >
 RegionCASA::_loadRegion( const QString & fname, std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr ){
     std::vector<std::shared_ptr<Carta::Lib::RegionInfo> > regionInfos;
+
     casa::String fileName( fname.toStdString().c_str() );
     CCImageBase * base = dynamic_cast<CCImageBase*>( imagePtr.get() );
     if ( base ){

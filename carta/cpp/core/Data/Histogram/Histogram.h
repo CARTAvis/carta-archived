@@ -363,7 +363,7 @@ private slots:
     void _createHistogram( Controller* );
 
     //Notification that new histogram data has been produced.
-    void _histogramRendered();
+    void _histogramRendered(const Carta::Lib::Hooks::HistogramResult& result);
 
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateColorClips( double colorMinPercent, double colorMaxPercent);
@@ -453,7 +453,6 @@ private:
     const static QString FOOT_PRINT_REGION_ALL;
     const static QString CLIP_MIN_PERCENT;
     const static QString CLIP_MAX_PERCENT;
-    const static QString SIGNIFICANT_DIGITS;
     const static QString SIZE_ALL_RESTRICT;
     const static QString RESTRICT_SIZE_MAX;
     
@@ -488,7 +487,7 @@ private:
     Carta::State::StateInterface m_stateData;
 
 	Histogram( const Histogram& other);
-	Histogram operator=( const Histogram& other );
+	Histogram& operator=( const Histogram& other );
 };
 }
 }

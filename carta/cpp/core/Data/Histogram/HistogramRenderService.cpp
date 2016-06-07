@@ -14,10 +14,6 @@ HistogramRenderService::HistogramRenderService( QObject * parent ) :
     m_renderQueued = false;
 }
 
-Carta::Lib::Hooks::HistogramResult HistogramRenderService::getResult() const {
-    return m_result;
-}
-
 
 bool HistogramRenderService::renderHistogram(std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
         int binCount, int minChannel, int maxChannel, double minFrequency, double maxFrequency,
@@ -25,6 +21,7 @@ bool HistogramRenderService::renderHistogram(std::shared_ptr<Carta::Lib::Image::
         const QString& fileName ){
     bool histogramRender = true;
     if ( dataSource ){
+
         _scheduleRender( dataSource, binCount, minChannel, maxChannel, minFrequency, maxFrequency,
                 rangeUnits, minIntensity, maxIntensity, fileName );
     }
@@ -71,9 +68,10 @@ void HistogramRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image:
 }
 
 void HistogramRenderService::_postResult( ){
-    m_result = m_renderThread->getResult();
-    emit histogramResult( );
+    Carta::Lib::Hooks::HistogramResult result = m_renderThread->getResult();
+    emit histogramResult( result );
     m_renderQueued = false;
+
 }
 
 

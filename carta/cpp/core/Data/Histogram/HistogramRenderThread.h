@@ -52,6 +52,9 @@ public:
 private:
     int m_fileDescriptor;
     Carta::Lib::Hooks::HistogramResult m_result;
+
+    HistogramRenderThread( const HistogramRenderThread& other);
+    HistogramRenderThread& operator=( const HistogramRenderThread& other );
 };
 }
 }

@@ -26,7 +26,9 @@ namespace Data {
 
 class ColorState;
 class Controller;
+class Gamma;
 class Settings;
+class UnitsIntensity;
 
 class Colormap : public QObject, public Carta::State::CartaObject, public ILinkable {
 
@@ -44,8 +46,23 @@ public:
      */
     void clear();
 
+    /**
+     * Return the units used to set the intensity range on the colormap.
+     * @return - units used to set the colormap intensity range.
+     */
+    QString getImageUnits() const;
 
-    std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> getColorMap( ) const;
+    /**
+     * Return the number of significant digits to use in the display.
+     * @return - the number of significant digits to retain.
+     */
+    int getSignificantDigits() const;
+
+    /**
+     * Return the current settings tab index.
+     * @return - the current settings tab index.
+     */
+    int getTabIndex() const;
 
     /**
      * Return a string representing the colormap state of a particular type.
@@ -55,6 +72,13 @@ public:
      */
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Returns true if changes to the color map should apply to all color maps;
+     * false if they only apply to the current color map.
+     * @return - true if changes to the color map apply globally; false if they apply
+     *      to only the current map.
+     */
+    bool isGlobal() const;
 
     /**
      * Returns whether or not the colormap is inverted.
@@ -161,6 +185,21 @@ public:
     void setGlobal( bool global );
 
     /**
+     * Set the units to use for intensity bounds.
+     * @param unitsStr - an identifier for intensity units.
+     * @return - an error message if the intensity units could not be set; otherwise,
+     *      an empty string.
+     */
+    QString setImageUnits( const QString& unitsStr );
+
+    /**
+     * Set the colormap intensity range.
+     * @param minValue - the minimum intensity.
+     * @param maxValue - the maximum intensity.
+     */
+    QString setIntensityRange( double minValue, double maxValue );
+
+    /**
      * Invert the current colormap.
      * @param invert - true if the color map should be inverted; false otherwise..
      * @return error information if the color map was not successfully inverted.
@@ -225,17 +264,25 @@ signals:
 private slots:
     void _updateIntensityBounds( double minIntensity, double maxIntensity );
     void _colorStateChanged();
+    void _dataChanged( Controller* controller );
     /**
      * Set the color states managed by this color map.
      */
     void _setColorStates( Controller* target );
 
 private:
+    void _calculateColorStops();
     QString _commandSetColorMap( const QString& params );
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
 
+    std::pair<double,double>  _convertIntensity( const QString& oldUnit, const QString& newUnit );
+    std::pair<double,double> _convertIntensity( const QString& oldUnit, const QString& newUnit,
+            double minValue, double maxValue );
+
+    Controller* _getControllerSelected() const;
+    std::pair<int,double> _getIntensityForPercent( double percent, bool* valid ) const;
     /**
      * Return the server side id of the preferences for this colormap.
      * @return the server side id of this colormap's preferences.
@@ -244,23 +291,40 @@ private:
 
     void _initializeDefaultState();
     void _initializeCallbacks();
-    bool _isGlobal() const;
+    void _initializeStatics();
 
+    void _setErrorMargin( );
+
+    void _updateImageClips();
 
     static bool m_registered;
 
+    const static QString COLOR_STOPS;
+    const static QString GLOBAL;
+    const static QString IMAGE_UNITS;
     const static QString INTENSITY_MIN;
     const static QString INTENSITY_MAX;
+    const static QString INTENSITY_MIN_INDEX;
+    const static QString INTENSITY_MAX_INDEX;
+    const static QString SIGNIFICANT_DIGITS;
+    const static QString TAB_INDEX;
 
 
     Colormap( const QString& path, const QString& id );
 
     class Factory;
 
+    double m_errorMargin;
+
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
 
     std::unique_ptr<Settings> m_settings;
+
+    //Image units
+    static UnitsIntensity* m_intensityUnits;
+    //Gamma
+    static Gamma* m_gammaTransform;
 
     Carta::State::StateInterface m_stateData;
 
@@ -268,10 +332,9 @@ private:
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
 
-    //Holds the current color state
+    //Holds the current color state.  Note that it is a vector because
+    //multiple images can be selected for applying a color state change.
     std::vector< std::shared_ptr<ColorState> > m_stateColors;
-    //Holds the global color state;
-    std::shared_ptr<ColorState> m_stateColorGlobal;
 
 	Colormap( const Colormap& other);
 	Colormap& operator=( const Colormap& other );

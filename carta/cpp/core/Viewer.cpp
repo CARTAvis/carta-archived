@@ -97,9 +97,10 @@ Viewer::start()
 	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
 		fname = Globals::instance()-> platform()-> initialFileList() [0];
 	}
-	Carta::State::ObjectManager* objManager = Carta::State::ObjectManager::objectManager();
+
 	if ( m_viewManager == nullptr ){
-        Carta::Data::ViewManager* vm = objManager->createObject<Carta::Data::ViewManager> ();
+	    Carta::State::ObjectManager* objectManager = Carta::State::ObjectManager::objectManager();
+        Carta::Data::ViewManager* vm = objectManager->createObject<Carta::Data::ViewManager> ();
         m_viewManager.reset( vm );
 	}
 	else {
@@ -127,3 +128,6 @@ Viewer::start()
 void Viewer::setDeveloperView( ){
     m_devView = true;
 }
+
+
+

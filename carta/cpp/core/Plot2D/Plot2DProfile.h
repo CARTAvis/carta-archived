@@ -90,11 +90,16 @@ protected:
             const QRectF &canvasRect, int from, int to) const;
     virtual void drawSteps (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
             const QRectF &canvasRect, int from, int to) const;
+    //This method was put in so that profiles consisting of a single point could be drawn.
+    void drawSymbol( QPainter* painter, const QwtScaleMap & xMap,
+            const QwtScaleMap & yMap, const QRectF & canvasRect, int from, int to ) const;
 
 private:
 
     std::vector<double> m_datasX;
     std::vector<double> m_datasY;
+    Plot2DProfile( const Plot2DProfile& other);
+    Plot2DProfile& operator=( const Plot2DProfile& other );
 
 };
 

@@ -71,6 +71,10 @@ qx.Class.define("skel.widgets.CustomUI.ItemTable", {
             return items;
         },
         
+        setTestId : function( id ){
+            skel.widgets.TestID.addTestId( this.m_table, id ); 
+        },
+        
         /**
          * Initializes the UI.
          */

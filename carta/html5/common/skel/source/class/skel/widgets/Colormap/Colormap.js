@@ -100,17 +100,15 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 if ( val ){
                     try {
                         var cMap = JSON.parse( val );
-                        
                         if ( this.m_view !== null ){
                             this.m_view.setColorName( cMap.colorMapName );
                             this.m_view.setInvert( cMap.invert );
                             this.m_view.setReverse( cMap.reverse );
-                            this.m_view.setScales( cMap.colorMix.red, cMap.colorMix.green, cMap.colorMix.blue );
+                            this.m_view.setStops( cMap.stops );
                         }
                         this.m_settings.setControls( cMap );
                         this.m_mapControl.setMapName( cMap.colorMapName );
-                        this.m_mapControl.setGlobal( cMap.global );
-                        
+                        this.m_mapControl.setDataTransform( cMap.dataTransform );
                     }
                     catch( err ){
                         console.log( "Colormap could not parse: "+val );
