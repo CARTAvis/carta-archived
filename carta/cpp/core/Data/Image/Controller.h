@@ -554,13 +554,21 @@ signals:
      */
     void dataChangedRegion( Controller* controller );
 
+    /**
+     * Notification that the context image needs to be redrawn.  For example,
+     * if the pan or zoom has changed.
+     */
+    void contextChanged();
+
+    /**
+     * Notification that the cursor position has changed and the zoom view needs
+     * to update.
+     */
+    void zoomChanged();
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
     void saveImageResult( bool result );
-
-
-
 
 
 protected:
@@ -609,14 +617,22 @@ private:
     std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
+    //Return the size of the image in display coordinates.  Normally, this
+    //will be the number of frames in RA x DEC, but in a case were the image
+    //axes are Frequency x RA, it will be in channel count frames and RA frames.
+    QSize _getDisplaySize() const;
 
+    //Return the rectangle (in pixel coordinates scaled to the display size)
+    //that is currently being viewed in the main view.  Used to show a rectangle
+    //in the context view.
+    QRectF _getInputRectangle() const;
     QString _getPreferencesId() const;
 
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
 
-    void _renderZoom();
+    void _renderZoom( double factor );
     void _renderContext();
 
 

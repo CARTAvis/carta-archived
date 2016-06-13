@@ -321,11 +321,13 @@ Carta::Lib::KnownSkyCS LayerGroup::_getCoordinateSystem() const {
     return cs;
 }
 
-QString LayerGroup::_getCursorText( int mouseX, int mouseY, const std::vector<int>& frames ){
+QString LayerGroup::_getCursorText( int mouseX, int mouseY,
+        const std::vector<int>& frames, const QSize& outputSize ){
     QString cursorText;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY, frames );
+        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY,
+                frames, outputSize );
     }
     return cursorText;
 
@@ -392,6 +394,15 @@ std::shared_ptr<DataSource> LayerGroup::_getDataSource(){
     return dSource;
 }
 
+QSize LayerGroup::_getDisplaySize() const {
+    QSize size;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        size = m_children[dataIndex]->_getDisplaySize();
+    }
+    return size;
+}
+
 
 std::vector<int> LayerGroup::_getImageDimensions( ) const {
     std::vector<int> result;
@@ -403,11 +414,11 @@ std::vector<int> LayerGroup::_getImageDimensions( ) const {
 }
 
 
-QPointF LayerGroup::_getImagePt( QPointF screenPt, bool* valid ) const {
+QPointF LayerGroup::_getImagePt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const {
     QPointF imagePt;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        imagePt = m_children[dataIndex]->_getImagePt( screenPt, valid );
+        imagePt = m_children[dataIndex]->_getImagePt( screenPt, outputSize, valid );
     }
     else {
         *valid = false;
@@ -445,6 +456,15 @@ int LayerGroup::_getIndexCurrent( ) const {
         dataIndex = 0;
     }
     return dataIndex;
+}
+
+QRectF LayerGroup::_getInputRect( const QSize& size ) const {
+    QRectF rect(0,0,0,0);
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        rect = m_children[dataIndex]->_getInputRect( size );
+    }
+    return rect;
 }
 
 bool LayerGroup::_getIntensity( int frameLow, int frameHigh, double percentile,
@@ -499,15 +519,6 @@ QStringList LayerGroup::_getLayerIds( ) const {
 }
 
 
-QSize LayerGroup::_getOutputSize() const {
-    QSize size;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        size = m_children[dataIndex]-> _getOutputSize();
-    }
-    return size;
-}
-
 double LayerGroup::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
     int dataIndex = _getIndexCurrent();
@@ -556,18 +567,6 @@ QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode as
     return saveSize;
 }
 
-
-QPointF LayerGroup::_getScreenPt( QPointF imagePt, bool* valid ) const {
-    QPointF screenPt;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        screenPt = m_children[dataIndex]->_getScreenPt( imagePt, valid );
-    }
-    else {
-        *valid = false;
-    }
-    return screenPt;
-}
 
 std::shared_ptr<Layer> LayerGroup::_getSelectedGroup() {
     std::shared_ptr<Layer> group( nullptr );

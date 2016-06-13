@@ -109,11 +109,35 @@ public:
     virtual QPointF
     img2screen( const QPointF & p ) = 0;
 
+    /**
+     * Return the screen point corresponding to the image point.
+     * @param p - a point in the image.
+     * @param pan - the central point of the image.
+     * @param zoom - the amount of zoom.
+     * @param outputSize - the pixel size of the image.
+     * @return - the corresponding point in pixel coordinates.
+     */
+    virtual QPointF
+    image2screen( const QPointF& p, const QPointF& pan,
+            double zoom, const QSize& outputSize ) const = 0;
+
+
     /// the inverse of img2screen()
     /// \param p coordinates to convert
     /// \return converted coordinates
     virtual QPointF
     screen2img( const QPointF & p ) = 0;
+
+    /**
+     * Return the image point corresponding to the screen point.
+     * @param p - a point in the image.
+     * @param pan - the central point of the image.
+     * @param zoom - the amount of zoom.
+     * @param outputSize - the pixel size of the image.
+     * @return - the corresponding point in image coordinates.
+     */
+    virtual QPointF
+    screen2image( const QPointF & p, const QPointF& pan, double zoom, const QSize& size ) const = 0;
 
 public slots:
 

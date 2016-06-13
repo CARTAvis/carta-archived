@@ -166,10 +166,11 @@ protected:
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
      * @param frames - list of image frames.
+     * @param outputSize - the size of the image in pixels.
      * @return a QString containing cursor text.
      */
     virtual QString _getCursorText( int mouseX, int mouseY,
-            const std::vector<int>& frames ) = 0;
+            const std::vector<int>& frames, const QSize& outputSize ) = 0;
 
 
     /**
@@ -192,6 +193,14 @@ protected:
      */
     virtual int _getDimension() const = 0;
 
+    /**
+     * Return the dimensions of the displayed image; normally, this will
+     * be the number of frames in the RA x DEC directions.  However, if
+     * the image is being display as a Frequency x DEC plot, this will be
+     * the number of frames in the frequency & DEC axes.
+     * @return - the displayed dimensions of the image.
+     */
+    virtual QSize _getDisplaySize() const = 0;
 
     /**
      * Return the number of frames for the given axis in the image.
@@ -223,10 +232,19 @@ protected:
      * Returns the location on the image corresponding to a screen point in
      * pixels.
      * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param outputSize - the size in pixels of the output image.
      * @param valid set to true if an image is loaded that can do the translation; otherwise false;
      * @return the corresponding location on the image.
      */
-    virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const = 0;
+    virtual QPointF _getImagePt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const = 0;
+
+    /**
+     * Return the portion of the image that is displayed given current zoom and
+     * pan values.
+     * @param size - the size of the displayed image.
+     * @return - the portion of the image that is visible.
+     */
+    virtual QRectF _getInputRect( const QSize& size ) const = 0;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -276,13 +294,6 @@ protected:
      */
     virtual quint32 _getMaskColor() const;
 
-
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @return the image viewer dimensions.
-     */
-    virtual QSize _getOutputSize() const = 0;
-
     /**
      * Return the percentile corresponding to the given intensity.
      * @param frameLow a lower bound for the frame index or -1 if there is no lower bound.
@@ -328,14 +339,6 @@ protected:
      * @return - the size of the saved image.
      */
     virtual QSize _getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const = 0;
-
-    /**
-     * Returns the location on the screen corresponding to a location in image coordinates.
-     * @param imagePt an (x,y) pair of image coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding pixel coordinates.
-     */
-    virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const = 0;
 
     /**
      * Return the color states that are eligible for state changes.

@@ -182,14 +182,20 @@ MyImageRenderService::~MyImageRenderService()
 QPointF
 MyImageRenderService::img2screen( const QPointF & p )
 {
-    double icx = m_pan.x();
-    double scx = m_outputSize.width() / 2.0;
-    double icy = m_pan.y();
-    double scy = m_outputSize.height() / 2.0;
+    return image2screen(p, m_pan, m_zoom, m_outputSize );
+}
+
+QPointF
+MyImageRenderService::image2screen( const QPointF& p, const QPointF& pan,
+        double zoom, const QSize& outputSize ) const {
+    double icx = pan.x();
+    double scx = outputSize.width() / 2.0;
+    double icy = pan.y();
+    double scy = outputSize.height() / 2.0;
 
     /// \todo cache xmap/ymap, update with zoom/pan/resize
-    Carta::Lib::LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
-    Carta::Lib::LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
+    Carta::Lib::LinearMap1D xmap( scx, scx + zoom, icx, icx + 1 );
+    Carta::Lib::LinearMap1D ymap( scy, scy + zoom, icy, icy - 1 );
     QPointF res;
     res.rx() = xmap.inv( p.x() );
     res.ry() = ymap.inv( p.y() );
@@ -199,14 +205,20 @@ MyImageRenderService::img2screen( const QPointF & p )
 QPointF
 MyImageRenderService::screen2img( const QPointF & p )
 {
-    double icx = m_pan.x();
-    double scx = m_outputSize.width() / 2.0;
-    double icy = m_pan.y();
-    double scy = m_outputSize.height() / 2.0;
+    return screen2image( p, m_pan, m_zoom, m_outputSize );
+}
+
+QPointF
+MyImageRenderService::screen2image( const QPointF & p, const QPointF& pan,
+              double zoom, const QSize& outputSize ) const {
+    double icx = pan.x();
+    double scx = outputSize.width() / 2.0;
+    double icy = pan.y();
+    double scy = outputSize.height() / 2.0;
 
     /// \todo cache xmap/ymap, update with zoom/pan/resize
-    Carta::Lib::LinearMap1D xmap( scx, scx + m_zoom, icx, icx + 1 );
-    Carta::Lib::LinearMap1D ymap( scy, scy + m_zoom, icy, icy - 1 );
+    Carta::Lib::LinearMap1D xmap( scx, scx + zoom, icx, icx + 1 );
+    Carta::Lib::LinearMap1D ymap( scy, scy + zoom, icy, icy - 1 );
     QPointF res;
     res.rx() = xmap.apply( p.x() );
     res.ry() = ymap.apply( p.y() );

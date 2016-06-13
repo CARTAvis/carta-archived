@@ -211,11 +211,14 @@ Carta::Lib::KnownSkyCS LayerData::_getCoordinateSystem() const {
     return cs;
 }
 
-QString LayerData::_getCursorText( int mouseX, int mouseY, const std::vector<int>& frames ){
+QString LayerData::_getCursorText( int mouseX, int mouseY, const std::vector<int>& frames,
+        const QSize& outputSize ){
     QString cursorText;
     if ( m_dataSource ){
         Carta::Lib::KnownSkyCS cs = m_dataGrid->_getSkyCS();
-        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs, frames );
+        QPointF pan = _getPan();
+        double zoom = _getZoom();
+        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs, frames, zoom, pan, outputSize );
     }
     return cursorText;
 }
@@ -241,6 +244,15 @@ int LayerData::_getDimension() const {
     }
     return imageSize;
 }
+
+QSize LayerData::_getDisplaySize() const {
+    Carta::Lib::AxisInfo::KnownType xType = _getAxisXType();
+    Carta::Lib::AxisInfo::KnownType yType = _getAxisYType();
+    int frameCountX = _getFrameCount( xType );
+    int frameCountY = _getFrameCount( yType );
+    return QSize( frameCountX, frameCountY );
+}
+
 
 std::vector<int> LayerData::_getImageDimensions( ) const {
     std::vector<int> result;
@@ -275,16 +287,63 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> LayerData::_getImage(){
     return image;
 }
 
-
-QPointF LayerData::_getImagePt( QPointF screenPt, bool* valid ) const {
+QPointF LayerData::_getImagePt( const QPointF& screenPt, const QSize& outputSize,  bool* valid ) const {
     QPointF imagePt;
     if ( m_dataSource ){
-        imagePt = m_dataSource->_getImagePt( screenPt, valid );
+        double zoom = m_state.getValue<double>( Util::ZOOM );
+
+        QPointF pan = _getPan();
+        imagePt = m_dataSource->_getImagePt( screenPt, zoom, pan, outputSize, valid );
     }
     else {
         *valid = false;
     }
     return imagePt;
+}
+
+
+QRectF LayerData::_getInputRect( const QSize& outputSize ) const {
+    QPointF pan = _getPan();
+    double zoom = _getZoom();
+    return _getInputRectangle( pan, zoom, outputSize);
+}
+
+QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QSize& outputSize ) const {
+    QRectF outputRect = _getOutputRectangle( outputSize, false, false );
+
+    //Bottom and top point of image in output pixels.
+    std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
+    QPointF tl =imageService->image2screen( QPointF(0,0), pan, zoom, outputSize );
+    QSize imageSize = _getDisplaySize();
+    QPointF br = imageService->image2screen( QPointF(imageSize.width(),imageSize.height()), pan, zoom, outputSize );
+    QRectF imageRect( tl, br );
+
+    //Where image is in pixels
+    QRectF inputRect = outputRect.intersected( imageRect );
+
+    //Translate back to image points.
+    QPointF tlImage = imageService->screen2image( inputRect.topLeft(), pan, zoom, outputSize );
+    QPointF brImage = imageService->screen2image( inputRect.bottomRight(), pan, zoom, outputSize );
+
+    //Translate back to pixels with no zoom and pan, preserving image size.
+    QPointF center( imageSize.width()/2, imageSize.height()/2 );
+    QPointF tlPixel = imageService->image2screen( tlImage, center, 1, imageSize );
+    QPointF brPixel = imageService->image2screen( brImage, center, 1, imageSize );
+    QRectF visibleRect( tlPixel, brPixel );
+    return visibleRect;
+}
+
+QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRectF& outputRect,
+        const QSize& outputSize ) const {
+    QPointF topLeft = outputRect.topLeft();
+    QPointF bottomRight = outputRect.bottomRight();
+    std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService =
+            m_dataSource->_getRenderer();
+    QPointF topLeftInput = imageService-> screen2image( topLeft, pan, zoom, outputSize );
+    QPointF bottomRightInput = imageService->screen2image( bottomRight, pan, zoom, outputSize );
+    QSize size( qAbs( topLeft.x() - bottomRightInput.x()), qAbs( topLeft.y() - bottomRightInput.y()));
+    QRectF inputRect( topLeftInput, size );
+    return inputRect;
 }
 
 
@@ -317,13 +376,47 @@ quint32 LayerData::_getMaskColor() const {
     return rgbCol;
 }
 
-QSize LayerData::_getOutputSize() const {
-    QSize size;
-    if ( m_dataSource ){
-        size = m_dataSource-> _getOutputSize();
+QRectF LayerData::_getOutputRectangle( const QSize& outputSize, bool requestMain,
+        bool requestContext) const {
+    int leftMargin = 0;
+    int rightMargin = 0;
+    int topMargin = 0;
+    int bottomMargin = 0;
+    //Off center image to make room for grid axis and labels on two sides.
+    if ( requestMain ){
+        leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
+        rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
+        topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
+        bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
     }
-    return size;
+    //Center the image
+    else if ( requestContext ){
+        QSize imageSize = _getDisplaySize();
+        int extraX = (outputSize.width() - imageSize.width())/2;
+        int extraY = (outputSize.height() - imageSize.height())/2;
+        if ( extraX > 0 ){
+            leftMargin = extraX;
+            bottomMargin = outputSize.width() - imageSize.width() - extraX;
+        }
+        if ( extraY > 0 ){
+            topMargin = extraY;
+            bottomMargin = outputSize.height() - imageSize.height() - extraY;
+        }
+    }
+    int outWidth = outputSize.width() - leftMargin - rightMargin;
+    int outHeight = outputSize.height() - topMargin - bottomMargin;
+    QRectF outputRect( leftMargin, topMargin, outWidth, outHeight );
+    return outputRect;
 }
+
+QPointF LayerData::_getPan() const {
+    QString panXKey = Carta::State::UtilState::getLookup( PAN, Util::XCOORD );
+    QString panYKey = Carta::State::UtilState::getLookup( PAN, Util::YCOORD );
+    double panX = m_state.getValue<double>( panXKey );
+    double panY = m_state.getValue<double>( panYKey );
+    return QPointF( panX, panY );
+}
+
 
 double LayerData::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
@@ -332,7 +425,6 @@ double LayerData::_getPercentile( int frameLow, int frameHigh, double intensity 
     }
     return percentile;
 }
-
 
 
 QStringList LayerData::_getPixelCoordinates( double ra, double dec ) const{
@@ -352,7 +444,7 @@ QString LayerData::_getPixelUnits() const {
 }
 
 QString LayerData::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
-    QString pixelValue = "";
+    QString pixelValue("");
     if ( m_dataSource ){
         pixelValue = m_dataSource->_getPixelValue( x, y, frames );
     }
@@ -411,16 +503,6 @@ QSize LayerData::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode asp
     return saveSize;
 }
 
-QPointF LayerData::_getScreenPt( QPointF imagePt, bool* valid ) const {
-    QPointF screenPt;
-    if ( m_dataSource ){
-        screenPt = m_dataSource->_getScreenPt( imagePt, valid );
-    }
-    else {
-        *valid = false;
-    }
-    return screenPt;
-}
 
 QString LayerData::_getStateString( bool truncatePaths ) const{
     Carta::State::StateInterface copyState( m_state );
@@ -539,11 +621,13 @@ void LayerData::_renderingDone(
             if ( m_dataSource ){
 
                 bool valid1 = false;
-                QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, &valid1 );
+                QPointF pan = _getPan();
+                double zoom = _getZoom();
+                QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, pan, zoom, qImage.size(),  &valid1 );
 
                 // where does 1.5, 1.5 map to?
                 bool valid2 = false;
-                QPointF p2 = m_dataSource->_getScreenPt( { 1.5, 1.5 }, &valid2 );
+                QPointF p2 = m_dataSource->_getScreenPt( { 1.5, 1.5 }, pan, zoom, qImage.size(), &valid2 );
                 if ( valid1 && valid2 ){
                     QTransform tf;
                     double m11 = p2.x() - p1.x();
@@ -590,38 +674,29 @@ void LayerData::_renderStart(){
 
     //Use the zoom and pan from the render request, if they have been set;
     //otherwise, use the ones from our state.
+    double zoom = 0;
     if ( request->isZoomSet() ){
-        m_dataSource->_setZoom( request->getZoom());
+        zoom = request->getZoom();
     }
     else {
-        m_dataSource->_setZoom( _getZoom() );
+        zoom = _getZoom();
     }
+    m_dataSource->_setZoom( zoom );
 
+    QPointF center;
     if ( request->isPanSet() ){
-        QPointF currPan = request->getPan();
-        m_dataSource->_setPan( currPan.x(), currPan.y() );
+        center = request->getPan();
     }
     else {
-        QPointF currPan = _getCenterPixel();
-        m_dataSource->_setPan( currPan.x(), currPan.y());
+        center = _getCenterPixel();
     }
+    m_dataSource->_setPan( center.x(), center.y());
 
     gridService-> setOutputSize( outputSize );
 
-    int leftMargin = m_dataGrid->_getMargin( LabelFormats::EAST );
-    int rightMargin = m_dataGrid->_getMargin( LabelFormats::WEST );
-    int topMargin = m_dataGrid->_getMargin( LabelFormats::NORTH );
-    int bottomMargin = m_dataGrid->_getMargin( LabelFormats::SOUTH );
-    int outWidth = outputSize.width() - leftMargin - rightMargin;
-    int outHeight = outputSize.height() - topMargin - bottomMargin;
-    QRectF outputRect( leftMargin, topMargin, outWidth, outHeight );
-
-    QPointF topLeft = outputRect.topLeft();
-    QPointF bottomRight = outputRect.bottomRight();
-
-    QPointF topLeftInput = imageService-> screen2img( topLeft );
-    QPointF bottomRightInput = imageService->screen2img( bottomRight );
-    QRectF inputRect( topLeftInput, bottomRightInput );
+    QRectF outputRect = _getOutputRectangle( outputSize, request->isRequestMain(),
+            request->isRequestContext() );
+    QRectF inputRect = _getInputRectangle( center, zoom, outputRect, outputSize );
 
     gridService-> setImageRect( inputRect );
     gridService-> setOutputRect( outputRect );
@@ -641,7 +716,11 @@ void LayerData::_renderStart(){
 
     std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
     m_drawSync->setInput( rawData );
-    m_drawSync->setContours( m_dataContours );
+
+    //Only draw contours and grid for main image.
+    if ( request->isRequestMain() ){
+        m_drawSync->setContours( m_dataContours );
+    }
 
     //Which display axes will be drawn.
     AxisInfo::KnownType xType = m_dataSource->_getAxisXType();
@@ -658,15 +737,14 @@ void LayerData::_renderStart(){
     Carta::Lib::AxisLabelInfo vertAxisInfo = m_dataGrid->_getAxisLabelInfo( 1, vertAxisType, cs );
     gridService->setAxisLabelInfo( 1, vertAxisInfo );
 
-    bool contourDraw = _isContourDraw();
+    bool contourDraw = _isContourDraw() && request->isRequestMain();
     bool gridDraw = false;
-    if ( topOfStack ){
+    if ( topOfStack && request->isRequestMain() ){
         gridDraw = m_dataGrid->_isGridVisible();
     }
 
     m_drawSync-> start( contourDraw, gridDraw );
 }
-
 
 
 void LayerData::_resetStateContours(const Carta::State::StateInterface& restoreState ){

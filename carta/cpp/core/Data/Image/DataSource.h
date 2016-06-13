@@ -106,6 +106,61 @@ private:
      * @return the hidden axes.
      */
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
+    
+    /**
+     * Return the current pan center.
+     * @return the centered image location.
+     */
+    QPointF _getCenter() const;
+    
+    /**
+     * Return the coordinates at pixel (x, y) in the given coordinate system.
+     * @param x the x-coordinate of the desired pixel.
+     * @param y the y-coordinate of the desired pixel.
+     * @param system the desired coordinate system.
+     * @param frames - a list of current image frames.
+     * @return a list formatted coordinates.
+     */
+    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
+           const std::vector<int>& frames) const;
+
+    /**
+        * Returns information about the image at the current location of the cursor.
+        * @param mouseX the mouse x-position in screen coordinates.
+        * @param mouseY the mouse y-position in screen coordinates.
+        * @param frames - a list of current image frames.
+        * @return a QString containing cursor text.
+        */
+       QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
+               double zoom, const QPointF& pan, const QSize& outputSize );
+
+
+       /**
+        * Return the image size for the given coordinate index.
+        * @param coordIndex an index of a coordinate of the image.
+        * @return the corresponding dimension for that coordinate or -1 if none exists.
+        */
+       int _getDimension( int coordIndex ) const;
+
+       /**
+        * Return the number of dimensions in the image.
+        * @return the number of image dimensions.
+        */
+       int _getDimensions() const;
+
+       /**
+        * Returns the number of frames in the horizontal and vertical display directions,
+        * respectively.
+        * @return - a pair consisting of frame counts on the horizontal and vertical axis.
+        */
+       std::pair<int,int> _getDisplayDims() const;
+
+       /**
+        * Returns the image's file name.
+        * @return the path to the image.
+        */
+       QString _getFileName() const;
+
 
     /**
      * Return the number of frames for a particular axis in the image.
@@ -113,71 +168,7 @@ private:
      * @return the number of frames for the given axis in the image.
      */
     int _getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const;
-
-    /**
-     * Return the number of dimensions in the image.
-     * @return the number of image dimensions.
-     */
-    int _getDimensions() const;
-
-    /**
-     * Returns the location on the image corresponding to a screen point in
-     * pixels.
-     * @param screenPt an (x,y) pair of pixel coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding location on the image.
-     */
-    QPointF _getImagePt( QPointF screenPt, bool* valid ) const;
     
-    /**
-     * Returns the location on the screen corresponding to a location in image coordinates.
-     * @param imagePt an (x,y) pair of image coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding pixel coordinates.
-     */
-    QPointF _getScreenPt( QPointF imagePt, bool* valid ) const;
-
-    /**
-     * Return the current pan center.
-     * @return the centered image location.
-     */
-    QPointF _getCenter() const;
-    
-
-    /**
-     * Return the image size for the given coordinate index.
-     * @param coordIndex an index of a coordinate of the image.
-     * @return the corresponding dimension for that coordinate or -1 if none exists.
-     */
-    int _getDimension( int coordIndex ) const;
-
-    /**
-     * Returns the underlying image.
-     */
-    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
-
-    /**
-     * Returns the image's file name.
-     * @return the path to the image.
-     */
-    QString _getFileName() const;
-    
-    /**
-     * Returns information about the image at the current location of the cursor.
-     * @param mouseX the mouse x-position in screen coordinates.
-     * @param mouseY the mouse y-position in screen coordinates.
-     * @param frames - a list of current image frames.
-     * @return a QString containing cursor text.
-     */
-    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames);
-
-    /**
-     * Returns the number of frames in the horizontal and vertical display directions,
-     * respectively.
-     * @return - a pair consisting of frame counts on the horizontal and vertical axis.
-     */
-    std::pair<int,int> _getDisplayDims() const;
-
     /**
      * Get the index of the current frame of the axis specified by the sourceFrameIndex.
      * @param sourceFrameIndex - an index referring to a specific element in sourceFrames.
@@ -186,14 +177,24 @@ private:
      */
     int _getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const;
 
+
     /**
-     * Return the percentile corresponding to the given intensity.
-     * @param frameLow a lower bound for the frames or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the frames or -1 if there is no upper bound.
-     * @param intensity a value for which a percentile is needed.
-     * @return the percentile corresponding to the intensity.
+     * Returns the underlying image.
      */
-    double _getPercentile( int frameLow, int frameHigh, double intensity ) const;
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
+
+    /**
+     * Returns the location on the image corresponding to a screen point in
+     * pixels.
+     * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param zoom - the zoom factor.
+     * @param pan - the point where the image should be centered.
+     * @param outputSize - the size in pixels of the produced image.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding location on the image.
+     */
+    QPointF _getImagePt( const QPointF& screenPt, double zoom, const QPointF& pan,
+                const QSize& outputSize, bool* valid ) const;
     
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -213,19 +214,24 @@ private:
      */
     QColor _getNanColor() const;
 
+
+    /**
+     * Return the percentile corresponding to the given intensity.
+     * @param frameLow a lower bound for the frames or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the frames or -1 if there is no upper bound.
+     * @param intensity a value for which a percentile is needed.
+     * @return the percentile corresponding to the intensity.
+     */
+    double _getPercentile( int frameLow, int frameHigh, double intensity ) const;
+
+
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getPermutedImage() const;
+
     /**
      * Returns the pipeline responsible for rendering the image.
      * @retun the pipeline responsible for rendering the image.
      */
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> _getPipeline() const;
-
-    std::shared_ptr<Carta::Core::ImageRenderService::Service> _getRenderer() const;
-
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @return the image viewer dimensions.
-     */
-    QSize _getOutputSize() const;
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
@@ -235,6 +241,12 @@ private:
      *  corresponding to the given world coordinates.
      */
     QStringList _getPixelCoordinates( double ra, double dec ) const;
+
+    /**
+     * Return the units of the pixels.
+     * @return the units of the pixels, or blank if units could not be obtained.
+     */
+    QString _getPixelUnits() const;
 
     /**
      * Return the value of the pixel at (x, y).
@@ -248,23 +260,7 @@ private:
      */
     QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const;
 
-    /**
-     * Return the units of the pixels.
-     * @return the units of the pixels, or blank if units could not be obtained.
-     */
-    QString _getPixelUnits() const;
-
-    /**
-     * Return the coordinates at pixel (x, y) in the given coordinate system.
-     * @param x the x-coordinate of the desired pixel.
-     * @param y the y-coordinate of the desired pixel.
-     * @param system the desired coordinate system.
-     * @param frames - a list of current image frames.
-     * @return a list formatted coordinates.
-     */
-    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
-           const std::vector<int>& frames) const;
-
+    int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
 
     /**
      * Returns the raw data as an array.
@@ -283,11 +279,21 @@ private:
      */
     Carta::Lib::NdArray::RawViewInterface* _getRawData( const std::vector<int> frames ) const;
 
-    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getPermutedImage() const;
+    std::shared_ptr<Carta::Core::ImageRenderService::Service> _getRenderer() const;
+
+    /**
+     * Returns the location on the screen corresponding to a location in image coordinates.
+     * @param imagePt an (x,y) pair of image coordinates.
+     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
+     * @return the corresponding pixel coordinates.
+     */
+    QPointF _getScreenPt( const QPointF& imagePt, const QPointF& pan, double zoom,
+            const QSize& outputSize, bool* valid ) const;
+
 
     //Returns an identifier for the current image slice being rendered.
     QString _getViewIdCurrent( const std::vector<int>& frames ) const;
-    int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
+
 
     //Initialize static objects.
     void _initializeSingletons( );

@@ -18,7 +18,7 @@ namespace Data {
 class Controller;
 class LinkableImpl;
 class DrawStackSynchronizer;
-
+class Settings;
 
 class ImageContext : public QObject, public Carta::State::CartaObject,  public ILinkable  {
 
@@ -37,12 +37,19 @@ public:
     virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
+     * Return a representation of the state of the image context.
+     * @param sessionId - an identifier for a user session.
+     * @param type - the type of state wanted.
+     * @return - the image context state.
+     */
+    virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
      * Returns whether or not the object with the given id is already linked to this object.
      * @param linkId - a QString identifier for an object.
      * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
-
 
     /**
      * Removes a link to this animator.
@@ -51,20 +58,56 @@ public:
      */
     virtual QString removeLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
+    /**
+     * Reset the state.
+     * @param state - a representation of the state to restore.
+     */
+    void resetState( const QString& state );
+
+    /**
+     * Set the color of the image box.
+     * @param redValue - the amount of red in the box.
+     * @param greenValue - the amount of green in the box.
+     * @param blueValue - the amount of blue in the box.
+     * @return - an error message if there was a problem setting the color; an empty string
+     *      otherwise.
+     */
+    QString setBoxColor( int redValue, int greenValue, int blueValue);
+
+    /**
+     * Set the pen thickness for the image box.
+     * @param width - the pen thickness used to draw the image box.
+     * @return - an error message if the pen thickness could not be set; an empty
+     *      string otherwise.
+     */
+    QString setBoxLineWidth( int width );
+
+    /**
+     * Set whether of not the image box should be visible.
+     * @param visible - true if the image box should be visible; false, otherwise.
+     */
+    void setBoxVisible( bool visible);
+
+    /**
+     * Store the location of the main image rectangle.
+     * @param br - one corner of the image rectangle in pixel coordinates.
+     * @param tl - the opposite corner of the image rectangle in pixel coordinates.
+     */
+    void setImageRectangle( QPointF br, QPointF tl );
+
+    /**
+     * Set the index of the settings tab.
+     * @param index - the index of the settings tab.
+     * @return - an error message if the tab index could not be set; an empty string
+     *      otherwise.
+     */
+    QString setTabIndex( int index );
+
     virtual ~ImageContext();
 
     const static QString CLASS_NAME;
     const static QString CURSOR_TEXT;
 
-
-signals:
-
-    /**
-     * Notification that the mouse has moved on the plot.
-     * @param x - the x-coordinate of the plot point.
-     * @param y - the y-coordinate of the plot point.
-     */
-    void cursorMove( double x, double y );
 
 private slots:
 
@@ -84,8 +127,17 @@ private:
     class Factory;
 
     Controller* _getControllerSelected() const;
+
+    enum ContextDraw { IMAGE_BOX, ARROW_XY, ARROW_NE };
+
+    QString _getPreferencesId() const;
+    void _initializeDefaultPen( const QString& key, int red, int green,
+            int blue, int alpha, int width );
     void _initializeDefaultState();
     void _initializeCallbacks();
+
+    bool _setColor( const QString& key, const QString& majorKey,
+            const QString& userId, int colorAmount, QString& errorMsg );
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
@@ -93,10 +145,24 @@ private:
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.
     Carta::State::StateInterface m_stateMouse;
+    Carta::State::StateInterface m_stateData;
 
     std::shared_ptr<DrawStackSynchronizer> m_contextDraw;
 
+    std::unique_ptr<Settings> m_settings;
+
     static bool m_registered;
+
+    const static QString CORNER_0;
+    const static QString CORNER_1;
+    const static QString BOX;
+    const static QString BOX_VISIBLE;
+    const static QString COMPASS_VISIBLE_XY;
+    const static QString COMPASS_VISIBLE_NE;
+    const static QString COMPASS_XY;
+    const static QString COMPASS_NE;
+    const static QString MODE;
+    const static int PEN_FACTOR;
 	ImageContext( const ImageContext& other);
 	ImageContext& operator=( const ImageContext& other );
 };

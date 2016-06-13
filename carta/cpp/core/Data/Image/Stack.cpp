@@ -30,7 +30,7 @@ namespace Data {
 
 const QString Stack::CLASS_NAME = "Stack";
 const QString Stack::REGIONS = "regions";
-const int Stack::ENLARGE = 10;
+
 
 
 class Stack::Factory : public Carta::State::CartaObjectFactory {
@@ -183,7 +183,7 @@ std::set<AxisInfo::KnownType> Stack::_getAxesHidden() const {
 }
 
 
-QStringList Stack::getCoordinates( double x, double y,
+QStringList Stack::_getCoords( double x, double y,
         Carta::Lib::KnownSkyCS system ) const{
     std::vector<int> indices = _getFrameIndices();
     return _getCoordinates( x, y, system, indices );
@@ -204,7 +204,9 @@ QString Stack::_getCursorText( int mouseX, int mouseY ){
     QString cursorText;
     if ( dataIndex >= 0 ){
         std::vector<int> frameIndices = _getFrameIndices();
-        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY, frameIndices );
+        QSize outputSize = m_stackDraw->getClientSize();
+        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY,
+                frameIndices, outputSize );
     }
     return cursorText;
 }
@@ -255,6 +257,9 @@ int Stack::_getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     }
     return upperBound;
 }
+
+
+
 
 
 std::vector<int> Stack::_getImageSlice() const {
@@ -310,6 +315,12 @@ int Stack::_getIndexCurrent( ) const {
     return dataIndex;
 }
 
+QRectF Stack::_getInputRectangle() const {
+    QSize output = m_stackDraw->getClientSize();
+    QRectF rect = _getInputRect( output );
+    return rect;
+}
+
 QStringList Stack::_getLayerIds( ) const {
     QStringList idList;
     for ( std::shared_ptr<Layer> layer : m_children ){
@@ -318,7 +329,11 @@ QStringList Stack::_getLayerIds( ) const {
     return idList;
 }
 
-QString Stack::getPixelValue( double x, double y) const {
+QSize Stack::_getOutputSize() const {
+    return m_stackDraw->getClientSize();
+}
+
+QString Stack::_getPixelVal( double x, double y) const {
     std::vector<int> frames = _getFrameIndices();
     return _getPixelValue( x, y, frames );
 }
@@ -501,7 +516,9 @@ void Stack::_renderContext(){
         request->setTopIndex( gridIndex );
         request->setRequestContext( true );
         request->setZoom( DataSource::ZOOM_DEFAULT );
-        request->setPan(  QPointF(nan(""), nan("")) );
+        //Set the pan to the center of the image.
+        QSize imageSize = _getDisplaySize();
+        request->setPan(  QPointF(imageSize.width()/2, imageSize.height()/2) );
         QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
         request->setData( datas );
         m_imageDraws->render( request);
@@ -509,12 +526,12 @@ void Stack::_renderContext(){
     }
 }
 
-void Stack::_renderZoom( int mouseX, int mouseY){
+void Stack::_renderZoom( int mouseX, int mouseY, double zoomFactor ){
     if ( m_imageDraws->isZoomView()){
         bool validPt = false;
         QPointF screenPt( mouseX, mouseY );
-        QPointF panPt = _getImagePt( screenPt, &validPt );
-        double zoomFactor = _getZoom();
+        QSize outputSize = m_stackDraw->getClientSize();
+        QPointF panPt = _getImagePt( screenPt, outputSize, &validPt );
         std::vector<int> frames =_getFrameIndices();
         const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
         std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs));
@@ -522,7 +539,7 @@ void Stack::_renderZoom( int mouseX, int mouseY){
         request->setTopIndex( gridIndex );
         request->setRequestZoom( true );
         request->setPan( panPt);
-        request->setZoom( zoomFactor * ENLARGE );
+        request->setZoom( zoomFactor );
         if ( validPt ){
             QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
             request->setData( datas );
@@ -874,7 +891,8 @@ void Stack::_updatePan( double centerX , double centerY, bool zoomPanAll ){
 void Stack::_updatePan( double centerX , double centerY,
         std::shared_ptr<Layer> data){
     bool validImage = false;
-    QPointF imagePt = data -> _getImagePt( { centerX, centerY }, &validImage );
+    QSize outputSize = m_stackDraw->getClientSize();
+    QPointF imagePt = data -> _getImagePt( { centerX, centerY }, outputSize, &validImage );
     if ( validImage ){
         double imageX = imagePt.x();
         double imageY = imagePt.y();
@@ -902,7 +920,8 @@ void Stack::_updateZoom( double centerX, double centerY, double zoomFactor,
     //Remember where the user clicked
     QPointF clickPtScreen( centerX, centerY);
     bool validImage = false;
-    QPointF clickPtImageOld = data->_getImagePt( clickPtScreen, &validImage );
+    QSize outputSize = m_stackDraw->getClientSize();
+    QPointF clickPtImageOld = data->_getImagePt( clickPtScreen, outputSize, &validImage );
     if ( validImage ){
         //Set the zoom
         double newZoom = 1;
@@ -916,7 +935,8 @@ void Stack::_updateZoom( double centerX, double centerY, double zoomFactor,
         data->_setZoom( newZoom );
 
         // what is the new image pixel under the mouse cursor?
-        QPointF clickPtImageNew = data ->_getImagePt( clickPtScreen, &validImage );
+        QSize outputSize = m_stackDraw->getClientSize();
+        QPointF clickPtImageNew = data ->_getImagePt( clickPtScreen, outputSize, &validImage );
 
         // calculate the difference
         QPointF delta = clickPtImageOld - clickPtImageNew;

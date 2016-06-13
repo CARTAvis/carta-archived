@@ -214,7 +214,7 @@ QString Controller::closeImage( const QString& id ){
 QString Controller::closeRegion( const QString& regionId ){
     QString result = m_stack->_closeRegion( regionId );
     if ( result.isEmpty() ){
-        emit dataChanged( this );
+        emit dataChangedRegion( this );
     }
     return result;
 }
@@ -249,6 +249,7 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     _updateCursorText( true );
 }
 
+
 std::vector<Carta::Lib::AxisInfo::KnownType> Controller::_getAxisZTypes() const {
     std::vector<Carta::Lib::AxisInfo::KnownType> zTypes = m_stack->_getAxisZTypes();
     return zTypes;
@@ -279,20 +280,23 @@ Carta::Lib::KnownSkyCS Controller::getCoordinateSystem() const {
 }
 
 QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system) const {
-    return m_stack->getCoordinates( x, y, system/*, _getFrameIndices()*/);
+    return m_stack->_getCoords( x, y, system);
 }
 
 std::shared_ptr<DataSource> Controller::getDataSource(){
     return m_stack->_getDataSource();
 }
 
+
 std::vector< std::shared_ptr<Layer> > Controller::getLayers() {
     return m_stack-> _getLayers();
 }
 
+
 std::shared_ptr<Layer> Controller::getLayer() {
     return m_stack->_getLayer();
 }
+
 
 std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::getImages() {
     return m_stack->_getImages();
@@ -303,9 +307,16 @@ std::shared_ptr<ContourControls> Controller::getContourControls() {
     return m_contourControls;
 }
 
+
+QSize Controller::_getDisplaySize() const {
+    return m_stack->_getDisplaySize();
+}
+
+
 int Controller::getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     return m_stack->_getFrameUpperBound( axisType );
 }
+
 
 int Controller::getFrame( AxisInfo::KnownType axisType ) const {
     int frame = m_stack->_getFrame( axisType );
@@ -316,6 +327,7 @@ int Controller::getFrame( AxisInfo::KnownType axisType ) const {
 std::shared_ptr<GridControls> Controller::getGridControls() {
     return m_gridControls;
 }
+
 
 std::vector<int> Controller::getImageDimensions( ) const {
     std::vector<int> result = m_stack->_getImageDimensions();
@@ -349,6 +361,10 @@ bool Controller::getIntensity( int frameLow, int frameHigh, double percentile,
     return validIntensity;
 }
 
+QRectF Controller::_getInputRectangle() const {
+    return m_stack->_getInputRectangle();
+}
+
 QSize Controller::getOutputSize( ){
     QSize result = m_stack->_getOutputSize();
     return result;
@@ -371,7 +387,7 @@ QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
 }
 
 QString Controller::getPixelValue( double x, double y ) const {
-    QString result = m_stack->getPixelValue( x, y );
+    QString result = m_stack->_getPixelVal( x, y );
     return result;
 }
 
@@ -387,6 +403,7 @@ QString Controller::_getPreferencesId() const {
     }
     return id;
 }
+
 
 std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
     std::vector<Carta::Lib::RegionInfo> regionInfos = m_stack->_getRegions();
@@ -577,7 +594,7 @@ void Controller::_initializeCallbacks(){
             int mouseY = mouseList[1].toInt( &validY );
             if ( validX && validY ){
                 _updateCursor( mouseX, mouseY );
-                _renderZoom();
+                emit zoomChanged();
             }
         }
 
@@ -873,6 +890,7 @@ void Controller::_loadView(){
     double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
     double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
     m_stack->_load( autoClip, clipValueMin, clipValueMax );
+    emit contextChanged();
 }
 
 QString Controller::moveSelectedLayers( bool moveDown ){
@@ -889,10 +907,10 @@ void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
     m_stack->_removeContourSet( contourSet );
 }
 
-void Controller::_renderZoom(){
+void Controller::_renderZoom( double factor ){
     int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
     int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
-    m_stack->_renderZoom( mouseX, mouseY );
+    m_stack->_renderZoom( mouseX, mouseY, factor  );
 }
 
 void Controller::_renderContext(){
@@ -1045,9 +1063,6 @@ void Controller::setFrameImage( int val) {
         emit dataChanged( this );
     }
 }
-
-
-
 
 
 QString Controller::setImageVisibility( /*int dataIndex*/const QString& idStr, bool visible ){
@@ -1263,6 +1278,7 @@ void Controller::_updateDisplayAxes(){
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_updateZoom( centerX, centerY, zoomFactor, zoomPanAll);
+    emit contextChanged();
 }
 
 
@@ -1270,6 +1286,7 @@ void Controller::updatePan( double centerX , double centerY){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_updatePan( centerX, centerY, zoomPanAll );
     _updateCursorText( true );
+    emit contextChanged();
 }
 
 

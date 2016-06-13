@@ -132,7 +132,7 @@ protected:
      * @return a QString containing cursor text.
      */
     virtual QString _getCursorText( int mouseX, int mouseY,
-            const std::vector<int>& frames ) Q_DECL_OVERRIDE;
+            const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
 
     /**
      * Return the data source of the image.
@@ -153,6 +153,15 @@ protected:
      * @return the number of image dimensions.
      */
     virtual int _getDimension() const Q_DECL_OVERRIDE;
+
+    /**
+     * Return the dimensions of the displayed image; normally, this will
+     * be the number of frames in the RA x DEC directions.  However, if
+     * the image is being display as a Frequency x DEC plot, this will be
+     * the number of frames in the frequency & DEC axes.
+     * @return - the displayed dimensions of the image.
+     */
+    virtual QSize _getDisplaySize() const Q_DECL_OVERRIDE;
 
 
     /**
@@ -182,11 +191,20 @@ protected:
      * Returns the location on the image corresponding to a screen point in
      * pixels.
      * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param outputSize - the size in pixels of the output image.
      * @param valid set to true if an image is loaded that can do the translation; otherwise false;
      * @return the corresponding location on the image.
      */
-    virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const Q_DECL_OVERRIDE;
+    virtual QPointF _getImagePt( const QPointF& screenPt, const QSize& output, bool* valid ) const Q_DECL_OVERRIDE;
     virtual int _getIndexCurrent( ) const;
+
+    /**
+     * Return the portion of the image that is displayed given current zoom and
+     * pan values.
+     * @param size - the size of the displayed image.
+     * @return - the portion of the image that is visible.
+     */
+    virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -219,11 +237,6 @@ protected:
      */
     virtual QStringList _getLayerIds( ) const Q_DECL_OVERRIDE;
 
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @return the image viewer dimensions.
-     */
-    virtual QSize _getOutputSize() const Q_DECL_OVERRIDE;
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -280,14 +293,6 @@ protected:
      * @return - a list of color states whose states may be changed.
      */
     virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) Q_DECL_OVERRIDE;
-
-    /**
-     * Returns the location on the screen corresponding to a location in image coordinates.
-     * @param imagePt an (x,y) pair of image coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding pixel coordinates.
-     */
-    virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const Q_DECL_OVERRIDE;
 
     int _getStackSize() const;
     int _getStackSizeVisible() const;

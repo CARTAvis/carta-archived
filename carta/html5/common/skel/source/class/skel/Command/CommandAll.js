@@ -50,6 +50,10 @@ qx.Class.define("skel.Command.CommandAll", {
         index++;
         this.m_cmds[index] = skel.Command.Settings.SettingsStatistics.getInstance();
         index++;
+        this.m_cmds[index] = skel.Command.Settings.SettingsContext.getInstance();
+        index++;
+        this.m_cmds[index] = skel.Command.Settings.SettingsZoom.getInstance();
+        index++;
         this.m_cmds[index] = skel.Command.Popup.CommandPopup.getInstance();
         index++;
         

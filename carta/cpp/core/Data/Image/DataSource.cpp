@@ -155,12 +155,13 @@ QStringList DataSource::_getCoordinates( double x, double y,
 
 
 QString DataSource::_getCursorText( int mouseX, int mouseY,
-        Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames ){
+        Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
+        double zoom, const QPointF& pan, const QSize& outputSize ){
     QString str;
     QTextStream out( & str );
     QPointF lastMouse( mouseX, mouseY );
     bool valid = false;
-    QPointF imgPt = _getImagePt( lastMouse, &valid );
+    QPointF imgPt = _getImagePt( lastMouse, zoom, pan, outputSize, &valid );
     if ( valid ){
         double imgX = imgPt.x();
         double imgY = imgPt.y();
@@ -236,11 +237,11 @@ std::vector<AxisDisplayInfo> DataSource::_getAxisDisplayInfo() const {
     return axisInfo;
 }
 
-
-QPointF DataSource::_getImagePt( QPointF screenPt, bool* valid ) const {
+QPointF DataSource::_getImagePt( const QPointF& screenPt, double zoom, const QPointF& pan,
+            const QSize& outputSize, bool* valid ) const {
     QPointF imagePt;
     if ( m_image ){
-        imagePt = m_renderService-> screen2img (screenPt);
+        imagePt = m_renderService-> screen2image (screenPt, pan, zoom, outputSize);
         *valid = true;
     }
     else {
@@ -265,10 +266,11 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
 }
 
 
-QPointF DataSource::_getScreenPt( QPointF imagePt, bool* valid ) const {
+QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
+        double zoom, const QSize& outputSize, bool* valid ) const {
     QPointF screenPt;
     if ( m_image != nullptr ){
-        screenPt = m_renderService->img2screen( imagePt );
+        screenPt = m_renderService->image2screen( imagePt, pan, zoom, outputSize);
         *valid = true;
     }
     else {
@@ -565,15 +567,6 @@ QString DataSource::_getViewIdCurrent( const std::vector<int>& frames ) const {
        }
    }
    return renderId;
-}
-
-
-QSize DataSource::_getOutputSize() const {
-    QSize size;
-    if ( m_renderService != nullptr ){
-        size = m_renderService-> outputSize();
-    }
-    return size;
 }
 
 

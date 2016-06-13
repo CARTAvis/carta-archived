@@ -133,7 +133,7 @@ protected:
      * @return a QString containing cursor text.
      */
     virtual QString _getCursorText( int mouseX, int mouseY,
-            const std::vector<int>& frames ) Q_DECL_OVERRIDE;
+            const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
 
     /**
      * Return the data source of the image.
@@ -156,6 +156,14 @@ protected:
      */
     virtual int _getDimension() const Q_DECL_OVERRIDE;
 
+    /**
+     * Return the dimensions of the displayed image; normally, this will
+     * be the number of frames in the RA x DEC directions.  However, if
+     * the image is being display as a Frequency x DEC plot, this will be
+     * the number of frames in the frequency & DEC axes.
+     * @return - the displayed dimensions of the image.
+     */
+    QSize _getDisplaySize() const Q_DECL_OVERRIDE;
 
     /**
      * Return the number of frames for the given axis in the image.
@@ -163,8 +171,6 @@ protected:
      * @return the number of frames for the given axis in the image.
      */
     virtual int _getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const Q_DECL_OVERRIDE;
-
-
 
     //Return data source state.
      virtual Carta::State::StateInterface _getGridState() const Q_DECL_OVERRIDE;
@@ -191,6 +197,7 @@ protected:
       * @return - a color filter for the layer.
       */
      virtual quint32 _getMaskColor() const Q_DECL_OVERRIDE;
+
 
      /**
       * Return the percentile corresponding to the given intensity.
@@ -231,14 +238,6 @@ protected:
      * @return - the size of the saved image.
      */
     virtual QSize _getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const Q_DECL_OVERRIDE;
-
-    /**
-     * Returns the location on the screen corresponding to a location in image coordinates.
-     * @param imagePt an (x,y) pair of image coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding pixel coordinates.
-     */
-    virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the color states that are eligible for state changes.
@@ -298,12 +297,19 @@ protected:
      * Returns the location on the image corresponding to a screen point in
      * pixels.
      * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param outputSize - the size in pixels of the output image.
      * @param valid set to true if an image is loaded that can do the translation; otherwise false;
      * @return the corresponding location on the image.
      */
-    virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const Q_DECL_OVERRIDE;
+    virtual QPointF _getImagePt( const QPointF& screenPt, const QSize& outputSize,  bool* valid ) const Q_DECL_OVERRIDE;
 
-
+    /**
+     * Return the portion of the image that is displayed given current zoom and
+     * pan values.
+     * @param size - the size of the displayed image.
+     * @return - the portion of the image that is visible.
+     */
+    virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -323,13 +329,6 @@ protected:
      * @return the units of the pixels, or blank if units could not be obtained.
      */
     virtual QString _getPixelUnits() const Q_DECL_OVERRIDE;
-
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @return the image viewer dimensions.
-     */
-    virtual QSize _getOutputSize() const Q_DECL_OVERRIDE;
-
 
     /**
          * Returns true if at least one contour set should be drawn; false otherwise.
@@ -432,7 +431,12 @@ private:
      */
     Carta::Lib::AxisLabelInfo _getAxisLabelInfo( int axisIndex, Carta::Lib::AxisInfo::KnownType axisType ) const;
 
-
+    QRectF _getInputRectangle( const QPointF& pan, double zoom,
+            const QSize& outputSize) const;
+    QRectF _getInputRectangle( const QPointF& pan, double zoom,
+            const QRectF& outputRect, const QSize& outputSize ) const;
+    QRectF _getOutputRectangle( const QSize& outputSize, bool requestMain, bool requestContext ) const;
+    QPointF _getPan() const;
     void _initializeState();
 
 
@@ -456,11 +460,6 @@ private:
 
     //Pointer to image interface.
     std::shared_ptr<DataSource> m_dataSource;
-
-    QSize m_viewSize;
-    QPointF m_viewPan;
-
-
 
      /// image-and-grid-service result synchronizer
     std::unique_ptr<DrawSynchronizer> m_drawSync;
