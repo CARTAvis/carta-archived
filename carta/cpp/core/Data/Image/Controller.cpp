@@ -260,7 +260,7 @@ std::set<AxisInfo::KnownType> Controller::_getAxesHidden() const {
 }
 
 
-QPointF Controller::getCenterPixel() {
+QPointF Controller::getCenterPixel() const {
     QPointF center = m_stack->_getCenterPixel();
     return center;
 }
@@ -361,11 +361,11 @@ bool Controller::getIntensity( int frameLow, int frameHigh, double percentile,
     return validIntensity;
 }
 
-QRectF Controller::_getInputRectangle() const {
-    return m_stack->_getInputRectangle();
+QRectF Controller::_getInputRectangle(  ) const {
+    return m_stack->_getInputRectangle( );
 }
 
-QSize Controller::getOutputSize( ){
+QSize Controller::getOutputSize( ) const {
     QSize result = m_stack->_getOutputSize();
     return result;
 }
@@ -381,8 +381,14 @@ double Controller::getPercentile( int frameLow, int frameHigh, double intensity 
 }
 
 
-QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
-    QStringList result = m_stack->_getPixelCoordinates( ra, dec );
+QPointF Controller::getPixelCoordinates( double ra, double dec, bool* valid ) const {
+    QPointF result = m_stack->_getPixelCoordinates( ra, dec, valid );
+    return result;
+}
+
+QPointF Controller::getWorldCoordinates( double pixelX, double pixelY, bool* valid ) const {
+    Carta::Lib::KnownSkyCS coordSys = getCoordinateSystem();
+    QPointF result = m_stack->_getWorldCoordinates( pixelX, pixelY, coordSys, valid );
     return result;
 }
 
@@ -461,7 +467,9 @@ QString Controller::getSnapType(CartaObject::SnapshotType snapType) const {
     return objType;
 }
 
-double Controller::getZoomLevel( ){
+
+
+double Controller::getZoomLevel( ) const {
     return m_stack->_getZoom();
 }
 
@@ -913,8 +921,8 @@ void Controller::_renderZoom( double factor ){
     m_stack->_renderZoom( mouseX, mouseY, factor  );
 }
 
-void Controller::_renderContext(){
-    m_stack->_renderContext();
+void Controller::_renderContext( double zoomFactor ){
+    m_stack->_renderContext( zoomFactor );
 }
 
 

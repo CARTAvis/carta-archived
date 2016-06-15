@@ -57,9 +57,11 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                     try {
                         var obj = JSON.parse( val );
                         if ( this.m_popupText !== null){
-                            this.m_popupText.setLabel( obj.cursorText );
-                            if ( obj.cursorText.length > 0 ){
-                                this.m_popup.show();
+                            if ( typeof obj.cursorText != 'undefined' ){
+                                this.m_popupText.setLabel( obj.cursorText );
+                                if ( obj.cursorText.length > 0 ){
+                                    this.m_popup.show();
+                                }
                             }
                             else {
                                 this.m_popup.hide();

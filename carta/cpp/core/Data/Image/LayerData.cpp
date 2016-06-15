@@ -427,10 +427,21 @@ double LayerData::_getPercentile( int frameLow, int frameHigh, double intensity 
 }
 
 
-QStringList LayerData::_getPixelCoordinates( double ra, double dec ) const{
-    QStringList result("");
+QPointF LayerData::_getPixelCoordinates( double ra, double dec, bool* valid ) const{
+    QPointF result;
+    *valid = false;
     if ( m_dataSource ){
-        result = m_dataSource->_getPixelCoordinates( ra, dec );
+        result = m_dataSource->_getPixelCoordinates( ra, dec, valid );
+    }
+    return result;
+}
+
+QPointF LayerData::_getWorldCoordinates( double pixelX, double pixelY,
+        Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
+    QPointF result;
+    *valid = false;
+    if ( m_dataSource ){
+        result = m_dataSource->_getWorldCoordinates( pixelX, pixelY, coordSys, valid );
     }
     return result;
 }
@@ -605,6 +616,7 @@ void LayerData::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
 }
 
 
+
 void LayerData::_renderingDone(
         QImage image,
         Carta::Lib::VectorGraphics::VGList gridVG,
@@ -617,14 +629,14 @@ void LayerData::_renderingDone(
         qImage = image;
         Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
         if ( _isContourDraw()){
-            // where does 0.5, 0.5 map to?
-            if ( m_dataSource ){
 
-                bool valid1 = false;
+            if ( m_dataSource ){
                 QPointF pan = _getPan();
                 double zoom = _getZoom();
-                QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, pan, zoom, qImage.size(),  &valid1 );
 
+                bool valid1 = false;
+                //where does 0.5, 0.5 map to?
+                QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, pan, zoom, qImage.size(),  &valid1 );
                 // where does 1.5, 1.5 map to?
                 bool valid2 = false;
                 QPointF p2 = m_dataSource->_getScreenPt( { 1.5, 1.5 }, pan, zoom, qImage.size(), &valid2 );

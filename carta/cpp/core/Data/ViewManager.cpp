@@ -80,8 +80,6 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_pluginsLoaded( nullptr ),
       m_snapshots( nullptr ){
 
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    objMan->printObjects();
     Util::findSingletonObject<Clips>();
     Util::findSingletonObject<Colormaps>();
     Util::findSingletonObject<TransformsData>();
@@ -114,6 +112,9 @@ ViewManager::ViewManager( const QString& path, const QString& id)
 
     QTime time = QTime::currentTime();
     qsrand((uint)time.msec());
+
+    //Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    //objMan->printObjects();
 }
 
 
@@ -1115,11 +1116,11 @@ void ViewManager::setDeveloperView(){
         _makeLayout();
     }
 
-    _clearHistograms( 1, m_histograms.size() );
+    _clearHistograms( 0, m_histograms.size() );
     _clearAnimators( 1, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
-    _clearStatistics( 1, m_statistics.size());
-    _clearProfilers( 1, m_profilers.size() );
+    _clearStatistics( 0, m_statistics.size());
+    _clearProfilers( 0, m_profilers.size() );
     _clearControllers( 1, m_controllers.size() );
     _clearImageZooms( 1, m_imageZooms.size());
     _clearImageContexts( 1, m_imageContexts.size());

@@ -315,7 +315,7 @@ int Stack::_getIndexCurrent( ) const {
     return dataIndex;
 }
 
-QRectF Stack::_getInputRectangle() const {
+QRectF Stack::_getInputRectangle( ) const {
     QSize output = m_stackDraw->getClientSize();
     QRectF rect = _getInputRect( output );
     return rect;
@@ -507,7 +507,7 @@ void Stack::_renderAll(){
     _render( datas, gridIndex );
 }
 
-void Stack::_renderContext(){
+void Stack::_renderContext( double zoomFactor ){
     if ( m_imageDraws->isContextView()){
         std::vector<int> frames =_getFrameIndices();
         const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
@@ -515,8 +515,7 @@ void Stack::_renderContext(){
         int gridIndex = _getIndexCurrent();
         request->setTopIndex( gridIndex );
         request->setRequestContext( true );
-        request->setZoom( DataSource::ZOOM_DEFAULT );
-        //Set the pan to the center of the image.
+        request->setZoom( zoomFactor );
         QSize imageSize = _getDisplaySize();
         request->setPan(  QPointF(imageSize.width()/2, imageSize.height()/2) );
         QList<std::shared_ptr<Layer> > datas = _getDrawChildren();

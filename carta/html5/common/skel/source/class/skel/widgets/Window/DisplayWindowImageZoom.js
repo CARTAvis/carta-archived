@@ -178,7 +178,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
             if (this.m_view === null) {
-                this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
+                this.m_view = new skel.boundWidgets.View.ViewWithInputDivSuffixed(this.m_identifier);
             }
             
             if ( this.m_zoomDraw == null ){

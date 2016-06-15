@@ -530,11 +530,23 @@ double LayerGroup::_getPercentile( int frameLow, int frameHigh, double intensity
 
 
 
-QStringList LayerGroup::_getPixelCoordinates( double ra, double dec ) const{
-    QStringList result("");
+QPointF LayerGroup::_getPixelCoordinates( double ra, double dec, bool* valid ) const{
+    QPointF result;
     int dataIndex = _getIndexCurrent();
+    *valid = false;
     if ( dataIndex >= 0 ){
-        result = m_children[dataIndex]->_getPixelCoordinates( ra, dec );
+        result = m_children[dataIndex]->_getPixelCoordinates( ra, dec, valid );
+    }
+    return result;
+}
+
+QPointF LayerGroup::_getWorldCoordinates( double pixelX, double pixelY,
+        Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
+    QPointF result;
+    int dataIndex = _getIndexCurrent();
+    *valid = false;
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_getWorldCoordinates( pixelX, pixelY, coordSys, valid );
     }
     return result;
 }
@@ -556,6 +568,7 @@ QString LayerGroup::_getPixelValue( double x, double y, const std::vector<int>& 
     }
     return pixelValue;
 }
+
 
 
 QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {

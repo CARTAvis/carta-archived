@@ -28,15 +28,20 @@ public:
 
 const QString ImageContext::BOX = "box";
 const QString ImageContext::BOX_VISIBLE = "boxVisible";
+const QString ImageContext::BOX_SELECTED = "boxSelected";
 const QString ImageContext::CLASS_NAME = "ImageContext";
 const QString ImageContext::COMPASS_VISIBLE_XY = "compassVisibleXY";
 const QString ImageContext::COMPASS_VISIBLE_NE = "compassVisibleNE";
 const QString ImageContext::COMPASS_XY = "compassXY";
 const QString ImageContext::COMPASS_NE = "compassNE";
+const QString ImageContext::COORD_ROTATION = "rotate";
 const QString ImageContext::CURSOR_TEXT = "cursorText";
 const QString ImageContext::CORNER_0 = "corner0";
 const QString ImageContext::CORNER_1 = "corner1";
+const QString ImageContext::IMAGE_WIDTH = "imageWidth";
+const QString ImageContext::IMAGE_HEIGHT = "imageHeight";
 const QString ImageContext::MODE = "mode";
+
 const int ImageContext::PEN_FACTOR = 5;
 
 
@@ -59,8 +64,9 @@ ImageContext::ImageContext( const QString& path, const QString& id ):
     Settings* settingsObj = objMan->createObject<Settings>();
     m_settings.reset( settingsObj );
 
-
     _initializeDefaultState();
+    QString viewName = Carta::State::UtilState::getLookup( getPath(), Util::VIEW);
+    m_contextDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
     _initializeCallbacks();
 }
 
@@ -72,8 +78,6 @@ QString ImageContext::addLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
-            QString viewName = Carta::State::UtilState::getLookup( getPath(), Util::VIEW);
-            m_contextDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
             controller->_setViewDrawContext( m_contextDraw );
             connect( m_contextDraw.get(), SIGNAL(viewResize()), this, SLOT(_contextChanged()));
             connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_contextChanged()));
@@ -96,32 +100,77 @@ void ImageContext::_contextChanged(){
             double outputHeight = imageSize.height();
             double outputWidth = imageSize.width();
             if ( outputHeight > 1 && outputWidth > 1 ){
+
+                //Size of the context window.
+                QSize contextSize = m_contextDraw->getClientSize();
+                double contextWidth = contextSize.width();
+                double contextHeight = contextSize.height();
+
+                //Actual output size should be the minimum of the image and the
+                //context rectangle - we don't want an image larger that the view
+                //that can hold it.  However, we do want to preserve the image dimensions.
+                double actualHeight = outputHeight;
+                double actualWidth = outputWidth;
+                double zoomFactor = 1;
+                //Determine whether width or height is the most constrained factor.
+                double widthRatio = contextWidth / outputWidth;
+                double heightRatio = contextHeight / outputHeight;
+                //Height is the more constrained resource.
+                if ( heightRatio < widthRatio ){
+                    //Choose height to be the smallest of image and window height.
+                    actualHeight = qMin( contextHeight, outputHeight );
+                    //Determine how much it has been constrained
+                    zoomFactor = actualHeight / outputHeight;
+                    //Use the ratio to get width
+                    actualWidth = outputWidth * zoomFactor;
+                }
+                else {
+                    actualWidth = qMin( contextWidth, outputWidth );
+                    zoomFactor = actualWidth / outputWidth;
+                    actualHeight = outputHeight * zoomFactor;
+                }
+                m_stateData.setValue( IMAGE_WIDTH, actualWidth );
+                m_stateData.setValue( IMAGE_HEIGHT, actualHeight );
+
                 //Get the rectangle inside the image that is visible in the
                 //main view.
                 QRectF inputRect = alt->_getInputRectangle();
                 QPointF topLeft = inputRect.topLeft();
                 QPointF bottomRight = inputRect.bottomRight();
 
-                //Size of the context window.
-                QSize contextSize = m_contextDraw->getClientSize();
-                double contextCenterX = contextSize.width();
-                double contextCenterY = contextSize.height();
+                //Scale the input rectangle to the context zoom.
+                QPointF topLeftZoomed (topLeft.x() * zoomFactor, topLeft.y() * zoomFactor );
+                QPointF bottomRightZoomed( bottomRight.x() * zoomFactor,bottomRight.y() * zoomFactor );
 
                 //Account for margins between the view window and the actual image.
-                double translateX = (contextCenterX - outputWidth) / 2;
-                double translateY = (contextCenterY - outputHeight) / 2;
-                double topY = topLeft.y() + translateY;
-                double leftX = topLeft.x() + translateX;
+                double translateX = (contextWidth - actualWidth) / 2;
+                double translateY = (contextHeight - actualHeight) / 2;
+                double topY = topLeftZoomed.y() + translateY;
+                double leftX = topLeftZoomed.x() + translateX;
                 QPointF topLeftTranslate( leftX, topY );
-                double bottomY = bottomRight.y() + translateY;
-                double rightX = bottomRight.x() + translateX;
+                double bottomY = bottomRightZoomed.y() + translateY;
+                double rightX = bottomRightZoomed.x() + translateX;
                 QPointF bottomRightTranslate( rightX, bottomY );
 
                 //Store the location of the image rectangle.
                 setImageRectangle(  bottomRightTranslate, topLeftTranslate );
 
+                //Get the native value at the center
+                bool validCenter = false;
+                QPointF imageCenterWorld = alt->getWorldCoordinates( outputWidth/2, outputHeight/2, &validCenter );
+                //Get the native value to the right of center.
+                bool validLeft = false;
+                QPointF imageLeftWorld = alt->getWorldCoordinates( outputWidth, outputHeight/2, &validLeft );
+                if ( validLeft && validCenter ){
+                    //Calculate the angle.
+                    double ratio = ( imageCenterWorld.y() - imageLeftWorld.y() ) /
+                            ( imageCenterWorld.x() - imageLeftWorld.x() );
+                    double angle = atan ( ratio );
+                    m_stateData.setValue<double>( COORD_ROTATION, angle );
+                    m_stateData.flushState();
+                }
                 //Redraw it.
-                alt->_renderContext();
+                alt->_renderContext( zoomFactor );
             }
         }
     }
@@ -141,6 +190,19 @@ Controller* ImageContext::_getControllerSelected() const {
         }
     }
     return controller;
+}
+
+QRectF ImageContext::getImageRectangle() const {
+    QString c0X = Carta::State::UtilState::getLookup( CORNER_0, Util::XCOORD );
+    QString c0Y = Carta::State::UtilState::getLookup( CORNER_0, Util::YCOORD );
+    double x0 = m_stateData.getValue<double>( c0X );
+    double y0 = m_stateData.getValue<double>( c0Y );
+    QString c1X = Carta::State::UtilState::getLookup( CORNER_1, Util::XCOORD );
+    QString c1Y = Carta::State::UtilState::getLookup( CORNER_1, Util::YCOORD );
+    double x1 = m_stateData.getValue<double>( c1X );
+    double y1 = m_stateData.getValue<double>( c1Y );
+    QRectF rect( QPointF( x0, y0), QPointF( x1, y1 ));
+    return rect;
 }
 
 QList<QString> ImageContext::getLinks() const {
@@ -206,6 +268,11 @@ void ImageContext::_initializeDefaultState(){
     QString c1Y = Carta::State::UtilState::getLookup( CORNER_1, Util::YCOORD );
     m_stateData.insertValue<double>( c1X, 0 );
     m_stateData.insertValue<double>( c1Y, 0 );
+
+    m_stateData.insertValue<double>(COORD_ROTATION, 0);
+    m_stateData.insertValue<bool>( BOX_SELECTED, false );
+    m_stateData.insertValue<int>( IMAGE_WIDTH, 0 );
+    m_stateData.insertValue<int>( IMAGE_HEIGHT, 0 );
     m_stateData.flushState();
 
     m_state.insertValue<bool>( BOX_VISIBLE, true );
@@ -215,7 +282,7 @@ void ImageContext::_initializeDefaultState(){
     m_state.insertValue<int>( "penWidthMax", PEN_FACTOR );
     _initializeDefaultPen( BOX, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, 1 );
     _initializeDefaultPen( COMPASS_XY, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, 1 );
-    _initializeDefaultPen( COMPASS_NE, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, 1 );
+    _initializeDefaultPen( COMPASS_NE, Util::MAX_COLOR, Util::MAX_COLOR, 0, Util::MAX_COLOR, 1 );
     m_state.flushState();
 }
 
@@ -223,21 +290,25 @@ void ImageContext::_initializeDefaultState(){
 void ImageContext::_initializeCallbacks(){
     addCommandCallback( "mouseDown", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        m_mouseDown = true;
         return "";
     });
 
     addCommandCallback( "mouseDownShift", [=] (const QString & /*cmd*/,
                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        m_mouseDown = true;
         return "";
     });
 
     addCommandCallback( "mouseUp", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        m_mouseDown = false;
         return "";
     });
 
     addCommandCallback( "mouseUpShift", [=] (const QString & /*cmd*/,
                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        m_mouseDown = false;
         return "";
     });
 
@@ -250,7 +321,6 @@ void ImageContext::_initializeCallbacks(){
     addCommandCallback( "setColor", [=] (const QString & /*cmd*/,
                                const QString & params, const QString & /*sessionId*/) -> QString {
            QString result;
-           qDebug() << "Got box color params="<<params;
            std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE, MODE};
            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
 
@@ -270,6 +340,15 @@ void ImageContext::_initializeCallbacks(){
                    if ( mode == IMAGE_BOX ){
                        result = setBoxColor( redValue, greenValue, blueValue );
                    }
+                   else if ( mode == ARROW_XY ){
+                       result = setCompassXYColor( redValue, greenValue, blueValue );
+                   }
+                   else if ( mode == ARROW_NE ){
+                       result = setCompassNEColor( redValue, greenValue, blueValue );
+                   }
+                   else {
+                       qWarning()<<"Unrecognized context draw element: "<<mode;
+                   }
                }
                else {
                    result = "Unrecognized context mode: "+params;
@@ -287,15 +366,24 @@ void ImageContext::_initializeCallbacks(){
                 QString result;
                 std::set<QString> keys = {Util::VISIBLE, MODE};
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString boxVisibleStr = dataValues[Util::VISIBLE];
+                QString visibleStr = dataValues[Util::VISIBLE];
                 bool validBool = false;
-                int boxVisible = Util::toBool( boxVisibleStr, &validBool );
+                int visible = Util::toBool( visibleStr, &validBool );
                 if ( validBool ){
                     bool validMode = false;
                     int mode = dataValues[MODE].toInt( &validMode );
                     if ( validMode ){
                         if ( mode == IMAGE_BOX ){
-                            setBoxVisible( boxVisible );
+                            setBoxVisible( visible );
+                        }
+                        else if ( mode == ARROW_XY ){
+                            setCompassXYVisible( visible );
+                        }
+                        else if ( mode == ARROW_NE ){
+                            setCompassNEVisible( visible );
+                        }
+                        else {
+                            qWarning()<<"Unrecognized context draw element: "<<mode;
                         }
                     }
                     else {
@@ -312,7 +400,6 @@ void ImageContext::_initializeCallbacks(){
     addCommandCallback( "setLineWidth", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        qDebug() << "Got line width command params="<<params;
         std::set<QString> keys = {Util::PEN_WIDTH, MODE};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString widthStr = dataValues[Util::PEN_WIDTH];
@@ -324,6 +411,15 @@ void ImageContext::_initializeCallbacks(){
             if ( validMode ){
                 if ( mode == IMAGE_BOX ){
                     result = setBoxLineWidth( width );
+                }
+                else if ( mode == ARROW_XY ){
+                    result = setCompassXYLineWidth( width );
+                }
+                else if ( mode == ARROW_NE ){
+                    result = setCompassNELineWidth( width );
+                }
+                else {
+                    qWarning()<<"Unrecognized context draw element: "<<mode;
                 }
             }
             else {
@@ -361,23 +457,44 @@ void ImageContext::_initializeCallbacks(){
     QString pointerPath= UtilState::getLookup(getPath(), UtilState::getLookup(Util::VIEW, Util::POINTER_MOVE));
     addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
         QStringList mouseList = value.split( " ");
-        if ( mouseList.size() == 4 ){
-            /*bool validX = false;
+        if ( mouseList.size() >= 2 ){
+            bool validX = false;
             int mouseX = mouseList[0].toInt( &validX );
             bool validY = false;
             int mouseY = mouseList[1].toInt( &validY );
-            bool validWidth = false;
-            int width = mouseList[2].toInt( &validWidth );
-            bool validHeight = false;
-            int height = mouseList[3].toInt( &validHeight );
-            if ( validX && validY && validWidth && validHeight ){
-                updateSelection( mouseX, mouseY, width, height);
-            }*/
+            if ( validX && validY ){
+                _updateSelection( mouseX, mouseY);
+            }
         }
     });
 }
 
+void ImageContext::_updateSelection( int mouseX, int mouseY ){
+    //Update whether or not the image rectangle is selected.
+    QRectF imageRect = getImageRectangle();
+    bool inside = false;
+    if ( imageRect.contains( QPointF( mouseX, mouseY) ) ){
+        inside = true;
+    }
+    bool oldSelected = m_stateData.getValue<bool>( BOX_SELECTED );
+    if ( oldSelected != inside ){
+        m_stateData.setValue<bool>( BOX_SELECTED, inside );
+        m_stateData.flushState();
+    }
 
+    //Decide if we should move the context rectangle.
+    if ( m_mouseDown && inside ){
+        double oldCenterX = imageRect.x() + imageRect.width() / 2;
+        double oldCenterY = imageRect.y() + imageRect.height() / 2;
+        double moveX = mouseX - oldCenterX;
+        double moveY = mouseY - oldCenterY;
+        QPointF topLeft = imageRect.topLeft();
+        QPointF bottomRight = imageRect.bottomRight();
+        QPointF newTopLeft( topLeft.x() + moveX, topLeft.y() + moveY );
+        QPointF newBottomRight( bottomRight.x() + moveX, bottomRight.y() + moveY );
+        setImageRectangle(newBottomRight, newTopLeft );
+    }
+}
 
 
 bool ImageContext::isLinked( const QString& linkId ) const {
@@ -423,25 +540,55 @@ void ImageContext::resetState( const QString& state ){
 
 
 QString ImageContext::setBoxColor( int redValue, int greenValue, int blueValue){
+    QString result = _setDrawColor( redValue, greenValue, blueValue, BOX, "View box color ");
+    return result;
+}
+
+QString ImageContext::setCompassXYColor( int redValue, int greenValue, int blueValue){
+    QString result = _setDrawColor( redValue, greenValue, blueValue, COMPASS_XY, "Compass xy color ");
+    return result;
+}
+
+QString ImageContext::setCompassNEColor( int redValue, int greenValue, int blueValue){
+    QString result = _setDrawColor( redValue, greenValue, blueValue, COMPASS_NE, "Compass NE color ");
+    return result;
+}
+
+QString ImageContext::_setDrawColor( int redValue, int greenValue, int blueValue,
+        const QString& key, const QString& userID ){
     QString result;
-    const QString USER_ID = "View box color ";
-       bool greenChanged = _setColor( Util::GREEN, BOX, USER_ID, greenValue, result );
-       bool redChanged = _setColor( Util::RED, BOX, USER_ID, redValue, result );
-       bool blueChanged = _setColor( Util::BLUE, BOX, USER_ID, blueValue, result );
-       if ( redChanged || blueChanged || greenChanged ){
-           m_state.flushState();
-       }
+    bool greenChanged = _setColor( Util::GREEN, key, userID, greenValue, result );
+    bool redChanged = _setColor( Util::RED, key, userID, redValue, result );
+    bool blueChanged = _setColor( Util::BLUE, key, userID, blueValue, result );
+    if ( redChanged || blueChanged || greenChanged ){
+        m_state.flushState();
+    }
+    return result;
+}
+
+QString ImageContext::setCompassNELineWidth( int width ){
+    QString result = _setLineWidth( COMPASS_NE, "Compass NE", width );
+    return result;
+}
+
+QString ImageContext::setCompassXYLineWidth( int width ){
+    QString result = _setLineWidth( COMPASS_XY, "Compass XY", width );
     return result;
 }
 
 QString ImageContext::setBoxLineWidth( int width ){
+    QString result = _setLineWidth( BOX, "Image box", width );
+    return result;
+}
+
+QString ImageContext::_setLineWidth( const QString& key, const QString& userName, int width ){
     QString result;
     if ( width < 0 || width > PEN_FACTOR ){
-        result = "Image box line width must be in [0,"+QString::number(PEN_FACTOR)+
+        result = userName + " line width must be in [0,"+QString::number(PEN_FACTOR)+
                 "]: "+QString::number(width);
     }
     else {
-        QString lookup = Carta::State::UtilState::getLookup( BOX, Util::PEN_WIDTH );
+        QString lookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
         int oldWidth = m_state.getValue<int>(lookup);
         if ( oldWidth != width ){
             m_state.setValue<int>( lookup, width);
@@ -452,9 +599,21 @@ QString ImageContext::setBoxLineWidth( int width ){
 }
 
 void ImageContext::setBoxVisible( bool visible){
-    bool oldVisible = m_state.getValue<bool>( BOX_VISIBLE );
+    _setVisible( visible, BOX_VISIBLE );
+}
+
+void ImageContext::setCompassNEVisible( bool visible){
+    _setVisible( visible, COMPASS_VISIBLE_NE );
+}
+
+void ImageContext::setCompassXYVisible( bool visible){
+    _setVisible( visible, COMPASS_VISIBLE_XY );
+}
+
+void ImageContext::_setVisible( bool visible, const QString& key){
+    bool oldVisible = m_state.getValue<bool>( key );
     if ( visible != oldVisible ){
-        m_state.setValue<bool>( BOX_VISIBLE, visible );
+        m_state.setValue<bool>( key, visible );
         m_state.flushState();
     }
 }
@@ -475,6 +634,7 @@ bool ImageContext::_setColor( const QString& key, const QString& majorKey,
     }
     return colorChanged;
 }
+
 void ImageContext::setImageRectangle( QPointF br, QPointF tl ){
     QString c0X = Carta::State::UtilState::getLookup( CORNER_0, Util::XCOORD );
     QString c0Y = Carta::State::UtilState::getLookup( CORNER_0, Util::YCOORD );
@@ -489,7 +649,6 @@ void ImageContext::setImageRectangle( QPointF br, QPointF tl ){
 
 QString ImageContext::setTabIndex( int index ){
     QString result;
-    qDebug() << "Setting tab index="<<index;
     if ( index >= 0 ){
         int oldIndex = m_state.getValue<int>( Util::TAB_INDEX );
         if ( index != oldIndex ){

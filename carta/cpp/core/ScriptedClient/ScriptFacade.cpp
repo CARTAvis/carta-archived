@@ -822,7 +822,15 @@ QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double 
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getPixelCoordinates( ra, dec );
+            bool valid = false;
+            QPointF coords=controller->getPixelCoordinates( ra, dec, &valid );
+            if ( valid ){
+                resultList.append( QString::number(coords.x()));
+                resultList.append( QString::number(coords.y()));
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+            }
         }
         else {
             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );

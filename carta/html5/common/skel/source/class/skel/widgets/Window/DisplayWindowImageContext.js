@@ -98,11 +98,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
             if (this.m_viewContent.indexOf(this.m_view) < 0) {
                 this.m_viewContent.add(this.m_view, overlayMap );
+                this.m_view.setOverlayWidget( this.m_contextDraw );
             }
-            if ( this.m_viewContent.indexOf( this.m_contextDraw) < 0 ){
-                this.m_viewContent.add(this.m_contextDraw, overlayMap );
-            }
-            this.m_view.setVisibility( "visible" );
+          
             if ( this.m_controlsVisible ){
                 this.m_content.add( this.m_contextControls );
             }
@@ -150,8 +148,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
                     var contextRect = JSON.parse( val );
                     var corner0 = contextRect.corner0;
                     var corner1 = contextRect.corner1;
+                    var selected = contextRect.boxSelected;
+                    var width = contextRect.imageWidth;
+                    var height = contextRect.imageHeight;
+                    var rotate = contextRect.rotate;
                     if ( this.m_contextDraw !== null ){
-                        this.m_contextDraw.setImageCorners( corner0.x, corner0.y, corner1.x, corner1.y );
+                        this.m_contextDraw.setImageCorners( corner0.x, corner0.y, corner1.x, corner1.y, 
+                                selected, width, height, rotate );
                     }
                 }
                 catch( err ){
@@ -168,12 +171,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
             if (this.m_view === null) {
-                this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
+                this.m_view = new skel.boundWidgets.View.DragView(this.m_identifier);
             }
             if ( this.m_contextDraw == null ){
                 this.m_contextDraw = new skel.widgets.Image.Context.ContextCanvas();
             }
             this._layoutControls();
+            this.m_view.setVisibility( "visible" );
             
             this.initializePrefs();
             this.m_contextControls.setId( this.getIdentifier());

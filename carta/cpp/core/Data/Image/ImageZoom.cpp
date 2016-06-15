@@ -28,10 +28,9 @@ const QString ImageZoom::BOX = "box";
 const QString ImageZoom::BOX_VISIBLE = "boxVisible";
 const QString ImageZoom::CORNER_0 = "corner0";
 const QString ImageZoom::CORNER_1 = "corner1";
-const int ImageZoom::ENLARGE = 10;
+const QString ImageZoom::ZOOM_FACTOR = "zoom";
+const int ImageZoom::ENLARGE = 20;
 const int ImageZoom::PEN_FACTOR = 5;
-
-
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
@@ -51,6 +50,8 @@ ImageZoom::ImageZoom( const QString& path, const QString& id ):
     Settings* settingsObj = objMan->createObject<Settings>();
     m_settings.reset( settingsObj );
 
+    QString viewName = Carta::State::UtilState::getLookup( getPath(), Util::VIEW);
+    m_zoomDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
 
     _initializeDefaultState();
     _initializeCallbacks();
@@ -63,8 +64,7 @@ QString ImageZoom::addLink( CartaObject* cartaObject ){
     if ( controller != nullptr ){
         linkAdded = m_linkImpl->addLink( controller );
         if ( linkAdded ){
-            QString viewName = Carta::State::UtilState::getLookup( getPath(), Util::VIEW);
-            m_zoomDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
+
             controller->_setViewDrawZoom( m_zoomDraw );
 
             connect( m_zoomDraw.get(), SIGNAL(viewResize()), this, SLOT(_zoomChanged()));
@@ -123,6 +123,11 @@ QString ImageZoom::_getPreferencesId() const {
 }
 
 
+int ImageZoom::getZoomFactor() const {
+    return m_state.getValue<int>( ZOOM_FACTOR );
+}
+
+
 void ImageZoom::_initializeDefaultState(){
     m_stateData.insertObject(CORNER_0);
     QString c0X = Carta::State::UtilState::getLookup( CORNER_0, Util::XCOORD );
@@ -137,7 +142,7 @@ void ImageZoom::_initializeDefaultState(){
     m_stateData.flushState();
 
     m_state.insertValue<bool>( BOX_VISIBLE, true );
-
+    m_state.insertValue<int>( ZOOM_FACTOR, ENLARGE );
     m_state.insertValue<int>( Util::TAB_INDEX, 0 );
     m_state.insertValue<int>( "penWidthMax", PEN_FACTOR );
     _initializeDefaultPen( BOX, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, Util::MAX_COLOR, 1 );
@@ -231,6 +236,24 @@ void ImageZoom::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setZoomFactor", [=] (const QString & /*cmd*/,
+               const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+           std::set<QString> keys = {ZOOM_FACTOR};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString zoomFactorStr = dataValues[ZOOM_FACTOR];
+           bool validIndex = false;
+           int zoomFactor = zoomFactorStr.toInt( &validIndex );
+           if ( validIndex ){
+               result = setZoomFactor( zoomFactor );
+           }
+           else {
+               result = "Please check that the zoom factor is a number: " + params;
+           }
+           Util::commandPostProcess( result );
+           return result;
+       });
 }
 
 
@@ -377,13 +400,28 @@ QString ImageZoom::setTabIndex( int index ){
 }
 
 
+QString ImageZoom::setZoomFactor( int zoomFactor ){
+    QString result;
+    if ( zoomFactor >= 1 ){
+        int oldFactor = m_state.getValue<int>( ZOOM_FACTOR );
+        if ( oldFactor != zoomFactor ){
+            m_state.setValue<int>( ZOOM_FACTOR, zoomFactor );
+            m_state.flushState();
+            _zoomChanged();
+        }
+    }
+    return result;
+}
+
+
+
 void ImageZoom::_zoomChanged(){
     int linkCount = m_linkImpl->getLinkCount();
     if ( linkCount > 0 ){
         Controller* alt = dynamic_cast<Controller*>( m_linkImpl->getLink(0) );
         if ( alt != nullptr ){
             double zoomFactor = alt->getZoomLevel();
-            zoomFactor = zoomFactor * ENLARGE;
+            zoomFactor = zoomFactor * getZoomFactor();
             QSize outputSize = m_zoomDraw->getClientSize();
             double centerX = outputSize.width() / 2;
             double centerY = outputSize.height() / 2;

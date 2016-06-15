@@ -37,6 +37,12 @@ public:
     virtual QString addLink( Carta::State::CartaObject* cartaObject ) Q_DECL_OVERRIDE;
 
     /**
+     * Return the image context rectangle in pixel coordinates.
+     * @return - the image context rectangle in pixel coordinates.
+     */
+    QRectF getImageRectangle() const;
+
+    /**
      * Return a representation of the state of the image context.
      * @param sessionId - an identifier for a user session.
      * @param type - the type of state wanted.
@@ -75,6 +81,26 @@ public:
     QString setBoxColor( int redValue, int greenValue, int blueValue);
 
     /**
+     * Set the color of the xy-compass.
+     * @param redValue - the amount of red in the compass.
+     * @param greenValue - the amount of green in the compass.
+     * @param blueValue - the amount of blue in the compass.
+     * @return - an error message if there was a problem setting the color; an empty string
+     *      otherwise.
+     */
+    QString setCompassXYColor( int redValue, int greenValue, int blueValue);
+
+    /**
+     * Set the color of the ne-compass.
+     * @param redValue - the amount of red in the compass.
+     * @param greenValue - the amount of green in the compass.
+     * @param blueValue - the amount of blue in the compass.
+     * @return - an error message if there was a problem setting the color; an empty string
+     *      otherwise.
+     */
+    QString setCompassNEColor( int redValue, int greenValue, int blueValue);
+
+    /**
      * Set the pen thickness for the image box.
      * @param width - the pen thickness used to draw the image box.
      * @return - an error message if the pen thickness could not be set; an empty
@@ -83,10 +109,38 @@ public:
     QString setBoxLineWidth( int width );
 
     /**
+     * Set the pen thickness for the xy-compass.
+     * @param width - the pen thickness used to draw the xy-compass.
+     * @return - an error message if the pen thickness could not be set; an empty
+     *      string otherwise.
+     */
+    QString setCompassXYLineWidth( int width );
+
+    /**
+     * Set the pen thickness for the ne-compass box.
+     * @param width - the pen thickness used to draw the ne-compass.
+     * @return - an error message if the pen thickness could not be set; an empty
+     *      string otherwise.
+     */
+    QString setCompassNELineWidth( int width );
+
+    /**
      * Set whether of not the image box should be visible.
      * @param visible - true if the image box should be visible; false, otherwise.
      */
     void setBoxVisible( bool visible);
+
+    /**
+     * Set whether of not the ne compass should be visible.
+     * @param visible - true if the compass should be visible; false, otherwise.
+     */
+    void setCompassNEVisible( bool visible);
+
+    /**
+     * Set whether of not the xy compass should be visible.
+     * @param visible - true if the compass should be visible; false, otherwise.
+     */
+    void setCompassXYVisible( bool visible);
 
     /**
      * Store the location of the main image rectangle.
@@ -128,7 +182,7 @@ private:
 
     Controller* _getControllerSelected() const;
 
-    enum ContextDraw { IMAGE_BOX, ARROW_XY, ARROW_NE };
+    enum ContextDraw { IMAGE_BOX,  ARROW_NE, ARROW_XY };
 
     QString _getPreferencesId() const;
     void _initializeDefaultPen( const QString& key, int red, int green,
@@ -138,6 +192,12 @@ private:
 
     bool _setColor( const QString& key, const QString& majorKey,
             const QString& userId, int colorAmount, QString& errorMsg );
+    QString _setDrawColor( int redValue, int greenValue, int blueValue,
+            const QString& key, const QString& userID );
+    QString _setLineWidth( const QString& key, const QString& userName, int width );
+    void _setVisible( bool visible, const QString& key);
+
+    void _updateSelection( int mouseX, int mouseY );
 
     //Link management
     std::unique_ptr<LinkableImpl> m_linkImpl;
@@ -153,15 +213,23 @@ private:
 
     static bool m_registered;
 
+    bool m_mouseDown = false;
+
     const static QString CORNER_0;
     const static QString CORNER_1;
     const static QString BOX;
+    const static QString BOX_SELECTED;
     const static QString BOX_VISIBLE;
     const static QString COMPASS_VISIBLE_XY;
     const static QString COMPASS_VISIBLE_NE;
     const static QString COMPASS_XY;
     const static QString COMPASS_NE;
+    const static QString COORD_ROTATION;
+    const static QString EAST;
+    const static QString IMAGE_HEIGHT;
+    const static QString IMAGE_WIDTH;
     const static QString MODE;
+    const static QString NORTH;
     const static int PEN_FACTOR;
 	ImageContext( const ImageContext& other);
 	ImageContext& operator=( const ImageContext& other );

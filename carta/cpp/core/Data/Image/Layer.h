@@ -238,6 +238,7 @@ protected:
      */
     virtual QPointF _getImagePt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const = 0;
 
+
     /**
      * Return the portion of the image that is displayed given current zoom and
      * pan values.
@@ -308,10 +309,21 @@ protected:
      * Return the pixel coordinates corresponding to the given world coordinates.
      * @param ra the right ascension (in radians) of the world coordinates.
      * @param dec the declination (in radians) of the world coordinates.
-     * @return a list consisting of the x- and y-coordinates of the pixel
-     *  corresponding to the given world coordinates.
+     * @param valid - true if the coordinates are valid; false, otherwise.
+     * @return - a point containing the pixel coordinates.
      */
-    virtual QStringList _getPixelCoordinates( double ra, double dec ) const = 0;
+    virtual QPointF _getPixelCoordinates( double ra, double dec, bool* valid ) const = 0;
+
+    /**
+     * Return the world coordinates corresponding to the given pixel coordinates.
+     * @param pixelX - the first pixel coordinate.
+     * @param pixelY - the second pixel coordinate.
+     * @param coordSys - the coordinate system.
+     * @param valid - true if the pixel coordinates are valid; false otherwise.
+     * @return - a point containing the pixel coordinates.
+     */
+    virtual QPointF _getWorldCoordinates( double ra, double dec,
+            Carta::Lib::KnownSkyCS coordSys, bool* valid ) const = 0;
 
     /**
      * Return the units of the pixels.

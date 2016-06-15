@@ -212,11 +212,22 @@ protected:
       * Return the pixel coordinates corresponding to the given world coordinates.
       * @param ra the right ascension (in radians) of the world coordinates.
       * @param dec the declination (in radians) of the world coordinates.
-      * @return a list consisting of the x- and y-coordinates of the pixel
-      *  corresponding to the given world coordinates.
+      * @param valid - true if the pixel coordinates are valid; false, otherwise.
+      * @return - a point containing the pixel coordinates.
       */
-     virtual QStringList _getPixelCoordinates( double ra, double dec ) const Q_DECL_OVERRIDE;
+     virtual QPointF _getPixelCoordinates( double ra, double dec,
+             bool* valid) const Q_DECL_OVERRIDE;
 
+     /**
+      * Return the world coordinates corresponding to the given pixel coordinates.
+      * @param pixelX - the first pixel coordinate.
+      * @param pixelY - the second pixel coordinate.
+      * @param coordSys - the coordinate system.
+      * @param valid - true if the pixel coordinates are valid; false otherwise.
+      * @return - a point containing the pixel coordinates.
+      */
+     virtual QPointF _getWorldCoordinates( double pixelX, double pixelY,
+             Carta::Lib::KnownSkyCS coordSys, bool* valid ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the value of the pixel at (x, y).
@@ -330,6 +341,8 @@ protected:
      */
     virtual QString _getPixelUnits() const Q_DECL_OVERRIDE;
 
+
+
     /**
          * Returns true if at least one contour set should be drawn; false otherwise.
          * @return - true if there is at least one contour set to draw; false otherwise.
@@ -437,8 +450,8 @@ private:
             const QRectF& outputRect, const QSize& outputSize ) const;
     QRectF _getOutputRectangle( const QSize& outputSize, bool requestMain, bool requestContext ) const;
     QPointF _getPan() const;
-    void _initializeState();
 
+    void _initializeState();
 
     /**
      *  Constructor.

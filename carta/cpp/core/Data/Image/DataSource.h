@@ -235,12 +235,22 @@ private:
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
-     * @param ra the right ascension (in radians) of the world coordinates.
-     * @param dec the declination (in radians) of the world coordinates.
-     * @return a list consisting of the x- and y-coordinates of the pixel
-     *  corresponding to the given world coordinates.
+     * @param ra - the right ascension (in radians) of the world coordinates.
+     * @param dec - the declination (in radians) of the world coordinates.
+     * @param valid - true if the pixel coordinates are valid; false otherwise.
+     * @return - a point containing the pixel coordinates.
      */
-    QStringList _getPixelCoordinates( double ra, double dec ) const;
+    QPointF _getPixelCoordinates( double ra, double dec, bool* valid ) const;
+
+    /**
+     * Return the world coordinates corresponding to the given pixel coordinates.
+     * @param pixelX - the first pixel coordinate.
+     * @param pixelY - the second pixel coordinate.
+     * @param valid - true if the pixel coordinates are valid; false otherwise.
+     * @return - a point containing the pixel coordinates.
+     */
+    QPointF _getWorldCoordinates( double pixelX, double pixelY,
+            Carta::Lib::KnownSkyCS coordSys, bool* valid ) const;
 
     /**
      * Return the units of the pixels.

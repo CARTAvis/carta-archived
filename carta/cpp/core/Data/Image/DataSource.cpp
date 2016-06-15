@@ -412,15 +412,31 @@ double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity
     return percentile;
 }
 
-QStringList DataSource::_getPixelCoordinates( double ra, double dec ) const{
-    QStringList result("");
+QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) const{
+    QPointF result;
     CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
     const CoordinateFormatterInterface::VD world { ra, dec };
     CoordinateFormatterInterface::VD pixel;
-    bool valid = cf->toPixel( world, pixel );
-    if ( valid ){
-        result = QStringList( QString::number( pixel[0] ) );
-        result.append( QString::number( pixel[1] ) );
+    *valid = cf->toPixel( world, pixel );
+    if ( *valid ){
+        result = QPointF( pixel[0], pixel[1]);
+    }
+    return result;
+}
+
+QPointF DataSource::_getWorldCoordinates( double pixelX, double pixelY,
+        Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
+    QPointF result;
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    cf->setSkyCS( coordSys );
+    int imageDims = _getDimensions();
+    std::vector<double> pixel( imageDims );
+    pixel[0] = pixelX;
+    pixel[1] = pixelY;
+    CoordinateFormatterInterface::VD world;
+    *valid = cf->toWorld( pixel, world );
+    if ( *valid ){
+        result = QPointF( world[0], world[1]);
     }
     return result;
 }

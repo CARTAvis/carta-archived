@@ -116,7 +116,7 @@ public:
       * the center pixel, or a special value of (-0.0, -0.0) if the
       * center pixel could not be obtained.
       */
-    QPointF getCenterPixel();
+    QPointF getCenterPixel() const;
 
     /**
      * Return the coordinate system in use.
@@ -238,7 +238,7 @@ public:
     /**
      * Get the dimensions of the image viewer (window size).
      */
-    QSize getOutputSize( );
+    QSize getOutputSize( ) const;
 
     /**
      * Return the percentile corresponding to the given intensity in the current frame.
@@ -260,10 +260,19 @@ public:
      * Return the pixel coordinates corresponding to the given world coordinates.
      * @param ra the right ascension (in radians) of the world coordinates.
      * @param dec the declination (in radians) of the world coordinates.
-     * @return a list consisting of the x- and y-coordinates of the pixel
-     *  corresponding to the given world coordinates.
+     * @param valid - true if the returned point is valid; otherwise false.
+     * @return - a point containing the pixel coordinates.
      */
-    QStringList getPixelCoordinates( double ra, double dec ) const;
+    QPointF getPixelCoordinates( double ra, double dec, bool* valid ) const;
+
+    /**
+     * Return the world coordinates corresponding to the given pixel coordinates.
+     * @param pixelX - the first pixel coordinate of the image.
+     * @param pixelY - the second pixel coordinate of the image.
+     * @param valid - true if the returned point is valid; otherwise false.
+     * @return - point containing the world coordinates.
+     */
+    QPointF getWorldCoordinates( double pixelX, double pixelY, bool* valid ) const;
 
     /**
      * Return the value of the pixel at (x, y).
@@ -327,7 +336,7 @@ public:
     /**
      * Get the current zoom level
      */
-    double getZoomLevel( );
+    double getZoomLevel( ) const;
 
     /**
      * Returns whether or not the image stack layers are selected based on the
@@ -420,7 +429,7 @@ public:
      * @param id - the identifier for a layer in the stack.
      * @param visible - true if the layer should be visible; false otherwise.
      */
-    QString setImageVisibility( /*int dataIndex*/const QString& id, bool visible );
+    QString setImageVisibility( const QString& id, bool visible );
 
     /**
      * Give the layer (a more user-friendly) name.
@@ -628,12 +637,14 @@ private:
     QRectF _getInputRectangle() const;
     QString _getPreferencesId() const;
 
+
+
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
 
     void _renderZoom( double factor );
-    void _renderContext();
+    void _renderContext( double zoomFactor );
 
 
     /**
