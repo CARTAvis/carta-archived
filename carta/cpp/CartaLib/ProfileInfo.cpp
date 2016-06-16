@@ -1,4 +1,5 @@
 #include "ProfileInfo.h"
+#include <cmath>
 
 namespace Carta {
 namespace Lib {

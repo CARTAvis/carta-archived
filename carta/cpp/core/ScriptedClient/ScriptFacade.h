@@ -176,6 +176,17 @@ public:
     QStringList invertColorMap( const QString& colormapId, const QString& invertStr );
 
     /**
+     * set Nan Default
+     * Set whether or not to use the default nan color (bottom of the color
+     * map).
+     * @param nanDefaultStr - true if the bottom color map value should be the
+     *  nan color; false if the nan color should be user specified.
+     * @return an error message if whether or not to use the default nan
+     *  color could not be set.
+     */
+    QStringList setNanDefault( const QString& colormapId, const QString& nanDefaultStr );
+
+    /**
      * Set a color mix.
      * @param colormapId the unique server-side id of an object managing a color map.
      * @param red the amount of red in the mix [0,1].
@@ -442,6 +453,76 @@ public:
      */
     QStringList closeImage( const QString& controlId, const QString& imageName );
 
+
+    /**
+     * Show Image
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image
+     * return error information if error occured
+     */
+    QStringList showImage( const QString& controlId, const QString& imageName );
+
+
+    /**
+     * Hide image
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image
+     * return error information if error occured
+     */
+    QStringList hideImage( const QString& controlId, const QString& imageName );
+
+
+    /**
+     * Stack Select Auto
+     * Set whether or not selection of layers in the stack should be based on the
+     * current layer or whether the user wants to make a manual selection.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image
+     * return error information if error occured
+     */
+    QStringList setStackSelectAuto( const QString& controlId, const QString& stackSelectAutoFlagStr);
+
+    /**
+     * Composition Mode
+     * Set whether or not to apply a composition mode to the image
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param imageName an identifier for the image
+     * return error information if error occured
+     */
+    QStringList setCompositionMode( const QString& controlId, const QString& imageName);
+
+    /**
+     * Pan Zoom All
+     * Set whether or not a pan/zoom operation should affect all layers in the stack
+     * or just the top layer.
+     * @param controlId the unique server-side id of an object managing a controller.
+     * @param  setPanZoomAllFlagStr pan zoom all flag
+     * return error information if error occured
+     */
+    QStringList setPanZoomAll(const QString& controlId, const QString& setPanZoomAllFlagStr);
+
+
+    /**
+     * set Alpha Mask
+     * Set the transparency of the layer.
+     * @param alphaAmount - the transparency level in [0,255] with 255 being opaque.
+     * @param imageName an identifier for the image
+     * return error information if error occured
+     */
+    QStringList setMaskAlpha(const QString& controlId, const QString& imageName, const QString& alphaAmount);
+
+    /**
+     * set Mask Colors
+     * Set the color to use for the mask.
+     * redAmount - the amount of red in [0,255]
+     * redAmount - the amount of red in [0,255]
+     * redAmount - the amount of red in [0,255]
+     * return error information if error occured
+     */
+    QStringList setMaskColor(const QString& controlId, const QString& imageName, const QString& redAmount,
+                             const QString& greenAmount, const QString& blueAmount);
+
+
     /**
      * Set the amount of extra space on each side of the clip bounds.
      * @param histogramId the unique server-side id of an object managing a histogram.
@@ -498,7 +579,7 @@ public:
      * @param frameHigh an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentile a number [0,1] for which an intensity is desired.
      */
-    QStringList getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ); 
+    QStringList getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile );
 
     /**
      * Set the number of bins in the histogram.
