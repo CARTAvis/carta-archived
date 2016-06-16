@@ -13,7 +13,7 @@ LayoutNode::LayoutNode( const QString& className, const QString& path, const QSt
 }
 
 
-bool LayoutNode::addWindow( const QString& /*nodeId*/, const QString& /*position*/ ){
+bool LayoutNode::addWindow( const QString& /*nodeId*/, const QString& /*position*/, int /*index*/ ){
     return false;
 }
 
@@ -81,6 +81,7 @@ void LayoutNode::setHorizontal( bool /*horizontal*/ ){
 
 QString LayoutNode::toString() const {
     return m_state.toString();
+
 }
 
 LayoutNode::~LayoutNode(){

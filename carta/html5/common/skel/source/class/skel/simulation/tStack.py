@@ -147,9 +147,9 @@ class tStack(unittest.TestCase):
         time.sleep(2)
         
         #Verify the images have transparent RGB boxes.
-        self._verifyRGB( driver, "Orion.methanol.cbc.contsub.image.fits", "transparent")
-        self._verifyRGB( driver, "Orion.cont.image.fits", "transparent")
-        self._verifyRGB( driver, "TWHydra_CO2_1line.image.fits", "transparent")
+        self._verifyRGB( driver, "Orion.methanol.cbc.contsub.image.fits", "rgba(0, 0, 0, 0)")
+        self._verifyRGB( driver, "Orion.cont.image.fits", "rgba(0, 0, 0, 0)")
+        self._verifyRGB( driver, "TWHydra_CO2_1line.image.fits", "rgba(0, 0, 0, 0)")
     
     #Test that we can rename a group.
     def test_groupRename(self):
@@ -166,6 +166,7 @@ class tStack(unittest.TestCase):
         #Open the image settings
         #Open the stack tab
         Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
         Util.clickTab( driver, "Stack" )
         
          #Turn off auto select

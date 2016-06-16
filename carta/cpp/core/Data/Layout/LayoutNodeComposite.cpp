@@ -45,7 +45,7 @@ LayoutNodeComposite::LayoutNodeComposite( const QString& path, const QString& id
 
 
 bool LayoutNodeComposite::_addWindow( const QString& nodeId, const QString& position,
-        const QString& childKey, std::unique_ptr<LayoutNode>& child ){
+        const QString& childKey, std::unique_ptr<LayoutNode>& child, int index ){
     bool windowAdded = false;
     if ( child.get() != nullptr ){
         QString childId = child->getPath();
@@ -63,16 +63,17 @@ bool LayoutNodeComposite::_addWindow( const QString& nodeId, const QString& posi
             if ( newComp != nullptr ){
                 windowAdded = true;
                 LayoutNode* emptyChild = NodeFactory::makeLeaf();
+                emptyChild->setIndex( index );
                 //Make the old child a child of the composite as well as the empty leaf.
                 if ( position == NodeFactory::POSITION_TOP || position == NodeFactory::POSITION_LEFT ){
                     newComp->setChildSecond( oldComp );
                     newComp->setChildFirst( emptyChild );
                 }
                 else {
+
                     newComp->setChildSecond( emptyChild );
                     newComp->setChildFirst( oldComp );
                 }
-
                 //Make the child into a composite.
                 _setChild( childKey, child, newComp, false );
             }
@@ -82,10 +83,10 @@ bool LayoutNodeComposite::_addWindow( const QString& nodeId, const QString& posi
 }
 
 
-bool LayoutNodeComposite::addWindow( const QString& nodeId, const QString& position ){
-    bool windowAdded = _addWindow( nodeId, position, PLUGIN_LEFT, m_firstChild );
+bool LayoutNodeComposite::addWindow( const QString& nodeId, const QString& position, int index ){
+    bool windowAdded = _addWindow( nodeId, position, PLUGIN_LEFT, m_firstChild, index );
     if ( !windowAdded ){
-        windowAdded = _addWindow( nodeId, position, PLUGIN_RIGHT, m_secondChild );
+        windowAdded = _addWindow( nodeId, position, PLUGIN_RIGHT, m_secondChild, index );
     }
     return windowAdded;
 }
@@ -334,11 +335,12 @@ void LayoutNodeComposite::_setChild( const QString& key,
         QString lookup = Carta::State::UtilState::getLookup( key, Util::ID);
         QString oldLookup = m_state.getValue<QString>( lookup );
         if ( node->getPath() !=  oldLookup ){
-            if ( !destroy ){
-                child.release();
+            if ( child ){
+                if ( !destroy ){
+                    child.release();
+                }
             }
             child.reset( node );
-
             _updateChildState( key, node->getPath(), node->isComposite());
             m_state.flushState();
         }
@@ -402,7 +404,7 @@ bool LayoutNodeComposite::setPlugins( QStringList& names, QMap<QString,int>& use
 
 
 QString LayoutNodeComposite::toString() const {
-    QString result = LayoutNode::toString();
+    QString result = "Composite: "+getPath();
     if ( m_firstChild.get() != nullptr ){
         result.append( "\nLeft: "+m_firstChild->toString() );
     }

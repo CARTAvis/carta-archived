@@ -148,7 +148,10 @@ void LayoutNodeLeaf::setPluginType( const QString& name ){
     }
 }
 
-
+QString LayoutNodeLeaf::toString() const {
+    return "id:"+getPath()+" plugin="+m_state.getValue<QString>(PLUGIN)+
+            " index=" + QString::number(m_state.getValue<int>(Carta::State::StateInterface::INDEX));
+}
 
 LayoutNodeLeaf::~LayoutNodeLeaf(){
 

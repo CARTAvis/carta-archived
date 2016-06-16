@@ -191,6 +191,7 @@ class tSnapshotData(tSnapshot.tSnapshot):
         Util.load_image(self,driver, "TWHydra_CO2_1line.image.fits" )
         Util.load_image(self,driver, "aH.fits" )
         Util.load_image(self,driver, "aJ.fits" )
+        time.sleep(3)
         
         # Verify 3 images are loaded
         self._verifyImage( driver, 2 )

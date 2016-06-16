@@ -19,7 +19,14 @@ class LayoutNode;
 class LayoutNodeComposite : public LayoutNode {
 
 public:
-    virtual bool addWindow( const QString& nodeId, const QString& position ) Q_DECL_OVERRIDE;
+    /**
+     * Add an empty layout cell to the cell identified by nodeId at the position indicated.
+     * @param nodeId - an identifier for a layout cell that needs to be split.
+     * @param position - an identifier for where the cell should be added (top, bottom, etc).
+     * @param index - the index of the new empty window.
+     * @return true if the layout cell was added; false otherwise.
+     */
+    virtual bool addWindow( const QString& nodeId, const QString& position, int index ) Q_DECL_OVERRIDE;
 
     virtual bool containsNode( const QString& nodeId ) const Q_DECL_OVERRIDE;
     virtual LayoutNode* findAncestor( const QStringList& nodeId, QString& childId ) Q_DECL_OVERRIDE;
@@ -49,7 +56,7 @@ public:
 
 private:
     bool _addWindow( const QString& nodeId, const QString& position,
-            const QString& childKey, std::unique_ptr<LayoutNode>& child );
+            const QString& childKey, std::unique_ptr<LayoutNode>& child, int index );
     QStringList _checkChild( LayoutNode* child, const QStringList & nodeIds ) const;
     LayoutNode* _findAncestorChild( const QStringList& nodeIds, QString& childId,
             LayoutNode* child );

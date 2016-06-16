@@ -18,6 +18,11 @@ DrawStackSynchronizer::DrawStackSynchronizer( Carta::Lib::LayeredRemoteVGView* v
     connect( m_view.get(), SIGNAL(sizeChanged()), this, SIGNAL( viewResize() ) );
 }
 
+void DrawStackSynchronizer::_clear(){
+    m_view->resetLayers();
+    QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
+}
+
 QSize DrawStackSynchronizer::getClientSize() const {
     return m_view->getClientSize();
 }
@@ -64,12 +69,13 @@ void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& reque
         }
     }
     if ( dataCount == 0 ){
-        m_view->resetLayers();
-        emit done( true );
+
         m_repaintFrameQueued = false;
-        QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
+        _clear();
+        emit done( true );
     }
 }
+
 
 void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& response ){
 

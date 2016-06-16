@@ -287,6 +287,14 @@ std::shared_ptr<DataSource> Controller::getDataSource(){
     return m_stack->_getDataSource();
 }
 
+QPointF Controller::getImagePt( bool* valid ) const {
+    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X);
+    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y);
+    QPointF mousePt( mouseX, mouseY );
+    QSize outputSize = getOutputSize();
+    return m_stack->_getImagePt( mousePt,  outputSize, valid  );
+}
+
 
 std::vector< std::shared_ptr<Layer> > Controller::getLayers() {
     return m_stack-> _getLayers();
@@ -605,7 +613,6 @@ void Controller::_initializeCallbacks(){
                 emit zoomChanged();
             }
         }
-
     });
 
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
@@ -1287,6 +1294,7 @@ void Controller::updateZoom( double centerX, double centerY, double zoomFactor )
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_updateZoom( centerX, centerY, zoomFactor, zoomPanAll);
     emit contextChanged();
+    emit zoomChanged();
 }
 
 
@@ -1295,6 +1303,7 @@ void Controller::updatePan( double centerX , double centerY){
     m_stack->_updatePan( centerX, centerY, zoomPanAll );
     _updateCursorText( true );
     emit contextChanged();
+    emit zoomChanged();
 }
 
 

@@ -22,9 +22,10 @@ public:
      * Add an empty layout cell to the cell identified by nodeId at the position indicated.
      * @param nodeId - an identifier for a layout cell that needs to be split.
      * @param position - an identifier for where the cell should be added (top, bottom, etc).
+     * @param index - the index of the new empty window.
      * @return true if the layout cell was added; false otherwise.
      */
-    virtual bool addWindow( const QString& nodeId, const QString& position );
+    virtual bool addWindow( const QString& nodeId, const QString& position, int index);
 
     /**
      * Returns the lowest layout cell that contains all the nodeIds in the list; sets the

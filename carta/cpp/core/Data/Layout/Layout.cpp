@@ -59,6 +59,7 @@ Layout::Layout( const QString& path, const QString& id):
     _initializeCommands();
 }
 
+
 QString Layout::addWindow( const QStringList& windowIds, const QString& position ){
     QString msg;
     //Make sure the position makes sense.
@@ -77,8 +78,9 @@ QString Layout::addWindow( const QStringList& windowIds, const QString& position
         QString childId;
         LayoutNode* progenitor = m_layoutRoot->findAncestor( windowIds, childId );
         bool windowAdded = false;
+        int emptyCount = _getPluginCount( NodeFactory::EMPTY );
         if ( progenitor != nullptr ){
-            windowAdded = progenitor->addWindow( childId, position );
+            windowAdded = progenitor->addWindow( childId, position, emptyCount );
             if ( ! windowAdded ){
                 msg = "Unable to add window at "+ position;
             }
@@ -94,6 +96,7 @@ QString Layout::addWindow( const QStringList& windowIds, const QString& position
             }
             _makeRoot(horizontal);
             LayoutNode* emptyChild = NodeFactory::makeLeaf();
+            emptyChild->setIndex( emptyCount );
             if ( position == NodeFactory::POSITION_LEFT || position == NodeFactory::POSITION_TOP ){
                 m_layoutRoot->setChildSecond( oldRoot );
                 m_layoutRoot->setChildFirst( emptyChild );

@@ -49,6 +49,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
     def _restorePreferences(self, driver ):
         # Click the restore sessions button
         self._clickSessionButton( driver )
+        time.sleep(2)
         self._clickSessionRestoreButton( driver )
 
         # Select tSnapshotPreferences in the restore combo box
@@ -149,6 +150,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         # Find the wrap radio button in the animator settings and click it
         wrapButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ChannelWrapRadioButton")))
         self._setChecked( driver, wrapButton, True )
+        time.sleep(2)
 
         # Restore the preferences
         self._restorePreferences( driver )
@@ -209,7 +211,7 @@ class tSnapshotPreferences(tSnapshot.tSnapshot):
         # Click the restore sessions button
         self._clickSessionButton( driver )
         self._clickSessionRestoreButton( driver )
-
+    
         # Select tSnapshotPreferences in the restore combo box
         self._selectRestoreSnapshot( driver, "tSnapshotPreferences")
 

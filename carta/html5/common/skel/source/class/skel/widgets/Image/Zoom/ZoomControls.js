@@ -66,6 +66,7 @@ qx.Class.define("skel.widgets.Image.Zoom.ZoomControls", {
             var label = new qx.ui.basic.Label( "Zoom Factor:")
             this.m_zoomText = new skel.widgets.CustomUI.NumericTextField( 1, null );
             this.m_zoomText.setIntegerOnly( true );
+            this.m_zoomText.setToolTipText( "Set the factor by which pixels should be enlarged." );
             this.m_zoomText.addListener( "textChanged", function(){
                 this._sendZoomCmd();
             }, this );

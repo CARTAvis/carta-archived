@@ -46,6 +46,7 @@ ImageZoom::ImageZoom( const QString& path, const QString& id ):
                 m_stateData(UtilState::getLookup(path, StateInterface::STATE_DATA)),
                 m_zoomDraw( nullptr ){
 
+
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Settings* settingsObj = objMan->createObject<Settings>();
     m_settings.reset( settingsObj );
@@ -68,8 +69,6 @@ QString ImageZoom::addLink( CartaObject* cartaObject ){
             controller->_setViewDrawZoom( m_zoomDraw );
 
             connect( m_zoomDraw.get(), SIGNAL(viewResize()), this, SLOT(_zoomChanged()));
-            connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_zoomChanged()));
-            connect( controller, SIGNAL(contextChanged()), this, SLOT(_zoomChanged()));
             connect( controller, SIGNAL(zoomChanged()), this, SLOT(_zoomChanged()));
         }
     }
@@ -77,6 +76,14 @@ QString ImageZoom::addLink( CartaObject* cartaObject ){
         result = "ImageZoom only supports linking to images";
     }
     return result;
+}
+
+void ImageZoom::_clearDraw(){
+    setPixelRectangle( QPointF(0,0), QPointF(0,0));
+}
+
+void ImageZoom::_clearView(){
+    m_zoomDraw->_clear();
 }
 
 Controller* ImageZoom::_getControllerSelected() const {
@@ -296,6 +303,7 @@ QString ImageZoom::removeLink( CartaObject* cartaObject ){
         if ( linkRemoved  ){
             controller->disconnect( this );
             controller->_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer>( nullptr) );
+            _zoomChanged();
         }
     }
     else {
@@ -414,26 +422,49 @@ QString ImageZoom::setZoomFactor( int zoomFactor ){
 }
 
 
-
 void ImageZoom::_zoomChanged(){
     int linkCount = m_linkImpl->getLinkCount();
     if ( linkCount > 0 ){
         Controller* alt = dynamic_cast<Controller*>( m_linkImpl->getLink(0) );
         if ( alt != nullptr ){
-            double zoomFactor = alt->getZoomLevel();
-            zoomFactor = zoomFactor * getZoomFactor();
-            QSize outputSize = m_zoomDraw->getClientSize();
-            double centerX = outputSize.width() / 2;
-            double centerY = outputSize.height() / 2;
-            QPointF topLeft( centerX - zoomFactor / 2, centerY - zoomFactor / 2);
-            QPointF bottomRight( centerX + zoomFactor / 2, centerY + zoomFactor / 2 );
+            bool valid = false;
+            QPointF imgPt = alt->getImagePt( &valid );
+            if ( valid ){
+                QSize displaySize = alt->_getDisplaySize();
 
-            //Store the location of the image rectangle.
-            setPixelRectangle(  topLeft, bottomRight );
+                //Do a zoom if the image pt is inside the image
+                if ( 0 <= imgPt.x() && imgPt.x()< displaySize.width() &&
+                        0 <= imgPt.y() && imgPt.y()<displaySize.height() ){
+                    double zoomFactor = alt->getZoomLevel();
+                    zoomFactor = zoomFactor * getZoomFactor();
+                    QSize outputSize = m_zoomDraw->getClientSize();
+                    double centerX = outputSize.width() / 2;
+                    double centerY = outputSize.height() / 2;
+                    QPointF topLeft( centerX - zoomFactor / 2, centerY - zoomFactor / 2);
+                    QPointF bottomRight( centerX + zoomFactor / 2, centerY + zoomFactor / 2 );
 
-            //Redraw it.
-            alt->_renderZoom( zoomFactor );
+                    //Store the location of the image rectangle.
+                    setPixelRectangle(  topLeft, bottomRight );
+
+                    //Redraw it.
+                    alt->_renderZoom( zoomFactor );
+                }
+                //Cursor is off the image so clear.
+                else {
+                    _clearDraw();
+                    _clearView();
+                }
+            }
+            else {
+                _clearDraw();
+                _clearView();
+            }
         }
+    }
+    //Clear, no linked controller.
+    else {
+        _clearDraw();
+        _clearView();
     }
 }
 

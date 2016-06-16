@@ -30,6 +30,8 @@ class Layer;
 class DrawStackSynchronizer: public QObject {
 
     friend class DrawImageViewsSynchronizer;
+    friend class ImageContext;
+    friend class ImageZoom;
 
     Q_OBJECT
 
@@ -78,9 +80,9 @@ private slots:
 
 private:
 
+    void _clear();
+
     void _render( const std::shared_ptr<RenderRequest>& request );
-
-
 
     //Data View
     std::unique_ptr<Carta::Lib::LayeredRemoteVGView> m_view;

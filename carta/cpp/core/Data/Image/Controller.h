@@ -147,28 +147,12 @@ public:
 
 
     /**
-     * Return a list of images that have been loaded.
-     * @return - a list of loaded images.
-     */
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
-
-    /**
      * Return the data source of the selected image.
      * @return - the data source of the selected image.
      */
     std::shared_ptr<DataSource> getDataSource();
 
-    /**
-     * Return the current layer.
-     * @return - the current layer.
-     */
-    std::shared_ptr<Layer> getLayer();
 
-    /**
-     * Return all layers containing images.
-     * @return - a list of all layers containing images.
-     */
-    std::vector< std::shared_ptr<Layer> > getLayers();
 
     /**
      * Return a shared pointer to the contour controls.
@@ -197,9 +181,35 @@ public:
     std::shared_ptr<GridControls> getGridControls();
 
     /**
+     * Return the point in image coordinates that is currently under the cursor.
+     * @param valid - set to false if the returned point is invalid.
+     * @return - the image coordinates of the point under the cursor.
+     */
+    QPointF getImagePt( bool* valid ) const;
+
+    /**
+     * Return a list of images that have been loaded.
+     * @return - a list of loaded images.
+     */
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
+
+
+    /**
      * Get the image dimensions.
      */
     std::vector<int> getImageDimensions( ) const;
+
+    /**
+     * Return the current layer.
+     * @return - the current layer.
+     */
+    std::shared_ptr<Layer> getLayer();
+
+    /**
+     * Return all layers containing images.
+     * @return - a list of all layers containing images.
+     */
+    std::vector< std::shared_ptr<Layer> > getLayers();
 
     /**
      * Recursively returns the identifiers for the layers in the stack..

@@ -180,6 +180,9 @@ private:
     ImageContext( const QString& path, const QString& id );
     class Factory;
 
+    void _clearDraw();
+    void _clearView();
+
     Controller* _getControllerSelected() const;
 
     enum ContextDraw { IMAGE_BOX,  ARROW_NE, ARROW_XY };

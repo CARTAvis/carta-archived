@@ -87,6 +87,7 @@ class tAnimatorLinks(unittest.TestCase):
         #animator will appear
         imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
         Util.load_image( self, driver, "Default")
+        time.sleep(2)
 
         # Enable the animation window
         animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
@@ -119,6 +120,7 @@ class tAnimatorLinks(unittest.TestCase):
 
         # Show the image animator by loading a second image in the second window
         Util.load_image_windowIndex( self, driver, "aH.fits", 2)
+        time.sleep(2)
 
         # Find and click the upper spin box
         imageUpperBoundText = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='ImageUpperBoundSpin']/input")))
@@ -161,13 +163,15 @@ class tAnimatorLinks(unittest.TestCase):
     # Test that we can add an Animator link to an image
     def test_animatorAddLink(self):
         driver = self.driver
-        timeout = 2*selectBrowser._getSleep()
+        timeout = selectBrowser._getSleep()
         browser = selectBrowser._getBrowser()
+        time.sleep(2)
 
         # Load image in a separate window, but make sure it has at least
         # one channel.
         imageWindow2 = Util.load_image_different_window( self, driver, "TWHydra_CO2_1line.image.fits")
-
+        time.sleep(2)
+        
         # Make sure the animation window is enabled by clicking an element within the window
         animWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']" )
         ActionChains(driver).click( animWindow ).perform()

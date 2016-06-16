@@ -91,7 +91,11 @@ QString CartaObject::getType() const {
 
 void CartaObject::setIndex( int index ){
     CARTA_ASSERT( index >= 0 );
-    m_state.setValue<int>(StateInterface::INDEX, index );
+    int oldIndex = m_state.getValue<int>( StateInterface::INDEX );
+    if ( oldIndex != index ){
+        m_state.setValue<int>(StateInterface::INDEX, index );
+        m_state.flushState();
+    }
 }
 
 void CartaObject::resetState( const QString& state, SnapshotType type ){

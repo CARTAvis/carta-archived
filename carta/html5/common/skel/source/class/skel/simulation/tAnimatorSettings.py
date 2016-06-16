@@ -223,6 +223,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
+        time.sleep( timeout )
 
         # Open settings
         self._openSettings( driver, "Channel" )
@@ -300,7 +301,8 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Open a test image so we have something to animate
         Util.load_image( self, driver, "Default")
-
+        time.sleep( 2 )
+        
         # Open settings
         self._openSettings( driver, "Channel" )
 
@@ -346,7 +348,8 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Load an image with at least one channel so the channel animator appears
         Util.load_image( self, driver, "Default")
-
+        time.sleep(2)
+        
         # Open settings
         self._openSettings( driver, "Channel" )
 
@@ -365,11 +368,11 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Load another image so we see the image animator
         Util.load_image(self, driver, "aJ.fits")
+        time.sleep(timeout)
 
         # Open settings
         self._openSettings( driver, "Image" )
-        time.sleep(timeout)
-
+       
         # Find and click on the rate text. Scroll into view if not visible
         rateText = driver.find_element_by_xpath( "//div[@id='ImageRate']/input")
         driver.execute_script( "arguments[0].scrollIntoView(true);", rateText)
@@ -392,6 +395,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Load an image with at least one channel so the channel animator will be visible
         Util.load_image(self,driver,"Default")
+        time.sleep( 2 )
 
         # Open settings
         self._openSettings( driver, "Channel")
@@ -411,7 +415,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
 
         # Load another image so the image animator will be visible
         Util.load_image( self, driver, "aJ.fits")
-
+        time.sleep(2)
 
         # Open settings
         self._openSettings( driver, "Image" )
@@ -437,6 +441,7 @@ class tAnimatorSettings(tAnimator.tAnimator):
         Util.load_image( self, driver, "aH.fits")
         Util.load_image( self, driver, "aJ.fits")
         Util.load_image( self, driver, "Default")
+        time.sleep(2)
 
         # Open settings
         self._openSettings( driver, "Channel")

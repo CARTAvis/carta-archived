@@ -58,6 +58,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             this.m_supportedCmds = [];
             var settingsCmd = skel.Command.Settings.SettingsContext.getInstance();
             this.m_supportedCmds.push( settingsCmd.getLabel());
+            var linksCmd = skel.Command.Link.CommandLink.getInstance();
+            this.m_supportedCmds.push( linksCmd.getLabel() );
             arguments.callee.base.apply(this, arguments);
         },
         

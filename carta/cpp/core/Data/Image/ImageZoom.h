@@ -132,6 +132,10 @@ private:
 
     class Factory;
     ImageZoom( const QString& path, const QString& id );
+
+    void _clearDraw();
+    void _clearView();
+
     Controller* _getControllerSelected() const;
     QString _getPreferencesId() const;
 
