@@ -14,7 +14,8 @@
 #include "Data/Plotter/LegendLocations.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Data/Plotter/LineStyles.h"
-#include "Data/Profile/ProfileRenderService.h"
+#include "Data/Profile/Fit/ProfileFitService.h"
+#include "Data/Profile/Render/ProfileRenderService.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Units/UnitsFrequency.h"
 #include "Data/Units/UnitsIntensity.h"
@@ -23,6 +24,7 @@
 #include "CartaLib/Hooks/Plot2DResult.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
+#include "CartaLib/Hooks/Fit1DHook.h"
 #include "CartaLib/Hooks/ProfileHook.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/ProfileInfo.h"
@@ -41,6 +43,7 @@ const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
 const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CURVES = "curves";
 const QString Profiler::CURVE_SELECT = "selectCurve";
+const QString Profiler::GAUSS_COUNT = "gaussCount";
 const QString Profiler::GEN_MODE = "genMode";
 const QString Profiler::GRID_LINES = "gridLines";
 const QString Profiler::IMAGES = "images";
@@ -48,6 +51,7 @@ const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
+const QString Profiler::POLY_COUNT = "polyCount";
 const QString Profiler::REGIONS = "regions";
 const QString Profiler::SHOW_TOOLTIP = "showToolTip";
 const QString Profiler::TOOL_TIPS = "toolTips";
@@ -91,7 +95,8 @@ Profiler::Profiler( const QString& path, const QString& id):
             m_plotManager( new Plot2DManager( path, id ) ),
             m_legendLocations( nullptr),
             m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA) ),
-            m_renderService( new ProfileRenderService() ){
+            m_renderService( new ProfileRenderService() ),
+            m_fitService( new ProfileFitService() ){
 
     m_oldFrame = 0;
     m_currentFrame = 0;
@@ -101,6 +106,10 @@ Profiler::Profiler( const QString& path, const QString& id):
             SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&,int,const QString&,bool,std::shared_ptr<Carta::Lib::Image::ImageInterface>)),
             this,
             SLOT(_profileRendered(const Carta::Lib::Hooks::ProfileResult&,int,const QString&,bool, std::shared_ptr<Carta::Lib::Image::ImageInterface>)));
+    connect( m_fitService.get(),
+               SIGNAL(fitResult(const std::vector<Carta::Lib::Hooks::FitResult>&)),
+               this,
+               SLOT(_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult>&)));
 
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Settings* prefObj = objMan->createObject<Settings>();
@@ -341,6 +350,41 @@ int Profiler::_findCurveIndex( const QString& name ) const {
 }
 
 
+
+void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & results){
+    int resultCount = results.size();
+    for ( int i = 0; i < resultCount; i++ ){
+        Carta::Lib::Hooks::FitResult result = results[i];
+        Carta::Lib::Fit1DInfo::StatusType statusType = result.getStatus();
+        if ( statusType == Carta::Lib::Fit1DInfo::StatusType::COMPLETE ||
+                statusType == Carta::Lib::Fit1DInfo::StatusType::PARTIAL ){
+            std::vector<std::pair<double,double>> fitData = result.getData();
+            int fitDataCount = fitData.size();
+            std::vector<double> dataX( fitDataCount );
+            std::vector<double> dataY( fitDataCount );
+            for ( int i = 0; i < fitDataCount; i++ ){
+                dataX[i] = fitData[i].first;
+                dataY[i] = fitData[i].second;
+            }
+            int curveIndex =  _findCurveIndex( result.getName() );
+            if ( curveIndex >= 0 ){
+                m_plotCurves[curveIndex ]->setFit( dataX, dataY );
+                _updatePlotData();
+            }
+
+        }
+        else if ( statusType == Carta::Lib::Fit1DInfo::StatusType::ERROR ){
+            QString errorStr( "There was an error performing the fit." );
+            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+            hr->registerError( errorStr );
+        }
+        else {
+            qDebug() << "Status of fit="<<(int)(statusType);
+        }
+    }
+}
+
+
 void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
     QString layerName = layer->_getLayerName();
     int curveIndex = _findCurveIndex( layerName );
@@ -348,7 +392,24 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
     _generateData( image, curveIndex, layerName, createNew );
 }
 
+void Profiler::_generateFit( ){
+    //Get the curves we will fit.
+    int curveCount = m_plotCurves.size();
+    std::vector<Carta::Lib::Fit1DInfo> fitInfos( curveCount );
+    int polyCount = getPolyCount();
+    int gaussCount = getGaussCount();
 
+    for ( int i = 0; i < curveCount; i++ ){
+
+        std::vector<double > curveData = m_plotCurves[i]->getValuesY();
+        QString name = m_plotCurves[i]->getName();
+        fitInfos[i].setId( name );
+        fitInfos[i].setData( curveData );
+        fitInfos[i].setPolyDegree( polyCount );
+        fitInfos[i].setGaussCount( gaussCount );
+    }
+    m_fitService->fitProfile(fitInfos );
+}
 
 
 void Profiler::_generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
@@ -548,6 +609,11 @@ int Profiler::_getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageI
 }
 
 
+int Profiler::getGaussCount() const {
+    return m_state.getValue<int>( GAUSS_COUNT );
+}
+
+
 QString Profiler::_getLegendLocationsId() const {
     return m_legendLocations->getPath();
 }
@@ -555,6 +621,11 @@ QString Profiler::_getLegendLocationsId() const {
 
 QList<QString> Profiler::getLinks() const {
     return m_linkImpl->getLinkIds();
+}
+
+
+int Profiler::getPolyCount() const {
+    return m_state.getValue<int>( POLY_COUNT );
 }
 
 
@@ -657,6 +728,10 @@ void Profiler::_initializeDefaultState(){
 
     //Significant digits.
     m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
+
+    //Fit
+    m_state.insertValue<int>( GAUSS_COUNT, 0 );
+    m_state.insertValue<int>( POLY_COUNT, 0 );
 
     m_state.flushState();
 }
@@ -886,6 +961,24 @@ void Profiler::_initializeCallbacks(){
             return result;
         });
 
+    addCommandCallback( "setGaussCount", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {GAUSS_COUNT};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString countStr = dataValues[GAUSS_COUNT];
+        bool validCount = false;
+        int count = countStr.toInt( &validCount );
+        if ( validCount ){
+            result = setGaussCount( count );
+        }
+        else {
+            result = "Profile fit gaussian count must be an integer: "+params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
     addCommandCallback( "setLegendLocation", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {LEGEND_LOCATION};
@@ -960,6 +1053,24 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setPolyCount", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {POLY_COUNT};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString countStr = dataValues[POLY_COUNT];
+            bool validCount = false;
+            int count = countStr.toInt( &validCount );
+            if ( validCount ){
+                result = setPolyCount( count );
+            }
+            else {
+                result = "Profile fit polynomial count must be an integer: "+params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
 
     addCommandCallback( "setPlotStyle", [=] (const QString & /*cmd*/,
                const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1465,6 +1576,22 @@ void Profiler::_setErrorMargin(){
     m_errorMargin = 1.0/qPow(10,significantDigits);
 }
 
+QString Profiler::setGaussCount( int count ){
+    QString result;
+    if ( count >= 0 ){
+        int oldCount = m_state.getValue<int>( GAUSS_COUNT );
+        if ( count != oldCount ){
+            m_state.setValue<int>( GAUSS_COUNT, count );
+            m_state.flushState();
+            _generateFit();
+        }
+    }
+    else {
+        result = "Profile fit Gaussian count must be nonnegative: "+QString::number( count);
+    }
+    return result;
+}
+
 QString Profiler::setGenerateMode( const QString& modeStr ){
     QString result;
     QString actualMode = m_generateModes->getActualMode( modeStr );
@@ -1581,6 +1708,22 @@ QString Profiler::setPlotStyle( const QString& name, const QString& plotStyle ){
     }
     else {
         result = "Profile curve was not recognized: "+name;
+    }
+    return result;
+}
+
+QString Profiler::setPolyCount( int count ){
+    QString result;
+    if ( count >= 0 ){
+        int oldCount = m_state.getValue<int>( POLY_COUNT );
+        if ( count != oldCount ){
+            m_state.setValue<int>( POLY_COUNT, count );
+            m_state.flushState();
+            _generateFit();
+        }
+    }
+    else {
+        result = "Profile fit polynomial count must be nonnegative: "+QString::number( count);
     }
     return result;
 }
@@ -1914,6 +2057,12 @@ void Profiler::_updatePlotData(){
         QString dataId = m_plotCurves[i]->getName();
         Carta::Lib::Hooks::Plot2DResult plotResult( dataId, "", "", plotData );
         m_plotManager->addData( &plotResult );
+        bool fitted = m_plotCurves[i]->isFitted();
+        if ( fitted ){
+            std::vector< std::pair<double,double> > fitData = m_plotCurves[i]->getFitData();
+            Carta::Lib::Hooks::Plot2DResult fitResult( dataId+"Fit", "", "", fitData );
+            m_plotManager->addData( &fitResult );
+        }
         m_plotManager->setColor( m_plotCurves[i]->getColor(), dataId );
     }
 

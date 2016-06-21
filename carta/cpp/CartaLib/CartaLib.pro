@@ -16,6 +16,8 @@ SOURCES += \
     Hooks/ColormapsScalar.cpp \
     Hooks/ConversionIntensityHook.cpp \
     Hooks/ConversionSpectralHook.cpp \
+    Hooks/Fit1DHook.cpp \
+    Hooks/FitResult.cpp \
     Hooks/Histogram.cpp \
     Hooks/HistogramResult.cpp \
     Hooks/ProfileHook.cpp \
@@ -29,6 +31,7 @@ SOURCES += \
     AxisInfo.cpp \
     AxisLabelInfo.cpp \
     AxisDisplayInfo.cpp \
+    Fit1DInfo.cpp \
     ICoordinateFormatter.cpp \
     IPlotLabelGenerator.cpp \
     Hooks/LoadAstroImage.cpp \
@@ -54,6 +57,8 @@ HEADERS += \
     Hooks/ColormapsScalar.h \
     Hooks/ConversionIntensityHook.h \
     Hooks/ConversionSpectralHook.h \
+    Hooks/Fit1DHook.h \
+    Hooks/FitResult.h \
     Hooks/Histogram.h \
     Hooks/HistogramResult.h \
     Hooks/ProfileHook.h \
@@ -70,6 +75,7 @@ HEADERS += \
     AxisInfo.h \
     AxisLabelInfo.h \
     AxisDisplayInfo.h \
+    Fit1DInfo.h \
     ICoordinateFormatter.h \
     IPlotLabelGenerator.h \
     Hooks/LoadAstroImage.h \

@@ -1,0 +1,11 @@
+{
+    "api"        : "1",
+    "name"       : "Fitter1D",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Fitting of one-dimensional curves."
+    ],
+    "about"      : "Fits Gaussian and polynomial curves to x-y plots.",
+    "depends"    : []
+}

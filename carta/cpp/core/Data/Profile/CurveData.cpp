@@ -197,6 +197,17 @@ QString CurveData::getCursorText( double x, double y, double* error ) const {
 }
 
 
+std::vector< std::pair<double,double> > CurveData::getFitData() const {
+    int fitCount = m_fitDataX.size();
+    std::vector< std::pair<double,double> > fitData( fitCount );
+    for ( int i = 0; i < fitCount; i++ ){
+        fitData[i].first = m_fitDataX[i];
+        fitData[i].second = m_fitDataY[i];
+    }
+    return fitData;
+}
+
+
 std::shared_ptr<Carta::Lib::Image::ImageInterface> CurveData::getImage() const {
     return m_imageSource;
 }
@@ -335,6 +346,14 @@ void CurveData::_initializeStatics(){
     }
 }
 
+bool CurveData::isFitted() const {
+    bool fitted = false;
+    if ( m_fitDataX.size() > 0 && m_fitDataY.size() > 0 ){
+        fitted = true;
+    }
+    return fitted;
+}
+
 bool CurveData::isMatch( const QString& name ) const {
     bool match = false;
     if ( m_state.getValue<QString>(Util::NAME) == name ){
@@ -375,6 +394,8 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
     m_plotDataY = valsY;
 }
 
+
+
 void CurveData::setDataX( const std::vector<double>& valsX ){
     CARTA_ASSERT( m_plotDataY.size() == valsX.size());
     m_plotDataX = valsX;
@@ -383,6 +404,12 @@ void CurveData::setDataX( const std::vector<double>& valsX ){
 void CurveData::setDataY( const std::vector<double>& valsY ){
     CARTA_ASSERT( m_plotDataX.size() == valsY.size());
     m_plotDataY = valsY;
+}
+
+void CurveData::setFit( const std::vector<double>& valsX, const std::vector<double>& valsY  ){
+    CARTA_ASSERT( valsX.size() == valsY.size() );
+    m_fitDataX = valsX;
+    m_fitDataY = valsY;
 }
 
 

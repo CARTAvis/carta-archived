@@ -12,7 +12,6 @@
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "State/StateInterface.h"
-#include "CartaLib/Hooks/LoadRegion.h"
 #include "Globals.h"
 
 #include <QDebug>

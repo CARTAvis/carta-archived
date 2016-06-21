@@ -92,11 +92,13 @@ HEADERS += \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
     Data/Profile/CurveData.h \
+    Data/Profile/Fit/ProfileFitService.h \
+    Data/Profile/Fit/ProfileFitThread.h \
     Data/Profile/Profiler.h \
     Data/Profile/ProfilePlotStyles.h \
-    Data/Profile/ProfileRenderService.h \
-    Data/Profile/ProfileRenderThread.h \
-    Data/Profile/ProfileRenderWorker.h \
+    Data/Profile/Render/ProfileRenderService.h \
+    Data/Profile/Render/ProfileRenderThread.h \
+    Data/Profile/Render/ProfileRenderWorker.h \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
@@ -225,11 +227,13 @@ SOURCES += \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
+    Data/Profile/Fit/ProfileFitService.cpp \
+    Data/Profile/Fit/ProfileFitThread.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfilePlotStyles.cpp \
-    Data/Profile/ProfileRenderService.cpp \
-    Data/Profile/ProfileRenderThread.cpp \
-    Data/Profile/ProfileRenderWorker.cpp \
+    Data/Profile/Render/ProfileRenderService.cpp \
+    Data/Profile/Render/ProfileRenderThread.cpp \
+    Data/Profile/Render/ProfileRenderWorker.cpp \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \

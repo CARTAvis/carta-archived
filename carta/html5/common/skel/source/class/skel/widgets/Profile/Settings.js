@@ -40,6 +40,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             this.m_pages[this.m_INDEX_PROFILES] = new skel.widgets.Profile.SettingsProfiles();
             this.m_pages[this.m_INDEX_CURVES] = new skel.widgets.Profile.SettingsCurves();
             this.m_pages[this.m_INDEX_RANGE] = new skel.widgets.Profile.SettingsRange();
+            this.m_pages[this.m_INDEX_FIT] = new skel.widgets.Profile.SettingsFit();
             
             for ( var i = 0; i < this.m_pages.length; i++ ){
                 this.m_tabView.add( this.m_pages[i] );
@@ -55,6 +56,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
                 try {
                     var profilePrefs = JSON.parse( val );
                     this.m_pages[this.m_INDEX_PLOT].prefUpdate( profilePrefs );
+                    this.m_pages[this.m_INDEX_FIT].prefUpdate( profilePrefs );
                     var tabIndex = profilePrefs.tabIndex;
                     this._selectTab( tabIndex );
                 }
@@ -112,8 +114,9 @@ qx.Class.define("skel.widgets.Profile.Settings", {
         m_sharedVar : null,
         m_sharedVarData : null,
         m_INDEX_RANGE : 1,
-        m_INDEX_CURVES : 3,
+        m_INDEX_CURVES : 4,
         m_INDEX_PROFILES : 2,
+        m_INDEX_FIT : 3,
         m_INDEX_PLOT : 0
     }
 });

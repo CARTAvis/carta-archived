@@ -29,6 +29,7 @@ enum class UniqueHookIDs {
     GetInitialFileList_ID,
     GetImageRenderService_ID,
     ProfileHook_ID,
+    Fit1DHook_ID,
     ImageStatisticsHook_ID,
 
 

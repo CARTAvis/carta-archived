@@ -91,12 +91,14 @@
                 console.warn( "Ignoring update for unconnected view '" + viewName + "'" );
                 return;
             }
-            buffer.assignToHTMLImageElement( view.m_imgTag );
-            QtConnector.jsViewRefreshedSlot( view.getName(), refreshId );
-            view._callViewCallbacks();
+            if ( buffer != null ){
+                buffer.assignToHTMLImageElement( view.m_imgTag );
+                QtConnector.jsViewRefreshedSlot( view.getName(), refreshId );
+                view._callViewCallbacks();
+            }
         }
         catch( error ) {
-            window.console.error( "Caught error in view updated callback ", error );
+            window.console.error( "Caught error in view updated callback "+viewName, error );
             window.console.trace();
         }
     });

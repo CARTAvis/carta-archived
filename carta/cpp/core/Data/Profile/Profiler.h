@@ -11,6 +11,7 @@
 #include "Data/ILinkable.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/Hooks/ProfileResult.h"
+#include "CartaLib/Hooks/FitResult.h"
 
 #include <QObject>
 
@@ -41,6 +42,7 @@ class GenerateModes;
 class LegendLocations;
 class LinkableImpl;
 class Layer;
+class ProfileFitService;
 class ProfileRenderService;
 class ProfileStatistics;
 class Settings;
@@ -65,6 +67,18 @@ public:
      * @return - the profile bottom axis units.
      */
     QString getAxisUnitsBottom() const;
+
+    /**
+     * Return the number of Gaussians to fit to the curve.
+     * @return - the number of Gaussians to fit to the curve.
+     */
+    int getGaussCount() const;
+
+    /**
+     * Return the number of polynomial terms to fit to the curve.
+     * @return - the degree of the polynomial to fit to the curve.
+     */
+    int getPolyCount() const;
 
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
@@ -168,6 +182,12 @@ public:
     QString setCurveName( const QString& id, const QString& newName );
 
     /**
+     * Set the number of Gaussians to fit to the curve.
+     * @param count - the number of Gaussians to fit to the curve.
+     */
+    QString setGaussCount( int count );
+
+    /**
      * Set which if any profiles should be automatically generated.
      * @param modeStr - an identifier for a profile generate mode.
      * @return - an error message if the profile generate mode was not recognized
@@ -215,6 +235,12 @@ public:
      * @param showLegend - true to show a legend on the plot; false otherwise.
      */
     void setLegendShow( bool showLegend );
+
+    /**
+     * Set the number of polynomial terms to use in fitting the curve.
+     * @param count - the degree of the polynomial.
+     */
+    QString setPolyCount( int degree );
 
     /**
      * Set the plot style (continuous, step, etc).
@@ -317,6 +343,7 @@ protected:
 
 private slots:
     void _cursorUpdate( double x, double y );
+    void _fitFinished(const std::vector<Carta::Lib::Hooks::FitResult>& result);
     void _loadProfile( Controller* controller);
     void _movieFrame();
     void _profileRendered( const Carta::Lib::Hooks::ProfileResult& result,
@@ -331,6 +358,7 @@ private:
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
     const static QString CURVE_SELECT;
+    const static QString GAUSS_COUNT;
     const static QString GEN_MODE;
     const static QString GRID_LINES;
     const static QString IMAGES;
@@ -338,6 +366,7 @@ private:
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
+    const static QString POLY_COUNT;
     const static QString REGIONS;
     const static QString SHOW_TOOLTIP;
     const static QString TOOL_TIPS;
@@ -367,7 +396,7 @@ private:
     void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
     void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
              int curveIndex, const QString& layerName, bool createNew = false );
-
+    void _generateFit( );
     Controller* _getControllerSelected() const;
     std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
@@ -447,6 +476,9 @@ private:
 
     //Compute the profile in a thread
     std::unique_ptr<ProfileRenderService> m_renderService;
+
+    //Out source the job of fitting the curve.
+    std::unique_ptr<ProfileFitService> m_fitService;
 
 	Profiler( const Profiler& other);
 	Profiler& operator=( const Profiler& other );

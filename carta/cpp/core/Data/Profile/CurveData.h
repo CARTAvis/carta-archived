@@ -57,7 +57,11 @@ public:
      */
     QString getCursorText( double x, double y, double* error) const;
 
-
+    /**
+     * Return the two-dimensional data that represent a fit to this curve.
+     * @return - the two-dimensional data that represent a curve fit.
+     */
+    std::vector< std::pair<double,double> > getFitData() const;
 
     /**
      * Returns the image that was used in the profile calculation.
@@ -164,6 +168,13 @@ public:
     bool isMatch( const QString& name ) const;
 
     /**
+     * Return whether or not the curve has been fit.
+     * @return - true if the curve has been fit with one or more Gaussian/polynomials, etc;
+     *      false otherwise.
+     */
+    bool isFitted() const;
+
+    /**
      * Set the rest frequency back to its original value.
      */
     void resetRestFrequency();
@@ -192,6 +203,13 @@ public:
      * @param valsY - the y-coordinate values of the curve.
      */
     void setDataY( const std::vector<double>& valsY );
+
+    /**
+     * Set the x- and y- fit values for the curve.
+     * @param valsX - the x-coordinate fit values of the curve.
+     * @param valsY - the y-coordinate fit values of the curve.
+     */
+    void setFit( const std::vector<double>& valsX, const std::vector<double>& valsY  );
 
     /**
      * Set the name of the layer that is the source of profile.
@@ -311,6 +329,8 @@ private:
 
     std::vector<double> m_plotDataX;
     std::vector<double> m_plotDataY;
+    std::vector<double> m_fitDataX;
+    std::vector<double> m_fitDataY;
     std::shared_ptr<Region> m_region;
 
     double m_restFrequency;
