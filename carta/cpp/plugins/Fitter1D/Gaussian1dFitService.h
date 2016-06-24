@@ -177,6 +177,7 @@ public:
 
     // test method
 //    void go();
+    virtual ~Manager();
 
 signals:
 

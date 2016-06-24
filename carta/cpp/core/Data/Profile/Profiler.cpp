@@ -46,13 +46,20 @@ const QString Profiler::CURVE_SELECT = "selectCurve";
 const QString Profiler::GAUSS_COUNT = "gaussCount";
 const QString Profiler::GEN_MODE = "genMode";
 const QString Profiler::GRID_LINES = "gridLines";
+const QString Profiler::HEURISTICS = "heuristics";
 const QString Profiler::IMAGES = "images";
 const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
+const QString Profiler::MANUAL_GUESS = "manualGuess";
 const QString Profiler::POLY_COUNT = "polyCount";
 const QString Profiler::REGIONS = "regions";
+const QString Profiler::SHOW_GUESSES = "showGuesses";
+const QString Profiler::SHOW_MEAN_RMS = "showMeanRMS";
+const QString Profiler::SHOW_PEAK_LABELS = "showPeakLabels";
+const QString Profiler::SHOW_RESIDUALS = "showResiduals";
+const QString Profiler::SHOW_STATISTICS = "showStats";
 const QString Profiler::SHOW_TOOLTIP = "showToolTip";
 const QString Profiler::TOOL_TIPS = "toolTips";
 const QString Profiler::ZOOM_BUFFER = "zoomBuffer";
@@ -102,6 +109,7 @@ Profiler::Profiler( const QString& path, const QString& id):
     m_currentFrame = 0;
     m_timerId = 0;
 
+
     connect( m_renderService.get(),
             SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&,int,const QString&,bool,std::shared_ptr<Carta::Lib::Image::ImageInterface>)),
             this,
@@ -124,6 +132,7 @@ Profiler::Profiler( const QString& path, const QString& id):
     connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT(_movieFrame()));
     connect( m_plotManager.get(), SIGNAL(cursorMove(double,double)),
             this, SLOT(_cursorUpdate(double,double)));
+    connect( m_plotManager.get(), SIGNAL(plotSizeChanged()), this, SLOT(_plotSizeChanged()));
 
     _initializeStatics();
     _initializeDefaultState();
@@ -395,20 +404,32 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer, bool createNew ){
 void Profiler::_generateFit( ){
     //Get the curves we will fit.
     int curveCount = m_plotCurves.size();
-    std::vector<Carta::Lib::Fit1DInfo> fitInfos( curveCount );
-    int polyCount = getPolyCount();
-    int gaussCount = getGaussCount();
-
+    int selectCount = 0;
     for ( int i = 0; i < curveCount; i++ ){
-
-        std::vector<double > curveData = m_plotCurves[i]->getValuesY();
-        QString name = m_plotCurves[i]->getName();
-        fitInfos[i].setId( name );
-        fitInfos[i].setData( curveData );
-        fitInfos[i].setPolyDegree( polyCount );
-        fitInfos[i].setGaussCount( gaussCount );
+        if ( m_plotCurves[i]->isSelectedFit() ){
+            selectCount++;
+        }
     }
-    m_fitService->fitProfile(fitInfos );
+    if ( selectCount > 0 ) {
+        std::vector<Carta::Lib::Fit1DInfo> fitInfos( selectCount );
+        int polyCount = getPolyCount();
+        int gaussCount = getGaussCount();
+        bool randomHeuristics = isRandomHeuristics();
+        int j = 0;
+        for ( int i = 0; i < curveCount; i++ ){
+            if ( m_plotCurves[i]->isSelectedFit() ){
+                std::vector<double > curveData = m_plotCurves[i]->getValuesY();
+                QString name = m_plotCurves[i]->getName();
+                fitInfos[j].setId( name );
+                fitInfos[j].setData( curveData );
+                fitInfos[j].setPolyDegree( polyCount );
+                fitInfos[j].setGaussCount( gaussCount );
+                fitInfos[j].setRandomHeuristics( randomHeuristics );
+                j++;
+            }
+        }
+        m_fitService->fitProfile(fitInfos );
+    }
 }
 
 
@@ -732,6 +753,13 @@ void Profiler::_initializeDefaultState(){
     //Fit
     m_state.insertValue<int>( GAUSS_COUNT, 0 );
     m_state.insertValue<int>( POLY_COUNT, 0 );
+    m_state.insertValue<bool>( HEURISTICS, true );
+    m_state.insertValue<bool>( MANUAL_GUESS, false );
+    m_state.insertValue<bool>( SHOW_RESIDUALS, true );
+    m_state.insertValue<bool>( SHOW_GUESSES, false );
+    m_state.insertValue<bool>( SHOW_STATISTICS, true );
+    m_state.insertValue<bool>( SHOW_MEAN_RMS, false );
+    m_state.insertValue<bool>( SHOW_PEAK_LABELS, false );
 
     m_state.flushState();
 }
@@ -773,6 +801,114 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setManualGuess", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {MANUAL_GUESS};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString guessStr = dataValues[*keys.begin()];
+        bool validBool = false;
+        bool manualGuess = Util::toBool( guessStr, &validBool );
+        if ( validBool ){
+            setFitManualGuess( manualGuess );
+        }
+        else {
+            result = "Whether or not to manually specify fit initial conditions must be true/false: " + params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setShowMeanRMS", [=] (const QString & /*cmd*/,
+               const QString & params, const QString & /*sessionId*/) -> QString {
+           QString result;
+           std::set<QString> keys = {SHOW_MEAN_RMS};
+           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+           QString showStr = dataValues[*keys.begin()];
+           bool validBool = false;
+           bool show = Util::toBool( showStr, &validBool );
+           if ( validBool ){
+               setShowMeanRMS( show );
+           }
+           else {
+               result = "Whether or not to show fit mean & RMS must be true/false: " + params;
+           }
+           Util::commandPostProcess( result );
+           return result;
+       });
+
+    addCommandCallback( "setShowPeakLabels", [=] (const QString & /*cmd*/,
+                  const QString & params, const QString & /*sessionId*/) -> QString {
+              QString result;
+              std::set<QString> keys = {SHOW_PEAK_LABELS};
+              std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+              QString showStr = dataValues[*keys.begin()];
+              bool validBool = false;
+              bool show = Util::toBool( showStr, &validBool );
+              if ( validBool ){
+                  setShowPeakLabels( show );
+              }
+              else {
+                  result = "Whether or not to show peak labels must be true/false: " + params;
+              }
+              Util::commandPostProcess( result );
+              return result;
+          });
+
+    addCommandCallback( "setShowResiduals", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {SHOW_RESIDUALS};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString residualStr = dataValues[*keys.begin()];
+        bool validBool = false;
+        bool residuals = Util::toBool( residualStr, &validBool );
+        if ( validBool ){
+            setShowFitResiduals( residuals );
+        }
+        else {
+            result = "To show fit residuals must be true/false: " + params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    addCommandCallback( "setShowGuesses", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {SHOW_GUESSES};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString guessStr = dataValues[*keys.begin()];
+            bool validBool = false;
+            bool guesses = Util::toBool( guessStr, &validBool );
+            if ( validBool ){
+                result = setShowFitGuesses( guesses );
+            }
+            else {
+                result = "Whether or not to show fit manual guesses must be true/false: " + params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setShowStatistics", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {SHOW_STATISTICS};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString statStr = dataValues[*keys.begin()];
+            bool validBool = false;
+            bool stats = Util::toBool( statStr, &validBool );
+            if ( validBool ){
+                setShowFitStatistics( stats );
+            }
+            else {
+                result = "To show fit residuals must be true/false: " + params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setZoomBufferSize", [=] (const QString & /*cmd*/,
                       const QString & params, const QString & /*sessionId*/) -> QString {
            QString result;
@@ -790,6 +926,24 @@ void Profiler::_initializeCallbacks(){
            Util::commandPostProcess( result );
            return result;
        });
+
+    addCommandCallback( "setRandomHeuristics", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        std::set<QString> keys = {HEURISTICS};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString heuristicsStr = dataValues[*keys.begin()];
+        bool validBool = false;
+        bool heuristics = Util::toBool(heuristicsStr, &validBool );
+        if ( validBool ){
+            setRandomHeuristics( heuristics );
+        }
+        else {
+            result = "Whether or not to use random heuristics must be true/false: " + params;
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     addCommandCallback( "setZoomBuffer", [=] (const QString & /*cmd*/,
                   const QString & params, const QString & /*sessionId*/) -> QString {
@@ -819,6 +973,17 @@ void Profiler::_initializeCallbacks(){
             Util::commandPostProcess( result );
             return result;
         });
+
+    addCommandCallback( "setFitCurves", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {"fitCurves"};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString names = dataValues[*keys.begin()];
+                QStringList nameList = names.split( ";");
+                QString result = setFitCurves( nameList );
+                Util::commandPostProcess( result );
+                return result;
+            });
 
     addCommandCallback( "setGenerationMode", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1198,6 +1363,10 @@ void Profiler::_initializeStatics(){
     }
 }
 
+bool Profiler::isFitManualGuess( ) const {
+    return m_state.getValue<bool>( MANUAL_GUESS );
+}
+
 
 bool Profiler::isLinked( const QString& linkId ) const {
     bool linked = false;
@@ -1206,6 +1375,11 @@ bool Profiler::isLinked( const QString& linkId ) const {
         linked = true;
     }
     return linked;
+}
+
+
+bool Profiler::isRandomHeuristics() const {
+    return m_state.getValue<bool>( HEURISTICS );
 }
 
 
@@ -1295,6 +1469,13 @@ void Profiler::_movieFrame(){
     }
 }
 
+void Profiler::_plotSizeChanged(){
+    int curveCount = m_plotCurves.size();
+    for ( int i = 0; i < curveCount; i++ ){
+        m_plotCurves[i]->pixelsChanged();
+    }
+}
+
 QString Profiler::profileNew(){
     QString result;
     Controller* controller = _getControllerSelected();
@@ -1316,6 +1497,7 @@ QString Profiler::profileCopy( const QString& baseName ){
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         std::shared_ptr<CurveData> profileCurve( objMan->createObject<CurveData>() );
         profileCurve->copy( m_plotCurves[curveIndex]);
+        profileCurve->setScreenTranslator( m_plotManager );
         _assignCurveName( profileCurve );
         m_plotCurves.append( profileCurve );
         _saveCurveState();
@@ -1371,6 +1553,7 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
                 Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
                 profileCurve.reset( objMan->createObject<CurveData>() );
                 profileCurve->setImageName( layerName );
+                profileCurve->setScreenTranslator( m_plotManager );
                 double restFrequency = result.getRestFrequency();
                 int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
                 double restRounded = Util::roundToDigits( restFrequency, significantDigits );
@@ -1576,13 +1759,66 @@ void Profiler::_setErrorMargin(){
     m_errorMargin = 1.0/qPow(10,significantDigits);
 }
 
+QString Profiler::setFitCurves( const QStringList curveNames ){
+    QString result;
+    int fitCount = curveNames.size();
+    //Clear any that were previously selected for fitting.
+    int curveCount = m_plotCurves.size();
+    bool changed = false;
+    for ( int i = 0; i < curveCount; i++ ){
+        if ( m_plotCurves[i]->isSelectedFit()){
+            m_plotCurves[i]->setSelectedFit( false );
+            changed = true;
+        }
+    }
+
+    //Set the ones identified selected.
+    for ( int i = 0; i < fitCount; i++ ){
+        int curveIndex = _findCurveIndex( curveNames[i]);
+        if ( curveIndex >= 0 ){
+            changed = true;
+            m_plotCurves[curveIndex]->setSelectedFit( true );
+        }
+        else {
+            if ( result.isEmpty() ){
+                result = "Could not fit selected curve(s); invalid identifier(s):";
+            }
+            result = result + curveNames[i];
+        }
+    }
+
+    if ( changed ){
+        _saveCurveState();
+        _generateFit();
+    }
+    return result;
+}
+
+void Profiler::setFitManualGuess( bool manualGuess ){
+    bool oldManual = m_state.getValue<bool>( MANUAL_GUESS );
+    if ( oldManual != manualGuess ){
+        m_state.setValue<bool>( MANUAL_GUESS, manualGuess );
+        m_state.flushState();
+    }
+}
+
 QString Profiler::setGaussCount( int count ){
     QString result;
     if ( count >= 0 ){
         int oldCount = m_state.getValue<int>( GAUSS_COUNT );
         if ( count != oldCount ){
             m_state.setValue<int>( GAUSS_COUNT, count );
+            //Update the initial guess count in the curves.
+            int curveCount = m_plotCurves.size();
+            for ( int i = 0; i < curveCount; i++ ){
+                if ( m_plotCurves[i]->isSelectedFit() ){
+                    m_plotCurves[i]->setInitialGuessCount( count );
+                    _saveCurveState( i );
+                }
+            }
+
             m_state.flushState();
+
             _generateFit();
         }
     }
@@ -1728,6 +1964,15 @@ QString Profiler::setPolyCount( int count ){
     return result;
 }
 
+void Profiler::setRandomHeuristics( bool randomHeuristics ){
+    bool oldRandom = m_state.getValue<bool>( HEURISTICS );
+    if ( randomHeuristics != oldRandom ){
+        m_state.setValue<bool>( HEURISTICS, randomHeuristics );
+        m_state.flushState();
+        _generateFit();
+    }
+}
+
 QString Profiler::setRestFrequency( double freq, const QString& curveName ){
     QString result;
     int index = _findCurveIndex( curveName );
@@ -1780,6 +2025,54 @@ QString Profiler::setRestUnitType( bool restUnitsFreq, const QString& curveName 
         result = "Unrecognized profile curve:"+curveName;
     }
     return result;
+}
+
+QString Profiler::setShowFitGuesses( bool showFitGuesses ){
+    QString result;
+    bool oldShow = m_state.getValue<bool>( SHOW_GUESSES );
+    if ( oldShow != showFitGuesses ){
+        //We will only show them if we are in manual mode.
+        if ( isFitManualGuess() ){
+            m_state.setValue<bool>(SHOW_GUESSES, showFitGuesses );
+            m_state.flushState();
+        }
+        else {
+            result = "Fit guesses will only be displayed when manual guesses are specified.";
+        }
+    }
+    return result;
+}
+
+void Profiler::setShowFitResiduals( bool showFitResiduals ){
+    bool oldShowResiduals = m_state.getValue<bool>( SHOW_RESIDUALS );
+    if ( oldShowResiduals != showFitResiduals ){
+        m_state.setValue<bool>(SHOW_RESIDUALS, showFitResiduals );
+        m_state.flushState();
+    }
+}
+
+void Profiler::setShowFitStatistics( bool showFitStatistics ){
+    bool oldShow = m_state.getValue<bool>( SHOW_STATISTICS );
+    if ( oldShow != showFitStatistics ){
+        m_state.setValue<bool>(SHOW_STATISTICS, showFitStatistics );
+        m_state.flushState();
+    }
+}
+
+void Profiler::setShowMeanRMS( bool showMeanRMS ){
+    bool oldShow = m_state.getValue<bool>( SHOW_MEAN_RMS );
+    if ( oldShow != showMeanRMS ){
+        m_state.setValue<bool>(SHOW_MEAN_RMS, showMeanRMS );
+        m_state.flushState();
+    }
+}
+
+void Profiler::setShowPeakLabels( bool showPeakLabels ){
+    bool oldShow = m_state.getValue<bool>( SHOW_PEAK_LABELS );
+    if ( oldShow != showPeakLabels ){
+        m_state.setValue<bool>(SHOW_PEAK_LABELS, showPeakLabels );
+        m_state.flushState();
+    }
 }
 
 QString Profiler::setSignificantDigits( int digits ){

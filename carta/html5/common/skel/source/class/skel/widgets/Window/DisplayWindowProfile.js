@@ -101,7 +101,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                             var setObj = JSON.parse( val );
                             if ( setObj.settings !== null ){
                                 this.m_profile.showHideSettings( setObj.settings );
+                                
                             }
+                          
                            
                         }
                         catch( err ){

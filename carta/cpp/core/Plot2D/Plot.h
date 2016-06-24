@@ -34,6 +34,14 @@ public:
     Plot( QWidget* parent = nullptr);
 
     /**
+     * Return the screen point corresponding to the given image
+     * point.
+     * @return - the screen point corresponding to the given image
+     *      point.
+     */
+    QPointF getScreenPoint( const QPointF& dataPoint ) const;
+
+    /**
      * Set the font used to draw axis labels.
      * @param font - the font for axis labels.
      */

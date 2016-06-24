@@ -23,32 +23,65 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
     members : {
         
         /**
+         * Update the list of profile curves based on server information.
+         * @param curveUpdate {Object} - information from the server about profile curves.
+         */
+        dataUpdate : function( curveUpdate ){
+            this.m_curveInfo = curveUpdate.curves;
+            var curveNames = [];
+            for ( var i = 0; i < this.m_curveInfo.length; i++ ){
+                curveNames[i] = this.m_curveInfo[i].name;
+            }
+            if ( this.m_curveListenId !== null ){
+                this.m_curveList.removeListenerById( this.m_curveListenId );
+            }
+            this.m_curveList.setItems( curveNames );
+            this.m_curveListenId = this.m_curveList.addListener( "itemsSelected", 
+                    this._sendFitsCmd, this );
+        }, 
+        
+        /**
          * Initializes the UI.
          */
         _init : function( ) {
             this.setPadding( 0, 0, 0, 0 );
             this.setMargin( 1, 1, 1, 1 );
-            this._setLayout(new qx.ui.layout.VBox(2));
+            this._setLayout(new qx.ui.layout.HBox(2));
+            this._initProfiles();
+            this._initParams();
+            this._initDisplay();
+        },
+        
+        /**
+         * Initialize the parameters that show/hide various aspects of the
+         * fit display.
+         */
+        _initDisplay : function(){
+            this.m_fitDisplay = new skel.widgets.Profile.FitDisplay();
+            this.add( this.m_fitDisplay );
+        },
+      
+        /**
+         * Initialize the panel that displays fit parameters.
+         */
+        _initParams : function(){
            
-            var gaussContainer = new qx.ui.container.Composite();
-            gaussContainer.setLayout( new qx.ui.layout.HBox(2));
-            var gaussLabel = new qx.ui.basic.Label( "Gauss Count:");
-            this.m_gaussCountSpin = new qx.ui.form.Spinner();
-            this.m_gaussCountListenId = this.m_gaussCountSpin.addListener( "changeValue", 
-                    this._sendGaussCountCmd, this );
-            gaussContainer.add( gaussLabel );
-            gaussContainer.add( this.m_gaussCountSpin );
-            this.add( gaussContainer );
-            
-            var polyContainer = new qx.ui.container.Composite();
-            polyContainer.setLayout( new qx.ui.layout.HBox(2));
-            var polyLabel = new qx.ui.basic.Label( "Polynomial Count:");
-            this.m_polyCountSpin = new qx.ui.form.Spinner();
-            this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
-                    this._sendPolyCountCmd, this );
-            polyContainer.add( polyLabel );
-            polyContainer.add( this.m_polyCountSpin );
-            this.add( polyContainer );
+            this.m_fitParameters = new skel.widgets.Profile.FitParameters();
+            this.add( this.m_fitParameters );
+        },
+        
+        /**
+         * Initialize the list of profiles that are available for fitting.
+         */
+        _initProfiles : function(){
+            var TABLE_WIDTH = 150;
+            this.m_curveList  = new skel.widgets.CustomUI.ItemTable( "Profiles", TABLE_WIDTH);
+            this.m_curveList.setTestId( "profileTable");
+            this.m_curveList.setToolTipText( "Select one or more profiles to fit." );
+            this.m_curveList.setWidth( TABLE_WIDTH );
+            this.m_curveListenId = this.m_curveList.addListener( "itemsSelected", 
+                    this._sendFitsCmd, this );
+            this.add( this.m_curveList );
         },
         
         /**
@@ -56,46 +89,25 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
          * @param prefs {Object} - server-side fit settings.
          */
         prefUpdate : function( prefs ){
-            if ( this.m_gaussCountListenId != null ){
-                this.m_gaussCountSpin.removeListenerById( this.m_gaussCountListenId );
-            }
-            this.m_gaussCountSpin.setValue( prefs.gaussCount );
-            this.m_gaussCountListenId = this.m_gaussCountSpin.addListener( "changeValue", 
-                    this._sendGaussCountCmd, this );
-            if ( this.m_polyCountListenId != null ){
-                this.m_polyCountSpin.removeListenerById( this.m_polyCountListenId );
-            }
-            this.m_polyCountSpin.setValue( prefs.polyCount );
-            this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
-                    this._sendPolyCountCmd, this );
-        },
-        
-       /**
-        * Send a command to the server indicating the number of Gaussians to fit.
-        */
-        _sendGaussCountCmd : function(){
-            if ( this.m_id !== null && this.m_connector !== null ){
-                var gaussCount = this.m_gaussCountSpin.getValue();
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setGaussCount";
-                var params = "gaussCount:"+gaussCount;
-                this.m_connector.sendCommand( cmd, params, null );
-            }
+           this.m_fitParameters.prefUpdate( prefs );
+           this.m_fitDisplay.prefUpdate( prefs );
         },
         
         /**
-         * Send a command to the server indicating the degree of the polynomial to fit.
+         * Send a command to the server identifying the profiles that need
+         * to be fit.
          */
-        _sendPolyCountCmd : function(){
+        _sendFitsCmd : function(){
             if ( this.m_id !== null && this.m_connector !== null ){
-                var polyCount = this.m_polyCountSpin.getValue();
+                var fits = this.m_curveList.getSelections();
+                var fitsList = fits.join( ";");
                 var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setPolyCount";
-                var params = "polyCount:"+polyCount;
+                var cmd = this.m_id + path.SEP_COMMAND + "setFitCurves";
+                var params = "fitCurves:" + fitsList;
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
-        
+       
         
         /**
          * Set the server side id of this control UI.
@@ -104,13 +116,15 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
          */
         setId : function( id ){
             this.m_id = id;
-           
+            this.m_fitParameters.setId( id );
+            this.m_fitDisplay.setId( id );
         },
+        
         m_connector : null,
-        m_gaussCountListenId : null,
-        m_gaussCountSpin : null,
-        m_polyCountListenId : null,
-        m_polyCountSpin : null,
+        m_curveList : null,
+        m_curveListenId : null,
+        m_fitDisplay : null,
+        m_fitParameters : null,
         m_id : null
       
     }

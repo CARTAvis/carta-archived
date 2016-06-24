@@ -81,8 +81,8 @@ Manager::Manager( QObject * parent ) :
              & worker_, SLOT( onGoFromService( InputParametersG1dFit ) ) );
 
     // move the worker to a separate thread
-    worker_.moveToThread( & workerThread_ );
-    workerThread_.start();
+    //worker_.moveToThread( & workerThread_ );
+    //workerThread_.run();
 }
 
 bool
@@ -122,12 +122,15 @@ Manager::schedulePending()
     return true;
 }
 
+Manager::~Manager(){
+}
+
 Worker::Worker( bool & interruptFlagRef )
     : interruptFlag_( interruptFlagRef )
 { }
 
-Worker::~Worker()
-{ }
+Worker::~Worker(){
+}
 
 // throws an exception if the interrupt flag is set
 void

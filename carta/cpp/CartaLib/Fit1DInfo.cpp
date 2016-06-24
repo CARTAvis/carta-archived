@@ -25,6 +25,10 @@ QString Fit1DInfo::getId() const {
     return m_id;
 }
 
+bool Fit1DInfo::isRandomHeuristics() const {
+    return m_randomHeuristics;
+}
+
 void Fit1DInfo::setData( const std::vector<double>& data ){
     m_data = data;
 }
@@ -37,6 +41,10 @@ void Fit1DInfo::setGaussCount( int gaussCount ){
 void Fit1DInfo::setPolyDegree( int polyDegree ){
     CARTA_ASSERT( polyDegree>= 0 );
     m_polyDegree = polyDegree;
+}
+
+void Fit1DInfo::setRandomHeuristics( bool random ){
+    m_randomHeuristics = random;
 }
 
 

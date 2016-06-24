@@ -107,11 +107,25 @@ public:
     double getZoomMaxPercent() const;
 
     /**
+     * Return true if initial guesses will be specified manually; false, otherwise.
+     * @return - true if initial guesses will be specified manually, false, otherwise.
+     */
+    bool isFitManualGuess( ) const;
+
+    /**
      * Returns whether or not the object with the given id is already linked to this object.
      * @param linkId - a QString identifier for an object.
      * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Return whether or not random heuristics will be used for the initial fit
+     * guesses when performing a fit.
+     * @return - whether random heuristics will be used for the initial fit guesses
+     *      when performing a fit.
+     */
+    bool isRandomHeuristics() const;
 
     /**
      * Generate a new profile based on default settings.
@@ -180,6 +194,22 @@ public:
      * @param newName - the new name of the curve.
      */
     QString setCurveName( const QString& id, const QString& newName );
+
+    /**
+     * Set the list of curves to be fit with Gaussians/Polynomials.
+     * @param curveNames - the list of curves to be fit.
+     * @return - an error message if there was a problem identifying
+     *      the curves to be fit; an empty string otherwise.
+     */
+    QString setFitCurves( const QStringList curveNames );
+
+    /**
+     * Set whether or not manual initial guesses will be specified for
+     * fitting.
+     * @param manualGuess - true if manual initial guesses will be used;
+     *      false, otherwise.
+     */
+    void setFitManualGuess( bool manualGuess );
 
     /**
      * Set the number of Gaussians to fit to the curve.
@@ -252,6 +282,14 @@ public:
     QString setPlotStyle( const QString& name, const QString& plotStyle );
 
     /**
+     * Set whether or not random heuristics will be used for the initial guesses
+     * when performing a fit.
+     * @param randomHeuristics - true if random heuristics should be used; false,
+     *      otherwise.
+     */
+    void setRandomHeuristics( bool randomHeuristics );
+
+    /**
      * Set the rest frequency used to generate a profile for the given curve.
      * @param freq - the rest frequency.
      * @param curveName - an identifier for a profile curve.
@@ -278,6 +316,46 @@ public:
      *      otherwise, an empty string.
      */
     QString setRestUnitType( bool restUnitsFreq, const QString& curveName );
+
+    /**
+     * Set whether or not to show manual fit guesses in the UI.
+     * @param showFitGuesses - true if manual fit guesses should be displayed;
+     *      false otherwise.
+     * @return - an error message if the parameter could not be set; an empty
+     *      string otherwise.
+     */
+    //Note:  Manual guesses will not be shown if manual mode has not
+    //first been set.
+    QString setShowFitGuesses( bool showFitGuesses );
+
+    /**
+     * Set whether or not residuals should be shown in the UI.
+     * @param showFitResiduals - true if fit residuals should be displayed;
+     *      false, otherwise.
+     */
+    void setShowFitResiduals( bool showFitResiduals );
+
+    /**
+     * Set whether fit statistics should be displayed.
+     * @param showFitStatistics - true if fit statistics should be displayed;
+     *      false otherwise.
+     */
+    void setShowFitStatistics( bool showFitStatistics );
+
+    /**
+     * Set whether or not the mean and RMS should be displayed.
+     * @param showMeanRMS - true if the mean and RMS should be displayed;
+     *      false, otherwise.
+     */
+    void setShowMeanRMS( bool showMeanRMS );
+
+    /**
+     * Set whether or not peak labels should be displayed indicating fit
+     * information.
+     * @param showPeakLabels - true to show labels at Gaussian fit peaks;
+     *      false, otherwise.
+     */
+    void setShowPeakLabels( bool showPeakLabels );
 
     /**
      * Set the number of significant digits to use in storing numbers.
@@ -346,6 +424,7 @@ private slots:
     void _fitFinished(const std::vector<Carta::Lib::Hooks::FitResult>& result);
     void _loadProfile( Controller* controller);
     void _movieFrame();
+    void _plotSizeChanged();
     void _profileRendered( const Carta::Lib::Hooks::ProfileResult& result,
             int curveIndex, const QString& layerName, bool createNew,
             std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
@@ -361,13 +440,20 @@ private:
     const static QString GAUSS_COUNT;
     const static QString GEN_MODE;
     const static QString GRID_LINES;
+    const static QString HEURISTICS;
     const static QString IMAGES;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
+    const static QString MANUAL_GUESS;
     const static QString POLY_COUNT;
     const static QString REGIONS;
+    const static QString SHOW_GUESSES;
+    const static QString SHOW_MEAN_RMS;
+    const static QString SHOW_PEAK_LABELS;
+    const static QString SHOW_RESIDUALS;
+    const static QString SHOW_STATISTICS;
     const static QString SHOW_TOOLTIP;
     const static QString TOOL_TIPS;
     const static QString TAB_INDEX;
@@ -447,7 +533,7 @@ private:
 
     //Directs how the plot should be drawn and manages
     //updates for the plot.
-    std::unique_ptr<Plot2DManager> m_plotManager;
+    std::shared_ptr<Plot2DManager> m_plotManager;
 
     //Location of the legends on the plot
     std::unique_ptr<LegendLocations> m_legendLocations;

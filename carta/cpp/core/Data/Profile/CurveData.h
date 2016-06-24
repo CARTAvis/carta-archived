@@ -23,6 +23,8 @@ class ImageInterface;
 namespace Carta {
 namespace Data {
 
+class InitialGuess;
+class IScreenTranslator;
 class LineStyles;
 class ProfileStatistics;
 class ProfilePlotStyles;
@@ -175,6 +177,17 @@ public:
     bool isFitted() const;
 
     /**
+     * Returns whether or not the curve has been selected for fitting.
+     * @return - true if the curve is selected for fitting; false, otherwise.
+     */
+    bool isSelectedFit() const;
+
+    /**
+     * Notification that the pixels on the screen have changed.
+     */
+    void pixelsChanged();
+
+    /**
      * Set the rest frequency back to its original value.
      */
     void resetRestFrequency();
@@ -217,6 +230,12 @@ public:
      *  the profile.
      */
     QString setImageName( const QString& imageName );
+
+    /**
+     * Set the number of initial Gaussian (manual) guesses that are needed.
+     * @param count - the number of initial Gaussian guesses that are needed.
+     */
+    void setInitialGuessCount( int count );
 
     /**
      * Set the line style (outline,solid, etc) for drawing the curve.
@@ -278,6 +297,18 @@ public:
     void setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin );
 
     /**
+     * Set a class capable of transforming data coordinates to screen coordinates.
+     * @param trans - a class capable of transforming data coordinates to screen coordinates.
+     */
+    void setScreenTranslator( std::shared_ptr<IScreenTranslator> trans );
+
+    /**
+     * Sets whether or not the curve should be fit.
+     * @param selected - true if the curve should be fit; false, otherwise.
+     */
+    void setSelectedFit( bool selected );
+
+    /**
      * Set the method used to summarize profile points.
      * @param stat - the method used to summarize profile points.
      * @return - an error message if the method was unrecognized; an empty string otherwise.
@@ -296,6 +327,7 @@ public:
 private:
 
     const static QString COLOR;
+    const static QString FIT_SELECT;
     const static QString STYLE;
     const static QString PLOT_STYLE;
     const static QString STATISTIC;
@@ -337,6 +369,9 @@ private:
     QString m_restUnits;
 
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_imageSource;
+    QList<std::shared_ptr<InitialGuess>> m_initialFitGuesses;
+
+    std::shared_ptr<IScreenTranslator> m_screenTranslator;
 
 	CurveData( const CurveData& other);
 	CurveData& operator=( const CurveData& other );

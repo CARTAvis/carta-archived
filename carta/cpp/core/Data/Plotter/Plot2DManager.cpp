@@ -151,6 +151,16 @@ std::pair<double,double> Plot2DManager::getRangeColor( bool* valid ) const {
     return range;
 }
 
+QPointF Plot2DManager::getScreenPoint( const QPointF& dataPoint, bool* valid ) const {
+    *valid = false;
+    QPointF screenPt;
+    if ( m_plotGenerator ){
+        *valid = true;
+        screenPt = m_plotGenerator->getScreenPoint( dataPoint );
+    }
+    return screenPt;
+}
+
 
 double Plot2DManager::getVLinePosition( bool* valid ) const {
     *valid = false;
@@ -501,6 +511,7 @@ void Plot2DManager::_updateSize( const QSize& size ){
         bool newSize = m_plotGenerator->setSize( size.width(), size.height());
         if ( newSize ){
             updatePlot();
+            emit plotSizeChanged();
         }
     }
 }

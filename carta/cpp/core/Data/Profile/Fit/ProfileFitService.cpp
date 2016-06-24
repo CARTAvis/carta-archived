@@ -27,17 +27,15 @@ bool ProfileFitService::fitProfile(const std::vector<Carta::Lib::Fit1DInfo>& fit
 
 void ProfileFitService::_scheduleRender( const std::vector<Carta::Lib::Fit1DInfo>& fitInfos ){
 
-    if ( m_fitThread && !m_fitThread->isFinished() ) {
+    if ( m_fitQueued ) {
         return;
     }
     m_fitQueued = true;
 
-    //Create a worker if we don't have one.
-    delete m_fitThread;
+    //Create a thread to do the fit.
     m_fitThread = new ProfileFitThread();
     connect( m_fitThread, SIGNAL(finished()), this, SLOT(_postResult()));
     m_fitThread->setParams( fitInfos );
-
     m_fitThread->start();
 
 }
@@ -46,12 +44,14 @@ void ProfileFitService::_postResult( ){
     std::vector<Carta::Lib::Hooks::FitResult> results = m_fitThread->getResult();
     //RenderRequest request = m_requests.dequeue();
     emit fitResult( results );
-    m_fitQueued = false;
+
     /*if ( m_requests.size() > 0 ){
         RenderRequest& head = m_requests.head();
          _scheduleRender( head.m_image,
                 head.m_regionInfo, head.m_profileInfo );
     }*/
+    m_fitThread->deleteLater();
+    m_fitQueued = false;
 }
 
 

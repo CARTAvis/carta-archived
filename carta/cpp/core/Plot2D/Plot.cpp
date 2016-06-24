@@ -28,13 +28,15 @@ Plot::Plot( QWidget* parent):
     setAutoReplot( false );
 }
 
-void Plot::setFont( const QFont& font ){
-    QwtScaleWidget* leftWidget = axisWidget( QwtPlot::yLeft );
-    leftWidget->setFont( font );
-    leftWidget->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QwtScaleWidget* bottomWidget = axisWidget( QwtPlot::xBottom );
-    bottomWidget->setFont( font );
+QPointF Plot::getScreenPoint( const QPointF& dataPoint ) const {
+    QwtScaleMap xMap = canvasMap( QwtPlot::xBottom );
+
+    double xTrans = transform( QwtPlot::xBottom, dataPoint.x());
+    QwtScaleMap yMap = canvasMap( QwtPlot::yLeft );
+    double yTrans = transform( QwtPlot::yLeft, dataPoint.y());
+    return QPointF( xTrans, yTrans );
 }
+
 
 int Plot::_calculateAlignment( const QString& pos ) const {
     int alignment = 0;
@@ -79,6 +81,14 @@ QwtPlot::LegendPosition Plot::_calculatePosition( const QString& pos ) const{
         legPos = QwtPlot::TopLegend;
     }
     return legPos;
+}
+
+void Plot::setFont( const QFont& font ){
+    QwtScaleWidget* leftWidget = axisWidget( QwtPlot::yLeft );
+    leftWidget->setFont( font );
+    leftWidget->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QwtScaleWidget* bottomWidget = axisWidget( QwtPlot::xBottom );
+    bottomWidget->setFont( font );
 }
 
 

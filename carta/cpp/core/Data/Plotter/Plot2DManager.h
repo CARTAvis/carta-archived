@@ -7,6 +7,7 @@
 #pragma once
 
 #include "State/ObjectManager.h"
+#include "IScreenTranslator.h"
 #include "State/StateInterface.h"
 #include "CartaLib/Hooks/Histogram.h"
 #include "CartaLib/Hooks/Plot2DResult.h"
@@ -31,7 +32,7 @@ class Plot2DGenerator;
 namespace Data {
 
 
-class Plot2DManager : public QObject, public Carta::State::CartaObject {
+class Plot2DManager : public QObject, public Carta::State::CartaObject, public IScreenTranslator {
 
     Q_OBJECT
 
@@ -87,8 +88,6 @@ public:
      */
     QString getAxisUnitsY() const;
 
-
-
     /**
      * Get the title of the plot.
      * @return - the plot title.
@@ -118,6 +117,15 @@ public:
      * @return - the range of the secondary selections.
      */
     std::pair<double,double> getRangeColor( bool* valid ) const;
+
+    /**
+     * Return the point in pixel coordinates corresponding to the image coordinate
+     * point.
+     * @param dataPoint - the point in image coordinates.
+     * @param valid - true if the returned point is valid; false otherwise.
+     * @return - the corresponding point in pixel coordinates.
+     */
+    virtual QPointF getScreenPoint( const QPointF& dataPoint, bool* valid ) const;
 
     /**
      * Return the current position of the vertical line marker in world coordinates.
@@ -312,6 +320,11 @@ public:
     const static QString GRAPH_STYLE_FILL;
 
 signals:
+
+    /**
+     * Emitted when the size of the plot changes.
+     */
+    void plotSizeChanged();
 
     /**
      * Notification that the mouse has moved on the plot.

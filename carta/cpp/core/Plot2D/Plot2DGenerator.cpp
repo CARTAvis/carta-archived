@@ -161,6 +161,9 @@ std::pair<double,double> Plot2DGenerator::getRangeColor(bool* valid ) const {
     return result;
 }
 
+QPointF Plot2DGenerator::getScreenPoint( const QPointF& dataPoint ) const {
+    return m_plot->getScreenPoint( dataPoint );
+}
 
 bool Plot2DGenerator::isSelectionOnCanvas( int xPos ) const {
     bool selectionOnCanvas = false;

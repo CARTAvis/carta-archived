@@ -50,6 +50,12 @@ public:
     QString getId() const;
 
     /**
+     * Return whether or not to use random heuristics for the initial guess.
+     * @return - true if random heuristics should be used for the initial guess; false otherwise.
+     */
+    bool isRandomHeuristics() const;
+
+    /**
      * Set the y-values of the 1-dimensional curve that will be
      * fit.
      * @param data - the y-values of the curve to be fit.
@@ -69,6 +75,13 @@ public:
     void setPolyDegree( int polyDegree );
 
     /**
+     * Set whether or not to use random heuristics for the initial guess.
+     * @param random - true to use random heuristics for the initial guess;
+     *      false otherwise.
+     */
+    void setRandomHeuristics( bool random );
+
+    /**
      * Set an identifier for the curve to be fit.
      * @param id - an identifier for the curve to be fit.
      */
@@ -81,6 +94,7 @@ private:
     QString m_id;
     int m_polyDegree;
     int m_gaussCount;
+    bool m_randomHeuristics;
     std::vector<double> m_data;
 };
 

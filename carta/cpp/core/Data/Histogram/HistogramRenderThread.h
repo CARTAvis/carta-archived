@@ -47,7 +47,7 @@ public:
     /**
      * Destructor.
      */
-    ~HistogramRenderThread();
+    virtual ~HistogramRenderThread();
 
 private:
     int m_fileDescriptor;

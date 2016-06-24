@@ -44,7 +44,7 @@ public:
     /**
      * Destructor.
      */
-    ~ProfileFitThread();
+    virtual ~ProfileFitThread();
 
 private:
     std::vector<Carta::Lib::Fit1DInfo> m_fitInfos;

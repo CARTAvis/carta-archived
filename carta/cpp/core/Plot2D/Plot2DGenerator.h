@@ -103,6 +103,14 @@ public:
     std::pair<double,double> getRangeColor(bool* valid ) const;
 
     /**
+     * Return the screen point corresponding to the given image
+     * point.
+     * @return - the screen point corresponding to the given image
+     *      point.
+     */
+    QPointF getScreenPoint( const QPointF& dataPoint ) const;
+
+    /**
      * Return the position of the vertical plot line in world coordinates.
      * @param valid - set to true if the plot has data and a vertical line; otherwise,
      *  false.

@@ -8,9 +8,8 @@ namespace Carta
 namespace Data
 {
 
-ProfileRenderThread::ProfileRenderThread( int pipeFd, QObject* parent ):
+ProfileRenderThread::ProfileRenderThread( QObject* parent ):
     QThread( parent ){
-    m_fileDescriptor = pipeFd;
 }
 
 Carta::Lib::Hooks::ProfileResult ProfileRenderThread::getResult() const {
@@ -22,7 +21,6 @@ void ProfileRenderThread::run(){
    QFile file;
    if ( !file.open( m_fileDescriptor, QIODevice::ReadOnly, QFileDevice::AutoCloseHandle ) ){
        QString errorStr("Could not read Profile results");
-       qDebug() << errorStr;
        m_result.setError( errorStr );
    }
    else {
@@ -35,6 +33,7 @@ void ProfileRenderThread::run(){
 void ProfileRenderThread::setFileDescriptor( int fileDescriptor ){
     m_fileDescriptor = fileDescriptor;
 }
+
 
 
 ProfileRenderThread::~ProfileRenderThread(){

@@ -1,7 +1,9 @@
 #include "CurveData.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include "Data/Error/ErrorManager.h"
+#include "Data/Plotter/IScreenTranslator.h"
 #include "Data/Plotter/LineStyles.h"
+#include "Data/Profile/Fit/InitialGuess.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/ProfilePlotStyles.h"
 #include "Data/Units/UnitsFrequency.h"
@@ -20,6 +22,7 @@ namespace Data {
 
 const QString CurveData::CLASS_NAME = "CurveData";
 const QString CurveData::COLOR = "color";
+const QString CurveData::FIT_SELECT = "fitSelect";
 const QString CurveData::PLOT_STYLE = "plotStyle";
 const QString CurveData::STYLE = "style";
 const QString CurveData::STATISTIC = "stat";
@@ -142,6 +145,7 @@ void CurveData::copy( const std::shared_ptr<CurveData> & other ){
         m_state.setValue<double>(REST_FREQUENCY, other->getRestFrequency() );
         m_state.setValue<QString>(IMAGE_NAME, other->getNameImage());
         m_state.setValue<QString>(REGION_NAME, other->getNameRegion());
+        m_state.setValue<bool>(FIT_SELECT, other->isSelectedFit());
     }
 }
 
@@ -325,6 +329,8 @@ void CurveData::_initializeDefaultState(){
 
     m_state.insertValue<QString>(IMAGE_NAME, "");
     m_state.insertValue<QString>(REGION_NAME, "");
+
+    m_state.insertValue<bool>(FIT_SELECT, true );
 }
 
 
@@ -362,6 +368,16 @@ bool CurveData::isMatch( const QString& name ) const {
     return match;
 }
 
+bool CurveData::isSelectedFit() const {
+    return m_state.getValue<bool>( FIT_SELECT );
+}
+
+void CurveData::pixelsChanged(){
+    int guessCount = m_initialFitGuesses.size();
+    for ( int i = 0; i < guessCount; i++ ){
+        m_initialFitGuesses[i]->pixelsChanged();
+    }
+}
 
 void CurveData::resetRestFrequency(){
     bool restFreqSet = false;
@@ -412,7 +428,41 @@ void CurveData::setFit( const std::vector<double>& valsX, const std::vector<doub
     m_fitDataY = valsY;
 }
 
+void CurveData::setInitialGuessCount( int count ){
+    CARTA_ASSERT( count >= 0 );
+    int oldCount = m_initialFitGuesses.size();
+    int diffCount = count - oldCount;
+    if ( diffCount > 0 ){
+        m_initialFitGuesses.reserve( diffCount );
 
+        //Space the new initial guesses uniformly across the range
+        //of the curve.
+        double xmin = 0;
+        double xmax = 0;
+        double ymin = 0;
+        double ymax = 0;
+        getMinMax(&xmin, &xmax, &ymin, &ymax );
+        double xRange = xmax - xmin;
+        double xStep = xRange / (diffCount + 1);
+        double yDecrease = (ymax - ymin ) /(diffCount + 1);
+        double fbhw = 0.5 * xRange / (diffCount + 1);
+
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        for ( int i = oldCount; i < count; i++ ){
+            InitialGuess* initGuess = dynamic_cast<InitialGuess*>(objMan->createObject<InitialGuess>());
+            double center = xmin + xStep * (i - oldCount + 1);
+            double peak = ymax - yDecrease * ( i -oldCount );
+            initGuess->setCenter( center );
+            initGuess->setPeak( peak );
+            initGuess->setFBHW( fbhw );
+            initGuess->setScreenTranslator( m_screenTranslator );
+            m_initialFitGuesses.append( std::shared_ptr<InitialGuess>(initGuess));
+        }
+    }
+    else if ( diffCount < 0 ){
+        m_initialFitGuesses.erase( m_initialFitGuesses.end() +diffCount, m_initialFitGuesses.end());
+    }
+}
 
 QString CurveData::setRestFrequency( double freq, double errorMargin, bool* valueChanged ){
     QString result;
@@ -428,6 +478,14 @@ QString CurveData::setRestFrequency( double freq, double errorMargin, bool* valu
         result = "Rest frequency must be nonnegative.";
     }
     return result;
+}
+
+void CurveData::setScreenTranslator( std::shared_ptr<IScreenTranslator> trans ){
+    m_screenTranslator = trans;
+}
+
+void CurveData::setSelectedFit( bool selected ){
+    m_state.setValue<bool>( FIT_SELECT, selected );
 }
 
 QString CurveData::setStatistic( const QString& stat ){
