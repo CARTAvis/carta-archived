@@ -161,9 +161,7 @@ std::pair<double,double> Plot2DGenerator::getRangeColor(bool* valid ) const {
     return result;
 }
 
-QPointF Plot2DGenerator::getScreenPoint( const QPointF& dataPoint ) const {
-    return m_plot->getScreenPoint( dataPoint );
-}
+
 
 bool Plot2DGenerator::isSelectionOnCanvas( int xPos ) const {
     bool selectionOnCanvas = false;
@@ -190,6 +188,10 @@ std::shared_ptr<Plot2D> Plot2DGenerator::_findData( const QString& id ) const {
     return data;
 }
 
+QPointF Plot2DGenerator::getScreenPoint( const QPointF& dataPoint ) const {
+    return m_plot->getScreenPoint( dataPoint );
+}
+
 double Plot2DGenerator::getVLinePosition( bool* valid ) const {
     *valid = false;
     double pos = 0;
@@ -200,35 +202,8 @@ double Plot2DGenerator::getVLinePosition( bool* valid ) const {
     return pos;
 }
 
-std::pair<double,double> Plot2DGenerator::getWorldPt(int x, int y, int width, int height ) const {
-    QSize plotSize = m_plot->size();
-    QWidget* canvas = m_plot->canvas();
-    QSize canvasSize = canvas->size();
-    double xMargin = plotSize.width() - canvasSize.width();
-    //double yMargin = plotSize.height() - canvasSize.height();
-    //Space between edge of canvas and where 0 is.
-    const int WHITE_OFFSET = 8;
-    int marginSpaceX = xMargin - WHITE_OFFSET;
-    //int marginSpaceY = yMargin;
-    //qDebug() << "screen x="<<x<<" y="<<y<<" width="<<width<<" height="<<height;
-    double widthStretch = (width*1.0  - marginSpaceX) / (plotSize.width() - marginSpaceX );
-    double heightStretch = (height*1.0 /*- marginSpaceY*/ ) / (plotSize.height() /*- marginSpaceY*/ );
-    //qDebug() << "widthStretch="<<widthStretch<<" heightStretch="<<heightStretch;
-
-    double canvasX = ( x - marginSpaceX ) / widthStretch;
-    double canvasY = ( y /*- marginSpaceY */) / heightStretch;
-    //qDebug() << "canvas pt x="<<canvasX<<" y="<<canvasY;
-    std::pair<double,double> worldPt;
-    //if ( canvasX > 0 && canvasY > 0 ){
-
-        double xValue = m_plot->invTransform( QwtPlot::xBottom, canvasX );
-        double yValue = m_plot->invTransform( QwtPlot::yLeft, canvasY );
-        //double xZeroValue = m_plot->invTransform( QwtPlot::xBottom, 0 );
-        //qDebug() << "Zero is being mapped to "<<xZeroValue;
-        //qDebug() << "Plot value x="<<xValue<<" y="<<yValue;
-        worldPt = std::pair<double,double>( xValue, yValue );
-    //}
-    return worldPt;
+QPointF Plot2DGenerator::getImagePoint(const QPointF& screenPt ) const {
+    return m_plot->getImagePoint( screenPt );
 }
 
 void Plot2DGenerator::removeData( const QString& dataName ){

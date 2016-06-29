@@ -19,6 +19,7 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
         }
         this._init( );
     },
+    
 
     members : {
         
@@ -65,7 +66,6 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
          * Initialize the panel that displays fit parameters.
          */
         _initParams : function(){
-           
             this.m_fitParameters = new skel.widgets.Profile.FitParameters();
             this.add( this.m_fitParameters );
         },
@@ -89,7 +89,6 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
          * @param prefs {Object} - server-side fit settings.
          */
         prefUpdate : function( prefs ){
-           this.m_fitParameters.prefUpdate( prefs );
            this.m_fitDisplay.prefUpdate( prefs );
         },
         
@@ -119,6 +118,16 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
             this.m_fitParameters.setId( id );
             this.m_fitDisplay.setId( id );
         },
+        
+        /**
+         * Set whether or not fit estimates will be specified manually.
+         * @param manual {boolean} - true, if fit estimates should be specified
+         *      manually; false, otherwise.
+         */
+        setManual : function( manual ){
+            this.m_fitDisplay.setManual( manual );
+        },
+      
         
         m_connector : null,
         m_curveList : null,

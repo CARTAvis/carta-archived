@@ -172,8 +172,8 @@ LBTAFitter::iterate()
 //                                 break;
 //                             }
                          }
-                         qDebug() << "LBTA " << pf << "theap:" << v1 <<
-                             "..." << v2;
+                         //qDebug() << "LBTA " << pf << "theap:" << v1 <<
+                         //    "..." << v2;
                      };
 
     // stage 1 : populate the list
@@ -194,7 +194,7 @@ LBTAFitter::iterate()
         if ( tnew < 0 ) {
 //            qDebug() << "LBTA: restarting stage 1 with better starting point";
 //            tHeap = decltype (tHeap)();
-            qDebug() << "LBTA: moving stage 1 to a better starting point";
+            //qDebug() << "LBTA: moving stage 1 to a better starting point";
             currCost = costNew;
             currX = xNew;
             bestCost = costNew;
@@ -219,10 +219,10 @@ LBTAFitter::iterate()
             tHeap.push( tnew );
         }
 
-        qDebug() << "LBTA" << tnew << ">" << tmax;
+        //qDebug() << "LBTA" << tnew << ">" << tmax;
 
         if ( int ( tHeap.size() ) == tHeapSize ) {
-            qDebug() << "LBTA: stage 1 cost = " << bestCost;
+            //qDebug() << "LBTA: stage 1 cost = " << bestCost;
             printHeap( "At end of stage 1" );
         }
 
@@ -239,28 +239,28 @@ LBTAFitter::iterate()
 
     double tnew = ( costNew - currCost ) / currCost;
     double tmax = tHeap.top();
-    qDebug() << "LBTA stage 2 tmax=" << tmax << "tnew" << tnew;
+    //qDebug() << "LBTA stage 2 tmax=" << tmax << "tnew" << tnew;
     if ( tnew < tmax ) {
         nFailed = 0;
         tHeap.pop();
         tHeap.push( tnew );
-        qDebug() << "LBTA after pop/push max=" << tHeap.top();
+        //qDebug() << "LBTA after pop/push max=" << tHeap.top();
 
 //        if ( costNew < currCost ) {
         currCost = costNew;
         currX = xNew;
-        qDebug() << "LBTA: stage 2 updating current solution " << currCost << "\n";
+        //qDebug() << "LBTA: stage 2 updating current solution " << currCost << "\n";
         if ( currCost < bestCost ) {
             // remember best found solution
             bestCost = currCost;
             bestX = currX;
-            qDebug() << "LBTA: stage 2 updating best solution " << bestCost << "\n";
+            //qDebug() << "LBTA: stage 2 updating best solution " << bestCost << "\n";
         }
 
 //        }
     }
     else {
-        qDebug() << "LBTA nfailed" << nFailed;
+        //qDebug() << "LBTA nfailed" << nFailed;
         nFailed++;
         if ( nFailed > nFailedThreshold ) {
 //            QString str;

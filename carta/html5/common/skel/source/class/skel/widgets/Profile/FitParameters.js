@@ -49,7 +49,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             var polyLabel = new qx.ui.basic.Label( "Polynomial Degree:");
             this.m_polyCountSpin = new qx.ui.form.Spinner();
             this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
-                    this._sendPolyCountCmd, this );
+                    this._sendPolyDegreeCmd, this );
             paramContainer.add( polyLabel, {row:1,column:0} );
             paramContainer.add( this.m_polyCountSpin, {row:1,column:1} );
             
@@ -68,6 +68,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             paramContainer.add( this.m_manualGuessCheck, {row:3, column:1} );
             
             this.m_resetGuessButton = new qx.ui.form.Button("Reset Initial Guesses");
+            this.m_resetGuessButton.addListener( "execute", this._sendResetGuessCmd, this );
             paramContainer.add( this.m_resetGuessButton, {row:4, column:0, colSpan:2});
         },
         
@@ -76,7 +77,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
          * Update the UI based on server side values.
          * @param prefs {Object} - server-side fit settings.
          */
-        prefUpdate : function( prefs ){
+        fitUpdate : function( prefs ){
             if ( this.m_gaussCountListenId != null ){
                 this.m_gaussCountSpin.removeListenerById( this.m_gaussCountListenId );
             }
@@ -87,9 +88,9 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             if ( this.m_polyCountListenId != null ){
                 this.m_polyCountSpin.removeListenerById( this.m_polyCountListenId );
             }
-            this.m_polyCountSpin.setValue( prefs.polyCount );
+            this.m_polyCountSpin.setValue( prefs.polyDegree );
             this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
-                    this._sendPolyCountCmd, this );
+                    this._sendPolyDegreeCmd, this );
             
             if ( this.m_heuristicListenId != null ){
                 this.m_heuristicCheck.removeListenerById( this.m_heuristicListenId );
@@ -104,6 +105,34 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             this.m_manualGuessCheck.setValue( prefs.manualGuess );
             this.m_manualGuessId = this.m_manualGuessCheck.addListener( "changeValue", 
                     this._sendManualGuessCmd, this );
+        },
+        
+        /**
+         * Callback from the server for a change in fit parameters.
+         */
+        _profileFitCB : function(){
+            var val = this.m_sharedVar.get();
+            if ( val ){
+                try {
+                    var profileFit = JSON.parse( val );
+                    this.fitUpdate( profileFit.fit );
+                }
+                catch( err ){
+                    console.log( "Could not parse fit parameters: "+val+" error: "+err );
+                }
+            }
+        },
+        
+        /**
+         * Register to get updates from the server.
+         */
+        _register : function(){
+            var path = skel.widgets.Path.getInstance();
+            var fitPath = this.m_id + path.SEP + path.FIT;
+            this.m_sharedVar = this.m_connector.getSharedVar( fitPath );
+            this.m_sharedVar.addCB( this._profileFitCB.bind( this));
+            this._profileFitCB();
+          
         },
        
         
@@ -141,6 +170,9 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
          _sendManualGuessCmd : function(){
              if ( this.m_id !== null && this.m_connector !== null ){
                  var manGuess = this.m_manualGuessCheck.getValue();
+                 var data = {
+                         manual : manGuess
+                 };
                  var path = skel.widgets.Path.getInstance();
                  var cmd = this.m_id + path.SEP_COMMAND + "setManualGuess";
                  var params = "manualGuess:"+manGuess;
@@ -151,12 +183,24 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
         /**
          * Send a command to the server indicating the degree of the polynomial to fit.
          */
-        _sendPolyCountCmd : function(){
+        _sendPolyDegreeCmd : function(){
             if ( this.m_id !== null && this.m_connector !== null ){
-                var polyCount = this.m_polyCountSpin.getValue();
+                var polyDegree = this.m_polyCountSpin.getValue();
                 var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setPolyCount";
-                var params = "polyCount:"+polyCount;
+                var cmd = this.m_id + path.SEP_COMMAND + "setPolyDegree";
+                var params = "polyDegree:"+polyDegree;
+                this.m_connector.sendCommand( cmd, params, null );
+            }
+        },
+        
+        /**
+         * Send a command to the server to reset the initial Gaussian guesses.
+         */
+        _sendResetGuessCmd : function(){
+            if ( this.m_id !== null && this.m_connector !== null ){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "resetInitialFitGuesses";
+                var params = "";
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
@@ -169,11 +213,12 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
          */
         setId : function( id ){
             this.m_id = id;
-           
+            this._register();
         },
         
         m_connector : null,
         m_id : null,
+        m_sharedVar : null,
         
         m_gaussCountListenId : null,
         m_gaussCountSpin : null,

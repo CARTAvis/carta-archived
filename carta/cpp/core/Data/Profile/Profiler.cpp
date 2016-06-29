@@ -32,6 +32,7 @@
 #include "Globals.h"
 #include "PluginManager.h"
 #include <QtCore/qmath.h>
+#include <QTime>
 #include <QDebug>
 
 namespace Carta {
@@ -43,17 +44,25 @@ const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
 const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CURVES = "curves";
 const QString Profiler::CURVE_SELECT = "selectCurve";
+const QString Profiler::FIT_CENTER = "center";
+const QString Profiler::FIT_PEAK = "peak";
+const QString Profiler::FIT_FBHW = "fbhw";
+const QString Profiler::FIT_CENTER_PIXEL = "centerPixel";
+const QString Profiler::FIT_PEAK_PIXEL = "peakPixel";
+const QString Profiler::FIT_FBHW_PIXEL = "fbhwPixel";
+const QString Profiler::FIT_STATISTICS = "fitStats";
 const QString Profiler::GAUSS_COUNT = "gaussCount";
 const QString Profiler::GEN_MODE = "genMode";
 const QString Profiler::GRID_LINES = "gridLines";
 const QString Profiler::HEURISTICS = "heuristics";
 const QString Profiler::IMAGES = "images";
+const QString Profiler::INITIAL_GUESSES = "fitGuesses";
 const QString Profiler::LEGEND_LOCATION = "legendLocation";
 const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
 const QString Profiler::MANUAL_GUESS = "manualGuess";
-const QString Profiler::POLY_COUNT = "polyCount";
+const QString Profiler::POLY_DEGREE = "polyDegree";
 const QString Profiler::REGIONS = "regions";
 const QString Profiler::SHOW_GUESSES = "showGuesses";
 const QString Profiler::SHOW_MEAN_RMS = "showMeanRMS";
@@ -68,6 +77,7 @@ const QString Profiler::ZOOM_MIN = "zoomMin";
 const QString Profiler::ZOOM_MAX = "zoomMax";
 const QString Profiler::ZOOM_MIN_PERCENT = "zoomMinPercent";
 const QString Profiler::ZOOM_MAX_PERCENT = "zoomMaxPercent";
+const int Profiler::ERROR_MARGIN = 0.000001;
 
 
 class Profiler::Factory : public Carta::State::CartaObjectFactory {
@@ -102,6 +112,8 @@ Profiler::Profiler( const QString& path, const QString& id):
             m_plotManager( new Plot2DManager( path, id ) ),
             m_legendLocations( nullptr),
             m_stateData( UtilState::getLookup(path, StateInterface::STATE_DATA) ),
+            m_stateFit( UtilState::getLookup( path, CurveData::FIT)),
+            m_stateFitStatistics( UtilState::getLookup( path, "fitStatistics")),
             m_renderService( new ProfileRenderService() ),
             m_fitService( new ProfileFitService() ){
 
@@ -109,7 +121,7 @@ Profiler::Profiler( const QString& path, const QString& id):
     m_currentFrame = 0;
     m_timerId = 0;
 
-
+    qsrand(QTime::currentTime().msec());
     connect( m_renderService.get(),
             SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&,int,const QString&,bool,std::shared_ptr<Carta::Lib::Image::ImageInterface>)),
             this,
@@ -362,6 +374,7 @@ int Profiler::_findCurveIndex( const QString& name ) const {
 
 void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & results){
     int resultCount = results.size();
+    _updateFitStatistics( results );
     for ( int i = 0; i < resultCount; i++ ){
         Carta::Lib::Hooks::FitResult result = results[i];
         Carta::Lib::Fit1DInfo::StatusType statusType = result.getStatus();
@@ -414,22 +427,42 @@ void Profiler::_generateFit( ){
         std::vector<Carta::Lib::Fit1DInfo> fitInfos( selectCount );
         int polyCount = getPolyCount();
         int gaussCount = getGaussCount();
-        bool randomHeuristics = isRandomHeuristics();
-        int j = 0;
-        for ( int i = 0; i < curveCount; i++ ){
-            if ( m_plotCurves[i]->isSelectedFit() ){
-                std::vector<double > curveData = m_plotCurves[i]->getValuesY();
-                QString name = m_plotCurves[i]->getName();
-                fitInfos[j].setId( name );
-                fitInfos[j].setData( curveData );
-                fitInfos[j].setPolyDegree( polyCount );
-                fitInfos[j].setGaussCount( gaussCount );
-                fitInfos[j].setRandomHeuristics( randomHeuristics );
-                j++;
+        if ( polyCount > 0 || gaussCount > 0 ){
+            //If there are gaussians, make sure we have manual guesses in manual mode.
+            //This may not be the case if there were previously no plot curves & hence,
+            //no guesses.
+            bool manualMode = isFitManualGuess();
+            if ( gaussCount > 0 && manualMode ){
+                int guessCount = getGuessCount();
+                if ( guessCount != gaussCount ){
+                    _makeInitialGuesses( gaussCount );
+                    _resetFitGuessPixels();
+                }
             }
+            bool randomHeuristics = isRandomHeuristics();
+
+            int j = 0;
+            for ( int i = 0; i < curveCount; i++ ){
+                if ( m_plotCurves[i]->isSelectedFit() ){
+                    //Store the parameters used to fit the curve so that we can
+                    //restore the state if we need to.
+                    m_plotCurves[i]->setFitParams( m_stateFit.toString( CurveData::FIT) );
+                    std::vector<double > curveData = m_plotCurves[i]->getValuesY();
+                    QString name = m_plotCurves[i]->getName();
+                    fitInfos[j].setId( name );
+                    fitInfos[j].setData( curveData );
+                    fitInfos[j].setPolyDegree( polyCount );
+                    fitInfos[j].setGaussCount( gaussCount );
+                    fitInfos[j].setRandomHeuristics( randomHeuristics );
+                    if ( manualMode ){
+                        fitInfos[j].setInitialGaussianGuesses( getFitGuesses());
+                    }
+                    j++;
+                }
+            }
+            m_fitService->fitProfile(fitInfos );
         }
-        m_fitService->fitProfile(fitInfos );
-    }
+     }
 }
 
 
@@ -455,98 +488,56 @@ void Profiler::_generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface>
         Carta::Lib::RegionInfo regionInfo;
         m_renderService->renderProfile(image, regionInfo, profInfo, curveIndex, layerName, createNew );
 
-        /*auto result = Globals::instance()-> pluginManager()
-                      -> prepare <Carta::Lib::Hooks::ProfileHook>(image,
-                              regionInfo, profInfo);
-        auto lam = [=] ( const Carta::Lib::Hooks::ProfileHook::ResultType &result ) {
-            std::vector< std::pair<double,double> > data = result.getData();
-            int dataCount = data.size();
-            if ( dataCount > 0 ){
-                std::vector<double> plotDataX( dataCount );
-                std::vector<double> plotDataY( dataCount );
-
-                for( int i = 0 ; i < dataCount; i ++ ){
-                    plotDataX[i] = data[i].first;
-                    plotDataY[i] = data[i].second;
-                }
-
-                std::shared_ptr<CurveData> profileCurve( nullptr );
-                if ( curveIndex < 0 || createNew ){
-                    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                    profileCurve.reset( objMan->createObject<CurveData>() );
-                    profileCurve->setImageName( layerName );
-                    double restFrequency = result.getRestFrequency();
-                    int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
-                    double restRounded = Util::roundToDigits( restFrequency, significantDigits );
-                    QString restUnit = result.getRestUnits();
-                    profileCurve->setRestQuantity( restRounded, restUnit );
-                    _assignCurveName( profileCurve );
-                    _assignColor( profileCurve );
-                    m_plotCurves.append( profileCurve );
-                    profileCurve->setSource( image );
-
-                }
-                else {
-                    profileCurve = m_plotCurves[curveIndex];
-                }
-
-                profileCurve->setData( plotDataX, plotDataY );
-                _saveCurveState();
-                _updateZoomRangeBasedOnPercent();
-                _updatePlotBounds();
-                _updatePlotData();
-            }
-        };
-        try {
-            result.forEach( lam );
-        }
-        catch( char*& error ){
-            qDebug() << "Profiler could not get data: caught error: " << error;
-        }*/
-
-        /*Carta::Lib::NdArray::RawViewInterface * rawView = image-> getDataSlice( SliceND() );
-        Profiles::ProfileExtractor * extractor = new Profiles::ProfileExtractor( rawView );
-        m_leftUnit = image->getPixelUnit().toStr();
-
-        auto profilecb = [ = ] () {
-            bool finished = extractor->isFinished();
-            if ( finished ){
-                auto data = extractor->getDataD();
-
-                int dataCount = data.size();
-                if ( dataCount > 0 ){
-                    std::vector<double> plotDataX( dataCount );
-                    std::vector<double> plotDataY( dataCount );
-
-                    for( int i = 0 ; i < dataCount; i ++ ){
-                        plotDataX[i] = i;
-                        plotDataY[i] = data[i];
-                    }
-
-                    int curveIndex = _findCurveIndex( layerName );
-                    std::shared_ptr<CurveData> profileCurve( nullptr );
-                    if ( curveIndex < 0 ){
-                        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-                        profileCurve.reset( objMan->createObject<CurveData>() );
-                        profileCurve->setImageName( layerName );
-                        _assignColor( profileCurve );
-                        m_plotCurves.append( profileCurve );
-                        profileCurve->setSource( image );
-                        _saveCurveState();
-                    }
-                    else {
-                        profileCurve = m_plotCurves[curveIndex];
-                    }
-                    profileCurve->setData( plotDataX, plotDataY );
-                    _updatePlotData();
-                }
-                extractor->deleteLater();
-            }
-        };
-        connect( extractor, & Profiles::ProfileExtractor::progress, profilecb );
-        extractor-> start( path );*/
     }
 }
+
+std::vector<std::tuple<double,double,double> >
+Profiler::_generateFitGuesses( int count, bool random ){
+    CARTA_ASSERT( count >= 0 );
+    std::vector<std::tuple<double,double,double> > guesses(count);
+
+    //Set up uniformly spaced guesses based on the first curve that has been
+    //selected to fit.
+    double xmin = 0;
+    double xmax = 10;
+    double ymin = 0;
+    double ymax = 10;
+    double xRange = xmax - xmin;
+    double xStep = xRange / (count + 1);
+    double yDecrease = .1;
+    const double FBHW_MULT = 0.45;
+    double fbhw = FBHW_MULT * xRange / (count + 1);
+    int curveCount = m_plotCurves.size();
+    for ( int i = 0; i < curveCount; i++ ){
+        if ( m_plotCurves[i]->isSelectedFit() ){
+            m_plotCurves[i]->getMinMax(&xmin, &xmax, &ymin, &ymax );
+            xRange = xmax - xmin;
+            xStep = xRange / (count + 1);
+            fbhw = FBHW_MULT * xRange / (count + 1);
+            break;
+        }
+    }
+    //Store the guesses.
+    double peak = ymax;
+    for ( int i = 0; i < count; i++ ){
+        double center = xmin + xStep * (i + 1);
+        if ( random ){
+            int randomIndex = qrand() % ((int)(xRange));
+            center = randomIndex + xmin;
+        }
+        //Go down a fixed percentile each time.
+        peak = peak * yDecrease;
+        if ( random ){
+            //Weighted average of the minimum and maximum.
+            peak = 0.75 * ymax + 0.25 * ymin;
+        }
+        double endDist = qMin( center - xmin, xmax -center );
+        double fbhwFit = qMin( fbhw, endDist);
+        guesses[i] = std::tuple<double,double,double>( center, peak, fbhwFit );
+    }
+    return guesses;
+}
+
 
 QString Profiler::getAxisUnitsBottom() const {
     QString bottomUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
@@ -629,9 +620,50 @@ int Profiler::_getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageI
     return axis;
 }
 
+std::vector<std::tuple<double,double,double> > Profiler::getFitGuesses(){
+    QString guessKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    int guessCount = m_stateFit.getArraySize( guessKey );
+    std::vector<std::tuple<double,double,double> > guesses( guessCount );
+    for ( int i = 0; i < guessCount; i++ ){
+        QString indexKey = Carta::State::UtilState::getLookup( guessKey, i );
+        QString centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER );
+        double center = m_stateFit.getValue<double>( centerKey );
+        QString peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK );
+        double peak = m_stateFit.getValue<double>( peakKey );
+        QString fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW );
+        double fbhw = m_stateFit.getValue<double>( fbhwKey );
+        std::tuple<double,double,double> guess( center, peak, fbhw );
+        guesses[i] = guess;
+    }
+    return guesses;
+}
+
+QString Profiler::_getFitStatusMessage( Carta::Lib::Fit1DInfo::StatusType statType) const{
+    QString statusStr( "");
+    if ( statType == Carta::Lib::Fit1DInfo::StatusType::NOT_DONE ){
+        statusStr = "Not performed.";
+    }
+    if ( statType == Carta::Lib::Fit1DInfo::StatusType::ERROR ){
+        statusStr = "There was an error computing the fit.";
+    }
+    if ( statType == Carta::Lib::Fit1DInfo::StatusType::PARTIAL ){
+        statusStr = "Partially computed.";
+    }
+    if ( statType == Carta::Lib::Fit1DInfo::StatusType::COMPLETE ){
+        statusStr = "Completed.";
+    }
+    return statusStr;
+}
+
 
 int Profiler::getGaussCount() const {
-    return m_state.getValue<int>( GAUSS_COUNT );
+    QString key = Carta::State::UtilState::getLookup( CurveData::FIT, GAUSS_COUNT );
+    return m_stateFit.getValue<int>( key );
+}
+
+int Profiler::getGuessCount() const {
+    QString key = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    return m_stateFit.getArraySize( key );
 }
 
 
@@ -646,7 +678,8 @@ QList<QString> Profiler::getLinks() const {
 
 
 int Profiler::getPolyCount() const {
-    return m_state.getValue<int>( POLY_COUNT );
+    QString key = Carta::State::UtilState::getLookup( CurveData::FIT, POLY_DEGREE );
+    return m_stateFit.getValue<int>( key );
 }
 
 
@@ -661,6 +694,7 @@ QString Profiler::getStateString( const QString& sessionId, SnapshotType type ) 
         prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
         prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
         prefState.insertValue<QString>( Settings::SETTINGS, m_preferences->getStateString(sessionId, type) );
+        prefState.insertValue<QString>( CurveData::FIT, m_stateFit.toString());
         result = prefState.toString();
     }
     else if ( type == SNAPSHOT_LAYOUT ){
@@ -750,18 +784,31 @@ void Profiler::_initializeDefaultState(){
     //Significant digits.
     m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
 
-    //Fit
-    m_state.insertValue<int>( GAUSS_COUNT, 0 );
-    m_state.insertValue<int>( POLY_COUNT, 0 );
-    m_state.insertValue<bool>( HEURISTICS, true );
-    m_state.insertValue<bool>( MANUAL_GUESS, false );
+    //Fit show/hide on display
     m_state.insertValue<bool>( SHOW_RESIDUALS, true );
-    m_state.insertValue<bool>( SHOW_GUESSES, false );
+    m_state.insertValue<bool>( SHOW_GUESSES, true );
     m_state.insertValue<bool>( SHOW_STATISTICS, true );
     m_state.insertValue<bool>( SHOW_MEAN_RMS, false );
     m_state.insertValue<bool>( SHOW_PEAK_LABELS, false );
-
     m_state.flushState();
+
+    //Fit Parameters
+    m_stateFit.insertObject( CurveData::FIT );
+    QString gaussKey = Carta::State::UtilState::getLookup( CurveData::FIT, GAUSS_COUNT );
+    m_stateFit.insertValue<int>( gaussKey, 0 );
+    QString polyKey = Carta::State::UtilState::getLookup( CurveData::FIT, POLY_DEGREE );
+    m_stateFit.insertValue<int>( polyKey, 0 );
+    QString heurKey = Carta::State::UtilState::getLookup( CurveData::FIT, HEURISTICS );
+    m_stateFit.insertValue<bool>( heurKey, true );
+    QString manKey = Carta::State::UtilState::getLookup( CurveData::FIT, MANUAL_GUESS );
+    m_stateFit.insertValue<bool>( manKey, true );
+    QString guessesKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    m_stateFit.insertArray( guessesKey, 0 );
+    m_stateFit.flushState();
+
+    m_stateFitStatistics.insertValue<QString>( FIT_STATISTICS, "" );
+    m_stateFitStatistics.flushState();
+
 }
 
 
@@ -778,6 +825,12 @@ void Profiler::_initializeCallbacks(){
         QString result = _getPreferencesId();
         return result;
     });
+
+    addCommandCallback( "resetInitialFitGuesses", [=] (const QString & /*cmd*/,
+                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            resetInitialFitGuesses();
+            return "";
+        });
 
 
     addCommandCallback( "setAxisUnitsBottom", [=] (const QString & /*cmd*/,
@@ -800,6 +853,54 @@ void Profiler::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+    addCommandCallback( "setFitManualGuesses", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {INITIAL_GUESSES};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString guessStr = dataValues[*keys.begin()];
+            QStringList guessList = guessStr.split( " ");
+            const int GUESS_SIZE = 3;
+            int guessCount = guessList.size() / GUESS_SIZE;
+            std::vector<std::tuple<double,double,double> > guesses( guessCount);
+            QString errorMsg = "Initial fit manual guesses must be valid numbers: "+params;
+            for ( int i = 0; i < guessCount; i++ ){
+                bool validCenter = false;
+                bool validPeak = false;
+                bool validFBHW = false;
+                //Screen coordinates of a guess.
+                double centerPixel = guessList[i*GUESS_SIZE].toDouble(&validCenter );
+                double peakPixel = guessList[i*GUESS_SIZE+1].toDouble(&validPeak );
+                double fbhwPixel = guessList[i*GUESS_SIZE+2].toDouble(&validFBHW );
+                qDebug() << "Pixels: c="<<centerPixel<<" peak="<<peakPixel<<" fbhw="<<fbhwPixel;
+                if ( !validCenter || !validPeak || !validFBHW ){
+                    result = errorMsg;
+                    break;
+                }
+                else if ( centerPixel < 0 || peakPixel < 0 || fbhwPixel < 0 ){
+                    result = "Pixel coordinates of initial guesses must be nonnegative: " + params;
+                    qDebug() << result;
+                    break;
+                }
+                else {
+                    //Must convert to image coordinates.
+                    QPointF centerPixPt( centerPixel,peakPixel);
+                    QPointF sidePixPt( centerPixel - fbhwPixel, peakPixel );
+                    QPointF centerPt = m_plotManager->getImagePoint( centerPixPt );
+                    QPointF sidePt = m_plotManager->getImagePoint( sidePixPt );
+                    qDebug()<<"Image c="<<centerPt.x()<<" peak="<<centerPt.y()<<" fbhw="<<(centerPt.x() - sidePt.x());
+                    guesses[i]= std::tuple<double,double,double>(centerPt.x(), centerPt.y(), centerPt.x() - sidePt.x());
+                }
+            }
+            if ( result.isEmpty() ){
+                setFitInitialGuesses( guesses );
+            }
+
+            Util::commandPostProcess( result );
+            return result;
+        });
+
 
     addCommandCallback( "setManualGuess", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1219,12 +1320,12 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
-    addCommandCallback( "setPolyCount", [=] (const QString & /*cmd*/,
+    addCommandCallback( "setPolyDegree", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
-            std::set<QString> keys = {POLY_COUNT};
+            std::set<QString> keys = {POLY_DEGREE};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString countStr = dataValues[POLY_COUNT];
+            QString countStr = dataValues[POLY_DEGREE];
             bool validCount = false;
             int count = countStr.toInt( &validCount );
             if ( validCount ){
@@ -1364,7 +1465,8 @@ void Profiler::_initializeStatics(){
 }
 
 bool Profiler::isFitManualGuess( ) const {
-    return m_state.getValue<bool>( MANUAL_GUESS );
+    QString key = Carta::State::UtilState::getLookup( CurveData::FIT, MANUAL_GUESS );
+    return m_stateFit.getValue<bool>( key );
 }
 
 
@@ -1379,7 +1481,8 @@ bool Profiler::isLinked( const QString& linkId ) const {
 
 
 bool Profiler::isRandomHeuristics() const {
-    return m_state.getValue<bool>( HEURISTICS );
+    QString key = Carta::State::UtilState::getLookup( CurveData::FIT, HEURISTICS );
+    return m_stateFit.getValue<bool>( key );
 }
 
 
@@ -1470,10 +1573,7 @@ void Profiler::_movieFrame(){
 }
 
 void Profiler::_plotSizeChanged(){
-    int curveCount = m_plotCurves.size();
-    for ( int i = 0; i < curveCount; i++ ){
-        m_plotCurves[i]->pixelsChanged();
-    }
+    _resetFitGuessPixels();
 }
 
 QString Profiler::profileNew(){
@@ -1497,7 +1597,6 @@ QString Profiler::profileCopy( const QString& baseName ){
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         std::shared_ptr<CurveData> profileCurve( objMan->createObject<CurveData>() );
         profileCurve->copy( m_plotCurves[curveIndex]);
-        profileCurve->setScreenTranslator( m_plotManager );
         _assignCurveName( profileCurve );
         m_plotCurves.append( profileCurve );
         _saveCurveState();
@@ -1553,7 +1652,6 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
                 Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
                 profileCurve.reset( objMan->createObject<CurveData>() );
                 profileCurve->setImageName( layerName );
-                profileCurve->setScreenTranslator( m_plotManager );
                 double restFrequency = result.getRestFrequency();
                 int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
                 double restRounded = Util::roundToDigits( restFrequency, significantDigits );
@@ -1571,6 +1669,7 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
 
             profileCurve->setData( plotDataX, plotDataY );
             _saveCurveState();
+            _generateFit();
             _updateZoomRangeBasedOnPercent();
             _updatePlotBounds();
             _updatePlotData();
@@ -1597,6 +1696,35 @@ QString Profiler::removeLink( CartaObject* cartaObject){
     return result;
 }
 
+void Profiler::_resetFitGuessPixels(){
+    //Update the corresponding pixels.
+    QString guessKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    int guessCount = m_stateFit.getArraySize( guessKey );
+    for ( int i = 0; i < guessCount; i++ ){
+        QString indexKey = Carta::State::UtilState::getLookup( guessKey, i );
+        QString centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER );
+        double center = m_stateFit.getValue<double>( centerKey );
+        QString peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK );
+        double peak = m_stateFit.getValue<double>( peakKey );
+        QString fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW );
+        double fbhw = m_stateFit.getValue<double>( fbhwKey );
+        bool validCenter = false;
+        QPointF centerPt = m_plotManager->getScreenPoint( QPointF(center,peak),&validCenter);
+        bool validOffset = false;
+        QPointF offsetPt = m_plotManager->getScreenPoint( QPointF(center - fbhw,peak), &validOffset );
+        if ( validCenter && validOffset ){
+            centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER_PIXEL );
+            m_stateFit.setValue<int>( centerKey, (int)(centerPt.x()) );
+            peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK_PIXEL );
+            m_stateFit.setValue<int>( peakKey, (int)(centerPt.y()) );
+            fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW_PIXEL );
+            m_stateFit.setValue<int>( fbhwKey, (int)(centerPt.x() - offsetPt.x()) );
+        }
+    }
+    qDebug() << "_resetFitGuessPixels "<<m_stateFit.toString();
+    m_stateFit.flushState();
+}
+
 QString Profiler::resetRestFrequency( const QString& curveName ){
     QString result;
     int index = _findCurveIndex( curveName );
@@ -1616,14 +1744,16 @@ QString Profiler::resetRestFrequency( const QString& curveName ){
 void Profiler::resetState( const QString& state ){
     StateInterface restoredState( "");
     restoredState.setState( state );
-
     QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
     m_preferences->resetStateString( settingStr );
-
     QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
     m_state.setState( prefStr );
     m_state.flushState();
+
+    m_stateFit.setState( restoredState.getValue<QString>( CurveData::FIT) );
+    m_stateFit.flushState();
 }
+
 
 void Profiler::_saveCurveState( int index ){
     QString key = Carta::State::UtilState::getLookup( CURVES, index );
@@ -1773,11 +1903,18 @@ QString Profiler::setFitCurves( const QStringList curveNames ){
     }
 
     //Set the ones identified selected.
+    bool updatedFitState = false;
     for ( int i = 0; i < fitCount; i++ ){
         int curveIndex = _findCurveIndex( curveNames[i]);
         if ( curveIndex >= 0 ){
             changed = true;
             m_plotCurves[curveIndex]->setSelectedFit( true );
+            //Update our state with the fit state of the first curve that was selected.
+            if ( !updatedFitState ){
+                m_stateFit.setObject( CurveData::FIT, m_plotCurves[curveIndex]->getFitParams());
+                m_stateFit.flushState();
+                updatedFitState = true;
+            }
         }
         else {
             if ( result.isEmpty() ){
@@ -1789,36 +1926,130 @@ QString Profiler::setFitCurves( const QStringList curveNames ){
 
     if ( changed ){
         _saveCurveState();
-        _generateFit();
     }
     return result;
 }
 
 void Profiler::setFitManualGuess( bool manualGuess ){
-    bool oldManual = m_state.getValue<bool>( MANUAL_GUESS );
+    QString key = Carta::State::UtilState::getLookup( CurveData::FIT, MANUAL_GUESS );
+    bool oldManual = m_stateFit.getValue<bool>( key );
     if ( oldManual != manualGuess ){
-        m_state.setValue<bool>( MANUAL_GUESS, manualGuess );
-        m_state.flushState();
+        m_stateFit.setValue<bool>( key, manualGuess );
+        m_stateFit.flushState();
+        _generateFit();
     }
+}
+
+void Profiler::_makeInitialGuesses( int count ){
+    QString guessKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    int oldCount = m_stateFit.getArraySize( guessKey );
+    int diffCount = count - oldCount;
+    if ( diffCount != 0 ){
+        //Update the initial guess count in the curves.
+        m_stateFit.resizeArray( guessKey, count, Carta::State::StateInterface::PreserveAll );
+    }
+    if ( diffCount > 0 ){
+        //Set up uniformly spaced guesses based on the first curve that has been
+        //selected to fit.
+        bool random = true;
+        if ( oldCount == 0 ){
+            random = false;
+        }
+
+        std::vector<std::tuple<double,double,double> > guesses = _generateFitGuesses( diffCount, random );
+        //Store the guesses.
+        for ( int i = oldCount; i < count; i++ ){
+            QString indexKey = Carta::State::UtilState::getLookup( guessKey, i );
+            m_stateFit.setObject( indexKey );
+            QString centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER );
+            m_stateFit.insertValue<double>( centerKey, std::get<0>(guesses[i-oldCount]) );
+            QString peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK );
+            m_stateFit.insertValue<double>( peakKey, std::get<1>(guesses[i-oldCount]) );
+            QString fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW );
+            m_stateFit.insertValue<double>( fbhwKey, std::get<2>(guesses[i-oldCount]) );
+
+            //Pixels
+            centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER_PIXEL );
+            m_stateFit.insertValue<int>( centerKey, 0 );
+            peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK_PIXEL );
+            m_stateFit.insertValue<int>( peakKey, 0 );
+            fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW_PIXEL );
+            m_stateFit.insertValue<int>( fbhwKey, 1 );
+        }
+    }
+}
+
+QString Profiler::setFitInitialGuesses(const std::vector<std::tuple<double,double,double> >& guesses ){
+    QString result;
+    int guessCount = guesses.size();
+    QString baseKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    int storedArraySize = m_stateFit.getArraySize( baseKey );
+    if ( guessCount != storedArraySize ){
+        result = "There must be exactly "+QString::number(storedArraySize)+" initial fit guesses.";
+    }
+    else {
+        bool changed = false;
+        for ( int i = 0; i < guessCount; i++ ){
+            QString indexKey = Carta::State::UtilState::getLookup( baseKey, i );
+            QString centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER );
+            double oldCenter = m_stateFit.getValue<double>( centerKey );
+            double center = std::get<0>( guesses[i] );
+            if ( qAbs( oldCenter - center ) > ERROR_MARGIN ){
+                m_stateFit.setValue<double>( centerKey, center );
+                changed = true;
+            }
+            QString peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK );
+            double oldPeak = m_stateFit.getValue<double>( peakKey );
+            double peak = std::get<1>( guesses[i] );
+            if ( qAbs( oldPeak - peak ) > ERROR_MARGIN ){
+                m_stateFit.setValue<double>( peakKey, peak );
+                changed = true;
+            }
+            QString fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW );
+            double oldFBHW = m_stateFit.getValue<double>( fbhwKey );
+            double fbhw = std::get<2>(guesses[i]);
+            if ( qAbs( oldFBHW - fbhw ) > ERROR_MARGIN ){
+                m_stateFit.setValue<double>( fbhwKey, fbhw );
+                changed = true;
+            }
+        }
+        if ( changed ){
+            //Update the pixel coordinates.
+            _resetFitGuessPixels();
+            _generateFit();
+        }
+    }
+    return result;
+}
+
+
+void Profiler::resetInitialFitGuesses(){
+    QString baseKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    int arraySize = m_stateFit.getArraySize( baseKey );
+    std::vector<std::tuple<double,double,double> > guesses = _generateFitGuesses( arraySize, false );
+    setFitInitialGuesses( guesses );
 }
 
 QString Profiler::setGaussCount( int count ){
     QString result;
     if ( count >= 0 ){
-        int oldCount = m_state.getValue<int>( GAUSS_COUNT );
+        QString key = Carta::State::UtilState::getLookup( CurveData::FIT, GAUSS_COUNT );
+        int oldCount = m_stateFit.getValue<int>( key );
         if ( count != oldCount ){
-            m_state.setValue<int>( GAUSS_COUNT, count );
-            //Update the initial guess count in the curves.
-            int curveCount = m_plotCurves.size();
-            for ( int i = 0; i < curveCount; i++ ){
-                if ( m_plotCurves[i]->isSelectedFit() ){
-                    m_plotCurves[i]->setInitialGuessCount( count );
-                    _saveCurveState( i );
-                }
+            m_stateFit.setValue<int>( key, count );
+
+            if ( m_plotCurves.size() > 0 ){
+                //Update the initial guess count in the curves.
+                _makeInitialGuesses( count );
+                //Reset the pixel estimates based on plot size
+                _resetFitGuessPixels();
             }
-
-            m_state.flushState();
-
+            else {
+                //No initial gaussian guesses if there are no curves to fit.
+                QString guessKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+                m_stateFit.resizeArray( guessKey, 0 );
+            }
+            m_stateFit.flushState();
             _generateFit();
         }
     }
@@ -1827,6 +2058,9 @@ QString Profiler::setGaussCount( int count ){
     }
     return result;
 }
+
+
+
 
 QString Profiler::setGenerateMode( const QString& modeStr ){
     QString result;
@@ -1951,10 +2185,11 @@ QString Profiler::setPlotStyle( const QString& name, const QString& plotStyle ){
 QString Profiler::setPolyCount( int count ){
     QString result;
     if ( count >= 0 ){
-        int oldCount = m_state.getValue<int>( POLY_COUNT );
+        QString key = Carta::State::UtilState::getLookup( CurveData::FIT, POLY_DEGREE );
+        int oldCount = m_stateFit.getValue<int>( key );
         if ( count != oldCount ){
-            m_state.setValue<int>( POLY_COUNT, count );
-            m_state.flushState();
+            m_stateFit.setValue<int>( key, count );
+            m_stateFit.flushState();
             _generateFit();
         }
     }
@@ -1965,10 +2200,11 @@ QString Profiler::setPolyCount( int count ){
 }
 
 void Profiler::setRandomHeuristics( bool randomHeuristics ){
-    bool oldRandom = m_state.getValue<bool>( HEURISTICS );
+    QString key = Carta::State::UtilState::getLookup( CurveData::FIT, HEURISTICS );
+    bool oldRandom = m_stateFit.getValue<bool>( key );
     if ( randomHeuristics != oldRandom ){
-        m_state.setValue<bool>( HEURISTICS, randomHeuristics );
-        m_state.flushState();
+        m_stateFit.setValue<bool>( key, randomHeuristics );
+        m_stateFit.flushState();
         _generateFit();
     }
 }
@@ -2299,6 +2535,47 @@ void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kno
     }
 }
 
+
+
+void Profiler::_updateFitStatistics( const std::vector<Carta::Lib::Hooks::FitResult>& results ){
+    int resultCount = results.size();
+    QString stats;
+    for ( int i = 0; i < resultCount; i++ ){
+        stats = stats + _updateFitStatistic( i, results[i]);
+    }
+    m_stateFitStatistics.setValue<QString>( FIT_STATISTICS, stats );
+    m_stateFitStatistics.flushState();
+}
+
+QString Profiler::_updateFitStatistic( int index, const Carta::Lib::Hooks::FitResult& result ){
+    QStringList fitStats;
+
+    fitStats.append("Fit "+QString::number(index+1)+": "+ _getFitStatusMessage(result.getStatus()));
+    fitStats.append( "  RMS: "+QString::number(result.getRMS())+
+            "  Diff Squares:"+QString::number(result.getDiffSquare())+"<br/>");
+    std::vector<std::tuple<double,double,double> > gaussFits = result.getGaussFits();
+    int gaussCount = gaussFits.size();
+    for ( int i = 0; i < gaussCount; i++ ){
+        fitStats.append( "&nbsp;&nbsp;&nbsp;&nbsp;Gaussian "+ QString::number(i+1)+
+                ": Center("+QString::number(std::get<0>(gaussFits[i]))+
+                "), Peak("+QString::number(std::get<1>(gaussFits[i])) +
+                "), FWBH("+QString::number(std::get<2>(gaussFits[i]))+")<br/>");
+    }
+    std::vector<double> polyTerms = result.getPolyCoefficients();
+    int termCount = polyTerms.size();
+    if ( termCount > 0 ){
+        QString polyTermsStr( "&nbsp;&nbsp;&nbsp;&nbsp;Polynomial Coefficients: ");
+        for ( int i = 0; i < termCount; i++ ){
+            polyTermsStr = polyTermsStr + QString::number(polyTerms[i]);
+            if ( i < termCount - 1 ){
+                polyTermsStr = polyTermsStr + ", ";
+            }
+        }
+        fitStats.append( polyTermsStr );
+    }
+    return fitStats.join("");
+}
+
 void Profiler::_updatePlotBounds(){
     //Update the graph.
     //See if we need to add an additional buffer.
@@ -2354,6 +2631,7 @@ void Profiler::_updatePlotData(){
         if ( fitted ){
             std::vector< std::pair<double,double> > fitData = m_plotCurves[i]->getFitData();
             Carta::Lib::Hooks::Plot2DResult fitResult( dataId+"Fit", "", "", fitData );
+
             m_plotManager->addData( &fitResult );
         }
         m_plotManager->setColor( m_plotCurves[i]->getColor(), dataId );

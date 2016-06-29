@@ -42,6 +42,13 @@ public:
     QPointF getScreenPoint( const QPointF& dataPoint ) const;
 
     /**
+     * Return the image point corresponding to the given screen
+     * point.
+     * @return - the image point corresponding to the given screen point.
+     */
+    QPointF getImagePoint(const QPointF& screenPt ) const;
+
+    /**
      * Set the font used to draw axis labels.
      * @param font - the font for axis labels.
      */
@@ -64,6 +71,7 @@ public:
 
 
 private:
+    const static int ZERO_OFFSET;
     int _calculateAlignment( const QString& pos ) const;
     QwtPlot::LegendPosition _calculatePosition( const QString& pos ) const;
     QwtLegend* m_externalLegend;

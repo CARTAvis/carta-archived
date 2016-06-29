@@ -823,9 +823,9 @@ QString Colormap::setBorderColor( int redValue, int greenValue, int blueValue){
         }
     }
 
-        if ( result.isEmpty() ){
-            _colorStateChanged();
-        }
+    if ( result.isEmpty() ){
+        _colorStateChanged();
+    }
 
     return result;
 }

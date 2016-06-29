@@ -56,7 +56,7 @@ private slots:
     void _postResult( );
 
 private:
-    void _scheduleRender( const std::vector<Carta::Lib::Fit1DInfo>& fitInfos );
+    void _scheduleCompute( const std::vector<Carta::Lib::Fit1DInfo>& fitInfos );
 
     ProfileFitThread* m_fitThread;
     bool m_fitQueued;

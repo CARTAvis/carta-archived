@@ -101,6 +101,14 @@ qx.Class.define("skel.widgets.Profile.Settings", {
             this._register();
         },
         
+        /**
+         * Set whether or not manual fit guesses will be used.
+         * @param manual {boolean} - true if manual fit guesses will be used;
+         *      false otherwise.
+         */
+        setManualFitGuesses : function( manual ){
+            this.m_pages[this.m_INDEX_FIT].setManual( manual );
+        },
       
         m_sharedVarData : null,
         m_INDEX_RANGE : 1,

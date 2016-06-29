@@ -17,6 +17,10 @@ qx.Class.define("skel.widgets.Profile.Profile", {
         this.m_connector = mImport("connector");
         this._init();
     },
+    
+    events : {
+        "controlVisibilityChanged" : "qx.event.type.Data"
+    },
 
     members : {
         
@@ -67,6 +71,7 @@ qx.Class.define("skel.widgets.Profile.Profile", {
                 this.m_view = new skel.boundWidgets.View.DragView(this.m_id);
                 this.m_fitOverlay = new skel.widgets.Profile.FitOverlay();
                 this.m_view.setOverlayWidget( this.m_fitOverlay );
+                this.m_fitOverlay.setId( this.m_id );
                 this.m_view.setAllowGrowX( true );
                 this.m_view.setAllowGrowY( true );
                 this.m_view.setMinHeight(this.m_MIN_DIM);
@@ -105,8 +110,12 @@ qx.Class.define("skel.widgets.Profile.Profile", {
             if ( val ){
                 try {
                     var profilePrefs = JSON.parse( val );
-                    this.m_fitOverlay.setManual( profilePrefs.showGuesses );
+                    this.m_fitOverlay.setManualShow( profilePrefs.showGuesses );
                     this.m_settingsContainer.prefUpdate( profilePrefs );
+                    var data = {
+                        showStats : profilePrefs.showStats
+                    }
+                    this.fireDataEvent( "controlVisibilityChanged", data );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val+" error: "+err );
@@ -115,15 +124,42 @@ qx.Class.define("skel.widgets.Profile.Profile", {
         },
         
         /**
-         * Register to receive updates to server-side fit preference
+         * Callback for updates of server-side fit preferences.
+         */
+        _profileFitCB : function(){
+            var val = this.m_sharedVarFit.get();
+            if ( val ){
+                try {
+                    var fitInfo = JSON.parse( val );
+                    var manualMode = fitInfo.fit.manualGuess;
+                    this.m_fitOverlay.setManual( manualMode );
+                    this.m_settingsContainer.setManualFitGuesses( manualMode );
+                    var guesses = fitInfo.fit.fitGuesses;
+                    this.m_fitOverlay.setInitialGuesses( guesses );
+                }
+                catch( err ){
+                    console.log( "Could not parse profile fit: "+val+" error: "+err );
+                }
+            }
+        },
+        
+        /**
+         * Register to receive updates to server-side profile
          * variables.
          */
         _register : function(){
             var path = skel.widgets.Path.getInstance();
+            //Preferences update
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id );
             this.m_sharedVar.addCB( this._profileCB.bind( this));
             this._profileCB();
+            //Fit update
+            var fitPath = this.m_id + path.SEP + path.FIT;
+            this.m_sharedVarFit = this.m_connector.getSharedVar( fitPath );
+            this.m_sharedVarFit.addCB( this._profileFitCB.bind( this));
+            this._profileFitCB();
         },
+        
         
         /**
          * Set the server side id of this profiler.
@@ -134,15 +170,6 @@ qx.Class.define("skel.widgets.Profile.Profile", {
             this.m_settingsContainer.setId( controlId );
             this._initView();
             this._register();
-        },
-        
-        /**
-         * Set whether or not manual initially guesses should be shown.
-         * @param show {boolean} - whether or not controls for manual initial fit
-         *      fit guesses should be shown.
-         */
-        setManual : function( show ){
-            this.m_fitOverlay.setManual( show );
         },
 
         
@@ -163,6 +190,7 @@ qx.Class.define("skel.widgets.Profile.Profile", {
         m_MIN_DIM : 195,
         m_id : null,
         m_sharedVar : null,
+        m_sharedVarFit : null,
         m_connector : null,
         
         m_view : null

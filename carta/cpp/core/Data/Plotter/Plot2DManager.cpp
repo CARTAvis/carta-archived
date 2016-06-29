@@ -115,6 +115,13 @@ QString Plot2DManager::getAxisUnitsY() const {
     return units;
 }
 
+QPointF Plot2DManager::getImagePoint( const QPointF& screenPoint ) const {
+    QPointF imagePt;
+    if ( m_plotGenerator ){
+        imagePt = m_plotGenerator->getImagePoint( screenPoint );
+    }
+    return imagePt;
+}
 
 std::pair<double,double> Plot2DManager::getPlotBoundsY( const QString& id, bool* valid ) const {
     std::pair<double,double> bounds;
@@ -231,12 +238,8 @@ void Plot2DManager::_initializeCallbacks(){
             int mouseX = mouseList[0].toInt( &validX );
             bool validY = false;
             int mouseY = mouseList[1].toInt( &validY );
-            bool validWidth = false;
-            int width = mouseList[2].toInt( &validWidth );
-            bool validHeight = false;
-            int height = mouseList[3].toInt( &validHeight );
-            if ( validX && validY && validWidth && validHeight ){
-                updateSelection( mouseX, mouseY, width, height);
+            if ( validX && validY ){
+                updateSelection( mouseX, mouseY);
             }
         }
     });
@@ -492,15 +495,15 @@ void Plot2DManager::updatePlot( ){
 }
 
 
-void Plot2DManager::updateSelection(int x, int y, int width, int height){
+void Plot2DManager::updateSelection(int x, int y){
     m_selectionEnd = x;
     if ( m_selectionEnabled || m_selectionEnabledColor ){
        updatePlot();
     }
     else {
        if ( m_cursorEnabled ){
-           std::pair<double,double> worldValue = m_plotGenerator->getWorldPt( x, y, width, height );
-           emit cursorMove( worldValue.first, worldValue.second );
+           QPointF imageValue = m_plotGenerator->getImagePoint( QPointF(x, y) );
+           emit cursorMove( imageValue.x(), imageValue.y() );
        }
     }
 }

@@ -174,3 +174,6 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     delete lat;
     return nullptr;
 }
+
+CasaImageLoader::~CasaImageLoader(){
+}

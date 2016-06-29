@@ -121,14 +121,10 @@ public:
     /**
      * Translate a pixel point (x,y) contained in a plot of the given size into a
      * world point.
-     * @param x - the x-coordinate of the pixel point.
-     * @param y - the y-coordinate of the pixel point.
-     * @param width - the width of the plot in pixels.
-     * @param height - the height of the plot in pixels.
-     * @return - the world coordinates of the the plot point.
+     * @param screenPt - a point in pixel coordinates.
+     * @return - the world coordinates of the pixel point.
      */
-    std::pair<double,double> getWorldPt(int x, int y, int width, int height ) const;
-
+    QPointF getImagePoint(const QPointF& screenPt ) const;
 
     /**
      * Return true if the parameter is on the canvas itself rather than in the

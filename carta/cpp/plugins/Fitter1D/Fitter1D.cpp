@@ -57,10 +57,20 @@ void Fitter1D::_fitCurves( const Carta::Lib::Fit1DInfo& info ){
     inputParams.isNull = false;
     inputParams.left = 0;
     inputParams.right = inputParams.data.size() - 1;
+    inputParams.randomHeuristicsEnabled = info.isRandomHeuristics();
+    std::vector<std::tuple<double,double,double> > initGuesses = info.getInitialGaussianGuesses();
+    int guessCount = initGuesses.size();
+    if ( guessCount > 0 ){
+        int gaussParamSize = guessCount * 3;
+        inputParams.initGuess = std::vector<double>( gaussParamSize + inputParams.poly, 0.0 );
+        for ( int i = 0; i < guessCount; i++ ){
+            inputParams.initGuess[3*i] = std::get<0>( initGuesses[i] );
+            inputParams.initGuess[3*i+1] = std::get<1>( initGuesses[i] );
+            inputParams.initGuess[3*i+2] = std::get<2>( initGuesses[i] );
+        }
+    }
     inputParams.stamp = m_lastGfId;
     m_lastGfId++;
-
-      //m_gfInput.randomHeuristicsEnabled = ui->checkBoxRH->isChecked();
     m_fitter->request( inputParams );
 }
 
@@ -85,6 +95,21 @@ void Fitter1D::_fitResultsCB(Gaussian1dFitService::ResultsG1dFit res){
         m_fitResult.setData( fits );
     }
     m_fitResult.setStatus( statusType );
+    m_fitResult.setDiffSquare( res.diffSq );
+    m_fitResult.setRMS( res.rms );
+    std::vector<double> params = res.params;
+    std::vector<tuple<double,double,double> > gaussFits( res.input.nGaussians );
+    std::vector<double> polyTerms( res.input.poly );
+    for ( int i = 0; i < res.input.nGaussians; i++ ){
+        std::tuple<double,double,double> fit( res.params[3*i], res.params[3*i+1], res.params[3*i+2]);
+        gaussFits[i] = fit;
+    }
+    int gaussEnd = res.input.nGaussians * 3;
+    for ( int i = 0; i < res.input.poly; i++ ){
+        polyTerms[i] = res.params[gaussEnd + i];
+    }
+    m_fitResult.setPolyCoefficients( polyTerms );
+    m_fitResult.setGaussFits( gaussFits );
     m_fitPromise.set_value( m_fitResult );
 }
 

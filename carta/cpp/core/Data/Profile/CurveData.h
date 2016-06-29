@@ -24,7 +24,6 @@ namespace Carta {
 namespace Data {
 
 class InitialGuess;
-class IScreenTranslator;
 class LineStyles;
 class ProfileStatistics;
 class ProfilePlotStyles;
@@ -64,6 +63,12 @@ public:
      * @return - the two-dimensional data that represent a curve fit.
      */
     std::vector< std::pair<double,double> > getFitData() const;
+
+    /**
+     * Return stored parameters for fitting this curve.
+     * @return - a string representation of fitting parameters.
+     */
+    QString getFitParams() const;
 
     /**
      * Returns the image that was used in the profile calculation.
@@ -183,11 +188,6 @@ public:
     bool isSelectedFit() const;
 
     /**
-     * Notification that the pixels on the screen have changed.
-     */
-    void pixelsChanged();
-
-    /**
      * Set the rest frequency back to its original value.
      */
     void resetRestFrequency();
@@ -225,17 +225,17 @@ public:
     void setFit( const std::vector<double>& valsX, const std::vector<double>& valsY  );
 
     /**
+     * Set parameters for fitting one or more Gaussians to this curve.
+     * @param fitParams - parameters for fitting one or more Gaussians to this curve.
+     */
+    void setFitParams( const QString& fitParams );
+
+    /**
      * Set the name of the layer that is the source of profile.
      * @param imageName - an identifier for the layer that is the source of
      *  the profile.
      */
     QString setImageName( const QString& imageName );
-
-    /**
-     * Set the number of initial Gaussian (manual) guesses that are needed.
-     * @param count - the number of initial Gaussian guesses that are needed.
-     */
-    void setInitialGuessCount( int count );
 
     /**
      * Set the line style (outline,solid, etc) for drawing the curve.
@@ -296,11 +296,6 @@ public:
      */
     void setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin );
 
-    /**
-     * Set a class capable of transforming data coordinates to screen coordinates.
-     * @param trans - a class capable of transforming data coordinates to screen coordinates.
-     */
-    void setScreenTranslator( std::shared_ptr<IScreenTranslator> trans );
 
     /**
      * Sets whether or not the curve should be fit.
@@ -327,6 +322,7 @@ public:
 private:
 
     const static QString COLOR;
+    const static QString FIT;
     const static QString FIT_SELECT;
     const static QString STYLE;
     const static QString PLOT_STYLE;
@@ -369,9 +365,8 @@ private:
     QString m_restUnits;
 
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_imageSource;
-    QList<std::shared_ptr<InitialGuess>> m_initialFitGuesses;
 
-    std::shared_ptr<IScreenTranslator> m_screenTranslator;
+    Carta::State::StateInterface m_stateFit;
 
 	CurveData( const CurveData& other);
 	CurveData& operator=( const CurveData& other );

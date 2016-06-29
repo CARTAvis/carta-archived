@@ -16,7 +16,7 @@ bool ProfileFitService::fitProfile(const std::vector<Carta::Lib::Fit1DInfo>& fit
     bool fitCompute = true;
     if ( fitInfos.size() > 0 ){
 
-        _scheduleRender( fitInfos );
+        _scheduleCompute( fitInfos );
     }
     else {
         fitCompute = false;
@@ -25,7 +25,7 @@ bool ProfileFitService::fitProfile(const std::vector<Carta::Lib::Fit1DInfo>& fit
 }
 
 
-void ProfileFitService::_scheduleRender( const std::vector<Carta::Lib::Fit1DInfo>& fitInfos ){
+void ProfileFitService::_scheduleCompute( const std::vector<Carta::Lib::Fit1DInfo>& fitInfos ){
 
     if ( m_fitQueued ) {
         return;
@@ -56,7 +56,7 @@ void ProfileFitService::_postResult( ){
 
 
 ProfileFitService::~ProfileFitService(){
-    delete m_fitThread;
+
 }
 }
 }

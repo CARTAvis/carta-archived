@@ -38,6 +38,12 @@ public:
     int getGaussCount() const;
 
     /**
+     * Return an list of initial guesses for Gaussian fit parameters.
+     * @return - a list of initial guesses for Gaussian fit parameters.
+     */
+    std::vector<std::tuple<double,double,double> > getInitialGaussianGuesses() const;
+
+    /**
      * Return the number of terms in the polynomial to fit to the data.
      * @return - the degree of the polynomial to fit to the data.
      */
@@ -69,6 +75,12 @@ public:
     void setGaussCount( int gaussCount );
 
     /**
+     * Set initial guesses for Gaussian fit parameters.
+     * @param initialGuesses - initial guesses of Gaussian fit parameters.
+     */
+    void setInitialGaussianGuesses( const std::vector<std::tuple<double,double,double> >& initialGuesses );
+
+    /**
      * Set the degree of the polynomial to fit to the data.
      * @param polyDegree - the degree of the polynomial to fit to the data.
      */
@@ -96,6 +108,7 @@ private:
     int m_gaussCount;
     bool m_randomHeuristics;
     std::vector<double> m_data;
+    std::vector<std::tuple<double,double,double>> m_initGuesses;
 };
 
 } // namespace Lib

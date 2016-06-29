@@ -343,7 +343,7 @@ Worker::doWork( InputParametersG1dFit input )
                 break;
             }
         }
-        qDebug() << "LBTA fitter produced diffSq = " << res.diffSq;
+        //qDebug() << "LBTA fitter produced diffSq = " << res.diffSq;
     }
 
     if ( doLM ) {
@@ -391,8 +391,8 @@ Worker::doWork( InputParametersG1dFit input )
                 break;
             }
         }
-        qDebug() << "LevMar iteration = " << iteration;
-        qDebug() << "LevMar fitter produced diffSq = " << res.diffSq;
+        //qDebug() << "LevMar iteration = " << iteration;
+        //qDebug() << "LevMar fitter produced diffSq = " << res.diffSq;
 
 //        {
 //            QString s;

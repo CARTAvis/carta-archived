@@ -12,6 +12,8 @@ namespace Plot2D {
 
 using Carta::Data::LegendLocations;
 
+const int Plot::ZERO_OFFSET = 4;;
+
 Plot::Plot( QWidget* parent):
         QwtPlot( parent ),
         m_externalLegend( nullptr ),
@@ -28,14 +30,7 @@ Plot::Plot( QWidget* parent):
     setAutoReplot( false );
 }
 
-QPointF Plot::getScreenPoint( const QPointF& dataPoint ) const {
-    QwtScaleMap xMap = canvasMap( QwtPlot::xBottom );
 
-    double xTrans = transform( QwtPlot::xBottom, dataPoint.x());
-    QwtScaleMap yMap = canvasMap( QwtPlot::yLeft );
-    double yTrans = transform( QwtPlot::yLeft, dataPoint.y());
-    return QPointF( xTrans, yTrans );
-}
 
 
 int Plot::_calculateAlignment( const QString& pos ) const {
@@ -83,6 +78,51 @@ QwtPlot::LegendPosition Plot::_calculatePosition( const QString& pos ) const{
     return legPos;
 }
 
+QPointF Plot::getScreenPoint( const QPointF& dataPoint ) const {
+    const QWidget* plotCanvas = canvas();
+    QSize canvasSize = plotCanvas->size();
+    QSize plotSize = size();
+
+    const QwtScaleWidget* axisWidgetLeft = axisWidget( QwtPlot::yLeft );
+    QSize axisSize = axisWidgetLeft->size();
+    int leftMargin = axisSize.width();
+
+    double xTrans = transform( QwtPlot::xBottom,dataPoint.x());
+    //Figure out the percentage xTrans is compared to canvas width;
+    double percentX = xTrans / (canvasSize.width() - ZERO_OFFSET);
+
+    //It will be that percentage of the plot size.
+    xTrans = percentX * (plotSize.width() - leftMargin);
+    //Add in the left margin.
+    xTrans = xTrans +leftMargin;
+
+    //Now do y
+    double yTrans = transform( QwtPlot::yLeft, dataPoint.y());
+    double percentY = yTrans / canvasSize.height();
+    yTrans = plotSize.height() - percentY * plotSize.height();
+    return QPointF( xTrans, yTrans );
+}
+
+QPointF Plot::getImagePoint(const QPointF& screenPt ) const {
+    double x = screenPt.x();
+    double y = screenPt.y();
+    QSize plotSize = size();
+    const QWidget* canvasWidget = canvas();
+    QSize canvasSize = canvasWidget->size();
+    double xMargin = plotSize.width() - canvasSize.width();
+
+    //Space between edge of canvas and where 0 is.
+    int marginSpaceX = xMargin - ZERO_OFFSET;
+
+
+    double xValue = invTransform( QwtPlot::xBottom, x - marginSpaceX );
+    double yValue = invTransform( QwtPlot::yLeft, y );
+
+    QPointF worldPt( xValue, yValue );
+    return worldPt;
+}
+
+
 void Plot::setFont( const QFont& font ){
     QwtScaleWidget* leftWidget = axisWidget( QwtPlot::yLeft );
     leftWidget->setFont( font );
@@ -111,7 +151,6 @@ void Plot::setLegendPosition( bool visible,
                m_legendItem->attach( this );
             }
             Qt::Alignment alignment= static_cast<Qt::Alignment>(_calculateAlignment( legendLocation ));
-            qDebug()<<"Setting alignment="<<(int)(alignment);
             m_legendItem->setAlignment( alignment );
         }
         else {

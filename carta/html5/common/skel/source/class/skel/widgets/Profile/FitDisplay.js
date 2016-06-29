@@ -46,6 +46,7 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             displayContainer.add( this.m_residualCheck, {row:0, column:1} );
             
             this.m_guessCheck = new qx.ui.form.CheckBox();
+            this.m_guessCheck.setEnabled( false );
             var guessLabel = new qx.ui.basic.Label( "Manual Guesses:");
             this.m_guessListenId = this.m_guessCheck.addListener( "changeValue", this._sendShowGuessesCmd, this );
             displayContainer.add( guessLabel, {row:1, column:0} );
@@ -70,6 +71,14 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             displayContainer.add( this.m_labelCheck, {row:4, column:1} );
         },
         
+        /**
+         * Returns whether manual guesses should be shown.
+         * @return {boolean} - true if manual guesses should be shown; false, otherwise.
+         */
+        isShowGuesses : function(){
+            return this.m_guessCheck.getValue();
+        },
+        
         
         /**
          * Update the UI based on server side values.
@@ -87,7 +96,7 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
                 this.m_guessCheck.removeListenerById( this.m_guessListenId );
             }
             this.m_guessCheck.setValue( prefs.showGuesses );
-            this.m_guessCheck.setEnabled( prefs.manualGuess );
+            
             this.m_guessListenId = this.m_guessCheck.addListener( "changeValue", 
                     this._sendShowGuessesCmd, this );
             
@@ -180,6 +189,20 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
                 var params = "showStats:"+show;
                 this.m_connector.sendCommand( cmd, params, null );
             }
+        },
+        
+        /**
+         * Set whether or not manual fit guesses will be specified.
+         * @param enabled {boolean} - true if manual fit guesses will be
+         *      specified; false otherwise.
+         */
+        setManual : function( enabled ){
+          if ( enabled ){
+              this.m_guessCheck.setEnabled( true );
+          }
+          else {
+              this.m_guessCheck.setEnabled( false );
+          }
         },
      
         

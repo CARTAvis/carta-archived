@@ -75,6 +75,12 @@ public:
     int getGaussCount() const;
 
     /**
+     * Get the number of manual guesses for Gaussian curve fits.
+     * @return - the number of manual guesses for Gaussian curve fits.
+     */
+    int getGuessCount() const;
+
+    /**
      * Return the number of polynomial terms to fit to the curve.
      * @return - the degree of the polynomial to fit to the curve.
      */
@@ -151,6 +157,11 @@ public:
     QString profileRemove( const QString& name );
 
     /**
+     * Reset the initial fit manual guesses.
+     */
+    void resetInitialFitGuesses();
+
+    /**
      * Set the rest frequency back to its original value for the given curve.
      * @param curveName - an identifier for a profile curve.
      * @return - an error message if the rest frequency could not be reset; otherwise, an
@@ -202,6 +213,19 @@ public:
      *      the curves to be fit; an empty string otherwise.
      */
     QString setFitCurves( const QStringList curveNames );
+
+    /**
+     * Return a list of initial fit guesses for Gaussian parameters.
+     * @return - the list of initial fit guesses for Gaussian parameters.
+     */
+    std::vector<std::tuple<double,double,double> > getFitGuesses();
+
+    /**
+     * Set manual fit guesses in image coordinates.
+     * @param guesses- a list of fit guesses in image coordinates.
+     * @return - an error message if the initial fit guesses could not be set.
+     */
+    QString setFitInitialGuesses(const std::vector<std::tuple<double,double,double> >& guesses );
 
     /**
      * Set whether or not manual initial guesses will be specified for
@@ -428,6 +452,7 @@ private slots:
     void _profileRendered( const Carta::Lib::Hooks::ProfileResult& result,
             int curveIndex, const QString& layerName, bool createNew,
             std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
+    void _resetFitGuessPixels();
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateZoomRangeBasedOnPercent();
     QString _zoomToSelection();
@@ -437,17 +462,25 @@ private:
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
     const static QString CURVE_SELECT;
+    const static QString FIT_CENTER;
+    const static QString FIT_PEAK;
+    const static QString FIT_FBHW;
+    const static QString FIT_CENTER_PIXEL;
+    const static QString FIT_PEAK_PIXEL;
+    const static QString FIT_FBHW_PIXEL;
+    const static QString FIT_STATISTICS;
     const static QString GAUSS_COUNT;
     const static QString GEN_MODE;
     const static QString GRID_LINES;
     const static QString HEURISTICS;
     const static QString IMAGES;
+    const static QString INITIAL_GUESSES;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
     const static QString MANUAL_GUESS;
-    const static QString POLY_COUNT;
+    const static QString POLY_DEGREE;
     const static QString REGIONS;
     const static QString SHOW_GUESSES;
     const static QString SHOW_MEAN_RMS;
@@ -463,6 +496,7 @@ private:
     const static QString ZOOM_MAX;
     const static QString ZOOM_MIN_PERCENT;
     const static QString ZOOM_MAX_PERCENT;
+    const static int ERROR_MARGIN;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
@@ -483,10 +517,13 @@ private:
     void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
              int curveIndex, const QString& layerName, bool createNew = false );
     void _generateFit( );
+    std::vector<std::tuple<double,double,double> > _generateFitGuesses( int count, bool random );
     Controller* _getControllerSelected() const;
     std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
+
+    QString _getFitStatusMessage( Carta::Lib::Fit1DInfo::StatusType statType) const;
     QString _getLegendLocationsId() const;
 
     /**
@@ -501,12 +538,16 @@ private:
     void _initializeCallbacks();
     void _initializeStatics();
 
+    void _makeInitialGuesses( int count );
+
     void _saveCurveState();
     void _saveCurveState( int index );
 
     void _setErrorMargin();
 
     void _updateAvailableImages( Controller* controller );
+    void _updateFitStatistics( const std::vector<Carta::Lib::Hooks::FitResult>& results );
+    QString _updateFitStatistic( int index, const Carta::Lib::Hooks::FitResult& result );
 
     void _updatePlotBounds();
 
@@ -533,7 +574,7 @@ private:
 
     //Directs how the plot should be drawn and manages
     //updates for the plot.
-    std::shared_ptr<Plot2DManager> m_plotManager;
+    std::unique_ptr<Plot2DManager> m_plotManager;
 
     //Location of the legends on the plot
     std::unique_ptr<LegendLocations> m_legendLocations;
@@ -551,12 +592,16 @@ private:
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
+    //Fit parameters
+    Carta::State::StateInterface m_stateFit;
+    //Fit statistics
+    Carta::State::StateInterface m_stateFitStatistics;
+
 
     static UnitsSpectral* m_spectralUnits;
     static UnitsIntensity* m_intensityUnits;
     static ProfileStatistics* m_stats;
     static GenerateModes* m_generateModes;
-
 
     static QList<QColor> m_curveColors;
 

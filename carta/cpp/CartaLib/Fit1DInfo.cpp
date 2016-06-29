@@ -17,6 +17,10 @@ int Fit1DInfo::getGaussCount() const {
     return m_gaussCount;
 }
 
+std::vector<std::tuple<double,double,double> > Fit1DInfo::getInitialGaussianGuesses() const {
+    return m_initGuesses;
+}
+
 int Fit1DInfo::getPolyDegree() const {
     return m_polyDegree;
 }
@@ -37,6 +41,11 @@ void Fit1DInfo::setGaussCount( int gaussCount ){
     CARTA_ASSERT( gaussCount >= 0 );
     m_gaussCount = gaussCount;
 }
+
+void Fit1DInfo::setInitialGaussianGuesses( const std::vector<std::tuple<double,double,double> >& initialGuesses ){
+    m_initGuesses = initialGuesses;
+}
+
 
 void Fit1DInfo::setPolyDegree( int polyDegree ){
     CARTA_ASSERT( polyDegree>= 0 );

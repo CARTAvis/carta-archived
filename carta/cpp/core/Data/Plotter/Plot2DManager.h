@@ -7,7 +7,6 @@
 #pragma once
 
 #include "State/ObjectManager.h"
-#include "IScreenTranslator.h"
 #include "State/StateInterface.h"
 #include "CartaLib/Hooks/Histogram.h"
 #include "CartaLib/Hooks/Plot2DResult.h"
@@ -32,7 +31,7 @@ class Plot2DGenerator;
 namespace Data {
 
 
-class Plot2DManager : public QObject, public Carta::State::CartaObject, public IScreenTranslator {
+class Plot2DManager : public QObject, public Carta::State::CartaObject {
 
     Q_OBJECT
 
@@ -87,6 +86,13 @@ public:
      * @return - the label for the y-axis.
      */
     QString getAxisUnitsY() const;
+
+    /**
+     * Return the image point corresponding to the given screen point.
+     * @param screenPoint - a point in pixel coordinates.
+     * @return - the corresponding point in image coordinates.
+     */
+    QPointF getImagePoint( const QPointF& screenPoint ) const;
 
     /**
      * Get the title of the plot.
@@ -306,10 +312,8 @@ public:
      * Update a user selection.
      * @param x - the current x-coordinate end value of the selection.
      * @param y - the current y-coordinate end value of the selection.
-     * @param width - the width of the screen.
-     * @param height - the height of the screen.
      */
-    void updateSelection(int x, int y, int width, int height );
+    void updateSelection(int x, int y );
 
     virtual ~Plot2DManager();
 

@@ -86,14 +86,12 @@ HEADERS += \
     Data/Layout/LayoutNodeLeaf.h \
     Data/Layout/NodeFactory.h \
     Data/LinkableImpl.h \
-    Data/Plotter/IScreenTranslator.h \
     Data/Plotter/Plot2DManager.h \
     Data/Plotter/LineStyles.h \
     Data/Plotter/LegendLocations.h \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
     Data/Profile/CurveData.h \
-    Data/Profile/Fit/InitialGuess.h \
     Data/Profile/Fit/ProfileFitService.h \
     Data/Profile/Fit/ProfileFitThread.h \
     Data/Profile/Profiler.h \
@@ -229,7 +227,6 @@ SOURCES += \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
-    Data/Profile/Fit/InitialGuess.cpp \
     Data/Profile/Fit/ProfileFitService.cpp \
     Data/Profile/Fit/ProfileFitThread.cpp \
     Data/Profile/Profiler.cpp \
