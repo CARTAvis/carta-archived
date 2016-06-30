@@ -23,6 +23,7 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
         this.addListener("mousedown", this._canvasMouseDownCB, this);
         this.addListener("mouseup", this._canvasMouseUpCB, this);
         this.addListener("mouseout", this._mouseOutCB, this );
+        this._setDirty();
     },
 
     members: {
@@ -59,6 +60,7 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
                     console.log( "No movables to move");
                 }
                 else if( this.m_hoverIndex !== null) {
+                    
                     var movableChanged = false;
                     var obj = this.m_movables[ this.m_hoverIndex];
                     var index = obj.guess;
@@ -134,13 +136,10 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
          *                rendering ctx to draw to
          */
         _draw : function(width, height, ctx) {
-            this.m_plotAreaTLX = 0;
-            this.m_plotAreaTLY = 0;
-            this.m_plotAreaBLX = width;
-            this.m_plotAreaBLY = height - 30;
+           
             ctx.clearRect(0, 0, width, height);
             if ( this.isVisible() && this.m_manual && this.m_manualShow){
-                this._drawFitBox( ctx, width, height );
+                this._drawFitBox( ctx );
             }
         },
         
@@ -148,7 +147,7 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
         /**
          * Draws the manual fit controls
          */
-        _drawFitBox: function ( ctx, width, height ) {
+        _drawFitBox: function ( ctx ) {
             
             // draw all movable objects
             if( this.m_manual ) {
@@ -258,12 +257,12 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
             this.m_movables = [];
             for( var i = 0 ; i < this.m_guesses.length ; i ++ ) {
                 var guess = this.m_guesses[i];
+                var height = this.m_plotHeight - guess.peakPixel;
                 var obj;
                 
                 //Filled rectangle indicating entire marker area
                 obj = this._makeRectH( guess.centerPixel - guess.fbhwPixel, guess.peakPixel, 
-                        guess.fbhwPixel * 2, 
-                        this.m_plotAreaBLY + 10 - guess.peakPixel,
+                        guess.fbhwPixel * 2, height,
                     "rgba(255,255,0,0.4)", "rgba(255,255,0,0.2)");
                 obj.guess = i; 
                 obj.type = "bar";
@@ -271,7 +270,7 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
                 
                 //Horizontal line at bottom of marker
                 obj = this._makeRectH( guess.centerPixel - guess.fbhwPixel, 
-                        this.m_plotAreaBLY + 10, guess.fbhwPixel * 2, 2,
+                        guess.peakPixel + height, guess.fbhwPixel * 2, 2,
                     "#f00", "#f88");
                 obj.guess = i; 
                 obj.type = "none";
@@ -281,7 +280,7 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
                 //Gaussian curve indicator
                 obj = this._makeGauss( guess.centerPixel - guess.fbhwPixel, 
                         guess.peakPixel, guess.fbhwPixel*2, 
-                        this.m_plotAreaBLY + 10 -guess.peakPixel, "#0f0", "#0f0");
+                        height, "#0f0", "#0f0");
                 obj.guess = i;
                 obj.type = "none";
                 obj.getdsq = function() {return 1e9;};
@@ -295,14 +294,14 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
                 
                 //Right center/width control point
                 obj = this._makeTri( guess.centerPixel + guess.fbhwPixel, 
-                        this.m_plotAreaBLY + 7, 5, "#f00", "#f88");
+                        guess.peakPixel + height - 3, 5, "#f00", "#f88");
                 obj.guess = i; 
                 obj.type = "right";
                 this.m_movables.push( obj);
                 
                 //Left center/width control point
                 obj = this._makeTri( guess.centerPixel - guess.fbhwPixel, 
-                        this.m_plotAreaBLY + 7, 5, "#f00", "#f88");
+                        guess.peakPixel + height - 3, 5, "#f00", "#f88");
                 obj.guess = i; 
                 obj.type = "left";
                 this.m_movables.push( obj);
@@ -329,7 +328,7 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
             var hover = false;
             return {
                 getdsq: function( pt) {
-                    if( pt.x >= cx && pt.x <= cx + width && pt.y >= cy && pt.y <= cy + height) {
+                    if( pt.x >= cx && pt.x <= cx + width && pt.y >= y && pt.y <= cy + height) {
                         var dx = pt.x - cx - width/2;
                         var dy = pt.y - cy - height/2;
                         dx /= width;
@@ -413,6 +412,23 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
         },
         
         /**
+         * Update from the server concerning fit information.
+         * @param fitInfo {Object} - fit information from the server.
+         */
+        profileFitUpdate : function( fitInfo ){
+            var manualChanged = this.setManual( fitInfo.fit.manualGuess);
+            var sizeChanged = this.setPlotBounds( fitInfo.plotLeft, fitInfo.plotTop, fitInfo.plotWidth, fitInfo.plotHeight );
+            var guessesChanged = this.setInitialGuesses( fitInfo.fit.fitGuesses );
+            if ( guessesChanged || sizeChanged ){
+                this._makeMovables();
+                this._setDirty();
+            }
+            else if ( manualChanged ){
+                this._setDirty();
+            }
+        },
+        
+        /**
          * Send a command to the server to update initial fit guesses.
          */
         _sendInitialFitGuessesCmd : function(){
@@ -421,10 +437,9 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
             for( var i = 0 ; i < this.m_guesses.length ; i ++ ) {
                 if( i > 0) str += " ";
                 str += this.m_guesses[i].centerPixel + " "
-                  + this.m_guesses[i].fbhwPixel + " "
-                  + this.m_guesses[i].peakPixel;
+                  + this.m_guesses[i].peakPixel + " "
+                  + this.m_guesses[i].fbhwPixel;
             }
-            console.log( "Need to send guesses: "+str);
             if ( this.m_id !== null && this.m_connector !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setFitManualGuesses";
@@ -469,10 +484,11 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
          *      manually; false otherwise.
          */
         setManual : function( manual ){
+            var changed = false;
             if ( this.m_manual != manual ){
                 this.m_manual = manual;
-                this.update();
             }
+            return changed;
         },
       
         /**
@@ -483,10 +499,39 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
         //Note: Even if manualShow is set to true, manual guesses will not be
         //drawn unless we are also in manual mode.
         setManualShow : function( manualShow ){
+            var changed = false;
             if ( this.m_manualShow != manualShow ){
                 this.m_manualShow = manualShow;
-                this.update();
             }
+            return changed;
+        },
+        
+        /**
+         * Set the upper left corner and size of the plotting area.
+         * @param left {Number} - the x-coordinate, in pixels, of the left corner of the plotting area.
+         * @param top {Number} - the y-coordinate, in pixels, of the top corner of the plotting area.
+         * @param width {Number} - the pixel width of the plotting area.
+         * @param height {Number} - the pixel height of the plotting area.
+         */
+        setPlotBounds : function( left, top, width, height ){
+            var update = false;
+            if ( this.m_plotTop != top ){
+                this.m_plotTop = top;
+                update = true;
+            }
+            if ( this.m_plotLeft != left ){
+                this.m_plotLeft = left;
+                update = true;
+            }
+            if ( this.m_plotWidth != width ){
+                this.m_plotWidth = width;
+                update = true;
+            }
+            if ( this.m_plotHeight != height ){
+                this.m_plotHeight = height;
+                update = true;
+            }
+            return update;
         },
 
         /**
@@ -515,10 +560,10 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
         m_id : null,
         m_manual : false,
         m_manualShow : false,
-        m_plotAreaTLX : 0,
-        m_plotAreaTLY : 0,
-        m_plotAreaBLX : 497,
-        m_plotAreaBLY : 240,
+        m_plotHeight : 0,
+        m_plotWidth : 0,
+        m_plotTop : 0,
+        m_plotLeft : 0,
         m_hoverIndex : null,
         m_mouseDownPosition : null,
         m_lastMousePosition : null,

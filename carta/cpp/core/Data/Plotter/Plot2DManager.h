@@ -109,6 +109,18 @@ public:
     std::pair<double,double> getPlotBoundsY( const QString& id, bool* valid ) const;
 
     /**
+     * Return the size of the plot in pixels.
+     * @return - the size of the actual plot area in pixels.
+     */
+    QSize getPlotSize() const;
+
+    /**
+     * Returns the pixel coordinates of the upper left corner of the plot area.
+     * @return - the pixel coordinates of the upper left corner of the plot area.
+     */
+    QPointF getPlotUpperLeft() const;
+
+    /**
      * Get the min and max of the zoom selection.
      * @param valid - set to true if there is a valid zoom selection;
      *      false otherwise.
@@ -198,6 +210,18 @@ public:
     void setGridLines( bool showGrid );
 
     /**
+     * Set the location of the horizontal line on the y-axis in world coordinates.
+     * @param position - a world y-coordinate value that is the position of the horizontal line.
+     */
+    void setHLinePosition( double position );
+
+    /**
+     * Set whether or not the horizontal line marker should be shown.
+     * @param visible - true if the horizontal line marker should be shown; false, otherwise.
+     */
+    void setHLineVisible( bool visible );
+
+    /**
      * Set whether or not to show a line with legend items.
      * @param showLegendLine - true if a sample line should be shown with legend
      *      items; false, otherwise.
@@ -240,6 +264,13 @@ public:
     void setLogScale( bool logScale );
 
     /**
+     * Set the interval for the horizontal rectangular shaded region.
+     * @param minY - the minimum y-value to be shaded in world coordinates.
+     * @param maxY - the maximum y-value to be shaded in world coordinates.
+     */
+    void setMarkedRange( double minY, double maxY );
+
+    /**
      * Set information for coloring the plot.
      * @param pipeline - information about how the data should be colored.
      */
@@ -264,6 +295,13 @@ public:
      * @param max - the upper boundary of the secondary selection.
      */
     void setRangeColor( double min, double max );
+
+    /**
+     * Sets whether or not the horizontal shaded rectangle should be visible.
+     * @param visible - true if the horizontal shaded rectangle should be visible;
+     *      false otherwise.
+     */
+    void setRangeMarkerVisible( bool visible );
 
     /**
      * Set the line/fill style for the plot.

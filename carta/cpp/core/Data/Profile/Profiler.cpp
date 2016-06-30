@@ -62,6 +62,10 @@ const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
 const QString Profiler::MANUAL_GUESS = "manualGuess";
+const QString Profiler::PLOT_WIDTH = "plotWidth";
+const QString Profiler::PLOT_HEIGHT = "plotHeight";
+const QString Profiler::PLOT_LEFT = "plotLeft";
+const QString Profiler::PLOT_TOP = "plotTop";
 const QString Profiler::POLY_DEGREE = "polyDegree";
 const QString Profiler::REGIONS = "regions";
 const QString Profiler::SHOW_GUESSES = "showGuesses";
@@ -381,13 +385,24 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
         if ( statusType == Carta::Lib::Fit1DInfo::StatusType::COMPLETE ||
                 statusType == Carta::Lib::Fit1DInfo::StatusType::PARTIAL ){
             std::vector<std::pair<double,double>> fitData = result.getData();
+
             int fitDataCount = fitData.size();
             std::vector<double> dataX( fitDataCount );
             std::vector<double> dataY( fitDataCount );
+            double sum = 0;
+            int count = 0;
             for ( int i = 0; i < fitDataCount; i++ ){
                 dataX[i] = fitData[i].first;
                 dataY[i] = fitData[i].second;
+                if ( std::isfinite( dataY[i]) ){
+                    sum = sum + dataY[i];
+                    count++;
+                }
             }
+            double mean = sum / count;
+            double rms = result.getRMS();
+            m_plotManager->setMarkedRange( mean - rms, mean + rms );
+            m_plotManager->setHLinePosition( mean );
             int curveIndex =  _findCurveIndex( result.getName() );
             if ( curveIndex >= 0 ){
                 m_plotCurves[curveIndex ]->setFit( dataX, dataY );
@@ -526,7 +541,7 @@ Profiler::_generateFitGuesses( int count, bool random ){
             center = randomIndex + xmin;
         }
         //Go down a fixed percentile each time.
-        peak = peak * yDecrease;
+        peak = peak * qPow(yDecrease,i);
         if ( random ){
             //Weighted average of the minimum and maximum.
             peak = 0.75 * ymax + 0.25 * ymin;
@@ -786,13 +801,18 @@ void Profiler::_initializeDefaultState(){
 
     //Fit show/hide on display
     m_state.insertValue<bool>( SHOW_RESIDUALS, true );
-    m_state.insertValue<bool>( SHOW_GUESSES, true );
+    m_state.insertValue<bool>( SHOW_GUESSES, false );
     m_state.insertValue<bool>( SHOW_STATISTICS, true );
     m_state.insertValue<bool>( SHOW_MEAN_RMS, false );
+
     m_state.insertValue<bool>( SHOW_PEAK_LABELS, false );
     m_state.flushState();
 
     //Fit Parameters
+    m_stateFit.insertValue<int>( PLOT_WIDTH, 0 );
+    m_stateFit.insertValue<int>( PLOT_HEIGHT, 0 );
+    m_stateFit.insertValue<int>( PLOT_LEFT, 0 );
+    m_stateFit.insertValue<int>( PLOT_TOP, 0 );
     m_stateFit.insertObject( CurveData::FIT );
     QString gaussKey = Carta::State::UtilState::getLookup( CurveData::FIT, GAUSS_COUNT );
     m_stateFit.insertValue<int>( gaussKey, 0 );
@@ -801,7 +821,7 @@ void Profiler::_initializeDefaultState(){
     QString heurKey = Carta::State::UtilState::getLookup( CurveData::FIT, HEURISTICS );
     m_stateFit.insertValue<bool>( heurKey, true );
     QString manKey = Carta::State::UtilState::getLookup( CurveData::FIT, MANUAL_GUESS );
-    m_stateFit.insertValue<bool>( manKey, true );
+    m_stateFit.insertValue<bool>( manKey, false );
     QString guessesKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
     m_stateFit.insertArray( guessesKey, 0 );
     m_stateFit.flushState();
@@ -863,40 +883,25 @@ void Profiler::_initializeCallbacks(){
             QStringList guessList = guessStr.split( " ");
             const int GUESS_SIZE = 3;
             int guessCount = guessList.size() / GUESS_SIZE;
-            std::vector<std::tuple<double,double,double> > guesses( guessCount);
-            QString errorMsg = "Initial fit manual guesses must be valid numbers: "+params;
+            std::vector<std::tuple<int,int,int> > guesses( guessCount);
+            QString errorMsg = "Initial fit manual guesses must be valid integers: "+params;
             for ( int i = 0; i < guessCount; i++ ){
                 bool validCenter = false;
                 bool validPeak = false;
                 bool validFBHW = false;
                 //Screen coordinates of a guess.
-                double centerPixel = guessList[i*GUESS_SIZE].toDouble(&validCenter );
-                double peakPixel = guessList[i*GUESS_SIZE+1].toDouble(&validPeak );
-                double fbhwPixel = guessList[i*GUESS_SIZE+2].toDouble(&validFBHW );
-                qDebug() << "Pixels: c="<<centerPixel<<" peak="<<peakPixel<<" fbhw="<<fbhwPixel;
+                int centerPixel = guessList[i*GUESS_SIZE].toInt(&validCenter );
+                int peakPixel = guessList[i*GUESS_SIZE+1].toInt(&validPeak );
+                int fbhwPixel = guessList[i*GUESS_SIZE+2].toInt(&validFBHW );
                 if ( !validCenter || !validPeak || !validFBHW ){
                     result = errorMsg;
                     break;
                 }
-                else if ( centerPixel < 0 || peakPixel < 0 || fbhwPixel < 0 ){
-                    result = "Pixel coordinates of initial guesses must be nonnegative: " + params;
-                    qDebug() << result;
-                    break;
-                }
-                else {
-                    //Must convert to image coordinates.
-                    QPointF centerPixPt( centerPixel,peakPixel);
-                    QPointF sidePixPt( centerPixel - fbhwPixel, peakPixel );
-                    QPointF centerPt = m_plotManager->getImagePoint( centerPixPt );
-                    QPointF sidePt = m_plotManager->getImagePoint( sidePixPt );
-                    qDebug()<<"Image c="<<centerPt.x()<<" peak="<<centerPt.y()<<" fbhw="<<(centerPt.x() - sidePt.x());
-                    guesses[i]= std::tuple<double,double,double>(centerPt.x(), centerPt.y(), centerPt.x() - sidePt.x());
-                }
+                guesses[i] = std::tuple<int,int,int>(centerPixel, peakPixel,fbhwPixel);
             }
             if ( result.isEmpty() ){
-                setFitInitialGuesses( guesses );
+                setFitInitialGuessesPixels( guesses );
             }
-
             Util::commandPostProcess( result );
             return result;
         });
@@ -1573,6 +1578,12 @@ void Profiler::_movieFrame(){
 }
 
 void Profiler::_plotSizeChanged(){
+    QSize plotSize = m_plotManager->getPlotSize();
+    m_stateFit.setValue<int>(PLOT_WIDTH, plotSize.width());
+    m_stateFit.setValue<int>(PLOT_HEIGHT, plotSize.height());
+    QPointF upperLeft = m_plotManager->getPlotUpperLeft();
+    m_stateFit.setValue<int>(PLOT_LEFT, upperLeft.x() );
+    m_stateFit.setValue<int>(PLOT_TOP, upperLeft.y() );
     _resetFitGuessPixels();
 }
 
@@ -1721,7 +1732,6 @@ void Profiler::_resetFitGuessPixels(){
             m_stateFit.setValue<int>( fbhwKey, (int)(centerPt.x() - offsetPt.x()) );
         }
     }
-    qDebug() << "_resetFitGuessPixels "<<m_stateFit.toString();
     m_stateFit.flushState();
 }
 
@@ -1752,6 +1762,11 @@ void Profiler::resetState( const QString& state ){
 
     m_stateFit.setState( restoredState.getValue<QString>( CurveData::FIT) );
     m_stateFit.flushState();
+
+    bool showMeanRMS = m_state.getValue<bool>( SHOW_MEAN_RMS );
+    m_plotManager->setHLineVisible( showMeanRMS );
+    m_plotManager->setRangeMarkerVisible( showMeanRMS );
+
 }
 
 
@@ -1977,6 +1992,78 @@ void Profiler::_makeInitialGuesses( int count ){
             m_stateFit.insertValue<int>( fbhwKey, 1 );
         }
     }
+}
+
+QString Profiler::setFitInitialGuessesPixels(const std::vector<std::tuple<int,int,int> >& guessPixels ){
+    QString result;
+    int guessCount = guessPixels.size();
+    QString baseKey = Carta::State::UtilState::getLookup( CurveData::FIT, INITIAL_GUESSES );
+    for ( int i = 0; i < guessCount; i++ ){
+        int centerPixel = std::get<0>( guessPixels[i] );
+        int peakPixel = std::get<1>( guessPixels[i] );
+        int fbhwPixel = std::get<2>( guessPixels[i] );
+        if ( centerPixel < 0 || peakPixel < 0 || fbhwPixel < 0 ){
+            QString coord( "("+QString::number(centerPixel)+","+QString::number(peakPixel)+","+
+                    QString::number(fbhwPixel)+")");
+            result = "Pixel coordinates of initial guesses must be nonnegative integers: " + coord;
+            break;
+        }
+        //Set the pixel coordinates if they have changed.
+        QString indexKey = Carta::State::UtilState::getLookup( baseKey, i );
+        bool centerChanged = false;
+        bool peakChanged = false;
+        bool fbhwChanged = false;
+        QString centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER_PIXEL );
+        int oldCenter = m_stateFit.getValue<int>( centerKey );
+        if ( oldCenter != centerPixel ){
+            m_stateFit.setValue<int>( centerKey, centerPixel );
+            centerChanged = true;
+        }
+        QString peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK_PIXEL );
+        int oldPeak = m_stateFit.getValue<int>( peakKey );
+        if ( oldPeak != peakPixel ){
+            m_stateFit.setValue<int>( peakKey, peakPixel );
+            peakChanged = true;
+        }
+        QString fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW_PIXEL );
+        int oldFBHW = m_stateFit.getValue<int>( fbhwKey );
+        if ( oldFBHW != fbhwPixel ){
+            m_stateFit.setValue<int>( fbhwKey, fbhwPixel );
+            fbhwChanged = true;
+        }
+
+        //We recalculate the image image coordinates based on the pixel coordinates.
+        bool generate = false;
+        QPointF centerPt = m_plotManager->getImagePoint( QPointF(centerPixel,peakPixel) );
+        if ( centerChanged || peakChanged ){
+            centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER );
+            if ( qAbs(m_stateFit.getValue<double>(centerKey) - centerPt.x()) > ERROR_MARGIN ){
+                m_stateFit.setValue<double>( centerKey, centerPt.x());
+                generate = true;
+            }
+            peakKey = Carta::State::UtilState::getLookup( indexKey, FIT_PEAK );
+            if ( qAbs(m_stateFit.getValue<double>(peakKey) - centerPt.y()) > ERROR_MARGIN ){
+                m_stateFit.setValue<double>( peakKey, centerPt.y());
+                generate = true;
+            }
+        }
+        if ( fbhwChanged ){
+            QPointF offsetPt = m_plotManager->getImagePoint( QPointF(centerPixel - fbhwPixel, peakPixel) );
+            fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW );
+            double fbhwNew = centerPt.x() - offsetPt.x();
+            if ( qAbs( m_stateFit.getValue<double>( fbhwKey) - fbhwNew) > ERROR_MARGIN ){
+                m_stateFit.setValue<double>( fbhwKey, fbhwNew );
+                generate = true;
+            }
+        }
+        if ( centerChanged || peakChanged || fbhwChanged ){
+            m_stateFit.flushState();
+        }
+        if ( generate ){
+            _generateFit();
+        }
+    }
+    return result;
 }
 
 QString Profiler::setFitInitialGuesses(const std::vector<std::tuple<double,double,double> >& guesses ){
@@ -2300,6 +2387,9 @@ void Profiler::setShowMeanRMS( bool showMeanRMS ){
     if ( oldShow != showMeanRMS ){
         m_state.setValue<bool>(SHOW_MEAN_RMS, showMeanRMS );
         m_state.flushState();
+        m_plotManager->setRangeMarkerVisible( showMeanRMS );
+        m_plotManager->setHLineVisible( showMeanRMS );
+        m_plotManager->updatePlot();
     }
 }
 

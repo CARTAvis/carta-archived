@@ -1,9 +1,12 @@
 #include "Plot2DGenerator.h"
 #include "Plot2DHistogram.h"
 #include "Plot2DProfile.h"
+#include "Plot2DRangeMarker.h"
 #include "Plot2DSelection.h"
 #include "Plot2DLine.h"
+#include "Plot2DLineHorizontal.h"
 #include "Plot.h"
+#include <qwt_interval.h>
 #include <qwt_scale_engine.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_renderer.h>
@@ -19,7 +22,9 @@ const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
 
 Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
     m_rangeColor( nullptr ),
+    m_hLine( nullptr ),
     m_vLine( nullptr ),
+    m_rangeMarker( nullptr ),
     m_gridLines( nullptr),
     m_font( "Helvetica", 10){
     m_legendVisible = false;
@@ -39,7 +44,9 @@ Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
 
 
     if ( plotType == PlotType::PROFILE ){
+        m_hLine = new Plot2DLineHorizontal();
         m_vLine = new Plot2DLine();
+        m_rangeMarker = new Plot2DRangeMarker();
         m_vLine->attach( m_plot );
         setLegendVisible( true );
     }
@@ -206,6 +213,14 @@ QPointF Plot2DGenerator::getImagePoint(const QPointF& screenPt ) const {
     return m_plot->getImagePoint( screenPt );
 }
 
+QSize Plot2DGenerator::getPlotSize() const {
+    return m_plot->getPlotSize();
+}
+
+QPointF Plot2DGenerator::getPlotUpperLeft() const {
+    return m_plot->getPlotUpperLeft();
+}
+
 void Plot2DGenerator::removeData( const QString& dataName ){
     std::shared_ptr<Plot2D> pData = _findData( dataName );
     if ( pData ){
@@ -277,6 +292,26 @@ void Plot2DGenerator::setGridLines( bool showGrid ){
     m_plot->replot();
 }
 
+void Plot2DGenerator::setHLinePosition( double position ){
+    if ( m_hLine ){
+        m_hLine->setPosition( position );
+    }
+}
+
+void Plot2DGenerator::setHLineVisible( bool visible ){
+    if ( visible ){
+        if ( !m_hLine ){
+            m_hLine = new Plot2DLineHorizontal();
+        }
+        m_hLine->attach( m_plot );
+    }
+    else {
+        if ( m_hLine ){
+            m_hLine->detach();
+        }
+    }
+}
+
 
 void Plot2DGenerator::setLegendExternal( bool externalLegend ){
     if ( m_legendExternal != externalLegend ){
@@ -323,6 +358,12 @@ void Plot2DGenerator::setMarkerLine( double xPos ){
     }
 }
 
+void Plot2DGenerator::setMarkedRange( double minY, double maxY ){
+    if ( m_rangeMarker ){
+        m_rangeMarker->setRange( QwtInterval(minY, maxY) );
+    }
+}
+
 
 void Plot2DGenerator::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
     int dataCount = m_datas.size();
@@ -342,6 +383,21 @@ void Plot2DGenerator::setRange(double min, double max){
 void Plot2DGenerator::setRangeColor(double min, double max){
     if ( m_rangeColor ){
         m_rangeColor->setClipValues(min, max);
+    }
+    m_plot->replot();
+}
+
+void Plot2DGenerator::setRangeMarkerVisible( bool visible ){
+    if ( visible ){
+        if ( !m_rangeMarker ){
+            m_rangeMarker = new Plot2DRangeMarker();
+        }
+        m_rangeMarker->attach( m_plot );
+    }
+    else {
+        if ( m_rangeMarker ){
+            m_rangeMarker->detach();
+        }
     }
     m_plot->replot();
 }
@@ -532,6 +588,10 @@ Plot2DGenerator::~Plot2DGenerator(){
         m_rangeColor->detach();
         delete m_rangeColor;
     }
+    if ( m_hLine ){
+        m_hLine->detach();
+        delete m_hLine;
+    }
     if ( m_vLine ){
         m_vLine->detach();
         delete m_vLine;
@@ -539,6 +599,10 @@ Plot2DGenerator::~Plot2DGenerator(){
     if ( m_gridLines ){
         m_gridLines->detach();
         delete m_gridLines;
+    }
+    if ( m_rangeMarker ){
+        m_rangeMarker->detach();
+        delete m_rangeMarker;
     }
     delete m_gridLines;
     delete m_range;

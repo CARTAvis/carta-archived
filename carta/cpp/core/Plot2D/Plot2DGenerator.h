@@ -27,6 +27,8 @@ namespace Plot2D {
 class Plot;
 class Plot2D;
 class Plot2DLine;
+class Plot2DLineHorizontal;
+class Plot2DRangeMarker;
 class Plot2DSelection;
 
 class Plot2DGenerator{
@@ -127,6 +129,18 @@ public:
     QPointF getImagePoint(const QPointF& screenPt ) const;
 
     /**
+     * Return the size of the actual plotting area in pixels.
+     * @return - the size of the actual plotting area in pixels.
+     */
+    QSize getPlotSize() const;
+
+    /**
+     * Get the upper left corner of the plotting area in pixels.
+     * @return - the upper left corner of the plotting area in pixels.
+     */
+    QPointF getPlotUpperLeft() const;
+
+    /**
      * Return true if the parameter is on the canvas itself rather than in the
      * margin of the canvas.
      * @param xPos - a pixel position in the horizontal direction.
@@ -177,6 +191,17 @@ public:
      */
     void setGridLines( bool showGrid );
 
+    /**
+     * Set the location of the horizontal line on the y-axis in world coordinates.
+     * @param position - a world y-coordinate value that is the position of the horizontal line.
+     */
+    void setHLinePosition( double position );
+
+    /**
+     * Set whether or not the horizontal line marker should be shown.
+     * @param visible - true if the horizontal line marker should be shown; false, otherwise.
+     */
+    void setHLineVisible( bool visible );
 
     /**
      * Set whether or not a sample line should be drawn with legend items.
@@ -217,6 +242,13 @@ public:
     void setLogScale(bool logScale);
 
     /**
+     * Set the interval for the horizontal rectangular shaded region.
+     * @param minY - the minimum y-value to be shaded in world coordinates.
+     * @param maxY - the maximum y-value to be shaded in world coordinates.
+     */
+    void setMarkedRange( double minY, double maxY );
+
+    /**
      * Set the position of the vertical marker line.
      * @param xPos - the x-coordinate of the line in world units.
      */
@@ -241,6 +273,13 @@ public:
      * @param max the maximum clip range value in world units.
      */
     void setRangeColor(double min, double max);
+
+    /**
+     * Sets whether or not the horizontal shaded rectangle should be visible.
+     * @param visible - true if the horizontal shaded rectangle should be visible;
+     *      false otherwise.
+     */
+    void setRangeMarkerVisible( bool visible );
 
     /**
      * Set the min and max zoom range for the plot.
@@ -322,7 +361,9 @@ private:
     QList< std::shared_ptr<Plot2D> > m_datas;
     Plot2DSelection *m_range;
     Plot2DSelection * m_rangeColor;
+    Plot2DLineHorizontal* m_hLine;
     Plot2DLine* m_vLine;
+    Plot2DRangeMarker* m_rangeMarker;
     QwtPlotGrid* m_gridLines;
     int m_height;
     int m_width;

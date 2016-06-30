@@ -228,6 +228,13 @@ public:
     QString setFitInitialGuesses(const std::vector<std::tuple<double,double,double> >& guesses );
 
     /**
+     * Set manual fit guesses in image coordinates.
+     * @param guesses- a list of fit guesses in image coordinates.
+     * @return - an error message if the initial fit guesses could not be set.
+     */
+    QString setFitInitialGuessesPixels(const std::vector<std::tuple<int,int,int> >& guessPixels );
+
+    /**
      * Set whether or not manual initial guesses will be specified for
      * fitting.
      * @param manualGuess - true if manual initial guesses will be used;
@@ -480,6 +487,10 @@ private:
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
     const static QString MANUAL_GUESS;
+    const static QString PLOT_HEIGHT;
+    const static QString PLOT_WIDTH;
+    const static QString PLOT_LEFT;
+    const static QString PLOT_TOP;
     const static QString POLY_DEGREE;
     const static QString REGIONS;
     const static QString SHOW_GUESSES;

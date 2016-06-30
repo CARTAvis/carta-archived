@@ -49,6 +49,18 @@ public:
     QPointF getImagePoint(const QPointF& screenPt ) const;
 
     /**
+     * Return the size of the actual plotting area in pixels.
+     * @return - the size of the actual plotting area in pixels.
+     */
+    QSize getPlotSize() const;
+
+    /**
+     * Get the upper left corner of the plotting area in pixels.
+     * @return - the upper left corner of the plotting area in pixels.
+     */
+    QPointF getPlotUpperLeft() const;
+
+    /**
      * Set the font used to draw axis labels.
      * @param font - the font for axis labels.
      */
@@ -76,6 +88,9 @@ private:
     QwtPlot::LegendPosition _calculatePosition( const QString& pos ) const;
     QwtLegend* m_externalLegend;
     QwtPlotLegendItem* m_legendItem;
+
+    bool m_showExternalLegend;
+    QwtPlot::LegendPosition m_legendLocation;
     Plot( const Plot& other);
     Plot& operator=( const Plot& other );
 };

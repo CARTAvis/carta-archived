@@ -131,11 +131,9 @@ qx.Class.define("skel.widgets.Profile.Profile", {
             if ( val ){
                 try {
                     var fitInfo = JSON.parse( val );
+                    this.m_fitOverlay.profileFitUpdate( fitInfo );
                     var manualMode = fitInfo.fit.manualGuess;
-                    this.m_fitOverlay.setManual( manualMode );
                     this.m_settingsContainer.setManualFitGuesses( manualMode );
-                    var guesses = fitInfo.fit.fitGuesses;
-                    this.m_fitOverlay.setInitialGuesses( guesses );
                 }
                 catch( err ){
                     console.log( "Could not parse profile fit: "+val+" error: "+err );

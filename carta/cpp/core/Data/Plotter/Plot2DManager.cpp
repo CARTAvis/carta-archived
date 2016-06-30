@@ -131,6 +131,22 @@ std::pair<double,double> Plot2DManager::getPlotBoundsY( const QString& id, bool*
     return bounds;
 }
 
+QSize Plot2DManager::getPlotSize() const {
+    QSize size;
+    if ( m_plotGenerator ){
+        size = m_plotGenerator->getPlotSize();
+    }
+    return size;
+}
+
+QPointF Plot2DManager::getPlotUpperLeft() const {
+    QPointF pt;
+    if ( m_plotGenerator ){
+        pt = m_plotGenerator->getPlotUpperLeft();
+    }
+    return pt;
+}
+
 
 QString Plot2DManager::getPlotTitle() const {
     QString title;
@@ -339,7 +355,18 @@ void Plot2DManager::setCurveName( const QString& oldName, const QString& newName
 void Plot2DManager::setGridLines( bool showLines ){
     if ( m_plotGenerator ){
         m_plotGenerator->setGridLines( showLines );
-        updatePlot();
+    }
+}
+
+void Plot2DManager::setHLinePosition( double position ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setHLinePosition( position );
+    }
+}
+
+void Plot2DManager::setHLineVisible( bool visible ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setHLineVisible( visible );
     }
 }
 
@@ -391,6 +418,13 @@ void Plot2DManager::setLogScale( bool logScale ){
 }
 
 
+void Plot2DManager::setMarkedRange( double minY, double maxY ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setMarkedRange(minY,maxY);
+    }
+}
+
+
 void Plot2DManager::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline) {
     if ( m_plotGenerator ){
         m_plotGenerator->setPipeline( pipeline );
@@ -415,6 +449,13 @@ void Plot2DManager::setRange( double min, double max ){
 void Plot2DManager::setRangeColor( double min, double max ){
     if ( m_plotGenerator ){
         m_plotGenerator->setRangeColor( min, max );
+    }
+}
+
+
+void Plot2DManager::setRangeMarkerVisible( bool visible ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setRangeMarkerVisible( visible);
     }
 }
 
