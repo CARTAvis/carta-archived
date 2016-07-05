@@ -105,8 +105,9 @@ Histogram::Histogram( const QString& path, const QString& id):
             SIGNAL(histogramResult(const Carta::Lib::Hooks::HistogramResult& )),
             this,
             SLOT(_histogramRendered(const Carta::Lib::Hooks::HistogramResult& )));
-
-    m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::HISTOGRAM) );
+    Plot2DGenerator* gen = new Plot2DGenerator();
+    gen->setHistogram( true, 0 );
+    m_plotManager->setPlotGenerator( gen );
     m_plotManager->setTitleAxisY( "Count(pixels)" );
     m_plotManager->setTitleAxisX( "Intensity" );
     connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));

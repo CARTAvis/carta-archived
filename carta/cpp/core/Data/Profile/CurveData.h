@@ -65,10 +65,24 @@ public:
     std::vector< std::pair<double,double> > getFitData() const;
 
     /**
+     * Return a list of fit residuals.
+     * @return - a list of residual data form a fit.
+     */
+    std::vector<std::pair<double,double> > getFitResiduals() const;
+
+    /**
      * Return stored parameters for fitting this curve.
      * @return - a string representation of fitting parameters.
      */
     QString getFitParams() const;
+
+    /**
+     * Return a list of parameters that specify the Gaussians that were fit to the
+     * curve.
+     * @return - a list containing <center,peak,fbhw> information for the Gaussians
+     *      that were fit to the curve.
+     */
+    std::vector<std::tuple<double,double,double> > getGaussParams() const;
 
     /**
      * Returns the image that was used in the profile calculation.
@@ -218,6 +232,13 @@ public:
     void setDataY( const std::vector<double>& valsY );
 
     /**
+     * Set a list of parameters that specify the Gaussians that were fit to the curve.
+     * @param params - a list of <center,peak,fbhw> information that specifies the Gaussians
+     *      that were fit to the curve.
+     */
+    void setGaussParams( const std::vector<std::tuple<double,double,double> >& params );
+
+    /**
      * Set the x- and y- fit values for the curve.
      * @param valsX - the x-coordinate fit values of the curve.
      * @param valsY - the y-coordinate fit values of the curve.
@@ -359,6 +380,7 @@ private:
     std::vector<double> m_plotDataY;
     std::vector<double> m_fitDataX;
     std::vector<double> m_fitDataY;
+    std::vector<std::tuple<double,double,double> > m_gaussParams;
     std::shared_ptr<Region> m_region;
 
     double m_restFrequency;

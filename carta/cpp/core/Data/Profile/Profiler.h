@@ -134,6 +134,18 @@ public:
     bool isRandomHeuristics() const;
 
     /**
+     * Returns whether or not labels at the peaks of the Gaussians should be shown.
+     * @return - true if labels at the peaks of the fit Gaussains should be shown; false, otherwise.
+     */
+    bool isShowPeakLabels() const;
+
+    /**
+     * Returns whether or not a separate residual plot should be shown.
+     * @return - true if a separate residual plot should be shown; false, otherwise.
+     */
+    bool isShowResiduals() const;
+
+    /**
      * Generate a new profile based on default settings.
      * @return - an error message if the new profile could not be generated; an empty
      *      string otherwise.
@@ -529,6 +541,7 @@ private:
              int curveIndex, const QString& layerName, bool createNew = false );
     void _generateFit( );
     std::vector<std::tuple<double,double,double> > _generateFitGuesses( int count, bool random );
+    QString _generatePeakLabel( double center, double peak, double fbhw ) const;
     Controller* _getControllerSelected() const;
     std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
@@ -557,6 +570,7 @@ private:
     void _setErrorMargin();
 
     void _updateAvailableImages( Controller* controller );
+    void _updateResidualData();
     void _updateFitStatistics( const std::vector<Carta::Lib::Hooks::FitResult>& results );
     QString _updateFitStatistic( int index, const Carta::Lib::Hooks::FitResult& result );
 
@@ -621,6 +635,8 @@ private:
 
     //Out source the job of fitting the curve.
     std::unique_ptr<ProfileFitService> m_fitService;
+
+    int m_residualPlotIndex;
 
 	Profiler( const Profiler& other);
 	Profiler& operator=( const Profiler& other );

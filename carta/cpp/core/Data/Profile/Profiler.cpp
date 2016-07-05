@@ -125,6 +125,8 @@ Profiler::Profiler( const QString& path, const QString& id):
     m_currentFrame = 0;
     m_timerId = 0;
 
+    m_residualPlotIndex = 0;
+
     qsrand(QTime::currentTime().msec());
     connect( m_renderService.get(),
             SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&,int,const QString&,bool,std::shared_ptr<Carta::Lib::Image::ImageInterface>)),
@@ -142,7 +144,7 @@ Profiler::Profiler( const QString& path, const QString& id):
     LegendLocations* legObj = objMan->createObject<LegendLocations>();
     m_legendLocations.reset( legObj );
 
-    m_plotManager->setPlotGenerator( new Plot2DGenerator( Plot2DGenerator::PlotType::PROFILE) );
+    m_plotManager->setPlotGenerator( new Plot2DGenerator() );
     m_plotManager->setTitleAxisY( "" );
     connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));
     connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT(_movieFrame()));
@@ -405,8 +407,10 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
             m_plotManager->setHLinePosition( mean );
             int curveIndex =  _findCurveIndex( result.getName() );
             if ( curveIndex >= 0 ){
-                m_plotCurves[curveIndex ]->setFit( dataX, dataY );
+                m_plotCurves[ curveIndex ]->setFit( dataX, dataY );
+                m_plotCurves[ curveIndex ]->setGaussParams( result.getGaussFits() );
                 _updatePlotData();
+                _updateResidualData();
             }
 
         }
@@ -800,7 +804,7 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
 
     //Fit show/hide on display
-    m_state.insertValue<bool>( SHOW_RESIDUALS, true );
+    m_state.insertValue<bool>( SHOW_RESIDUALS, false );
     m_state.insertValue<bool>( SHOW_GUESSES, false );
     m_state.insertValue<bool>( SHOW_STATISTICS, true );
     m_state.insertValue<bool>( SHOW_MEAN_RMS, false );
@@ -1490,6 +1494,14 @@ bool Profiler::isRandomHeuristics() const {
     return m_stateFit.getValue<bool>( key );
 }
 
+bool Profiler::isShowPeakLabels() const {
+    return m_state.getValue<bool>( SHOW_PEAK_LABELS );
+}
+
+bool Profiler::isShowResiduals() const {
+    return m_state.getValue<bool>( SHOW_RESIDUALS );
+}
+
 
 void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
@@ -1756,17 +1768,20 @@ void Profiler::resetState( const QString& state ){
     restoredState.setState( state );
     QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
     m_preferences->resetStateString( settingStr );
+
+    //Call methods that require actions if the state value changes.
     QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
+    StateInterface mainState("");
+    mainState.setState( prefStr );
+    setShowMeanRMS( mainState.getValue<bool>( SHOW_MEAN_RMS ));
+    setShowFitResiduals( mainState.getValue<bool>( SHOW_RESIDUALS ));
+
+    //Reset the rest of the state.
     m_state.setState( prefStr );
     m_state.flushState();
 
     m_stateFit.setState( restoredState.getValue<QString>( CurveData::FIT) );
     m_stateFit.flushState();
-
-    bool showMeanRMS = m_state.getValue<bool>( SHOW_MEAN_RMS );
-    m_plotManager->setHLineVisible( showMeanRMS );
-    m_plotManager->setRangeMarkerVisible( showMeanRMS );
-
 }
 
 
@@ -2371,8 +2386,17 @@ void Profiler::setShowFitResiduals( bool showFitResiduals ){
     if ( oldShowResiduals != showFitResiduals ){
         m_state.setValue<bool>(SHOW_RESIDUALS, showFitResiduals );
         m_state.flushState();
+        if ( showFitResiduals ){
+            m_residualPlotIndex = m_plotManager->addPlot();
+           _updateResidualData();
+        }
+        else {
+            m_plotManager->removePlot(m_residualPlotIndex);
+        }
     }
 }
+
+
 
 void Profiler::setShowFitStatistics( bool showFitStatistics ){
     bool oldShow = m_state.getValue<bool>( SHOW_STATISTICS );
@@ -2398,6 +2422,7 @@ void Profiler::setShowPeakLabels( bool showPeakLabels ){
     if ( oldShow != showPeakLabels ){
         m_state.setValue<bool>(SHOW_PEAK_LABELS, showPeakLabels );
         m_state.flushState();
+        _updatePlotData();
     }
 }
 
@@ -2682,6 +2707,26 @@ void Profiler::_updatePlotBounds(){
     m_plotManager->setAxisXRange( graphMin, graphMax );
 }
 
+void Profiler::_updateResidualData(){
+    if ( isShowResiduals() ){
+        int curveCount = m_plotCurves.size();
+        for ( int i = 0; i < curveCount; i++ ){
+            if ( m_plotCurves[i]->isFitted() ){
+                std::vector< std::pair<double,double> > res =
+                        m_plotCurves[i]->getFitResiduals();
+                QString resName = m_plotCurves[i]->getName();
+                Carta::Lib::Hooks::Plot2DResult* resRes = new Carta::Lib::Hooks::Plot2DResult( resName,
+                        "", "", res );
+                m_plotManager->addData( resRes, m_residualPlotIndex );
+            }
+        }
+        QString bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
+        bottomUnit = _getUnitUnits( bottomUnit );
+        QString leftUnit = m_state.getValue<QString>( AXIS_UNITS_LEFT );
+        m_plotManager->setTitleAxisX( bottomUnit, m_residualPlotIndex );
+        m_plotManager->setTitleAxisY( leftUnit, m_residualPlotIndex );
+    }
+}
 
 void Profiler::_updateZoomRangeBasedOnPercent(){
     std::pair<double,double> range = _getCurveRangeX();
@@ -2709,8 +2754,16 @@ void Profiler::_updateZoomRangeBasedOnPercent(){
     }
 }
 
+QString Profiler::_generatePeakLabel( double center, double peak, double fbhw ) const {
+    QString label( "Center: "+QString::number( center ));
+    label = label + " Peak: "+QString::number( peak );
+    label = label + " FBHW : "+ QString::number( fbhw );
+    return label;
+}
+
 void Profiler::_updatePlotData(){
     int curveCount = m_plotCurves.size();
+    m_plotManager->clearLabels();
     //Put the data into the plot.
     for ( int i = 0; i < curveCount; i++ ){
         std::vector< std::pair<double,double> > plotData = m_plotCurves[i]->getPlotData();
@@ -2720,9 +2773,23 @@ void Profiler::_updatePlotData(){
         bool fitted = m_plotCurves[i]->isFitted();
         if ( fitted ){
             std::vector< std::pair<double,double> > fitData = m_plotCurves[i]->getFitData();
+
             Carta::Lib::Hooks::Plot2DResult fitResult( dataId+"Fit", "", "", fitData );
 
             m_plotManager->addData( &fitResult );
+            if ( isShowPeakLabels() ){
+                std::vector< std::tuple<double,double,double> > gaussParams = m_plotCurves[i]->getGaussParams();
+                int guessCount = gaussParams.size();
+                std::vector< std::tuple<double,double,QString> > peakLabels( guessCount );
+                for ( int i = 0; i < guessCount; i++ ){
+                    QString peakLabel = _generatePeakLabel( std::get<0>(gaussParams[i]),
+                            std::get<1>(gaussParams[i]), std::get<2>(gaussParams[i]) );
+                    peakLabels[i] = std::tuple<double,double,QString>( std::get<0>(gaussParams[i]),
+                            std::get<1>( gaussParams[i]), peakLabel );
+                }
+                m_plotManager->addLabels( peakLabels );
+            }
+
         }
         m_plotManager->setColor( m_plotCurves[i]->getColor(), dataId );
     }

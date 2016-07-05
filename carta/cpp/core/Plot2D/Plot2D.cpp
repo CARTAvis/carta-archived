@@ -47,8 +47,6 @@ void Plot2D::setDrawStyle( const QString& style ){
     m_drawStyle = style;
 }
 
-
-
 void Plot2D::setLegendLine( bool /*showLegendLine*/ ){
 
 }

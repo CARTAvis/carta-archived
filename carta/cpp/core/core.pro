@@ -120,13 +120,15 @@ HEADERS += \
     ImageSaveService.h \
     Plot2D/Plot.h \
     Plot2D/Plot2DGenerator.h \
-    plot2D/Plot2DRangeMarker.h \
+    Plot2D/Plot2DRangeMarker.h \
     Plot2D/Plot2DSelection.h \
     Plot2D/Plot2D.h \
     Plot2D/Plot2DLine.h \
     Plot2D/Plot2DLineHorizontal.h \
     Plot2D/Plot2DHistogram.h \
+    Plot2D/Plot2DHolder.h \
     Plot2D/Plot2DProfile.h \
+    Plot2D/Plot2DTextMarker.h \
     ProfileExtractor.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
@@ -259,8 +261,10 @@ SOURCES += \
     Plot2D/Plot2DLine.cpp \
     Plot2D/Plot2DLineHorizontal.cpp \
     Plot2D/Plot2DHistogram.cpp \
+    Plot2D/Plot2DHolder.cpp \
     Plot2D/Plot2DProfile.cpp \
     Plot2D/Plot2DSelection.cpp \
+    Plot2D/Plot2DTextMarker.cpp \
     ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \

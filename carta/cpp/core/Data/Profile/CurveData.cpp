@@ -211,8 +211,24 @@ std::vector< std::pair<double,double> > CurveData::getFitData() const {
     return fitData;
 }
 
+std::vector<std::pair<double,double> > CurveData::getFitResiduals() const {
+    int fitCount = m_fitDataY.size();
+    int curveCount = m_plotDataY.size();
+    CARTA_ASSERT( fitCount = 2 * curveCount );
+    std::vector< std::pair<double,double> > residuals( curveCount );
+    for ( int i = 0; i < curveCount; i++ ){
+        residuals[i].first = m_plotDataX[i];
+        residuals[i].second = m_plotDataY[i] - m_fitDataY[2*i];
+    }
+    return residuals;
+}
+
 QString CurveData::getFitParams() const {
     return m_state.toString( FIT );
+}
+
+std::vector<std::tuple<double,double,double> > CurveData::getGaussParams() const {
+    return m_gaussParams;
 }
 
 
@@ -423,6 +439,10 @@ void CurveData::setDataX( const std::vector<double>& valsX ){
 void CurveData::setDataY( const std::vector<double>& valsY ){
     CARTA_ASSERT( m_plotDataX.size() == valsY.size());
     m_plotDataY = valsY;
+}
+
+void CurveData::setGaussParams( const std::vector<std::tuple<double,double,double> >& params ){
+    m_gaussParams = params;
 }
 
 void CurveData::setFit( const std::vector<double>& valsX, const std::vector<double>& valsY  ){

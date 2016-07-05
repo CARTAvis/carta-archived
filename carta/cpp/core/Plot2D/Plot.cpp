@@ -6,6 +6,7 @@
 #include <qwt_legend.h>
 #include <qwt_plot_legenditem.h>
 #include <qwt_plot_layout.h>
+#include <qwt_plot_renderer.h>
 
 namespace Carta {
 namespace Plot2D {
@@ -25,12 +26,16 @@ Plot::Plot( QWidget* parent):
     canvas->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding);
     setCanvas( canvas );
 
+    m_axisLocationY = QwtPlot::yLeft;
+    m_axisLocationX = QwtPlot::xBottom;
+
+    m_external = false;
+    m_visible = false;
+
     setCanvasBackground( Qt::white );
-    setAxisAutoScale( QwtPlot::yLeft, false );
+    setAxisAutoScale( m_axisLocationY, false );
     setAutoReplot( false );
 }
-
-
 
 
 int Plot::_calculateAlignment( const QString& pos ) const {
@@ -78,81 +83,26 @@ QwtPlot::LegendPosition Plot::_calculatePosition( const QString& pos ) const{
     return legPos;
 }
 
-QSize Plot::getPlotSize() const {
-    //Size of plot widget
-    QSize canvasSize = size();
-
-    //Axis widget sizes
-    const QwtScaleWidget* axisWidgetLeft = axisWidget( QwtPlot::yLeft );
-    QSize axisLeftSize = axisWidgetLeft->size();
-    const QwtScaleWidget* axisWidgetBottom = axisWidget( QwtPlot::xBottom );
-    QSize axisBottomSize = axisWidgetBottom->size();
-
-    //Subtract the axis widget sizes from the total size
-    int baseWidth = canvasSize.width() - axisLeftSize.width();
-    int baseHeight = canvasSize.height() - axisBottomSize.height();
-
-    //Subtract legend areas from the total size.
-    if ( m_showExternalLegend ){
-        if ( ( m_legendLocation == QwtPlot::LeftLegend || m_legendLocation == QwtPlot::RightLegend )
-                && m_externalLegend ){
-            baseWidth = baseWidth - m_externalLegend->size().width();
-        }
-        else if ( ( m_legendLocation == QwtPlot::BottomLegend || m_legendLocation == QwtPlot::TopLegend )
-                && m_externalLegend ){
-            baseHeight = baseHeight - m_externalLegend->size().height();
-        }
-    }
-    QSize plotSize( baseWidth, baseHeight );
-    return plotSize;
+void Plot::clearAxisExtentY(){
+    QwtScaleWidget *scaleWidget = axisWidget( m_axisLocationY );
+    scaleWidget->scaleDraw()->setMinimumExtent(0);
+    replot();
 }
 
-QPointF Plot::getPlotUpperLeft() const {
-    const QwtScaleWidget* axisWidgetLeft = axisWidget( QwtPlot::yLeft );
-    QSize axisSize = axisWidgetLeft->size();
-    QPointF upperLeft( axisSize.width(), 0 );
-    //Add in sizes of legend.
-    if ( m_showExternalLegend ){
-        if (  m_legendLocation == QwtPlot::LeftLegend  && m_externalLegend ){
-            double lWidth = m_externalLegend->size().width();
-            upperLeft.setX( upperLeft.x() + lWidth );
-        }
-        else if ( m_legendLocation == QwtPlot::TopLegend  && m_externalLegend ){
-            upperLeft.setY( upperLeft.y() + m_externalLegend->size().height());
-        }
-    }
-    return upperLeft;
+int Plot::getAxisExtentY() const {
+    const QwtScaleWidget *scaleWidget = axisWidget( m_axisLocationY );
+    const QwtScaleDraw *scaleDraw = scaleWidget->scaleDraw();
+    int extent = scaleDraw->extent( scaleWidget->font() );
+    return extent;
 }
 
+QString Plot::getAxisUnitsY() const {
+    QString unitStr = axisTitle( m_axisLocationY ).text();
+    return unitStr;
+}
 
-QPointF Plot::getScreenPoint( const QPointF& dataPoint ) const {
-    //Size of entire plotting screen.
-    QSize plotSize = size();
-    //Size of actual plot area.
-    const QWidget* canvasWidget = canvas();
-    QSize canvasSize = canvasWidget->size();
-
-    //How much of thee left side is taken up by the axis and (left) legend.
-    const QwtScaleWidget* axisWidgetLeft = axisWidget( QwtPlot::yLeft );
-    QSize axisLeftSize = axisWidgetLeft->size();
-    int leftMargin = axisLeftSize.width();
-    if ( m_showExternalLegend && m_legendLocation == QwtPlot::LeftLegend ){
-        if ( m_externalLegend ){
-            leftMargin = leftMargin + m_externalLegend->size().width();
-        }
-    }
-
-    //Transform the x-coordinate image point to pixels on the canvas.
-    double xTrans = transform( QwtPlot::xBottom,dataPoint.x());
-    //What percentage is the pixel point compared to the plot area?
-    double plotPercent = xTrans / (canvasSize.width() - ZERO_OFFSET);
-
-    //Add in the left margin and then the same percentage of the total area without the margin.
-    xTrans = leftMargin + plotPercent * (plotSize.width()-leftMargin);
-
-    //Transform the y-coordinate image point to pixels on the canvas.
-    double yTrans = transform( QwtPlot::yLeft, dataPoint.y());
-    return QPointF( xTrans, yTrans );
+QwtPlot::Axis Plot::getAxisLocationX() const {
+    return m_axisLocationX;
 }
 
 QPointF Plot::getImagePoint(const QPointF& screenPt ) const {
@@ -174,31 +124,182 @@ QPointF Plot::getImagePoint(const QPointF& screenPt ) const {
     double canvasXVal = plotPercentX * canvasSize.width();
 
     //Map the pixel coordinates to image coordinates.
-    double xValue = invTransform( QwtPlot::xBottom, canvasXVal );
-    double yValue = invTransform( QwtPlot::yLeft, yVal );
+    double xValue = invTransform( m_axisLocationX, canvasXVal );
+    double yValue = invTransform( m_axisLocationY, yVal );
     return QPointF( xValue, yValue );
 }
 
+QSize Plot::getLegendSize() const {
+    QSize legendSize;
+    if ( m_externalLegend ){
+        legendSize = m_externalLegend->size();
+    }
+    return legendSize;
+}
+
+QSize Plot::getPlotSize() const {
+    //Size of plot widget
+    QSize canvasSize = size();
+
+    //Axis widget sizes
+    const QwtScaleWidget* axisWidgetY = axisWidget( m_axisLocationY );
+    QSize axisYSize = axisWidgetY->size();
+    const QwtScaleWidget* axisWidgetX = axisWidget( m_axisLocationX );
+    QSize axisXSize = axisWidgetX->size();
+
+    //Subtract the axis widget sizes from the total size
+    int baseWidth = canvasSize.width() - axisYSize.width();
+    int baseHeight = canvasSize.height() - axisXSize.height();
+
+    //Subtract legend areas from the total size.
+    if ( m_external && m_visible ){
+        if ( ( m_legendLocation == QwtPlot::LeftLegend || m_legendLocation == QwtPlot::RightLegend )
+                && m_externalLegend ){
+            baseWidth = baseWidth - m_externalLegend->size().width();
+        }
+        else if ( ( m_legendLocation == QwtPlot::BottomLegend || m_legendLocation == QwtPlot::TopLegend )
+                && m_externalLegend ){
+            baseHeight = baseHeight - m_externalLegend->size().height();
+        }
+    }
+    QSize plotSize( baseWidth, baseHeight );
+    return plotSize;
+}
+
+QPointF Plot::getPlotUpperLeft() const {
+    QPointF upperLeft( 0, 0 );
+    if ( m_axisLocationY == QwtPlot::yLeft ){
+        const QwtScaleWidget* axisWidgetY = axisWidget( m_axisLocationY );
+        QSize axisSize = axisWidgetY->size();
+        upperLeft.setX( axisSize.width() );
+    }
+    //Add in sizes of legend.
+    if ( m_external && m_visible ){
+        if (  m_legendLocation == QwtPlot::LeftLegend  && m_externalLegend ){
+            double lWidth = m_externalLegend->size().width();
+            upperLeft.setX( upperLeft.x() + lWidth );
+        }
+        else if ( m_legendLocation == QwtPlot::TopLegend  && m_externalLegend ){
+            upperLeft.setY( upperLeft.y() + m_externalLegend->size().height());
+        }
+    }
+    return upperLeft;
+}
+
+
+QPointF Plot::getScreenPoint( const QPointF& dataPoint ) const {
+    //Size of entire plotting screen.
+    QSize plotSize = size();
+    //Size of actual plot area.
+    const QWidget* canvasWidget = canvas();
+    QSize canvasSize = canvasWidget->size();
+
+    //How much of the left side is taken up by the axis and (left) legend.
+    int leftMargin = 0;
+    if ( m_axisLocationY == QwtPlot::yLeft ){
+        const QwtScaleWidget* axisWidgetLeft = axisWidget( m_axisLocationY );
+        QSize axisLeftSize = axisWidgetLeft->size();
+        leftMargin = axisLeftSize.width();
+    }
+    if ( m_visible && m_external && m_legendLocation == QwtPlot::LeftLegend ){
+        if ( m_externalLegend ){
+            leftMargin = leftMargin + m_externalLegend->size().width();
+        }
+    }
+
+    //Transform the x-coordinate image point to pixels on the canvas.
+    double xTrans = transform( m_axisLocationX,dataPoint.x());
+    //What percentage is the pixel point compared to the plot area?
+    double plotPercent = xTrans / (canvasSize.width() - ZERO_OFFSET);
+
+    //Add in the left margin and then the same percentage of the total area without the margin.
+    xTrans = leftMargin + plotPercent * (plotSize.width()-leftMargin);
+
+    //Transform the y-coordinate image point to pixels on the canvas.
+    double yTrans = transform( m_axisLocationY, dataPoint.y());
+    return QPointF( xTrans, yTrans );
+}
+
+
+bool Plot::isSelectionOnCanvas( int xPos ) const {
+    bool selectionOnCanvas = false;
+    if ( xPos >= 0 ){
+        //Make sure the point is beyond the left canvas margin
+        float plotMargin = axisWidget( m_axisLocationY )->size().width();
+        if ( xPos > plotMargin && m_axisLocationY == QwtPlot::yLeft ){
+            selectionOnCanvas = true;
+        }
+        else if ( xPos < canvas()->size().width() && m_axisLocationY == QwtPlot::yRight ){
+            selectionOnCanvas = true;
+        }
+    }
+    return selectionOnCanvas;
+}
+
+
+void Plot::legendToImage(QPainter* painter, const QRectF& geom) const{
+    if ( m_externalLegend ){
+       QwtPlotRenderer renderer;
+       const QWidget* aWidget = axisWidget( m_axisLocationY );
+       QColor background = aWidget->palette().color( QPalette::Background );
+       painter->fillRect( geom, background );
+       renderer.renderLegend( this, painter, geom );
+    }
+}
+
+
+void Plot::setAxisExtentY( int extent ){
+    QwtScaleWidget *scaleWidget = axisWidget( m_axisLocationY );
+    scaleWidget->scaleDraw()->setMinimumExtent( extent );
+}
+
+void Plot::setAxisLocationX( QwtPlot::Axis axis ){
+    if ( m_axisLocationX != axis ){
+        enableAxis( m_axisLocationX, false );
+        m_axisLocationX = axis;
+        enableAxis( m_axisLocationX, true );
+    }
+}
+
+void Plot::setAxisScaleX( double min, double max ){
+    setAxisScale( m_axisLocationX, min, max );
+}
+
+void Plot::setAxisScaleY( double min, double max ){
+    setAxisScale( m_axisLocationY, min, max );
+}
+
+void Plot::setAxisScaleEngineX(QwtScaleEngine* engine ){
+    setAxisScaleEngine( m_axisLocationX, engine );
+}
+
+void Plot::setAxisScaleEngineY(QwtScaleEngine* engine ){
+    setAxisScaleEngine( m_axisLocationY, engine );
+}
+
+
+void Plot::setAxisTitleX( const QwtText& title ){
+    setAxisTitle( m_axisLocationX, title );
+}
+
+void Plot::setAxisTitleY( const QwtText& title ){
+    setAxisTitle( m_axisLocationY, title );
+}
 
 void Plot::setFont( const QFont& font ){
-    QwtScaleWidget* leftWidget = axisWidget( QwtPlot::yLeft );
-    leftWidget->setFont( font );
-    leftWidget->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QwtScaleWidget* bottomWidget = axisWidget( QwtPlot::xBottom );
-    bottomWidget->setFont( font );
+    QwtScaleWidget* yWidget = axisWidget( m_axisLocationY );
+    yWidget->setFont( font );
+    yWidget->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QwtScaleWidget* xWidget = axisWidget( m_axisLocationX );
+    xWidget->setFont( font );
 }
 
 
 void Plot::setLegendPosition( bool visible,
         const QString& legendLocation, bool external ){
-
     m_legendLocation = _calculatePosition( legendLocation );
-    if ( visible && external ){
-        m_showExternalLegend = true;
-    }
-    else {
-        m_showExternalLegend = false;
-    }
+    m_external = external;
+    m_visible = visible;
 
     if ( m_externalLegend ){
         m_externalLegend->hide();
@@ -236,6 +337,13 @@ void Plot::setLegendPosition( bool visible,
         }
     }
     replot();
+}
+
+
+void Plot::_updateLegendItems( const QVariant& var, const QList<QwtLegendData>& data){
+    if ( m_externalLegend ){
+        m_externalLegend->updateLegend( var, data );
+    }
 }
 
 
