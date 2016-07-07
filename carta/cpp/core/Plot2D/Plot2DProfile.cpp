@@ -153,6 +153,10 @@ void Plot2DProfile::setLegendLine( bool showLegendLine ){
     setTitle( text );
 }
 
+void Plot2DProfile::setLegendVisible( bool visible ){
+    setItemAttribute( QwtPlotItem::ItemAttribute::Legend, visible );
+}
+
 
 Plot2DProfile::~Plot2DProfile(){
 

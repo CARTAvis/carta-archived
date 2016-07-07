@@ -51,8 +51,10 @@ public:
      * Sets the data for the plot.
      * @param data the plot data (x,y) pairs and additional information for plotting.
      * @param id - an identifier for the new data set.
+     * @param primary - true if this a primary curve for the plot; false if it is a secondary
+     *      curve such as a 1-d fit.
      */
-    void addData( std::vector< std::pair<double,double> > data, const QString& id );
+    void addData( std::vector< std::pair<double,double> > data, const QString& id, bool primary = true );
 
     /**
      * Add information labels to the plot.
@@ -96,6 +98,15 @@ public:
      * @return - the plot y-axis label.
      */
     QString getAxisUnitsY() const;
+
+    /**
+     * Returns the color used to draw the data identified by the id.
+     * @param id - an identifier for a data set.
+     * @param valid - set to true if a curve with the given id was found and
+     *      its color correctly obtained; false otherwise.
+     * @return - the color used to draw the identified data.
+     */
+    QColor getColor( const QString& id, bool* valid ) const;
 
     /**
      * Get the location of the legend (right,top,bottom,left) with respect
@@ -305,8 +316,10 @@ public:
      * @param style - an identifier for a line style.
      * @param id - an identifier for the data set where the style should be applied
      *  or an empty string to apply the style to all data sets.
+     * @param primary - true if this a primary curve for the plot; false if it is a secondary
+     *      curve such as a 1-d fit.
      */
-    void setLineStyle( const QString& style, const QString& id = QString() );
+    void setLineStyle( const QString& style, const QString& id = QString(), bool primary = true );
 
     /**
      * Set whether or not the plot should use a log scale.
@@ -426,7 +439,12 @@ public:
 private:
     void _clearItem( QwtPlotItem* item );
     void _clearMarkers();
-    std::shared_ptr<Plot2D> _findData( const QString& id ) const;
+    std::shared_ptr<Plot2D> _findData( const QString& id, bool primary ) const;
+    std::shared_ptr<Plot2D> _findDataPrimary( const QString& id  ) const;
+    std::shared_ptr<Plot2D> _findDataSecondary( const QString& id  ) const;
+    std::shared_ptr<Plot2D> _makeData() const;
+    void _setColorData( QColor color, std::shared_ptr<Plot2D> plotData );
+    void _setLineStyle( const QString& style, std::shared_ptr<Plot2D> data );
 
     void _updateLegend();
 
@@ -438,6 +456,7 @@ private:
     Plot *m_plot;
     //Data and styling for the plot
     QList< std::shared_ptr<Plot2D> > m_datas;
+    QList< std::shared_ptr<Plot2D> > m_dataSecondary;
     Plot2DSelection *m_range;
     Plot2DSelection * m_rangeColor;
     Plot2DLineHorizontal* m_hLine;

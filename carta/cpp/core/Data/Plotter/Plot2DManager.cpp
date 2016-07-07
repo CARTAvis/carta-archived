@@ -43,11 +43,11 @@ Plot2DManager::Plot2DManager( const QString& path, const QString& id ):
 }
 
 
-void Plot2DManager::addData( const Carta::Lib::Hooks::Plot2DResult* data, int index){
+void Plot2DManager::addData( const Carta::Lib::Hooks::Plot2DResult* data, int index, bool primary ){
     if ( m_plotGenerator ){
         std::vector< std::pair<double,double> > plotData = data->getData();
         const QString& name = data->getName();
-        m_plotGenerator->addData( plotData, name, index );
+        m_plotGenerator->addData( plotData, name, index, primary );
     }
 }
 
@@ -348,9 +348,9 @@ void Plot2DManager::setAxisXRange( double min, double max, int index ){
 }
 
 
-void Plot2DManager::setColor( QColor curveColor, const QString& id, int index ){
+void Plot2DManager::setColor( QColor curveColor, const QString& id ){
     if ( m_plotGenerator ){
-        m_plotGenerator->setColor( curveColor, id, index );
+        m_plotGenerator->setColor( curveColor, id);
         updatePlot();
     }
 }
@@ -381,6 +381,7 @@ void Plot2DManager::setCurveName( const QString& oldName, const QString& newName
 void Plot2DManager::setGridLines( bool showLines ){
     if ( m_plotGenerator ){
         m_plotGenerator->setGridLines( showLines );
+        updatePlot();
     }
 }
 
@@ -428,9 +429,9 @@ void Plot2DManager::setLegendLine( bool showLegendLine ){
 }
 
 
-void Plot2DManager::setLineStyle( const QString& style, const QString& id, int index ){
+void Plot2DManager::setLineStyle( const QString& style, const QString& id, int index, bool primary ){
     if ( m_plotGenerator ){
-        m_plotGenerator->setLineStyle( style, id, index );
+        m_plotGenerator->setLineStyle( style, id, index, primary );
         updatePlot();
     }
 }

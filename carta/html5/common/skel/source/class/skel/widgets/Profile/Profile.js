@@ -19,7 +19,7 @@ qx.Class.define("skel.widgets.Profile.Profile", {
     },
     
     events : {
-        "controlVisibilityChanged" : "qx.event.type.Data"
+        "statVisibilityChanged" : "qx.event.type.Data"
     },
 
     members : {
@@ -34,14 +34,15 @@ qx.Class.define("skel.widgets.Profile.Profile", {
             this.m_content.setLayout(new qx.ui.layout.VBox());
             
             this._initMain();
-            this._initControls();
         },
        
         /**
-         * Initializes the profile settings.
+         * Stores the profile settings.
+         * @param controls {skel.widgets.Profile.Settings} - the profile settings
+         *      container.
          */
-        _initControls : function(){
-            this.m_settingsContainer = new skel.widgets.Profile.Settings();
+        setControls : function( controls){
+            this.m_settingsContainer = controls;
         },
         
         
@@ -115,7 +116,7 @@ qx.Class.define("skel.widgets.Profile.Profile", {
                     var data = {
                         showStats : profilePrefs.showStats
                     }
-                    this.fireDataEvent( "controlVisibilityChanged", data );
+                    this.fireDataEvent( "statVisibilityChanged", data );
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val+" error: "+err );
@@ -165,20 +166,10 @@ qx.Class.define("skel.widgets.Profile.Profile", {
          */
         setId : function( controlId ){
             this.m_id = controlId;
-            this.m_settingsContainer.setId( controlId );
             this._initView();
             this._register();
         },
 
-        
-        /**
-         * Show or hide the profile settings.
-         * @param visible {boolean} if the settings should be shown; false otherwise.
-         */
-        showHideSettings : function( visible ){
-            this.m_showSettings = visible;
-            this._layoutControls( );
-        },
         
         m_content : null,
         m_fitOverlay : null,

@@ -22,6 +22,10 @@ std::pair<double,double> Plot2D::getBoundsY() const {
     return std::pair<double,double>( m_minValueY, m_maxValueY );
 }
 
+QColor Plot2D::getColor() const {
+    return m_defaultColor;
+}
+
 QString Plot2D::getId() const {
     return m_id;
 }
@@ -48,6 +52,10 @@ void Plot2D::setDrawStyle( const QString& style ){
 }
 
 void Plot2D::setLegendLine( bool /*showLegendLine*/ ){
+
+}
+
+void Plot2D::setLegendVisible( bool /*visible*/ ){
 
 }
 

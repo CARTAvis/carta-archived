@@ -42,6 +42,12 @@ public:
     virtual void detachFromPlot() = 0;
 
     /**
+     * Returns the color used to draw the data.
+     * @return - the color used to draw the data.
+     */
+    QColor getColor() const;
+
+    /**
      * Return the minimum/maximum y-values in the data set.
      * @return - the minimum & maxium y-values in the data set.
      */
@@ -89,6 +95,13 @@ public:
      * @param showLegendLine - true if legend lines should be drawn; false, otherwise.
      */
     virtual void setLegendLine( bool showLegendLine );
+
+    /**
+     * Turn on/off the legend for this data item.
+     * @param visible - true to see a corresponding legend for this data; false, to
+     *  not display a legend for this data.
+     */
+    virtual void setLegendVisible( bool visible );
 
     /**
      * Set the line style to use in plotting data sets.

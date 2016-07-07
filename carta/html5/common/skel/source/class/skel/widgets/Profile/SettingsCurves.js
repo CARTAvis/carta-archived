@@ -77,18 +77,16 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             
             var styleContainer = new qx.ui.container.Composite();
             styleContainer.setLayout( new qx.ui.layout.HBox(1));
-            var styleLabel = new qx.ui.basic.Label( "Style:");
+             var styleLabel = new qx.ui.basic.Label( "Style:");
             this.m_lineCombo = new skel.widgets.CustomUI.SelectBox();
             this.m_lineCombo.setToolTipText( "Select a plot style for the curve.");
             this.m_lineCombo.addListener( "selectChanged", this._sendStylePlotCmd, this );
             this.m_styleCombo = new skel.widgets.CustomUI.SelectBox();
             this.m_styleCombo.setToolTipText( "Select a line style for the curve.");
             this.m_styleCombo.addListener( "selectChanged", this._sendStyleChangeCmd, this );
-            styleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             styleContainer.add( styleLabel );
-            styleContainer.add( this.m_lineCombo );
             styleContainer.add( this.m_styleCombo );
-            styleContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            styleContainer.add( this.m_lineCombo );
             curveContainer.add( styleContainer );
             
             this.m_colorSelector = new skel.widgets.CustomUI.ColorSelector();
@@ -172,6 +170,9 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             }
         },
         
+        /**
+         * Send the new plot style to the server.
+         */
         _sendStylePlotCmd : function(){
             if ( this.m_id !== null ){
                 var style = this.m_lineCombo.getValue();

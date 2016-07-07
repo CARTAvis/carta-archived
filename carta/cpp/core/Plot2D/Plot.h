@@ -11,7 +11,6 @@ class QwtPlotLegendItem;
 namespace Carta {
 namespace Plot2D {
 
-
 class Plot : public QwtPlot {
     Q_OBJECT
 public:
@@ -174,13 +173,13 @@ public:
      */
     virtual ~Plot();
 
-private slots:
-    void _updateLegendItems( const QVariant& var, const QList<QwtLegendData>& data);
-
 private:
     const static int ZERO_OFFSET;
     int _calculateAlignment( const QString& pos ) const;
     QwtPlot::LegendPosition _calculatePosition( const QString& pos ) const;
+    void _removeLegendExternal();
+    void _removeLegendInternal();
+
     QwtLegend* m_externalLegend;
     QwtPlotLegendItem* m_legendItem;
     QwtPlot::Axis m_axisLocationY;

@@ -97,6 +97,12 @@ public:
     QString getLineStyle() const;
 
     /**
+     * Return the line style to use in drawing the fit curve.
+     * @return - a description of the line style to use in drawing the fit curve.
+     */
+    QString getLineStyleFit() const;
+
+    /**
      * Return the minimum and maximum x- and y-values of points on
      * the curve.
      * @param xmin - pointer to the curve minimum x-value.
@@ -264,6 +270,14 @@ public:
      */
     QString setLineStyle( const QString& lineStyle );
 
+
+    /**
+     * Set the line style (outline,solid, etc) for drawing the curve.
+     * @param lineStyle - the style to be used for connecting the curve points.
+     */
+    QString setLineStyleFit( const QString& lineStyleFit );
+
+
     /**
      * Set an identifier for the curve.
      * @param curveName - an identifier for the curve.
@@ -346,6 +360,7 @@ private:
     const static QString FIT;
     const static QString FIT_SELECT;
     const static QString STYLE;
+    const static QString STYLE_FIT;
     const static QString PLOT_STYLE;
     const static QString STATISTIC;
     const static QString REGION_NAME;

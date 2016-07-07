@@ -49,17 +49,19 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
             _initDisplaySpecific : function() {
                 if (this.m_profile === null ) {
                     this.m_profile = new skel.widgets.Profile.Profile();
-                    this.m_profile.addListener( "controlVisibilityChanged", this._controlVisibilityChanged, this );
+                    this.m_profile.addListener( "statVisibilityChanged", this._controlVisibilityChanged, this );
                     this.m_profile.setId( this.m_identifier);
                     this.m_content.add( this.m_profile, {flex:1});
                 }
                 if ( this.m_profileControls === null ){
                     this.m_profileControls = new skel.widgets.Profile.Settings();
+                    this.m_profile.setControls( this.m_profileControls );
                     this.m_profileControls.setId( this.m_identifier );
                 }
                 if ( this.m_fitStatLabel === null ){
                     this._initStatistics();
                 }
+                this._layoutControls();
             },
             
             /**
@@ -73,9 +75,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                         return anObject.fitStatistics;
                     });
                     this.m_fitStatLabel.setRich( true );
-                    if ( this.m_statisticsVisible ){
-                        this._layoutControls();
-                    }
+                    
                 }
             },
             
@@ -134,8 +134,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                         try {
                             var setObj = JSON.parse( val );
                             if ( setObj.settings !== null ){
-                                this.m_profile.showHideSettings( setObj.settings );
-                                
+                                this._adjustControlVisibility( setObj.settings );
                             }
                           
                            

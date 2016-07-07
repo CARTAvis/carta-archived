@@ -19,6 +19,13 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             this.m_connector = mImport("connector");
         }
         this._init( );
+        
+        var path = skel.widgets.Path.getInstance();
+        
+        //Curve styles
+        this.m_sharedVarStyles = this.m_connector.getSharedVar(path.LINE_STYLES);
+        this.m_sharedVarStyles.addCB(this._lineStylesChangedCB.bind(this));
+        this._lineStylesChangedCB();
     },
 
     members : {
@@ -69,6 +76,11 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             this.m_labelListenId = this.m_labelCheck.addListener( "changeValue", this._sendShowPeakLabelsCmd, this );
             displayContainer.add( labLabel, {row:4, column:0} );
             displayContainer.add( this.m_labelCheck, {row:4, column:1} );
+            
+            this.m_styleFitCombo = new skel.widgets.CustomUI.SelectBox();
+            this.m_styleFitCombo.setToolTipText( "Select a line style for the fit curve.");
+            this.m_styleFitCombo.addListener( "selectChanged", this._sendStyleChangeFitCmd, this );
+            displayContainer.add( this.m_styleFitCombo, {row:5, column:0, colSpan:2} );
         },
         
         /**
@@ -79,6 +91,25 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             return this.m_guessCheck.getValue();
         },
         
+        /**
+         * Callback for a change in the available line styles.
+         */
+        _lineStylesChangedCB : function(){
+            if ( this.m_sharedVarStyles ){
+                var val = this.m_sharedVarStyles.get();
+                if ( val ){
+                    try {
+                        var obj = JSON.parse( val );
+                        var styles = obj.lineStyles;
+                        this.m_styleFitCombo.setSelectItems( styles );
+                    }
+                    catch( err ){
+                        console.log( "Could not parse fit line styles: "+val );
+                        console.log( "Err: "+err);
+                    }
+                }
+            }
+        },
         
         /**
          * Update the UI based on server side values.
@@ -120,6 +151,8 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             this.m_labelCheck.setValue( prefs.showPeakLabels );
             this.m_labelListenId = this.m_labelCheck.addListener( "changeValue", 
                     this._sendShowPeakLabelsCmd, this );
+            
+            this.m_styleFitCombo.setSelectValue( prefs.styleFit );
         },
         
        
@@ -192,6 +225,19 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
         },
         
         /**
+         * Notify the server that the user has changed the color of a profile curve.
+         */
+        _sendStyleChangeFitCmd : function(){
+            if ( this.m_id !== null ){
+                var style = this.m_styleFitCombo.getValue();
+                var params = "styleFit:"+style;
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND + "setLineStyleFit";
+                this.m_connector.sendCommand( cmd, params, function(){});
+            }
+        },
+        
+        /**
          * Set whether or not manual fit guesses will be specified.
          * @param enabled {boolean} - true if manual fit guesses will be
          *      specified; false otherwise.
@@ -227,8 +273,10 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
         m_labelListenId : null,
         m_residualCheck : null,
         m_residualListenId : null,
+        m_sharedVarStyles : null,
         m_statisticsCheck : null,
-        m_statisticsListenId : null
+        m_statisticsListenId : null,
+        m_styleFitCombo : null
       
     },
     properties : {

@@ -243,6 +243,7 @@ void Plot::legendToImage(QPainter* painter, const QRectF& geom) const{
        const QWidget* aWidget = axisWidget( m_axisLocationY );
        QColor background = aWidget->palette().color( QPalette::Background );
        painter->fillRect( geom, background );
+       QObjectList children =m_externalLegend->children();
        renderer.renderLegend( this, painter, geom );
     }
 }
@@ -300,55 +301,54 @@ void Plot::setLegendPosition( bool visible,
     m_legendLocation = _calculatePosition( legendLocation );
     m_external = external;
     m_visible = visible;
-
-    if ( m_externalLegend ){
-        m_externalLegend->hide();
-        delete m_externalLegend;
-        m_externalLegend = nullptr;
-    }
     if ( visible ){
-        m_externalLegend = new QwtLegend( this );
         if ( !external ){
-            connect( this, SIGNAL(legendDataChanged( const QVariant&, const QList<QwtLegendData>&)),
-                    m_externalLegend, SLOT(updateLegend( const QVariant&, const QList<QwtLegendData>&)));
-            updateLegend();
-            m_externalLegend->show();
+            //Make an internal legend
+            _removeLegendExternal();
             if ( m_legendItem == nullptr ){
-               m_legendItem = new QwtPlotLegendItem( );
-               m_legendItem->attach( this );
+                m_legendItem = new QwtPlotLegendItem( );
+                m_legendItem->attach( this );
             }
             Qt::Alignment alignment= static_cast<Qt::Alignment>(_calculateAlignment( legendLocation ));
             m_legendItem->setAlignment( alignment );
+            updateLegend();
         }
         else {
-            if ( m_legendItem != nullptr ){
-                m_legendItem->detach();
-                delete m_legendItem;
-                m_legendItem = nullptr;
+            //Make an external legend.
+            _removeLegendInternal();
+            if ( m_externalLegend == nullptr ){
+                m_externalLegend = new QwtLegend( this );
             }
             insertLegend( m_externalLegend, m_legendLocation );
+            updateLegend();
         }
     }
     else {
-        if ( m_legendItem != nullptr ){
-            m_legendItem->detach();
-            delete m_legendItem;
-            m_legendItem = nullptr;
-        }
+        _removeLegendInternal();
+        _removeLegendExternal();
     }
     replot();
 }
 
-
-void Plot::_updateLegendItems( const QVariant& var, const QList<QwtLegendData>& data){
+void Plot::_removeLegendExternal(){
     if ( m_externalLegend ){
-        m_externalLegend->updateLegend( var, data );
+        delete m_externalLegend;
+        m_externalLegend = nullptr;
+    }
+}
+
+
+void Plot::_removeLegendInternal(){
+    if ( m_legendItem != nullptr ){
+        delete m_legendItem;
+        m_legendItem = nullptr;
     }
 }
 
 
 Plot::~Plot(){
-    delete m_externalLegend;
+    _removeLegendInternal();
+    _removeLegendExternal();
 }
 
 }

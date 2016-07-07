@@ -17,9 +17,22 @@ Plot2DGenerator::Plot2DGenerator( /*Plot2DHolder::PlotType plotType*/ ){
 
 
 void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
-        const QString& id, int index  ){
+        const QString& id, int index, bool primary  ){
     if ( _checkIndex( index )){
-        m_plots[index]->addData( dataVector, id );
+        m_plots[index]->addData( dataVector, id, primary );
+        //Make sure the colors match for a residual curve index = 1 and
+        //the primary curve, index = 0;
+        if ( index >= 1 ){
+            bool valid = false;
+            QColor color = m_plots[0]->getColor( id, &valid );
+            if ( valid ){
+                m_plots[index]->setColor( color, id );
+            }
+            else {
+                qWarning() << "Could not get color for "<<id;
+                CARTA_ASSERT( false );
+            }
+        }
     }
     _resetExtents();
 }
@@ -35,26 +48,21 @@ int Plot2DGenerator::addPlot(){
     int plotIndex = m_plots.size();
     Plot2DHolder* holder = new Plot2DHolder();
     m_plots.push_back( holder );
-    //Right now we are hard-coding the second plot to be a residual
-    //and customizing the settings for a residual plot.  At some point,
-    //we may be adding other plots and methods should be made more
-    //general.
     //There are at least two plots
     if ( plotIndex >= 1 ){
         //First plot should use a top position for the axis and last
         //plot should use a bottom axis index.
+        bool valid = false;
+        std::pair<double,double> xBounds = m_plots[0]->getRange( &valid );
         m_plots[0]->setAxisLocationX( QwtPlot::xTop );
+        if ( valid ){
+            m_plots[0]->setAxisXRange( xBounds.first, xBounds.second );
+        }
         m_plots[plotIndex]->setAxisLocationX( QwtPlot::xBottom );
 
-        //Get legend properties from existing plots.
-        QString pos = m_plots[0]->getLegendLocation();
-        m_plots[plotIndex]->setLegendLocation( pos );
-        bool externalLegend = m_plots[0]->isExternalLegend();
-        m_plots[plotIndex]->setLegendExternal( externalLegend );
-        if ( externalLegend && pos == LegendLocations::BOTTOM ){
-            bool visibleLegend = m_plots[plotIndex - 1]->isLegendVisible();
-            setLegendVisible( visibleLegend );
-        }
+        //Turn the legend off for all plots but the first one.
+        m_plots[plotIndex]->setLegendVisible( false );
+        _resetExtents();
     }
     return plotIndex;
 }
@@ -67,6 +75,7 @@ bool Plot2DGenerator::_checkIndex( int index ) const {
         validPlot = true;
     }
     else {
+        CARTA_ASSERT( false );
         qWarning()<<"Invalid plot index: "<<index;
     }
     return validPlot;
@@ -108,18 +117,6 @@ QString Plot2DGenerator::getAxisUnitsY( int index ) const {
     return unitStr;
 }
 
-int Plot2DGenerator::_getExternalLegendIndex() const {
-    //Find the plot that is showing the external legend, if there is one.
-    int plotCount = m_plots.size();
-    int plotLegendIndex = -1;
-    for ( int i = 0; i < plotCount; i++ ){
-        if ( m_plots[i]->isLegendVisible() && m_plots[i]->isExternalLegend()){
-            plotLegendIndex = i;
-            break;
-        }
-    }
-    return plotLegendIndex;
-}
 
 QPointF Plot2DGenerator::getImagePoint(const QPointF& screenPt, int index ) const {
     QPointF pt;
@@ -263,9 +260,10 @@ void Plot2DGenerator::setAxisXRange( double min, double max, int index ){
 }
 
 
-void Plot2DGenerator::setColor( QColor color, const QString& id, int index ){
-    if ( _checkIndex( index )){
-        m_plots[index]->setColor( color, id );
+void Plot2DGenerator::setColor( QColor color, const QString& id ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setColor( color, id );
     }
 }
 
@@ -314,46 +312,25 @@ void Plot2DGenerator::setHLineVisible( bool visible, int index ){
 
 void Plot2DGenerator::setLegendExternal( bool externalLegend ){
     int plotCount = m_plots.size();
-    for ( int i = 0; i < plotCount; i++ ){
-        m_plots[i]->setLegendExternal( externalLegend );
+    if ( plotCount > 0 ){
+        m_plots[0]->setLegendExternal( externalLegend );
     }
 }
 
 
 void Plot2DGenerator::setLegendLocation( const QString& position ){
     int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        m_plots[0]->setLegendLocation( position );
+        _resetExtents();
+    }
 
-    if ( plotCount > 1 ){
-        int plotLegendIndex = _getExternalLegendIndex();
-        if ( plotLegendIndex >= 0 ){
-            QString oldLoc = m_plots[plotLegendIndex]->getLegendLocation();
-            if ( oldLoc == LegendLocations::BOTTOM && position != LegendLocations::BOTTOM ){
-                //If we are changing from bottom to something else, turn off
-                //the legend on the last plot and turn on the legend on the first
-                //plot
-                m_plots[plotLegendIndex]->setLegendVisible( false );
-                m_plots[0]->setLegendVisible( true );
-            }
-            else if ( oldLoc != LegendLocations::BOTTOM && position == LegendLocations::BOTTOM ){
-                //Changing to bottom from something else;
-                //Turn the legend on for the bottom plot and make it invisible for
-                //the others.
-                m_plots[plotLegendIndex]->setLegendVisible( false );
-                m_plots[plotCount - 1]->setLegendVisible( true );
-            }
-        }
-    }
-    //Update the legend location on all the plots
-    for ( int i = 0; i < plotCount; i++ ){
-        m_plots[i]->setLegendLocation( position );
-    }
-    _resetExtents();
 }
 
 void Plot2DGenerator::setLegendLine( bool showLegendLine ){
     int plotCount = m_plots.size();
-    for ( int i = 0; i < plotCount; i++ ){
-        m_plots[i]->setLegendLine( showLegendLine );
+    if ( plotCount > 0 ){
+        m_plots[0]->setLegendLine( showLegendLine );
     }
 }
 
@@ -361,21 +338,7 @@ void Plot2DGenerator::setLegendLine( bool showLegendLine ){
 void Plot2DGenerator::setLegendVisible( bool visible ){
     int plotCount = m_plots.size();
     if ( plotCount > 0 ){
-        for ( int i = 0; i < plotCount; i++ ){
-            m_plots[i]->setLegendVisible( false );
-        }
-        if ( visible ){
-            //Only one of the plots should show the legend.  Normally, it will be
-            //the first plot, except when the legend is on the bottom and external.
-            QString pos = m_plots[0]->getLegendLocation();
-            bool external = m_plots[0]->isExternalLegend();
-            if ( external && pos == LegendLocations::BOTTOM ){
-                m_plots[plotCount - 1]->setLegendVisible( visible );
-            }
-            else {
-                m_plots[0]->setLegendVisible( visible );
-            }
-        }
+        m_plots[0]->setLegendVisible( visible );
     }
 }
 
@@ -478,9 +441,9 @@ bool Plot2DGenerator::setSize( int width, int height, int index ){
 }
 
 
-void Plot2DGenerator::setLineStyle( const QString& style, const QString& id, int index  ){
+void Plot2DGenerator::setLineStyle( const QString& style, const QString& id, int index, bool primary  ){
     if ( _checkIndex( index ) ){
-        m_plots[index]->setLineStyle( style, id );
+        m_plots[index]->setLineStyle( style, id, primary );
     }
 }
 
@@ -520,11 +483,11 @@ QImage Plot2DGenerator::toImage( int width, int height ) const {
         //Decide if we need to add space for a legend.
         QSize legendSize;
         QString legendPos = LegendLocations::BOTTOM;
-        int externalIndex = _getExternalLegendIndex();
+        bool externalLegend = m_plots[0]->isExternalLegend() && m_plots[0]->isLegendVisible();
         QSize plotSize = m_plots[0]->getSize();
-        if ( externalIndex >= 0 ){
-            legendPos = m_plots[externalIndex]->getLegendLocation();
-            legendSize = m_plots[externalIndex]->getLegendSize();
+        if ( externalLegend ){
+            legendPos = m_plots[0]->getLegendLocation();
+            legendSize = m_plots[0]->getLegendSize();
         }
         double percentHeight = (legendSize.height() * 1.0) / plotSize.height();
         double percentWidth = (legendSize.width() * 1.0) / plotSize.width();
@@ -534,20 +497,20 @@ QImage Plot2DGenerator::toImage( int width, int height ) const {
         if ( legendPos == LegendLocations::BOTTOM || legendPos == LegendLocations::TOP ){
             int plotHeight = (height - legendHeight) / plotCount;
             int startY = 0;
-
+            if ( legendHeight > 0 && legendPos == LegendLocations::TOP ){
+                _paintLegend( 0, 0, width, legendHeight, &painter );
+                startY = startY + legendHeight;
+            }
             for ( int i = 0; i < plotCount; i++ ){
-                int y = startY;
-                int graphHeight = plotHeight;
-                if ( i == externalIndex ){
-                    //Add some extra height to accomodate the legend.
-                    graphHeight = graphHeight + legendHeight;
-                }
-                startY = startY + graphHeight;
-                QRect printGeom( 0, y, width, graphHeight );
+                QRect printGeom( 0, startY, width, plotHeight );
                 m_plots[i]->toImage( &painter, printGeom );
+                startY = startY + plotHeight;
+            }
+            if ( legendHeight > 0 && legendPos == LegendLocations::BOTTOM ){
+                _paintLegend( 0, startY, width, legendHeight, &painter );
             }
         }
-        //Left or right - we have to draw it ourselves.
+        //Left or right.
         else {
             int plotWidth = width - legendWidth;
             int plotHeight = height / plotCount;

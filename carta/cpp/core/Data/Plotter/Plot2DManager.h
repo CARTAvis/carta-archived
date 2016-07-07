@@ -52,8 +52,10 @@ public:
      * Add data to the plot.
      * @param data - a list of (x,y)-values for the plot.
      * @param index - the plot index.
+     * @param primary - true if this a primary curve for the plot; false if it is a secondary
+     *      curve such as a 1-d fit.
      */
-    void addData( const Carta::Lib::Hooks::Plot2DResult* data, int index = 0);
+    void addData( const Carta::Lib::Hooks::Plot2DResult* data, int index = 0, bool primary = true);
 
     /**
      * Add informational labels to the plot.
@@ -197,7 +199,7 @@ public:
      * Remove a plot from the display.
      * @param index - the plot index.
      */
-    void removePlot( int index );
+    void removePlot( int index = 0 );
 
     /**
      * Save a copy of the plot as an image.
@@ -219,10 +221,9 @@ public:
      * Set the color of a specific set of data on the plot.
      * @param curveColor - the color of a specific plot data set.
      * @param id - an identifier for a particular data set.
-     * @param index - the plot index.
      */
     //Note:  this refers to using a single color for the entire data set.
-    void setColor( QColor curveColor, const QString& id = QString(), int index = 0 );
+    void setColor( QColor curveColor, const QString& id = QString() );
 
     /**
      * Set whether or not the graph should be colored.
@@ -301,8 +302,10 @@ public:
      * @param id - an identifier for the data set that should use the style
      *  or an empty string if all data sets should use the style.
      * @param index - the plot index.
+     * @param primary - true if this a primary curve for the plot; false if it is a secondary
+     *      curve such as a 1-d fit.
      */
-    void setLineStyle( const QString& style, const QString& id = QString(), int index = 0 );
+    void setLineStyle( const QString& style, const QString& id = QString(), int index = 0, bool primary = true );
 
     /**
      * Set whether or not the y-axis of the plot should use a log scale.

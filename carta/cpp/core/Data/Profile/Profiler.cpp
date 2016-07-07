@@ -98,12 +98,11 @@ UnitsSpectral* Profiler::m_spectralUnits = nullptr;
 UnitsIntensity* Profiler::m_intensityUnits = nullptr;
 GenerateModes* Profiler::m_generateModes = nullptr;
 ProfileStatistics* Profiler::m_stats = nullptr;
+LineStyles* Profiler::m_lineStyles = nullptr;
 
 
 QList<QColor> Profiler::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
         Qt::magenta, Qt::yellow, Qt::gray };
-
-
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
@@ -125,7 +124,7 @@ Profiler::Profiler( const QString& path, const QString& id):
     m_currentFrame = 0;
     m_timerId = 0;
 
-    m_residualPlotIndex = 0;
+    m_residualPlotIndex = -1;
 
     qsrand(QTime::currentTime().msec());
     connect( m_renderService.get(),
@@ -405,10 +404,13 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
             double rms = result.getRMS();
             m_plotManager->setMarkedRange( mean - rms, mean + rms );
             m_plotManager->setHLinePosition( mean );
+
             int curveIndex =  _findCurveIndex( result.getName() );
             if ( curveIndex >= 0 ){
                 m_plotCurves[ curveIndex ]->setFit( dataX, dataY );
                 m_plotCurves[ curveIndex ]->setGaussParams( result.getGaussFits() );
+                QString lineStyle = getLineStyleFit();
+                m_plotCurves[curveIndex] ->setLineStyleFit( lineStyle );
                 _updatePlotData();
                 _updateResidualData();
             }
@@ -557,6 +559,12 @@ Profiler::_generateFitGuesses( int count, bool random ){
     return guesses;
 }
 
+QString Profiler::_generatePeakLabel( double center, double peak, double fbhw ) const {
+    QString label( "Center: "+QString::number( center ));
+    label = label + " Peak: "+QString::number( peak );
+    label = label + " FBHW : "+ QString::number( fbhw );
+    return label;
+}
 
 QString Profiler::getAxisUnitsBottom() const {
     QString bottomUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
@@ -690,6 +698,9 @@ QString Profiler::_getLegendLocationsId() const {
     return m_legendLocations->getPath();
 }
 
+QString Profiler::getLineStyleFit() const {
+    return m_state.getValue<QString>( CurveData::STYLE_FIT );
+}
 
 QList<QString> Profiler::getLinks() const {
     return m_linkImpl->getLinkIds();
@@ -782,11 +793,12 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<QString>( AXIS_UNITS_BOTTOM, bottomUnit );
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
     m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
+    m_state.insertValue<QString>( CurveData::STYLE_FIT, m_lineStyles->getDefaultSecondary());
     m_state.insertValue<bool>(TOOL_TIPS, false );
 
 
     //Legend
-    bool external = true;
+    bool external = false;
     QString legendLoc = m_legendLocations->getDefaultLocation( external );
     m_state.insertValue<QString>( LEGEND_LOCATION, legendLoc );
     m_state.insertValue<bool>( LEGEND_EXTERNAL, external );
@@ -832,7 +844,7 @@ void Profiler::_initializeDefaultState(){
 
     m_stateFitStatistics.insertValue<QString>( FIT_STATISTICS, "" );
     m_stateFitStatistics.flushState();
-
+    _updatePlotDisplay();
 }
 
 
@@ -1329,6 +1341,16 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setLineStyleFit", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            std::set<QString> keys = {CurveData::STYLE_FIT};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString lineStyle = dataValues[CurveData::STYLE_FIT];
+            QString result = setLineStyleFit( lineStyle );
+            Util::commandPostProcess( result );
+            return result;
+        });
+
     addCommandCallback( "setPolyDegree", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
@@ -1470,6 +1492,9 @@ void Profiler::_initializeStatics(){
     }
     if ( m_stats == nullptr ){
         m_stats = Util::findSingletonObject<ProfileStatistics>();
+    }
+    if ( m_lineStyles == nullptr ){
+        m_lineStyles = Util::findSingletonObject<LineStyles>();
     }
 }
 
@@ -1771,14 +1796,11 @@ void Profiler::resetState( const QString& state ){
 
     //Call methods that require actions if the state value changes.
     QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
-    StateInterface mainState("");
-    mainState.setState( prefStr );
-    setShowMeanRMS( mainState.getValue<bool>( SHOW_MEAN_RMS ));
-    setShowFitResiduals( mainState.getValue<bool>( SHOW_RESIDUALS ));
 
     //Reset the rest of the state.
     m_state.setState( prefStr );
     m_state.flushState();
+    _updatePlotDisplay();
 
     m_stateFit.setState( restoredState.getValue<QString>( CurveData::FIT) );
     m_stateFit.flushState();
@@ -2200,13 +2222,42 @@ QString Profiler::setLineStyle( const QString& name, const QString& lineStyle ){
         if ( result.isEmpty() ){
             _saveCurveState( index );
             m_stateData.flushState();
-            LineStyles* lineStyles = Util::findSingletonObject<LineStyles>();
-            QString actualStyle = lineStyles->getActualLineStyle( lineStyle );
+            QString actualStyle = m_lineStyles->getActualLineStyle( lineStyle );
             m_plotManager->setLineStyle( actualStyle, name );
         }
     }
     else {
         result = "Profile curve was not recognized: "+name;
+    }
+    return result;
+}
+
+QString Profiler::setLineStyleFit( const QString& lineStyleFit ){
+    QString result;
+    int curveCount = m_plotCurves.size();
+    QString actualStyle = m_lineStyles->getActualLineStyle( lineStyleFit );
+    if ( !actualStyle.isEmpty()){
+        for ( int index = 0; index < curveCount; index ++ ){
+            if ( m_plotCurves[index]->isSelectedFit()){
+                result = m_plotCurves[index]->setLineStyleFit( lineStyleFit );
+                if ( !result.isEmpty() ){
+                    break;
+                }
+                else {
+                    m_plotManager->setLineStyle( actualStyle, m_plotCurves[index]->getName(),0, false );
+                }
+            }
+        }
+        if ( result.isEmpty()){
+            _saveCurveState(  );
+            m_stateData.flushState();
+            m_state.setValue<QString>(CurveData::STYLE_FIT, actualStyle );
+            m_state.flushState();
+
+        }
+    }
+    else {
+        result = "Line style for fit curve not recognized: "+lineStyleFit;
     }
     return result;
 }
@@ -2240,6 +2291,7 @@ void Profiler::setLegendExternal( bool external ){
         if ( actualPos.isEmpty() ){
             QString newPos = m_legendLocations->getDefaultLocation( external );
             m_state.setValue<QString>( LEGEND_LOCATION, newPos );
+            m_plotManager->setLegendLocation( newPos );
         }
         m_state.flushState();
 
@@ -2391,7 +2443,10 @@ void Profiler::setShowFitResiduals( bool showFitResiduals ){
            _updateResidualData();
         }
         else {
-            m_plotManager->removePlot(m_residualPlotIndex);
+            if ( m_residualPlotIndex >= 0 ){
+                m_plotManager->removePlot(m_residualPlotIndex);
+                m_residualPlotIndex = -1;
+            }
         }
     }
 }
@@ -2707,6 +2762,28 @@ void Profiler::_updatePlotBounds(){
     m_plotManager->setAxisXRange( graphMin, graphMax );
 }
 
+void Profiler::_updatePlotDisplay(){
+    if ( m_plotManager ){
+        bool showMeanRMS = m_state.getValue<bool>( SHOW_MEAN_RMS );
+        m_plotManager->setRangeMarkerVisible( showMeanRMS );
+        m_plotManager->setHLineVisible( showMeanRMS );
+        bool showResiduals = m_state.getValue<bool>( SHOW_RESIDUALS );
+        if ( showResiduals ){
+            m_residualPlotIndex = m_plotManager->addPlot();
+        }
+        else {
+            if ( m_residualPlotIndex >= 0 ){
+                m_plotManager->removePlot( m_residualPlotIndex );
+                m_residualPlotIndex = -1;
+            }
+        }
+        m_plotManager->setLegendLocation(m_state.getValue<QString>( LEGEND_LOCATION));
+        m_plotManager->setLegendExternal( m_state.getValue<bool>( LEGEND_EXTERNAL ));
+        m_plotManager->setLegendShow( m_state.getValue<bool>( LEGEND_SHOW ));
+        m_plotManager->setLegendLine( m_state.getValue<bool>( LEGEND_LINE ));
+    }
+}
+
 void Profiler::_updateResidualData(){
     if ( isShowResiduals() ){
         int curveCount = m_plotCurves.size();
@@ -2754,12 +2831,7 @@ void Profiler::_updateZoomRangeBasedOnPercent(){
     }
 }
 
-QString Profiler::_generatePeakLabel( double center, double peak, double fbhw ) const {
-    QString label( "Center: "+QString::number( center ));
-    label = label + " Peak: "+QString::number( peak );
-    label = label + " FBHW : "+ QString::number( fbhw );
-    return label;
-}
+
 
 void Profiler::_updatePlotData(){
     int curveCount = m_plotCurves.size();
@@ -2774,9 +2846,11 @@ void Profiler::_updatePlotData(){
         if ( fitted ){
             std::vector< std::pair<double,double> > fitData = m_plotCurves[i]->getFitData();
 
-            Carta::Lib::Hooks::Plot2DResult fitResult( dataId+"Fit", "", "", fitData );
+            Carta::Lib::Hooks::Plot2DResult fitResult( dataId, "", "", fitData );
 
-            m_plotManager->addData( &fitResult );
+            m_plotManager->addData( &fitResult, 0, false );
+            m_plotManager->setLineStyle( m_plotCurves[i]->getLineStyleFit(),
+                    dataId, 0, false);
             if ( isShowPeakLabels() ){
                 std::vector< std::tuple<double,double,double> > gaussParams = m_plotCurves[i]->getGaussParams();
                 int guessCount = gaussParams.size();

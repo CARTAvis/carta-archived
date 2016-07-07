@@ -40,6 +40,7 @@ class Controller;
 class CurveData;
 class GenerateModes;
 class LegendLocations;
+class LineStyles;
 class LinkableImpl;
 class Layer;
 class ProfileFitService;
@@ -79,6 +80,12 @@ public:
      * @return - the number of manual guesses for Gaussian curve fits.
      */
     int getGuessCount() const;
+
+    /**
+     * Returns the line style to use in drawing the fit curve.
+     * @return - the fit curve line style.
+     */
+    QString getLineStyleFit() const;
 
     /**
      * Return the number of polynomial terms to fit to the curve.
@@ -308,6 +315,12 @@ public:
      * @param showLegend - true to show a legend on the plot; false otherwise.
      */
     void setLegendShow( bool showLegend );
+
+    /**
+     * Set the line style to use for the fit curve.
+     * @param lineStyleFit - the line style to use for the fit curve.
+     */
+    QString setLineStyleFit( const QString& lineStyleFit );
 
     /**
      * Set the number of polynomial terms to use in fitting the curve.
@@ -579,6 +592,8 @@ private:
     //Notify the plot to redraw.
     void _updatePlotData();
 
+    void _updatePlotDisplay();
+
     //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
     //and units "GHz".
     static QString _getUnitType( const QString& unitStr );
@@ -627,6 +642,7 @@ private:
     static UnitsIntensity* m_intensityUnits;
     static ProfileStatistics* m_stats;
     static GenerateModes* m_generateModes;
+    static LineStyles* m_lineStyles;
 
     static QList<QColor> m_curveColors;
 

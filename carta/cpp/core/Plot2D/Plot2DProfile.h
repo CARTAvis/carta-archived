@@ -80,6 +80,13 @@ public:
     virtual void setLegendLine( bool showLegendLine ) Q_DECL_OVERRIDE;
 
     /**
+     * Turn on/off the legend for this data item.
+     * @param visible - true to see a corresponding legend for this data; false, to
+     *  not display a legend for this data.
+     */
+    virtual void setLegendVisible( bool visible ) Q_DECL_OVERRIDE;
+
+    /**
      * Destructor.
      */
     virtual ~Plot2DProfile();

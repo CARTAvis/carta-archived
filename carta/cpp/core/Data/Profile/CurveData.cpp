@@ -24,6 +24,7 @@ const QString CurveData::FIT = "fit";
 const QString CurveData::FIT_SELECT = "fitSelect";
 const QString CurveData::PLOT_STYLE = "plotStyle";
 const QString CurveData::STYLE = "style";
+const QString CurveData::STYLE_FIT = "styleFit";
 const QString CurveData::STATISTIC = "stat";
 const QString CurveData::REGION_NAME = "region";
 const QString CurveData::IMAGE_NAME = "image";
@@ -141,6 +142,7 @@ void CurveData::copy( const std::shared_ptr<CurveData> & other ){
         m_state.setValue<int>( Util::GREEN, otherColor.green() );
         m_state.setValue<int>( Util::BLUE, otherColor.blue() );
         m_state.setValue<QString>( STYLE, other->getLineStyle() );
+        m_state.setValue<QString>( STYLE_FIT, other->getLineStyleFit());
         m_state.setValue<QString>( STATISTIC, other->getStatistic());
         m_state.setValue<double>(REST_FREQUENCY, other->getRestFrequency() );
         m_state.setValue<QString>(IMAGE_NAME, other->getNameImage());
@@ -259,6 +261,10 @@ QString CurveData::getLineStyle() const {
     return m_state.getValue<QString>( STYLE );
 }
 
+QString CurveData::getLineStyleFit() const {
+    return m_state.getValue<QString>( STYLE_FIT );
+}
+
 
 QString CurveData::getName() const {
     return m_state.getValue<QString>( Util::NAME );
@@ -341,9 +347,13 @@ void CurveData::_initializeDefaultState(){
     m_state.insertValue<int>( Util::BLUE, 0 );
 
     QString defaultLineStyle = m_lineStyles->getDefault();
+
     m_state.insertValue<QString>( STYLE, defaultLineStyle );
+    QString defaultLineStyleFit = m_lineStyles->getDefaultSecondary();
+    m_state.insertValue<QString>( STYLE_FIT, defaultLineStyleFit );
     QString defaultPlotStyle = m_plotStyles->getDefault();
     m_state.insertValue<QString>( PLOT_STYLE, defaultPlotStyle );
+
 
     m_state.insertValue<QString>( STATISTIC, m_stats->getDefault());
     m_state.insertValue<double>(REST_FREQUENCY, 0 );
@@ -528,6 +538,21 @@ QString CurveData::setLineStyle( const QString& lineStyle ){
     }
     else {
         result = "Unrecognized line style: " + lineStyle;
+    }
+    return result;
+}
+
+QString CurveData::setLineStyleFit( const QString& lineStyle ){
+    QString result;
+    QString oldStyle = m_state.getValue<QString>( STYLE_FIT );
+    QString actualStyle = m_lineStyles->getActualLineStyle( lineStyle );
+    if ( !actualStyle.isEmpty() ){
+        if ( actualStyle != oldStyle ){
+            m_state.setValue<QString>( STYLE_FIT, actualStyle );
+        }
+    }
+    else {
+        result = "Unrecognized fit line style: " + lineStyle;
     }
     return result;
 }

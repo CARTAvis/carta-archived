@@ -46,35 +46,40 @@ Plot2DHolder::Plot2DHolder():
 }
 
 
+
 void Plot2DHolder::addData(std::vector<std::pair<double,double> > dataVector,
-        const QString& id ){
+        const QString& id, bool primary ){
     if ( dataVector.size() == 0 ){
         return;
     }
 
-    std::shared_ptr<Plot2D> pData = _findData( id );
-    if ( !pData ){
-       if ( m_plotType == PlotType::PROFILE ){
-           pData.reset( new Plot2DProfile() );
-       }
-       else if ( m_plotType == PlotType::HISTOGRAM ){
-           //For right now, just one histogram plot
-           if ( m_datas.size() > 0 ){
-
-               clearData();
-           }
-           pData.reset( new Plot2DHistogram() );
-       }
-       else {
-           qWarning() << "Unrecognized plot type: "<<(int)( m_plotType );
-       }
-       pData->setLegendLine( m_legendLineShow );
-       m_datas.append( pData );
-       pData->attachToPlot(m_plot);
-       pData->setId( id );
+    //First look for primary data & make it if that was requested.
+    std::shared_ptr<Plot2D> pData = _findData( id, true );
+    if ( !pData && primary  ){
+        pData = _makeData();
+        if ( m_plotType == PlotType::HISTOGRAM ){
+            //For right now, just one histogram plot
+            clearData();
+        }
+        m_datas.append( pData );
+    }
+    else if ( pData && !primary ){
+        //Store the primary color
+        QColor pColor = pData->getColor();
+        //See if there is a secondary curve with this id and make
+        //one if there is not.
+        pData = _findData(id, false );
+        if ( !pData ){
+            pData = _makeData();
+            pData->setColor(pColor);
+            pData->setLegendVisible( false );
+            m_dataSecondary.append( pData );
+        }
     }
 
     if ( pData ){
+        pData->attachToPlot(m_plot);
+        pData->setId( id );
         pData->setData( dataVector );
 
         _updateScales();
@@ -98,7 +103,13 @@ void Plot2DHolder::clearAxisExtentY(){
 }
 
 void Plot2DHolder::clearData(){
-    m_plot->detachItems( QwtPlotItem::Rtti_PlotItem, false );
+    //Note:  although this seems faster, we can't use it because
+    //it also removes the legend
+   // m_plot->detachItems( QwtPlotItem::Rtti_PlotItem, false );
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        m_datas[i]->detachFromPlot();
+    }
     m_datas.clear();
 }
 
@@ -151,12 +162,35 @@ void Plot2DHolder::clearSelectionColor(){
 }
 
 
-std::shared_ptr<Plot2D> Plot2DHolder::_findData( const QString& id ) const {
+std::shared_ptr<Plot2D> Plot2DHolder::_findData( const QString& id, bool primary  ) const {
+    std::shared_ptr<Plot2D> data( nullptr );
+    if ( primary ){
+        data = _findDataPrimary( id );
+    }
+    else {
+        data = _findDataSecondary( id );
+    }
+    return data;
+}
+
+std::shared_ptr<Plot2D> Plot2DHolder::_findDataPrimary( const QString& id  ) const {
     std::shared_ptr<Plot2D> data( nullptr );
     int dataCount = m_datas.size();
     for ( int i = 0; i < dataCount; i++ ){
         if ( m_datas[i]->getId()  == id ){
             data = m_datas[i];
+            break;
+        }
+    }
+    return data;
+}
+
+std::shared_ptr<Plot2D> Plot2DHolder::_findDataSecondary( const QString& id  ) const {
+    std::shared_ptr<Plot2D> data( nullptr );
+    int dataCount = m_dataSecondary.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( m_dataSecondary[i]->getId()  == id ){
+            data = m_dataSecondary[i];
             break;
         }
     }
@@ -173,6 +207,16 @@ QString Plot2DHolder::getAxisUnitsY() const {
     return unitStr;
 }
 
+QColor Plot2DHolder::getColor( const QString& id, bool* valid ) const {
+    QColor color;
+    *valid = false;
+    std::shared_ptr<Plot2D> data = _findData( id, true );
+    if ( data ){
+        *valid = true;
+        color = data->getColor();
+    }
+    return color;
+}
 
 QString Plot2DHolder::getLegendLocation() const {
     return m_legendPosition;
@@ -186,7 +230,7 @@ QSize Plot2DHolder::getLegendSize() const {
 std::pair<double,double>  Plot2DHolder::getPlotBoundsY( const QString& id, bool* valid ) const {
     std::pair<double,double> result;
     *valid = false;
-    std::shared_ptr<Plot2D> plotData = _findData(id);
+    std::shared_ptr<Plot2D> plotData = _findData(id, true );
     if ( plotData ){
         result = plotData->getBoundsY();
         *valid = true;
@@ -279,11 +323,31 @@ void Plot2DHolder::legendToImage( QPainter* paint, const QRectF& geom ) const {
     m_plot->legendToImage( paint, geom );
 }
 
+std::shared_ptr<Plot2D> Plot2DHolder::_makeData() const {
+    std::shared_ptr<Plot2D> pData( nullptr );
+    if ( m_plotType == PlotType::PROFILE ){
+        pData.reset( new Plot2DProfile() );
+    }
+    else if ( m_plotType == PlotType::HISTOGRAM ){
+        pData.reset( new Plot2DHistogram() );
+    }
+    else {
+        qWarning() << "Unrecognized plot type: "<<(int)( m_plotType );
+    }
+    pData->setLegendLine( m_legendLineShow );
+    return pData;
+}
+
 void Plot2DHolder::removeData( const QString& dataName ){
-    std::shared_ptr<Plot2D> pData = _findData( dataName );
+    std::shared_ptr<Plot2D> pData = _findData( dataName, true );
     if ( pData ){
         pData->detachFromPlot();
         m_datas.removeOne( pData );
+    }
+    pData = _findData( dataName, false );
+    if ( pData ){
+        pData->detachFromPlot();
+        m_dataSecondary.removeOne( pData );
     }
 }
 
@@ -308,19 +372,29 @@ void Plot2DHolder::setColor( QColor color, const QString& id ){
     if ( id.isEmpty() || id.trimmed().length() == 0 ){
         int dataCount = m_datas.size();
         for ( int i = 0; i < dataCount; i++ ){
-            m_datas[i]->detachFromPlot();
-            m_datas[i]->setColor( color );
-            m_datas[i]->attachToPlot( m_plot );
+            _setColorData( color, m_datas[i] );
+        }
+        int dataCountSecondary = m_dataSecondary.size();
+        for ( int i = 0; i < dataCountSecondary; i++ ){
+            _setColorData( color, m_dataSecondary[i] );
         }
     }
     else {
-        std::shared_ptr<Plot2D> plotData = _findData( id );
+        std::shared_ptr<Plot2D> plotData = _findData( id, true );
         if ( plotData ){
-            plotData->detachFromPlot();
-            plotData->setColor( color );
-            plotData->attachToPlot( m_plot );
+            _setColorData( color, plotData );
+           std::shared_ptr<Plot2D> plotDataSecondary = _findData( id, false );
+           if ( plotDataSecondary ){
+               _setColorData( color, plotDataSecondary );
+           }
         }
     }
+}
+
+void Plot2DHolder::_setColorData( QColor color, std::shared_ptr<Plot2D> plotData ){
+    plotData->detachFromPlot();
+    plotData->setColor( color );
+    plotData->attachToPlot( m_plot );
 }
 
 
@@ -332,7 +406,7 @@ void Plot2DHolder::setColored( bool colored, const QString& id ){
         }
     }
     else {
-        std::shared_ptr<Plot2D> plotData = _findData( id );
+        std::shared_ptr<Plot2D> plotData = _findData( id, true );
         if ( plotData ){
             plotData->setColored( colored );
         }
@@ -341,7 +415,11 @@ void Plot2DHolder::setColored( bool colored, const QString& id ){
 
 
 void Plot2DHolder::setCurveName( const QString& oldName, const QString& newName ){
-    std::shared_ptr<Plot2D> plotData = _findData( oldName );
+    std::shared_ptr<Plot2D> plotData = _findData( oldName, true );
+    if ( plotData ){
+        plotData->setId( newName );
+    }
+    plotData = _findData( oldName, false );
     if ( plotData ){
         plotData->setId( newName );
     }
@@ -560,25 +638,33 @@ bool Plot2DHolder::setSize( int width, int height ){
     return newSize;
 }
 
+void Plot2DHolder::_setLineStyle( const QString& style, std::shared_ptr<Plot2D> data ){
+    //Attach & reattach so the legend icon updates.
+    data->detachFromPlot();
+    data->setLineStyle( style );
+    data->attachToPlot( m_plot );
+}
 
-void Plot2DHolder::setLineStyle( const QString& style, const QString& id ){
+
+void Plot2DHolder::setLineStyle( const QString& style, const QString& id, bool primary ){
     if ( id.isEmpty() || id.trimmed().length() == 0 ){
-        int dataCount = m_datas.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            //Attach & reattach so the legend icon updates.
-            m_datas[i]->detachFromPlot();
-            m_datas[i]->setLineStyle( style );
-            m_datas[i]->attachToPlot( m_plot );
+        if ( primary ){
+            int dataCount = m_datas.size();
+            for ( int i = 0; i < dataCount; i++ ){
+                _setLineStyle( style, m_datas[i] );
+            }
+        }
+        else {
+            int dataCount = m_dataSecondary.size();
+            for ( int i = 0; i < dataCount; i++ ){
+                _setLineStyle( style, m_dataSecondary[i] );
+            }
         }
     }
     else {
-        std::shared_ptr<Plot2D> data = _findData( id );
+        std::shared_ptr<Plot2D> data = _findData( id, primary );
         if ( data ){
-            //Detaching & reattaching so that the icon will be redrawn
-            //when the style changes.
-            data->detachFromPlot();
-            data->setLineStyle( style );
-            data->attachToPlot( m_plot );
+            _setLineStyle( style, data );
         }
     }
 }
@@ -592,7 +678,7 @@ void Plot2DHolder::setStyle( const QString& style, const QString& id ){
         }
     }
     else {
-        std::shared_ptr<Plot2D> data = _findData( id );
+        std::shared_ptr<Plot2D> data = _findData( id, true );
         if ( data ){
             data->setDrawStyle( style );
         }
@@ -620,8 +706,8 @@ void Plot2DHolder::setTitleAxisY( const QString& title){
 
 void Plot2DHolder::toImage( QPainter* painter, const QRect& geom ) const {
     QwtPlotRenderer renderer;
-    if ( ( m_legendPosition == Carta::Data::LegendLocations::LEFT ||
-            m_legendPosition == Carta::Data::LegendLocations::RIGHT ) && m_legendExternal ){
+    //Draw the legend separately if it is visible and external.
+    if ( m_legendVisible && m_legendExternal ){
         renderer.setDiscardFlag( QwtPlotRenderer::DiscardLegend, true );
     }
     renderer.render( m_plot, painter, geom );

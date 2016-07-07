@@ -64,6 +64,9 @@ QString LineStyles::getDefault() const {
     return LINE_STYLE_SOLID;
 }
 
+QString LineStyles::getDefaultSecondary() const {
+    return LINE_STYLE_DASH;
+}
 
 QStringList LineStyles::getLineStyles() const {
     QStringList buff;

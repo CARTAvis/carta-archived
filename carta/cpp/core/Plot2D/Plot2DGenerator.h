@@ -37,8 +37,10 @@ public:
      * @param data the plot data (x,y) pairs and additional information for plotting.
      * @param id - an identifier for the new data set.
      * @param index - the plot index.
+     * @param primary - true if this a primary curve for the plot; false if it is a secondary
+     *      curve such as a 1-d fit.
      */
-    void addData( std::vector< std::pair<double,double> > data, const QString& id, int index = 0 );
+    void addData( std::vector< std::pair<double,double> > data, const QString& id, int index = 0, bool primary = true );
 
     /**
      * Add informational labels to the plot.
@@ -75,7 +77,6 @@ public:
      * @param index - the plot index.
      */
     void clearSelectionColor( int index = 0 );
-
 
     /**
      * Return the y-axis label for the plot.
@@ -194,9 +195,8 @@ public:
      * @param color - a color to use in graphing a data set.
      * @param id - an identifier for a data set or an empty string if the color
      *      should be applied to all data sets.
-     * @param index - the plot index.
      */
-    void setColor( QColor color, const QString& id = QString(), int index = 0 );
+    void setColor( QColor color, const QString& id = QString() );
 
     /**
      * Set whether or not the plot should be colored.
@@ -272,8 +272,10 @@ public:
      * @param id - an identifier for the data set where the style should be applied
      *  or an empty string to apply the style to all data sets.
      * @param index - the plot index.
+     * @param primary - true if this a primary curve for the plot; false if it is a secondary
+     *      curve such as a 1-d fit.
      */
-    void setLineStyle( const QString& style, const QString& id = QString(), int index = 0 );
+    void setLineStyle( const QString& style, const QString& id = QString(), int index = 0, bool primary = true );
 
     /**
      * Set whether or not the plot should use a log scale.
@@ -403,9 +405,7 @@ public:
     virtual ~Plot2DGenerator();
 
 private:
-
     bool _checkIndex( int index ) const;
-    int _getExternalLegendIndex() const;
     void _paintLegend( int x, int y, int width, int height, QPainter* painter ) const;
     void _resetExtents();
     //Actual qwt plot
