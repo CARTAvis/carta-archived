@@ -65,6 +65,13 @@ public:
     std::vector< std::pair<double,double> > getFitData() const;
 
     /**
+     * Return a list of (center,peak,fbhw) information specifying the Gaussian
+     * fits.
+     * @return - a list of (center,peak,fbhw) Gaussian fit parameters.
+     */
+    std::vector<std::tuple<double,double,double> > getFitParams() const;
+
+    /**
      * Return a list of fit residuals.
      * @return - a list of residual data form a fit.
      */
@@ -74,7 +81,7 @@ public:
      * Return stored parameters for fitting this curve.
      * @return - a string representation of fitting parameters.
      */
-    QString getFitParams() const;
+     QString getFitState() const;
 
     /**
      * Return a list of parameters that specify the Gaussians that were fit to the
@@ -145,6 +152,14 @@ public:
     QString getNameRegion() const;
 
     /**
+     * Get a list of positions and descriptions for the fit Gaussian peaks.
+     * @param xUnit - the units of the x-axis.
+     * @param yUnit - the units of the y-axis.
+     * @return - a list of positions and descripts for the fit Gaussian peaks.
+     */
+    std::vector< std::tuple<double,double,QString> > getPeakLabels( const QString& xUnit, const QString& yUnit ) const;
+
+    /**
      * Return the rest frequency used for the profile.
      * @return - the rest frequency used for the profile.
      */
@@ -181,10 +196,22 @@ public:
     std::vector<double> getValuesX() const;
 
     /**
+     * Get the fit curve x-coordinates.
+     * @return - the fit curve x-coordinate values.
+     */
+    std::vector<double> getValuesXFit() const;
+
+    /**
      * Get the curve y-coordinates.
      * @return - the curve y-coordinate values.
      */
     std::vector<double> getValuesY() const;
+
+    /**
+     * Get the fit curve y-coordinates.
+     * @return - the fit curve y-coordinate values.
+     */
+    std::vector<double> getValuesYFit() const;
 
     /**
      * Returns true if the identifier passed in matches this curve's identifier;
@@ -232,10 +259,22 @@ public:
     void setDataX( const std::vector<double>& valsX );
 
     /**
+     * Set the x-values that comprise the fit curve.
+     * @param valsX - the x-coordinate values of the fit curve.
+     */
+    void setDataXFit( const std::vector<double>& valsX );
+
+    /**
      * Set the y- data values that comprise the curve.
      * @param valsY - the y-coordinate values of the curve.
      */
     void setDataY( const std::vector<double>& valsY );
+
+    /**
+     * Set the y- data values that comprise the fit curve.
+     * @param valsY - the y-coordinate values of the fit curve.
+     */
+    void setDataYFit( const std::vector<double>& valsY );
 
     /**
      * Set a list of parameters that specify the Gaussians that were fit to the curve.
@@ -375,7 +414,7 @@ private:
     void _convertRestFrequency( const QString& oldUnits, const QString& newUnits,
             int significantDigits, double errorMargin );
 
-
+    QString _generatePeakLabel( int index, const QString& xUnit, const QString& yUnit ) const;
     void _initializeDefaultState();
     void _initializeStatics();
 

@@ -62,6 +62,9 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                                 if ( obj.cursorText.length > 0 ){
                                     this.m_popup.show();
                                 }
+                                else {
+                                    this.m_popup.hide();
+                                }
                             }
                             else {
                                 this.m_popup.hide();

@@ -47,12 +47,14 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             this._add( displayContainer );
            
             this.m_residualCheck = new qx.ui.form.CheckBox();
+            this.m_residualCheck.setToolTipText( "Show a plot of fit residuals");
             var resLabel = new qx.ui.basic.Label( "Residuals:");
             this.m_residualListenId = this.m_residualCheck.addListener( "changeValue", this._sendResidualCmd, this );
             displayContainer.add( resLabel, {row:0, column:0} );
             displayContainer.add( this.m_residualCheck, {row:0, column:1} );
             
             this.m_guessCheck = new qx.ui.form.CheckBox();
+            this.m_guessCheck.setToolTipText("Show initial fit guesses graphically.");
             this.m_guessCheck.setEnabled( false );
             var guessLabel = new qx.ui.basic.Label( "Manual Guesses:");
             this.m_guessListenId = this.m_guessCheck.addListener( "changeValue", this._sendShowGuessesCmd, this );
@@ -61,18 +63,21 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             
             this.m_statisticsCheck = new qx.ui.form.CheckBox();
             var statLabel = new qx.ui.basic.Label( "Statistics:");
+            this.m_statisticsCheck.setToolTipText( "Display fit statistics.");
             this.m_statisticsListenId = this.m_statisticsCheck.addListener( "changeValue", this._sendShowStatisticsCmd, this );
             displayContainer.add( statLabel, {row:2, column:0} );
             displayContainer.add( this.m_statisticsCheck, {row:2, column:1} );
             
             this.m_meanRMSCheck = new qx.ui.form.CheckBox();
             var meanLabel = new qx.ui.basic.Label( "Mean and RMS:");
+            this.m_meanRMSCheck.setToolTipText( "Show mean and fit RMS on plot.");
             this.m_meanRMSListenId = this.m_meanRMSCheck.addListener( "changeValue", this._sendShowMeanRMSCmd, this );
             displayContainer.add( meanLabel, {row:3, column:0} );
             displayContainer.add( this.m_meanRMSCheck, {row:3, column:1} );
             
             this.m_labelCheck = new qx.ui.form.CheckBox();
             var labLabel = new qx.ui.basic.Label( "Peak Labels:");
+            this.m_labelCheck.setToolTipText( "Display fit params as labels at the Gaussian fit peaks.");
             this.m_labelListenId = this.m_labelCheck.addListener( "changeValue", this._sendShowPeakLabelsCmd, this );
             displayContainer.add( labLabel, {row:4, column:0} );
             displayContainer.add( this.m_labelCheck, {row:4, column:1} );

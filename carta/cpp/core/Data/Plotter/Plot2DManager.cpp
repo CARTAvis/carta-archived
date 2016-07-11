@@ -101,6 +101,7 @@ void Plot2DManager::endSelection(const QString& params ){
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     QString xstr = dataValues[Util::XCOORD];
     m_selectionEnd = xstr.toDouble();
+
     if ( m_plotGenerator ){
         m_plotGenerator->setSelectionMode( false );
     }
@@ -134,10 +135,10 @@ QString Plot2DManager::getAxisUnitsY( int index) const {
     return units;
 }
 
-QPointF Plot2DManager::getImagePoint( const QPointF& screenPoint, int index ) const {
+QPointF Plot2DManager::getImagePoint( const QPointF& screenPoint, bool* valid, int index ) const {
     QPointF imagePt;
     if ( m_plotGenerator ){
-        imagePt = m_plotGenerator->getImagePoint( screenPoint, index );
+        imagePt = m_plotGenerator->getImagePoint( screenPoint, valid, index );
     }
     return imagePt;
 }
@@ -340,9 +341,9 @@ QString Plot2DManager::savePlot( const QString& fileName ){
 }
 
 
-void Plot2DManager::setAxisXRange( double min, double max, int index ){
+void Plot2DManager::setAxisXRange( double min, double max ){
     if ( m_plotGenerator ){
-        m_plotGenerator->setAxisXRange( min, max, index );
+        m_plotGenerator->setAxisXRange( min, max);
         updatePlot();
     }
 }
@@ -361,6 +362,10 @@ void Plot2DManager::setColored( bool colored, const QString& id, int index ){
         m_plotGenerator->setColored( colored, id, index );
         updatePlot();
     }
+}
+
+void Plot2DManager::setCursorEnabled( bool enabled ){
+    m_cursorEnabled = enabled;
 }
 
 void Plot2DManager::setCursorText( const QString& cursorText ){
@@ -473,9 +478,9 @@ void Plot2DManager::setRange( double min, double max, int index ){
 }
 
 
-void Plot2DManager::setRangeColor( double min, double max, int index ){
+void Plot2DManager::setRangeColor( double min, double max){
     if ( m_plotGenerator ){
-        m_plotGenerator->setRangeColor( min, max, index );
+        m_plotGenerator->setRangeColor( min, max );
     }
 }
 
@@ -495,28 +500,36 @@ void Plot2DManager::setStyle( const QString& styleName, const QString& id, int i
 }
 
 
-void Plot2DManager::setTitleAxisX( const QString& title, int index ){
+void Plot2DManager::setTitleAxisX( const QString& title){
     if ( m_plotGenerator ){
-        m_plotGenerator->setTitleAxisX( title, index );
+        m_plotGenerator->setTitleAxisX( title);
         updatePlot();
     }
 }
 
 
-void Plot2DManager::setTitleAxisY( const QString& title, int index ){
+void Plot2DManager::setTitleAxisY( const QString& title ){
     if ( m_plotGenerator ){
-        m_plotGenerator->setTitleAxisY( title, index );
+        m_plotGenerator->setTitleAxisY( title );
         updatePlot();
     }
 }
 
 
-void Plot2DManager::setVLinePosition( double xPos, int index ){
+void Plot2DManager::setVLinePosition( double xPos){
     if ( m_plotGenerator ){
-        m_plotGenerator->setMarkerLine( xPos, index );
+        m_plotGenerator->setMarkerLine( xPos );
         updatePlot();
     }
 }
+
+void Plot2DManager::setVLineVisible( bool visible ){
+    if ( m_plotGenerator ){
+        m_plotGenerator->setMarkerLineVisible( visible );
+        updatePlot();
+    }
+}
+
 
 
 void Plot2DManager::startSelection(const QString& params ){
@@ -570,8 +583,14 @@ void Plot2DManager::updateSelection(int x, int y, int index){
     }
     else {
        if ( m_cursorEnabled ){
-           QPointF imageValue = m_plotGenerator->getImagePoint( QPointF(x, y), index );
-           emit cursorMove( imageValue.x(), imageValue.y() );
+           bool valid = false;
+           QPointF imageValue = m_plotGenerator->getImagePoint( QPointF(x, y), &valid, index );
+           if ( valid ){
+               emit cursorMove( imageValue.x(), imageValue.y() );
+           }
+           else {
+               setCursorText( "");
+           }
        }
     }
 }

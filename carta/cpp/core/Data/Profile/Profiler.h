@@ -64,10 +64,16 @@ public:
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
-     * Returns the units on the bottom axis of the profile.
-     * @return - the profile bottom axis units.
+     * Returns the units on the x-axis of the profile.
+     * @return - the profile x-axis units.
      */
-    QString getAxisUnitsBottom() const;
+    QString getAxisUnitsX() const;
+
+    /**
+        * Returns the units on the y-axis of the profile.
+        * @return - the profile y-axis units.
+        */
+       QString getAxisUnitsY() const;
 
     /**
      * Return the number of Gaussians to fit to the curve.
@@ -193,19 +199,19 @@ public:
 
     /**
      * Set the bottom axis units.
-     * @param unitStr - set the label to use for the bottom axis of the plot.
+     * @param unitStr - set the label to use for the x-axis of the plot.
      * @return - an error message if the units could not be set; otherwise, an
      *      empty string.
      */
-    QString setAxisUnitsBottom( const QString& unitStr );
+    QString setAxisUnitsX( const QString& unitStr );
 
     /**
-     * Set the left axis units.
-     * @param unitStr - set the label to use for the left axis of the plot.
+     * Set the y-axis units.
+     * @param unitStr - set the label to use for the y-axis of the plot.
      * @return - an error message if the units could not be set; otherwise, an
      *      empty string.
      */
-    QString setAxisUnitsLeft( const QString& unitStr );
+    QString setAxisUnitsY( const QString& unitStr );
 
 
     /**
@@ -374,6 +380,14 @@ public:
     QString setRestUnitType( bool restUnitsFreq, const QString& curveName );
 
     /**
+     * Sets whether information about the point underneath the mouse cursor should
+     * be shown or not.
+     * @param showCursor - true if information about the point underneath the mouse
+     *      cursor should be shown; false, otherwise.
+     */
+    void setShowCursor( bool showCursor );
+
+    /**
      * Set whether or not to show manual fit guesses in the UI.
      * @param showFitGuesses - true if manual fit guesses should be displayed;
      *      false otherwise.
@@ -397,6 +411,13 @@ public:
      *      false otherwise.
      */
     void setShowFitStatistics( bool showFitStatistics );
+
+    /**
+     * Sets whether or not the position of the current frame should be shown.
+     * @param showFrame - true if the position of the current frame should be shown;
+     *      false otherwise.
+     */
+    void setShowFrame( bool showFrame );
 
     /**
      * Set whether or not the mean and RMS should be displayed.
@@ -518,13 +539,13 @@ private:
     const static QString PLOT_TOP;
     const static QString POLY_DEGREE;
     const static QString REGIONS;
+    const static QString SHOW_FRAME;
     const static QString SHOW_GUESSES;
     const static QString SHOW_MEAN_RMS;
     const static QString SHOW_PEAK_LABELS;
     const static QString SHOW_RESIDUALS;
     const static QString SHOW_STATISTICS;
-    const static QString SHOW_TOOLTIP;
-    const static QString TOOL_TIPS;
+    const static QString SHOW_CURSOR;
     const static QString TAB_INDEX;
     const static QString ZOOM_BUFFER;
     const static QString ZOOM_BUFFER_SIZE;
@@ -544,17 +565,29 @@ private:
     void _convertX( std::vector<double>& converted,
             std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
             const QString& oldUnit, const QString& newUnit ) const;
+    void _convertDataX( std::vector<double>& converted, const QString& bottomUnit,
+            std::shared_ptr<CurveData> curveData ) const;
+    void _convertDataY( std::vector<double>& converted, const std::vector<double>& plotDataX,
+            std::shared_ptr<CurveData> curveData, const QString& newUnits ) const;
     std::vector<double> _convertUnitsX( std::shared_ptr<CurveData> curveData,
             const QString& newUnit ) const;
+    std::vector<double> _convertUnitsXFit( std::shared_ptr<CurveData> curveData,
+            const QString& bottomUnit ) const;
+    std::vector<double>  _convertUnitsXFitParams( std::shared_ptr<CurveData> curveData,
+            const QString & bottomUnit ) const;
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData,
             const QString& newUnit ) const;
+    std::vector<double> _convertUnitsYFit( std::shared_ptr<CurveData> curveData,
+            const QString& newUnit ) const;
+    std::vector<double>  _convertUnitsYFitParams( std::shared_ptr<CurveData> curveData,
+            const QString & newUnit ) const;
 
     void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
     void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
              int curveIndex, const QString& layerName, bool createNew = false );
     void _generateFit( );
     std::vector<std::tuple<double,double,double> > _generateFitGuesses( int count, bool random );
-    QString _generatePeakLabel( double center, double peak, double fbhw ) const;
+
     Controller* _getControllerSelected() const;
     std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;

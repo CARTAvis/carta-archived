@@ -50,6 +50,18 @@ public:
     QwtPlot::Axis getAxisLocationX() const;
 
     /**
+     * Return the title of the x-axis.
+     * @return - the title of the x-axis.
+     */
+    QString getAxisTitleX() const;
+
+    /**
+     * Return the title of the y-axis.
+     * @return - the title of the y-axis.
+     */
+    QString getAxisTitleY() const;
+
+    /**
      * Return the y-axis units.
      * @return - the y-axis units.
      */
@@ -115,12 +127,6 @@ public:
     void setAxisLocationX( QwtPlot::Axis axis );
 
     /**
-     * Set how the x-axis should be scaled (logarithmic or linear).
-     * @param engine - how the x-axis should be scaled.
-     */
-    void setAxisScaleEngineX(QwtScaleEngine* engine );
-
-    /**
      * Set how the y-axis should be scaled (logarithmic or linear).
      * @param engine - how the y-axis should be scaled.
      */
@@ -167,6 +173,13 @@ public:
      */
     void setLegendPosition( bool visible,
             const QString& legendLocation, bool external );
+
+    /**
+     * Set the size of the plot based on the screen size.
+     * @param width - the width of the plot in pixels.
+     * @param height - the height of the plot in pixels.
+     */
+    void setPlotSize( int width, int height );
 
     /**
      * Destructor.

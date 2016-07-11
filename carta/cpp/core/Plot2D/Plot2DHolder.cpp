@@ -77,10 +77,11 @@ void Plot2DHolder::addData(std::vector<std::pair<double,double> > dataVector,
         }
     }
 
+
     if ( pData ){
-        pData->attachToPlot(m_plot);
         pData->setId( id );
         pData->setData( dataVector );
+        pData->attachToPlot(m_plot);
 
         _updateScales();
     }
@@ -106,11 +107,11 @@ void Plot2DHolder::clearData(){
     //Note:  although this seems faster, we can't use it because
     //it also removes the legend
    // m_plot->detachItems( QwtPlotItem::Rtti_PlotItem, false );
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        m_datas[i]->detachFromPlot();
-    }
+    _detachData( m_datas );
     m_datas.clear();
+    _detachData( m_dataSecondary );
+    m_dataSecondary.clear();
+
 }
 
 void Plot2DHolder::clearLabels(){
@@ -132,6 +133,7 @@ void Plot2DHolder::_clearItem( QwtPlotItem* item ){
 
 void Plot2DHolder::_clearMarkers(){
     m_plot->detachItems( QwtPlotItem::Rtti_PlotMarker, false );
+
     _clearItem( m_rangeColor );
     m_rangeColor = nullptr;
 
@@ -144,6 +146,7 @@ void Plot2DHolder::_clearMarkers(){
     m_hLine = nullptr;
     delete m_vLine;
     m_vLine = nullptr;
+
 
 }
 
@@ -161,6 +164,12 @@ void Plot2DHolder::clearSelectionColor(){
     }
 }
 
+void Plot2DHolder::_detachData(QList<std::shared_ptr<Plot2D> >& datas ){
+    int dataCount = datas.size();
+       for ( int i = 0; i < dataCount; i++ ){
+           datas[i]->detachFromPlot();
+       }
+}
 
 std::shared_ptr<Plot2D> Plot2DHolder::_findData( const QString& id, bool primary  ) const {
     std::shared_ptr<Plot2D> data( nullptr );
@@ -218,6 +227,62 @@ QColor Plot2DHolder::getColor( const QString& id, bool* valid ) const {
     return color;
 }
 
+void Plot2DHolder::_getDataBounds( double* dataMinX, double* dataMaxX,
+        double* dataMinY, double* dataMaxY ) const {
+    int dataCount = m_datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        std::pair<double,double> boundsX = m_datas[i]->getBoundsX();
+        std::pair<double,double> boundsY = m_datas[i]->getBoundsY();
+        if ( boundsX.first < *dataMinX ){
+            *dataMinX = boundsX.first;
+        }
+        if ( boundsX.second > *dataMaxX ){
+            *dataMaxX = boundsX.second;
+        }
+        if ( boundsY.first < *dataMinY ){
+            *dataMinY = boundsY.first;
+        }
+        if ( boundsY.second > *dataMaxY ){
+            *dataMaxY = boundsY.second;
+        }
+    }
+}
+
+QPointF Plot2DHolder::getImagePoint(const QPointF& screenPt, bool* valid ) const {
+    //Returns a point in image coordinates that may not correspond to
+    //an actual data point.
+    *valid = false;
+    QPointF imagePoint = m_plot->getImagePoint( screenPt );
+
+    //Find the 'closest' data point to the screen point.
+    int dataCount = m_datas.size();
+    double dataMinX = std::numeric_limits<double>::max();
+    double dataMaxX = -1 * dataMinX;
+    double dataMinY = std::numeric_limits<double>::max();
+    double dataMaxY = -1 * dataMinY;
+    _getDataBounds( &dataMinX, &dataMaxX, &dataMinY, &dataMaxY );
+    double targetErrorX = _getRelativeError( dataMinX, dataMaxX );
+    double targetErrorY = _getRelativeError( dataMinY, dataMaxY );
+
+    //Find the index that yields the smallest error in the x-coordinate withen the
+    //acceptable bounds.
+    double minErrorX = std::numeric_limits<double>::max();
+    for ( int i = 0; i < dataCount; i++ ){
+        double xError = std::numeric_limits<double>::max();
+        double yError = std::numeric_limits<double>::max();
+        std::pair<double,double> closestPt = m_datas[i]->getClosestPoint(imagePoint.x(), imagePoint.y(), &xError,&yError );
+        if ( xError < targetErrorX && yError < targetErrorY ){
+            if ( xError < minErrorX ){
+                minErrorX = xError;
+                imagePoint.setX( closestPt.first);
+                imagePoint.setY( closestPt.second );
+                *valid = true;
+            }
+        }
+    }
+    return imagePoint;
+}
+
 QString Plot2DHolder::getLegendLocation() const {
     return m_legendPosition;
 }
@@ -270,11 +335,46 @@ std::pair<double,double> Plot2DHolder::getRangeColor(bool* valid ) const {
     return result;
 }
 
+double Plot2DHolder::_getRelativeError( double minValue, double maxValue) const {
+    double range = qAbs( maxValue - minValue );
+    double error = 0;
+    if ( ! isnan( range ) ){
+        //Divide by powers of 10 until we get something less than 1.
+        if ( range > 1 ){
+            int i = 0;
+            double powerValue = qPow( 10, i );
+            while( range / powerValue > 1 ){
+                i++;
+                powerValue = qPow( 10, i );
+            }
+            error = powerValue;
+            //Add in arbitrary scaling for more accuracy.
+            error = error * 0.005;
+        }
+        //Multiply by powers of 10 until we get something larger than 1.
+        else {
+           int i = 0;
+           while( range * qPow( 10, i ) < 1 ){
+               i++;
+           }
+           error = 1 / qPow( 10, i );
+           error = error * 0.5;
+        }
+    }
+    return error;
+}
 
 QPointF Plot2DHolder::getScreenPoint( const QPointF& dataPoint ) const {
     return m_plot->getScreenPoint( dataPoint );
 }
 
+QString Plot2DHolder::getTitleAxisX() const {
+    return m_plot->getAxisTitleX();
+}
+
+QString Plot2DHolder::getTitleAxisY() const {
+    return m_plot->getAxisTitleY();
+}
 
 double Plot2DHolder::getVLinePosition( bool* valid ) const {
     *valid = false;
@@ -287,10 +387,18 @@ double Plot2DHolder::getVLinePosition( bool* valid ) const {
 }
 
 
-QPointF Plot2DHolder::getImagePoint(const QPointF& screenPt ) const {
-    return m_plot->getImagePoint( screenPt );
-}
 
+
+
+
+
+double Plot2DHolder::getMarkerLine() const {
+    double pos = 0;
+    if ( m_vLine ){
+        pos = m_vLine->getPosition();
+    }
+    return pos;
+}
 
 QSize Plot2DHolder::getPlotSize() const {
     return m_plot->getPlotSize();
@@ -318,6 +426,15 @@ bool Plot2DHolder::isSelectionOnCanvas( int xPos ) const {
     bool selectionOnCanvas = m_plot->isSelectionOnCanvas( xPos );
     return selectionOnCanvas;
 }
+
+bool Plot2DHolder::isMarkerLineVisible() const {
+    bool visible = false;
+    if ( m_vLine ){
+        visible = true;
+    }
+    return visible;
+}
+
 
 void Plot2DHolder::legendToImage( QPainter* paint, const QRectF& geom ) const {
     m_plot->legendToImage( paint, geom );
@@ -510,6 +627,25 @@ void Plot2DHolder::setMarkerLine( double xPos ){
     }
 }
 
+void Plot2DHolder::setMarkerLineVisible( bool visible ){
+    if ( visible ){
+        if ( !m_vLine ){
+            m_vLine = new Plot2DLine();
+            m_vLine->setHeight( m_height );
+            m_vLine->attach( m_plot );
+        }
+    }
+    else {
+        if ( m_vLine ){
+            m_vLine->detach();
+            delete m_vLine;
+            m_vLine = nullptr;
+        }
+    }
+    m_plot->replot();
+}
+
+
 
 void Plot2DHolder::setMarkedRange( double minY, double maxY ){
     if ( m_rangeMarker ){
@@ -552,7 +688,9 @@ void Plot2DHolder::setPlotType( PlotType type ){
 
 
 void Plot2DHolder::setRange(double min, double max){
-    m_range->setClipValues(min, max);
+    if ( m_range ){
+        m_range->setClipValues(min, max);
+    }
     m_plot->replot();
 }
 
@@ -582,9 +720,11 @@ void Plot2DHolder::setRangeMarkerVisible( bool visible ){
 
 
 void Plot2DHolder::setRangePixels(double min, double max){
-    m_range->setHeight(m_height);
-    m_range->setBoundaryValues(min, max);
-    m_plot->replot();
+    if ( m_range ){
+        m_range->setHeight(m_height);
+        m_range->setBoundaryValues(min, max);
+        m_plot->replot();
+    }
 }
 
 
@@ -601,7 +741,9 @@ void Plot2DHolder::setRangePixelsColor(double min, double max){
 
 
 void Plot2DHolder::setSelectionMode(bool selection){
-    m_range->setSelectionMode( selection );
+    if ( m_range ){
+        m_range->setSelectionMode( selection );
+    }
 }
 
 
@@ -622,13 +764,16 @@ bool Plot2DHolder::setSize( int width, int height ){
         if ( minLength > 0 ){
             m_width = width;
             m_height = height;
-            m_range->setHeight( m_height );
+            if ( m_range ){
+                m_range->setHeight( m_height );
+            }
             if ( m_rangeColor ){
                 m_rangeColor->setHeight( m_height );
             }
             if ( m_vLine ){
                 m_vLine->setHeight( m_height );
             }
+            m_plot->setPlotSize( width, height );
             newSize = true;
         }
         else {
@@ -723,8 +868,11 @@ void Plot2DHolder::_updateScales(){
     int dataCount = m_datas.size();
     if ( dataCount > 0 ){
         std::pair<double,double> firstBounds = m_datas[0]->getBoundsY();
+        std::pair<double,double> firstBoundsX = m_datas[0]->getBoundsX();
         double yMin = firstBounds.first;
         double yMax = firstBounds.second;
+        double xMin = firstBoundsX.first;
+        double xMax = firstBoundsX.second;
         for ( int i = 0; i < dataCount; i++ ){
             std::pair<double,double> plotBounds = m_datas[i]->getBoundsY();
             if ( plotBounds.first < yMin ){
@@ -739,7 +887,15 @@ void Plot2DHolder::_updateScales(){
             else{
                 m_datas[i]->setBaseLine(0.0);
             }
+            std::pair<double,double> plotBoundsX = m_datas[i]->getBoundsX();
+            if ( plotBoundsX.first < xMin ){
+                xMin = plotBoundsX.first;
+            }
+            if ( plotBoundsX.second > xMax ){
+                xMax = plotBoundsX.second;
+            }
         }
+        m_plot->setAxisScaleX( xMin, xMax );
         if ( m_logScale ){
             m_plot->setAxisScaleEngineY( new QwtLogScaleEngine());
             m_plot->setAxisScaleY( 1, yMax );
@@ -756,6 +912,7 @@ void Plot2DHolder::_updateScales(){
 Plot2DHolder::~Plot2DHolder(){
     clearData();
     _clearMarkers();
+    _clearItem( m_range );
     delete m_plot;
 }
 }

@@ -50,14 +50,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 if (this.m_profile === null ) {
                     this.m_profile = new skel.widgets.Profile.Profile();
                     this.m_profile.addListener( "statVisibilityChanged", this._controlVisibilityChanged, this );
-                    this.m_profile.setId( this.m_identifier);
-                    this.m_content.add( this.m_profile, {flex:1});
                 }
                 if ( this.m_profileControls === null ){
                     this.m_profileControls = new skel.widgets.Profile.Settings();
                     this.m_profile.setControls( this.m_profileControls );
                     this.m_profileControls.setId( this.m_identifier );
                 }
+                this.m_profile.setId( this.m_identifier);
                 if ( this.m_fitStatLabel === null ){
                     this._initStatistics();
                 }

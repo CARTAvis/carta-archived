@@ -116,10 +116,11 @@ public:
     /**
      * Return the image point corresponding to the given screen point.
      * @param screenPoint - a point in pixel coordinates.
+     * @param valid - set to true if the image point corresponds to an actual data point.
      * @param index - the plot index.
      * @return - the corresponding point in image coordinates.
      */
-    QPointF getImagePoint( const QPointF& screenPoint, int index = 0 ) const;
+    QPointF getImagePoint( const QPointF& screenPoint, bool* valid, int index = 0 ) const;
 
     /**
      * Get the title of the plot.
@@ -213,9 +214,8 @@ public:
      * Set a range of values for the x-axis.
      * @param min - the minimum x-value.
      * @param max - the maximum x-value.
-     * @param index - the plot index.
      */
-    void setAxisXRange( double min, double max, int index = 0 );
+    void setAxisXRange( double min, double max );
 
     /**
      * Set the color of a specific set of data on the plot.
@@ -232,6 +232,13 @@ public:
      */
     //Note:  this refers to a multicolored data set.
     void setColored( bool colored, const QString& id = QString(), int index = 0 );
+
+    /**
+     * Show or don't show information about the point underneath the mouse cursor.
+     * @param enabled - true if information about the point under the mouse should be shown;
+     *      otherwise, false.
+     */
+    void setCursorEnabled( bool enabled );
 
     /**
      * Set the text giving coordinate information for points on the plot.
@@ -347,9 +354,8 @@ public:
      * Set the secondary selection range for the plot.
      * @param min - the lower boundary of the secondary selection.
      * @param max - the upper boundary of the secondary selection.
-     * @param index - the plot index.
      */
-    void setRangeColor( double min, double max, int index = 0 );
+    void setRangeColor( double min, double max );
 
     /**
      * Sets whether or not the horizontal shaded rectangle should be visible.
@@ -369,25 +375,29 @@ public:
     /**
      * Set the label for the x-axis.
      * @param title - the label for the x-axis.
-     * @param index - the plot index.
      */
-    void setTitleAxisX( const QString& title, int index = 0 );
+    void setTitleAxisX( const QString& title);
 
     /**
      * Set the label for the y-axis.
      * @param title - the label for the y-axis.
-     * @param index - the plot index.
      */
-    void setTitleAxisY( const QString& title, int index = 0 );
+    void setTitleAxisY( const QString& title);
 
     /**
      * Set the location of the plot vertical line using a world
      * x-coordinate.
      * @param xPos - the x-coordinate of the plot vertical line in
      *  world units.
-     * @param index - the plot index.
      */
-    void setVLinePosition( double xPos, int index = 0 );
+    void setVLinePosition( double xPos);
+
+    /**
+     * Set whether or not the vertical line should be shown.
+     * @param visible - true if the vertical line should be visible;
+     *      false otherwise.
+     */
+    void setVLineVisible( bool visible );
 
     /**
      * Start a zoom selection.
@@ -428,6 +438,8 @@ signals:
      * Emitted when the size of the plot changes.
      */
     void plotSizeChanged();
+
+
 
     /**
      * Notification that the mouse has moved on the plot.

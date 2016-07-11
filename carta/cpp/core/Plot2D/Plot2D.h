@@ -42,10 +42,27 @@ public:
     virtual void detachFromPlot() = 0;
 
     /**
+     * Returns the data point closest to the target point.
+     * @param targetX - the x-coordinate of the target point.
+     * @param targetY - the y-coordinate of the target point.
+     * @param xError - set to the error in the x-direction.
+     * @param yError - set to the error in the y-direction.
+     * @return - the data point closest to the target point.
+     */
+    virtual std::pair<double,double> getClosestPoint( double targetX, double targetY,
+            double* xError, double* yError ) const;
+
+    /**
      * Returns the color used to draw the data.
      * @return - the color used to draw the data.
      */
     QColor getColor() const;
+
+    /**
+     * Return the minimum/maximum x-values in the data set.
+     * @return - the minimum & maxium x-values in the data set.
+     */
+    std::pair<double,double> getBoundsX() const;
 
     /**
      * Return the minimum/maximum y-values in the data set.
@@ -135,6 +152,8 @@ protected:
     QColor m_defaultColor;
     QBrush m_brush;
     bool m_colored;
+    double m_minValueX;
+    double m_maxValueX;
     double m_maxValueY;
     double m_minValueY;
     QString m_id;

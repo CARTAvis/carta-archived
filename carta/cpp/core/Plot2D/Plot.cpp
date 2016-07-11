@@ -96,14 +96,26 @@ int Plot::getAxisExtentY() const {
     return extent;
 }
 
+QwtPlot::Axis Plot::getAxisLocationX() const {
+    return m_axisLocationX;
+}
+
+QString Plot::getAxisTitleX() const {
+    QwtText title = axisTitle( m_axisLocationX );
+    return title.text();
+}
+
+QString Plot::getAxisTitleY() const {
+    QwtText title = axisTitle( m_axisLocationY );
+    return title.text();
+}
+
 QString Plot::getAxisUnitsY() const {
     QString unitStr = axisTitle( m_axisLocationY ).text();
     return unitStr;
 }
 
-QwtPlot::Axis Plot::getAxisLocationX() const {
-    return m_axisLocationX;
-}
+
 
 QPointF Plot::getImagePoint(const QPointF& screenPt ) const {
     //Subtract off non-plotting area from the pixel coordinates.
@@ -111,20 +123,8 @@ QPointF Plot::getImagePoint(const QPointF& screenPt ) const {
     double xVal = screenPt.x() - topLeft.x();
     double yVal = screenPt.y() - topLeft.y();
 
-    //Sizes of plot widget and actual plotting area.
-    QSize plotSize = size();
-    const QWidget* canvasWidget = canvas();
-    QSize canvasSize = canvasWidget->size();
-
-    //What percentage does the x pixel coordinate represent compared to
-    //the total plot widget size?
-    double plotPercentX = xVal / (plotSize.width() - topLeft.x());
-    //Get a new x pixel coordinate based on that percentage and the actual
-    //plotting area size.
-    double canvasXVal = plotPercentX * canvasSize.width();
-
     //Map the pixel coordinates to image coordinates.
-    double xValue = invTransform( m_axisLocationX, canvasXVal );
+    double xValue = invTransform( m_axisLocationX, xVal );
     double yValue = invTransform( m_axisLocationY, yVal );
     return QPointF( xValue, yValue );
 }
@@ -139,7 +139,7 @@ QSize Plot::getLegendSize() const {
 
 QSize Plot::getPlotSize() const {
     //Size of plot widget
-    QSize canvasSize = size();
+    /*QSize canvasSize = size();
 
     //Axis widget sizes
     const QwtScaleWidget* axisWidgetY = axisWidget( m_axisLocationY );
@@ -163,7 +163,10 @@ QSize Plot::getPlotSize() const {
         }
     }
     QSize plotSize( baseWidth, baseHeight );
-    return plotSize;
+    return plotSize;*/
+    const QWidget* canvasWidget = canvas();
+    QSize canvasSize = canvasWidget->size();
+    return canvasSize;
 }
 
 QPointF Plot::getPlotUpperLeft() const {
@@ -263,15 +266,12 @@ void Plot::setAxisLocationX( QwtPlot::Axis axis ){
 }
 
 void Plot::setAxisScaleX( double min, double max ){
-    setAxisScale( m_axisLocationX, min, max );
+    setAxisScale( QwtPlot::xBottom, min, max );
+    setAxisScale( QwtPlot::xTop, min, max );
 }
 
 void Plot::setAxisScaleY( double min, double max ){
     setAxisScale( m_axisLocationY, min, max );
-}
-
-void Plot::setAxisScaleEngineX(QwtScaleEngine* engine ){
-    setAxisScaleEngine( m_axisLocationX, engine );
 }
 
 void Plot::setAxisScaleEngineY(QwtScaleEngine* engine ){
@@ -345,6 +345,10 @@ void Plot::_removeLegendInternal(){
     }
 }
 
+void Plot::setPlotSize( int width, int height ){
+    setFixedSize( width, height );
+    updateLayout();
+}
 
 Plot::~Plot(){
     _removeLegendInternal();

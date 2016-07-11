@@ -18,8 +18,18 @@ Plot2D::Plot2D():
 
 }
 
+std::pair<double,double> Plot2D::getBoundsX() const {
+    return std::pair<double,double>( m_minValueX, m_maxValueX );
+}
+
 std::pair<double,double> Plot2D::getBoundsY() const {
     return std::pair<double,double>( m_minValueY, m_maxValueY );
+}
+
+std::pair<double,double> Plot2D::getClosestPoint( double targetX, double targetY,
+            double* /*xError*/, double* /*yError*/ ) const {
+    std::pair<double,double> closest(targetX,targetY);
+    return closest;
 }
 
 QColor Plot2D::getColor() const {

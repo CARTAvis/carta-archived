@@ -261,8 +261,9 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
                 var obj;
                 
                 //Filled rectangle indicating entire marker area
-                obj = this._makeRectH( guess.centerPixel - guess.fbhwPixel, guess.peakPixel, 
-                        guess.fbhwPixel * 2, height,
+                var x = guess.centerPixel - guess.fbhwPixel;
+                var width = guess.fbhwPixel*2;
+                obj = this._makeRectH( x, guess.peakPixel, width, height,
                     "rgba(255,255,0,0.4)", "rgba(255,255,0,0.2)");
                 obj.guess = i; 
                 obj.type = "bar";
@@ -502,6 +503,9 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
             var changed = false;
             if ( this.m_manualShow != manualShow ){
                 this.m_manualShow = manualShow;
+                if ( this.m_manualShow ){
+                    this._makeMovables();
+                }
             }
             return changed;
         },

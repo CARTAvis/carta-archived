@@ -68,13 +68,13 @@ const QString Profiler::PLOT_LEFT = "plotLeft";
 const QString Profiler::PLOT_TOP = "plotTop";
 const QString Profiler::POLY_DEGREE = "polyDegree";
 const QString Profiler::REGIONS = "regions";
+const QString Profiler::SHOW_FRAME = "showFrame";
 const QString Profiler::SHOW_GUESSES = "showGuesses";
 const QString Profiler::SHOW_MEAN_RMS = "showMeanRMS";
 const QString Profiler::SHOW_PEAK_LABELS = "showPeakLabels";
 const QString Profiler::SHOW_RESIDUALS = "showResiduals";
 const QString Profiler::SHOW_STATISTICS = "showStats";
-const QString Profiler::SHOW_TOOLTIP = "showToolTip";
-const QString Profiler::TOOL_TIPS = "toolTips";
+const QString Profiler::SHOW_CURSOR = "showCursor";
 const QString Profiler::ZOOM_BUFFER = "zoomBuffer";
 const QString Profiler::ZOOM_BUFFER_SIZE = "zoomBufferSize";
 const QString Profiler::ZOOM_MIN = "zoomMin";
@@ -271,8 +271,35 @@ void Profiler::_clearData(){
 
 std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveData,
         const QString& bottomUnit ) const {
-    QString oldBottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
     std::vector<double> converted = curveData->getValuesX();
+    _convertDataX( converted, bottomUnit, curveData );
+    return converted;
+}
+
+std::vector<double> Profiler::_convertUnitsXFit( std::shared_ptr<CurveData> curveData,
+        const QString& bottomUnit ) const {
+    std::vector<double> converted = curveData->getValuesXFit();
+    _convertDataX( converted, bottomUnit, curveData );
+    return converted;
+}
+
+std::vector<double>  Profiler::_convertUnitsXFitParams( std::shared_ptr<CurveData> curveData,
+        const QString & bottomUnit ) const {
+    std::vector<std::tuple<double,double,double> > fitParams = curveData->getFitParams();
+    //Store center, center - fbhw, center, center-fbhw in a vector.
+    int count = fitParams.size();
+    std::vector<double> converted( count * 2 );
+    for ( int i = 0; i < count; i++ ){
+        converted[2*i] = std::get<0>( fitParams[i]);
+        converted[2*i+1] = converted[2*i] - std::get<2>( fitParams[i]);
+    }
+    _convertDataX( converted, bottomUnit, curveData );
+    return converted;
+}
+
+void Profiler::_convertDataX( std::vector<double>& converted, const QString& bottomUnit,
+        std::shared_ptr<CurveData> curveData ) const {
+    QString oldBottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
     std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource = curveData->getSource();
     if ( ! bottomUnit.isEmpty() ){
         QString newUnit = _getUnitUnits( bottomUnit );
@@ -281,7 +308,6 @@ std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveDa
             _convertX ( converted, dataSource, oldUnit, newUnit );
         }
     }
-    return converted;
 }
 
 void Profiler::_convertX( std::vector<double>& converted,
@@ -306,9 +332,38 @@ void Profiler::_convertX( std::vector<double>& converted,
 }
 
 
-std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveData, const QString& newUnit ) const {
+std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveData, const QString& newUnits ) const {
     std::vector<double> converted = curveData->getValuesY();
-    std::vector<double> plotDataX = curveData->getValuesX();
+    std::vector<double> convertedX = curveData->getValuesX();
+    _convertDataY( converted, convertedX, curveData, newUnits );
+    return converted;
+}
+
+std::vector<double> Profiler::_convertUnitsYFit( std::shared_ptr<CurveData> curveData,
+        const QString& newUnit ) const {
+    std::vector<double> converted = curveData->getValuesYFit();
+    std::vector<double> convertedX = curveData->getValuesXFit();
+    _convertDataY( converted, convertedX, curveData, newUnit );
+    return converted;
+}
+
+std::vector<double>  Profiler::_convertUnitsYFitParams( std::shared_ptr<CurveData> curveData,
+        const QString & newUnit ) const {
+    std::vector<std::tuple<double,double,double> > fitParams = curveData->getFitParams();
+    //Store peak in a vector.
+    int count = fitParams.size();
+    std::vector<double> converted( count );
+    std::vector<double> convertedX( count );
+    for ( int i = 0; i < count; i++ ){
+        converted[i] = std::get<1>( fitParams[i]);
+        convertedX[i] = std::get<0>( fitParams[i]);
+    }
+    _convertDataY( converted, convertedX, curveData, newUnit );
+    return converted;
+}
+
+void Profiler::_convertDataY( std::vector<double>& converted, const std::vector<double>& plotDataX, std::shared_ptr<CurveData> curveData,
+        const QString& newUnits ) const {
     QString leftUnit = m_state.getValue<QString>( AXIS_UNITS_LEFT );
     Controller* controller = _getControllerSelected();
     if ( controller ){
@@ -317,14 +372,15 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
         if ( dataSource ){
             //First, we need to make sure the x-values are in Hertz.
             QString hertzKey = UnitsSpectral::NAME_FREQUENCY + "(" + UnitsFrequency::UNIT_HZ + ")";
-            std::vector<double> hertzVals = _convertUnitsX( curveData, hertzKey );
+            std::vector<double> hertzVals = plotDataX;
+            _convertDataX( hertzVals, hertzKey, curveData );
             bool validBounds = false;
             std::pair<double,double> boundsY = m_plotManager->getPlotBoundsY( curveData->getName(), &validBounds );
             if ( validBounds ){
                 QString maxUnit = m_plotManager->getAxisUnitsY();
                 auto result = Globals::instance()-> pluginManager()
                                      -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(dataSource,
-                                             leftUnit, newUnit, hertzVals, converted,
+                                             leftUnit, newUnits, hertzVals, converted,
                                              boundsY.second, maxUnit );;
 
                 auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
@@ -341,7 +397,6 @@ std::vector<double> Profiler::_convertUnitsY( std::shared_ptr<CurveData> curveDa
             }
         }
     }
-    return converted;
 }
 
 void Profiler::_cursorUpdate( double x, double y ){
@@ -498,10 +553,10 @@ void Profiler::_generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface>
         if ( curveIndex >= 0 ){
             profInfo = m_plotCurves[curveIndex]->getProfileInfo();
         }
-        QString bottomUnits = getAxisUnitsBottom();
+        QString xUnits = getAxisUnitsX();
 
-        profInfo.setSpectralUnit( _getUnitUnits( bottomUnits) );
-        QString typeStr = _getUnitType( bottomUnits );
+        profInfo.setSpectralUnit( _getUnitUnits( xUnits) );
+        QString typeStr = _getUnitType( xUnits );
         if ( typeStr == UnitsSpectral::NAME_FREQUENCY ){
             typeStr = "";
         }
@@ -559,18 +614,13 @@ Profiler::_generateFitGuesses( int count, bool random ){
     return guesses;
 }
 
-QString Profiler::_generatePeakLabel( double center, double peak, double fbhw ) const {
-    QString label( "Center: "+QString::number( center ));
-    label = label + " Peak: "+QString::number( peak );
-    label = label + " FBHW : "+ QString::number( fbhw );
-    return label;
+QString Profiler::getAxisUnitsX() const {
+    return m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
 }
 
-QString Profiler::getAxisUnitsBottom() const {
-    QString bottomUnits = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
-    return bottomUnits;
+QString Profiler::getAxisUnitsY() const {
+    return m_state.getValue<QString>( AXIS_UNITS_LEFT );
 }
-
 
 Controller* Profiler::_getControllerSelected() const {
     //We are only supporting one linked controller.
@@ -794,8 +844,6 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
     m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
     m_state.insertValue<QString>( CurveData::STYLE_FIT, m_lineStyles->getDefaultSecondary());
-    m_state.insertValue<bool>(TOOL_TIPS, false );
-
 
     //Legend
     bool external = false;
@@ -810,7 +858,7 @@ void Profiler::_initializeDefaultState(){
 
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 2 );
-    m_state.insertValue<bool>( SHOW_TOOLTIP, true );
+    m_state.insertValue<bool>( SHOW_CURSOR, false );
 
     //Significant digits.
     m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
@@ -820,6 +868,7 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<bool>( SHOW_GUESSES, false );
     m_state.insertValue<bool>( SHOW_STATISTICS, true );
     m_state.insertValue<bool>( SHOW_MEAN_RMS, false );
+    m_state.insertValue<bool>( SHOW_FRAME, true );
 
     m_state.insertValue<bool>( SHOW_PEAK_LABELS, false );
     m_state.flushState();
@@ -875,7 +924,7 @@ void Profiler::_initializeCallbacks(){
 
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString unitStr = dataValues[*keys.begin()];
-        QString result = setAxisUnitsBottom( unitStr );
+        QString result = setAxisUnitsX( unitStr );
         Util::commandPostProcess( result );
         return result;
     });
@@ -885,7 +934,7 @@ void Profiler::_initializeCallbacks(){
         std::set<QString> keys = {Util::UNITS};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString unitStr = dataValues[*keys.begin()];
-        QString result = setAxisUnitsLeft( unitStr );
+        QString result = setAxisUnitsY( unitStr );
         Util::commandPostProcess( result );
         return result;
     });
@@ -922,6 +971,41 @@ void Profiler::_initializeCallbacks(){
             return result;
         });
 
+    addCommandCallback( "setShowCursor", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+            QString result;
+            std::set<QString> keys = {SHOW_CURSOR};
+            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+            QString cursorStr = dataValues[*keys.begin()];
+            bool validBool = false;
+            bool cursor = Util::toBool( cursorStr, &validBool );
+            if ( validBool ){
+                setShowCursor( cursor );
+            }
+            else {
+                result = "Whether or not to show the cursor position must be true/false: " + params;
+            }
+            Util::commandPostProcess( result );
+            return result;
+        });
+
+    addCommandCallback( "setShowFrame", [=] (const QString & /*cmd*/,
+                   const QString & params, const QString & /*sessionId*/) -> QString {
+               QString result;
+               std::set<QString> keys = {SHOW_FRAME};
+               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+               QString frameStr = dataValues[*keys.begin()];
+               bool validBool = false;
+               bool frame = Util::toBool( frameStr, &validBool );
+               if ( validBool ){
+                   setShowFrame( frame );
+               }
+               else {
+                   result = "Whether or not to show the current frame must be true/false: " + params;
+               }
+               Util::commandPostProcess( result );
+               return result;
+           });
 
     addCommandCallback( "setManualGuess", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1822,7 +1906,7 @@ void Profiler::_saveCurveState(){
     m_stateData.flushState();
 }
 
-QString Profiler::setAxisUnitsBottom( const QString& unitStr ){
+QString Profiler::setAxisUnitsX( const QString& unitStr ){
     QString result;
     QString actualUnits = m_spectralUnits->getActualUnits( unitStr );
     if ( !actualUnits.isEmpty() ){
@@ -1833,11 +1917,25 @@ QString Profiler::setAxisUnitsBottom( const QString& unitStr ){
             for ( int i = 0; i < curveCount; i++ ){
                 std::vector<double> converted = _convertUnitsX( m_plotCurves[i], actualUnits );
                 m_plotCurves[i]->setDataX( converted );
+                if ( m_plotCurves[i]->isFitted() ){
+                    converted = _convertUnitsXFit( m_plotCurves[i], actualUnits );
+                    m_plotCurves[i]->setDataXFit( converted );
+                    converted = _convertUnitsXFitParams( m_plotCurves[i], actualUnits );
+                    std::vector< std::tuple<double,double,double> > guesses = m_plotCurves[i]->getFitParams();
+                    //Update the centers and fbhws with the converted values.
+                    int guessCount = guesses.size();
+                    int convertedCount = converted.size();
+                    CARTA_ASSERT( convertedCount = guessCount * 2 );
+                    for ( int i = 0; i < guessCount; i++ ){
+                        std::get<0>(guesses[i])  = converted[2*i];
+                        std::get<2>(guesses[i]) = converted[2*i] - converted[2*i+1];
+                    }
+                    m_plotCurves[i]->setGaussParams( guesses );
+                }
             }
 
             //Update the state & graph
             m_state.setValue<QString>( AXIS_UNITS_BOTTOM, actualUnits);
-            m_plotManager->setTitleAxisX( _getUnitType( actualUnits ) );
             m_state.flushState();
 
             //Set the zoom min & max based on new units
@@ -1848,6 +1946,7 @@ QString Profiler::setAxisUnitsBottom( const QString& unitStr ){
 
             //Put the data into the plot
             _updatePlotData();
+            _updateResidualData();
 
             //Update channel line
             _updateChannel( _getControllerSelected(), Carta::Lib::AxisInfo::KnownType::SPECTRAL );
@@ -1859,7 +1958,7 @@ QString Profiler::setAxisUnitsBottom( const QString& unitStr ){
     return result;
 }
 
-QString Profiler::setAxisUnitsLeft( const QString& unitStr ){
+QString Profiler::setAxisUnitsY( const QString& unitStr ){
     QString result;
     QString actualUnits = m_intensityUnits->getActualUnits( unitStr );
     if ( !actualUnits.isEmpty() ){
@@ -1870,12 +1969,26 @@ QString Profiler::setAxisUnitsLeft( const QString& unitStr ){
             for ( int i = 0; i < curveCount; i++ ){
                 std::vector<double> converted = _convertUnitsY( m_plotCurves[i], actualUnits );
                 m_plotCurves[i]->setDataY( converted );
+                if ( m_plotCurves[i]->isFitted() ){
+                    converted = _convertUnitsYFit( m_plotCurves[i], actualUnits );
+                    m_plotCurves[i]->setDataYFit( converted );
+                    converted = _convertUnitsYFitParams( m_plotCurves[i], actualUnits );
+                    std::vector< std::tuple<double,double,double> > guesses = m_plotCurves[i]->getFitParams();
+                    //Update the centers and fbhws with the converted values.
+                    int guessCount = guesses.size();
+                    int convertedCount = converted.size();
+                    CARTA_ASSERT( convertedCount = guessCount );
+                    for ( int i = 0; i < guessCount; i++ ){
+                        std::get<1>(guesses[i])  = converted[i];
+                    }
+                    m_plotCurves[i]->setGaussParams( guesses );
+                }
             }
             //Update the state and plot
             m_state.setValue<QString>( AXIS_UNITS_LEFT, actualUnits );
             m_state.flushState();
             _updatePlotData();
-            m_plotManager->setTitleAxisY( actualUnits );
+            _updateResidualData();
         }
     }
     else {
@@ -1963,7 +2076,7 @@ QString Profiler::setFitCurves( const QStringList curveNames ){
             m_plotCurves[curveIndex]->setSelectedFit( true );
             //Update our state with the fit state of the first curve that was selected.
             if ( !updatedFitState ){
-                m_stateFit.setObject( CurveData::FIT, m_plotCurves[curveIndex]->getFitParams());
+                m_stateFit.setObject( CurveData::FIT, m_plotCurves[curveIndex]->getFitState());
                 m_stateFit.flushState();
                 updatedFitState = true;
             }
@@ -2071,7 +2184,8 @@ QString Profiler::setFitInitialGuessesPixels(const std::vector<std::tuple<int,in
 
         //We recalculate the image image coordinates based on the pixel coordinates.
         bool generate = false;
-        QPointF centerPt = m_plotManager->getImagePoint( QPointF(centerPixel,peakPixel) );
+        bool valid = false;
+        QPointF centerPt = m_plotManager->getImagePoint( QPointF(centerPixel,peakPixel), &valid );
         if ( centerChanged || peakChanged ){
             centerKey = Carta::State::UtilState::getLookup( indexKey, FIT_CENTER );
             if ( qAbs(m_stateFit.getValue<double>(centerKey) - centerPt.x()) > ERROR_MARGIN ){
@@ -2085,7 +2199,8 @@ QString Profiler::setFitInitialGuessesPixels(const std::vector<std::tuple<int,in
             }
         }
         if ( fbhwChanged ){
-            QPointF offsetPt = m_plotManager->getImagePoint( QPointF(centerPixel - fbhwPixel, peakPixel) );
+            QPointF offsetPt = m_plotManager->getImagePoint(
+                    QPointF(centerPixel - fbhwPixel, peakPixel), &valid );
             fbhwKey = Carta::State::UtilState::getLookup( indexKey, FIT_FBHW );
             double fbhwNew = centerPt.x() - offsetPt.x();
             if ( qAbs( m_stateFit.getValue<double>( fbhwKey) - fbhwNew) > ERROR_MARGIN ){
@@ -2451,13 +2566,29 @@ void Profiler::setShowFitResiduals( bool showFitResiduals ){
     }
 }
 
-
+void Profiler::setShowCursor( bool showCursor ){
+    bool oldShow = m_state.getValue<bool>( SHOW_CURSOR );
+    if ( oldShow != showCursor ){
+        m_state.setValue<bool>(SHOW_CURSOR, showCursor );
+        m_state.flushState();
+        m_plotManager->setCursorEnabled( showCursor );
+    }
+}
 
 void Profiler::setShowFitStatistics( bool showFitStatistics ){
     bool oldShow = m_state.getValue<bool>( SHOW_STATISTICS );
     if ( oldShow != showFitStatistics ){
         m_state.setValue<bool>(SHOW_STATISTICS, showFitStatistics );
         m_state.flushState();
+    }
+}
+
+void Profiler::setShowFrame( bool showFrame ){
+    bool oldShow = m_state.getValue<bool>( SHOW_FRAME );
+    if ( oldShow != showFrame ){
+        m_state.setValue<bool>(SHOW_FRAME, showFrame );
+        m_state.flushState();
+        m_plotManager->setVLineVisible( showFrame );
     }
 }
 
@@ -2506,7 +2637,7 @@ QString Profiler::setStatistic( const QString& statStr, const QString& curveName
             Carta::Lib::ProfileInfo::AggregateType agType = m_stats->getTypeFor( statStr );
             m_intensityUnits->resetUnits( agType );
             QString unitDefault = m_intensityUnits->getDefault();
-            setAxisUnitsLeft( unitDefault );
+            setAxisUnitsY( unitDefault );
             _generateData( m_plotCurves[index]->getImage(),
                                index, m_plotCurves[index]->getNameImage(), false );
         }
@@ -2777,10 +2908,12 @@ void Profiler::_updatePlotDisplay(){
                 m_residualPlotIndex = -1;
             }
         }
+        m_plotManager->setVLineVisible( m_state.getValue<bool>(SHOW_FRAME) );
         m_plotManager->setLegendLocation(m_state.getValue<QString>( LEGEND_LOCATION));
         m_plotManager->setLegendExternal( m_state.getValue<bool>( LEGEND_EXTERNAL ));
         m_plotManager->setLegendShow( m_state.getValue<bool>( LEGEND_SHOW ));
         m_plotManager->setLegendLine( m_state.getValue<bool>( LEGEND_LINE ));
+        m_plotManager->setCursorEnabled( m_state.getValue<bool>( SHOW_CURSOR ) );
     }
 }
 
@@ -2797,11 +2930,8 @@ void Profiler::_updateResidualData(){
                 m_plotManager->addData( resRes, m_residualPlotIndex );
             }
         }
-        QString bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
-        bottomUnit = _getUnitUnits( bottomUnit );
         QString leftUnit = m_state.getValue<QString>( AXIS_UNITS_LEFT );
-        m_plotManager->setTitleAxisX( bottomUnit, m_residualPlotIndex );
-        m_plotManager->setTitleAxisY( leftUnit, m_residualPlotIndex );
+        m_plotManager->setTitleAxisY( leftUnit );
     }
 }
 
@@ -2845,25 +2975,17 @@ void Profiler::_updatePlotData(){
         bool fitted = m_plotCurves[i]->isFitted();
         if ( fitted ){
             std::vector< std::pair<double,double> > fitData = m_plotCurves[i]->getFitData();
-
             Carta::Lib::Hooks::Plot2DResult fitResult( dataId, "", "", fitData );
 
             m_plotManager->addData( &fitResult, 0, false );
             m_plotManager->setLineStyle( m_plotCurves[i]->getLineStyleFit(),
                     dataId, 0, false);
+            QString xUnits = getAxisUnitsX();
+            QString yUnits = getAxisUnitsY();
             if ( isShowPeakLabels() ){
-                std::vector< std::tuple<double,double,double> > gaussParams = m_plotCurves[i]->getGaussParams();
-                int guessCount = gaussParams.size();
-                std::vector< std::tuple<double,double,QString> > peakLabels( guessCount );
-                for ( int i = 0; i < guessCount; i++ ){
-                    QString peakLabel = _generatePeakLabel( std::get<0>(gaussParams[i]),
-                            std::get<1>(gaussParams[i]), std::get<2>(gaussParams[i]) );
-                    peakLabels[i] = std::tuple<double,double,QString>( std::get<0>(gaussParams[i]),
-                            std::get<1>( gaussParams[i]), peakLabel );
-                }
+                std::vector< std::tuple<double,double,QString> > peakLabels = m_plotCurves[i]->getPeakLabels(xUnits, yUnits );
                 m_plotManager->addLabels( peakLabels );
             }
-
         }
         m_plotManager->setColor( m_plotCurves[i]->getColor(), dataId );
     }

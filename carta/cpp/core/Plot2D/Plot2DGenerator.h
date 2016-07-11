@@ -86,6 +86,16 @@ public:
     QString getAxisUnitsY( int index = 0) const;
 
     /**
+     * Translate a pixel point (x,y) contained in a plot of the given size into a
+     * world point.
+     * @param screenPt - a point in pixel coordinates.
+     * @param index - the plot index.
+     * @param valid - set to true if the image point corresponds to an actual data point.
+     * @return - the world coordinates of the pixel point.
+     */
+    QPointF getImagePoint(const QPointF& screenPt, bool* valid, int index = 0 ) const;
+
+    /**
      * Return the (min,max) y-values of the plot.
      * @param id - the identifier for the data set where the bounds are needed.
      * @param valid - true if the plot y-values are valid; false otherwise (for
@@ -127,14 +137,7 @@ public:
      */
     QPointF getScreenPoint( const QPointF& dataPoint, int index = 0 ) const;
 
-    /**
-     * Translate a pixel point (x,y) contained in a plot of the given size into a
-     * world point.
-     * @param screenPt - a point in pixel coordinates.
-     * @param index - the plot index.
-     * @return - the world coordinates of the pixel point.
-     */
-    QPointF getImagePoint(const QPointF& screenPt, int index = 0 ) const;
+
 
     /**
      * Return the size of the actual plotting area in pixels.
@@ -186,9 +189,8 @@ public:
      * Set the range of values for the x-axis.
      * @param min - the smallest desired x-axis value.
      * @param max - the largest desired x-axis value.
-     * @param index - the plot index.
      */
-    void setAxisXRange( double min, double max, int index = 0 );
+    void setAxisXRange( double min, double max);
 
     /**
      * Set a color to use in graphing the data from a particular set.
@@ -295,9 +297,15 @@ public:
     /**
      * Set the position of the vertical marker line.
      * @param xPos - the x-coordinate of the line in world units.
-     * @param index - the plot index.
      */
-    void setMarkerLine( double xPos, int index = 0 );
+    void setMarkerLine( double xPos);
+
+    /**
+     * Set whether or not the vertical marker line should be shown.
+     * @param visible - true if the vertical marker line should be shown;
+     *      false otherwise.
+     */
+    void setMarkerLineVisible( bool visible );
 
     /**
      * Set the pipeline used to determine colors of points.
@@ -335,31 +343,27 @@ public:
      * Set the min and max zoom range for the plot.
      * @param min the minimum zoom value.
      * @param max the maximum zoom value.
-     * @param index - the plot index.
      */
-    void setRangePixels(double min, double max, int index = 0 );
+    void setRangePixels(double min, double max);
 
     /**
      * Set the min and max secondary selection range.
      * @param min the minimum secondary selection value.
      * @param max the maximum secondary selection value.
-     * @param index - the plot index.
      */
-    void setRangePixelsColor( double min, double max, int index = 0 );
+    void setRangePixelsColor( double min, double max );
 
     /**
      * Set whether or not the user is selecting a zoom range on the plot.
      * @param selecting true if a zoom range is currently being selected; false otherwise.
-     * @param index - the plot index.
      */
-    void setSelectionMode(bool selecting, int index = 0 );
+    void setSelectionMode(bool selecting );
 
     /**
      * Set whether or not the user is selecting a secondary range on the histogram.
      * @param selection true if a secondary selection is being selected; false otherwise.
-     * @param index - the plot index.
      */
-    void setSelectionModeColor( bool selection, int index = 0 );
+    void setSelectionModeColor( bool selection);
 
     /**
      * Set the size of the image that will be generated.
@@ -383,16 +387,14 @@ public:
     /**
      * Set a label for the x-axis.
      * @param title - a label for the x-axis.
-     * @param index - the plot index.
      */
-    void setTitleAxisY( const QString& title, int index = 0 );
+    void setTitleAxisY( const QString& title );
 
     /**
      * Set a label for the y-axis.
      * @param title - a label for the y-axis.
-     * @param index - the plot index.
      */
-    void setTitleAxisX( const QString& title, int index = 0 );
+    void setTitleAxisX( const QString& title);
 
     /**
      * Returns the QImage reflection the current state of the plot.

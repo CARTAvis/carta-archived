@@ -42,6 +42,17 @@ public:
     virtual void detachFromPlot() Q_DECL_OVERRIDE;
 
     /**
+     * Returns the data point closest to the target point.
+     * @param targetX - the x-coordinate of the target point.
+     * @param targetY - the y-coordinate of the target point.
+     * @param xError - set to the error in the x-direction.
+     * @param yError - set to the error in the y-direction.
+     * @return - the data point closest to the target point.
+     */
+    virtual std::pair<double,double> getClosestPoint( double targetX, double targetY,
+            double* xError, double* yError ) const Q_DECL_OVERRIDE;
+
+    /**
      * Return a custom icon to use for the legend item.
      * @param index - unused.
      * @param size - the size of the icon.

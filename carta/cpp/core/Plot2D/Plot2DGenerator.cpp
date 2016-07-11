@@ -8,7 +8,7 @@ namespace Plot2D {
 
 using Carta::Data::LegendLocations;
 
-Plot2DGenerator::Plot2DGenerator( /*Plot2DHolder::PlotType plotType*/ ){
+Plot2DGenerator::Plot2DGenerator( ){
    Plot2DHolder* plotHolder = new Plot2DHolder();
    m_plots.push_back( plotHolder );
    m_height = 0;
@@ -32,6 +32,10 @@ void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
                 qWarning() << "Could not get color for "<<id;
                 CARTA_ASSERT( false );
             }
+            bool vLineVisible = m_plots[0]->isMarkerLineVisible();
+            m_plots[index]->setMarkerLineVisible( vLineVisible );
+            double pos = m_plots[0]->getMarkerLine();
+            m_plots[index]->setMarkerLine( pos );
         }
     }
     _resetExtents();
@@ -52,17 +56,17 @@ int Plot2DGenerator::addPlot(){
     if ( plotIndex >= 1 ){
         //First plot should use a top position for the axis and last
         //plot should use a bottom axis index.
-        bool valid = false;
-        std::pair<double,double> xBounds = m_plots[0]->getRange( &valid );
         m_plots[0]->setAxisLocationX( QwtPlot::xTop );
-        if ( valid ){
-            m_plots[0]->setAxisXRange( xBounds.first, xBounds.second );
-        }
         m_plots[plotIndex]->setAxisLocationX( QwtPlot::xBottom );
 
         //Turn the legend off for all plots but the first one.
         m_plots[plotIndex]->setLegendVisible( false );
+        QString xTitle = m_plots[0]->getTitleAxisX();
+        m_plots[plotIndex]->setTitleAxisX( xTitle );
+
+
         _resetExtents();
+
     }
     return plotIndex;
 }
@@ -118,10 +122,10 @@ QString Plot2DGenerator::getAxisUnitsY( int index ) const {
 }
 
 
-QPointF Plot2DGenerator::getImagePoint(const QPointF& screenPt, int index ) const {
+QPointF Plot2DGenerator::getImagePoint(const QPointF& screenPt, bool* valid, int index ) const {
     QPointF pt;
     if ( _checkIndex( index ) ){
-        pt = m_plots[index]->getImagePoint( screenPt );
+        pt = m_plots[index]->getImagePoint( screenPt, valid );
     }
     return pt;
 }
@@ -253,9 +257,10 @@ void Plot2DGenerator::_resetExtents(){
     }
 }
 
-void Plot2DGenerator::setAxisXRange( double min, double max, int index ){
-    if ( _checkIndex( index )){
-        m_plots[index]->setAxisXRange( min, max );
+void Plot2DGenerator::setAxisXRange( double min, double max ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setAxisXRange( min, max );
     }
 }
 
@@ -294,6 +299,7 @@ void Plot2DGenerator::setHistogram( bool histogram, int index  ){
             type = Plot2DHolder::PlotType::HISTOGRAM;
         }
         m_plots[index]->setPlotType( type );
+
     }
 }
 
@@ -350,13 +356,19 @@ void Plot2DGenerator::setLogScale(bool logScale, int index ){
 }
 
 
-void Plot2DGenerator::setMarkerLine( double xPos, int index ){
-    if ( _checkIndex( index )){
-        m_plots[index]->setMarkerLine( xPos );
+void Plot2DGenerator::setMarkerLine( double xPos ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setMarkerLine( xPos );
     }
 }
 
-
+void Plot2DGenerator::setMarkerLineVisible( bool visible ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setMarkerLineVisible( visible );
+    }
+}
 
 void Plot2DGenerator::setMarkedRange( double minY, double maxY, int index  ){
     if ( _checkIndex( index )){
@@ -393,30 +405,34 @@ void Plot2DGenerator::setRangeMarkerVisible( bool visible, int index ){
 }
 
 
-void Plot2DGenerator::setRangePixels(double min, double max, int index ){
-    if ( _checkIndex( index ) ){
-        m_plots[index]->setRangePixels( min, max );
+void Plot2DGenerator::setRangePixels(double min, double max){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setRangePixels( min, max );
     }
 }
 
 
-void Plot2DGenerator::setRangePixelsColor(double min, double max, int index ){
-    if ( _checkIndex( index ) ){
-        m_plots[index]->setRangePixelsColor( min, max );
+void Plot2DGenerator::setRangePixelsColor(double min, double max ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setRangePixelsColor( min, max );
     }
 }
 
 
-void Plot2DGenerator::setSelectionMode(bool selection, int index ){
-    if ( _checkIndex( index ) ){
-        m_plots[index]->setSelectionMode( selection );
+void Plot2DGenerator::setSelectionMode(bool selection ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setSelectionMode( selection );
     }
 }
 
 
-void Plot2DGenerator::setSelectionModeColor( bool selection, int index ){
-    if ( _checkIndex( index ) ){
-        m_plots[index]->setSelectionModeColor( selection );
+void Plot2DGenerator::setSelectionModeColor( bool selection ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setSelectionModeColor( selection );
     }
 }
 
@@ -455,16 +471,18 @@ void Plot2DGenerator::setStyle( const QString& style, const QString& id, int ind
 }
 
 
-void Plot2DGenerator::setTitleAxisX( const QString& title, int index ){
-    if ( _checkIndex( index ) ){
-        m_plots[index]->setTitleAxisX( title );
+void Plot2DGenerator::setTitleAxisX( const QString& title ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setTitleAxisX( title );
     }
 }
 
 
-void Plot2DGenerator::setTitleAxisY( const QString& title, int index ){
-    if ( _checkIndex( index ) ){
-        m_plots[index]->setTitleAxisY( title );
+void Plot2DGenerator::setTitleAxisY( const QString& title ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setTitleAxisY( title );
     }
 }
 

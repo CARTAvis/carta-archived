@@ -40,6 +40,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
            
             var gaussLabel = new qx.ui.basic.Label( "Gauss Count:");
             this.m_gaussCountSpin = new qx.ui.form.Spinner();
+            this.m_gaussCountSpin.setToolTipText( "Set the number of Gaussians to fit.");
             this.m_gaussCountListenId = this.m_gaussCountSpin.addListener( "changeValue", 
                     this._sendGaussCountCmd, this );
            
@@ -48,6 +49,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             
             var polyLabel = new qx.ui.basic.Label( "Polynomial Degree:");
             this.m_polyCountSpin = new qx.ui.form.Spinner();
+            this.m_polyCountSpin.setToolTipText( "Set the degree of the polynomial to fit.");
             this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
                     this._sendPolyDegreeCmd, this );
             paramContainer.add( polyLabel, {row:1,column:0} );
@@ -57,6 +59,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             var heurLabel = new qx.ui.basic.Label( "Random Heuristics:");
             this.m_heuristicListenId = this.m_heuristicCheck.addListener( "changeValue",
                     this._sendHeuristicCmd, this );
+            this.m_heuristicCheck.setToolTipText( "Use random heuristics.")
             paramContainer.add( heurLabel, {row:2, column:0} );
             paramContainer.add( this.m_heuristicCheck, {row:2, column:1} );
             
@@ -64,10 +67,12 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             var guessLabel = new qx.ui.basic.Label( "Manual Initial Guess:");
             this.m_manualGuessListenId = this.m_manualGuessCheck.addListener( "changeValue",
                     this._sendManualGuessCmd, this );
+            this.m_manualGuessCheck.setToolTipText( "Specify initial fit guesses manually.");
             paramContainer.add( guessLabel, {row:3, column:0} );
             paramContainer.add( this.m_manualGuessCheck, {row:3, column:1} );
             
             this.m_resetGuessButton = new qx.ui.form.Button("Reset Initial Guesses");
+            this.m_resetGuessButton.setToolTipText( "Reset initial fit guesses.");
             this.m_resetGuessButton.addListener( "execute", this._sendResetGuessCmd, this );
             paramContainer.add( this.m_resetGuessButton, {row:4, column:0, colSpan:2});
         },

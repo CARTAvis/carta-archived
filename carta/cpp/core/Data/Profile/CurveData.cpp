@@ -151,7 +151,17 @@ void CurveData::copy( const std::shared_ptr<CurveData> & other ){
     }
 }
 
-
+QString CurveData::_generatePeakLabel( int index, const QString& xUnit, const QString& yUnit ) const {
+    QString label;
+    int gaussCount = m_gaussParams.size();
+    if ( index >= 0 && index < gaussCount ){
+        label = "Gauss #"+QString::number( index )+"<br/>";
+        label = label +  "Center: "+QString::number( std::get<0>( m_gaussParams[index] ) ) + " " + xUnit +"<br/>";
+        label = label + "Peak: "+QString::number( std::get<1>(m_gaussParams[index] ) ) + " " + yUnit + "<br/>";
+        label = label + "FBHM : "+ QString::number( std::get<2>( m_gaussParams[index] ) )+ " " + xUnit;
+    }
+    return label;
+}
 
 QColor CurveData::getColor() const {
     int red = m_state.getValue<int>( Util::RED );
@@ -213,6 +223,10 @@ std::vector< std::pair<double,double> > CurveData::getFitData() const {
     return fitData;
 }
 
+std::vector<std::tuple<double,double,double> > CurveData::getFitParams() const {
+    return m_gaussParams;
+}
+
 std::vector<std::pair<double,double> > CurveData::getFitResiduals() const {
     int fitCount = m_fitDataY.size();
     int curveCount = m_plotDataY.size();
@@ -225,7 +239,7 @@ std::vector<std::pair<double,double> > CurveData::getFitResiduals() const {
     return residuals;
 }
 
-QString CurveData::getFitParams() const {
+QString CurveData::getFitState() const {
     return m_state.toString( FIT );
 }
 
@@ -280,6 +294,15 @@ QString CurveData::getNameRegion() const {
     return m_state.getValue<QString>( REGION_NAME );
 }
 
+std::vector< std::tuple<double,double,QString> > CurveData::getPeakLabels( const QString& xUnit, const QString& yUnit ) const {
+    int labelCount = m_gaussParams.size();
+    std::vector<std::tuple<double,double,QString> > labels( labelCount );
+    for ( int i = 0; i < labelCount; i++ ){
+        QString label = _generatePeakLabel( i, xUnit, yUnit );
+        labels[i] = std::tuple<double,double,QString>( std::get<0>(m_gaussParams[i]), std::get<1>(m_gaussParams[i]), label );
+    }
+    return labels;
+}
 
 std::vector< std::pair<double, double> > CurveData::getPlotData() const {
     int dataCount = m_plotDataX.size();
@@ -335,8 +358,16 @@ std::vector<double> CurveData::getValuesX() const {
     return m_plotDataX;
 }
 
+std::vector<double> CurveData::getValuesXFit() const{
+    return m_fitDataX;
+}
+
 std::vector<double> CurveData::getValuesY() const {
     return m_plotDataY;
+}
+
+std::vector<double> CurveData::getValuesYFit() const{
+    return m_fitDataY;
 }
 
 
@@ -446,9 +477,19 @@ void CurveData::setDataX( const std::vector<double>& valsX ){
     m_plotDataX = valsX;
 }
 
+void CurveData::setDataXFit( const std::vector<double>& valsX ){
+    CARTA_ASSERT( m_fitDataY.size() == valsX.size());
+    m_fitDataX = valsX;
+}
+
 void CurveData::setDataY( const std::vector<double>& valsY ){
     CARTA_ASSERT( m_plotDataX.size() == valsY.size());
     m_plotDataY = valsY;
+}
+
+void CurveData::setDataYFit( const std::vector<double>& valsY ){
+    CARTA_ASSERT( m_fitDataX.size() == valsY.size());
+    m_fitDataY = valsY;
 }
 
 void CurveData::setGaussParams( const std::vector<std::tuple<double,double,double> >& params ){

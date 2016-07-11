@@ -165,6 +165,18 @@ public:
     QSize getSize() const;
 
     /**
+     * Return the title of the x-axis.
+     * @return - the title of the x-axis.
+     */
+    QString getTitleAxisX() const;
+
+    /**
+     * Return the title of the y-axis.
+     * @return - the title of the y-axis.
+     */
+    QString getTitleAxisY() const;
+
+    /**
      * Return the position of the vertical plot line in world coordinates.
      * @param valid - set to true if the plot has data and a vertical line; otherwise,
      *  false.
@@ -176,10 +188,16 @@ public:
      * Translate a pixel point (x,y) contained in a plot of the given size into a
      * world point.
      * @param screenPt - a point in pixel coordinates.
+     * @param valid - set to true if the point found is an actual data point.
      * @return - the world coordinates of the pixel point.
      */
-    QPointF getImagePoint(const QPointF& screenPt ) const;
+    QPointF getImagePoint(const QPointF& screenPt, bool* valid ) const;
 
+    /**
+     * Return the x-location of the vertical marker line.
+     * @return - the x-coordinate of the vertical marker line.
+     */
+    double getMarkerLine() const;
 
     /**
      * Return the size of the actual plotting area in pixels.
@@ -213,6 +231,12 @@ public:
      *    otherwise.
      */
     bool isSelectionOnCanvas( int xPos ) const;
+
+    /**
+     * Returns whether or not the vertical marker line is visible on the plot.
+     * @return - true if the vertical marker line is visible on the plot; false, otherwise.
+     */
+    bool isMarkerLineVisible() const;
 
     /**
      * Paint the legend to an image.
@@ -341,6 +365,13 @@ public:
     void setMarkerLine( double xPos );
 
     /**
+     * Set whether or not the vertical marker line should be shown.
+     * @param visible - true if the vertical marker line should be shown;
+     *      false, otherwise.
+     */
+    void setMarkerLineVisible( bool visible );
+
+    /**
      * Set the pipeline used to determine colors of points.
      * @param pipeline the mapping from point to color.
      */
@@ -439,9 +470,13 @@ public:
 private:
     void _clearItem( QwtPlotItem* item );
     void _clearMarkers();
+    void _detachData(QList<std::shared_ptr<Plot2D> >& datas);
+    double _getRelativeError( double minValue, double maxValue) const;
     std::shared_ptr<Plot2D> _findData( const QString& id, bool primary ) const;
     std::shared_ptr<Plot2D> _findDataPrimary( const QString& id  ) const;
     std::shared_ptr<Plot2D> _findDataSecondary( const QString& id  ) const;
+    void _getDataBounds( double* dataMinX, double* dataMaxX,
+            double* dataMinY, double* dataMaxY ) const;
     std::shared_ptr<Plot2D> _makeData() const;
     void _setColorData( QColor color, std::shared_ptr<Plot2D> plotData );
     void _setLineStyle( const QString& style, std::shared_ptr<Plot2D> data );
@@ -474,6 +509,7 @@ private:
     bool m_logScale;
     QFont m_font;
     PlotType m_plotType;
+
 
     Plot2DHolder( const Plot2DHolder& other);
     Plot2DHolder& operator=( const Plot2DHolder& other );

@@ -63,6 +63,23 @@ void Plot2DProfile::drawSymbol( QPainter* painter, const QwtScaleMap & xMap,
     drawSymbols( painter, symbol, xMap, yMap, canvasRect, from, to );
 }
 
+std::pair<double,double> Plot2DProfile::getClosestPoint( double targetX, double targetY,
+        double* xError, double* yError ) const {
+    int dataCount = m_datasX.size();
+    std::pair<double,double> closestPt( targetX, targetY );
+    for ( int i = 0; i < dataCount; i++ ){
+        double ptErrorX = qAbs( m_datasX[i] - targetX );
+        double ptErrorY = qAbs( m_datasY[i] - targetY );
+        if ( ptErrorX < *xError && ptErrorY < *yError ){
+            *xError = ptErrorX;
+            *yError = ptErrorY;
+            closestPt.first = m_datasX[i];
+            closestPt.second = m_datasY[i];
+        }
+    }
+    return closestPt;
+}
+
 QwtGraphic Plot2DProfile::legendIcon( int /*index*/, const QSizeF& iconSize ) const {
     if ( iconSize.isEmpty() ){
         return QwtGraphic();
@@ -90,14 +107,25 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
     if ( dataCount > 1 ){
         m_maxValueY = -1 * std::numeric_limits<double>::max();
         m_minValueY = std::numeric_limits<double>::max();
+        m_maxValueX = -1 * std::numeric_limits<double>::max();
+        m_minValueX = std::numeric_limits<double>::max();
         for ( int i = 0; i < dataCount; i++ ){
             m_datasX[i] = datas[i].first;
             m_datasY[i] = datas[i].second;
-            if ( m_datasY[i] > m_maxValueY ){
-                m_maxValueY = m_datasY[i];
-            }
-            if ( m_datasY[i] < m_minValueY ){
-                m_minValueY = m_datasY[i];
+            if ( !isinf( datas[i].first ) && !isinf( datas[i].second )){
+                if ( m_datasY[i] > m_maxValueY ){
+                    m_maxValueY = m_datasY[i];
+                }
+                if ( m_datasY[i] < m_minValueY ){
+                    m_minValueY = m_datasY[i];
+                }
+                if ( m_datasX[i] > m_maxValueX ){
+                    m_maxValueX = m_datasX[i];
+                }
+
+                if ( m_datasX[i] < m_minValueX ){
+                    m_minValueX = m_datasX[i];
+                }
             }
         }
     }
@@ -105,12 +133,17 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
         const double INC = 0.0000001;
         m_minValueY = m_datasY[0] - INC;
         m_maxValueY = m_datasY[0] + INC;
+        m_minValueX = m_datasX[0] - INC;
+        m_maxValueX = m_datasX[0] + INC;
     }
     //No data so just use bogus bounds
     else {
         m_maxValueY = 1;
         m_minValueY = 0;
+        m_maxValueX = 1;
+        m_minValueX = 0;
     }
+
     setRawSamples( m_datasX.data(), m_datasY.data(), dataCount );
 }
 
