@@ -736,6 +736,12 @@ QString ViewManager::_makeHistogram( int index ){
     for ( int i = index; i < currentCount + 1; i++ ){
         m_histograms[i]->setIndex( i );
     }
+    //If there is only one controller, automatically link it to the
+    //histogram.
+    if ( m_controllers.size() == 1 ){
+        qDebug() << "Addding controller link to histogram";
+        m_histograms[index]->addLink( m_controllers[0] );
+    }
     return m_histograms[index]->getPath();
 }
 
@@ -1118,23 +1124,23 @@ void ViewManager::setDeveloperView(){
 
     _clearHistograms( 0, m_histograms.size() );
     _clearAnimators( 1, m_animators.size() );
-    _clearColormaps( 0, m_colormaps.size() );
+    _clearColormaps( 1, m_colormaps.size() );
     _clearStatistics( 0, m_statistics.size());
-    _clearProfilers( 0, m_profilers.size() );
+    _clearProfilers( 1, m_profilers.size() );
     _clearControllers( 1, m_controllers.size() );
-    _clearImageZooms( 1, m_imageZooms.size());
-    _clearImageContexts( 1, m_imageContexts.size());
+    _clearImageZooms( 0, m_imageZooms.size());
+    _clearImageContexts( 0, m_imageContexts.size());
 
     m_layout->setLayoutDeveloper();
     //Add the links to establish reasonable defaults.
     m_animators[0]->addLink( m_controllers[0]);
-    m_imageZooms[0]->addLink( m_controllers[0]);
-    m_imageContexts[0]->addLink( m_controllers[0]);
+    //m_imageZooms[0]->addLink( m_controllers[0]);
+    //m_imageContexts[0]->addLink( m_controllers[0]);
     //m_histograms[0]->addLink( m_controllers[0]);
     //m_statistics[0]->addLink( m_controllers[0]);
 
-    //m_colormaps[0]->addLink( m_controllers[0]);
-    //m_profilers[0]->addLink( m_controllers[0]);
+    m_colormaps[0]->addLink( m_controllers[0]);
+    m_profilers[0]->addLink( m_controllers[0]);
     //m_colormaps[0]->addLink( m_histograms[0]);
     _refreshState();
 }

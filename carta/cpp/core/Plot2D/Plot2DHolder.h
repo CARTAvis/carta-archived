@@ -73,6 +73,11 @@ public:
     void clearData();
 
     /**
+     * Remove all fit data from the plot.
+     */
+    void clearDataFit();
+
+    /**
      * Clear informational labels from the plot.
      */
     void clearLabels();
@@ -92,6 +97,12 @@ public:
      * @return - the maximum width of the axis widget.
      */
     int getAxisExtentY() const;
+
+    /**
+     * Return the minimum and maximum values on the x-axis.
+     * @return - the minimum and maximum values on the x-axis.
+     */
+    std::pair<double,double> getAxisXRange() const;
 
     /**
      * Return the y-axis label for the plot.

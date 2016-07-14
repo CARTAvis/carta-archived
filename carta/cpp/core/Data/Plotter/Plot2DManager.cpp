@@ -66,9 +66,16 @@ int Plot2DManager::addPlot(){
     return index;
 }
 
-void Plot2DManager::clearData( int index){
+void Plot2DManager::clearData(){
     if ( m_plotGenerator ){
-        m_plotGenerator->clearData( index );
+        m_plotGenerator->clearData();
+        updatePlot();
+    }
+}
+
+void Plot2DManager::clearDataFit(){
+    if ( m_plotGenerator ){
+        m_plotGenerator->clearDataFit();
         updatePlot();
     }
 }

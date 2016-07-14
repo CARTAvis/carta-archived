@@ -102,7 +102,7 @@ PluginManager::loadPlugins()
             }
             else {
                 tsort.addArrow( it-> second, i );
-                qDebug() << "adding arrow " << i << it-> second;
+                //qDebug() << "adding arrow " << i << it-> second;
             }
         }
     }

@@ -61,31 +61,36 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
             displayContainer.add( guessLabel, {row:1, column:0} );
             displayContainer.add( this.m_guessCheck, {row:1, column:1} );
             
+            var directionLabel = new qx.ui.basic.Label( "(Control+Mouse)");
+            displayContainer.add( directionLabel, {row:2,column:0,colSpan:2});
+            
             this.m_statisticsCheck = new qx.ui.form.CheckBox();
             var statLabel = new qx.ui.basic.Label( "Statistics:");
             this.m_statisticsCheck.setToolTipText( "Display fit statistics.");
             this.m_statisticsListenId = this.m_statisticsCheck.addListener( "changeValue", this._sendShowStatisticsCmd, this );
-            displayContainer.add( statLabel, {row:2, column:0} );
-            displayContainer.add( this.m_statisticsCheck, {row:2, column:1} );
+            displayContainer.add( statLabel, {row:3, column:0} );
+            displayContainer.add( this.m_statisticsCheck, {row:3, column:1} );
+            
+            
             
             this.m_meanRMSCheck = new qx.ui.form.CheckBox();
             var meanLabel = new qx.ui.basic.Label( "Mean and RMS:");
             this.m_meanRMSCheck.setToolTipText( "Show mean and fit RMS on plot.");
             this.m_meanRMSListenId = this.m_meanRMSCheck.addListener( "changeValue", this._sendShowMeanRMSCmd, this );
-            displayContainer.add( meanLabel, {row:3, column:0} );
-            displayContainer.add( this.m_meanRMSCheck, {row:3, column:1} );
+            displayContainer.add( meanLabel, {row:4, column:0} );
+            displayContainer.add( this.m_meanRMSCheck, {row:4, column:1} );
             
             this.m_labelCheck = new qx.ui.form.CheckBox();
             var labLabel = new qx.ui.basic.Label( "Peak Labels:");
             this.m_labelCheck.setToolTipText( "Display fit params as labels at the Gaussian fit peaks.");
             this.m_labelListenId = this.m_labelCheck.addListener( "changeValue", this._sendShowPeakLabelsCmd, this );
-            displayContainer.add( labLabel, {row:4, column:0} );
-            displayContainer.add( this.m_labelCheck, {row:4, column:1} );
+            displayContainer.add( labLabel, {row:5, column:0} );
+            displayContainer.add( this.m_labelCheck, {row:5, column:1} );
             
             this.m_styleFitCombo = new skel.widgets.CustomUI.SelectBox();
             this.m_styleFitCombo.setToolTipText( "Select a line style for the fit curve.");
             this.m_styleFitCombo.addListener( "selectChanged", this._sendStyleChangeFitCmd, this );
-            displayContainer.add( this.m_styleFitCombo, {row:5, column:0, colSpan:2} );
+            displayContainer.add( this.m_styleFitCombo, {row:6, column:0, colSpan:2} );
         },
         
         /**

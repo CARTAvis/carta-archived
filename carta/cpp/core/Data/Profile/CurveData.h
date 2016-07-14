@@ -36,6 +36,11 @@ friend class Profiler;
 public:
 
     /**
+     * Clear fit information stored in the curve.
+     */
+    void clearFit();
+
+    /**
      * Copy the state of the other curve into this one.
      * @param other - the curve whose state should be copied.
      */
@@ -59,10 +64,37 @@ public:
     QString getCursorText( double x, double y, double* error) const;
 
     /**
+     * Return the number of data points in the curve.
+     * @return - the number of data points in the curve.
+     */
+    int getDataCount() const;
+
+    /**
      * Return the two-dimensional data that represent a fit to this curve.
      * @return - the two-dimensional data that represent a curve fit.
      */
     std::vector< std::pair<double,double> > getFitData() const;
+
+    /**
+     * Get the initial guess for the fit center.
+     * @param index - the index of the guess in case of multiple fits.
+     * @return - the initial guess for the fit center.
+     */
+    double getFitParamCenter( int index ) const;
+
+    /**
+     * Get the initial guess for the fit peak.
+     * @param index - the index of the guess in case of multiple fits.
+     * @return - the initial guess for the fit peak.
+     */
+    double getFitParamPeak( int index ) const;
+
+    /**
+     * Get the initial guess for the fit fbhw.
+     * @param index - the index of the guess in case of multiple fits.
+     * @return - the initial guess for the fit fbhw.
+     */
+    double getFitParamFBHW( int index ) const;
 
     /**
      * Return a list of (center,peak,fbhw) information specifying the Gaussian
@@ -72,16 +104,34 @@ public:
     std::vector<std::tuple<double,double,double> > getFitParams() const;
 
     /**
+     * Return the coefficients of the polynomial that was fit to the curve.
+     * @return - the coefficients of the polynomial that was fit to the curve.
+     */
+    std::vector<double> getFitPolyCoeffs() const;
+
+    /**
      * Return a list of fit residuals.
      * @return - a list of residual data form a fit.
      */
     std::vector<std::pair<double,double> > getFitResiduals() const;
 
     /**
+     * Return the RMS of the fit.
+     * @return - the RMS of the fit.
+     */
+    double getFitRMS() const;
+
+    /**
      * Return stored parameters for fitting this curve.
      * @return - a string representation of fitting parameters.
      */
      QString getFitState() const;
+
+     /**
+      * Return the status of the fit.
+      * @return - the fit status (whether or not it was completed).
+      */
+     QString getFitStatus() const;
 
     /**
      * Return a list of parameters that specify the Gaussians that were fit to the
@@ -277,6 +327,18 @@ public:
     void setDataYFit( const std::vector<double>& valsY );
 
     /**
+     * Set the RMS of the fit.
+     * @param rms - the RMS of the fit.
+     */
+    void setFitRMS( double rms );
+
+    /**
+     * Set the status of the fit (whether or not it succeeded).
+     * @param fitStatus - the status of the fit.
+     */
+    void setFitStatus( const QString& fitStatus );
+
+    /**
      * Set a list of parameters that specify the Gaussians that were fit to the curve.
      * @param params - a list of <center,peak,fbhw> information that specifies the Gaussians
      *      that were fit to the curve.
@@ -297,6 +359,12 @@ public:
     void setFitParams( const QString& fitParams );
 
     /**
+     * Set the coefficients of any polynomial that was fit to the curve.
+     * @param polyCoeffs - the coefficients of any polynomial that was fit to the curve.
+     */
+    void setFitPolyCoeffs( const std::vector<double>& polyCoeffs );
+
+    /**
      * Set the name of the layer that is the source of profile.
      * @param imageName - an identifier for the layer that is the source of
      *  the profile.
@@ -308,7 +376,6 @@ public:
      * @param lineStyle - the style to be used for connecting the curve points.
      */
     QString setLineStyle( const QString& lineStyle );
-
 
     /**
      * Set the line style (outline,solid, etc) for drawing the curve.
@@ -397,12 +464,21 @@ private:
 
     const static QString COLOR;
     const static QString FIT;
+    const static QString FIT_CENTER;
+    const static QString FIT_PEAK;
+    const static QString FIT_FBHW;
+    const static QString FIT_CENTER_PIXEL;
+    const static QString FIT_PEAK_PIXEL;
+    const static QString FIT_FBHW_PIXEL;
     const static QString FIT_SELECT;
+    const static QString INITIAL_GUESSES;
+    const static QString POINT_SOURCE;
+    const static QString PLOT_STYLE;
+
+    const static QString REGION_NAME;
+    const static QString STATISTIC;
     const static QString STYLE;
     const static QString STYLE_FIT;
-    const static QString PLOT_STYLE;
-    const static QString STATISTIC;
-    const static QString REGION_NAME;
     const static QString IMAGE_NAME;
     const static QString REST_FREQUENCY;
     const static QString REST_FREQUENCY_UNITS;
@@ -417,8 +493,10 @@ private:
     QString _generatePeakLabel( int index, const QString& xUnit, const QString& yUnit ) const;
     void _initializeDefaultState();
     void _initializeStatics();
+    bool _isPointSource() const;
 
     void _saveCurve();
+    void _setPointSource( bool pointSource );
 
     static bool m_registered;
     static LineStyles* m_lineStyles;
@@ -435,10 +513,14 @@ private:
     std::vector<double> m_fitDataX;
     std::vector<double> m_fitDataY;
     std::vector<std::tuple<double,double,double> > m_gaussParams;
+    std::vector<double> m_fitPolyCoeffs;
     std::shared_ptr<Region> m_region;
 
     double m_restFrequency;
+    double m_fitRMS;
     QString m_restUnits;
+
+    QString m_fitStatus;
 
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_imageSource;
 

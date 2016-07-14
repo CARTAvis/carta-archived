@@ -9,7 +9,7 @@ namespace Plot2D {
 
 
 Plot2DLineHorizontal::Plot2DLineHorizontal():
-    m_color( 0,255,0 ){
+    m_color( 0, 0, 0 ){
     m_position = 0;
 }
 

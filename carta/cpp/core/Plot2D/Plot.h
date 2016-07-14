@@ -50,6 +50,12 @@ public:
     QwtPlot::Axis getAxisLocationX() const;
 
     /**
+     * Return the min and max value of the x-axis.
+     * @return - the (min,max) range of the x-axis.
+     */
+    std::pair<double,double> getAxisScaleX() const;
+
+    /**
      * Return the title of the x-axis.
      * @return - the title of the x-axis.
      */

@@ -302,6 +302,7 @@ class tHistogram( unittest.TestCase ):
 
         # Load an image
         Util.load_image( self, driver, "Default")
+        time.sleep(2)
 
         # Load the second image in a separate window
         imageWindow2 = Util.load_image_different_window( self, driver, "aH.fits")

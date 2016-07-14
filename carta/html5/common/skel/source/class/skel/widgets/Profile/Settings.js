@@ -71,7 +71,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
                     this.m_pages[this.m_INDEX_FIT].dataUpdate( profileData );
                 }
                 catch( err ){
-                    console.log( "TabSettings Could not parse: "+val+" error: "+err );
+                    console.log( "Settings Could not parse: "+val+" error: "+err );
                 }
             }
         },

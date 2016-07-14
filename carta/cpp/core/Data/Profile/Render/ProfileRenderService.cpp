@@ -18,7 +18,7 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Carta::Lib::Image::Imag
         Carta::Lib::RegionInfo& regionInfo, Carta::Lib::ProfileInfo& profInfo,
         int curveIndex, const QString& layerName, bool createNew ){
     bool profileRender = true;
-    if ( dataSource ){
+    if ( dataSource && !m_renderQueued ){
         RenderRequest request;
         request.m_image = dataSource;
         request.m_regionInfo = regionInfo;
@@ -38,7 +38,6 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Carta::Lib::Image::Imag
 
 void ProfileRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
         Carta::Lib::RegionInfo& regionInfo, Carta::Lib::ProfileInfo& profInfo){
-
     if ( m_renderQueued ) {
         return;
     }
@@ -76,6 +75,7 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image::I
 
 void ProfileRenderService::_postResult(  ){
     Lib::Hooks::ProfileResult result = m_renderThread->getResult();
+    int requestCount = m_requests.size();
     RenderRequest request = m_requests.dequeue();
     emit profileResult(result, request.m_curveIndex, request.m_layerName,
             request.m_createNew, request.m_image );

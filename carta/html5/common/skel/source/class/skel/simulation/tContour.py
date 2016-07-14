@@ -103,6 +103,7 @@ class tContour(unittest.TestCase):
 
         #Load a default image
         Util.load_image( self, driver, "aH.fits")
+        time.sleep(2)
 
         #Show the image settings
         Util.openSettings( self, driver, "Image", True )

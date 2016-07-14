@@ -34,7 +34,6 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
          * @param event {qx.event.type.Mouse} - the event.
          */
         _canvasMouseDownCB: function (event) {
-            //this.capture();
             var pt = this._localPos(event);
             this.m_mouseDownPosition = pt;
         },
@@ -45,22 +44,17 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
          * @param event {qx.event.type.Mouse} - the event.
          */
         _canvasMouseMoveCB: function (event) {
+            var pt = this._localPos(event);
+            this.m_lastMousePosition = pt;
+            if (this.m_mouseDownPosition == null) {
+                this._updateHoverInfo();
+                // call redraw because the cursor position changed and we
+                //may need to update hover information.
+                this._setDirty();
+                return;
+            }
             if ( event.isCtrlPressed() ){
-                var pt = this._localPos(event);
-                this.m_lastMousePosition = pt;
-                if (this.m_mouseDownPosition == null) {
-                    this._updateHoverInfo();
-                    //this._uiAction( "cursor1mouse", pt.x );
-                    // call redraw anyways because the cursor probably changed y position
-                    //this._setDirty();
-                    return;
-                }
-                // if there are no movables on the screen, we are in zoom mode
-                if( this.m_movables.length < 1) {
-                    console.log( "No movables to move");
-                }
-                else if( this.m_hoverIndex !== null) {
-                    
+                if( this.m_hoverIndex !== null) {
                     var movableChanged = false;
                     var obj = this.m_movables[ this.m_hoverIndex];
                     var index = obj.guess;
@@ -136,7 +130,6 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
          *                rendering ctx to draw to
          */
         _draw : function(width, height, ctx) {
-           
             ctx.clearRect(0, 0, width, height);
             if ( this.isVisible() && this.m_manual && this.m_manualShow){
                 this._drawFitBox( ctx );
@@ -253,61 +246,74 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
          * Make the widgets that allow the specification of manual guesses.
          */
         _makeMovables : function(){
-            // regenerate movables
-            this.m_movables = [];
-            for( var i = 0 ; i < this.m_guesses.length ; i ++ ) {
-                var guess = this.m_guesses[i];
-                var height = this.m_plotHeight - guess.peakPixel;
-                var obj;
-                
-                //Filled rectangle indicating entire marker area
-                var x = guess.centerPixel - guess.fbhwPixel;
-                var width = guess.fbhwPixel*2;
-                obj = this._makeRectH( x, guess.peakPixel, width, height,
-                    "rgba(255,255,0,0.4)", "rgba(255,255,0,0.2)");
-                obj.guess = i; 
-                obj.type = "bar";
-                this.m_movables.push( obj);
-                
-                //Horizontal line at bottom of marker
-                obj = this._makeRectH( guess.centerPixel - guess.fbhwPixel, 
-                        guess.peakPixel + height, guess.fbhwPixel * 2, 2,
-                    "#f00", "#f88");
-                obj.guess = i; 
-                obj.type = "none";
-                obj.getdsq = function() { return 1e9; };
-                this.m_movables.push( obj);
-                
-                //Gaussian curve indicator
-                obj = this._makeGauss( guess.centerPixel - guess.fbhwPixel, 
-                        guess.peakPixel, guess.fbhwPixel*2, 
-                        height, "#0f0", "#0f0");
-                obj.guess = i;
-                obj.type = "none";
-                obj.getdsq = function() {return 1e9;};
-                this.m_movables.push( obj );
-
-                //Top (amplitude) control point
-                obj = this._makeSq( guess.centerPixel, guess.peakPixel, 5, "#f00", "rgba(255,0,0,0.5)");
-                obj.guess = i; 
-                obj.type = "top";
-                this.m_movables.push( obj);
-                
-                //Right center/width control point
-                obj = this._makeTri( guess.centerPixel + guess.fbhwPixel, 
-                        guess.peakPixel + height - 3, 5, "#f00", "#f88");
-                obj.guess = i; 
-                obj.type = "right";
-                this.m_movables.push( obj);
-                
-                //Left center/width control point
-                obj = this._makeTri( guess.centerPixel - guess.fbhwPixel, 
-                        guess.peakPixel + height - 3, 5, "#f00", "#f88");
-                obj.guess = i; 
-                obj.type = "left";
-                this.m_movables.push( obj);
+            if ( this.m_guesses !== null ){
+                // regenerate movables
+                this.m_movables = [];
+                var fillColorStr = skel.theme.Color.colors.border;
+                var curveColorStr = skel.theme.Color.colors.dialogBackground;
+                var controlColorStr = skel.theme.Color.colors.warning;
+                var controlColorHoverStr = skel.theme.Color.colors.error;
+                var fillColor = qx.util.ColorUtil.stringToRgb( fillColorStr );
+                var rectBackground="rgba("+fillColor[0]+","+fillColor[1]+","+fillColor[2]+",0.4)";
+                var rectBackground2="rgba("+fillColor[0]+","+fillColor[1]+","+fillColor[2]+",0.2)";
+               
+                for( var i = 0 ; i < this.m_guesses.length ; i ++ ) {
+                    var guess = this.m_guesses[i];
+                    var height = this.m_plotHeight - guess.peakPixel;
+                    var obj;
+                    
+                    //Filled rectangle indicating entire marker area
+                    var x = guess.centerPixel - guess.fbhwPixel;
+                    var width = guess.fbhwPixel*2;
+                    obj = this._makeRectH( x, guess.peakPixel, width, height,
+                            rectBackground, rectBackground2 );
+                    obj.guess = i; 
+                    obj.type = "bar";
+                    this.m_movables.push( obj);
+                    
+                    //Horizontal line at bottom of marker
+                    obj = this._makeRectH( guess.centerPixel - guess.fbhwPixel, 
+                            guess.peakPixel + height, guess.fbhwPixel * 2, 2,
+                            controlColorStr, controlColorStr );
+                    obj.guess = i; 
+                    obj.type = "none";
+                    obj.getdsq = function() { return 1e9; };
+                    this.m_movables.push( obj);
+                    
+                    //Gaussian curve indicator
+                    obj = this._makeGauss( guess.centerPixel - guess.fbhwPixel, 
+                            guess.peakPixel, guess.fbhwPixel*2, 
+                            height,"#000000","#000000");
+                    obj.guess = i;
+                    obj.type = "none";
+                    obj.getdsq = function() {return 1e9;};
+                    this.m_movables.push( obj );
+    
+                    //Top (amplitude) control point
+                    obj = this._makeSq( guess.centerPixel, guess.peakPixel, 5, 
+                            controlColorHoverStr, controlColorStr );
+                    obj.guess = i; 
+                    obj.type = "top";
+                    this.m_movables.push( obj);
+                    
+                    //Right center/width control point
+                    obj = this._makeTri( guess.centerPixel + guess.fbhwPixel, 
+                            guess.peakPixel + height - 3, 5, 
+                            controlColorHoverStr, controlColorStr );
+                    obj.guess = i; 
+                    obj.type = "right";
+                    this.m_movables.push( obj);
+                    
+                    //Left center/width control point
+                    obj = this._makeTri( guess.centerPixel - guess.fbhwPixel, 
+                            guess.peakPixel + height - 3, 5, 
+                            controlColorHoverStr, controlColorStr );
+                    obj.guess = i; 
+                    obj.type = "left";
+                    this.m_movables.push( obj);
+                }
+                this._setDirty();
             }
-            this._setDirty();
         },
         
         /**
@@ -408,7 +414,6 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
          * @param event {qx.event.type.Mouse} - the event.
          */
         _mouseOutCB: function (event) {
-            //this.deactivate();
             this.m_lastMousePosition = null;
         },
         
@@ -435,17 +440,19 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
         _sendInitialFitGuessesCmd : function(){
             // resend the state of initial conditions
             var str = "";
-            for( var i = 0 ; i < this.m_guesses.length ; i ++ ) {
-                if( i > 0) str += " ";
-                str += this.m_guesses[i].centerPixel + " "
-                  + this.m_guesses[i].peakPixel + " "
-                  + this.m_guesses[i].fbhwPixel;
-            }
-            if ( this.m_id !== null && this.m_connector !== null ){
-                var path = skel.widgets.Path.getInstance();
-                var cmd = this.m_id + path.SEP_COMMAND + "setFitManualGuesses";
-                var params = "fitGuesses:"+str;
-                this.m_connector.sendCommand( cmd, params, null );
+            if ( this.m_guesses !== null ){
+                for( var i = 0 ; i < this.m_guesses.length ; i ++ ) {
+                    if( i > 0) str += " ";
+                    str += this.m_guesses[i].centerPixel + " "
+                      + this.m_guesses[i].peakPixel + " "
+                      + this.m_guesses[i].fbhwPixel;
+                }
+                if ( this.m_id !== null && this.m_connector !== null ){
+                    var path = skel.widgets.Path.getInstance();
+                    var cmd = this.m_id + path.SEP_COMMAND + "setFitManualGuesses";
+                    var params = "fitGuesses:"+str;
+                    this.m_connector.sendCommand( cmd, params, null );
+                }
             }
         },
 
@@ -506,6 +513,10 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
                 if ( this.m_manualShow ){
                     this._makeMovables();
                 }
+                else {
+                    this.m_movables = [];
+                }
+                this._setDirty();
             }
             return changed;
         },

@@ -109,9 +109,13 @@ void Plot2DHolder::clearData(){
    // m_plot->detachItems( QwtPlotItem::Rtti_PlotItem, false );
     _detachData( m_datas );
     m_datas.clear();
+    clearDataFit();
+
+}
+
+void Plot2DHolder::clearDataFit(){
     _detachData( m_dataSecondary );
     m_dataSecondary.clear();
-
 }
 
 void Plot2DHolder::clearLabels(){
@@ -134,7 +138,9 @@ void Plot2DHolder::_clearItem( QwtPlotItem* item ){
 void Plot2DHolder::_clearMarkers(){
     m_plot->detachItems( QwtPlotItem::Rtti_PlotMarker, false );
 
-    _clearItem( m_rangeColor );
+    delete m_range;
+    m_range = nullptr;
+    delete m_rangeColor;
     m_rangeColor = nullptr;
 
     _clearItem( m_gridLines );
@@ -146,14 +152,14 @@ void Plot2DHolder::_clearMarkers(){
     m_hLine = nullptr;
     delete m_vLine;
     m_vLine = nullptr;
-
-
 }
 
 
 void Plot2DHolder::clearSelection(){
-    m_range->reset();
-    m_plot->replot();
+    if ( m_range ){
+        m_range->reset();
+        m_plot->replot();
+    }
 }
 
 
@@ -214,6 +220,11 @@ int Plot2DHolder::getAxisExtentY() const {
 QString Plot2DHolder::getAxisUnitsY() const {
     QString unitStr = m_plot->getAxisUnitsY();
     return unitStr;
+}
+
+std::pair<double,double> Plot2DHolder::getAxisXRange() const {
+    std::pair<double,double> range = m_plot->getAxisScaleX();
+    return range;
 }
 
 QColor Plot2DHolder::getColor( const QString& id, bool* valid ) const {
@@ -387,11 +398,6 @@ double Plot2DHolder::getVLinePosition( bool* valid ) const {
 }
 
 
-
-
-
-
-
 double Plot2DHolder::getMarkerLine() const {
     double pos = 0;
     if ( m_vLine ){
@@ -483,7 +489,6 @@ void Plot2DHolder::setAxisXRange( double min, double max ){
     m_plot->setAxisScaleX(  min, max );
     m_plot->replot();
 }
-
 
 void Plot2DHolder::setColor( QColor color, const QString& id ){
     if ( id.isEmpty() || id.trimmed().length() == 0 ){
@@ -664,25 +669,28 @@ void Plot2DHolder::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::Custo
 
 
 void Plot2DHolder::setPlotType( PlotType type ){
-    m_plotType = type;
-    clearData();
-    _clearMarkers();
-    if ( type == PlotType::PROFILE ){
-        m_hLine = new Plot2DLineHorizontal();
-        m_vLine = new Plot2DLine();
-        m_rangeMarker = new Plot2DRangeMarker();
-        m_vLine->attach( m_plot );
-        setLegendVisible( true );
-    }
-    else {
-
-        m_logScale = true;
-        m_rangeColor = new Plot2DSelection();
-        QColor shadeColor( "#CCCC99");
-        shadeColor.setAlpha( 100 );
-        m_rangeColor->setColoredShade( shadeColor );
-        m_rangeColor->attach( m_plot );
-        setLegendVisible( false );
+    if ( m_plotType != type ){
+        m_plotType = type;
+        clearData();
+        _clearMarkers();
+        m_range = new Plot2DSelection();
+        m_range->attach( m_plot );
+        if ( type == PlotType::PROFILE ){
+            m_hLine = new Plot2DLineHorizontal();
+            m_vLine = new Plot2DLine();
+            m_rangeMarker = new Plot2DRangeMarker();
+            m_vLine->attach( m_plot );
+            setLegendVisible( true );
+        }
+        else {
+            m_logScale = true;
+            m_rangeColor = new Plot2DSelection();
+            QColor shadeColor( "#CCCC99");
+            shadeColor.setAlpha( 100 );
+            m_rangeColor->setColoredShade( shadeColor );
+            m_rangeColor->attach( m_plot );
+            setLegendVisible( false );
+        }
     }
 }
 

@@ -64,6 +64,11 @@ public:
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
+     * Clear stored fit information.
+     */
+    void clearFits();
+
+    /**
      * Returns the units on the x-axis of the profile.
      * @return - the profile x-axis units.
      */
@@ -515,19 +520,13 @@ private:
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
     const static QString CURVE_SELECT;
-    const static QString FIT_CENTER;
-    const static QString FIT_PEAK;
-    const static QString FIT_FBHW;
-    const static QString FIT_CENTER_PIXEL;
-    const static QString FIT_PEAK_PIXEL;
-    const static QString FIT_FBHW_PIXEL;
+
     const static QString FIT_STATISTICS;
     const static QString GAUSS_COUNT;
     const static QString GEN_MODE;
     const static QString GRID_LINES;
     const static QString HEURISTICS;
     const static QString IMAGES;
-    const static QString INITIAL_GUESSES;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
@@ -617,8 +616,8 @@ private:
 
     void _updateAvailableImages( Controller* controller );
     void _updateResidualData();
-    void _updateFitStatistics( const std::vector<Carta::Lib::Hooks::FitResult>& results );
-    QString _updateFitStatistic( int index, const Carta::Lib::Hooks::FitResult& result );
+    void _updateFitStatistics();
+    QString _updateFitStatistic( int index );
 
     void _updatePlotBounds();
 

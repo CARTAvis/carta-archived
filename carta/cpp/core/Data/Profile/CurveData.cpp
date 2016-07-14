@@ -21,7 +21,15 @@ namespace Data {
 const QString CurveData::CLASS_NAME = "CurveData";
 const QString CurveData::COLOR = "color";
 const QString CurveData::FIT = "fit";
+const QString CurveData::FIT_CENTER = "center";
+const QString CurveData::FIT_PEAK = "peak";
+const QString CurveData::FIT_FBHW = "fbhw";
+const QString CurveData::FIT_CENTER_PIXEL = "centerPixel";
+const QString CurveData::FIT_PEAK_PIXEL = "peakPixel";
+const QString CurveData::FIT_FBHW_PIXEL = "fbhwPixel";
 const QString CurveData::FIT_SELECT = "fitSelect";
+const QString CurveData::INITIAL_GUESSES = "fitGuesses";
+const QString CurveData::POINT_SOURCE = "pointSource";
 const QString CurveData::PLOT_STYLE = "plotStyle";
 const QString CurveData::STYLE = "style";
 const QString CurveData::STYLE_FIT = "styleFit";
@@ -98,6 +106,11 @@ void CurveData::_calculateRelativeErrors( double& errorX, double& errorY ) const
     errorY = _calculateRelativeError( dataMinY, dataMaxY );
 }
 
+void CurveData::clearFit(){
+    m_fitDataX.clear();
+    m_fitDataY.clear();
+}
+
 void CurveData::_convertRestFrequency( const QString& oldUnits, const QString& newUnits,
         int significantDigits, double errorMargin ){
     //Do conversion
@@ -148,6 +161,7 @@ void CurveData::copy( const std::shared_ptr<CurveData> & other ){
         m_state.setValue<QString>(IMAGE_NAME, other->getNameImage());
         m_state.setValue<QString>(REGION_NAME, other->getNameRegion());
         m_state.setValue<bool>(FIT_SELECT, other->isSelectedFit());
+        m_state.setValue<bool>( POINT_SOURCE, other->_isPointSource());
     }
 }
 
@@ -212,6 +226,9 @@ QString CurveData::getCursorText( double x, double y, double* error ) const {
     return toolTipStr;
 }
 
+int CurveData::getDataCount() const {
+    return m_plotDataX.size();
+}
 
 std::vector< std::pair<double,double> > CurveData::getFitData() const {
     int fitCount = m_fitDataX.size();
@@ -225,6 +242,51 @@ std::vector< std::pair<double,double> > CurveData::getFitData() const {
 
 std::vector<std::tuple<double,double,double> > CurveData::getFitParams() const {
     return m_gaussParams;
+}
+double CurveData::getFitParamCenter( int index ) const {
+    double center = 0;
+    QString guessKey = Carta::State::UtilState::getLookup( FIT, INITIAL_GUESSES );
+    if ( index >= 0 && index < m_stateFit.getArraySize( guessKey ) ){
+        QString guessIndexKey = Carta::State::UtilState::getLookup( guessKey, index );
+        QString centerKey = Carta::State::UtilState::getLookup( guessIndexKey, FIT_CENTER );
+        center = m_stateFit.getValue<double>( centerKey );
+    }
+    return center;
+}
+
+
+double CurveData::getFitParamPeak( int index ) const {
+    double peak = 0;
+    QString guessKey = Carta::State::UtilState::getLookup( FIT, INITIAL_GUESSES );
+    if ( index >= 0 && index < m_stateFit.getArraySize( guessKey ) ){
+        QString guessIndexKey = Carta::State::UtilState::getLookup( guessKey, index );
+        QString peakKey = Carta::State::UtilState::getLookup( guessIndexKey, FIT_PEAK );
+        peak = m_stateFit.getValue<double>( peakKey );
+    }
+    return peak;
+}
+
+double CurveData::getFitParamFBHW( int index ) const {
+    double fbhw = 0;
+    QString guessKey = Carta::State::UtilState::getLookup( FIT, INITIAL_GUESSES );
+    if ( index >= 0 && index < m_stateFit.getArraySize( guessKey ) ){
+        QString guessIndexKey = Carta::State::UtilState::getLookup( guessKey, index );
+        QString fbhwKey = Carta::State::UtilState::getLookup( guessIndexKey, FIT_FBHW );
+        fbhw = m_stateFit.getValue<double>( fbhwKey );
+    }
+    return fbhw;
+}
+
+std::vector<double> CurveData::getFitPolyCoeffs() const {
+    return m_fitPolyCoeffs;
+}
+
+double CurveData::getFitRMS() const {
+    return m_fitRMS;
+}
+
+QString CurveData::getFitStatus() const {
+    return m_fitStatus;
 }
 
 std::vector<std::pair<double,double> > CurveData::getFitResiduals() const {
@@ -240,7 +302,7 @@ std::vector<std::pair<double,double> > CurveData::getFitResiduals() const {
 }
 
 QString CurveData::getFitState() const {
-    return m_state.toString( FIT );
+    return m_stateFit.toString( FIT );
 }
 
 std::vector<std::tuple<double,double,double> > CurveData::getGaussParams() const {
@@ -384,6 +446,7 @@ void CurveData::_initializeDefaultState(){
     m_state.insertValue<QString>( STYLE_FIT, defaultLineStyleFit );
     QString defaultPlotStyle = m_plotStyles->getDefault();
     m_state.insertValue<QString>( PLOT_STYLE, defaultPlotStyle );
+    m_state.insertValue<bool>(POINT_SOURCE, true );
 
 
     m_state.insertValue<QString>( STATISTIC, m_stats->getDefault());
@@ -434,6 +497,10 @@ bool CurveData::isMatch( const QString& name ) const {
     return match;
 }
 
+bool CurveData::_isPointSource() const {
+    return m_state.getValue<bool>( POINT_SOURCE );
+}
+
 bool CurveData::isSelectedFit() const {
     return m_state.getValue<bool>( FIT_SELECT );
 }
@@ -468,6 +535,11 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
     CARTA_ASSERT( valsX.size() == valsY.size() );
     m_plotDataX = valsX;
     m_plotDataY = valsY;
+    bool pointSource = false;
+    if ( m_plotDataX.size() <= 1 ){
+        pointSource = true;
+    }
+    _setPointSource( pointSource );
 }
 
 
@@ -506,6 +578,29 @@ void CurveData::setFitParams( const QString& fitParams ){
     m_stateFit.setObject( FIT, fitParams );
 }
 
+
+
+void CurveData::setFitRMS( double rms ){
+    m_fitRMS = rms;
+}
+
+
+
+void CurveData::setFitPolyCoeffs( const std::vector<double>& polyCoeffs ){
+    m_fitPolyCoeffs = polyCoeffs;
+}
+
+void CurveData::setFitStatus( const QString& fitStatus ) {
+    m_fitStatus = fitStatus;
+}
+
+void CurveData::_setPointSource( bool pointSource ){
+    bool oldPointSource = m_state.getValue<bool>( POINT_SOURCE );
+    if ( oldPointSource != pointSource ){
+        m_state.setValue<bool>( POINT_SOURCE, pointSource );
+        m_state.flushState();
+    }
+}
 
 QString CurveData::setRestFrequency( double freq, double errorMargin, bool* valueChanged ){
     QString result;

@@ -241,7 +241,11 @@ def load_image_different_window(unittest, driver, imageName):
     # Change the plugin of the empty window to an image loader 
     ActionChains(driver).context_click( emptyWindow ).send_keys(Keys.ARROW_DOWN
         ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
-    return load_image_windowIndex( unittest, driver,imageName, 2 )
+        
+    load_image_windowIndex( unittest,driver, imageName, 2 )
+    windowId = "CasaImageLoader"+str(2)
+    imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, windowId)))
+    return imageWindow
 
 
 def load_image_windowIndex( unittest,driver,imageName,windowIndex):

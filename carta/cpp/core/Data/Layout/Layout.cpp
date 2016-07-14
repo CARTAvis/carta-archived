@@ -457,12 +457,12 @@ void Layout::setLayoutDeveloper(){
     QStringList oldNames = getPluginList();
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
 
-    //LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
-    //rightBottom->setChildFirst( colorLeaf );
+    LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
+    rightBottom->setChildFirst( colorLeaf );
     //LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
     //rightBottom->setChildFirst( histLeaf );
-    LayoutNode* contextLeaf = NodeFactory::makeLeaf( ImageContext::CLASS_NAME );
-    rightBottom->setChildFirst( contextLeaf );
+    //LayoutNode* contextLeaf = NodeFactory::makeLeaf( ImageContext::CLASS_NAME );
+    //rightBottom->setChildFirst( contextLeaf );
 
     LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
     rightBottom->setChildSecond( animLeaf );
@@ -474,10 +474,10 @@ void Layout::setLayoutDeveloper(){
     //right->setChildFirst( histLeaf );
     //LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
     //right->setChildFirst( statLeaf );
-    //LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
-    //right->setChildFirst( profLeaf );
-    LayoutNode* imageZoomLeaf = NodeFactory::makeLeaf( ImageZoom::CLASS_NAME );
-    right->setChildFirst( imageZoomLeaf );
+    LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
+    right->setChildFirst( profLeaf );
+    //LayoutNode* imageZoomLeaf = NodeFactory::makeLeaf( ImageZoom::CLASS_NAME );
+    //right->setChildFirst( imageZoomLeaf );
     right->setChildSecond( rightBottom );
 
     m_layoutRoot->setHorizontal( true );

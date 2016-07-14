@@ -71,10 +71,6 @@ qx.Class.define("skel.widgets.CustomUI.ItemTable", {
             return items;
         },
         
-        setTestId : function( id ){
-            skel.widgets.TestID.addTestId( this.m_table, id ); 
-        },
-        
         /**
          * Initializes the UI.
          */
@@ -151,6 +147,54 @@ qx.Class.define("skel.widgets.CustomUI.ItemTable", {
                 }
             }
         },
+        
+        /**
+         * Set the indices of the table rows that should be selected.
+         * @param selectedIndices {Array} - a list of table rows that should be
+         *      selected.
+         */
+        setSelected : function( selectedIndices ){
+            var selectedCount = selectedIndices.length;
+            var selectModel = this.m_table.getSelectionModel();
+            var firstInterval = true;
+            if ( selectedCount > 0 ){
+                var start = selectedIndices[0];
+                var end = start;
+                for ( var index = 0; index < selectedCount; index++ ){
+                    while ( index + 1 < selectedCount ){
+                        if ( selectedIndices[index+1] - 1 == end ){
+                            end = selectedIndices[index+1];
+                            index++;
+                        }
+                        else {
+                            //Add the selection interval we have
+                            if ( firstInterval ){
+                                selectModel.setSelectionInterval( start, end );
+                                firstInterval = false;
+                            }
+                            else {
+                                selectModel.addSelectionInterval( start, end );
+                            }
+                            start = selectedIndices[index+1];
+                            end = start;
+                            break;
+                        }
+                    }
+                }
+                //Add the last selection interval
+                if ( firstInterval ){
+                    selectModel.setSelectionInterval( start, end );
+                }
+                else {
+                    selectModel.addSelectionInterval( start, end );
+                }
+            }
+        },
+        
+        setTestId : function( id ){
+            skel.widgets.TestID.addTestId( this.m_table, id ); 
+        },
+        
         
         /**
          * Set a test name for the item table based on the name of the parent contour set.

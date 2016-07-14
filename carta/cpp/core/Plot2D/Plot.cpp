@@ -100,6 +100,13 @@ QwtPlot::Axis Plot::getAxisLocationX() const {
     return m_axisLocationX;
 }
 
+std::pair<double,double> Plot::getAxisScaleX() const {
+    QwtScaleDiv scaleDiv = axisScaleDiv(xBottom);
+    QwtInterval interval = scaleDiv.interval();
+    std::pair<double,double> minMax( interval.minValue(), interval.maxValue());
+    return minMax;
+}
+
 QString Plot::getAxisTitleX() const {
     QwtText title = axisTitle( m_axisLocationX );
     return title.text();

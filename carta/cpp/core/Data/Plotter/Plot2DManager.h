@@ -72,9 +72,13 @@ public:
 
     /**
      * Remove all data from the plot.
-     * @param index - the plot index.
      */
-    void clearData( int index = 0);
+    void clearData();
+
+    /**
+     * Remove fit data form the plot.
+     */
+    void clearDataFit();
 
     /**
      * Clear textual information from the plot.

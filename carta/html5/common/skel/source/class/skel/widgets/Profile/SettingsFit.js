@@ -30,13 +30,22 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
         dataUpdate : function( curveUpdate ){
             this.m_curveInfo = curveUpdate.curves;
             var curveNames = [];
+            var selectIndices = [];
+            var curveIndex = 0;
             for ( var i = 0; i < this.m_curveInfo.length; i++ ){
-                curveNames[i] = this.m_curveInfo[i].name;
+                if ( ! this.m_curveInfo[i].pointSource ){
+                    curveNames[curveIndex] = this.m_curveInfo[i].name;
+                    if ( this.m_curveInfo[i].fitSelect ){
+                        selectIndices.push( curveIndex );
+                    }
+                    curveIndex++;
+                }
             }
             if ( this.m_curveListenId !== null ){
                 this.m_curveList.removeListenerById( this.m_curveListenId );
             }
             this.m_curveList.setItems( curveNames );
+            this.m_curveList.setSelected( selectIndices );
             this.m_curveListenId = this.m_curveList.addListener( "itemsSelected", 
                     this._sendFitsCmd, this );
         }, 
@@ -98,7 +107,7 @@ qx.Class.define("skel.widgets.Profile.SettingsFit", {
          */
         _sendFitsCmd : function(){
             if ( this.m_id !== null && this.m_connector !== null ){
-                var fits = this.m_curveList.getSelections();
+                var fits = this.m_curveList.getSelected();
                 var fitsList = fits.join( ";");
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setFitCurves";

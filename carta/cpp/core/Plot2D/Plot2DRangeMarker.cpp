@@ -8,7 +8,7 @@ namespace Plot2D {
 
 
 Plot2DRangeMarker::Plot2DRangeMarker():
-        m_shadeColor( 200,0,0 ),
+        m_shadeColor( "#CCCC99"),
         m_interval( 0, 10 ){
 	m_shadeColor.setAlpha( 100 );
 }

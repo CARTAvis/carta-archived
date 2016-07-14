@@ -36,6 +36,9 @@ void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
             m_plots[index]->setMarkerLineVisible( vLineVisible );
             double pos = m_plots[0]->getMarkerLine();
             m_plots[index]->setMarkerLine( pos );
+
+            std::pair<double,double> rangeX = m_plots[0]->getAxisXRange();
+            m_plots[index]->setAxisXRange( rangeX.first, rangeX.second );
         }
     }
     _resetExtents();
@@ -86,9 +89,20 @@ bool Plot2DGenerator::_checkIndex( int index ) const {
 }
 
 
-void Plot2DGenerator::clearData( int index ){
-    if ( _checkIndex( index )){
-        m_plots[index]->clearData();
+void Plot2DGenerator::clearData( ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->clearData();
+    }
+}
+
+void Plot2DGenerator::clearDataFit(){
+    int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        m_plots[0]->clearDataFit();
+        for ( int i = 1; i < plotCount; i++ ){
+            m_plots[i]->clearData();
+        }
     }
 }
 

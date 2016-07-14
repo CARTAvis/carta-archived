@@ -47,7 +47,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             paramContainer.add( gaussLabel, {row:0,column:0} );
             paramContainer.add( this.m_gaussCountSpin, {row:0, column:1} );
             
-            var polyLabel = new qx.ui.basic.Label( "Polynomial Degree:");
+            var polyLabel = new qx.ui.basic.Label( "Polynomial Terms:");
             this.m_polyCountSpin = new qx.ui.form.Spinner();
             this.m_polyCountSpin.setToolTipText( "Set the degree of the polynomial to fit.");
             this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
@@ -74,7 +74,22 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
             this.m_resetGuessButton = new qx.ui.form.Button("Reset Initial Guesses");
             this.m_resetGuessButton.setToolTipText( "Reset initial fit guesses.");
             this.m_resetGuessButton.addListener( "execute", this._sendResetGuessCmd, this );
-            paramContainer.add( this.m_resetGuessButton, {row:4, column:0, colSpan:2});
+            var guessContainer = new qx.ui.container.Composite();
+            guessContainer.setLayout( new qx.ui.layout.HBox(1));
+            guessContainer.add( new qx.ui.core.Spacer(2), {flex:1});
+            guessContainer.add( this.m_resetGuessButton );
+            guessContainer.add( new qx.ui.core.Spacer(2), {flex:1});
+            paramContainer.add( guessContainer, {row:4, column:0, colSpan:2});
+            
+            this.m_clearButton = new qx.ui.form.Button( "Clear");
+            this.m_clearButton.setToolTipText( "Remove fit curves from plot.");
+            this.m_clearButton.addListener( "execute", this._sendClearFitCmd, this );
+            var clearContainer = new qx.ui.container.Composite();
+            clearContainer.setLayout( new qx.ui.layout.HBox(1));
+            clearContainer.add( new qx.ui.core.Spacer(2), {flex:1});
+            clearContainer.add( this.m_clearButton );
+            clearContainer.add( new qx.ui.core.Spacer(2), {flex:1});
+            paramContainer.add( clearContainer, {row:5, column:0, colSpan:2});
         },
         
         
@@ -83,33 +98,38 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
          * @param prefs {Object} - server-side fit settings.
          */
         fitUpdate : function( prefs ){
-            if ( this.m_gaussCountListenId != null ){
-                this.m_gaussCountSpin.removeListenerById( this.m_gaussCountListenId );
-            }
-            this.m_gaussCountSpin.setValue( prefs.gaussCount );
-            this.m_gaussCountListenId = this.m_gaussCountSpin.addListener( "changeValue", 
+            if ( typeof prefs.gaussCount != 'undefined'){
+                if ( this.m_gaussCountListenId != null ){
+                    this.m_gaussCountSpin.removeListenerById( this.m_gaussCountListenId );
+                }
+                this.m_gaussCountSpin.setValue( prefs.gaussCount );
+                this.m_gaussCountListenId = this.m_gaussCountSpin.addListener( "changeValue", 
                     this._sendGaussCountCmd, this );
-            
-            if ( this.m_polyCountListenId != null ){
-                this.m_polyCountSpin.removeListenerById( this.m_polyCountListenId );
             }
-            this.m_polyCountSpin.setValue( prefs.polyDegree );
-            this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
+            if ( typeof prefs.polyDegree != 'undefined'){
+                if ( this.m_polyCountListenId != null ){
+                    this.m_polyCountSpin.removeListenerById( this.m_polyCountListenId );
+                }
+                this.m_polyCountSpin.setValue( prefs.polyDegree );
+                this.m_polyCountListenId = this.m_polyCountSpin.addListener( "changeValue", 
                     this._sendPolyDegreeCmd, this );
-            
-            if ( this.m_heuristicListenId != null ){
-                this.m_heuristicCheck.removeListenerById( this.m_heuristicListenId );
             }
-            this.m_heuristicCheck.setValue( prefs.heuristics );
-            this.m_heuristicListenId = this.m_heuristicCheck.addListener( "changeValue", 
+            if ( typeof prefs.heuristics != 'undefined'){
+                if ( this.m_heuristicListenId != null ){
+                    this.m_heuristicCheck.removeListenerById( this.m_heuristicListenId );
+                }
+                this.m_heuristicCheck.setValue( prefs.heuristics );
+                this.m_heuristicListenId = this.m_heuristicCheck.addListener( "changeValue", 
                     this._sendHeuristicCmd, this );
-            
-            if ( this.m_manualGuessListenId != null ){
-                this.m_manualGuessCheck.removeListenerById( this.m_manualGuessListenId );
             }
-            this.m_manualGuessCheck.setValue( prefs.manualGuess );
-            this.m_manualGuessId = this.m_manualGuessCheck.addListener( "changeValue", 
+            if ( typeof prefs.manualGuess != 'undefined'){
+                if ( this.m_manualGuessListenId != null ){
+                    this.m_manualGuessCheck.removeListenerById( this.m_manualGuessListenId );
+                }
+                this.m_manualGuessCheck.setValue( prefs.manualGuess );
+                this.m_manualGuessId = this.m_manualGuessCheck.addListener( "changeValue", 
                     this._sendManualGuessCmd, this );
+            }
         },
         
         /**
@@ -140,6 +160,18 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
           
         },
        
+        /**
+         * Send a command to the server indicating all fits should be cleared.
+         */
+         _sendClearFitCmd : function(){
+             if ( this.m_id !== null && this.m_connector !== null ){
+                 var path = skel.widgets.Path.getInstance();
+                 var cmd = this.m_id + path.SEP_COMMAND + "clearFits";
+                 var params = "";
+                 this.m_connector.sendCommand( cmd, params, null );
+             }
+         },
+         
         
        /**
         * Send a command to the server indicating the number of Gaussians to fit.
@@ -224,7 +256,7 @@ qx.Class.define("skel.widgets.Profile.FitParameters", {
         m_connector : null,
         m_id : null,
         m_sharedVar : null,
-        
+        m_clearButton : null,
         m_gaussCountListenId : null,
         m_gaussCountSpin : null,
         m_heuristicCheck : null,

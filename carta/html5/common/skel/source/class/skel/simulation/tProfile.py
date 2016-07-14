@@ -259,6 +259,7 @@ class tProfile(unittest.TestCase):
         
          # Show the profile view
         self._showProfile( driver )
+        time.sleep(2)
         
         #Open the profile settings to the Profiles tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
