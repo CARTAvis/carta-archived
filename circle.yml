@@ -26,7 +26,7 @@ dependencies:
     - mkdir -p ~/images
 
     # Restore docker build image and configure Dockerfile
-    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/astrilet/cartabuild:latest; docker save docker.io/astrilet/cartabuild:latest > ~/docker/image.tar; fi
+    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/vsuorant/cartabuild:latest; docker save docker.io/astrilet/cartabuild:latest > ~/docker/image.tar; fi
     - cat ~/CARTAvis/Dockerfile | envsubst  > ~/CARTAvis/Dockerfile.new
     - mv ~/CARTAvis/Dockerfile.new ~/CARTAvis/Dockerfile
 
