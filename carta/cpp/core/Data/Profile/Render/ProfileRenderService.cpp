@@ -75,7 +75,6 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image::I
 
 void ProfileRenderService::_postResult(  ){
     Lib::Hooks::ProfileResult result = m_renderThread->getResult();
-    int requestCount = m_requests.size();
     RenderRequest request = m_requests.dequeue();
     emit profileResult(result, request.m_curveIndex, request.m_layerName,
             request.m_createNew, request.m_image );
