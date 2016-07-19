@@ -346,15 +346,13 @@ QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRe
     return inputRect;
 }
 
-
-bool LayerData::_getIntensity( int frameLow, int frameHigh, double percentile,
-        double* intensity, int* intensityIndex ) const {
-    bool intensityFound = false;
+std::vector<std::pair<int,double> > LayerData::_getIntensity( int frameLow, int frameHigh,
+        const std::vector<double>& percentiles ) const{
+    std::vector<std::pair<int,double> > intensities;
     if ( m_dataSource ){
-        intensityFound = m_dataSource->_getIntensity( frameLow, frameHigh, percentile,
-                intensity, intensityIndex );
+        intensities = m_dataSource->_getIntensity( frameLow, frameHigh, percentiles );
     }
-    return intensityFound;
+    return intensities;
 }
 
 

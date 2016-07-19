@@ -193,19 +193,24 @@ QString ContourControls::_generatePercentile( const QString& contourSetName ){
         else {
             //First get the levels as percentiles.
             std::vector<double> percentileLevels = _getLevelsMinMax( maxLevel, result );
+
             //Map the percentiles to intensities
             if ( result.isEmpty() ){
                 int percentCount = percentileLevels.size();
-                std::vector<double> levels( percentCount );
-                bool validIntensities = false;
-                int intensityIndex = 0;
                 for ( int i = 0; i < percentCount; i++ ){
-                    validIntensities = m_percentIntensityMap->getIntensity( percentileLevels[i]/100, &levels[i], &intensityIndex );
-                    if ( !validIntensities ){
-                        break;
+                    percentileLevels[i] = percentileLevels[i] / 100;
+                }
+
+                std::vector<std::pair<int,double> > intensities = m_percentIntensityMap->getIntensity( percentileLevels );
+                std::vector<double> levels;
+                int intensityCount = intensities.size();
+
+                for ( int i = 0; i < intensityCount; i++ ){
+                    if ( intensities[i].first >= 0 ){
+                        levels.push_back( intensities[i].second );
                     }
                 }
-                if ( !validIntensities ){
+                if ( levels.size() == 0 ){
                    result = "Could not generate contour based on percentiles";
                 }
                 else {

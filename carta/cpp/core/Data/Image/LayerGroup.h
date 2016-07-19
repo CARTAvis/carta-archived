@@ -210,13 +210,11 @@ protected:
      * Returns the intensity corresponding to a given percentile.
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentile - a number [0,1] for which an intensity is desired.
-     * @param intensity - the computed intensity corresponding to the percentile.
-     * @param intensityIndex - the frame where maximum intensity was found.
-     * @return true if the computed intensity is valid; otherwise false.
+     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @return - a list of (location,intensity) pairs.
      */
-    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile,
-            double* intensity, int* intensityIndex ) const Q_DECL_OVERRIDE;
+    virtual std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the current layer.

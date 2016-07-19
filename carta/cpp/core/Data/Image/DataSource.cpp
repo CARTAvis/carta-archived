@@ -12,6 +12,7 @@
 #include "../../ImageRenderService.h"
 #include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
+#include <sys/time.h>
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -23,12 +24,18 @@ namespace Data {
 const QString DataSource::DATA_PATH = "file";
 const QString DataSource::CLASS_NAME = "DataSource";
 const double DataSource::ZOOM_DEFAULT = 1.0;
+const int DataSource::INDEX_LOCATION = 0;
+const int DataSource::INDEX_INTENSITY = 1;
+const int DataSource::INDEX_PERCENTILE = 2;
+const int DataSource::INDEX_FRAME_LOW = 3;
+const int DataSource::INDEX_FRAME_HIGH = 4;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
 
 DataSource::DataSource() :
     m_image( nullptr ),
     m_permuteImage( nullptr),
+    m_cachedPercentiles(100),
     m_axisIndexX( 0 ),
     m_axisIndexY( 1 ){
         m_cmapUseCaching = true;
@@ -50,6 +57,27 @@ DataSource::DataSource() :
         m_pixelPipeline-> setColormap( std::make_shared < Carta::Core::GrayColormap > () );
         m_pixelPipeline-> setMinMax( 0, 1 );
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+}
+
+void DataSource::_copyData( int frameLow, int frameHigh, int spectralIndex,
+        std::vector<int>& allIndices, std::vector<double>& allValues ){
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+    if ( rawData != nullptr ){
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
+
+        // read in all values from the view into an array
+        // we need our own copy because we'll do quickselect on it...
+        int index = 0;
+
+        view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
+            if ( std::isfinite( val ) ) {
+                allValues.push_back( val );
+                allIndices.push_back( index );
+            }
+            index++;
+        }
+        );
+    }
 }
 
 
@@ -266,18 +294,7 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
 }
 
 
-QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
-        double zoom, const QSize& outputSize, bool* valid ) const {
-    QPointF screenPt;
-    if ( m_image != nullptr ){
-        screenPt = m_renderService->image2screen( imagePt, pan, zoom, outputSize);
-        *valid = true;
-    }
-    else {
-        *valid = false;
-    }
-    return screenPt;
-}
+
 
 int DataSource::_getFrameCount( AxisInfo::KnownType type ) const {
     int frameCount = 1;
@@ -339,46 +356,61 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
-bool DataSource::_getIntensity( int frameLow, int frameHigh, double percentile,
-        double* intensity, int* intensityIndex ) const {
-    bool intensityFound = false;
-    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
-    if ( rawData != nullptr ){
-        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
-        // read in all values from the view into an array
-        // we need our own copy because we'll do quickselect on it...
-        int index = 0;
-        std::vector < int > allIndices;
-        std::vector < double > allValues;
-        view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( val );
-                allIndices.push_back( index );
-            }
-            index++;
-        }
-        );
 
-        // indicate bad clip if no finite numbers were found
-        if ( allValues.size() > 0 ) {
-            int locationIndex = allValues.size() * percentile - 1;
-            if ( locationIndex < 0 ){
-                locationIndex = 0;
-            }
-            std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
-            *intensity = allValues[locationIndex];
-            int divisor = 1;
-            std::vector<int> dims = m_image->dims();
-            for ( int i = 0; i < spectralIndex; i++ ){
-                divisor = divisor * dims[i];
-            }
-            int specIndex = allIndices[locationIndex ]/divisor;
-            *intensityIndex = specIndex;
-            intensityFound = true;
+std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow, int frameHigh,
+        const std::vector<double>& percentiles ){
+    //See if it is in the cached percentiles first.
+    int percentileCount = percentiles.size();
+    std::vector<std::pair<int,double> > intensities(percentileCount,std::pair<int,double>(-1,0));
+    //Find all the intensities we can in the cache.
+    int foundCount = 0;
+    for ( int i = 0; i < percentileCount; i++ ){
+        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
+        if ( val.first>= 0 ){
+            intensities[i] = val;
+            foundCount++;
         }
     }
-    return intensityFound;
+
+    //Not all percentiles were in the cache.  We are going to have to look some up.
+    if ( foundCount < percentileCount ){
+
+        std::vector < int > allIndices;
+        std::vector < double > allValues;
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+        _copyData( frameLow, frameHigh, spectralIndex, allIndices, allValues );
+        if ( allValues.size() > 0 ){
+            for ( int i = 0; i < percentileCount; i++ ){
+                //Missing intensity
+                if ( intensities[i].first < 0 ){
+                    int locationIndex = allValues.size() * percentiles[i] - 1;
+                    if ( locationIndex < 0 ){
+                        locationIndex = 0;
+                    }
+                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
+                    intensities[i].second = allValues[locationIndex];
+                    int divisor = 1;
+                    std::vector<int> dims = m_image->dims();
+                    for ( int i = 0; i < spectralIndex; i++ ){
+                        divisor = divisor * dims[i];
+                    }
+                    int specIndex = allIndices[locationIndex ]/divisor;
+                    intensities[i].first = specIndex;
+                    //Store the found intensity in the cache.
+                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+                }
+            }
+        }
+    }
+    return intensities;
+}
+
+std::vector<std::pair<int,double> > DataSource::_getIntensity( int frameLow, int frameHigh,
+        const std::vector<double>& percentiles){
+   //See if we can find it in the least recently used cache; otherwise, look it up.
+    std::vector<std::pair<int,double> > intensities = _getIntensityCache( frameLow,
+            frameHigh, percentiles );
+    return intensities;
 }
 
 QColor DataSource::_getNanColor() const {
@@ -422,6 +454,19 @@ QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) c
         result = QPointF( pixel[0], pixel[1]);
     }
     return result;
+}
+
+QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
+        double zoom, const QSize& outputSize, bool* valid ) const {
+    QPointF screenPt;
+    if ( m_image != nullptr ){
+        screenPt = m_renderService->image2screen( imagePt, pan, zoom, outputSize);
+        *valid = true;
+    }
+    else {
+        *valid = false;
+    }
+    return screenPt;
 }
 
 QPointF DataSource::_getWorldCoordinates( double pixelX, double pixelY,

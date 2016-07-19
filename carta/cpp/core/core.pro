@@ -74,6 +74,8 @@ HEADERS += \
     Data/Image/ImageZoom.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Image/LayerCompositionModes.h \
+    Data/Image/LeastRecentlyUsedCache.h \
+    Data/Image/LeastRecentlyUsedCacheEntry.h \
     Data/Image/Render/RenderRequest.h \
     Data/Image/Render/RenderResponse.h \
     Data/Image/Save/SaveService.h \
@@ -204,6 +206,8 @@ SOURCES += \
     Data/Image/ImageContext.cpp \
     Data/Image/ImageZoom.cpp \
     Data/Image/LayerCompositionModes.cpp \
+    Data/Image/LeastRecentlyUsedCache.cpp \
+    Data/Image/LeastRecentlyUsedCacheEntry.cpp \
     Data/Image/Render/RenderRequest.cpp \
     Data/Image/Render/RenderResponse.cpp \
     Data/Image/Save/SaveService.cpp \

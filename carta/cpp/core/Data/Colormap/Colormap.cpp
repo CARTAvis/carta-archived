@@ -321,21 +321,15 @@ QString Colormap::getImageUnits() const {
     return m_state.getValue<QString>( IMAGE_UNITS );
 }
 
-std::pair<int,double> Colormap::_getIntensityForPercent( double percent, bool* valid ) const {
-    *valid = false;
-    std::pair<int,double> value(0, percent);
+std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vector<double>& percents ) const {
+
+    std::vector<std::pair<int,double>> values;
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
         std::pair<int,int> bounds(-1,-1);
-        int index = 0;
-        double intValue = 0;
-        bool validIntensity = controller->getIntensity( -1, -1, percent, &intValue, &index );
-        if ( validIntensity ){
-            value= std::pair<int,double>( index, intValue );
-            *valid = true;
-        }
+        values = controller->getIntensity( -1, -1, percents );
     }
-    return value;
+    return values;
 }
 
 QList<QString> Colormap::getLinks() const {
@@ -1123,14 +1117,13 @@ void Colormap::_updateImageClips(){
 }
 
 void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
-    bool validMin = false;
-    bool validMax = false;
-    std::pair<int,double> minValue = _getIntensityForPercent( minPercent, &validMin );
-    std::pair<int,double> maxValue = _getIntensityForPercent( maxPercent, &validMax );
-    if ( validMin && validMax ){
-
-        double minInt = minValue.second;
-        double maxInt = maxValue.second;
+    std::vector<double> percentiles(2);
+    percentiles[0] = minPercent;
+    percentiles[1] = maxPercent;
+    std::vector< std::pair<int,double> > intensities = _getIntensityForPercents( percentiles );
+    if ( intensities.size() == 2 && intensities[0].first >=0 && intensities[1].first >= 0 ){
+        double minInt = intensities[0].second;
+        double maxInt = intensities[1].second;
 
         //Convert the units if we need to.
         Controller* controller = _getControllerSelected();
@@ -1151,14 +1144,14 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
               if ( qAbs( oldMinIntensity - minIntensity ) > m_errorMargin ){
                   intensityChanged = true;
                   m_stateData.setValue<double>( INTENSITY_MIN, minIntensity );
-                  m_stateData.setValue<int>(INTENSITY_MIN_INDEX, minValue.first );
+                  m_stateData.setValue<int>(INTENSITY_MIN_INDEX, intensities[0].first );
               }
 
               double oldMaxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
               if ( qAbs( oldMaxIntensity - maxIntensity ) > m_errorMargin ){
                   intensityChanged = true;
                   m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
-                  m_stateData.setValue<int>( INTENSITY_MAX_INDEX, maxValue.first );
+                  m_stateData.setValue<int>( INTENSITY_MAX_INDEX, intensities[1].first );
               }
               if ( intensityChanged ){
                   m_stateData.flushState();

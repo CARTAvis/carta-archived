@@ -467,15 +467,15 @@ QRectF LayerGroup::_getInputRect( const QSize& size ) const {
     return rect;
 }
 
-bool LayerGroup::_getIntensity( int frameLow, int frameHigh, double percentile,
-        double* intensity, int* intensityIndex ) const {
-    bool intensityFound = false;
+std::vector<std::pair<int,double> > LayerGroup::_getIntensity( int frameLow, int frameHigh,
+        const std::vector<double>& percentiles ) const{
+    std::vector<std::pair<int,double> > results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        intensityFound = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
-                percentile, intensity, intensityIndex );
+        results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
+                percentiles );
     }
-    return intensityFound;
+    return results;
 }
 
 std::shared_ptr<Layer> LayerGroup::_getLayer(){

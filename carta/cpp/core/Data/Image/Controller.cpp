@@ -53,8 +53,6 @@ const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
-
-
 const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
 
@@ -355,18 +353,15 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-bool Controller::getIntensity( double percentile, double* intensity,
-        int* intensityIndex ) const{
+std::vector<std::pair<int,double> > Controller::getIntensity( const std::vector<double>& percentiles ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    bool validIntensity = getIntensity( currentFrame, currentFrame, percentile, intensity, intensityIndex );
-    return validIntensity;
+    std::vector<std::pair<int,double> > result = getIntensity( currentFrame, currentFrame, percentiles );
+    return result;
 }
 
-bool Controller::getIntensity( int frameLow, int frameHigh, double percentile,
-        double* intensity, int* intensityIndex ) const{
-    bool validIntensity = m_stack->_getIntensity( frameLow, frameHigh, percentile,
-            intensity, intensityIndex );
-    return validIntensity;
+std::vector<std::pair<int,double> > Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+    std::vector<std::pair<int,double> > intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles );
+    return intensities;
 }
 
 QRectF Controller::_getInputRectangle(  ) const {
@@ -379,13 +374,9 @@ QSize Controller::getOutputSize( ) const {
 }
 
 
-double Controller::getPercentile( double intensity ) const {
-    int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL );
-    return getPercentile( currentFrame, currentFrame, intensity );
-}
-
 double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    return m_stack->_getPercentile( frameLow, frameHigh, intensity );
+    double percentile = m_stack->_getPercentile( frameLow, frameHigh, intensity );
+    return percentile;
 }
 
 

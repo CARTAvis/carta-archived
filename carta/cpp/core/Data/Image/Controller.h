@@ -200,6 +200,24 @@ public:
     std::vector<int> getImageDimensions( ) const;
 
     /**
+     * Returns the intensities corresponding to a given list of percentiles.
+     * @param percentiles - a list of numbers in [0,1] for which an intensities are desired.
+     * @return - a list of corresponding (location,intensity) pairs.
+     */
+    std::vector<std::pair<int,double> > getIntensity( const std::vector<double>& percentiles ) const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentiles - a list of percentiles in [0,1] for which an intensity is desired.
+     * @return - a list of the corresponding <location,intensity> pairs corresponding to the
+     *   percentiles.
+     */
+    std::vector<std::pair<int,double> > getIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles ) const;
+
+    /**
      * Return the current layer.
      * @return - the current layer.
      */
@@ -225,37 +243,9 @@ public:
     std::vector<int> getImageSlice() const;
 
     /**
-     * Returns the intensity corresponding to a given percentile in the current frame.
-     * @param percentile - a number [0,1] for which an intensity is desired.
-     * @param intensity - the computed intensity corresponding to the percentile.
-     * @param intensityIndex - frame index where maximum intensity was found.
-     * @return true if the computed intensity is valid; otherwise false.
-     */
-    bool getIntensity( double percentile, double* intensity, int* intensityIndex ) const;
-
-    /**
-     * Returns the intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentile - a number [0,1] for which an intensity is desired.
-     * @param intensity - the computed intensity corresponding to the percentile.
-     * @param intensityIndex - frame index where maximum intensity was found.
-     * @return true if the computed intensity is valid; otherwise false.
-     */
-    bool getIntensity( int frameLow, int frameHigh, double percentile,
-            double* intensity, int* intensityIndex ) const;
-
-    /**
      * Get the dimensions of the image viewer (window size).
      */
     QSize getOutputSize( ) const;
-
-    /**
-     * Return the percentile corresponding to the given intensity in the current frame.
-     * @param intensity a value for which a percentile is needed.
-     * @return the percentile corresponding to the intensity.
-     */
-    double getPercentile( double intensity ) const;
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -688,8 +678,6 @@ private:
     static const QString PAN_ZOOM_ALL;
     static const QString CENTER;
     static const QString STACK_SELECT_AUTO;
-
-
 
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;

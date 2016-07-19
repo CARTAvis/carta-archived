@@ -71,23 +71,24 @@ void
 AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr image )
 {
     CARTA_ASSERT( image );
+    if ( !m_iimage || m_iimage.get() != image.get() ){
+        m_iimage = image;
 
-    m_iimage = image;
+        // get the fits header from this image
+        FitsHeaderExtractor fhExtractor;
+        fhExtractor.setInput( m_iimage );
+        QStringList header = fhExtractor.getHeader();
 
-    // get the fits header from this image
-    FitsHeaderExtractor fhExtractor;
-    fhExtractor.setInput( m_iimage );
-    QStringList header = fhExtractor.getHeader();
+        // sanity check
+        if ( header.size() < 1 ) {
+            qWarning() << "Could not extract fits header..."
+                       << fhExtractor.getErrors();
+        }
 
-    // sanity check
-    if ( header.size() < 1 ) {
-        qWarning() << "Could not extract fits header..."
-                   << fhExtractor.getErrors();
-    }
-
-    if ( header != m().fitsHeader ) {
-        m_vgValid = false;
-        m().fitsHeader = header;
+        if ( header != m().fitsHeader ) {
+            m_vgValid = false;
+            m().fitsHeader = header;
+        }
     }
 } // setInputImage
 
