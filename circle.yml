@@ -26,7 +26,7 @@ dependencies:
     - mkdir -p ~/images
 
     # Restore docker build image and configure Dockerfile
-    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/astrilet/cartabuild:latest; docker save docker.io/astrilet/cartabuild:latest > ~/docker/image.tar; fi
+    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/vsuorant/cartabuild:latest; docker save docker.io/vsuorant/cartabuild:latest > ~/docker/image.tar; fi
     - cat ~/CARTAvis/Dockerfile | envsubst  > ~/CARTAvis/Dockerfile.new
     - mv ~/CARTAvis/Dockerfile.new ~/CARTAvis/Dockerfile
 
@@ -34,12 +34,12 @@ dependencies:
     - if [[ ! -e ~/images/SeleniumTestImages.tgz ]]; then curl -L https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz  > ~/images/SeleniumTestImages.tgz; fi
 
     # build CARTAvis
-    - docker build -t astrilet/circlecibuild .
+    - docker build -t vsuorant/circlecibuild .
 
 test:
   override:
     # Run scripted client tests
-    - docker run astrilet/circlecibuild /home/developer/src/CARTAvis/carta/scripts/runScriptedClientTests.sh
+    - docker run vsuorant/circlecibuild /home/developer/src/CARTAvis/carta/scripts/runScriptedClientTests.sh
 
     # Start CARTAvis server int the docker container
     #- docker run -d -p 8080:8080 astrilet/circlecibuild /home/developer/src/CARTAvis/carta/scripts/startCARTAServer.sh && sleep 60

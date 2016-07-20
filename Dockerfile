@@ -1,4 +1,4 @@
-FROM astrilet/cartabuild:latest
+FROM vsuorant/cartabuild:latest
 COPY . /home/developer/src/CARTAvis
 WORKDIR /home/developer/
 USER 1000
