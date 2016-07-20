@@ -1,4 +1,4 @@
-FROM astrilet/cartabuild:latest
+FROM vsuorant/cartabuild:latest
 
 RUN apt-get update && apt-get install libgsl0ldbl
 RUN apt-get install libgsl0-dev
