@@ -1389,6 +1389,7 @@ LayeredViewDemo::LayeredViewDemo( QObject * parent ) : QObject( parent )
 
 //    EyesLayer * eyes1 = new EyesLayer( mlvRaw, "ellipse1" );
     ClockLayer * clockLayer = new ClockLayer( mlvRaw, "clock" );
+    Q_UNUSED( clockLayer);
 
 //    RepelLayer * repel1 = new RepelLayer( mlvRaw, "Repel1" );
 //    EyesLayer * eyes2 = new EyesLayer( mlvRaw, "ellipse2" );

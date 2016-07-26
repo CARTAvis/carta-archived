@@ -31,8 +31,7 @@ public:
 protected:
 };
 
-// convenience function for deferred function calls
-
+/// convenience function for deferred function calls
 /// execute the the given function later (essentially at the next noop of the QtMainLoop)
 /// \param function to execute
 /// \note if you need to execute function with some parameters, use std::bind

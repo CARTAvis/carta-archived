@@ -44,7 +44,7 @@ eventApiTest()
     return 1;
 } // eventApiTest
 
-static auto xxx = eventApiTest();
+//static auto xxx = eventApiTest();
 
 QString
 EventBase::type() const

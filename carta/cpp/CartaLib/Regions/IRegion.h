@@ -7,6 +7,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/Nullable.h"
+#include "CartaLib/Regions/ICoordSystem.h"
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -23,10 +24,55 @@ static const QColor DEFAULT_FILL_COLOR = QColor( "blue" );
 
 typedef QPointF Point;
 
+typedef std::vector < double > PointN;
+
 class RegionBase;
+
+
 
 RegionBase *
 fromJson( QJsonObject json, RegionBase * parent = nullptr );
+
+class RegionBase;
+
+
+class RegionSet
+{
+public:
+
+    /// returns the root region
+    RegionBase *
+    root() { return m_root; }
+
+    /// sets the root
+    void
+    setRoot( RegionBase * region )
+    {
+        m_root = region;
+    }
+
+    /// test for intersection, the point is assumed to be in the coordinate system
+    /// specified by setInputCS()
+    bool
+    isPointInside( const PointN & pt );
+
+    /// set the input coordinate system. Affects
+    ///  isPointInside()
+    void
+    setInputCS( ICoordSystem * /*cs*/ ) {
+
+        /// here we setup converters from cs to all our coordinate systems
+    }
+
+private:
+
+    /// the root region
+    RegionBase * m_root = nullptr;
+
+    /// list of coordinate systems in the set
+    std::vector < ICoordSystem * > m_coordSystems;
+};
+
 
 class RegionBase
 {
@@ -36,8 +82,6 @@ public:
 
     /// textual name (for serialization/deserialization purposes)
     /// static constexpr auto TypeName = "None";
-    ///
-    ///
 
     virtual QString
     typeName() = 0;
@@ -47,8 +91,8 @@ public:
         GUI, Print
     };
 
-//    virtual QString
-//    name() const { return Name; }
+    //    virtual QString
+    //    name() const { return Name; }
 
     RegionBase( RegionBase * parent = nullptr )
     {
@@ -80,6 +124,20 @@ public:
         return m_kids;
     }
 
+    /// returns the coordinate system of this region
+    int
+    coordSystem() const
+    {
+        return m_coordinateSystem;
+    }
+
+    /// set the coordinate system of this region
+    void
+    setCoordSystem( int cs )
+    {
+        m_coordinateSystem = cs;
+    }
+
     /// initializes the object from json
     /// this should be called immediately after the object is created
     virtual bool
@@ -95,8 +153,9 @@ public:
         QJsonValue fillColor = json["fillColor"];
         if ( fillColor.isString() && QColor::isValidColor( fillColor.toString() ) ) {
             m_fillColor = QColor( fillColor.toString() );
-        } else if( fillColor.isBool() && fillColor.toBool() == false) {
-            m_fillColor = QColor( 0, 0, 0, 0);
+        }
+        else if ( fillColor.isBool() && fillColor.toBool() == false ) {
+            m_fillColor = QColor( 0, 0, 0, 0 );
         }
 
         if ( json.contains( "kids" ) ) {
@@ -115,7 +174,9 @@ public:
         return true;
     } // initFromJson
 
-    /// tests whether the point is inside this region
+    /// tests whether the point is inside this region, assuming the point is already
+    /// in the in the same coordinate system as the region.
+    ///
     /// for example circle would test distance from center, subtraction would test
     /// inside one but not the other, etc.
     ///
@@ -125,6 +186,18 @@ public:
     {
         return false;
     }
+
+    /// tests whether the point is inside this region, but the point is specified
+    /// using an array of points representing different coordinate systems
+    ///
+    /// default implementation returns false
+    virtual bool
+    isPointInsideCS( const std::vector<Point> & pts )
+    {
+        CARTA_ASSERT( int(pts.size()) > m_coordinateSystem);
+        return isPointInside( pts[m_coordinateSystem]);
+    }
+
 
     /// tests whether the point is inside this region as if it was a union
     /// this is useful to implement interactive events, like testing if mouse click
@@ -137,15 +210,16 @@ public:
     virtual bool
     isPointInsideUnion( const Point & p )
     {
-        if( canHaveChildren()) {
+        if ( canHaveChildren() ) {
             // for group regions we delegate to kids
             for ( auto & kid : children() ) {
                 if ( kid-> isPointInsideUnion( p ) ) { return true; }
             }
             return false;
-        } else {
+        }
+        else {
             // for simple regions we do direct shape test
-            return isPointInside( p);
+            return isPointInside( p );
         }
     }
 
@@ -270,8 +344,15 @@ public:
         return json;
     } // do_toJson
 
+    /// default behavior of the destructor is to delete all kids
     virtual
-    ~RegionBase() {; }
+    ~RegionBase()
+    {
+        for ( auto & kid : m_kids ) {
+            delete kid;
+        }
+        m_kids.resize( 0 );
+    }
 
 protected:
 
@@ -291,6 +372,8 @@ private:
     Nullable < QColor > m_fillColor;
 
     std::vector < RegionBase * > m_kids;
+
+    int m_coordinateSystem = 0;
 };
 
 class Circle : public RegionBase
@@ -389,7 +472,8 @@ public:
     double
     radius() const { return m_radius; }
 
-    void setRadius( double radius) { m_radius = radius; }
+    void
+    setRadius( double radius ) { m_radius = radius; }
 
 private:
 
@@ -407,11 +491,10 @@ public:
 
     Polygon( RegionBase * parent = nullptr ) : RegionBase( parent ) { }
 
-
     virtual bool
     isPointInside( const Point & p ) override
     {
-        return m_qpolyf.containsPoint( p, Qt::WindingFill);
+        return m_qpolyf.containsPoint( p, Qt::WindingFill );
     }
 
     virtual bool
@@ -453,17 +536,17 @@ public:
         // and add our own
         doc["pts"] = QJsonArray();
         QJsonArray pts;
-        for( auto & pt : m_qpolyf) {
+        for ( auto & pt : m_qpolyf ) {
             QJsonObject o;
             o["x"] = pt.x();
             o["y"] = pt.y();
-            pts.push_back( o);
+            pts.push_back( o );
         }
         doc["pts"] = pts;
         doc["type"] = TypeName;
 
         return doc;
-    }
+    } // toJson
 
     virtual bool
     initFromJson( QJsonObject obj ) override
@@ -471,24 +554,26 @@ public:
         if ( ! RegionBase::initFromJson( obj ) ) { return false; }
         if ( ! obj["pts"].isArray() ) { return false; }
         QJsonArray pts = obj["pts"].toArray();
-        for( const auto & jv : pts) {
+        for ( const auto & jv : pts ) {
             QJsonObject o = jv.toObject();
-            if( ! o["x"].isDouble()) { return false; }
-            if( ! o["y"].isDouble()) { return false; }
+            if ( ! o["x"].isDouble() ) { return false; }
+            if ( ! o["y"].isDouble() ) { return false; }
             double x = o["x"].toDouble();
             double y = o["y"].toDouble();
-            m_qpolyf.append( QPointF(x,y));
+            m_qpolyf.append( QPointF( x, y ) );
         }
         return true;
     }
 
-    const QPolygonF & qpolyf() const { return m_qpolyf; }
-    void setqpolyf( const QPolygonF & poly) { m_qpolyf = poly; }
+    const QPolygonF &
+    qpolyf() const { return m_qpolyf; }
+
+    void
+    setqpolyf( const QPolygonF & poly ) { m_qpolyf = poly; }
 
 private:
 
     QPolygonF m_qpolyf;
-
 };
 
 class Union : public RegionBase
@@ -528,75 +613,8 @@ public:
     }
 };
 
-void
-test1( QString inputFname, QString outputF );
+
+
 }
 }
 }
-
-#ifdef DONT_COMPILE
-
-class GroupBaseOld : public RegionBase
-{
-public:
-
-    virtual VectorGraphics::VGList
-    vgList() override
-    {
-        VectorGraphics::VGComposer comp;
-        for ( auto kid : children() ) {
-            comp.appendList( kid-> vgList() );
-        }
-        return comp.vgList();
-    }
-
-    /// outline box computation is always a union of kids
-    virtual QRectF
-    outlineBox() override
-    {
-        const auto & kids = children();
-        if ( kids.size() == 0 ) {
-            return QRectF();
-        }
-        auto rect = kids[0]->outlineBox();
-        for ( size_t i = 1 ; i < kids.size() ; ++i ) {
-            rect = rect.united( kids[i]-> outlineBox() );
-        }
-        return rect;
-    }
-
-    void
-    addChild( RegionBase * child )
-    {
-        m_kids.push_back( child );
-        child-> setParent( this );
-    }
-
-    const std::vector < RegionBase * > &
-    children()
-    {
-        return m_kids;
-    }
-
-    virtual bool
-    initFromJson( QJsonObject json ) override
-    {
-        if ( ! RegionBase::initFromJson( json ) ) { return false; }
-        QJsonValue jval = json["kids"];
-        if ( ! jval.isArray() ) { return false; }
-        QJsonArray jarr = jval.toArray();
-        for ( const auto & js : jarr ) {
-            auto kid = fromJson( js.toObject() );
-            if ( ! kid ) {
-                return false;
-            }
-            addChild( kid );
-        }
-        return true;
-    }
-
-private:
-
-    std::vector < RegionBase * > m_kids;
-};
-#endif // ifdef DONT_COMPILE

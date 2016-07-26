@@ -5,7 +5,7 @@
 # you can edit these:
 # note: these don't need to be relative paths
 CASACOREDIR=../../ThirdParty/casacore-2.0.1-shared
-ASTLIBDIR = ../../ThirdParty/ast-8.0.2
+ASTLIBDIR = ../../ThirdParty/ast-8.2.0
 WCSLIBDIR=../../ThirdParty/wcslib-4.23-shared
 CFITSIODIR=../../ThirdParty/cfitsio-3360-shared
 

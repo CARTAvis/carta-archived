@@ -143,6 +143,18 @@ public:
         // construct a meta data instance
         img-> m_meta = std::make_shared < CCMetaDataInterface > ( htmlTitle, casaCS );
 
+        /// \todo remove this test code
+        casa::Record rec;
+        if( ! casaCS-> save( rec, "")) {
+            std::string err = casaCS-> errorMessage();
+            qWarning() << "Could not serialize coordinate system";
+        }
+        else {
+            rec.print( std::cerr);
+            casa::AipsIO os("/tmp/file.name", casa::ByteIO::New);
+            rec.putRecord( os);
+        }
+
         return img;
     } // create
 

@@ -13,6 +13,16 @@ namespace Lib
 {
 namespace Regions
 {
+
+bool RegionSet::isPointInside(const PointN & pt) {
+
+    // we convert the incoming point using all converters that we have
+    // and then we call the root isPointInside()
+    Q_UNUSED(pt);
+    std::vector< Point > m_convertedPoints;
+    return root()-> isPointInsideCS( m_convertedPoints);
+}
+
 /// return an instance from json
 RegionBase *
 fromJson( QJsonObject json, RegionBase * parent )
@@ -88,6 +98,7 @@ static int
 apiTest()
 {
     Carta::Lib::Regions::Circle * c1 = new Carta::Lib::Regions::Circle( { 5, 5 }, 3 );
+
     Carta::Lib::Regions::Circle * c2 = new Carta::Lib::Regions::Circle( { 7, 1.5 }, 3.123 );
 
     qDebug() << "c1 bb=" << c1->outlineBox();
@@ -125,4 +136,10 @@ apiTest()
     return 0;
 } // apiTest
 
-static int foo = apiTest();
+
+
+
+
+
+//static int foo = apiTest();
+

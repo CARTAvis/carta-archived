@@ -35,7 +35,8 @@ SOURCES += \
     IRemoteVGView.cpp \
     Hooks/GetProfileExtractor.cpp \
     Regions/IRegion.cpp \
-    InputEvents.cpp
+    InputEvents.cpp \
+    Regions/ICoordSystem.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -75,7 +76,8 @@ HEADERS += \
     IRemoteVGView.h \
     Hooks/GetProfileExtractor.h \
     Regions/IRegion.h \
-    InputEvents.h
+    InputEvents.h \
+    Regions/ICoordSystem.h
 
 unix {
     target.path = /usr/lib

@@ -8,7 +8,8 @@ SUBDIRS = \
     core \
     desktop \
     plugins \
-    Tests
+    Tests \
+    testRegion
 
 isEmpty(NOSERVER) {
 	SUBDIRS +=server

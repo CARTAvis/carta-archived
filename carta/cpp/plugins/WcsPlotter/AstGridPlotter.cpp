@@ -109,6 +109,12 @@ AstGridPlotter::plot()
     }
     std::string stdstr = m_fitsHeader.toStdString();
     astPutCards( fitschan, stdstr.c_str() );
+    if ( ! astOK ) {
+        qDebug() << "astPutCards() failed";
+        m_errorString = "astPutCards() failed, check logs.";
+        return false;
+    }
+
     if ( m_carLin ) {
         astSet( fitschan, "CarLin=1" );
     }
@@ -119,7 +125,7 @@ AstGridPlotter::plot()
     // try to get WCS out of the fits data
     AstFrameSet * wcsinfo = static_cast < AstFrameSet * > ( astRead( fitschan ) );
     if ( ! astOK ) {
-        m_errorString = "Some AST LIB error, check logs.";
+        m_errorString = "astRead() failed, check logs.";
         return false;
     }
     else if ( wcsinfo == AST__NULL ) {
@@ -142,9 +148,7 @@ AstGridPlotter::plot()
         m_irect.right() + 1, m_irect.top() + 1
     };
 
-    qDebug() << "Calling astPlot()";
     AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "Grid=1" );
-    qDebug() << "astPlot() returned";
 //    AstPlot * plot = astPlot( wcsinfo, gbox, pbox, "" );
     if ( ! plot || ! astOK ) {
         m_errorString = "astPlot() failed";
@@ -205,9 +209,7 @@ AstGridPlotter::plot()
     }
 
     // call the actual plotting
-//    qDebug() << "Calling astGrid()";
     astGrid( plot );
-//    qDebug() << "Called astGrid()";
 
     if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );

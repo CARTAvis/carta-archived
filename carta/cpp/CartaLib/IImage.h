@@ -24,6 +24,7 @@
 #include "Slice.h"
 #include "ICoordinateFormatter.h"
 #include "IPlotLabelGenerator.h"
+#include "Regions/ICoordSystem.h"
 #include <QObject>
 #include <functional>
 #include <initializer_list>
@@ -161,6 +162,7 @@ public:
              std::function < void (const char *, int64_t count) > func,
              char * buff = nullptr,
              Traversal traversal = Traversal::Sequential ) = 0;
+
 };
 
 /// Utility class that wraps a raw view into a typed view.
@@ -295,6 +297,13 @@ public:
     otherInfo( TextFormat format = TextFormat::Plain ) = 0;
 
     virtual ~MetaDataInterface();
+
+    /// experimental - return region compatible coordinate system
+    /// \todo change this to pure virtual
+    virtual Regions::ICoordSystem * getCS() {
+        return new Regions::DefaultCoordSystem();
+    }
+
 
 };
 
