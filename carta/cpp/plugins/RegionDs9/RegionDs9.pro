@@ -35,7 +35,11 @@ LIBS += -L$${WCSLIBDIR}/lib -lwcs
 LIBS += -L$${CFITSIODIR}/lib -lcfitsio
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
-LIBS += -lfl -ly
+unix:macx{
+    LIBS += -L$${FLEXANDBISONDIR} -lfl -ly
+} else {
+    LIBS += -lfl -ly
+}
 
 INCLUDEPATH += $${CASACOREDIR}/include
 INCLUDEPATH += $${CASACOREDIR}/include/casacore
