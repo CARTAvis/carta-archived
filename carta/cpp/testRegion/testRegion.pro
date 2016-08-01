@@ -4,27 +4,12 @@
 
 QT      +=  webkitwidgets network widgets xml
 
-HEADERS += \
-#    MainWindow.h \
-#    CustomWebPage.h \
-#    DesktopPlatform.h \
-#    DesktopConnector.h \
-#    NetworkReplyFileq.h \
-#    NetworkAccessManager.h
-
+HEADERS +=
 
 SOURCES += \
-#    MainWindow.cpp \
-#    CustomWebPage.cpp \
-#    DesktopPlatform.cpp \
-#    DesktopConnector.cpp \
-#    NetworkAccessManager.cpp \
-#    NetworkReplyFileq.cpp \
     main.cpp
 
 RESOURCES =
-
-INCLUDEPATH += ../../../ThirdParty/rapidjson/include
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib

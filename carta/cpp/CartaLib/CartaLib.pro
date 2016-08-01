@@ -36,7 +36,8 @@ SOURCES += \
     Hooks/GetProfileExtractor.cpp \
     Regions/IRegion.cpp \
     InputEvents.cpp \
-    Regions/ICoordSystem.cpp
+    Regions/ICoordSystem.cpp \
+    Hooks/CoordSystemHook.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -77,7 +78,8 @@ HEADERS += \
     Hooks/GetProfileExtractor.h \
     Regions/IRegion.h \
     InputEvents.h \
-    Regions/ICoordSystem.h
+    Regions/ICoordSystem.h \
+    Hooks/CoordSystemHook.h
 
 unix {
     target.path = /usr/lib

@@ -13,6 +13,7 @@ namespace Lib
 {
 namespace Regions
 {
+typedef std::vector < double > PointN;
 
 /// description of an axis in an image
 class IAxisInfo
@@ -33,8 +34,6 @@ public:
     /// return the type of this axis
     virtual KnownType
     knownType() const = 0;
-
-
 };
 
 class PixelAxisInfo : public IAxisInfo
@@ -74,12 +73,11 @@ private:
     QString m_otherInfo;
 };
 
-
 class ICoordSystem
 {
 public:
 
-    /// serialize the coordinate system into a unique string (compact JSON)
+    /// return a unique string (compact JSON)
     virtual QString
     serialized() = 0;
 
@@ -87,13 +85,14 @@ public:
     virtual bool
     isSameAs( ICoordSystem * otherCS ) = 0;
 
+    /// return the world coordinate system (could be * this)
+//    const ICoordSystem & worldCS();
+
+    /// return the
+
     /// return information about axes
     virtual std::vector < const IAxisInfo * > &
     axisInfo() = 0;
-
-
-//    virtual void pixel2world( PointN &) = 0;
-//    virtual void world2pixel( PointN &) = 0;
 };
 
 /// default coordinate system - i.e. none
@@ -104,11 +103,10 @@ public:
     DefaultCoordSystem( int nCoords = 2 )
     {
         CARTA_ASSERT( nCoords > 0 );
-        m_axisInfos.resize( nCoords);
-        for( auto & ai : m_axisInfos) {
+        m_axisInfos.resize( nCoords );
+        for ( auto & ai : m_axisInfos ) {
             ai = new PixelAxisInfo();
         }
-
     }
 
     virtual QString
@@ -120,16 +118,31 @@ public:
         return serialized() == otherCS->serialized();
     }
 
-    virtual std::vector< IAxisInfo const *> & axisInfo() override
+    virtual std::vector < IAxisInfo const * > &
+    axisInfo() override
     {
         return m_axisInfos;
     }
+
 private:
 
     std::vector < const IAxisInfo * > m_axisInfos;
-
 };
 
+/// coordinate system converter interface
+class ICoordSystemConverter
+{
+public:
+
+    virtual bool
+    convert( const PointN & src, PointN & dst ) = 0;
+
+    virtual const ICoordSystem &
+    srcCS() = 0;
+
+    virtual const ICoordSystem &
+    dstCS() = 0;
+};
 }
 }
 }

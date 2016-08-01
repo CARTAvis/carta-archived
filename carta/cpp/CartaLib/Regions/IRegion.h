@@ -24,7 +24,6 @@ static const QColor DEFAULT_FILL_COLOR = QColor( "blue" );
 
 typedef QPointF Point;
 
-typedef std::vector < double > PointN;
 
 class RegionBase;
 

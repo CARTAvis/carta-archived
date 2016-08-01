@@ -19,6 +19,7 @@ isEmpty(NOSERVER) {
 core.depends = CartaLib
 desktop.depends = core
 server.depends = core
+testRegion.depends = core
 plugins.depends = core
 isEmpty(NOSERVER) {
         Tests.depends = core desktop server plugins

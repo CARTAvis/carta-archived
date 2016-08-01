@@ -27,6 +27,10 @@ enum class UniqueHookIDs {
     GetImageRenderService_ID,
     GetProfileExtractor_ID,
 
+    /// region related stuff, still to be considered experimental
+    CoordSystemHook_ID,
+    CoordSystemConverterHook_ID,
+
     /// experimental, soon to be removed:
     PreRender_ID,
     LoadImage_ID
