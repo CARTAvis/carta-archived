@@ -24,16 +24,12 @@ static const QColor DEFAULT_FILL_COLOR = QColor( "blue" );
 
 typedef QPointF Point;
 
-
 class RegionBase;
-
-
 
 RegionBase *
 fromJson( QJsonObject json, RegionBase * parent = nullptr );
 
 class RegionBase;
-
 
 class RegionSet
 {
@@ -58,9 +54,10 @@ public:
     /// set the input coordinate system. Affects
     ///  isPointInside()
     void
-    setInputCS( ICoordSystem * /*cs*/ ) {
-
+    setInputCS( const CompositeCoordinateSystem & cs )
+    {
         /// here we setup converters from cs to all our coordinate systems
+        Q_UNUSED( cs);
     }
 
 private:
@@ -71,7 +68,6 @@ private:
     /// list of coordinate systems in the set
     std::vector < ICoordSystem * > m_coordSystems;
 };
-
 
 class RegionBase
 {
@@ -191,12 +187,11 @@ public:
     ///
     /// default implementation returns false
     virtual bool
-    isPointInsideCS( const std::vector<Point> & pts )
+    isPointInsideCS( const std::vector < Point > & pts )
     {
-        CARTA_ASSERT( int(pts.size()) > m_coordinateSystem);
-        return isPointInside( pts[m_coordinateSystem]);
+        CARTA_ASSERT( int ( pts.size() ) > m_coordinateSystem );
+        return isPointInside( pts[m_coordinateSystem] );
     }
-
 
     /// tests whether the point is inside this region as if it was a union
     /// this is useful to implement interactive events, like testing if mouse click
@@ -611,9 +606,6 @@ public:
         return obj;
     }
 };
-
-
-
 }
 }
 }

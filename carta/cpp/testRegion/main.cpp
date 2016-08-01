@@ -19,6 +19,7 @@ namespace tRegion
 typedef Carta::Lib::Regions::RegionSet RegionSet;
 typedef Carta::Lib::Image::ImageInterface Image;
 typedef Carta::Lib::Regions::ICoordSystem ICoordSystem;
+typedef Carta::Lib::Regions::ICoordSystemConverter ICoordSystemConverter;
 
 RegionSet *
 readRegionSet( QString /*fname*/ )
@@ -58,10 +59,10 @@ runTest1( QString imageFname, QString regionFname )
 
     // get the coordinate system from img
     auto imgMeta = astroImage-> metaData();
-    ICoordSystem * imgCS = imgMeta-> getCS();
+    ICoordSystemConverter * imgCS = imgMeta-> getCS();
 
     // set the destination coordinate system for the region set
-    rSet-> setInputCS( imgCS );
+    rSet-> setInputCS( imgCS->dstCS() );
 
     // go through all pixels in the image and test whether they are inside region,
     // calculating some statistics

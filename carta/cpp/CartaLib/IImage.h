@@ -298,10 +298,10 @@ public:
 
     virtual ~MetaDataInterface();
 
-    /// experimental - return region compatible coordinate system
+    /// experimental - return coordinate system converter
     /// \todo change this to pure virtual
-    virtual Regions::ICoordSystem * getCS() {
-        return new Regions::DefaultCoordSystem();
+    virtual Regions::ICoordSystemConverter * getCS() {
+        return new Regions::DefaultCoordSystemConverter( 5);
     }
 
 
