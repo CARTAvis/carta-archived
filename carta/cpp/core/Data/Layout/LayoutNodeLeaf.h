@@ -45,6 +45,7 @@ private:
 
     const static QString PLUGIN;
 
+
     static bool m_registered;
     LayoutNodeLeaf( const QString& path, const QString& id );
 

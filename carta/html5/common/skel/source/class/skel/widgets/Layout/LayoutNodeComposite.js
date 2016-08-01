@@ -60,6 +60,20 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             child.addListener( "findChild", function(ev){
                 this.fireDataEvent( "findChild", ev.getData());
             }, this );
+            child.addListener( "leafResize", function(ev){
+                var dimFirst = [0, 0];
+                if ( this.m_areaFirst !== null ){
+                    dimFirst = this.m_areaFirst._getDimensions();
+                }
+                var dimSecond = [0,0];
+                if ( this.m_areaSecond !== null ){
+                    dimSecond = this.m_areaSecond._getDimensions();
+                }
+                var width = dimFirst[0]+dimSecond[0];
+                var height = dimFirst[1]+dimSecond[1];
+                this.sendSizeCmd( width, height );
+                this.fireDataEvent("resizeNode", null);
+            }, this );
             child.initSharedVar();
             return child;
         },
@@ -335,11 +349,33 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 this.m_areaSecond = this._initializeChild( obj.layoutRight.id, obj.layoutRight.composite );
             }
             
-            var flex = 1;
+            //Decide on the flex ratio based on the orientation of the pane
+            //and the sizes of the children.
+            var flexFirst = 1;
+            var flexSecond = 1;
+            if ( this.m_pane.getOrientation() == this.m_HORIZONTAL ){
+                //Ratio will be for width.
+                var leftWidth = obj.layoutLeft.width;
+                var rightWidth = obj.layoutRight.width;
+                var totalWidth = leftWidth + rightWidth;
+                if ( totalWidth > 0 ){
+                    flexFirst = leftWidth / totalWidth;
+                    flexSecond = rightWidth / totalWidth;
+                }
+            }
+            else {
+                var topHeight = obj.layoutLeft.height;
+                var bottomHeight = obj.layoutRight.height;
+                var totalHeight = topHeight + bottomHeight;
+                if ( totalHeight > 0 ){
+                    flexFirst = topHeight / totalHeight;
+                    flexSecond = bottomHeight / totalHeight;
+                }
+            }
             var firstArea = this.m_areaFirst.getDisplayArea();
-            this.m_pane.add( firstArea, flex);
+            this.m_pane.add( firstArea, flexFirst);
             var secondArea = this.m_areaSecond.getDisplayArea();
-            this.m_pane.add( secondArea, flex);
+            this.m_pane.add( secondArea, flexSecond);
         },
         
         
@@ -406,35 +442,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             return win;
         },
 
-
-        /**
-         * Resets the width and height of the two sides of the
-         * split pane, decreasing them as appropriate to make
-         * space for a new area.
-         * 
-         * @param width {Number} the base width.
-         * @param height {Number} the base height.
-         * @param decreaseWidth
-         *                {Boolean} whether or not the width
-         *                should be halved.
-         * @param decreaseHeight
-         *                {Boolean} whether or not the height
-         *                should be halved.
-         */
-        _setDimensions : function(width, height, decreaseWidth,
-                decreaseHeight) {
-            if (decreaseHeight) {
-                height = Math.floor(height / 2);
-            }
-            if (decreaseWidth) {
-                width = Math.floor(width / 2);
-            }
-            this.m_areaFirst._setDimensions(width, height,
-                    decreaseWidth, decreaseHeight);
-            this.m_areaSecond._setDimensions(width, height,
-                    decreaseWidth, decreaseHeight);
-        },
-
         setDrawMode : function(drawInfo) {
             if (this.m_areaFirst !== null) {
                 this.m_areaFirst.setDrawMode(drawInfo);
@@ -443,55 +450,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 this.m_areaSecond.setDrawMode(drawInfo);
             }
         },
-
-
-        /**
-         * Sets the height of the window located at the given row and column.
-         * @param height {Number} the new height in pixels.
-         * @param rowIndex {Number} the row location of the target window.
-         * @param colIndex {Number} the column location of the target window.
-         * @return {boolean} true if the height was set; false otherwise.
-         */
-        setAreaHeight : function(height, rowIndex, colIndex ) {
-            var heightSet = false;
-            if (this.m_areaFirst !== null) {
-                heightSet = this.m_areaFirst.setAreaHeight(
-                        height, rowIndex, colIndex);
-            }
-            if (!heightSet) {
-                if (this.m_areaSecond !== null) {
-                    heightSet = this.m_areaSecond
-                            .setAreaHeight(height, rowIndex,
-                                    colIndex);
-                }
-            }
-            
-            return heightSet;
-        },
-
-        /**
-         * Sets the width of the window located at the given row and column.
-         * @param width {Number} the new width in pixels.
-         * @param rowIndex {Number} the row location of the target window.
-         * @param colIndex {Number} the column location of the target window.
-         * @return {boolean} true if the width was set; false otherwise.
-         */
-
-        setAreaWidth : function(width, rowIndex, colIndex) {
-            var widthSet = false;
-            if (this.m_areaFirst !== null) {
-                widthSet = this.m_areaFirst.setAreaWidth(width,
-                        rowIndex, colIndex);
-            }
-            if (!widthSet) {
-                if (this.m_areaSecond !== null) {
-                    widthSet = this.m_areaSecond.setAreaWidth(
-                            width, rowIndex, colIndex);
-                }
-            }
-            return widthSet;
-        },
-        
 
         /**
          * Notifies children that the given window was selected.

@@ -28,6 +28,14 @@ public:
     virtual bool addWindow( const QString& nodeId, const QString& position, int index);
 
     /**
+     * Returns true if this node or one of its descendents contains a layout cell with the
+     * given nodeId; false otherwise.
+     * @param nodeId - an identifier for a node.
+     * @return true if the node is a descendent of this node; false otherwise.
+     */
+    virtual bool containsNode( const QString& nodeId ) const;
+
+    /**
      * Returns the lowest layout cell that contains all the nodeIds in the list; sets the
      * childId to the identifier of the child containing the nodes.
      * @param nodeId - a list of node identifiers.
@@ -58,6 +66,12 @@ public:
     virtual LayoutNode* getChildSecond() const;
 
     /**
+     * Returns the height of the plugin.
+     * @return - the height of the plugin.
+     */
+    int getHeight() const;
+
+    /**
      * Returns true if the layout cell with the locationId is either this cell or one of its descendents;
      * sets the index to the index of the located cell in depth-first search order among those displaying
      * the indicated plug-in.
@@ -71,18 +85,16 @@ public:
     virtual bool getIndex( const QString& plugin, const QString& locationId, int* index ) const = 0;
 
     /**
-     * Returns true if this node or one of its descendents contains a layout cell with the
-     * given nodeId; false otherwise.
-     * @param nodeId - an identifier for a node.
-     * @return true if the node is a descendent of this node; false otherwise.
-     */
-    virtual bool containsNode( const QString& nodeId ) const;
-
-    /**
      * Returns a string representation of this layout cell's state.
      * @return a string representation of the layout cell.
      */
     virtual QString getStateString() const;
+
+    /**
+     * Returns the width of the plugin.
+     * @return - the width of the plugin.
+     */
+    int getWidth() const;
 
     /**
 -     * Returns whether or not this is a composite layout cell (contains children).
@@ -101,7 +113,7 @@ public:
         * Reset the animator's selections.
         * @param state - the selection state of the animator.
         */
-    virtual void resetState( const QString& state, QMap<QString,int>& usedPlugins ) = 0;
+    virtual void resetState( const QString& state, QMap<QString,int>& usedPlugins );
 
     /**
      * Set the first child of this node (ignored for leaf nodes).
@@ -151,10 +163,13 @@ public:
 protected:
 
     LayoutNode( const QString& className, const QString& path, const QString& id );
+    const static QString WIDTH;
+    const static QString HEIGHT;
 
 private:
     void _initializeCommands();
     void _initializeDefaultState();
+
     LayoutNode( const LayoutNode& other);
     LayoutNode& operator=( const LayoutNode& other );
 };

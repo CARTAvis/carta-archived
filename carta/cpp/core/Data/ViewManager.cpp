@@ -739,7 +739,6 @@ QString ViewManager::_makeHistogram( int index ){
     //If there is only one controller, automatically link it to the
     //histogram.
     if ( m_controllers.size() == 1 ){
-        qDebug() << "Addding controller link to histogram";
         m_histograms[index]->addLink( m_controllers[0] );
     }
     return m_histograms[index]->getPath();

@@ -24,6 +24,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
 
     events : {
         "iconifyWindow" : "qx.event.type.Data"
+        
     },
 
     members : {
@@ -248,6 +249,8 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
             if (bounds !== null && this.m_window !== null ) {
                 this.m_window.setWidth(bounds.width );
                 this.m_window.setHeight(bounds.height);
+                this.fireDataEvent("resizeNode", null);
+                this.sendSizeCmd( bounds.width, bounds.height );
             }
         },
         
@@ -284,66 +287,11 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
             this._setView( obj.plugin );
         },
         
-        /**
-         * Returns whether or not the height was set based on
-         * the location of this desktop compared to the layout
-         * row and column index passed in.
-         * 
-         * @param height {Number} vertical height of the
-         *                display area.
-         * @param locationId {String} an identifier for the location of the new window.
-         * @return {boolean} true if the height was set; false, otherwise.
-         */
-        setAreaHeight : function(height, locationId) {
-            var target = true;
-            if ( locationId !== this.m_id ) {
-                target = false;
-            } 
-            else {
-                this.setHeight( height );
-            }
-            return target;
-        },
-        
-        /**
-         * Returns whether or not the width was set based on the
-         * location of this desktop compared to the layout row
-         * and column index passed in.
-         * 
-         * @param width {Number} horizontal of the display area.
-         * @param locationId {String} an identifier for the layout location.
-         * @return {boolean} true if the width was set; false otherwise.
-         */
-        setAreaWidth : function(width, locationId ) {
-            var target = true;
-            if ( locationId != this.m_id ) {
-                target = false;
-            } else {
-                this.setWidth(width);
-            }
-            return target;
-        },
-
-        /**
-         * Sets the width and height.
-         * 
-         * @param width {Number} the new width.
-         * @param height {Number} the new height.
-         * @param decreaseWidth {Boolean} - currently ignored.
-         * @param decreaseHeight {Boolean} - currently ignored.
-         */
-        _setDimensions : function(width, height, decreaseWidth,
-                decreaseHeight) {
-            this.setWidth(width);
-            this.setHeight(height);
-        },
-        
         setDrawMode : function(drawInfo) {
             if (this.m_window !== null) {
                 this.m_window.setDrawMode(drawInfo);
             }
         },
-
 
         /**
          * Returns whether or not a different plug-in was

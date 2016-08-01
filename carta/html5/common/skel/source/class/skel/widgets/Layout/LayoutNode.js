@@ -15,10 +15,12 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
     construct : function(id) {
         this.base(arguments);
         this.m_id = id;
+        this.m_connector = mImport("connector");
     },
 
     events : {
-        "iconifyWindow" : "qx.event.type.Data"
+        "iconifyWindow" : "qx.event.type.Data",
+        "resizeNode" : "qx.event.type.Data"
     },
 
     members : {
@@ -130,8 +132,8 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
          * from the server.
          */
         initSharedVar : function(){
-            var connector = mImport("connector");
-            this.m_sharedVar = connector.getSharedVar( this.m_id );
+           
+            this.m_sharedVar = this.m_connector.getSharedVar( this.m_id );
             this.m_sharedVar.addCB( this._layoutChangedCB.bind( this ));
             this._layoutChangedCB( this.m_sharedVar.get());
         },
@@ -213,24 +215,18 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             return null;
         },
 
-
-
         /**
-         * Resets the width and height of the two sides of the
-         * split pane, decreasing them as appropriate to make
-         * space for a new area.
-         * 
-         * @param width {Number} the base width.
-         * @param height {Number} the base height.
-         * @param decreaseWidth
-         *                {Boolean} whether or not the width
-         *                should be halved.
-         * @param decreaseHeight
-         *                {Boolean} whether or not the height
-         *                should be halved.
+         * Update the server with the new size of the node.
+         * @param width {Number} - the new width of the node.
+         * @param height {Number} - the new height of the node.
          */
-        _setDimensions : function(width, height, decreaseWidth,
-                decreaseHeight) {
+        sendSizeCmd : function( width, height ){
+            if ( this.m_connector !== null && this.m_id != null){
+                var path = skel.widgets.Path.getInstance();
+                var cmd = this.m_id + path.SEP_COMMAND +"setSize";
+                var params = "width:"+width+",height:"+height;
+                this.m_connector.sendCommand( cmd, params, null);
+            }
         },
 
         setDrawMode : function(drawInfo) {
@@ -251,29 +247,6 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         },
 
         /**
-         * Sets the height of the window located at the given row and column.
-         * @param height {Number} the new height in pixels.
-         * @param locationId {String} an identifier for the layout location.
-         * @return {boolean} true if the height was set; false otherwise.
-         */
-        setAreaHeight : function(height, locationId ) {
-            return false;
-        },
-
-        /**
-         * Sets the width of the window located at the given row and column.
-         * @param width {Number} the new width in pixels.
-         * @param locationId {String} an identifier for the layout location.
-         * @return {boolean} true if the width was set; false otherwise.
-         */
-
-        setAreaWidth : function(width, locationId ) {
-            return false;
-        },
-        
-
-
-        /**
          * Notifies children that the given window was selected.
          * 
          * @param win {skel.widgets.Window.DisplayWindow} the
@@ -282,6 +255,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         windowSelected : function(win) {
         },
         
+        m_connector : null,
         m_id : null,
         m_sharedVar : null
      

@@ -4,11 +4,11 @@
 
 //%pure-parser
 
-%require "3.0"
+%require "2.4.1"
 %skeleton "lalr1.cc"
 %debug
 %defines
-%define parser_class_name {ds9parse}
+%define "parser_class_name" "ds9parse"
 
 %code requires {
     class ParserDs9;

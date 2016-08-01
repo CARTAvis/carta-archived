@@ -67,7 +67,7 @@ private:
             const Carta::State::StateInterface& newState, QMap<QString,int>& usedPlugins );
     void _setChild( const QString& key, std::unique_ptr<LayoutNode>& child, LayoutNode* node,
             bool destroy );
-    void _updateChildState( const QString& childKey, const QString& id, bool composite );
+    void _updateChildState( const QString& childKey,  LayoutNode* child );
 
     std::unique_ptr<LayoutNode> m_firstChild;
     std::unique_ptr<LayoutNode> m_secondChild;
