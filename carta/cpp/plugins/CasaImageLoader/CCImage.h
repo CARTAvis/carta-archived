@@ -175,7 +175,9 @@ public:
 
 
     virtual
-    ~CCImage() { }
+    ~CCImage() {
+        qDebug() << "~CCImage is getting called";
+    }
 
     /// do not use this!
     /// \todo constructor should be protected... but I don't have time to fix the

@@ -22,7 +22,10 @@ namespace Regions
 static const QColor DEFAULT_LINE_COLOR = QColor( "pink" );
 static const QColor DEFAULT_FILL_COLOR = QColor( "blue" );
 
-typedef QPointF Point;
+/// for now we use 2D points for all region related operations, but this could
+/// change in the future to add support fo 3D or even higher dimensional regions
+typedef QPointF RegionPoint;
+typedef std::vector< RegionPoint > RegionPointV;
 
 class RegionBase;
 
@@ -46,18 +49,41 @@ public:
         m_root = region;
     }
 
-    /// test for intersection, the point is assumed to be in the coordinate system
-    /// specified by setInputCS()
+    /// test for intersection, the point must be specified as an array of points, one
+    /// for each coordinate system (query this by nCoordSystems() & coordSystemConverter())
     bool
-    isPointInside( const PointN & pt );
+    isPointInside( const std::vector < RegionPoint > & pts );
 
     /// set the input coordinate system. Affects
     ///  isPointInside()
-    void
-    setInputCS( const CompositeCoordinateSystem & cs )
+//    void
+//    setInputCS( const CompositeCoordinateSystem & cs )
+//    {
+//        /// here we setup converters from cs to all our coordinate systems
+//        Q_UNUSED( cs);
+//    }
+
+    /// returns how many coordinate systems are used in this region set
+    int
+    nCoordSystems() const
     {
-        /// here we setup converters from cs to all our coordinate systems
-        Q_UNUSED( cs);
+        return m_coordSystems.size();
+    }
+
+    /// returns the coordinate system converter (i)
+    ICoordSystemConverter &
+    coordSystemConverter( int i )
+    {
+        CARTA_ASSERT( i >= 0 && i <= nCoordSystems() );
+        return * m_coordSystems[i];
+    }
+
+    /// add a coordinate system converter (and return it's index)
+    int
+    addCoordSystemConverter( ICoordSystemConverter::SharedPtr cvt )
+    {
+        m_coordSystems.push_back( cvt );
+        return m_coordSystems.size() - 1;
     }
 
 private:
@@ -66,7 +92,7 @@ private:
     RegionBase * m_root = nullptr;
 
     /// list of coordinate systems in the set
-    std::vector < ICoordSystem * > m_coordSystems;
+    std::vector < ICoordSystemConverter::SharedPtr > m_coordSystems;
 };
 
 class RegionBase
@@ -123,14 +149,14 @@ public:
     int
     coordSystem() const
     {
-        return m_coordinateSystem;
+        return m_coordinateSystemID;
     }
 
     /// set the coordinate system of this region
     void
     setCoordSystem( int cs )
     {
-        m_coordinateSystem = cs;
+        m_coordinateSystemID = cs;
     }
 
     /// initializes the object from json
@@ -177,7 +203,7 @@ public:
     ///
     /// default implementation returns false
     virtual bool
-    isPointInside( const Point & /*p*/ )
+    isPointInside( const RegionPointV & /*p*/ )
     {
         return false;
     }
@@ -187,10 +213,10 @@ public:
     ///
     /// default implementation returns false
     virtual bool
-    isPointInsideCS( const std::vector < Point > & pts )
+    isPointInsideCS( const RegionPointV & pts )
     {
-        CARTA_ASSERT( int ( pts.size() ) > m_coordinateSystem );
-        return isPointInside( pts[m_coordinateSystem] );
+        CARTA_ASSERT( int ( pts.size() ) > m_coordinateSystemID );
+        return false;
     }
 
     /// tests whether the point is inside this region as if it was a union
@@ -202,18 +228,18 @@ public:
     ///   for regions with kids, it calls the kids isPointInsideUnion() and returns
     ///   true if the point is inside any of the kids (hence the union)
     virtual bool
-    isPointInsideUnion( const Point & p )
+    isPointInsideUnion( const RegionPointV & pts )
     {
         if ( canHaveChildren() ) {
             // for group regions we delegate to kids
             for ( auto & kid : children() ) {
-                if ( kid-> isPointInsideUnion( p ) ) { return true; }
+                if ( kid-> isPointInsideUnion( pts ) ) { return true; }
             }
             return false;
         }
         else {
             // for simple regions we do direct shape test
-            return isPointInside( p );
+            return isPointInside( pts );
         }
     }
 
@@ -338,6 +364,13 @@ public:
         return json;
     } // do_toJson
 
+    /// return the coordinate system index
+    int
+    csId() const
+    {
+        return m_coordinateSystemID;
+    }
+
     /// default behavior of the destructor is to delete all kids
     virtual
     ~RegionBase()
@@ -367,7 +400,7 @@ private:
 
     std::vector < RegionBase * > m_kids;
 
-    int m_coordinateSystem = 0;
+    int m_coordinateSystemID = 0;
 };
 
 class Circle : public RegionBase
@@ -380,24 +413,25 @@ public:
 
     Circle( RegionBase * parent = nullptr ) : RegionBase( parent ) { }
 
-    Circle( const Point & center, double radius )
+    Circle( const RegionPoint & center, double radius )
     {
         m_center = center;
         m_radius = radius;
     }
 
     virtual bool
-    isPointInside( const Point & p ) override
+    isPointInside( const RegionPointV & pts ) override
     {
+        const auto & p = pts[csId()];
         auto d = p - m_center;
         auto lsq = QPointF::dotProduct( d, d );
         return lsq < m_radius * m_radius;
     }
 
     virtual bool
-    isPointInsideUnion( const Point & p ) override
+    isPointInsideUnion( const RegionPointV & pts ) override
     {
-        return isPointInside( p );
+        return isPointInside( pts );
     }
 
     virtual QRectF
@@ -454,11 +488,11 @@ public:
         return true;
     }
 
-    const Point &
+    const RegionPoint &
     center() const { return m_center; }
 
     void
-    setCenter( const QPointF & pt )
+    setCenter( const RegionPoint & pt )
     {
         m_center = pt;
     }
@@ -471,7 +505,7 @@ public:
 
 private:
 
-    Point m_center { 0, 0 };
+    RegionPoint m_center { 0, 0 };
     double m_radius = 1;
 };
 
@@ -486,15 +520,16 @@ public:
     Polygon( RegionBase * parent = nullptr ) : RegionBase( parent ) { }
 
     virtual bool
-    isPointInside( const Point & p ) override
+    isPointInside( const RegionPointV & pts ) override
     {
+        const auto & p = pts[csId()];
         return m_qpolyf.containsPoint( p, Qt::WindingFill );
     }
 
     virtual bool
-    isPointInsideUnion( const Point & p ) override
+    isPointInsideUnion( const RegionPointV & pts ) override
     {
-        return isPointInside( p );
+        return isPointInside( pts );
     }
 
     virtual QRectF
@@ -584,18 +619,15 @@ public:
     canHaveChildren() const override { return true; }
 
     virtual bool
-    isPointInside( const Point & p ) override
+    isPointInside( const RegionPointV & pts ) override
     {
         // return true if the point is inside any of the kids
         for ( auto & kid : children() ) {
-            if ( kid-> isPointInside( p ) ) { return true; }
+            if ( kid-> isPointInside( pts ) ) { return true; }
         }
 
         // otherwise it's not inside
         return false;
-
-//        // make sure we return true only if we actually have some kids
-//        return children().size() > 0;
     }
 
     virtual QJsonObject

@@ -403,7 +403,7 @@ public:
     virtual bool
     isPointInside( const QPointF & pt ) override
     {
-        return m_circleRegion-> isPointInside( pt );
+        return m_circleRegion-> isPointInside( {pt} );
     }
 
     virtual void
@@ -535,7 +535,7 @@ public:
     virtual bool
     isPointInside( const QPointF & pt ) override
     {
-        return m_polygonRegion-> isPointInside( pt );
+        return m_polygonRegion-> isPointInside( {pt} );
     }
 
     virtual void

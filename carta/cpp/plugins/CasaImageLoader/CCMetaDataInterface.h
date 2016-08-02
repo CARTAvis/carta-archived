@@ -8,14 +8,14 @@
 #include <casacore/coordinates/Coordinates/CoordinateSystem.h>
 #include <memory>
 
-
 class CCMetaDataInterface
-        : public Carta::Lib::Image::MetaDataInterface
+    : public Carta::Lib::Image::MetaDataInterface
 {
-    CLASS_BOILERPLATE( CCMetaDataInterface);
+    CLASS_BOILERPLATE( CCMetaDataInterface );
 
 public:
-    CCMetaDataInterface(QString htmlTitle, std::shared_ptr<casa::CoordinateSystem> casaCS);
+
+    CCMetaDataInterface( QString htmlTitle, std::shared_ptr < casa::CoordinateSystem > casaCS );
 
     virtual Carta::Lib::Image::MetaDataInterface *
     clone() override;
@@ -35,8 +35,10 @@ public:
     virtual QStringList
     otherInfo( TextFormat format ) override;
 
-protected:
-    Carta::Lib::HtmlString m_title;
-    std::shared_ptr<casa::CoordinateSystem> m_casaCS;
+    virtual Carta::Lib::Regions::ICoordSystemConverter::SharedPtr getCSConv() override;
 
+protected:
+
+    Carta::Lib::HtmlString m_title;
+    std::shared_ptr < casa::CoordinateSystem > m_casaCS;
 };

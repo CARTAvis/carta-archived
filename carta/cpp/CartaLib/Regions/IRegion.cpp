@@ -13,14 +13,19 @@ namespace Lib
 {
 namespace Regions
 {
+bool
+RegionSet::isPointInside( const std::vector < RegionPoint > & pts )
+{
+    return root()-> isPointInside( pts );
 
-bool RegionSet::isPointInside(const PointN & pt) {
 
-    // we convert the incoming point using all converters that we have
-    // and then we call the root isPointInside()
-    Q_UNUSED(pt);
-    std::vector< Point > m_convertedPoints;
-    return root()-> isPointInsideCS( m_convertedPoints);
+    // let's convert the points to QPointF
+//    std::vector< QPointF > qpts( pts.size());
+//    for( size_t i = 0 ; i < pts.size() ; i ++ ) {
+//        qpts[i] = QPointF( pts[i][0], pts[i][1]);
+//    }
+
+//    return root()-> isPointInsideCS( qpts );
 }
 
 /// return an instance from json
@@ -72,24 +77,25 @@ test1( QString inputFname, QString outputFname )
     }
 
     Carta::Lib::Regions::RegionBase * bb = Carta::Lib::Regions::fromJson( jdoc.object() );
+
     // get the outline box
     QRectF bigRect = bb->outlineBox();
 
     // setup the output image
     QSize outputSize;
     int maxSize = 100;
-    if( bigRect.width() > bigRect.height()) {
+    if ( bigRect.width() > bigRect.height() ) {
         outputSize = QSize( maxSize, maxSize * bigRect.height() / bigRect.width() );
-    } else {
+    }
+    else {
         outputSize = QSize( maxSize * bigRect.width() / bigRect.height(), maxSize );
     }
-    QImage qimg( outputSize, QImage::Format_ARGB32);
-    qimg.fill(0);
+    QImage qimg( outputSize, QImage::Format_ARGB32 );
+    qimg.fill( 0 );
 
     // save image to output
-    qimg.save( outputFname);
-}
-
+    qimg.save( outputFname );
+} // test1
 }
 }
 }
@@ -136,10 +142,4 @@ apiTest()
     return 0;
 } // apiTest
 
-
-
-
-
-
 //static int foo = apiTest();
-

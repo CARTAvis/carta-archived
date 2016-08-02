@@ -19,6 +19,10 @@ public:
     virtual bool handleHook(BaseHook & hookData) override;
     virtual std::vector<HookId> getInitialHookList() override;
 
+    ~CasaImageLoader() {
+        qDebug() << "~CasaImageLoader is getting called";
+    }
+
 //    void forgot_to_define_this();
 
 private:

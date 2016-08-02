@@ -29,7 +29,8 @@ enum class UniqueHookIDs {
 
     /// region related stuff, still to be considered experimental
     CoordSystemHook_ID,
-    CoordSystemConverterHook_ID,
+    DeserializeCoordSysConverterHook_ID,
+    MakeBasicCoordConverterHook_ID,
 
     /// experimental, soon to be removed:
     PreRender_ID,
