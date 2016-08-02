@@ -28,12 +28,12 @@ qx.Class.define("skel.widgets.Profile.SettingsLegend", {
          */
         _init : function( ) {
             this.setPadding( 0, 0, 0, 0 );
-            this.setMargin( 1, 1, 1, 1 );
-            this._setLayout(new qx.ui.layout.HBox(2));
+            this.setMargin( 0, 0, 0, 0 );
+            this._setLayout(new qx.ui.layout.HBox(1));
             
             var content = new qx.ui.groupbox.GroupBox( "Legend");
-            content.setLayout( new qx.ui.layout.VBox(2));
-            
+            content.setLayout( new qx.ui.layout.VBox(0));
+            content.setContentPadding(1,1,1,1);
             var showContainer = new qx.ui.container.Composite();
             showContainer.setLayout( new qx.ui.layout.HBox(2));
             var showLabel = new qx.ui.basic.Label( "Show:");
@@ -71,11 +71,9 @@ qx.Class.define("skel.widgets.Profile.SettingsLegend", {
             content.add( lineContainer );
             
             var locateContainer = new qx.ui.container.Composite();
-            locateContainer.setLayout( new qx.ui.layout.VBox(2));
-            var locateLabel = new qx.ui.basic.Label( "Location:");
+            locateContainer.setLayout( new qx.ui.layout.VBox());
             this.m_legendLocate = new skel.widgets.CustomUI.SelectBox("setLegendLocation","legendLocation");
             this.m_legendLocate.setToolTipText( "Choose the location of the legend on the plot.");
-            locateContainer.add( locateLabel );
             locateContainer.add( this.m_legendLocate );
             content.add( locateContainer );
             

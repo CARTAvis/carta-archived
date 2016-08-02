@@ -29,7 +29,6 @@ casa::Vector<double> ConverterChannel::convert( const casa::Vector<double>& oldV
                 resultValues[i] = result;
             }
             else {
-                qDebug() << "worldUnit="<<worldUnit<<" newUnit="<<newUnits;
                 Converter* helper = Converter::getConverter( worldUnit, newUnits);
                 if ( helper != nullptr ){
                     resultValues[i] = helper->convert( result, spectralCoordinate );

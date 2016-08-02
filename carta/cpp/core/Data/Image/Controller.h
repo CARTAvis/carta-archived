@@ -38,6 +38,7 @@ class LayerData;
 class Stack;
 class DataSource;
 class DisplayControls;
+class DrawStackSynchronizer;
 class GridControls;
 class ContourControls;
 class Settings;
@@ -50,6 +51,8 @@ class Controller: public QObject, public Carta::State::CartaObject,
     friend class Animator;
     friend class Colormap;
     friend class DataFactory;
+    friend class ImageContext;
+    friend class ImageZoom;
     friend class Profiler;
 
     Q_OBJECT
@@ -113,7 +116,7 @@ public:
       * the center pixel, or a special value of (-0.0, -0.0) if the
       * center pixel could not be obtained.
       */
-    QPointF getCenterPixel();
+    QPointF getCenterPixel() const;
 
     /**
      * Return the coordinate system in use.
@@ -144,28 +147,12 @@ public:
 
 
     /**
-     * Return a list of images that have been loaded.
-     * @return - a list of loaded images.
-     */
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
-
-    /**
      * Return the data source of the selected image.
      * @return - the data source of the selected image.
      */
     std::shared_ptr<DataSource> getDataSource();
 
-    /**
-     * Return the current layer.
-     * @return - the current layer.
-     */
-    std::shared_ptr<Layer> getLayer();
 
-    /**
-     * Return all layers containing images.
-     * @return - a list of all layers containing images.
-     */
-    std::vector< std::shared_ptr<Layer> > getLayers();
 
     /**
      * Return a shared pointer to the contour controls.
@@ -194,9 +181,53 @@ public:
     std::shared_ptr<GridControls> getGridControls();
 
     /**
+     * Return the point in image coordinates that is currently under the cursor.
+     * @param valid - set to false if the returned point is invalid.
+     * @return - the image coordinates of the point under the cursor.
+     */
+    QPointF getImagePt( bool* valid ) const;
+
+    /**
+     * Return a list of images that have been loaded.
+     * @return - a list of loaded images.
+     */
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
+
+
+    /**
      * Get the image dimensions.
      */
     std::vector<int> getImageDimensions( ) const;
+
+    /**
+     * Returns the intensities corresponding to a given list of percentiles.
+     * @param percentiles - a list of numbers in [0,1] for which an intensities are desired.
+     * @return - a list of corresponding (location,intensity) pairs.
+     */
+    std::vector<std::pair<int,double> > getIntensity( const std::vector<double>& percentiles ) const;
+
+    /**
+     * Returns the intensity corresponding to a given percentile.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentiles - a list of percentiles in [0,1] for which an intensity is desired.
+     * @return - a list of the corresponding <location,intensity> pairs corresponding to the
+     *   percentiles.
+     */
+    std::vector<std::pair<int,double> > getIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles ) const;
+
+    /**
+     * Return the current layer.
+     * @return - the current layer.
+     */
+    std::shared_ptr<Layer> getLayer();
+
+    /**
+     * Return all layers containing images.
+     * @return - a list of all layers containing images.
+     */
+    std::vector< std::shared_ptr<Layer> > getLayers();
 
     /**
      * Recursively returns the identifiers for the layers in the stack..
@@ -212,37 +243,9 @@ public:
     std::vector<int> getImageSlice() const;
 
     /**
-     * Returns the intensity corresponding to a given percentile in the current frame.
-     * @param percentile - a number [0,1] for which an intensity is desired.
-     * @param intensity - the computed intensity corresponding to the percentile.
-     * @param intensityIndex - frame index where maximum intensity was found.
-     * @return true if the computed intensity is valid; otherwise false.
-     */
-    bool getIntensity( double percentile, double* intensity, int* intensityIndex ) const;
-
-    /**
-     * Returns the intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentile - a number [0,1] for which an intensity is desired.
-     * @param intensity - the computed intensity corresponding to the percentile.
-     * @param intensityIndex - frame index where maximum intensity was found.
-     * @return true if the computed intensity is valid; otherwise false.
-     */
-    bool getIntensity( int frameLow, int frameHigh, double percentile,
-            double* intensity, int* intensityIndex ) const;
-
-    /**
      * Get the dimensions of the image viewer (window size).
      */
-    QSize getOutputSize( );
-
-    /**
-     * Return the percentile corresponding to the given intensity in the current frame.
-     * @param intensity a value for which a percentile is needed.
-     * @return the percentile corresponding to the intensity.
-     */
-    double getPercentile( double intensity ) const;
+    QSize getOutputSize( ) const;
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -257,10 +260,19 @@ public:
      * Return the pixel coordinates corresponding to the given world coordinates.
      * @param ra the right ascension (in radians) of the world coordinates.
      * @param dec the declination (in radians) of the world coordinates.
-     * @return a list consisting of the x- and y-coordinates of the pixel
-     *  corresponding to the given world coordinates.
+     * @param valid - true if the returned point is valid; otherwise false.
+     * @return - a point containing the pixel coordinates.
      */
-    QStringList getPixelCoordinates( double ra, double dec ) const;
+    QPointF getPixelCoordinates( double ra, double dec, bool* valid ) const;
+
+    /**
+     * Return the world coordinates corresponding to the given pixel coordinates.
+     * @param pixelX - the first pixel coordinate of the image.
+     * @param pixelY - the second pixel coordinate of the image.
+     * @param valid - true if the returned point is valid; otherwise false.
+     * @return - point containing the world coordinates.
+     */
+    QPointF getWorldCoordinates( double pixelX, double pixelY, bool* valid ) const;
 
     /**
      * Return the value of the pixel at (x, y).
@@ -324,7 +336,7 @@ public:
     /**
      * Get the current zoom level
      */
-    double getZoomLevel( );
+    double getZoomLevel( ) const;
 
     /**
      * Returns whether or not the image stack layers are selected based on the
@@ -417,7 +429,7 @@ public:
      * @param id - the identifier for a layer in the stack.
      * @param visible - true if the layer should be visible; false otherwise.
      */
-    QString setImageVisibility( /*int dataIndex*/const QString& id, bool visible );
+    QString setImageVisibility( const QString& id, bool visible );
 
     /**
      * Give the layer (a more user-friendly) name.
@@ -551,11 +563,21 @@ signals:
      */
     void dataChangedRegion( Controller* controller );
 
+    /**
+     * Notification that the context image needs to be redrawn.  For example,
+     * if the pan or zoom has changed.
+     */
+    void contextChanged();
+
+    /**
+     * Notification that the cursor position has changed and the zoom view needs
+     * to update.
+     */
+    void zoomChanged();
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
     void saveImageResult( bool result );
-
 
 
 protected:
@@ -604,12 +626,25 @@ private:
     std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
+    //Return the size of the image in display coordinates.  Normally, this
+    //will be the number of frames in RA x DEC, but in a case were the image
+    //axes are Frequency x RA, it will be in channel count frames and RA frames.
+    QSize _getDisplaySize() const;
 
+    //Return the rectangle (in pixel coordinates scaled to the display size)
+    //that is currently being viewed in the main view.  Used to show a rectangle
+    //in the context view.
+    QRectF _getInputRectangle() const;
     QString _getPreferencesId() const;
+
+
 
     //Provide default values for state.
     void _initializeState();
     void _initializeCallbacks();
+
+    void _renderZoom( double factor );
+    void _renderContext( double zoomFactor );
 
 
     /**
@@ -618,12 +653,18 @@ private:
      * @param frameIndex  a frame index for the axis.
      */
     void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
+
     QString _setLayersSelected( const QStringList indices);
 
+    //Set draw zoom & context views.
+    void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> stackDraw );
+    void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
 
     void _updateCursor( int mouseX, int mouseY );
     void _updateCursorText(bool notifyClients );
     void _updateDisplayAxes( /*int targetIndex*/ );
+
+
 
     static bool m_registered;
 
@@ -637,8 +678,6 @@ private:
     static const QString PAN_ZOOM_ALL;
     static const QString CENTER;
     static const QString STACK_SELECT_AUTO;
-
-    static const QString ZOOM;
 
     std::shared_ptr<GridControls> m_gridControls;
     std::shared_ptr<ContourControls> m_contourControls;

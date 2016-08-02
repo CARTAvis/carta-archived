@@ -849,7 +849,15 @@ QStringList ScriptFacade::getPixelCoordinates( const QString& controlId, double 
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            resultList = controller->getPixelCoordinates( ra, dec );
+            bool valid = false;
+            QPointF coords=controller->getPixelCoordinates( ra, dec, &valid );
+            if ( valid ){
+                resultList.append( QString::number(coords.x()));
+                resultList.append( QString::number(coords.y()));
+            }
+            else {
+                resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+            }
         }
         else {
             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
@@ -1288,18 +1296,19 @@ QStringList ScriptFacade::applyClips( const QString& histogramId ) {
     return resultList;
 }
 
-QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow, int frameHigh, double percentile ) {
+QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow,
+        int frameHigh, double percentile ) {
     QStringList resultList;
-    double intensity;
-    bool valid;
     Carta::State::CartaObject* obj = _getObject( controlId );
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            int index = 0;
-            valid = controller->getIntensity( frameLow, frameHigh, percentile, &intensity, &index );
-            if ( valid ) {
-                resultList = QStringList( QString::number( intensity ) );
+            std::vector<double> percentiles(1);
+            percentiles[0] = percentile;
+            std::vector<std::pair<int,double> > intensities = controller->getIntensity(
+                    frameLow, frameHigh, percentiles );
+            if ( intensities.size() == 1 && intensities[0].first >= 0 ){
+                resultList = QStringList( QString::number( intensities[0].second ) );
             }
             else {
                 resultList = _logErrorMessage( ERROR, "Could not get intensity for the specified parameters." );

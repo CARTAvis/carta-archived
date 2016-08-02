@@ -141,6 +141,7 @@ class tHistogram( unittest.TestCase ):
         #Find and select the histogram window
         histWindow = self._getHistogramWindow( driver )
         ActionChains( driver).click( histWindow ).perform()
+        time.sleep(2)
 
         # Click the settings button to expose the settings.
         self._openHistogramSettings( driver )
@@ -191,6 +192,7 @@ class tHistogram( unittest.TestCase ):
         # Find and select the histogram
         histWindow = self._getHistogramWindow(driver)
         ActionChains(driver).click( histWindow ).perform()
+        time.sleep(2)
 
         # Click the settings button to expose the settings
         self._openHistogramSettings( driver )
@@ -218,6 +220,7 @@ class tHistogram( unittest.TestCase ):
 
         # Load an image
         Util.load_image( self, driver, "Default")
+        time.sleep(timeout)
 
         # Click on the Data->Close->Image button to close the image
         imageWindow = driver.find_element_by_xpath( "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")
@@ -299,6 +302,7 @@ class tHistogram( unittest.TestCase ):
 
         # Load an image
         Util.load_image( self, driver, "Default")
+        time.sleep(2)
 
         # Load the second image in a separate window
         imageWindow2 = Util.load_image_different_window( self, driver, "aH.fits")
@@ -351,6 +355,7 @@ class tHistogram( unittest.TestCase ):
 
         # Load an image
         Util.load_image( self, driver, "Default")
+        time.sleep(2)
 
         # Find and select the histogram window
         histWindow = self._getHistogramWindow( driver )
@@ -384,9 +389,11 @@ class tHistogram( unittest.TestCase ):
 
         # Remove the link from the Histogram to the main image window
         Util.remove_main_link( self, driver, imageWindow )
+        time.sleep(2)
 
         # Load an image in a separate window
         imageWindow2 = Util.load_image_different_window( self, driver, "aH.fits")
+        time.sleep(2)
 
         # Open link settings for the Histogram
         ActionChains(driver).click( histWindow ).perform()

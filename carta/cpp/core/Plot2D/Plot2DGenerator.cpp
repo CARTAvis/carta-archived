@@ -1,570 +1,575 @@
 #include "Plot2DGenerator.h"
-#include "Plot2DHistogram.h"
-#include "Plot2DProfile.h"
-#include "Plot2DSelection.h"
-#include "Plot2DLine.h"
-#include "Plot.h"
-#include <qwt_scale_engine.h>
-#include <qwt_scale_widget.h>
-#include <qwt_plot_renderer.h>
+
 #include "Data/Plotter/LegendLocations.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 
 namespace Carta {
 namespace Plot2D {
 
+using Carta::Data::LegendLocations;
 
-const double Plot2DGenerator::EXTRA_RANGE_PERCENT = 0.05;
-
-
-Plot2DGenerator::Plot2DGenerator( PlotType plotType ):
-    m_rangeColor( nullptr ),
-    m_vLine( nullptr ),
-    m_gridLines( nullptr),
-    m_font( "Helvetica", 10){
-    m_legendVisible = false;
-    m_logScale = false;
-    m_legendPosition = Carta::Data::LegendLocations::BOTTOM;
-    m_legendExternal = true;
-    m_legendLineShow = true;
-    m_plot = new Plot();
-    m_plotType = plotType;
-
-    m_plot->setFont( m_font );
-    m_height = 335;
-    m_width = 335;
-
-    m_range = new Plot2DSelection();
-    m_range->attach(m_plot);
-
-
-    if ( plotType == PlotType::PROFILE ){
-        m_vLine = new Plot2DLine();
-        m_vLine->attach( m_plot );
-        setLegendVisible( true );
-    }
-    else {
-        m_logScale = true;
-        m_rangeColor = new Plot2DSelection();
-        QColor shadeColor( "#CCCC99");
-        shadeColor.setAlpha( 100 );
-        m_rangeColor->setColoredShade( shadeColor );
-        m_rangeColor->attach( m_plot );
-    }
+Plot2DGenerator::Plot2DGenerator( ){
+   Plot2DHolder* plotHolder = new Plot2DHolder();
+   m_plots.push_back( plotHolder );
+   m_height = 0;
+   m_width = 0;
 }
 
 
 void Plot2DGenerator::addData(std::vector<std::pair<double,double> > dataVector,
-        const QString& id ){
+        const QString& id, int index, bool primary  ){
+    if ( _checkIndex( index )){
+        m_plots[index]->addData( dataVector, id, primary );
+        //Make sure the colors match for a residual curve index = 1 and
+        //the primary curve, index = 0;
+        if ( index >= 1 ){
+            bool valid = false;
+            QColor color = m_plots[0]->getColor( id, &valid );
+            if ( valid ){
+                m_plots[index]->setColor( color, id );
+            }
+            else {
+                qWarning() << "Could not get color for "<<id;
+                CARTA_ASSERT( false );
+            }
+            bool vLineVisible = m_plots[0]->isMarkerLineVisible();
+            m_plots[index]->setMarkerLineVisible( vLineVisible );
+            double pos = m_plots[0]->getMarkerLine();
+            m_plots[index]->setMarkerLine( pos );
 
-    if ( dataVector.size() == 0 ){
-        return;
+            std::pair<double,double> rangeX = m_plots[0]->getAxisXRange();
+            m_plots[index]->setAxisXRange( rangeX.first, rangeX.second );
+        }
     }
+    _resetExtents();
+}
 
-    std::shared_ptr<Plot2D> pData = _findData( id );
-    if ( !pData ){
-       if ( m_plotType == PlotType::PROFILE ){
-           pData.reset( new Plot2DProfile() );
-       }
-       else if ( m_plotType == PlotType::HISTOGRAM ){
-           //For right now, just one histogram plot
-           if ( m_datas.size() > 0 ){
-               clearData();
-           }
-           pData.reset( new Plot2DHistogram() );
-       }
-       else {
-           qWarning() << "Unrecognized plot type: "<<(int)( m_plotType );
-       }
-       pData->setLegendLine( m_legendLineShow );
-       m_datas.append( pData );
-       pData->attachToPlot(m_plot);
-       pData->setId( id );
-    }
-
-    if ( pData ){
-        pData->setData( dataVector );
-        _updateScales();
+void Plot2DGenerator::addLabels( const std::vector<std::tuple<double,double,QString> >& labels, int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->addLabels( labels );
     }
 }
 
 
-void Plot2DGenerator::clearData(){
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        m_datas[i]->detachFromPlot();
+int Plot2DGenerator::addPlot(){
+    int plotIndex = m_plots.size();
+    Plot2DHolder* holder = new Plot2DHolder();
+    m_plots.push_back( holder );
+    //There are at least two plots
+    if ( plotIndex >= 1 ){
+        //First plot should use a top position for the axis and last
+        //plot should use a bottom axis index.
+        m_plots[0]->setAxisLocationX( QwtPlot::xTop );
+        m_plots[plotIndex]->setAxisLocationX( QwtPlot::xBottom );
+
+        //Turn the legend off for all plots but the first one.
+        m_plots[plotIndex]->setLegendVisible( false );
+        QString xTitle = m_plots[0]->getTitleAxisX();
+        m_plots[plotIndex]->setTitleAxisX( xTitle );
+
+
+        _resetExtents();
+
     }
-    m_datas.clear();
+    return plotIndex;
 }
 
 
-void Plot2DGenerator::clearSelection(){
-    m_range->reset();
-    m_plot->replot();
+bool Plot2DGenerator::_checkIndex( int index ) const {
+    bool validPlot = false;
+    int plotCount = m_plots.size();
+    if ( index >= 0 && index < plotCount ){
+        validPlot = true;
+    }
+    else {
+        CARTA_ASSERT( false );
+        qWarning()<<"Invalid plot index: "<<index;
+    }
+    return validPlot;
 }
 
 
-void Plot2DGenerator::clearSelectionColor(){
-    if ( m_rangeColor != nullptr ){
-        m_rangeColor->reset();
-        m_plot->replot();
+void Plot2DGenerator::clearData( ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->clearData();
+    }
+}
+
+void Plot2DGenerator::clearDataFit(){
+    int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        m_plots[0]->clearDataFit();
+        for ( int i = 1; i < plotCount; i++ ){
+            m_plots[i]->clearData();
+        }
+    }
+}
+
+void Plot2DGenerator::clearLabels( int index ){
+    if ( _checkIndex( index ) ){
+        m_plots[index]->clearLabels();
     }
 }
 
 
-QString Plot2DGenerator::getAxisUnitsY() const {
-    QString unitStr = m_plot->axisTitle( QwtPlot::yLeft ).text();
+void Plot2DGenerator::clearSelection( int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->clearSelection();
+    }
+}
+
+
+void Plot2DGenerator::clearSelectionColor( int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->clearSelectionColor();
+    }
+}
+
+
+QString Plot2DGenerator::getAxisUnitsY( int index ) const {
+    QString unitStr;
+    if ( _checkIndex( index )){
+        unitStr = m_plots[index]->getAxisUnitsY();
+    }
     return unitStr;
 }
 
 
-std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( const QString& id, bool* valid ) const {
+QPointF Plot2DGenerator::getImagePoint(const QPointF& screenPt, bool* valid, int index ) const {
+    QPointF pt;
+    if ( _checkIndex( index ) ){
+        pt = m_plots[index]->getImagePoint( screenPt, valid );
+    }
+    return pt;
+}
+
+std::pair<double,double>  Plot2DGenerator::getPlotBoundsY( const QString& id, bool* valid, int index ) const {
     std::pair<double,double> result;
     *valid = false;
-    std::shared_ptr<Plot2D> plotData = _findData(id);
-    if ( plotData ){
-        result = plotData->getBoundsY();
-        *valid = true;
+    if ( _checkIndex( index )){
+        result = m_plots[index]->getPlotBoundsY( id, valid );
+    }
+    return result;
+}
+
+
+QString Plot2DGenerator::getPlotTitle( int index ) const {
+    QString title;
+    if ( _checkIndex( index )){
+        title = m_plots[index]->getPlotTitle();
+    }
+    return title;
+}
+
+
+std::pair<double,double> Plot2DGenerator::getRange( bool* valid, int index ) const {
+    std::pair<double,double> result;
+    *valid = false;
+    if ( _checkIndex( index )){
+        result = m_plots[index]->getRange( valid );
+    }
+    return result;
+}
+
+
+std::pair<double,double> Plot2DGenerator::getRangeColor(bool* valid, int index ) const {
+    std::pair<double,double> result;
+    *valid = false;
+    if ( _checkIndex( index )){
+        result = m_plots[index]->getRangeColor( valid );
+    }
+    return result;
+}
+
+QPointF Plot2DGenerator::getScreenPoint( const QPointF& dataPoint, int index ) const {
+    QPointF pt;
+    if ( _checkIndex( index )){
+        pt = m_plots[index]->getScreenPoint( dataPoint );
+    }
+    return pt;
+}
+
+
+QSize Plot2DGenerator::getPlotSize( int index ) const {
+    QSize size;
+    if ( _checkIndex( index )){
+        size = m_plots[index]->getPlotSize();
+    }
+    return size;
+}
+
+QPointF Plot2DGenerator::getPlotUpperLeft( int index ) const {
+    QPointF pt;
+    if ( _checkIndex( index )){
+        pt = m_plots[index]->getPlotUpperLeft();
+    }
+    return pt;
+}
+
+double Plot2DGenerator::getVLinePosition( bool* valid, int index ) const {
+    double position = 0;
+    if ( _checkIndex( index )){
+        position = m_plots[index]->getVLinePosition( valid );
     }
     else {
-        qDebug() << "Generator could not get bounds for id="<<id;
+        *valid = false;
     }
-    return result;
+    return position;
 }
 
-
-QString Plot2DGenerator::getPlotTitle() const {
-    return m_plot->title().text();
-}
-
-
-std::pair<double,double> Plot2DGenerator::getRange( bool* valid ) const {
-    std::pair<double,double> result;
-    *valid = false;
-    if ( m_range ){
-        result.first = m_range->getClipMin();
-        result.second = m_range->getClipMax();
-        *valid = true;
-    }
-    return result;
-}
-
-
-std::pair<double,double> Plot2DGenerator::getRangeColor(bool* valid ) const {
-    std::pair<double,double> result;
-    *valid = false;
-    if ( m_rangeColor ){
-        result.first = m_rangeColor->getClipMin();
-        result.second = m_rangeColor->getClipMax();
-        *valid = true;
-    }
-    return result;
-}
-
-
-bool Plot2DGenerator::isSelectionOnCanvas( int xPos ) const {
+bool Plot2DGenerator::isSelectionOnCanvas( int xPos, int index ) const {
     bool selectionOnCanvas = false;
-    if ( xPos >= 0 ){
-        //Make sure the point is beyond the left canvas margin
-        float plotMargin = m_plot->axisWidget( QwtPlot::yLeft )->size().width();
-        if ( xPos > plotMargin ){
-            selectionOnCanvas = true;
-        }
+    if ( _checkIndex( index )){
+        selectionOnCanvas = m_plots[index]->isSelectionOnCanvas( xPos );
     }
     return selectionOnCanvas;
 }
 
 
-std::shared_ptr<Plot2D> Plot2DGenerator::_findData( const QString& id ) const {
-    std::shared_ptr<Plot2D> data( nullptr );
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_datas[i]->getId()  == id ){
-            data = m_datas[i];
-            break;
+void Plot2DGenerator::_paintLegend( int x, int y, int width, int height, QPainter* painter ) const{
+    QRect printGeom( x, y, width, height );
+    m_plots[0]->legendToImage( painter, printGeom );
+}
+
+void Plot2DGenerator::removeData( const QString& dataName, int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->removeData( dataName );
+    }
+}
+
+void Plot2DGenerator::removePlot( int index ){
+    if ( _checkIndex( index ) ){
+        bool visible = m_plots[index]->isLegendVisible();
+        delete m_plots[index];
+        m_plots[index] = nullptr;
+        m_plots.erase( m_plots.begin() + index );
+        int plotCount = m_plots.size();
+        if ( plotCount == 1 ){
+            if ( visible ){
+                m_plots[0]->setLegendVisible( true );
+            }
+            m_plots[0]->setAxisLocationX( QwtPlot::xBottom );
         }
     }
-    return data;
 }
 
-double Plot2DGenerator::getVLinePosition( bool* valid ) const {
-    *valid = false;
-    double pos = 0;
-    if ( m_vLine ){
-        *valid = true;
-        pos = m_vLine->getPosition( );
-    }
-    return pos;
-}
-
-std::pair<double,double> Plot2DGenerator::getWorldPt(int x, int y, int width, int height ) const {
-    QSize plotSize = m_plot->size();
-    QWidget* canvas = m_plot->canvas();
-    QSize canvasSize = canvas->size();
-    double xMargin = plotSize.width() - canvasSize.width();
-    //double yMargin = plotSize.height() - canvasSize.height();
-    //Space between edge of canvas and where 0 is.
-    const int WHITE_OFFSET = 8;
-    int marginSpaceX = xMargin - WHITE_OFFSET;
-    //int marginSpaceY = yMargin;
-    //qDebug() << "screen x="<<x<<" y="<<y<<" width="<<width<<" height="<<height;
-    double widthStretch = (width*1.0  - marginSpaceX) / (plotSize.width() - marginSpaceX );
-    double heightStretch = (height*1.0 /*- marginSpaceY*/ ) / (plotSize.height() /*- marginSpaceY*/ );
-    //qDebug() << "widthStretch="<<widthStretch<<" heightStretch="<<heightStretch;
-
-    double canvasX = ( x - marginSpaceX ) / widthStretch;
-    double canvasY = ( y /*- marginSpaceY */) / heightStretch;
-    //qDebug() << "canvas pt x="<<canvasX<<" y="<<canvasY;
-    std::pair<double,double> worldPt;
-    //if ( canvasX > 0 && canvasY > 0 ){
-
-        double xValue = m_plot->invTransform( QwtPlot::xBottom, canvasX );
-        double yValue = m_plot->invTransform( QwtPlot::yLeft, canvasY );
-        //double xZeroValue = m_plot->invTransform( QwtPlot::xBottom, 0 );
-        //qDebug() << "Zero is being mapped to "<<xZeroValue;
-        //qDebug() << "Plot value x="<<xValue<<" y="<<yValue;
-        worldPt = std::pair<double,double>( xValue, yValue );
-    //}
-    return worldPt;
-}
-
-void Plot2DGenerator::removeData( const QString& dataName ){
-    std::shared_ptr<Plot2D> pData = _findData( dataName );
-    if ( pData ){
-        pData->detachFromPlot();
-        m_datas.removeOne( pData );
+void Plot2DGenerator::_resetExtents(){
+    int maxExtent = 0;
+    int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        for ( int i = 0; i < plotCount; i++ ){
+            m_plots[i]->clearAxisExtentY();
+            int extent = m_plots[i]-> getAxisExtentY();
+            if ( extent > maxExtent ){
+                maxExtent = extent;
+            }
+        }
+        for ( int i = 0; i < plotCount; i++ ){
+            m_plots[i]->setAxisExtentY( maxExtent );
+        }
     }
 }
 
 void Plot2DGenerator::setAxisXRange( double min, double max ){
-    m_plot->setAxisScale( QwtPlot::xBottom, min, max );
-    m_plot->replot();
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setAxisXRange( min, max );
+    }
 }
 
 
 void Plot2DGenerator::setColor( QColor color, const QString& id ){
-    if ( id.isEmpty() || id.trimmed().length() == 0 ){
-        int dataCount = m_datas.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            m_datas[i]->detachFromPlot();
-            m_datas[i]->setColor( color );
-            m_datas[i]->attachToPlot( m_plot );
-        }
-    }
-    else {
-        std::shared_ptr<Plot2D> plotData = _findData( id );
-        if ( plotData ){
-            plotData->detachFromPlot();
-            plotData->setColor( color );
-            plotData->attachToPlot( m_plot );
-        }
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setColor( color, id );
     }
 }
 
 
-void Plot2DGenerator::setColored( bool colored, const QString& id ){
-    if ( id.isEmpty() || id.trimmed().length() == 0 ){
-        int dataCount = m_datas.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            m_datas[i]->setColored( colored );
-        }
-    }
-    else {
-        std::shared_ptr<Plot2D> plotData = _findData( id );
-        if ( plotData ){
-            plotData->setColored( colored );
-        }
+void Plot2DGenerator::setColored( bool colored, const QString& id, int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->setColored( colored, id );
     }
 }
 
-void Plot2DGenerator::setCurveName( const QString& oldName, const QString& newName ){
-    std::shared_ptr<Plot2D> plotData = _findData( oldName );
-    if ( plotData ){
-        plotData->setId( newName );
+void Plot2DGenerator::setCurveName( const QString& oldName, const QString& newName, int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->setCurveName( oldName, newName );
     }
 }
 
 void Plot2DGenerator::setGridLines( bool showGrid ){
-    if ( !m_gridLines ){
-        m_gridLines = new QwtPlotGrid();
-        m_gridLines->enableX( false );
-        m_gridLines->enableY( true );
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setGridLines( showGrid );
     }
-    if ( showGrid ){
-        m_gridLines->attach( m_plot );
+}
+
+void Plot2DGenerator::setHistogram( bool histogram, int index  ){
+    if ( _checkIndex( index )){
+        Plot2DHolder::PlotType type = Plot2DHolder::PlotType::PROFILE;
+        if ( histogram ){
+            type = Plot2DHolder::PlotType::HISTOGRAM;
+        }
+        m_plots[index]->setPlotType( type );
+
     }
-    else {
-        m_gridLines->detach();
+}
+
+void Plot2DGenerator::setHLinePosition( double position, int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->setHLinePosition( position );
     }
-    m_plot->replot();
+}
+
+void Plot2DGenerator::setHLineVisible( bool visible, int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->setHLineVisible( visible );
+    }
 }
 
 
 void Plot2DGenerator::setLegendExternal( bool externalLegend ){
-    if ( m_legendExternal != externalLegend ){
-        m_legendExternal = externalLegend;
-        _updateLegend();
+    int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        m_plots[0]->setLegendExternal( externalLegend );
     }
 }
 
 
 void Plot2DGenerator::setLegendLocation( const QString& position ){
-    if ( position != m_legendPosition ){
-        m_legendPosition = position;
-        _updateLegend();
+    int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        m_plots[0]->setLegendLocation( position );
+        _resetExtents();
     }
+
 }
 
 void Plot2DGenerator::setLegendLine( bool showLegendLine ){
-    int dataCount = m_datas.size();
-    m_legendLineShow = showLegendLine;
-    for ( int i = 0; i < dataCount; i++ ){
-        m_datas[i]->setLegendLine( m_legendLineShow );
+    int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        m_plots[0]->setLegendLine( showLegendLine );
     }
 }
 
 
 void Plot2DGenerator::setLegendVisible( bool visible ){
-    if ( m_legendVisible != visible ){
-        m_legendVisible = visible;
-        _updateLegend();
+    int plotCount = m_plots.size();
+    if ( plotCount > 0 ){
+        m_plots[0]->setLegendVisible( visible );
     }
 }
 
 
-void Plot2DGenerator::setLogScale(bool logScale){
-    m_logScale = logScale;
-    _updateScales();
+void Plot2DGenerator::setLogScale(bool logScale, int index ){
+    if ( _checkIndex( index )){
+        m_plots[index]->setLogScale( logScale );
+    }
 }
 
 
 void Plot2DGenerator::setMarkerLine( double xPos ){
-    if ( m_vLine ){
-        m_vLine->setPosition( xPos );
-        m_plot->replot();
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setMarkerLine( xPos );
+    }
+}
+
+void Plot2DGenerator::setMarkerLineVisible( bool visible ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setMarkerLineVisible( visible );
+    }
+}
+
+void Plot2DGenerator::setMarkedRange( double minY, double maxY, int index  ){
+    if ( _checkIndex( index )){
+        m_plots[index]->setMarkedRange( minY, maxY );
     }
 }
 
 
-void Plot2DGenerator::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline){
-    int dataCount = m_datas.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        m_datas[i]->setPipeline( pipeline );
+void Plot2DGenerator::setPipeline( std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline,
+        int index){
+    if ( _checkIndex( index ) ){
+        m_plots[index]->setPipeline( pipeline );
     }
-    m_plot->replot();
 }
 
 
-void Plot2DGenerator::setRange(double min, double max){
-    m_range->setClipValues(min, max);
-    m_plot->replot();
+void Plot2DGenerator::setRange(double min, double max, int index ){
+    if ( _checkIndex( index ) ){
+        m_plots[index]->setRange( min, max );
+    }
 }
 
 
-void Plot2DGenerator::setRangeColor(double min, double max){
-    if ( m_rangeColor ){
-        m_rangeColor->setClipValues(min, max);
+void Plot2DGenerator::setRangeColor(double min, double max, int index ){
+    if ( _checkIndex( index ) ){
+        m_plots[index]->setRangeColor( min, max );
     }
-    m_plot->replot();
+}
+
+void Plot2DGenerator::setRangeMarkerVisible( bool visible, int index ){
+    if ( _checkIndex( index ) ){
+        m_plots[index]->setRangeMarkerVisible( visible );
+    }
 }
 
 
 void Plot2DGenerator::setRangePixels(double min, double max){
-    m_range->setHeight(m_height);
-    m_range->setBoundaryValues(min, max);
-    m_plot->replot();
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setRangePixels( min, max );
+    }
 }
 
 
-void Plot2DGenerator::setRangePixelsColor(double min, double max){
-    if ( m_rangeColor ){
-        m_rangeColor->setHeight(m_height);
-        m_rangeColor->setBoundaryValues(min, max);
+void Plot2DGenerator::setRangePixelsColor(double min, double max ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setRangePixelsColor( min, max );
     }
-    if ( m_vLine ){
-        m_vLine->setPositionPixel( min, max );
-    }
-    m_plot->replot();
 }
 
 
-void Plot2DGenerator::setSelectionMode(bool selection){
-    m_range->setSelectionMode( selection );
+void Plot2DGenerator::setSelectionMode(bool selection ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setSelectionMode( selection );
+    }
 }
 
 
 void Plot2DGenerator::setSelectionModeColor( bool selection ){
-    if ( m_rangeColor ){
-        m_rangeColor->setSelectionMode( selection );
-    }
-    if ( m_vLine ){
-        m_vLine->setSelectionMode( selection );
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setSelectionModeColor( selection );
     }
 }
 
 
-bool Plot2DGenerator::setSize( int width, int height ){
+bool Plot2DGenerator::setSize( int width, int height, int index ){
     bool newSize = false;
-    if ( width != m_width || height != m_height ){
-        int minLength = qMin( width, height );
-        if ( minLength > 0 ){
-            m_width = width;
-            m_height = height;
-            m_range->setHeight( m_height );
-            if ( m_rangeColor ){
-                m_rangeColor->setHeight( m_height );
+    if ( _checkIndex( index ) ){
+        if ( width != m_width || height != m_height ){
+            int minLength = qMin( width, height );
+            if ( minLength > 0 ){
+                m_width = width;
+                m_height = height;
+                m_plots[index]->setSize( width, height );
+                newSize = true;
             }
-            if ( m_vLine ){
-                m_vLine->setHeight( m_height );
+            else {
+                qWarning() << "Invalid plot dimensions: "<<width<<" x "<< height;
             }
-            newSize = true;
-        }
-        else {
-            qWarning() << "Invalid plot dimensions: "<<width<<" x "<< height;
         }
     }
     return newSize;
 }
 
 
-void Plot2DGenerator::setLineStyle( const QString& style, const QString& id ){
-    if ( id.isEmpty() || id.trimmed().length() == 0 ){
-        int dataCount = m_datas.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            //Attach & reattach so the legend icon updates.
-            m_datas[i]->detachFromPlot();
-            m_datas[i]->setLineStyle( style );
-            m_datas[i]->attachToPlot( m_plot );
-        }
-    }
-    else {
-        std::shared_ptr<Plot2D> data = _findData( id );
-        if ( data ){
-            //Detaching & reattaching so that the icon will be redrawn
-            //when the style changes.
-            data->detachFromPlot();
-            data->setLineStyle( style );
-            data->attachToPlot( m_plot );
-        }
+void Plot2DGenerator::setLineStyle( const QString& style, const QString& id, int index, bool primary  ){
+    if ( _checkIndex( index ) ){
+        m_plots[index]->setLineStyle( style, id, primary );
     }
 }
 
 
-void Plot2DGenerator::setStyle( const QString& style, const QString& id ){
-    if ( id.isEmpty() || id.trimmed().length() == 0 ){
-        int dataCount = m_datas.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            m_datas[i]->setDrawStyle( style );
-        }
-    }
-    else {
-        std::shared_ptr<Plot2D> data = _findData( id );
-        if ( data ){
-            data->setDrawStyle( style );
-        }
+void Plot2DGenerator::setStyle( const QString& style, const QString& id, int index ){
+    if ( _checkIndex( index ) ){
+        m_plots[index]->setStyle( style, id );
     }
 }
 
 
-void Plot2DGenerator::setTitleAxisX( const QString& title){
-    m_axisNameX = title;
-    QString axisTitle = m_axisNameX;
-    if ( !m_axisUnitX.isEmpty() ){
-        axisTitle = axisTitle + "(" + m_axisUnitX + ")";
+void Plot2DGenerator::setTitleAxisX( const QString& title ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setTitleAxisX( title );
     }
-    QwtText xTitle( axisTitle );
-    xTitle.setFont( m_font );
-    m_plot->setAxisTitle( QwtPlot::xBottom, xTitle );
 }
 
 
-void Plot2DGenerator::setTitleAxisY( const QString& title){
-    m_axisNameY = title;
-    QString axisTitle = m_axisNameY;
-    if ( !m_axisUnitY.isEmpty()){
-        axisTitle = axisTitle + "(" + m_axisUnitY + ")";
+void Plot2DGenerator::setTitleAxisY( const QString& title ){
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        m_plots[i]->setTitleAxisY( title );
     }
-    if ( m_logScale ){
-        axisTitle = "Log " + axisTitle;
-    }
-    QwtText yTitle( axisTitle );
-    yTitle.setFont( m_font );
-    m_plot->setAxisTitle(QwtPlot::yLeft, yTitle);
 }
 
 
 QImage Plot2DGenerator::toImage( int width, int height ) const {
-    QwtPlotRenderer renderer;
     if ( width <= 0 ){
         width = m_width;
     }
     if ( height <= 0 ){
         height = m_height;
     }
-    m_plot->resize( width, height );
+
     QImage plotImage(width, height, QImage::Format_RGB32);
-    renderer.renderTo(m_plot, plotImage );
+    int plotCount = m_plots.size();
+    if ( height > 0 && plotCount > 0 ){
+        //Decide if we need to add space for a legend.
+        QSize legendSize;
+        QString legendPos = LegendLocations::BOTTOM;
+        bool externalLegend = m_plots[0]->isExternalLegend() && m_plots[0]->isLegendVisible();
+        QSize plotSize = m_plots[0]->getSize();
+        if ( externalLegend ){
+            legendPos = m_plots[0]->getLegendLocation();
+            legendSize = m_plots[0]->getLegendSize();
+        }
+        double percentHeight = (legendSize.height() * 1.0) / plotSize.height();
+        double percentWidth = (legendSize.width() * 1.0) / plotSize.width();
+        int legendHeight = percentHeight * height;
+        int legendWidth = percentWidth * width;
+        QPainter painter( & plotImage );
+        if ( legendPos == LegendLocations::BOTTOM || legendPos == LegendLocations::TOP ){
+            int plotHeight = (height - legendHeight) / plotCount;
+            int startY = 0;
+            if ( legendHeight > 0 && legendPos == LegendLocations::TOP ){
+                _paintLegend( 0, 0, width, legendHeight, &painter );
+                startY = startY + legendHeight;
+            }
+            for ( int i = 0; i < plotCount; i++ ){
+                QRect printGeom( 0, startY, width, plotHeight );
+                m_plots[i]->toImage( &painter, printGeom );
+                startY = startY + plotHeight;
+            }
+            if ( legendHeight > 0 && legendPos == LegendLocations::BOTTOM ){
+                _paintLegend( 0, startY, width, legendHeight, &painter );
+            }
+        }
+        //Left or right.
+        else {
+            int plotWidth = width - legendWidth;
+            int plotHeight = height / plotCount;
+            int startX = 0;
+            if ( legendWidth > 0 && legendPos == LegendLocations::LEFT ){
+                _paintLegend( 0, 0, legendWidth, height, &painter );
+                startX = legendWidth;
+            }
+            for ( int i = 0; i < plotCount; i++ ){
+                QRect printGeom( startX,  plotHeight*i, plotWidth, plotHeight );
+                m_plots[i]->toImage( &painter, printGeom );
+            }
+            if ( legendWidth > 0 && legendPos == LegendLocations::RIGHT ){
+                _paintLegend( plotWidth, 0, legendWidth, height, &painter );
+            }
+        }
+    }
     return plotImage;
 }
 
 
-void Plot2DGenerator::_updateLegend(){
-    m_plot->setLegendPosition( m_legendVisible, m_legendPosition, m_legendExternal );
-}
-
-
-void Plot2DGenerator::_updateScales(){
-    int dataCount = m_datas.size();
-    if ( dataCount > 0 ){
-        std::pair<double,double> firstBounds = m_datas[0]->getBoundsY();
-        double yMin = firstBounds.first;
-        double yMax = firstBounds.second;
-        for ( int i = 0; i < dataCount; i++ ){
-            std::pair<double,double> plotBounds = m_datas[i]->getBoundsY();
-            if ( plotBounds.first < yMin ){
-                yMin = plotBounds.first;
-            }
-            if ( plotBounds.second > yMax ){
-                yMax = plotBounds.second;
-            }
-            if( m_logScale ){
-                m_datas[i]->setBaseLine(1.0);
-            }
-            else{
-                m_datas[i]->setBaseLine(0.0);
-            }
-        }
-        if ( m_logScale ){
-            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLogScaleEngine());
-            m_plot->setAxisScale( QwtPlot::yLeft, 1, yMax );
-        }
-        else {
-            m_plot->setAxisScaleEngine(QwtPlot::yLeft, new QwtLinearScaleEngine());
-            m_plot->setAxisScale( QwtPlot::yLeft, yMin, yMax );
-        }
-        m_plot->replot();
-    }
-}
-
-
 Plot2DGenerator::~Plot2DGenerator(){
-    clearData();
-    m_range->detach();
-    if ( m_rangeColor ){
-        m_rangeColor->detach();
-        delete m_rangeColor;
+    int plotCount = m_plots.size();
+    for ( int i = 0; i < plotCount; i++ ){
+        delete m_plots[i];
     }
-    if ( m_vLine ){
-        m_vLine->detach();
-        delete m_vLine;
-    }
-    if ( m_gridLines ){
-        m_gridLines->detach();
-        delete m_gridLines;
-    }
-    delete m_gridLines;
-    delete m_range;
-    delete m_plot;
+    m_plots.clear();
 }
 }
 }

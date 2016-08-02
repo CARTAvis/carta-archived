@@ -32,6 +32,12 @@ public:
     QString getDefault() const;
 
     /**
+     * Return the default line style for a secondary curve (such as a fit).
+     * @return - the default line style for a secondary curve.
+     */
+    QString getDefaultSecondary() const;
+
+    /**
      * Returns a list of available line styles.
      * @return - a QStringList containing the names of available line styles.
      */

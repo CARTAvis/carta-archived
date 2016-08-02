@@ -10,6 +10,7 @@ namespace Data {
 const QString LayoutNodeLeaf::CLASS_NAME = "LayoutNodeLeaf";
 const QString LayoutNodeLeaf::PLUGIN = "plugin";
 
+
 class LayoutNodeLeaf::Factory : public Carta::State::CartaObjectFactory {
 
 public:
@@ -60,21 +61,24 @@ QStringList LayoutNodeLeaf::getPluginList() const {
 }
 
 
-void LayoutNodeLeaf::_initializeCommands(){
-}
-
 void LayoutNodeLeaf::_initializeDefaultState(){
     m_state.insertValue<QString>( PLUGIN, "" );
     m_state.flushState();
 }
 
+void LayoutNodeLeaf::_initializeCommands(){
+
+
+}
 
 void LayoutNodeLeaf::resetState( const QString& stateStr, QMap<QString,int>& usedPlugins ){
+    LayoutNode::resetState( stateStr, usedPlugins );
     Carta::State::StateInterface leafState( "" );
     leafState.setState( stateStr );
     QString newPlugin = leafState.getValue<QString>(PLUGIN);
     QStringList newPluginList(newPlugin);
     setPlugins( newPluginList, usedPlugins, false );
+    m_state.flushState();
 }
 
 bool LayoutNodeLeaf::setPlugin( const QString& nodeId, const QString& nodeType, int index ){
@@ -148,7 +152,10 @@ void LayoutNodeLeaf::setPluginType( const QString& name ){
     }
 }
 
-
+QString LayoutNodeLeaf::toString() const {
+    return "id:"+getPath()+" plugin="+m_state.getValue<QString>(PLUGIN)+
+            " index=" + QString::number(m_state.getValue<int>(Carta::State::StateInterface::INDEX));
+}
 
 LayoutNodeLeaf::~LayoutNodeLeaf(){
 

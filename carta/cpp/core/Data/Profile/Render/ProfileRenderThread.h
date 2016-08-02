@@ -24,7 +24,7 @@ public:
      *      Profile data should be read.
      * @param parent - the parent object.
      */
-    ProfileRenderThread( int pipeFileDescriptor, QObject* parent = nullptr);
+    ProfileRenderThread( QObject* parent = nullptr);
 
     /**
      * Returns the Profile data.
@@ -47,7 +47,8 @@ public:
     /**
      * Destructor.
      */
-    ~ProfileRenderThread();
+    virtual ~ProfileRenderThread();
+
 
 private:
     int m_fileDescriptor;

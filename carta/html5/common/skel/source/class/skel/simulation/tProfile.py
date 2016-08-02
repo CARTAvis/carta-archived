@@ -29,6 +29,7 @@ class tProfile(unittest.TestCase):
     def _showProfile(self, driver ):
         histWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")))
         ActionChains(driver).click( histWindow ).perform()
+        time.sleep(2)
         viewMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='View']/..")))
         ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
@@ -106,7 +107,9 @@ class tProfile(unittest.TestCase):
         #Open the profile settings to the Range tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
         ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
         Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
         Util.clickTab( driver, "Range" )
 
         # Look for the min and max zoom values and check their values.
@@ -157,6 +160,7 @@ class tProfile(unittest.TestCase):
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
         ActionChains(driver).click( profileWindow ).perform()
         Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
         Util.clickTab( driver, "Range" )
 
         # Look for the min and max zoom percentages and check their values.
@@ -209,7 +213,9 @@ class tProfile(unittest.TestCase):
         #Open the profile settings to the Profiles tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
         ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
         Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
         Util.clickTab( driver, "Profiles" )
         
         #Get the profiles combo and count how many are listed.  Since
@@ -225,7 +231,9 @@ class tProfile(unittest.TestCase):
             Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
     
         #There should now be three profiles loaded.
+        time.sleep(2)
         self._checkProfileCount( driver, 3 )
+    
         
         #Change the generate mode to all except single plane.
         Util.clickTab( driver, "Profiles")
@@ -233,6 +241,7 @@ class tProfile(unittest.TestCase):
             Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
             
         #There should now be two profiles loaded.
+        time.sleep(2)
         self._checkProfileCount( driver, 2 )
         
     
@@ -250,11 +259,14 @@ class tProfile(unittest.TestCase):
         
          # Show the profile view
         self._showProfile( driver )
+        time.sleep(2)
         
         #Open the profile settings to the Profiles tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
         ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
         Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
         Util.clickTab( driver, "Profiles" )
         
         #Change the generate mode to all
@@ -266,6 +278,7 @@ class tProfile(unittest.TestCase):
             Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
             
         #There should now be two profiles loaded.
+        time.sleep(2)
         self._checkProfileCount( driver, 2 )
         
         #Hit the delete button
@@ -275,6 +288,7 @@ class tProfile(unittest.TestCase):
         ActionChains(driver).click( deleteButton ).perform()
         
         #There should now be just one profile loaded
+        time.sleep(2)
         self._checkProfileCount( driver, 1 )
   
     def tearDown(self):

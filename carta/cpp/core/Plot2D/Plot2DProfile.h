@@ -42,6 +42,17 @@ public:
     virtual void detachFromPlot() Q_DECL_OVERRIDE;
 
     /**
+     * Returns the data point closest to the target point.
+     * @param targetX - the x-coordinate of the target point.
+     * @param targetY - the y-coordinate of the target point.
+     * @param xError - set to the error in the x-direction.
+     * @param yError - set to the error in the y-direction.
+     * @return - the data point closest to the target point.
+     */
+    virtual std::pair<double,double> getClosestPoint( double targetX, double targetY,
+            double* xError, double* yError ) const Q_DECL_OVERRIDE;
+
+    /**
      * Return a custom icon to use for the legend item.
      * @param index - unused.
      * @param size - the size of the icon.
@@ -78,6 +89,13 @@ public:
      * @param showLegendLine - true to display a sample line; false, otherwise.
      */
     virtual void setLegendLine( bool showLegendLine ) Q_DECL_OVERRIDE;
+
+    /**
+     * Turn on/off the legend for this data item.
+     * @param visible - true to see a corresponding legend for this data; false, to
+     *  not display a legend for this data.
+     */
+    virtual void setLegendVisible( bool visible ) Q_DECL_OVERRIDE;
 
     /**
      * Destructor.

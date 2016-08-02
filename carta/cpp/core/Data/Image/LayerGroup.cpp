@@ -66,8 +66,7 @@ void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
     }
 }
 
-QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex,
-        QSize viewSize ) {
+QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex ) {
     QString result;
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     LayerData* targetSource = objMan->createObject<LayerData>();
@@ -80,7 +79,6 @@ QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackI
     //If we are making a new layer, see if there is a selected group.  If so,
     //add to the group.  If not, add to this group.
     if ( *success ){
-        targetSource->_viewResize( viewSize );
         _setColorSupport( targetSource );
         std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
         if (selectedGroup ){
@@ -323,11 +321,13 @@ Carta::Lib::KnownSkyCS LayerGroup::_getCoordinateSystem() const {
     return cs;
 }
 
-QString LayerGroup::_getCursorText( int mouseX, int mouseY, const std::vector<int>& frames ){
+QString LayerGroup::_getCursorText( int mouseX, int mouseY,
+        const std::vector<int>& frames, const QSize& outputSize ){
     QString cursorText;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY, frames );
+        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY,
+                frames, outputSize );
     }
     return cursorText;
 
@@ -394,6 +394,15 @@ std::shared_ptr<DataSource> LayerGroup::_getDataSource(){
     return dSource;
 }
 
+QSize LayerGroup::_getDisplaySize() const {
+    QSize size;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        size = m_children[dataIndex]->_getDisplaySize();
+    }
+    return size;
+}
+
 
 std::vector<int> LayerGroup::_getImageDimensions( ) const {
     std::vector<int> result;
@@ -405,11 +414,11 @@ std::vector<int> LayerGroup::_getImageDimensions( ) const {
 }
 
 
-QPointF LayerGroup::_getImagePt( QPointF screenPt, bool* valid ) const {
+QPointF LayerGroup::_getImagePt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const {
     QPointF imagePt;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        imagePt = m_children[dataIndex]->_getImagePt( screenPt, valid );
+        imagePt = m_children[dataIndex]->_getImagePt( screenPt, outputSize, valid );
     }
     else {
         *valid = false;
@@ -449,15 +458,24 @@ int LayerGroup::_getIndexCurrent( ) const {
     return dataIndex;
 }
 
-bool LayerGroup::_getIntensity( int frameLow, int frameHigh, double percentile,
-        double* intensity, int* intensityIndex ) const {
-    bool intensityFound = false;
+QRectF LayerGroup::_getInputRect( const QSize& size ) const {
+    QRectF rect(0,0,0,0);
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        intensityFound = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
-                percentile, intensity, intensityIndex );
+        rect = m_children[dataIndex]->_getInputRect( size );
     }
-    return intensityFound;
+    return rect;
+}
+
+std::vector<std::pair<int,double> > LayerGroup::_getIntensity( int frameLow, int frameHigh,
+        const std::vector<double>& percentiles ) const{
+    std::vector<std::pair<int,double> > results;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
+                percentiles );
+    }
+    return results;
 }
 
 std::shared_ptr<Layer> LayerGroup::_getLayer(){
@@ -501,15 +519,6 @@ QStringList LayerGroup::_getLayerIds( ) const {
 }
 
 
-QSize LayerGroup::_getOutputSize() const {
-    QSize size;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        size = m_children[dataIndex]-> _getOutputSize();
-    }
-    return size;
-}
-
 double LayerGroup::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
     double percentile = 0;
     int dataIndex = _getIndexCurrent();
@@ -521,11 +530,23 @@ double LayerGroup::_getPercentile( int frameLow, int frameHigh, double intensity
 
 
 
-QStringList LayerGroup::_getPixelCoordinates( double ra, double dec ) const{
-    QStringList result("");
+QPointF LayerGroup::_getPixelCoordinates( double ra, double dec, bool* valid ) const{
+    QPointF result;
     int dataIndex = _getIndexCurrent();
+    *valid = false;
     if ( dataIndex >= 0 ){
-        result = m_children[dataIndex]->_getPixelCoordinates( ra, dec );
+        result = m_children[dataIndex]->_getPixelCoordinates( ra, dec, valid );
+    }
+    return result;
+}
+
+QPointF LayerGroup::_getWorldCoordinates( double pixelX, double pixelY,
+        Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
+    QPointF result;
+    int dataIndex = _getIndexCurrent();
+    *valid = false;
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_getWorldCoordinates( pixelX, pixelY, coordSys, valid );
     }
     return result;
 }
@@ -549,6 +570,7 @@ QString LayerGroup::_getPixelValue( double x, double y, const std::vector<int>& 
 }
 
 
+
 QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {
     QSize saveSize = outputSize;
     int dataIndex = _getIndexCurrent();
@@ -558,18 +580,6 @@ QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode as
     return saveSize;
 }
 
-
-QPointF LayerGroup::_getScreenPt( QPointF imagePt, bool* valid ) const {
-    QPointF screenPt;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        screenPt = m_children[dataIndex]->_getScreenPt( imagePt, valid );
-    }
-    else {
-        *valid = false;
-    }
-    return screenPt;
-}
 
 std::shared_ptr<Layer> LayerGroup::_getSelectedGroup() {
     std::shared_ptr<Layer> group( nullptr );
@@ -1026,19 +1036,6 @@ void LayerGroup::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     for ( std::shared_ptr<Layer> node : m_children ){
         node->_updateClips( view,  minClipPercentile, maxClipPercentile, frames );
-    }
-}
-
-void LayerGroup::_viewReset(){
-    for ( std::shared_ptr<Layer> node : m_children){
-        node->_viewReset();
-    }
-}
-
-void LayerGroup::_viewResize( const QSize& newSize ){
-    m_drawSync->viewResize( newSize );
-    for ( std::shared_ptr<Layer> node : m_children){
-        node->_viewResize( newSize );
     }
 }
 

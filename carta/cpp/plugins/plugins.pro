@@ -5,6 +5,7 @@ SUBDIRS += casaCore-2.10.2016
 #SUBDIRS += casaCore-2.0.1
 SUBDIRS += CasaImageLoader
 SUBDIRS += Colormaps1
+SUBDIRS += Fitter1D
 SUBDIRS += Histogram
 SUBDIRS += WcsPlotter
 SUBDIRS += ConversionSpectral

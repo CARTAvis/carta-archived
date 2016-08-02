@@ -34,17 +34,47 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
             },
             
             /**
+             * Notification that one or more controls have changed on the server-side.
+             * @param ev {qx.event.type.Data}.
+             */
+            _controlVisibilityChanged : function( ev ){
+                var data = ev.getData();
+                var showStat = data.showStats;
+                this._showHideFitStatistics( showStat );
+            },
+            
+            /**
              * Display specific UI initialization.
              */
             _initDisplaySpecific : function() {
                 if (this.m_profile === null ) {
                     this.m_profile = new skel.widgets.Profile.Profile();
-                    this.m_profile.setId( this.m_identifier);
-                    this.m_content.add( this.m_profile, {flex:1});
+                    this.m_profile.addListener( "statVisibilityChanged", this._controlVisibilityChanged, this );
                 }
                 if ( this.m_profileControls === null ){
                     this.m_profileControls = new skel.widgets.Profile.Settings();
+                    this.m_profile.setControls( this.m_profileControls );
                     this.m_profileControls.setId( this.m_identifier );
+                }
+                this.m_profile.setId( this.m_identifier);
+                if ( this.m_fitStatLabel === null ){
+                    this._initStatistics();
+                }
+                this._layoutControls();
+            },
+            
+            /**
+             * Initialize the label for displaying fit statistics.
+             */
+            _initStatistics : function(){
+                if ( this.m_fitStatLabel === null ){
+                    var path = skel.widgets.Path.getInstance();
+                    var viewPath = this.m_identifier + path.SEP + "Fit";
+                    this.m_fitStatLabel = new skel.boundWidgets.Label( "", "", viewPath, function( anObject){
+                        return anObject.fitStatistics;
+                    });
+                    this.m_fitStatLabel.setRich( true );
+                    
                 }
             },
             
@@ -83,10 +113,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
              */
             _layoutControls : function(){
                 this.m_content.removeAll();
+                this.m_content.add( this.m_profile, {flex:1} );
+                if ( this.m_statisticsVisible && this.m_fitStatLabel !== null){
+                    this.m_content.add( this.m_fitStatLabel );
+                }
                 if ( this.m_controlsVisible ){
                     this.m_content.add( this.m_profileControls );
                 }
-                this.m_content.add( this.m_profile, {flex:1} );
             },
             
             /**
@@ -100,8 +133,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                         try {
                             var setObj = JSON.parse( val );
                             if ( setObj.settings !== null ){
-                                this.m_profile.showHideSettings( setObj.settings );
+                                this._adjustControlVisibility( setObj.settings );
                             }
+                          
                            
                         }
                         catch( err ){
@@ -113,6 +147,36 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
             },
             
             /**
+             * Callback for updates of fit statistics.
+             */
+            _profileFitStatsCB : function(){
+                var val = this.m_sharedVarFitStats.get();
+                if ( val ){
+                    try {
+                        var stats = JSON.parse( val );
+                        if ( this.m_fitStatLabel === null ){
+                            this._initStatistics();
+                        }
+                        this.m_fitStatLabel.setValue( stats.fitStats );
+                    }
+                    catch( err ){
+                        console.log( "Could not parse fit statistics: "+val+" error: "+err );
+                    }
+                }
+            },
+            
+            /**
+             * Register to receive updates to server-side fit statistics.
+             */
+            _registerStatistics : function(){
+                var path = skel.widgets.Path.getInstance();
+                var statPath = this.m_identifier + path.SEP + "fitStatistics";
+                this.m_sharedVarFitStats = this.m_connector.getSharedVar( statPath );
+                this.m_sharedVarFitStats.addCB( this._profileFitStatsCB.bind( this));
+                this._profileFitStatsCB();
+            },
+            
+            /**
              * Called when the profiler is selected.
              * @param selected {boolean} - true if the window is selected; false otherwise.
              * @param multiple {boolean} - true if there are multiple window problems selected.
@@ -120,6 +184,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
             setSelected : function(selected, multiple) {
                 this._initSupportedCommands();
                 arguments.callee.base.apply(this, arguments, selected, multiple );
+            },
+            
+            /**
+             * Show/hide the cursor statistics control.
+             * @param visible {boolean} - true if the cursor statistics widget
+             *      should be shown; false otherwise.
+             */
+            _showHideFitStatistics : function( visible ){
+                this.m_statisticsVisible = visible;
+                this._layoutControls();
             },
            
             
@@ -131,10 +205,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 arguments.callee.base.apply(this, arguments);
                 this.initializePrefs();
                 this.m_profileControls.setId( this.getIdentifier());
+                this._registerStatistics();
             },
+            
             m_controlsVisible : false,
+            m_fitStatLabel : null,
             m_profile : null,
-            m_profileControls : null
+            m_profileControls : null,
+            m_statisticsVisible : null,
+            m_sharedVarFitStats : null
 
         }
 });

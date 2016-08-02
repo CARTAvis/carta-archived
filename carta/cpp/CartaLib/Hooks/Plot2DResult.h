@@ -50,6 +50,12 @@ class Plot2DResult {
     QString getUnitsY() const;
 
     /**
+     * Store the 2-dimensional data.
+     * @param result - a list of (x,y) values.
+     */
+    void setData( const std::vector<std::pair<double,double> >& result );
+
+    /**
      * Set the title of the plot data.
      * @param name - a title for the plot data.
      */

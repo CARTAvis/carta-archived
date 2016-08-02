@@ -29,6 +29,12 @@ public:
      * @param name - an identifier for a plug-in type.
      */
     void setPluginType( const QString& name );
+
+    /**
+     * Return a string representation of the node.
+     * @return - a string representation of the node.
+     */
+    virtual QString toString() const;
     virtual ~LayoutNodeLeaf();
 
     const static QString CLASS_NAME;
@@ -38,6 +44,7 @@ private:
     void _initializeDefaultState();
 
     const static QString PLUGIN;
+
 
     static bool m_registered;
     LayoutNodeLeaf( const QString& path, const QString& id );

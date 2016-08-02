@@ -82,7 +82,7 @@ static int
 eventApiTest()
 {
     QString s = "{ 'type': 'tap', 'x': 1, 'y': 2.3 }";
-    qDebug() << "Testing events" << s.toLatin1();
+    //qDebug() << "Testing events" << s.toLatin1();
 
 //    QJsonParseError error;
 //    QJsonDocument jdoc = QJsonDocument::fromJson(s.toLatin1(), & error);
@@ -104,7 +104,7 @@ eventApiTest()
 
 //    std::unique_ptr < TouchEvent > te( convertInputEvent < TouchEvent > ( be ) );
     if ( te.valid() ) {
-        qDebug() << "Touch event good" << te.pos();
+       // qDebug() << "Touch event good" << te.pos();
     }
     else {
         qDebug() << "Touch event no good";

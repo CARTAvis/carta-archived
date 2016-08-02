@@ -19,6 +19,8 @@ class Controller;
 class DataLoader;
 class Histogram;
 class Colormap;
+class ImageContext;
+class ImageZoom;
 class Layout;
 class Profiler;
 class Statistics;
@@ -57,23 +59,39 @@ public:
 
     /**
      * Return the number of controllers (image views).
+     * @return - the controller count.
      */
     int getControllerCount() const;
 
     /**
      * Return the number of colormap views.
+     * @return - the colormap count.
      */
     int getColormapCount() const;
 
     /**
      * Return the number of animator views.
+     * @return - the animator count.
      */
     int getAnimatorCount() const;
 
     /**
      * Return the number of histogram views.
+     * @return - the histogram count.
      */
     int getHistogramCount() const;
+
+    /**
+     * Return the number of image context views.
+     * @return - the image context view count.
+     */
+    int getImageContextCount() const;
+
+    /**
+     * Return the number of image zoom views.
+     * @return - the image zoom view count.
+     */
+    int getImageZoomCount() const;
 
     /**
      * Load the file into the controller with the given id.
@@ -145,6 +163,8 @@ private:
     void _clearColormaps( int startIndex, int upperBound );
     void _clearControllers( int startIndex, int upperBound );
     void _clearHistograms( int startIndex, int upperBound );
+    void _clearImageContexts( int startIndex, int upperBound );
+    void _clearImageZooms( int startIndex, int upperBound );
     void _clearProfilers( int startIndex, int upperBound );
     void _clearStatistics( int startIndex, int upperBound );
 
@@ -157,6 +177,7 @@ private:
      * @return the index of the identifier plugin in the QStringList.
      */
     int _findListIndex( const QString& sourcePlugin, int pluginIndex, const QStringList& plugins ) const;
+
 
     void _initCallbacks();
 
@@ -174,6 +195,8 @@ private:
     QString _makeColorMap( int index );
     QString _makeController( int index );
     QString _makeHistogram( int index );
+    QString _makeImageContext( int index );
+    QString _makeImageZoom( int index );
     QString _makeProfile( int index );
     QString _makeSnapshots();
     QString _makeStatistics( int index );
@@ -204,6 +227,10 @@ private:
     //A list of Controllers requested by the client.
     QList <Controller* > m_controllers;
 
+    //Zoom and context views.
+    QList <ImageZoom*> m_imageZooms;
+    QList <ImageContext*> m_imageContexts;
+
     //A list of Animators requested by the client.
     QList < Animator* > m_animators;
 
@@ -213,6 +240,7 @@ private:
     //Histogram
     QList<Histogram* >m_histograms;
 
+    //Profile
     QList<Profiler* > m_profilers;
 
     //Statistics

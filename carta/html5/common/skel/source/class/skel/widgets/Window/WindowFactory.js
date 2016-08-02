@@ -74,6 +74,12 @@ qx.Class.define("skel.widgets.Window.WindowFactory",{
                 if (pluginId == path.CASA_LOADER) {
                     window = new skel.widgets.Window.DisplayWindowImage( index, detached);
                 } 
+                else if (pluginId == path.IMAGE_ZOOM) {
+                    window = new skel.widgets.Window.DisplayWindowImageZoom( index, detached);
+                } 
+                else if (pluginId == path.IMAGE_CONTEXT) {
+                    window = new skel.widgets.Window.DisplayWindowImageContext( index, detached);
+                } 
                 else if (pluginId == path.ANIMATOR) {
                     window = new skel.widgets.Window.DisplayWindowAnimation( index, detached );
                 } 

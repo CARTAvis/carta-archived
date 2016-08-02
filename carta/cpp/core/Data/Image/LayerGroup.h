@@ -48,10 +48,8 @@ protected:
      * @param success - set to true if the image file is successfully loaded.
      * @param stackIndex - set to the index of the image in this group if it is loaded
      *      in this group.
-     * @param viewSize - the current client view size.
      */
-    QString _addData(const QString& fileName, bool* success, int* stackIndex,
-                      QSize viewSize=QSize()  );
+    QString _addData(const QString& fileName, bool* success, int* stackIndex);
 
 
 
@@ -134,7 +132,7 @@ protected:
      * @return a QString containing cursor text.
      */
     virtual QString _getCursorText( int mouseX, int mouseY,
-            const std::vector<int>& frames ) Q_DECL_OVERRIDE;
+            const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
 
     /**
      * Return the data source of the image.
@@ -155,6 +153,15 @@ protected:
      * @return the number of image dimensions.
      */
     virtual int _getDimension() const Q_DECL_OVERRIDE;
+
+    /**
+     * Return the dimensions of the displayed image; normally, this will
+     * be the number of frames in the RA x DEC directions.  However, if
+     * the image is being display as a Frequency x DEC plot, this will be
+     * the number of frames in the frequency & DEC axes.
+     * @return - the displayed dimensions of the image.
+     */
+    virtual QSize _getDisplaySize() const Q_DECL_OVERRIDE;
 
 
     /**
@@ -184,23 +191,30 @@ protected:
      * Returns the location on the image corresponding to a screen point in
      * pixels.
      * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param outputSize - the size in pixels of the output image.
      * @param valid set to true if an image is loaded that can do the translation; otherwise false;
      * @return the corresponding location on the image.
      */
-    virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const Q_DECL_OVERRIDE;
+    virtual QPointF _getImagePt( const QPointF& screenPt, const QSize& output, bool* valid ) const Q_DECL_OVERRIDE;
     virtual int _getIndexCurrent( ) const;
+
+    /**
+     * Return the portion of the image that is displayed given current zoom and
+     * pan values.
+     * @param size - the size of the displayed image.
+     * @return - the portion of the image that is visible.
+     */
+    virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the intensity corresponding to a given percentile.
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentile - a number [0,1] for which an intensity is desired.
-     * @param intensity - the computed intensity corresponding to the percentile.
-     * @param intensityIndex - the frame where maximum intensity was found.
-     * @return true if the computed intensity is valid; otherwise false.
+     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @return - a list of (location,intensity) pairs.
      */
-    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile,
-            double* intensity, int* intensityIndex ) const Q_DECL_OVERRIDE;
+    virtual std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the current layer.
@@ -221,11 +235,6 @@ protected:
      */
     virtual QStringList _getLayerIds( ) const Q_DECL_OVERRIDE;
 
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @return the image viewer dimensions.
-     */
-    virtual QSize _getOutputSize() const Q_DECL_OVERRIDE;
 
     /**
      * Return the percentile corresponding to the given intensity.
@@ -241,11 +250,22 @@ protected:
      * Return the pixel coordinates corresponding to the given world coordinates.
      * @param ra the right ascension (in radians) of the world coordinates.
      * @param dec the declination (in radians) of the world coordinates.
-     * @return a list consisting of the x- and y-coordinates of the pixel
-     *  corresponding to the given world coordinates.
+     * @param valid - true if the pixel coordinates are valid; false, otherwise.
+     * @return - a point containing the pixel coordinates..
      */
-    virtual QStringList _getPixelCoordinates( double ra, double dec ) const Q_DECL_OVERRIDE;
+    virtual QPointF _getPixelCoordinates( double ra, double dec, bool* valid ) const Q_DECL_OVERRIDE;
 
+
+    /**
+      * Return the world coordinates corresponding to the given pixel coordinates.
+      * @param pixelX - the first pixel coordinate.
+      * @param pixelY - the second pixel coordinate.
+      * @param coordSys - the coordinate system.
+      * @param valid - true if the pixel coordinates are valid; false otherwise.
+      * @return - a point containing the pixel coordinates.
+      */
+    virtual QPointF _getWorldCoordinates( double pixelX, double pixelY,
+            Carta::Lib::KnownSkyCS coordSys, bool* valid ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the units of the pixels.
@@ -266,6 +286,8 @@ protected:
     virtual QString _getPixelValue( double x, double y,
             const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
 
+
+
     /**
      * Return the size of the saved image based on the user defined output size and the aspect
      * ratio mode.
@@ -282,14 +304,6 @@ protected:
      * @return - a list of color states whose states may be changed.
      */
     virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) Q_DECL_OVERRIDE;
-
-    /**
-     * Returns the location on the screen corresponding to a location in image coordinates.
-     * @param imagePt an (x,y) pair of image coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding pixel coordinates.
-     */
-    virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const Q_DECL_OVERRIDE;
 
     int _getStackSize() const;
     int _getStackSizeVisible() const;
@@ -441,17 +455,6 @@ protected:
 
     virtual void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) Q_DECL_OVERRIDE;
-
-    /**
-     * Reset the view to its previous state after a save.
-     */
-    virtual void _viewReset() Q_DECL_OVERRIDE;
-
-    /**
-     * Resize the view of the image.
-     */
-    virtual void _viewResize( const QSize& newSize ) Q_DECL_OVERRIDE;
-
 
     /**
      *  Constructor.

@@ -61,6 +61,7 @@ HEADERS += \
     Data/Image/CoordinateSystems.h \
     Data/Image/DataSource.h \
     Data/Image/Draw/DrawGroupSynchronizer.h \
+    Data/Image/Draw/DrawImageViewsSynchronizer.h \
     Data/Image/Draw/DrawSynchronizer.h \
     Data/Image/Draw/DrawStackSynchronizer.h \
     Data/Image/Grid/AxisMapper.h \
@@ -69,10 +70,14 @@ HEADERS += \
     Data/Image/Grid/GridControls.h \
     Data/Image/Grid/Themes.h \
     Data/Image/Grid/LabelFormats.h \
+    Data/Image/ImageContext.h \
+    Data/Image/ImageZoom.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Image/LayerCompositionModes.h \
-    Data/Image/RenderRequest.h \
-    Data/Image/RenderResponse.h \
+    Data/Image/LeastRecentlyUsedCache.h \
+    Data/Image/LeastRecentlyUsedCacheEntry.h \
+    Data/Image/Render/RenderRequest.h \
+    Data/Image/Render/RenderResponse.h \
     Data/Image/Save/SaveService.h \
     Data/Image/Save/SaveView.h \
     Data/Image/Save/SaveViewLayered.h \
@@ -89,11 +94,13 @@ HEADERS += \
     Data/Preferences/Preferences.h \
     Data/Preferences/PreferencesSave.h \
     Data/Profile/CurveData.h \
+    Data/Profile/Fit/ProfileFitService.h \
+    Data/Profile/Fit/ProfileFitThread.h \
     Data/Profile/Profiler.h \
     Data/Profile/ProfilePlotStyles.h \
-    Data/Profile/ProfileRenderService.h \
-    Data/Profile/ProfileRenderThread.h \
-    Data/Profile/ProfileRenderWorker.h \
+    Data/Profile/Render/ProfileRenderService.h \
+    Data/Profile/Render/ProfileRenderThread.h \
+    Data/Profile/Render/ProfileRenderWorker.h \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
@@ -115,11 +122,15 @@ HEADERS += \
     ImageSaveService.h \
     Plot2D/Plot.h \
     Plot2D/Plot2DGenerator.h \
+    Plot2D/Plot2DRangeMarker.h \
     Plot2D/Plot2DSelection.h \
     Plot2D/Plot2D.h \
     Plot2D/Plot2DLine.h \
+    Plot2D/Plot2DLineHorizontal.h \
     Plot2D/Plot2DHistogram.h \
+    Plot2D/Plot2DHolder.h \
     Plot2D/Plot2DProfile.h \
+    Plot2D/Plot2DTextMarker.h \
     ProfileExtractor.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
@@ -189,11 +200,16 @@ SOURCES += \
     Data/Image/Grid/LabelFormats.cpp \
     Data/Image/Grid/Themes.cpp \
     Data/Image/Draw/DrawGroupSynchronizer.cpp \
+    Data/Image/Draw/DrawImageViewsSynchronizer.cpp \
     Data/Image/Draw/DrawSynchronizer.cpp \
     Data/Image/Draw/DrawStackSynchronizer.cpp \
+    Data/Image/ImageContext.cpp \
+    Data/Image/ImageZoom.cpp \
     Data/Image/LayerCompositionModes.cpp \
-    Data/Image/RenderRequest.cpp \
-    Data/Image/RenderResponse.cpp \
+    Data/Image/LeastRecentlyUsedCache.cpp \
+    Data/Image/LeastRecentlyUsedCacheEntry.cpp \
+    Data/Image/Render/RenderRequest.cpp \
+    Data/Image/Render/RenderResponse.cpp \
     Data/Image/Save/SaveService.cpp \
     Data/Image/Save/SaveView.cpp \
     Data/Image/Save/SaveViewLayered.cpp \
@@ -219,11 +235,13 @@ SOURCES += \
     Data/Preferences/Preferences.cpp \
     Data/Preferences/PreferencesSave.cpp \
     Data/Profile/CurveData.cpp \
+    Data/Profile/Fit/ProfileFitService.cpp \
+    Data/Profile/Fit/ProfileFitThread.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfilePlotStyles.cpp \
-    Data/Profile/ProfileRenderService.cpp \
-    Data/Profile/ProfileRenderThread.cpp \
-    Data/Profile/ProfileRenderWorker.cpp \
+    Data/Profile/Render/ProfileRenderService.cpp \
+    Data/Profile/Render/ProfileRenderThread.cpp \
+    Data/Profile/Render/ProfileRenderWorker.cpp \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
@@ -242,11 +260,15 @@ SOURCES += \
     GrayColormap.cpp \
     Plot2D/Plot.cpp \
     Plot2D/Plot2DGenerator.cpp \
+    Plot2D/Plot2DRangeMarker.cpp \
     Plot2D/Plot2D.cpp \
     Plot2D/Plot2DLine.cpp \
+    Plot2D/Plot2DLineHorizontal.cpp \
     Plot2D/Plot2DHistogram.cpp \
+    Plot2D/Plot2DHolder.cpp \
     Plot2D/Plot2DProfile.cpp \
     Plot2D/Plot2DSelection.cpp \
+    Plot2D/Plot2DTextMarker.cpp \
     ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \

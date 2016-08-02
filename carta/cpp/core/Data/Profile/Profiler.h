@@ -11,6 +11,7 @@
 #include "Data/ILinkable.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/Hooks/ProfileResult.h"
+#include "CartaLib/Hooks/FitResult.h"
 
 #include <QObject>
 
@@ -39,8 +40,10 @@ class Controller;
 class CurveData;
 class GenerateModes;
 class LegendLocations;
+class LineStyles;
 class LinkableImpl;
 class Layer;
+class ProfileFitService;
 class ProfileRenderService;
 class ProfileStatistics;
 class Settings;
@@ -61,10 +64,45 @@ public:
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
-     * Returns the units on the bottom axis of the profile.
-     * @return - the profile bottom axis units.
+     * Clear stored fit information.
      */
-    QString getAxisUnitsBottom() const;
+    void clearFits();
+
+    /**
+     * Returns the units on the x-axis of the profile.
+     * @return - the profile x-axis units.
+     */
+    QString getAxisUnitsX() const;
+
+    /**
+        * Returns the units on the y-axis of the profile.
+        * @return - the profile y-axis units.
+        */
+       QString getAxisUnitsY() const;
+
+    /**
+     * Return the number of Gaussians to fit to the curve.
+     * @return - the number of Gaussians to fit to the curve.
+     */
+    int getGaussCount() const;
+
+    /**
+     * Get the number of manual guesses for Gaussian curve fits.
+     * @return - the number of manual guesses for Gaussian curve fits.
+     */
+    int getGuessCount() const;
+
+    /**
+     * Returns the line style to use in drawing the fit curve.
+     * @return - the fit curve line style.
+     */
+    QString getLineStyleFit() const;
+
+    /**
+     * Return the number of polynomial terms to fit to the curve.
+     * @return - the degree of the polynomial to fit to the curve.
+     */
+    int getPolyCount() const;
 
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
@@ -93,11 +131,37 @@ public:
     double getZoomMaxPercent() const;
 
     /**
+     * Return true if initial guesses will be specified manually; false, otherwise.
+     * @return - true if initial guesses will be specified manually, false, otherwise.
+     */
+    bool isFitManualGuess( ) const;
+
+    /**
      * Returns whether or not the object with the given id is already linked to this object.
      * @param linkId - a QString identifier for an object.
      * @return true if this object is already linked to the one identified by the id; false otherwise.
      */
     virtual bool isLinked( const QString& linkId ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Return whether or not random heuristics will be used for the initial fit
+     * guesses when performing a fit.
+     * @return - whether random heuristics will be used for the initial fit guesses
+     *      when performing a fit.
+     */
+    bool isRandomHeuristics() const;
+
+    /**
+     * Returns whether or not labels at the peaks of the Gaussians should be shown.
+     * @return - true if labels at the peaks of the fit Gaussains should be shown; false, otherwise.
+     */
+    bool isShowPeakLabels() const;
+
+    /**
+     * Returns whether or not a separate residual plot should be shown.
+     * @return - true if a separate residual plot should be shown; false, otherwise.
+     */
+    bool isShowResiduals() const;
 
     /**
      * Generate a new profile based on default settings.
@@ -123,6 +187,11 @@ public:
     QString profileRemove( const QString& name );
 
     /**
+     * Reset the initial fit manual guesses.
+     */
+    void resetInitialFitGuesses();
+
+    /**
      * Set the rest frequency back to its original value for the given curve.
      * @param curveName - an identifier for a profile curve.
      * @return - an error message if the rest frequency could not be reset; otherwise, an
@@ -135,19 +204,19 @@ public:
 
     /**
      * Set the bottom axis units.
-     * @param unitStr - set the label to use for the bottom axis of the plot.
+     * @param unitStr - set the label to use for the x-axis of the plot.
      * @return - an error message if the units could not be set; otherwise, an
      *      empty string.
      */
-    QString setAxisUnitsBottom( const QString& unitStr );
+    QString setAxisUnitsX( const QString& unitStr );
 
     /**
-     * Set the left axis units.
-     * @param unitStr - set the label to use for the left axis of the plot.
+     * Set the y-axis units.
+     * @param unitStr - set the label to use for the y-axis of the plot.
      * @return - an error message if the units could not be set; otherwise, an
      *      empty string.
      */
-    QString setAxisUnitsLeft( const QString& unitStr );
+    QString setAxisUnitsY( const QString& unitStr );
 
 
     /**
@@ -166,6 +235,48 @@ public:
      * @param newName - the new name of the curve.
      */
     QString setCurveName( const QString& id, const QString& newName );
+
+    /**
+     * Set the list of curves to be fit with Gaussians/Polynomials.
+     * @param curveNames - the list of curves to be fit.
+     * @return - an error message if there was a problem identifying
+     *      the curves to be fit; an empty string otherwise.
+     */
+    QString setFitCurves( const QStringList curveNames );
+
+    /**
+     * Return a list of initial fit guesses for Gaussian parameters.
+     * @return - the list of initial fit guesses for Gaussian parameters.
+     */
+    std::vector<std::tuple<double,double,double> > getFitGuesses();
+
+    /**
+     * Set manual fit guesses in image coordinates.
+     * @param guesses- a list of fit guesses in image coordinates.
+     * @return - an error message if the initial fit guesses could not be set.
+     */
+    QString setFitInitialGuesses(const std::vector<std::tuple<double,double,double> >& guesses );
+
+    /**
+     * Set manual fit guesses in image coordinates.
+     * @param guesses- a list of fit guesses in image coordinates.
+     * @return - an error message if the initial fit guesses could not be set.
+     */
+    QString setFitInitialGuessesPixels(const std::vector<std::tuple<int,int,int> >& guessPixels );
+
+    /**
+     * Set whether or not manual initial guesses will be specified for
+     * fitting.
+     * @param manualGuess - true if manual initial guesses will be used;
+     *      false, otherwise.
+     */
+    void setFitManualGuess( bool manualGuess );
+
+    /**
+     * Set the number of Gaussians to fit to the curve.
+     * @param count - the number of Gaussians to fit to the curve.
+     */
+    QString setGaussCount( int count );
 
     /**
      * Set which if any profiles should be automatically generated.
@@ -217,6 +328,18 @@ public:
     void setLegendShow( bool showLegend );
 
     /**
+     * Set the line style to use for the fit curve.
+     * @param lineStyleFit - the line style to use for the fit curve.
+     */
+    QString setLineStyleFit( const QString& lineStyleFit );
+
+    /**
+     * Set the number of polynomial terms to use in fitting the curve.
+     * @param count - the degree of the polynomial.
+     */
+    QString setPolyCount( int degree );
+
+    /**
      * Set the plot style (continuous, step, etc).
      * @param name - an identifier for a profile curve.
      * @param plotStyle - an identifier for a plot style.
@@ -224,6 +347,14 @@ public:
      *      empty string.
      */
     QString setPlotStyle( const QString& name, const QString& plotStyle );
+
+    /**
+     * Set whether or not random heuristics will be used for the initial guesses
+     * when performing a fit.
+     * @param randomHeuristics - true if random heuristics should be used; false,
+     *      otherwise.
+     */
+    void setRandomHeuristics( bool randomHeuristics );
 
     /**
      * Set the rest frequency used to generate a profile for the given curve.
@@ -252,6 +383,61 @@ public:
      *      otherwise, an empty string.
      */
     QString setRestUnitType( bool restUnitsFreq, const QString& curveName );
+
+    /**
+     * Sets whether information about the point underneath the mouse cursor should
+     * be shown or not.
+     * @param showCursor - true if information about the point underneath the mouse
+     *      cursor should be shown; false, otherwise.
+     */
+    void setShowCursor( bool showCursor );
+
+    /**
+     * Set whether or not to show manual fit guesses in the UI.
+     * @param showFitGuesses - true if manual fit guesses should be displayed;
+     *      false otherwise.
+     * @return - an error message if the parameter could not be set; an empty
+     *      string otherwise.
+     */
+    //Note:  Manual guesses will not be shown if manual mode has not
+    //first been set.
+    QString setShowFitGuesses( bool showFitGuesses );
+
+    /**
+     * Set whether or not residuals should be shown in the UI.
+     * @param showFitResiduals - true if fit residuals should be displayed;
+     *      false, otherwise.
+     */
+    void setShowFitResiduals( bool showFitResiduals );
+
+    /**
+     * Set whether fit statistics should be displayed.
+     * @param showFitStatistics - true if fit statistics should be displayed;
+     *      false otherwise.
+     */
+    void setShowFitStatistics( bool showFitStatistics );
+
+    /**
+     * Sets whether or not the position of the current frame should be shown.
+     * @param showFrame - true if the position of the current frame should be shown;
+     *      false otherwise.
+     */
+    void setShowFrame( bool showFrame );
+
+    /**
+     * Set whether or not the mean and RMS should be displayed.
+     * @param showMeanRMS - true if the mean and RMS should be displayed;
+     *      false, otherwise.
+     */
+    void setShowMeanRMS( bool showMeanRMS );
+
+    /**
+     * Set whether or not peak labels should be displayed indicating fit
+     * information.
+     * @param showPeakLabels - true to show labels at Gaussian fit peaks;
+     *      false, otherwise.
+     */
+    void setShowPeakLabels( bool showPeakLabels );
 
     /**
      * Set the number of significant digits to use in storing numbers.
@@ -317,11 +503,14 @@ protected:
 
 private slots:
     void _cursorUpdate( double x, double y );
+    void _fitFinished(const std::vector<Carta::Lib::Hooks::FitResult>& result);
     void _loadProfile( Controller* controller);
     void _movieFrame();
+    void _plotSizeChanged();
     void _profileRendered( const Carta::Lib::Hooks::ProfileResult& result,
             int curveIndex, const QString& layerName, bool createNew,
             std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
+    void _resetFitGuessPixels();
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateZoomRangeBasedOnPercent();
     QString _zoomToSelection();
@@ -331,16 +520,31 @@ private:
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
     const static QString CURVE_SELECT;
+
+    const static QString FIT_STATISTICS;
+    const static QString GAUSS_COUNT;
     const static QString GEN_MODE;
     const static QString GRID_LINES;
+    const static QString HEURISTICS;
     const static QString IMAGES;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
+    const static QString MANUAL_GUESS;
+    const static QString PLOT_HEIGHT;
+    const static QString PLOT_WIDTH;
+    const static QString PLOT_LEFT;
+    const static QString PLOT_TOP;
+    const static QString POLY_DEGREE;
     const static QString REGIONS;
-    const static QString SHOW_TOOLTIP;
-    const static QString TOOL_TIPS;
+    const static QString SHOW_FRAME;
+    const static QString SHOW_GUESSES;
+    const static QString SHOW_MEAN_RMS;
+    const static QString SHOW_PEAK_LABELS;
+    const static QString SHOW_RESIDUALS;
+    const static QString SHOW_STATISTICS;
+    const static QString SHOW_CURSOR;
     const static QString TAB_INDEX;
     const static QString ZOOM_BUFFER;
     const static QString ZOOM_BUFFER_SIZE;
@@ -348,6 +552,7 @@ private:
     const static QString ZOOM_MAX;
     const static QString ZOOM_MIN_PERCENT;
     const static QString ZOOM_MAX_PERCENT;
+    const static int ERROR_MARGIN;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
@@ -359,19 +564,35 @@ private:
     void _convertX( std::vector<double>& converted,
             std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
             const QString& oldUnit, const QString& newUnit ) const;
+    void _convertDataX( std::vector<double>& converted, const QString& bottomUnit,
+            std::shared_ptr<CurveData> curveData ) const;
+    void _convertDataY( std::vector<double>& converted, const std::vector<double>& plotDataX,
+            std::shared_ptr<CurveData> curveData, const QString& newUnits ) const;
     std::vector<double> _convertUnitsX( std::shared_ptr<CurveData> curveData,
             const QString& newUnit ) const;
+    std::vector<double> _convertUnitsXFit( std::shared_ptr<CurveData> curveData,
+            const QString& bottomUnit ) const;
+    std::vector<double>  _convertUnitsXFitParams( std::shared_ptr<CurveData> curveData,
+            const QString & bottomUnit ) const;
     std::vector<double> _convertUnitsY( std::shared_ptr<CurveData> curveData,
             const QString& newUnit ) const;
+    std::vector<double> _convertUnitsYFit( std::shared_ptr<CurveData> curveData,
+            const QString& newUnit ) const;
+    std::vector<double>  _convertUnitsYFitParams( std::shared_ptr<CurveData> curveData,
+            const QString & newUnit ) const;
 
     void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
     void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
              int curveIndex, const QString& layerName, bool createNew = false );
+    void _generateFit( );
+    std::vector<std::tuple<double,double,double> > _generateFitGuesses( int count, bool random );
 
     Controller* _getControllerSelected() const;
     std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
+
+    QString _getFitStatusMessage( Carta::Lib::Fit1DInfo::StatusType statType) const;
     QString _getLegendLocationsId() const;
 
     /**
@@ -386,17 +607,24 @@ private:
     void _initializeCallbacks();
     void _initializeStatics();
 
+    void _makeInitialGuesses( int count );
+
     void _saveCurveState();
     void _saveCurveState( int index );
 
     void _setErrorMargin();
 
     void _updateAvailableImages( Controller* controller );
+    void _updateResidualData();
+    void _updateFitStatistics();
+    QString _updateFitStatistic( int index );
 
     void _updatePlotBounds();
 
     //Notify the plot to redraw.
     void _updatePlotData();
+
+    void _updatePlotDisplay();
 
     //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
     //and units "GHz".
@@ -436,17 +664,27 @@ private:
 
     //State specific to the data that is loaded.
     Carta::State::StateInterface m_stateData;
+    //Fit parameters
+    Carta::State::StateInterface m_stateFit;
+    //Fit statistics
+    Carta::State::StateInterface m_stateFitStatistics;
+
 
     static UnitsSpectral* m_spectralUnits;
     static UnitsIntensity* m_intensityUnits;
     static ProfileStatistics* m_stats;
     static GenerateModes* m_generateModes;
-
+    static LineStyles* m_lineStyles;
 
     static QList<QColor> m_curveColors;
 
     //Compute the profile in a thread
     std::unique_ptr<ProfileRenderService> m_renderService;
+
+    //Out source the job of fitting the curve.
+    std::unique_ptr<ProfileFitService> m_fitService;
+
+    int m_residualPlotIndex;
 
 	Profiler( const Profiler& other);
 	Profiler& operator=( const Profiler& other );

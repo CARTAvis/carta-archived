@@ -28,8 +28,6 @@ class tSnapshot(unittest.TestCase):
 
     # Click the Restore... option in the Sessions submenu
     def _clickSessionRestoreButton(self,driver):
-        sessionButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Session']/..")))
-        ActionChains( driver ).click( sessionButton ).perform();
         ActionChains(driver).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
 
     # Click the Save... option in the Sessions submenu

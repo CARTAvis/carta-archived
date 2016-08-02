@@ -18,7 +18,7 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Carta::Lib::Image::Imag
         Carta::Lib::RegionInfo& regionInfo, Carta::Lib::ProfileInfo& profInfo,
         int curveIndex, const QString& layerName, bool createNew ){
     bool profileRender = true;
-    if ( dataSource ){
+    if ( dataSource && !m_renderQueued ){
         RenderRequest request;
         request.m_image = dataSource;
         request.m_regionInfo = regionInfo;
@@ -38,7 +38,6 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Carta::Lib::Image::Imag
 
 void ProfileRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
         Carta::Lib::RegionInfo& regionInfo, Carta::Lib::ProfileInfo& profInfo){
-
     if ( m_renderQueued ) {
         return;
     }
@@ -49,18 +48,19 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image::I
     if ( !m_worker ){
         m_worker = new ProfileRenderWorker();
     }
+
+    if ( !m_renderThread ){
+
+        m_renderThread = new ProfileRenderThread();
+        connect( m_renderThread, SIGNAL(finished()),
+                this, SLOT( _postResult()));
+    }
     bool paramsChanged = m_worker->setParameters( dataSource, regionInfo, profInfo );
     if ( paramsChanged ){
 
         int pid = m_worker->computeProfile();
         if ( pid != -1 ){
-            if ( !m_renderThread ){
-                m_renderThread = new ProfileRenderThread( pid );
-                connect( m_renderThread, SIGNAL(finished()), this, SLOT( _postResult()));
-            }
-            else {
-                m_renderThread->setFileDescriptor( pid );
-            }
+            m_renderThread->setFileDescriptor( pid );
             m_renderThread->start();
         }
         else {
@@ -73,10 +73,10 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image::I
     }
 }
 
-void ProfileRenderService::_postResult( ){
-    Carta::Lib::Hooks::ProfileResult result = m_renderThread->getResult();
+void ProfileRenderService::_postResult(  ){
+    Lib::Hooks::ProfileResult result = m_renderThread->getResult();
     RenderRequest request = m_requests.dequeue();
-    emit profileResult( result, request.m_curveIndex, request.m_layerName,
+    emit profileResult(result, request.m_curveIndex, request.m_layerName,
             request.m_createNew, request.m_image );
     m_renderQueued = false;
     if ( m_requests.size() > 0 ){

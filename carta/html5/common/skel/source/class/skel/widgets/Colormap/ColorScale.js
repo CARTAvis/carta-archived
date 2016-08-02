@@ -102,6 +102,7 @@ qx.Class.define("skel.widgets.Colormap.ColorScale", {
         _initInvertReverse : function(){
             this.m_invertCheck = new qx.ui.form.CheckBox( "Invert");
             this.m_invertCheck.setToolTipText( "Invert the colors in the map.");
+            skel.widgets.TestID.addTestId( this.m_invertCheck, "colorMapInvert");
             this.m_invertCheck.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
                 var checked = e.getData();
                 var path = skel.widgets.Path.getInstance();

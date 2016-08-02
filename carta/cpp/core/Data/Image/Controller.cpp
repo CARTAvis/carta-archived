@@ -53,8 +53,6 @@ const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
-const QString Controller::ZOOM = "zoom";
-
 const QString Controller::PLUGIN_NAME = "CasaImageLoader";
 const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
 
@@ -214,7 +212,7 @@ QString Controller::closeImage( const QString& id ){
 QString Controller::closeRegion( const QString& regionId ){
     QString result = m_stack->_closeRegion( regionId );
     if ( result.isEmpty() ){
-        emit dataChanged( this );
+        emit dataChangedRegion( this );
     }
     return result;
 }
@@ -249,6 +247,7 @@ void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     _updateCursorText( true );
 }
 
+
 std::vector<Carta::Lib::AxisInfo::KnownType> Controller::_getAxisZTypes() const {
     std::vector<Carta::Lib::AxisInfo::KnownType> zTypes = m_stack->_getAxisZTypes();
     return zTypes;
@@ -259,7 +258,7 @@ std::set<AxisInfo::KnownType> Controller::_getAxesHidden() const {
 }
 
 
-QPointF Controller::getCenterPixel() {
+QPointF Controller::getCenterPixel() const {
     QPointF center = m_stack->_getCenterPixel();
     return center;
 }
@@ -279,20 +278,31 @@ Carta::Lib::KnownSkyCS Controller::getCoordinateSystem() const {
 }
 
 QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system) const {
-    return m_stack->getCoordinates( x, y, system/*, _getFrameIndices()*/);
+    return m_stack->_getCoords( x, y, system);
 }
 
 std::shared_ptr<DataSource> Controller::getDataSource(){
     return m_stack->_getDataSource();
 }
 
+QPointF Controller::getImagePt( bool* valid ) const {
+    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X);
+    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y);
+    QPointF mousePt( mouseX, mouseY );
+    QSize outputSize = getOutputSize();
+    return m_stack->_getImagePt( mousePt,  outputSize, valid  );
+}
+
+
 std::vector< std::shared_ptr<Layer> > Controller::getLayers() {
     return m_stack-> _getLayers();
 }
 
+
 std::shared_ptr<Layer> Controller::getLayer() {
     return m_stack->_getLayer();
 }
+
 
 std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::getImages() {
     return m_stack->_getImages();
@@ -303,9 +313,16 @@ std::shared_ptr<ContourControls> Controller::getContourControls() {
     return m_contourControls;
 }
 
+
+QSize Controller::_getDisplaySize() const {
+    return m_stack->_getDisplaySize();
+}
+
+
 int Controller::getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     return m_stack->_getFrameUpperBound( axisType );
 }
+
 
 int Controller::getFrame( AxisInfo::KnownType axisType ) const {
     int frame = m_stack->_getFrame( axisType );
@@ -316,6 +333,7 @@ int Controller::getFrame( AxisInfo::KnownType axisType ) const {
 std::shared_ptr<GridControls> Controller::getGridControls() {
     return m_gridControls;
 }
+
 
 std::vector<int> Controller::getImageDimensions( ) const {
     std::vector<int> result = m_stack->_getImageDimensions();
@@ -335,43 +353,46 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-bool Controller::getIntensity( double percentile, double* intensity,
-        int* intensityIndex ) const{
+std::vector<std::pair<int,double> > Controller::getIntensity( const std::vector<double>& percentiles ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    bool validIntensity = getIntensity( currentFrame, currentFrame, percentile, intensity, intensityIndex );
-    return validIntensity;
+    std::vector<std::pair<int,double> > result = getIntensity( currentFrame, currentFrame, percentiles );
+    return result;
 }
 
-bool Controller::getIntensity( int frameLow, int frameHigh, double percentile,
-        double* intensity, int* intensityIndex ) const{
-    bool validIntensity = m_stack->_getIntensity( frameLow, frameHigh, percentile,
-            intensity, intensityIndex );
-    return validIntensity;
+std::vector<std::pair<int,double> > Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+    std::vector<std::pair<int,double> > intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles );
+    return intensities;
 }
 
-QSize Controller::getOutputSize( ){
+QRectF Controller::_getInputRectangle(  ) const {
+    return m_stack->_getInputRectangle( );
+}
+
+QSize Controller::getOutputSize( ) const {
     QSize result = m_stack->_getOutputSize();
     return result;
 }
 
 
-double Controller::getPercentile( double intensity ) const {
-    int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL );
-    return getPercentile( currentFrame, currentFrame, intensity );
-}
-
 double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    return m_stack->_getPercentile( frameLow, frameHigh, intensity );
+    double percentile = m_stack->_getPercentile( frameLow, frameHigh, intensity );
+    return percentile;
 }
 
 
-QStringList Controller::getPixelCoordinates( double ra, double dec ) const {
-    QStringList result = m_stack->_getPixelCoordinates( ra, dec );
+QPointF Controller::getPixelCoordinates( double ra, double dec, bool* valid ) const {
+    QPointF result = m_stack->_getPixelCoordinates( ra, dec, valid );
+    return result;
+}
+
+QPointF Controller::getWorldCoordinates( double pixelX, double pixelY, bool* valid ) const {
+    Carta::Lib::KnownSkyCS coordSys = getCoordinateSystem();
+    QPointF result = m_stack->_getWorldCoordinates( pixelX, pixelY, coordSys, valid );
     return result;
 }
 
 QString Controller::getPixelValue( double x, double y ) const {
-    QString result = m_stack->getPixelValue( x, y );
+    QString result = m_stack->_getPixelVal( x, y );
     return result;
 }
 
@@ -387,6 +408,7 @@ QString Controller::_getPreferencesId() const {
     }
     return id;
 }
+
 
 std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
     std::vector<Carta::Lib::RegionInfo> regionInfos = m_stack->_getRegions();
@@ -444,7 +466,9 @@ QString Controller::getSnapType(CartaObject::SnapshotType snapType) const {
     return objType;
 }
 
-double Controller::getZoomLevel( ){
+
+
+double Controller::getZoomLevel( ) const {
     return m_stack->_getZoom();
 }
 
@@ -577,9 +601,9 @@ void Controller::_initializeCallbacks(){
             int mouseY = mouseList[1].toInt( &validY );
             if ( validX && validY ){
                 _updateCursor( mouseX, mouseY );
+                emit zoomChanged();
             }
         }
-
     });
 
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
@@ -616,7 +640,7 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
-    addCommandCallback( ZOOM, [=] (const QString & /*cmd*/,
+    addCommandCallback( Util::ZOOM, [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
         bool error = false;
         auto vals = Util::string2VectorDouble( params, &error );
@@ -836,16 +860,19 @@ void Controller::_initializeCallbacks(){
 
 
 void Controller::_initializeState(){
+
     //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
     m_state.insertValue<bool>(PAN_ZOOM_ALL, true );
     m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
     m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
+
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 0 );
     m_state.flushState();
 
+    //Mouse state
     m_stateMouse.insertObject( ImageView::MOUSE );
     m_stateMouse.insertValue<QString>(CURSOR, "");
     m_stateMouse.insertValue<QString>(Util::POINTER_MOVE, "");
@@ -869,6 +896,7 @@ void Controller::_loadView(){
     double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
     double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
     m_stack->_load( autoClip, clipValueMin, clipValueMax );
+    emit contextChanged();
 }
 
 QString Controller::moveSelectedLayers( bool moveDown ){
@@ -883,6 +911,16 @@ void Controller::_notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis ){
 
 void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
     m_stack->_removeContourSet( contourSet );
+}
+
+void Controller::_renderZoom( double factor ){
+    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
+    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
+    m_stack->_renderZoom( mouseX, mouseY, factor  );
+}
+
+void Controller::_renderContext( double zoomFactor ){
+    m_stack->_renderContext( zoomFactor );
 }
 
 
@@ -1183,6 +1221,13 @@ QString Controller::setTabIndex( int index ){
     return result;
 }
 
+void Controller::_setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawContext ){
+    m_stack->_setViewDrawContext( drawContext );
+}
+
+void Controller::_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom ){
+    m_stack->_setViewDrawZoom( drawZoom );
+}
 
 void Controller::setZoomLevel( double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
@@ -1239,6 +1284,8 @@ void Controller::_updateDisplayAxes(){
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_updateZoom( centerX, centerY, zoomFactor, zoomPanAll);
+    emit contextChanged();
+    emit zoomChanged();
 }
 
 
@@ -1246,7 +1293,10 @@ void Controller::updatePan( double centerX , double centerY){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_updatePan( centerX, centerY, zoomPanAll );
     _updateCursorText( true );
+    emit contextChanged();
+    emit zoomChanged();
 }
+
 
 
 Controller::~Controller(){

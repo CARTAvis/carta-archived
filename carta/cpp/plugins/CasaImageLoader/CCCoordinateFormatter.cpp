@@ -191,10 +191,11 @@ bool
 CCCoordinateFormatter::toWorld( const CoordinateFormatterInterface::VD & pixel,
                                 CoordinateFormatterInterface::VD & world ) const
 {
-    Q_UNUSED( pixel );
-    Q_UNUSED( world );
-
-    qFatal( "not implemented" );
+    casa::Vector< casa::Double > worldD = world;
+    casa::Vector< casa::Double > pixelD = pixel;
+    bool valid = m_casaCS->toWorld( worldD, pixelD );
+    world = {worldD[0], worldD[1] };
+    return valid;
 }
 
 bool

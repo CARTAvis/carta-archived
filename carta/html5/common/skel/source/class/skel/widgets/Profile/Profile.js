@@ -14,7 +14,12 @@ qx.Class.define("skel.widgets.Profile.Profile", {
      */
     construct : function(  ) {
         this.base(arguments);
+        this.m_connector = mImport("connector");
         this._init();
+    },
+    
+    events : {
+        "statVisibilityChanged" : "qx.event.type.Data"
     },
 
     members : {
@@ -29,14 +34,15 @@ qx.Class.define("skel.widgets.Profile.Profile", {
             this.m_content.setLayout(new qx.ui.layout.VBox());
             
             this._initMain();
-            this._initControls();
         },
        
         /**
-         * Initializes the histogram settings.
+         * Stores the profile settings.
+         * @param controls {skel.widgets.Profile.Settings} - the profile settings
+         *      container.
          */
-        _initControls : function(){
-            this.m_settingsContainer = new skel.widgets.Profile.Settings();
+        setControls : function( controls){
+            this.m_settingsContainer = controls;
         },
         
         
@@ -64,6 +70,9 @@ qx.Class.define("skel.widgets.Profile.Profile", {
         _initView : function(){
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.DragView(this.m_id);
+                this.m_fitOverlay = new skel.widgets.Profile.FitOverlay();
+                this.m_view.setOverlayWidget( this.m_fitOverlay );
+                this.m_fitOverlay.setId( this.m_id );
                 this.m_view.setAllowGrowX( true );
                 this.m_view.setAllowGrowY( true );
                 this.m_view.setMinHeight(this.m_MIN_DIM);
@@ -80,8 +89,8 @@ qx.Class.define("skel.widgets.Profile.Profile", {
          * @param visible {boolean} - true if the control settings should be visible;
          *      false otherwise.
          */
-        _layoutControls : function( visible ){
-            if(visible){
+        _layoutControls : function( ){
+            if(this.m_showSettings){
                 //Make sure the settings container is visible.
                 if ( this.m_content.indexOf( this.m_settingsContainer ) < 0 ){
                     this.m_content.add( this.m_settingsContainer );
@@ -94,6 +103,62 @@ qx.Class.define("skel.widgets.Profile.Profile", {
             }
         },
         
+        /**
+         * Callback for updates of server-side fit preferences.
+         */
+        _profileCB : function(){
+            var val = this.m_sharedVar.get();
+            if ( val ){
+                try {
+                    var profilePrefs = JSON.parse( val );
+                    this.m_fitOverlay.setManualShow( profilePrefs.showGuesses );
+                    this.m_settingsContainer.prefUpdate( profilePrefs );
+                    var data = {
+                        showStats : profilePrefs.showStats
+                    }
+                    this.fireDataEvent( "statVisibilityChanged", data );
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+val+" error: "+err );
+                }
+            }
+        },
+        
+        /**
+         * Callback for updates of server-side fit preferences.
+         */
+        _profileFitCB : function(){
+            var val = this.m_sharedVarFit.get();
+            if ( val ){
+                try {
+                    var fitInfo = JSON.parse( val );
+                    this.m_fitOverlay.profileFitUpdate( fitInfo );
+                    var manualMode = fitInfo.fit.manualGuess;
+                    this.m_settingsContainer.setManualFitGuesses( manualMode );
+                }
+                catch( err ){
+                    console.log( "Could not parse profile fit: "+val+" error: "+err );
+                }
+            }
+        },
+        
+        /**
+         * Register to receive updates to server-side profile
+         * variables.
+         */
+        _register : function(){
+            var path = skel.widgets.Path.getInstance();
+            //Preferences update
+            this.m_sharedVar = this.m_connector.getSharedVar( this.m_id );
+            this.m_sharedVar.addCB( this._profileCB.bind( this));
+            this._profileCB();
+            //Fit update
+            var fitPath = this.m_id + path.SEP + path.FIT;
+            this.m_sharedVarFit = this.m_connector.getSharedVar( fitPath );
+            this.m_sharedVarFit.addCB( this._profileFitCB.bind( this));
+            this._profileFitCB();
+        },
+        
         
         /**
          * Set the server side id of this profiler.
@@ -101,27 +166,21 @@ qx.Class.define("skel.widgets.Profile.Profile", {
          */
         setId : function( controlId ){
             this.m_id = controlId;
-            this.m_settingsContainer.setId( controlId );
             this._initView();
-            
+            this._register();
         },
 
         
-        /**
-         * Show or hide the profile settings.
-         * @param visible {boolean} if the settings should be shown; false otherwise.
-         */
-        showHideSettings : function( visible ){
-            this._layoutControls( visible );
-        },
-        
-        
         m_content : null,
+        m_fitOverlay : null,
         m_mainComposite : null,
         m_settingsContainer : null,
-        
+        m_showSettings : null,
         m_MIN_DIM : 195,
         m_id : null,
+        m_sharedVar : null,
+        m_sharedVarFit : null,
+        m_connector : null,
         
         m_view : null
     }

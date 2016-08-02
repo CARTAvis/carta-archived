@@ -130,6 +130,7 @@ public:
      static const QString VIEW;
      static const QString XCOORD;
      static const QString YCOORD;
+     static const QString ZOOM;
      static const int MAX_COLOR;
 
 private:

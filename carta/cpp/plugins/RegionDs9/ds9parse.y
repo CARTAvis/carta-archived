@@ -4,11 +4,11 @@
 
 //%pure-parser
 
-%require "3.0"
+%require "2.4.1"
 %skeleton "lalr1.cc"
 %debug
 %defines
-%define parser_class_name {ds9parse}
+%define "parser_class_name" "ds9parse"
 
 %code requires {
     class ParserDs9;
@@ -41,6 +41,9 @@
 
 #define FITSPTR (fr)
 #define DISCARD_(x) {yyclearin; driver.lexer->discard(x);}
+
+
+
 
 const int MAXANNULI = 512;
 const int MAXANGLES = 720;
@@ -151,9 +154,11 @@ static void setProps(unsigned short* props, unsigned short prop, int value);
 static  CoordSystem checkWCSSystem();
 static  SkyFrame checkWCSSky();
 
+
 #include <ds9lex.h>
 #undef yylex
 #define yylex driver.lexer->lex
+
 
 }
 
@@ -1467,7 +1472,7 @@ vRads	: vRads sp vRad
 	| vRad
 	;
 
-vRad	: value sp value {aVector[aNum++] = doubletovec($1,$3);}
+vRad	: value sp value {aVector[aNum++] = Vector($1,$3);}
 	;
 
 postLocal : /* empty */

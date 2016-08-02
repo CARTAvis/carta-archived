@@ -51,10 +51,10 @@ qx.Class.define("skel.widgets.Profile.SettingsAxis", {
             var unitStr = "units";
             this.m_axisBottom  = new skel.widgets.CustomUI.SelectBox( "setAxisUnitsBottom", unitStr );
             this.m_axisBottom.setToolTipText( "Select units for the x-axis." );
-            var axisBottomLabel = new qx.ui.basic.Label( "Bottom:");
+            var axisBottomLabel = new qx.ui.basic.Label( "X Axis:");
             this.m_axisLeft = new skel.widgets.CustomUI.SelectBox( "setAxisUnitsLeft", unitStr );
             this.m_axisLeft.setToolTipText( "Select units for the y-axis." );
-            var axisLeftLabel = new qx.ui.basic.Label( "Left:");
+            var axisLeftLabel = new qx.ui.basic.Label( "Y Axis:");
             var gridLayout = new qx.ui.layout.Grid();
             overallContainer.setLayout( gridLayout );
             overallContainer.add( axisLeftLabel, {row:0,column:0});

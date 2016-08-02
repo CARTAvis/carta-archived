@@ -10,8 +10,8 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
-#include "Data/Image/RenderRequest.h"
-#include "Data/Image/RenderResponse.h"
+#include "Data/Image/Render/RenderRequest.h"
+#include "Data/Image/Render/RenderResponse.h"
 #include <QImage>
 #include <QStack>
 #include <set>
@@ -59,9 +59,9 @@ public:
 
 
 signals:
-    virtual void contourSetRemoved( const QString& name );
-    virtual void contourSetAdded(Layer* data, const QString& name );
-    virtual void colorStateChanged();
+    void contourSetRemoved( const QString& name );
+    void contourSetAdded(Layer* data, const QString& name );
+    void colorStateChanged();
 
 
     //Notification that a new image has been produced.
@@ -166,10 +166,11 @@ protected:
      * @param mouseX the mouse x-position in screen coordinates.
      * @param mouseY the mouse y-position in screen coordinates.
      * @param frames - list of image frames.
+     * @param outputSize - the size of the image in pixels.
      * @return a QString containing cursor text.
      */
     virtual QString _getCursorText( int mouseX, int mouseY,
-            const std::vector<int>& frames ) = 0;
+            const std::vector<int>& frames, const QSize& outputSize ) = 0;
 
 
     /**
@@ -192,6 +193,14 @@ protected:
      */
     virtual int _getDimension() const = 0;
 
+    /**
+     * Return the dimensions of the displayed image; normally, this will
+     * be the number of frames in the RA x DEC directions.  However, if
+     * the image is being display as a Frequency x DEC plot, this will be
+     * the number of frames in the frequency & DEC axes.
+     * @return - the displayed dimensions of the image.
+     */
+    virtual QSize _getDisplaySize() const = 0;
 
     /**
      * Return the number of frames for the given axis in the image.
@@ -223,22 +232,30 @@ protected:
      * Returns the location on the image corresponding to a screen point in
      * pixels.
      * @param screenPt an (x,y) pair of pixel coordinates.
+     * @param outputSize - the size in pixels of the output image.
      * @param valid set to true if an image is loaded that can do the translation; otherwise false;
      * @return the corresponding location on the image.
      */
-    virtual QPointF _getImagePt( QPointF screenPt, bool* valid ) const = 0;
+    virtual QPointF _getImagePt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const = 0;
+
+
+    /**
+     * Return the portion of the image that is displayed given current zoom and
+     * pan values.
+     * @param size - the size of the displayed image.
+     * @return - the portion of the image that is visible.
+     */
+    virtual QRectF _getInputRect( const QSize& size ) const = 0;
 
     /**
      * Returns the intensity corresponding to a given percentile.
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentile - a number [0,1] for which an intensity is desired.
-     * @param intensity - the computed intensity corresponding to the percentile.
-     * @param intensityIndex - the frame where maximum intensity was found.
-     * @return true if the computed intensity is valid; otherwise false.
+     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @return - a list of (location,intensity) pairs.
      */
-    virtual bool _getIntensity( int frameLow, int frameHigh, double percentile,
-            double* intensity, int* intensityIndex ) const = 0;
+    virtual std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles ) const = 0;
 
     /**
      * Return the current layer.
@@ -276,13 +293,6 @@ protected:
      */
     virtual quint32 _getMaskColor() const;
 
-
-    /**
-     * Get the dimensions of the image viewer (window size).
-     * @return the image viewer dimensions.
-     */
-    virtual QSize _getOutputSize() const = 0;
-
     /**
      * Return the percentile corresponding to the given intensity.
      * @param frameLow a lower bound for the frame index or -1 if there is no lower bound.
@@ -297,10 +307,21 @@ protected:
      * Return the pixel coordinates corresponding to the given world coordinates.
      * @param ra the right ascension (in radians) of the world coordinates.
      * @param dec the declination (in radians) of the world coordinates.
-     * @return a list consisting of the x- and y-coordinates of the pixel
-     *  corresponding to the given world coordinates.
+     * @param valid - true if the coordinates are valid; false, otherwise.
+     * @return - a point containing the pixel coordinates.
      */
-    virtual QStringList _getPixelCoordinates( double ra, double dec ) const = 0;
+    virtual QPointF _getPixelCoordinates( double ra, double dec, bool* valid ) const = 0;
+
+    /**
+     * Return the world coordinates corresponding to the given pixel coordinates.
+     * @param pixelX - the first pixel coordinate.
+     * @param pixelY - the second pixel coordinate.
+     * @param coordSys - the coordinate system.
+     * @param valid - true if the pixel coordinates are valid; false otherwise.
+     * @return - a point containing the pixel coordinates.
+     */
+    virtual QPointF _getWorldCoordinates( double ra, double dec,
+            Carta::Lib::KnownSkyCS coordSys, bool* valid ) const = 0;
 
     /**
      * Return the units of the pixels.
@@ -328,14 +349,6 @@ protected:
      * @return - the size of the saved image.
      */
     virtual QSize _getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const = 0;
-
-    /**
-     * Returns the location on the screen corresponding to a location in image coordinates.
-     * @param imagePt an (x,y) pair of image coordinates.
-     * @param valid set to true if an image is loaded that can do the translation; otherwise false;
-     * @return the corresponding pixel coordinates.
-     */
-    virtual QPointF _getScreenPt( QPointF imagePt, bool* valid ) const = 0;
 
     /**
      * Return the color states that are eligible for state changes.
@@ -546,16 +559,6 @@ protected:
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) = 0;
 
     virtual void _updateColor();
-
-    /**
-     * Reset the view to its previous state after a save.
-     */
-    virtual void _viewReset() = 0;
-
-    /**
-     * Resize the view of the image.
-     */
-    virtual void _viewResize( const QSize& newSize ) = 0;
 
     /**
      *  Constructor.

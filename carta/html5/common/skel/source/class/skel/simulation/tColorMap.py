@@ -28,6 +28,7 @@ class tColorMap(unittest.TestCase):
         driver.execute_script( "arguments[0].scrollIntoView(true);", colorMapCombo )
         colorMapText = colorMapCombo.find_element_by_xpath( ".//div/div")
         mapName = colorMapText.text
+        ActionChains(driver).click( colorMapCombo ).perform()
         return mapName
     
     def _chooseNewColorMap(self, driver ):
@@ -85,10 +86,7 @@ class tColorMap(unittest.TestCase):
         Util.load_image( self, driver, image1 )
         Util.load_image( self, driver, image2 )
         Util.load_image( self, driver, image3 )
-        
-        #Store the old colormap
-        oldMapName = self._getColorMapName( driver )
-        print "Old map name=",oldMapName
+        time.sleep(4)
         
         #Open the stack tab
         Util.openSettings( self, driver, "Image", True )
@@ -108,19 +106,23 @@ class tColorMap(unittest.TestCase):
         Util.clickTab( driver, "Color Map")
         time.sleep( timeout );
         
+         #Store the old colormap
+        oldMapName = self._getColorMapName( driver )
+        print "Old map name=",oldMapName
+        
         #Uncheck using a global color map
         globalCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "colorMapGlobal")))
-        driver.execute_script( "arguments[0].scrollIntoView(true);", globalCheck)
-        ActionChains(driver).click( globalCheck ).perform()
+        ActionChains(driver).move_to_element( globalCheck).click().perform()
         
         #Choose a new color map
         self._chooseNewColorMap( driver )
         newMapName = self._getColorMapName( driver )
         print "New map name=", newMapName
         self.assertTrue( oldMapName != newMapName, "Color map name did not change")
-        
+    
         #Change back to auto select so that the color map changes as we animate
         ActionChains(driver).click( autoSelectCheck ).perform()
+        time.sleep( timeout )
         
         #Animate through images.  Make sure the first and second ones are using the old map 
         #and the third is not
@@ -129,6 +131,7 @@ class tColorMap(unittest.TestCase):
         imageMapName = self._getColorMapName( driver )
         print "Image 1 name=",imageMapName
         self.assertTrue( imageMapName == oldMapName, "Color map name 1 incorrect")
+        
         self._nextImage( driver )
         time.sleep( timeout )
         imageMapName = self._getColorMapName( driver )

@@ -282,7 +282,8 @@ private:
             double minValue, double maxValue );
 
     Controller* _getControllerSelected() const;
-    std::pair<int,double> _getIntensityForPercent( double percent, bool* valid ) const;
+    std::vector<std::pair<int,double> > _getIntensityForPercents( std::vector<double>& percent ) const;
+
     /**
      * Return the server side id of the preferences for this colormap.
      * @return the server side id of this colormap's preferences.

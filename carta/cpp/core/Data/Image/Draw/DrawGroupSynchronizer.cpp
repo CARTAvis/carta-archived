@@ -2,8 +2,8 @@
 #include "Data/Image/Layer.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "CartaLib/IRemoteVGView.h"
-#include "Data/Image/RenderRequest.h"
-#include "Data/Image/RenderResponse.h"
+#include "Data/Image/Render/RenderRequest.h"
+#include "Data/Image/Render/RenderResponse.h"
 
 #include <QtCore/QDebug>
 
@@ -42,9 +42,8 @@ void DrawGroupSynchronizer::render(
                 if ( i == request->getTopIndex() ){
                     topOfStack = true;
                 }
-                std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(
-                        request->getFrames(), request->getCoordinateSystem(),
-                        topOfStack, request->getOutputSize() ));
+                std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(*request));
+                layerRequest->setStackTop( topOfStack );
                 m_layers[i]->_render( layerRequest );
                 stackIndex++;
             }

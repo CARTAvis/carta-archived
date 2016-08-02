@@ -18,8 +18,22 @@ Plot2D::Plot2D():
 
 }
 
+std::pair<double,double> Plot2D::getBoundsX() const {
+    return std::pair<double,double>( m_minValueX, m_maxValueX );
+}
+
 std::pair<double,double> Plot2D::getBoundsY() const {
     return std::pair<double,double>( m_minValueY, m_maxValueY );
+}
+
+std::pair<double,double> Plot2D::getClosestPoint( double targetX, double targetY,
+            double* /*xError*/, double* /*yError*/ ) const {
+    std::pair<double,double> closest(targetX,targetY);
+    return closest;
+}
+
+QColor Plot2D::getColor() const {
+    return m_defaultColor;
 }
 
 QString Plot2D::getId() const {
@@ -47,9 +61,11 @@ void Plot2D::setDrawStyle( const QString& style ){
     m_drawStyle = style;
 }
 
-
-
 void Plot2D::setLegendLine( bool /*showLegendLine*/ ){
+
+}
+
+void Plot2D::setLegendVisible( bool /*visible*/ ){
 
 }
 

@@ -51,15 +51,13 @@ void Plot2DLine::setHeight( int h ){
 }
 
 void Plot2DLine::setPositionPixel( double valMin, double valMax ){
-    //One of the two will be the current position, we use the other one
-    //as the new position.
-    double diffMin = qAbs( valMin - m_position );
-    double diffMax = qAbs( valMax - m_position );
-    if ( diffMin < diffMax ){
+    //If the min is staying constant, it is the max that is being dragged.
+    if ( m_positionPixelMin == valMin ){
         m_positionPixel = valMax;
     }
     else {
         m_positionPixel = valMin;
+        m_positionPixelMin = valMin;
     }
 }
 

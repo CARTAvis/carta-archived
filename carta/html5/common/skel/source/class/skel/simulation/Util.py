@@ -21,12 +21,13 @@ def setUp(self, browser):
     # Running on Mac (Chrome)
     if browser == 2:
         # Change the path to where chromedriver is located
-        chromedriver = "/Users/Madhatter/Downloads/chromedriver"
+        chromedriver = "/usr/lib/chromium-browser/chromedriver"
+      
         self.driver = webdriver.Chrome(chromedriver)
+        self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
         #self.driver.get("http://199.116.235.164:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         #self.driver.get("http://199.116.235.162:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
         self.driver.implicitly_wait(20)
-        time.sleep(5)
 
 
 # Adds a window below the main image viewer. Return the window for future actions
@@ -233,7 +234,6 @@ def load_image_different_window(unittest, driver, imageName):
     # Find a window capable of loading an image.
     imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
     ActionChains(driver).click(imageWindow).perform()
-    time.sleep( timeout )
     
     # Add a new window below the main casa image window
     emptyWindow = add_window( unittest, driver)
@@ -241,7 +241,11 @@ def load_image_different_window(unittest, driver, imageName):
     # Change the plugin of the empty window to an image loader 
     ActionChains(driver).context_click( emptyWindow ).send_keys(Keys.ARROW_DOWN
         ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
-    return load_image_windowIndex( unittest, driver,imageName, 2 )
+        
+    load_image_windowIndex( unittest,driver, imageName, 2 )
+    windowId = "CasaImageLoader"+str(2)
+    imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, windowId)))
+    return imageWindow
 
 
 def load_image_windowIndex( unittest,driver,imageName,windowIndex):

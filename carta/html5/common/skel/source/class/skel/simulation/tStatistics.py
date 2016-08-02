@@ -20,11 +20,13 @@ class tStatistics(unittest.TestCase):
         
     def show_statistics_window(self, driver):
         histWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")))
+       
         ActionChains(driver).click( histWindow ).perform()
+        time.sleep( 2 );
         viewMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='View']/..")))
         ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
-        #time.sleep( timeout )
+        time.sleep( 2 )
 
     # Test that we can show the statistics display, and it will automatically
     # link to the single controller and update the stats when shown.

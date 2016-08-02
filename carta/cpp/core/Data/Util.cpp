@@ -30,6 +30,7 @@ const QString Util::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Util::VIEW = "view";
 const QString Util::XCOORD = "x";
 const QString Util::YCOORD = "y";
+const QString Util::ZOOM = "zoom";
 const int Util::MAX_COLOR = 255;
 
 Util::Util( ) {

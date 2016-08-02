@@ -201,9 +201,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         isLinkable : function(pluginId) {
             var linkable = false;
             var path = skel.widgets.Path.getInstance();
-            if (pluginId == path.ANIMATOR || /*pluginId == this.m_pluginId ||*/
+            if (pluginId == path.ANIMATOR || 
                     pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN || 
-                    pluginId == path.STATISTICS || pluginId == path.PROFILE ) {
+                    pluginId == path.STATISTICS || pluginId == path.PROFILE ||
+                    pluginId == path.IMAGE_CONTEXT || pluginId == path.IMAGE_ZOOM ) {
                 linkable = true;
             }
             return linkable;

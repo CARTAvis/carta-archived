@@ -1,5 +1,6 @@
 #include "Plot2DHistogram.h"
 #include "Data/Histogram/PlotStyles.h"
+#include "Data/Plotter/LegendLocations.h"
 #include <qwt_painter.h>
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include <QDebug>
@@ -111,6 +112,8 @@ void Plot2DHistogram::setData ( std::vector<std::pair<double,double> > dataVecto
     int dataCount = dataVector.size();
     m_maxValueY = -1;
     m_minValueY = std::numeric_limits<double>::max();
+    m_maxValueX = -1;
+    m_minValueX = std::numeric_limits<double>::max();
     m_data.clear();
     for ( int i = 0; i < dataCount-1; i++ ){
         //Only add in nonzero counts
@@ -122,6 +125,12 @@ void Plot2DHistogram::setData ( std::vector<std::pair<double,double> > dataVecto
             }
             if ( dataVector[i].second < m_minValueY ){
                 m_minValueY = dataVector[i].second;
+            }
+            if ( dataVector[i].first > m_maxValueX ){
+                m_maxValueX = dataVector[i].first;
+            }
+            if ( dataVector[i].first < m_minValueX ){
+                m_minValueX = dataVector[i].first;
             }
         }
     }
