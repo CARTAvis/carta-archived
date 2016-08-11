@@ -47,7 +47,8 @@ SOURCES += \
     Algorithms/LineCombiner.cpp \
     IImageRenderService.cpp \
     IRemoteVGView.cpp \
-    RegionInfo.cpp
+    RegionInfo.cpp \
+    IPCache.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -99,7 +100,8 @@ HEADERS += \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
     IRemoteVGView.h \
-    RegionInfo.h
+    RegionInfo.h \
+    IPCache.h
 
 unix {
     target.path = /usr/lib
