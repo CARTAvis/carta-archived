@@ -38,7 +38,8 @@ SOURCES += \
     InputEvents.cpp \
     Regions/ICoordSystem.cpp \
     Hooks/CoordSystemHook.cpp \
-    Regions/CoordinateSystemFormatter.cpp
+    Regions/CoordinateSystemFormatter.cpp \
+    IPCache.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -81,7 +82,8 @@ HEADERS += \
     InputEvents.h \
     Regions/ICoordSystem.h \
     Hooks/CoordSystemHook.h \
-    Regions/CoordinateSystemFormatter.h
+    Regions/CoordinateSystemFormatter.h \
+    IPCache.h
 
 unix {
     target.path = /usr/lib
