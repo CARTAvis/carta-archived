@@ -17,6 +17,7 @@ namespace VGE = VG::Entries;
 
 namespace WcsPlotterPluginNS
 {
+inline AstWcsGridRenderService::Element operator++( AstWcsGridRenderService::Element& x ) { return x = (AstWcsGridRenderService::Element)(((int)(x) + 1)); }
 
 
 struct AstWcsGridRenderService::Pimpl
@@ -198,7 +199,7 @@ AstWcsGridRenderService::renderNow()
         m_vgc.append < VGE::Restore > ();
     }
 
-    auto elements {
+   /* auto elements {
         Element::BorderLines,
         Element::AxisLines1,
         Element::AxisLines2,
@@ -212,10 +213,11 @@ AstWcsGridRenderService::renderNow()
         Element::LabelText2,
         Element::Shadow,
         Element::MarginDim
-    };
+    };*/
 
     // setup indexed pens
-    for ( auto & e : elements ) {
+    //for ( auto & e : elements ) {
+    for ( Element e=Element::BorderLines; e!=Element::MarginDim; ++e ) {
         m().penEntries[si( e )] =
             m_vgc.append < VGE::StoreIndexedPen > ( si( e ), pi( e ) );
     }
