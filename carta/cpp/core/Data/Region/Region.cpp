@@ -30,6 +30,7 @@ bool Region::m_registered =
 
 Region::Region(const QString& path, const QString& id )
     :CartaObject( CLASS_NAME, path, id ){
+    m_regionNameSet = false;
     _initializeCallbacks();
     _initializeState();
 }
@@ -46,11 +47,13 @@ void Region::addCorners( const std::vector< std::pair<double,double> >& corners 
         m_state.insertValue<double>( yLookup, corners[i].second );
     }
     m_state.flushState();
+    //User has not set a custom name
+    if ( ! m_regionNameSet ){
+        m_state.setValue<QString>(Util::NAME, toString() );
+    }
 }
 
-std::shared_ptr<Carta::Lib::RegionInfo> Region::getInfo() const {
-    std::shared_ptr<Carta::Lib::RegionInfo> info( new Carta::Lib::RegionInfo() );
-    info->setRegionType( getRegionType() );
+std::vector<std::pair<double,double> > Region::getCorners() const {
     int cornerCount = m_state.getArraySize( CORNERS );
     std::vector< std::pair<double,double> > corners( cornerCount );
     for( int i = 0; i < cornerCount; i++ ){
@@ -61,8 +64,20 @@ std::shared_ptr<Carta::Lib::RegionInfo> Region::getInfo() const {
         double yValue = m_state.getValue<double>( yLookup );
         corners[i] = std::pair<double,double>( xValue, yValue );
     }
-    info->setCorners( corners );
+    return corners;
+}
+
+Carta::Lib::RegionInfo Region::getInfo() const {
+    Carta::Lib::RegionInfo info;
+    info.setRegionType( getRegionType() );
+    std::vector<std::pair<double,double> > corners = getCorners();
+    info.setCorners( corners );
     return info;
+}
+
+QString Region::getRegionName() const {
+    QString name = m_state.getValue<QString>( Util::NAME );
+    return name;
 }
 
 Carta::Lib::RegionInfo::RegionType Region::getRegionType( const QString& regionTypeStr ){
@@ -90,7 +105,6 @@ QString Region::_getStateString() const {
     return m_state.toString();
 }
 
-
 void Region::_initializeCallbacks(){
     addCommandCallback( "shapeChanged", [=] (const QString & /*cmd*/,
                                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -103,30 +117,19 @@ void Region::_initializeCallbacks(){
 
 void Region::_initializeState(){
     m_state.insertValue<QString>( REGION_TYPE, REGION_POLYGON );
-    m_state.insertValue<QString>( Util::ID, "");
+    m_state.insertValue<bool>( Util::SELECTED, true );
     m_state.insertArray( CORNERS, 0 );
+    m_state.insertValue<QString>( Util::NAME, "");
     m_state.flushState();
 }
-
-bool Region::_isMatch( const QString& id ) const {
-    bool match = false;
-    if ( !id.isEmpty() && id.trimmed().length() > 0 ){
-        QString regionId = m_state.getValue<QString>( Util::ID );
-        if ( regionId.startsWith( id ) ){
-            match = true;
-        }
-    }
-    return match;
-}
-
 
 void Region::_restoreState( const QString& stateStr ){
     Carta::State::StateInterface dataState( "" );
     dataState.setState( stateStr );
     QString regionType = dataState.getValue<QString>(REGION_TYPE);
     m_state.setValue<QString>( REGION_TYPE, regionType);
-    QString regionId = dataState.getValue<QString>(Util::ID);
-    m_state.setValue<QString>( Util::ID, regionId );
+    QString name = dataState.getValue<QString>( Util::NAME );
+    m_state.setValue<QString>(Util::NAME, name );
     int cornerCount = dataState.getArraySize( CORNERS );
     m_state.resizeArray( CORNERS, cornerCount );
     for ( int i = 0; i < cornerCount; i++ ){
@@ -141,8 +144,7 @@ void Region::_restoreState( const QString& stateStr ){
     m_state.flushState();
 }
 
-void Region::setRegionType( Carta::Lib::RegionInfo::RegionType regionType ){
-    QString oldRegionTypeStr = m_state.getValue<QString>( REGION_TYPE );
+QString Region::regionTypeToString( Carta::Lib::RegionInfo::RegionType regionType ) const {
     QString regionTypeStr;
     if ( regionType == Carta::Lib::RegionInfo::RegionType::Polygon ){
         regionTypeStr = REGION_POLYGON;
@@ -153,21 +155,52 @@ void Region::setRegionType( Carta::Lib::RegionInfo::RegionType regionType ){
     else {
         qDebug() << "Unrecognized Region type: "<< (int)(regionType);
     }
+    return regionTypeStr;
+}
 
+QString Region::setRegionName( const QString& name ){
+    QString result;
+    if ( name.trimmed().length() > 0 ){
+        QString oldName = m_state.getValue<QString>( Util::NAME );
+        if ( oldName != name ){
+            m_regionNameSet = true;
+            m_state.setValue<QString>( Util::NAME, name );
+            m_state.flushState();
+        }
+    }
+    return result;
+}
+
+void Region::setRegionType( Carta::Lib::RegionInfo::RegionType regionType ){
+    QString oldRegionTypeStr = m_state.getValue<QString>( REGION_TYPE );
+    QString regionTypeStr = regionTypeToString( regionType );
     if ( !regionTypeStr.isEmpty() && regionTypeStr != oldRegionTypeStr ){
         m_state.setValue<QString>( REGION_TYPE, regionTypeStr );
+        if ( !m_regionNameSet ){
+            m_state.setValue<QString>(Util::NAME, toString() );
+        }
         m_state.flushState();
     }
 }
 
-
-void Region::_setUserId( const QString& file, int index ){
-    CARTA_ASSERT( index >= 0 );
-    QString id = file + QString::number( index );
-    m_state.setValue<QString>( Util::ID, id );
+QString Region::toString() const {
+    Carta::Lib::RegionInfo::RegionType regionType = getRegionType();
+    QString descript( regionTypeToString( regionType ) );
+    std::vector<std::pair<double,double> > corners = getCorners();
+    int cornerCount = corners.size();
+    if ( cornerCount > 0 ){
+        descript = descript + "[";
+        for ( int i = 0; i < cornerCount; i++ ){
+            descript = descript + "(" + QString::number(corners[i].first) +
+                    ","+QString::number(corners[i].second) + ")";
+            if ( i < cornerCount - 1 ){
+                descript = descript + ",";
+            }
+        }
+        descript = descript + "]";
+    }
+    return descript;
 }
-
-
 
 Region::~Region(){
 

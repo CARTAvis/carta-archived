@@ -39,8 +39,10 @@ class LayerCompositionModes;
 class Layer : public QObject, public Carta::State::CartaObject {
 
     friend class Controller;
+    friend class CurveData;
     friend class LayerGroup;
     friend class Profiler;
+    friend class ProfileRenderService;
     friend class Stack;
     friend class DrawGroupSynchronizer;
     friend class DrawStackSynchronizer;
@@ -565,10 +567,8 @@ protected:
      */
     Layer( const QString& className, const QString& path, const QString& id );
 
-    static const QString LAYER_NAME;
     static const QString GROUP;
     static const QString LAYER;
-    static const QString SELECTED;
 
     bool m_renderQueued;
 

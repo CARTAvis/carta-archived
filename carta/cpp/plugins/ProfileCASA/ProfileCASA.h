@@ -32,7 +32,9 @@ public:
     virtual bool handleHook(BaseHook & hookData) override;
     virtual std::vector<HookId> getInitialHookList() override;
     virtual ~ProfileCASA();
+
 private:
+
     casa::MFrequency::Types _determineRefFrame(
             std::shared_ptr<casa::ImageInterface<casa::Float> > img ) const;
     Carta::Lib::Hooks::ProfileResult _generateProfile( casa::ImageInterface < casa::Float > * imagePtr,
@@ -44,4 +46,5 @@ private:
             const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const;
     casa::Record _getRegionRecord( Carta::Lib::RegionInfo::RegionType shape, const casa::CoordinateSystem& cSys,
             const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const;
+    const QString PIXEL_UNIT;
 };

@@ -53,14 +53,11 @@ void RegionInfo::setCorners( const std::vector< std::pair<double,double> > & cor
     m_corners = corners;
 }
 
-
-RegionInfo::~RegionInfo(){
-
-}
-
 bool RegionInfo::operator==( const RegionInfo& rhs ) {
     bool equalRegions = false;
     if ( m_regionType == rhs.m_regionType ){
+        //Note:  Need to make more sophisticated because corners could be the same, just
+        //out of order.
         if ( m_corners.size() == rhs.m_corners.size() ){
             int cornerCount = m_corners.size();
             const double ERROR_MARGIN = 0.000001;
@@ -77,12 +74,15 @@ bool RegionInfo::operator==( const RegionInfo& rhs ) {
         }
     }
     return equalRegions;
-
 }
+
 bool RegionInfo::operator!=( const RegionInfo& rhs ) {
     return !( *this== rhs );
 }
 
+RegionInfo::~RegionInfo(){
+
+}
 }
 }
 

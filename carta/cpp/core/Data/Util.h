@@ -122,6 +122,7 @@ public:
      static const QString NAME;
      static const QString PEN_WIDTH;
      static const QString POINTER_MOVE;
+     static const QString SELECTED;
      static const QString SIGNIFICANT_DIGITS;
      static const QString TAB_INDEX;
      static const QString TYPE;

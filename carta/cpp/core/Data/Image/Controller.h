@@ -105,10 +105,10 @@ public:
 
     /**
      * Close the given region.
-     * @param regionId - an identifier for a region.
+     * @param regionId - the index of the region to close.
      * @return - an error message if the region was not successfully closed.
      */
-    QString closeRegion( const QString& regionId );
+    QString closeRegion( int regionId );
 
     /**
       * Get the image pixel that is currently centered.
@@ -266,6 +266,12 @@ public:
     QPointF getPixelCoordinates( double ra, double dec, bool* valid ) const;
 
     /**
+     * Return the currently selected region.
+     * @return - the currently selected region.
+     */
+    std::shared_ptr<Region> getRegion();
+
+    /**
      * Return the world coordinates corresponding to the given pixel coordinates.
      * @param pixelX - the first pixel coordinate of the image.
      * @param pixelY - the second pixel coordinate of the image.
@@ -292,13 +298,19 @@ public:
      * Return a list of information about loaded regions.
      * @return - a list of region information.
      */
-    std::vector<Carta::Lib::RegionInfo> getRegions() const;
+    QList<std::shared_ptr<Region> > getRegions() const;
 
     /**
      * Return the index of the image that is currently at the top of the stack.
-     * @return the index of the current image.
+     * @return - the index of the current image.
      */
-    int getSelectImageIndex() const ;
+    int getSelectImageIndex() const;
+
+    /**
+     * Return the index of the region that is currently at the top of the stack.
+     * @return - the index of the current region.
+     */
+    int getSelectRegionIndex() const;
 
     /**
      * Get the color map information for the data sources that have been
@@ -637,7 +649,7 @@ private:
     QRectF _getInputRectangle() const;
     QString _getPreferencesId() const;
 
-
+    QString _getStackId() const;
 
     //Provide default values for state.
     void _initializeState();

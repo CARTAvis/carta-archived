@@ -26,6 +26,7 @@ const QString Util::TYPE = "type";
 const QString Util::UNITS = "units";
 const QString Util::VISIBLE = "visible";
 const QString Util::POINTER_MOVE = "pointer-move";
+const QString Util::SELECTED = "selected";
 const QString Util::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Util::VIEW = "view";
 const QString Util::XCOORD = "x";

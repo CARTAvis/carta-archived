@@ -3,6 +3,7 @@
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/DataSource.h"
+#include "Data/Region/Region.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 
@@ -438,8 +439,12 @@ void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo
                 controller->getImages();
 
 
-
-        std::vector<Carta::Lib::RegionInfo> regions = controller->getRegions();
+        QList<std::shared_ptr<Region> > coreRegions = controller->getRegions();
+        int regionCount = coreRegions.size();
+        std::vector<Carta::Lib::RegionInfo> regions( regionCount );
+        for ( int i = 0; i < regionCount; i++ ){
+            regions[i] = coreRegions[i]->getInfo();
+        }
 
         std::vector<int> frameIndices = controller->getImageSlice();
 

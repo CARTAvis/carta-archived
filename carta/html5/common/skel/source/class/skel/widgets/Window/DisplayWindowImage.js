@@ -321,7 +321,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             this.m_view.setVisibility( "hidden" );
                         }
                     }
-                   
+                    this._updateRegionsCB( winObj );
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
                     this._initContextMenu();
@@ -337,28 +337,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
-        _sharedVarDataCB : function(){
-            var val = this.m_sharedVarData.get();
-            if ( val ){
-                try {
-                    var winObj = JSON.parse( val );
-                    this.m_regions = [];
-                    //Add close menu buttons for all the images that are loaded.
-                    var regionObjs = winObj.regions;
+        _updateRegionsCB : function( winObj){
+            this.m_regions = [];
+            //Add close menu buttons for all the images that are loaded.
+            var regionObjs = winObj.regions;
                    
-                    if ( regionObjs ){
-                        for ( var i = 0; i < regionObjs.length; i++ ){
-                            var regionId = regionObjs[i].id;
-                            var regionType = regionObjs[i].regionType;
-                            var vertices = regionObjs[i].corners;
-                            this.m_regions[i] = new skel.widgets.Image.Region( regionId, regionType, vertices );
-                        }
-                    }
-                    this._initContextMenu();
-                }
-                catch( err ){
-                    console.log( "DisplayWindowImage could not parse: "+val );
-                    console.log( "Error: "+err);
+            if ( regionObjs ){
+                for ( var i = 0; i < regionObjs.length; i++ ){
+                    var regionId = regionObjs[i].id;
+                    var regionType = regionObjs[i].regionType;
+                    var vertices = regionObjs[i].corners;
+                    this.m_regions[i] = new skel.widgets.Image.Region( regionId, regionType, vertices );
                 }
             }
         },
@@ -394,6 +383,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_connector.sendCommand( cmd, params, this._registrationStackCallback( this));
         },
         
+        
+        
         /**
          * Set the identifier for the server-side object that manages the stack.
          * @param id {String} - the server-side id of the object that manages the stack.
@@ -410,10 +401,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
-            var path = skel.widgets.Path.getInstance();
-            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +path.DATA );
-            this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
-            this._sharedVarDataCB();
+           
             this._registerControlsStack();
             this._initStatistics();
             this._dataLoadedCB();
@@ -442,7 +430,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_drawCanvas : null,
         m_datas : [],
         m_regions : [],
-        m_sharedVarData : null,
         m_sharedVarStack : null,
         m_stackId : null,
        

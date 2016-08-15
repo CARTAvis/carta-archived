@@ -492,6 +492,7 @@ std::shared_ptr<Layer> LayerGroup::_getLayer(){
     return layer;
 }
 
+
 std::vector<std::shared_ptr<Layer> > LayerGroup::_getLayers(){
     std::vector<std::shared_ptr<Layer> > layers;
     int dataCount = m_children.size();
@@ -539,6 +540,8 @@ QPointF LayerGroup::_getPixelCoordinates( double ra, double dec, bool* valid ) c
     }
     return result;
 }
+
+
 
 QPointF LayerGroup::_getWorldCoordinates( double pixelX, double pixelY,
         Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
@@ -658,7 +661,7 @@ void LayerGroup::_initializeState(){
     QString defaultCompMode = m_compositionModes->getDefault();
     m_state.insertValue<QString>( COMPOSITION_MODE, defaultCompMode );
     m_state.insertArray( LayerGroup::LAYERS, 0 );
-    m_state.setValue<QString>( LAYER_NAME, Layer::GROUP+_getLayerId());
+    m_state.setValue<QString>( Util::NAME, Layer::GROUP+_getLayerId());
 }
 
 bool LayerGroup::_isComposite() const {

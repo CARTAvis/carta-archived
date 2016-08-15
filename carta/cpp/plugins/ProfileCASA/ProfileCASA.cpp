@@ -16,12 +16,13 @@ using namespace std;
 #include <imageanalysis/ImageAnalysis/PixelValueManipulatorData.h>
 #include <imageanalysis/ImageAnalysis/ImageCollapserData.h>
 
-
+#include <iostream>
 #include <QDebug>
 
 
 ProfileCASA::ProfileCASA(QObject *parent) :
-    QObject(parent){
+    QObject(parent),
+    PIXEL_UNIT( "pix"){
 }
 
 
@@ -32,7 +33,6 @@ casa::MFrequency::Types ProfileCASA::_determineRefFrame(
         casa::CoordinateSystem cSys=img->coordinates();
         casa::Int specAx=cSys.findCoordinate(casa::Coordinate::SPECTRAL);
         if ( specAx >= 0 ) {
-
             casa::SpectralCoordinate specCoor=cSys.spectralCoordinate(specAx);
             casa::MFrequency::Types tfreqtype;
             casa::MEpoch tepoch;
@@ -79,7 +79,6 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
         }
     }
 
-
     Carta::Lib::RegionInfo::RegionType shape = regionInfo.getRegionType();
     std::vector<std::pair<double,double> > regionCorners = regionInfo.getCorners();
     int cornerCount = regionCorners.size();
@@ -90,11 +89,10 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
         y[i] = regionCorners[i].second;
     }
     casa::Record regionRecord = _getRegionRecord( shape, cSys, x, y);
-
     QString spectralType = profileInfo.getSpectralType();
     QString spectralUnit = profileInfo.getSpectralUnit();
     if ( spectralType == "Channel"){
-        spectralUnit = "pixel";
+        spectralUnit = PIXEL_UNIT;
         spectralType = "default";
     }
     casa::String pixelSpectralType( spectralType.toStdString().c_str() );
@@ -112,7 +110,6 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
         casa::String frame = casa::String( casa::MFrequency::showType( freqType));
 
         casa::Quantity restFreq( restFrequency, casa::Unit( restUnit.toStdString().c_str()));
-
         casa::Record result = pvm.getProfile( spectralAxis, funct, unit, specType,
                 &restFreq, frame );
 
@@ -174,10 +171,9 @@ casa::ImageRegion* ProfileCASA::_getEllipsoid(const casa::CoordinateSystem& cSys
     casa::Vector<casa::Quantity> radius(2);
     casa::ImageRegion* imageRegion = NULL;
     if ( x.size() == 2 && y.size() == 2 ){
-        const casa::String radUnits( "rad");
-        center[0] = casa::Quantity( (x[0]+x[1])/2, radUnits );
-        center[1] = casa::Quantity( (y[0]+y[1])/2, radUnits );
-
+        const casa::String pixUnits( PIXEL_UNIT.toStdString().c_str() );
+        center[0] = casa::Quantity( (x[0]+x[1])/2, pixUnits );
+        center[1] = casa::Quantity( (y[0]+y[1])/2, pixUnits );
         casa::MDirection::Types type = casa::MDirection::N_Types;
         int directionIndex = cSys.findCoordinate( casa::Coordinate::DIRECTION );
         if ( directionIndex >= 0 ){
@@ -187,24 +183,25 @@ casa::ImageRegion* ProfileCASA::_getEllipsoid(const casa::CoordinateSystem& cSys
             casa::Vector<casa::Double> qCenter(2);
             qCenter[0] = center[0].getValue();
             qCenter[1] = center[1].getValue();
-            casa::MDirection mdcenter( casa::Quantum<casa::Vector<casa::Double> >(qCenter,radUnits), type );
+            const casa::String angleUnits( "deg");
+            casa::MDirection mdcenter( casa::Quantum<casa::Vector<casa::Double> >(qCenter,angleUnits), type );
 
-            casa::Vector<casa::Double> blc_rad_x(2);
-            blc_rad_x[0] = x[0];
-            blc_rad_x[1] = center[1].getValue();
-            casa::MDirection mdblc_x( casa::Quantum<casa::Vector<casa::Double> >(blc_rad_x,radUnits),type );
+            casa::Vector<casa::Double> blc_pix_x(2);
+            blc_pix_x[0] = x[0];
+            blc_pix_x[1] = center[1].getValue();
+            casa::MDirection mdblc_x( casa::Quantum<casa::Vector<casa::Double> >(blc_pix_x,angleUnits),type );
 
-            casa::Vector<casa::Double> blc_rad_y(2);
-            blc_rad_y[0] = center[0].getValue();
-            blc_rad_y[1] = y[0];
-            casa::MDirection mdblc_y( casa::Quantum<casa::Vector<casa::Double> >(blc_rad_y,radUnits),type );
+            casa::Vector<casa::Double> blc_pix_y(2);
+            blc_pix_y[0] = center[0].getValue();
+            blc_pix_y[1] = y[0];
+            casa::MDirection mdblc_y( casa::Quantum<casa::Vector<casa::Double> >(blc_pix_y,angleUnits),type );
 
             double xdistance = mdcenter.getValue( ).separation(mdblc_x.getValue( ));
             double ydistance = mdcenter.getValue( ).separation(mdblc_y.getValue( ));
             const float ERR = 0;
             if ( xdistance > ERR && ydistance > ERR ){
-                radius[0] = casa::Quantity(xdistance, radUnits );
-                radius[1] = casa::Quantity(ydistance, radUnits );
+                radius[0] = casa::Quantity(xdistance, pixUnits );
+                radius[1] = casa::Quantity(ydistance, pixUnits );
 
                 casa::Vector<casa::Int> pixax(2);
                 casa::Vector<casa::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
@@ -233,14 +230,14 @@ std::vector<HookId> ProfileCASA::getInitialHookList(){
 casa::ImageRegion* ProfileCASA::_getPolygon(const casa::CoordinateSystem& cSys,
         const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const {
     casa::ImageRegion* polygon = NULL;
-    const casa::String radUnits( "rad");
+    const casa::String pixUnits( PIXEL_UNIT.toStdString().c_str());
     casa::RegionManager regMan;
     int n = x.size();
     casa::Vector<casa::Quantity> xvertex(n);
     casa::Vector<casa::Quantity> yvertex(n);
     for (casa::Int k = 0; k < n; ++k) {
-        xvertex[k] = casa::Quantity(x[k], radUnits);
-        yvertex[k] = casa::Quantity(y[k], radUnits);
+        xvertex[k] = casa::Quantity(x[k], pixUnits);
+        yvertex[k] = casa::Quantity(y[k], pixUnits);
     }
     int directionIndex = cSys.findCoordinate( casa::Coordinate::DIRECTION );
     if ( directionIndex >= 0 ){
@@ -256,7 +253,7 @@ casa::ImageRegion* ProfileCASA::_getPolygon(const casa::CoordinateSystem& cSys,
 
 casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType shape, const casa::CoordinateSystem& cSys,
         const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const {
-    const casa::String radUnits( "rad");
+    const casa::String pixUnits( PIXEL_UNIT.toStdString().c_str());
     const casa::String absStr( "abs");
     casa::Record regionRecord;
     casa::Int directionIndex = cSys.findCoordinate(casa::Coordinate::DIRECTION);
@@ -265,18 +262,18 @@ casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType s
         casa::RegionManager regMan;
         if ( shape == Carta::Lib::RegionInfo::RegionType::Polygon ){
             int ptCount = x.size();
-            if ( ptCount == 2 ){
+            if ( ptCount == 4 ){
                 casa::Vector<casa::Quantity> blc(2);
                 casa::Vector<casa::Quantity> trc(2);
-                blc(0) = casa::Quantity(x[0], radUnits);
-                blc(1) = casa::Quantity(y[0], radUnits);
-                trc(0) = casa::Quantity(x[1], radUnits);
-                trc(1) = casa::Quantity(y[1], radUnits);
+                blc(0) = casa::Quantity(x[0], pixUnits);
+                blc(1) = casa::Quantity(y[0], pixUnits);
+                trc(0) = casa::Quantity(x[1], pixUnits);
+                trc(1) = casa::Quantity(y[1], pixUnits);
                 casa::Vector<casa::Int> pixax(2);
                 pixax(0) = dirPixelAxis[0];
                 pixax(1) = dirPixelAxis[1];
 
-                casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, radUnits);
+                casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, pixUnits);
                 regionRecord = *imagregRecord;
                 delete imagregRecord;
             }
@@ -284,15 +281,15 @@ casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType s
                 //Try a rectangle with blc=trc;
                 casa::Vector<casa::Quantity> blc(2);
                 casa::Vector<casa::Quantity> trc(2);
-                blc(0) = casa::Quantity(x[0], radUnits);
-                blc(1) = casa::Quantity(y[0], radUnits);
-                trc(0) = casa::Quantity(x[0], radUnits);
-                trc(1) = casa::Quantity(y[0], radUnits);
+                blc(0) = casa::Quantity(x[0], pixUnits);
+                blc(1) = casa::Quantity(y[0], pixUnits);
+                trc(0) = casa::Quantity(x[0], pixUnits);
+                trc(1) = casa::Quantity(y[0], pixUnits);
                 casa::Vector<casa::Int> pixax(2);
                 pixax(0) = dirPixelAxis[0];
                 pixax(1) = dirPixelAxis[1];
 
-                casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, radUnits);
+                casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, pixUnits);
                 regionRecord=*imagregRecord;
                 delete imagregRecord;
             }

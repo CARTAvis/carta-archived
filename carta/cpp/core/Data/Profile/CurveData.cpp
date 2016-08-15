@@ -1,9 +1,11 @@
 #include "CurveData.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include "Data/Error/ErrorManager.h"
+#include "Data/Image/Layer.h"
 #include "Data/Plotter/LineStyles.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/ProfilePlotStyles.h"
+#include "Data/Region/Region.h"
 #include "Data/Units/UnitsFrequency.h"
 #include "Data/Units/UnitsWavelength.h"
 #include "Data/Util.h"
@@ -34,8 +36,6 @@ const QString CurveData::PLOT_STYLE = "plotStyle";
 const QString CurveData::STYLE = "style";
 const QString CurveData::STYLE_FIT = "styleFit";
 const QString CurveData::STATISTIC = "stat";
-const QString CurveData::REGION_NAME = "region";
-const QString CurveData::IMAGE_NAME = "image";
 const QString CurveData::REST_FREQUENCY = "restFrequency";
 const QString CurveData::REST_FREQUENCY_UNITS = "restFrequencyUnits";
 const QString CurveData::REST_UNIT_FREQ = "restUnitFreq";
@@ -63,7 +63,10 @@ using Carta::State::StateInterface;
 
 CurveData::CurveData( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
-            m_stateFit( UtilState::getLookup( path, CurveData::FIT)){
+            m_layer( nullptr ),
+            m_region( nullptr ),
+            m_stateFit( UtilState::getLookup( path, CurveData::FIT)),
+            m_nameSet( false ){
     _initializeStatics();
     _initializeDefaultState();
 }
@@ -114,11 +117,12 @@ void CurveData::clearFit(){
 void CurveData::_convertRestFrequency( const QString& oldUnits, const QString& newUnits,
         int significantDigits, double errorMargin ){
     //Do conversion
-    if ( m_imageSource ){
+    if ( m_layer ){
         std::vector<double> converted(1);
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> imageSource = m_layer->_getImage();
         converted[0] = m_state.getValue<double>( REST_FREQUENCY );
         auto result = Globals::instance()-> pluginManager()
-                                     -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(m_imageSource, oldUnits, newUnits, converted );
+                                     -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(imageSource, oldUnits, newUnits, converted );
         auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
             converted = data;
         };
@@ -147,7 +151,7 @@ void CurveData::copy( const std::shared_ptr<CurveData> & other ){
         m_plotDataX = other->m_plotDataX;
         m_plotDataY = other->m_plotDataY;
         m_region = other->m_region;
-        m_imageSource = other->m_imageSource;
+        m_layer = other->m_layer;
 
         m_state.setValue<QString>( Util::NAME, other->getName());
         QColor otherColor = other->getColor();
@@ -158,8 +162,6 @@ void CurveData::copy( const std::shared_ptr<CurveData> & other ){
         m_state.setValue<QString>( STYLE_FIT, other->getLineStyleFit());
         m_state.setValue<QString>( STATISTIC, other->getStatistic());
         m_state.setValue<double>(REST_FREQUENCY, other->getRestFrequency() );
-        m_state.setValue<QString>(IMAGE_NAME, other->getNameImage());
-        m_state.setValue<QString>(REGION_NAME, other->getNameRegion());
         m_state.setValue<bool>(FIT_SELECT, other->isSelectedFit());
         m_state.setValue<bool>( POINT_SOURCE, other->_isPointSource());
     }
@@ -228,6 +230,22 @@ QString CurveData::getCursorText( double x, double y, double* error ) const {
 
 int CurveData::getDataCount() const {
     return m_plotDataX.size();
+}
+
+QString CurveData::getDefaultName() const {
+    QString regionName;
+    QString layerName;
+    if ( m_region ){
+        regionName = m_region->getRegionName();
+    }
+    if ( m_layer ){
+        layerName = m_layer->_getLayerName();
+    }
+    QString dName = layerName;
+    if ( !regionName.isEmpty() ){
+        dName = dName +" x "+regionName;
+    }
+    return dName;
 }
 
 std::vector< std::pair<double,double> > CurveData::getFitData() const {
@@ -310,10 +328,9 @@ std::vector<std::tuple<double,double,double> > CurveData::getGaussParams() const
 }
 
 
-std::shared_ptr<Carta::Lib::Image::ImageInterface> CurveData::getImage() const {
-    return m_imageSource;
+std::shared_ptr<Layer> CurveData::getLayer() const {
+    return m_layer;
 }
-
 
 void CurveData::getMinMax(double* xmin, double* xmax, double* ymin,
         double* ymax) const {
@@ -347,15 +364,6 @@ QString CurveData::getName() const {
 }
 
 
-QString CurveData::getNameImage() const {
-    return m_state.getValue<QString>( IMAGE_NAME );
-}
-
-
-QString CurveData::getNameRegion() const {
-    return m_state.getValue<QString>( REGION_NAME );
-}
-
 std::vector< std::tuple<double,double,QString> > CurveData::getPeakLabels( const QString& xUnit, const QString& yUnit ) const {
     int labelCount = m_gaussParams.size();
     std::vector<std::tuple<double,double,QString> > labels( labelCount );
@@ -386,6 +394,10 @@ Carta::Lib::ProfileInfo CurveData::getProfileInfo() const {
     return profInfo;
 }
 
+std::shared_ptr<Region> CurveData::getRegion() const {
+    return m_region;
+}
+
 
 double CurveData::getRestFrequency() const {
     return m_state.getValue<double>( REST_FREQUENCY );
@@ -403,10 +415,6 @@ QString CurveData::getRestUnits() const {
     return units;
 }
 
-
-std::shared_ptr<Carta::Lib::Image::ImageInterface> CurveData::getSource() const {
-    return m_imageSource;
-}
 
 QString CurveData::getStateString() const{
     return m_state.toString();
@@ -435,6 +443,7 @@ std::vector<double> CurveData::getValuesYFit() const{
 
 void CurveData::_initializeDefaultState(){
     m_state.insertValue<QString>( Util::NAME, "");
+    m_state.insertValue<QString>( Util::ID, "");
     m_state.insertValue<int>( Util::RED, 255 );
     m_state.insertValue<int>( Util::GREEN, 0 );
     m_state.insertValue<int>( Util::BLUE, 0 );
@@ -454,9 +463,6 @@ void CurveData::_initializeDefaultState(){
     m_state.insertValue<bool>(REST_FREQUENCY_UNITS, true );
     m_state.insertValue<QString>(REST_UNIT_FREQ, m_frequencyUnits->getDefault());
     m_state.insertValue<QString>(REST_UNIT_WAVE, m_wavelengthUnits->getDefault());
-
-    m_state.insertValue<QString>(IMAGE_NAME, "");
-    m_state.insertValue<QString>(REGION_NAME, "");
 
     m_state.insertValue<bool>(FIT_SELECT, true );
     m_stateFit.insertObject( FIT );
@@ -594,10 +600,31 @@ void CurveData::setFitStatus( const QString& fitStatus ) {
     m_fitStatus = fitStatus;
 }
 
+void CurveData::setId( const QString& id ){
+    if ( id.trimmed().length() > 0 ){
+        m_state.setValue<QString>( Util::ID, id );
+    }
+}
+
+
+void CurveData::setLayer( std::shared_ptr<Layer> layer ){
+    m_layer = layer;
+}
+
+
 void CurveData::_setPointSource( bool pointSource ){
     bool oldPointSource = m_state.getValue<bool>( POINT_SOURCE );
     if ( oldPointSource != pointSource ){
         m_state.setValue<bool>( POINT_SOURCE, pointSource );
+        m_state.flushState();
+    }
+}
+
+void CurveData::setRegion( std::shared_ptr<Region> region ){
+    m_region = region;
+    if ( !m_nameSet ){
+        QString dName = getDefaultName();
+        m_state.setValue<QString>( Util::NAME, dName );
         m_state.flushState();
     }
 }
@@ -693,26 +720,13 @@ QString CurveData::setLineStyleFit( const QString& lineStyle ){
     return result;
 }
 
-QString CurveData::setImageName( const QString& imageName ){
-    QString result;
-    if ( imageName.trimmed().length() > 0 ){
-        QString oldImageName = m_state.getValue<QString>(IMAGE_NAME );
-        if ( oldImageName != imageName ){
-            m_state.setValue<QString>(IMAGE_NAME, imageName );
-        }
-    }
-    else {
-        result = "Please specify a non-trivial profile image name.";
-    }
-    return result;
-}
-
 
 QString CurveData::setName( const QString& curveName ){
     QString result;
     if ( curveName.length() > 0 ){
         QString oldName = m_state.getValue<QString>( Util::NAME );
         if ( oldName != curveName ){
+            m_nameSet = true;
             m_state.setValue<QString>( Util::NAME, curveName );
         }
     }
@@ -779,12 +793,6 @@ void CurveData::setRestUnitType( bool restUnitsFreq, int significantDigits, doub
         }
         _convertRestFrequency( oldUnits, newUnits, significantDigits, errorMargin );
     }
-}
-
-
-
-void CurveData::setSource( std::shared_ptr<Carta::Lib::Image::ImageInterface> imageSource ){
-    m_imageSource = imageSource;
 }
 
 

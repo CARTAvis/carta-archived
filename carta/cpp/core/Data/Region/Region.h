@@ -25,10 +25,22 @@ public:
     void addCorners( const std::vector< std::pair<double,double> >& corners );
 
     /**
+     * Return a list of region corners.
+     * @return - a list of region corners.
+     */
+    std::vector<std::pair<double,double> > getCorners() const;
+
+    /**
      * Return the information associated with this region.
      * @return - information about the region.
      */
-    std::shared_ptr<Carta::Lib::RegionInfo> getInfo() const;
+    Carta::Lib::RegionInfo getInfo() const;
+
+    /**
+     * Return the name of the region.
+     * @return - the name of the region.
+     */
+    QString getRegionName() const;
 
     /**
      * Return the RegionType corresponding to the given string representation.
@@ -47,8 +59,15 @@ public:
      * Return a string representation of the region shape.
      * @return - a string representation of the type of region.
      */
-    QString getTypeString() const;
+    QString regionTypeToString( Carta::Lib::RegionInfo::RegionType regionType ) const;
 
+    /**
+     * Set a user-customized name for the region.
+     * @param name - a user name for the region.
+     * @return - an error message if the region name was not correctly set; an empty string
+     *  otherwise.
+     */
+    QString setRegionName( const QString& name );
 
     /**
      * Set the type of region.
@@ -56,7 +75,11 @@ public:
      */
     void setRegionType( Carta::Lib::RegionInfo::RegionType regionType );
 
-
+    /**
+     * Returns a string representation of the region.
+     * @return - a string representation of the region.
+     */
+    QString toString() const;
 
     virtual ~Region();
 
@@ -65,6 +88,7 @@ public:
 private:
 
     static bool m_registered;
+
 
     /**
      * Construct a region.
@@ -77,8 +101,7 @@ private:
     const static QString REGION_POLYGON;
     const static QString REGION_ELLIPSE;
 
-    void _initializeCallbacks();
-    void _initializeState();
+    int _findRegionIndex( std::shared_ptr<Region> region ) const;
 
     /**
      * Return the region state as a string.
@@ -86,13 +109,8 @@ private:
      */
     QString _getStateString() const;
 
-    /**
-     * Returns true if the user id of this region starts with the
-     * id passed in; false otherwise.
-     * @param id - the user id of a region.
-     * @return - true if the id matches this region's user id; false otherwise.
-     */
-    bool _isMatch( const QString& id ) const;
+    void _initializeCallbacks();
+    void _initializeState();
 
     /**
      * Restore the region state.
@@ -100,13 +118,11 @@ private:
      */
     void _restoreState( const QString& state );
 
-    //The user id for a region loaded from a file will be the file name plus an
-    //index, if there is more than one region loaded from the file.  If the region
-    // is created graphically, the id will be just an index.
-    void _setUserId( const QString& fileName, int index );
-
     Region( const Region& other);
     Region& operator=( const Region& other );
+
+    bool m_regionNameSet;
+
 
 };
 }

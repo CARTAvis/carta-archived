@@ -78,10 +78,11 @@ private:
     QString _addDataImage(const QString& fileName, bool* success );
     void _addDataRegions( std::vector<std::shared_ptr<Region>> regions );
 
-    QString _closeRegion( const QString& regionId );
+    QString _closeRegion( int index );
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll );
 
+    int _findRegionIndex( std::shared_ptr<Region> region ) const;
 
     std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
     QStringList _getCoords( double x, double y,
@@ -98,10 +99,11 @@ private:
     int _getIndex( const QString& layerId) const;
     QString _getPixelVal( double x, double y) const;
     QRectF _getInputRectangle() const;
-     std::vector<Carta::Lib::RegionInfo> _getRegions() const;
+     QList<std::shared_ptr<Region> > _getRegions() const;
 
 
      int _getSelectImageIndex() const;
+     int _getSelectRegionIndex() const;
 
      /**
       * Return the state of this layer.
@@ -115,6 +117,8 @@ private:
       * @return - the size in pixels of the main image display.
       */
      QSize _getOutputSize() const;
+
+    std::shared_ptr<Region> _getRegion();
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll);
 
@@ -206,6 +210,7 @@ private:
     std::unique_ptr<DrawImageViewsSynchronizer> m_imageDraws;
 
     Selection* m_selectImage;
+    Selection* m_selectRegion;
     std::vector<Selection*> m_selects;
     QList<std::shared_ptr<Region> > m_regions;
 

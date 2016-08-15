@@ -50,7 +50,8 @@ Stack::Stack(const QString& path, const QString& id) :
     LayerGroup( CLASS_NAME, path, id),
     m_stackDraw(nullptr),
     m_imageDraws( new DrawImageViewsSynchronizer() ),
-    m_selectImage(nullptr){
+    m_selectImage(nullptr),
+    m_selectRegion( nullptr ){
     _initializeState();
     _initializeSelections();
 }
@@ -65,11 +66,19 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
+
 void Stack::_addDataRegions( std::vector<std::shared_ptr<Region>> regions ){
     int count = regions.size();
     for ( int i = 0; i < count; i++ ){
-        m_regions.push_back( regions[i]);
+        int regionIndex = _findRegionIndex( regions[i] );
+        if ( regionIndex < 0 ){
+            m_regions.push_back( regions[i]);
+        }
     }
+    count = m_regions.size();
+    m_selectRegion->setUpperBound( count );
+    //The last loaded region should be selected.
+    m_selectRegion->setIndex( count - 1 );
     _saveStateRegions();
 }
 
@@ -116,27 +125,24 @@ bool Stack::_closeData( const QString& id ){
 }
 
 
-QString Stack::_closeRegion( const QString& regionId ){
+QString Stack::_closeRegion( int index ){
     bool regionRemoved = false;
     QString result;
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     //Note that more than one region could be removed, if there are
-    //serveral regions that start with the passed in id.
+    //several regions that start with the passed in id.
     int regionCount = m_regions.size();
-    for ( int i = regionCount - 1; i >= 0; i-- ){
-        bool match = m_regions[i]->_isMatch( regionId );
-        if ( match ){
-            QString id = m_regions[i]->getId();
-            objMan->removeObject( id );
-            m_regions.removeAt( i );
-            regionRemoved = true;
-        }
+    if ( index >= 0 && index < regionCount ){
+        QString id = m_regions[index]->getId();
+        objMan->removeObject( id );
+        m_regions.removeAt( index );
+        regionRemoved = true;
     }
     if ( regionRemoved ){
         _saveStateRegions();
     }
     else {
-        result = "Could not find region to remove for id="+regionId;
+        result = "Could not find region to remove for index="+QString::number(index);
     }
     return result;
 }
@@ -164,6 +170,20 @@ void Stack::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisType
         }
     }
     emit viewLoad( );
+}
+
+int Stack::_findRegionIndex( std::shared_ptr<Region> region ) const {
+    int index = -1;
+    Carta::Lib::RegionInfo info = region->getInfo();
+    int regionCount = m_regions.size();
+    for ( int i = 0; i < regionCount; i++ ){
+        Carta::Lib::RegionInfo otherInfo = m_regions[i]->getInfo();
+        if ( info == otherInfo ){
+            index = i;
+            break;
+        }
+    }
+    return index;
 }
 
 std::set<AxisInfo::KnownType> Stack::_getAxesHidden() const {
@@ -258,9 +278,6 @@ int Stack::_getFrameUpperBound( AxisInfo::KnownType axisType ) const {
 }
 
 
-
-
-
 std::vector<int> Stack::_getImageSlice() const {
     std::vector<int> result;
     int dataIndex = _getIndexCurrent();
@@ -337,6 +354,19 @@ QString Stack::_getPixelVal( double x, double y) const {
     return _getPixelValue( x, y, frames );
 }
 
+std::shared_ptr<Region> Stack::_getRegion(){
+    int regionIndex = m_selectRegion->getIndex();
+    std::shared_ptr<Region> region( nullptr );
+    if ( regionIndex >= 0 && regionIndex < m_regions.size()){
+        region = m_regions[regionIndex];
+    }
+    return region;
+}
+
+QList<std::shared_ptr<Region> > Stack::_getRegions() const {
+    return m_regions;
+}
+
 int Stack::_getSelectImageIndex() const {
     int selectImageIndex = -1;
     int stackedImageVisibleCount = _getStackSizeVisible();
@@ -346,13 +376,12 @@ int Stack::_getSelectImageIndex() const {
     return selectImageIndex;
 }
 
-std::vector<Carta::Lib::RegionInfo> Stack::_getRegions() const {
-    int regionCount = m_regions.size();
-    std::vector<Carta::Lib::RegionInfo> regionInfos( regionCount );
-    for ( int i = 0; i < regionCount; i++ ){
-        regionInfos[i] = (*m_regions[i]->getInfo().get());
+int Stack::_getSelectRegionIndex() const {
+    int selectRegionIndex = -1;
+    if ( m_regions.size() > 0 ){
+        selectRegionIndex = m_selectRegion->getIndex();
     }
-    return regionInfos;
+    return selectRegionIndex;
 }
 
 QString Stack::_getStateString() const{
@@ -398,6 +427,8 @@ void Stack::_initializeSelections(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     m_selectImage = objMan->createObject<Selection>();
     connect( m_selectImage, SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
+    m_selectRegion = objMan->createObject<Selection>();
+
     int axisCount = static_cast<int>(AxisInfo::KnownType::OTHER);
     m_selects.resize( axisCount );
     for ( int i = 0; i < axisCount; i++ ){
@@ -581,6 +612,8 @@ void Stack::_resetStack( const Carta::State::StateInterface& restoreState ){
     _resetState( restoreState );
     QString dataStateStr = restoreState.getValue<QString>( Selection::IMAGE );
     m_selectImage ->resetState( dataStateStr );
+    QString regionStateStr = restoreState.getValue<QString>( Selection::REGION );
+    m_selectRegion ->resetState( regionStateStr );
     int selectCount = m_selects.size();
     for ( int i = 0; i < selectCount; i++ ){
         AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
@@ -957,6 +990,11 @@ Stack::~Stack() {
         objMan->destroyObject( m_selectImage->getId());
         m_selectImage = nullptr;
     }
+    if ( m_selectRegion != nullptr ){
+            Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+            objMan->destroyObject( m_selectRegion->getId());
+            m_selectRegion = nullptr;
+        }
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
       int selectCount = m_selects.size();
       for ( int i = 0; i < selectCount; i++ ){

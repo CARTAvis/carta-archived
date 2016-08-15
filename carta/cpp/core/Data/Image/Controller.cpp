@@ -209,8 +209,8 @@ QString Controller::closeImage( const QString& id ){
     return result;
 }
 
-QString Controller::closeRegion( const QString& regionId ){
-    QString result = m_stack->_closeRegion( regionId );
+QString Controller::closeRegion( int index ){
+    QString result = m_stack->_closeRegion( index );
     if ( result.isEmpty() ){
         emit dataChangedRegion( this );
     }
@@ -303,6 +303,9 @@ std::shared_ptr<Layer> Controller::getLayer() {
     return m_stack->_getLayer();
 }
 
+std::shared_ptr<Region> Controller::getRegion() {
+    return m_stack->_getRegion();
+}
 
 std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::getImages() {
     return m_stack->_getImages();
@@ -410,8 +413,8 @@ QString Controller::_getPreferencesId() const {
 }
 
 
-std::vector<Carta::Lib::RegionInfo> Controller::getRegions() const {
-    std::vector<Carta::Lib::RegionInfo> regionInfos = m_stack->_getRegions();
+QList<std::shared_ptr<Region> > Controller::getRegions() const {
+    QList<std::shared_ptr<Region> > regionInfos = m_stack->_getRegions();
     return regionInfos;
 }
 
@@ -420,10 +423,18 @@ int Controller::getSelectImageIndex() const {
     return m_stack->_getSelectImageIndex();
 }
 
+int Controller::getSelectRegionIndex() const {
+    return m_stack->_getSelectRegionIndex();
+}
+
 
 std::vector<std::shared_ptr<ColorState> > Controller::getSelectedColorStates( bool global ){
     std::vector<std::shared_ptr<ColorState> > colorStates = m_stack->_getSelectedColorStates( global );
     return colorStates;
+}
+
+QString Controller::_getStackId() const {
+    return m_stack->getPath();
 }
 
 
@@ -619,8 +630,16 @@ void Controller::_initializeCallbacks(){
                         const QString & params, const QString & /*sessionId*/) ->QString {
         std::set<QString> keys = {"region"};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString regionId = dataValues[*keys.begin()];
-        QString result = closeRegion( regionId );
+        QString regionIdStr = dataValues[*keys.begin()];
+        bool validInt = false;
+        int regionId = regionIdStr.toInt( &validInt );
+        QString result;
+        if ( validInt ){
+            result = closeRegion( regionId );
+        }
+        else {
+            result="Index of region to close must be an integer";
+        }
         return result;
     });
 

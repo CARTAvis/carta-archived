@@ -864,9 +864,9 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
         //the user has explicitly set it.
         DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
         QString shortName = dLoader->getShortName( fileName );
-        QString layerName = m_state.getValue<QString>( LAYER_NAME );
+        QString layerName = m_state.getValue<QString>( Util::NAME );
         if ( layerName.isEmpty() || layerName.length() == 0 ){
-            m_state.setValue<QString>( LAYER_NAME, shortName );
+            m_state.setValue<QString>( Util::NAME, shortName );
             m_state.flushState();
         }
         result = m_state.getValue<QString>( Util::ID );

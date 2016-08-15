@@ -40,7 +40,7 @@ public:
      *      otherwise.
      */
     bool setParameters(std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
-         Carta::Lib::RegionInfo& regionInfo, Carta::Lib::ProfileInfo& profInfo );
+        const Carta::Lib::RegionInfo& regionInfo, const Carta::Lib::ProfileInfo& profInfo );
 
     /**
      * Performs the work of computing the Profile data in a separate process.

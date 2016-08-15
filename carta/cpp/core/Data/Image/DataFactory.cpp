@@ -102,7 +102,6 @@ std::vector<std::shared_ptr<Region> > DataFactory::_loadRegions( Controller* con
             for ( int i = 0; i < regionCount; i++ ){
                 if ( data[i] ){
                     std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
-                    regionPtr -> _setUserId( fileName, i );
                     regions.push_back( regionPtr );
                 }
             }

@@ -9,6 +9,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
+#include "Data/Region/Region.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/Hooks/ProfileResult.h"
 #include "CartaLib/Hooks/FitResult.h"
@@ -385,6 +386,30 @@ public:
     QString setRestUnitType( bool restUnitsFreq, const QString& curveName );
 
     /**
+     * Set the selected profile.
+     * @param curveId - an identifier for the selected profile.
+     * @return - an error message if the profile could not be selected; an empty string
+     *      otherwise.
+     */
+    QString setSelectedCurve( const QString& curveId );
+
+    /**
+     * Set the layer to profile.
+     * @param imageId - an identifier for the image to profile.
+     * @return - an error message if the image could not be selected; an empty string
+     *      otherwise.
+     */
+    QString setSelectedLayer( const QString& imageId );
+
+    /**
+     * Set the region to profile.
+     * @param regionId - an identifier for the region to profile.
+     * @return - an error message if the region could not be selected; an empty string
+     *      otherwise.
+     */
+    QString setSelectedRegion( const QString& regionId );
+
+    /**
      * Sets whether information about the point underneath the mouse cursor should
      * be shown or not.
      * @param showCursor - true if information about the point underneath the mouse
@@ -507,9 +532,9 @@ private slots:
     void _loadProfile( Controller* controller);
     void _movieFrame();
     void _plotSizeChanged();
-    void _profileRendered( const Carta::Lib::Hooks::ProfileResult& result,
-            int curveIndex, const QString& layerName, bool createNew,
-            std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
+    void _profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
+            std::shared_ptr<Layer> layer, std::shared_ptr<Region> region, bool createNew );
+
     void _resetFitGuessPixels();
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateZoomRangeBasedOnPercent();
@@ -520,24 +545,24 @@ private:
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;
     const static QString CURVE_SELECT;
-
     const static QString FIT_STATISTICS;
     const static QString GAUSS_COUNT;
     const static QString GEN_MODE;
     const static QString GRID_LINES;
     const static QString HEURISTICS;
-    const static QString IMAGES;
+    const static QString IMAGE_SELECT;
     const static QString LEGEND_SHOW;
     const static QString LEGEND_LINE;
     const static QString LEGEND_LOCATION;
     const static QString LEGEND_EXTERNAL;
     const static QString MANUAL_GUESS;
+    const static QString NO_REGION;
     const static QString PLOT_HEIGHT;
     const static QString PLOT_WIDTH;
     const static QString PLOT_LEFT;
     const static QString PLOT_TOP;
     const static QString POLY_DEGREE;
-    const static QString REGIONS;
+    const static QString REGION_SELECT;
     const static QString SHOW_FRAME;
     const static QString SHOW_GUESSES;
     const static QString SHOW_MEAN_RMS;
@@ -556,13 +581,11 @@ private:
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
-    void _assignCurveName( std::shared_ptr<CurveData>& profileCurve ) const;
 
     void _clearData();
 
     //Convert axis units.
-    void _convertX( std::vector<double>& converted,
-            std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
+    void _convertX( std::vector<double>& converted, std::shared_ptr<Layer> layer,
             const QString& oldUnit, const QString& newUnit ) const;
     void _convertDataX( std::vector<double>& converted, const QString& bottomUnit,
             std::shared_ptr<CurveData> curveData ) const;
@@ -581,9 +604,13 @@ private:
     std::vector<double>  _convertUnitsYFitParams( std::shared_ptr<CurveData> curveData,
             const QString & newUnit ) const;
 
-    void _generateData( std::shared_ptr<Layer> layer, bool createNew = false );
-    void _generateData( std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
-             int curveIndex, const QString& layerName, bool createNew = false );
+    int _findCurveIndex( const QString& curveId ) const;
+
+    bool _generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
+    QString _generateCurveId( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ) const;
+    void _generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
+            bool createNew = false);
+
     void _generateFit( );
     std::vector<std::tuple<double,double,double> > _generateFitGuesses( int count, bool random );
 
@@ -600,8 +627,7 @@ private:
      * @return the unique server side id of the user preferences.
      */
     QString _getPreferencesId() const;
-
-    int _findCurveIndex( const QString& curveId ) const;
+    QList<std::shared_ptr<Region> > _getRegionForGenerateMode( Controller* controller) const;
 
     void _initializeDefaultState();
     void _initializeCallbacks();
@@ -614,7 +640,6 @@ private:
 
     void _setErrorMargin();
 
-    void _updateAvailableImages( Controller* controller );
     void _updateResidualData();
     void _updateFitStatistics();
     QString _updateFitStatistic( int index );
@@ -625,6 +650,9 @@ private:
     void _updatePlotData();
 
     void _updatePlotDisplay();
+
+    bool _updateProfiles( Controller* controller );
+    void _updateSelectedCurve();
 
     //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
     //and units "GHz".
