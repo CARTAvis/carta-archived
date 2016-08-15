@@ -11,7 +11,8 @@
 qx.Class.define( "skel.hacks.HackView", {
 
     //extend: skel.boundWidgets.View.ViewWithInputDiv,
-    extend: skel.hacks.VGView,
+    //extend: skel.hacks.VGView,
+    extend: skel.boundWidgets.View.VGView,
 
     /**
      * Constructor

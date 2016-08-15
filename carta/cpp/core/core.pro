@@ -153,7 +153,8 @@ HEADERS += \
     coreMain.h \
     SimpleRemoteVGView.h \
     Hacks/ManagedLayerView.h \
-    Hacks/LayeredViewDemo.h
+    Hacks/LayeredViewDemo.h \
+    Hacks/InteractiveShapes.h
 
 SOURCES += \
     Viewer.cpp \
@@ -293,7 +294,8 @@ SOURCES += \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \
     Hacks/ManagedLayerView.cpp \
-    Hacks/LayeredViewDemo.cpp
+    Hacks/LayeredViewDemo.cpp \
+    Hacks/InteractiveShapes.cpp
 
 
 #message( "common            PWD=$$PWD")

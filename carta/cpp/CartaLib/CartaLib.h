@@ -127,7 +127,7 @@ clamp( const T & v, const T & v1, const T & v2 )
 #if CARTA_RUNTIME_CHECKS > 0
 #define CARTA_ASSERT_X( cond, msg ) CARTA_ASSERT_ALWAYS_X( cond, msg )
 #else
-#define CARTA_ASSERT_X( cond, msg ) qt_noop();
+#define CARTA_ASSERT_X( cond, msg ) do { } while ((false) && (cond))
 #endif
 
 /// use this macro for regular development, it will be compiled out

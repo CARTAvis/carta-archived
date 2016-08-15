@@ -85,18 +85,6 @@ qx.Class.define("skel.hacks.Hacks", {
             mp.gridTB = new skel.boundWidgets.Toggle( "Grid", mp.prefix + "/gridToggle");
             mp.container.add( mp.gridTB);
 
-/*
-            var accum_fps = 0;
-            var lastRefresh = window.performance.now();
-            //newView.viewWidget().getIView().addViewCallback( function() {
-            newView.viewWidget().addListener( "viewRefreshed", function() {
-                var currRefresh = window.performance.now();
-                var fps = 1000 / (currRefresh - lastRefresh);
-                lastRefresh = currRefresh;
-                accum_fps = 0.9 * accum_fps + 0.1 * fps;
-                mp.fps.setValue(""+ accum_fps + "(" + fps + ")");
-            });
-*/
             win2.add( mp.container);
             this.m_app.getRoot().add( win2, {left: 100, top: 100} );
             win2.open();
@@ -111,15 +99,18 @@ qx.Class.define("skel.hacks.Hacks", {
             vgWin.setUseResizeFrame( false);
             vgWin.setContentPadding( 5, 5, 5, 5 );
             vgWin.setLayout( new qx.ui.layout.VBox(5) );
-            //vgWin.add( new skel.hacks.HackView( "vgview1"), { flex: 1 });
-            //vgWin.add( new skel.boundWidgets.View.View( "vgview1"), { flex: 1 });
-            //vgWin.add( new skel.hacks.LayeredViewHack( "vgview1"), { flex: 1 });
-            var vgview =  new skel.hacks.VGView( "mlv1");
-            vgview.installDefaultInputHandler( vgview.INPUT_ALL_BUILTINS);
+
+            //var vgview =  new skel.hacks.VGView( "mlv1");
+            var vgview =  new skel.boundWidgets.View.VGView( "mlv1");
+
+            //vgview.installHandler( skel.hacks.inputHandler.Hover);
+            //vgview.installHandler( skel.hacks.inputHandler.Tap);
+            vgview.installHandler( skel.hacks.inputHandler.Drag);
             vgWin.add( vgview, { flex: 1 });
             this.m_app.getRoot().add( vgWin, {left: 150, top: 120} );
             vgWin.open();
 
+            /*
             var vgWin2 = new qx.ui.window.Window( "VGhack2" );
             vgWin2.setWidth( 600 );
             vgWin2.setHeight( 400 );
@@ -130,7 +121,7 @@ qx.Class.define("skel.hacks.Hacks", {
             vgWin2.add( new skel.hacks.LayeredViewHack( "vgview2"), { flex: 1 });
             this.m_app.getRoot().add( vgWin2, {left: 170, top: 140} );
             vgWin2.open();
-
+            */
 
             // create cursor window
             this.m_cursorWindow = new skel.boundWidgets.CursorWindow();

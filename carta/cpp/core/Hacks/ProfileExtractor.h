@@ -1,5 +1,4 @@
 /**
- * Command line & environment variable parser for CartaVis.
  *
  **/
 
@@ -9,6 +8,9 @@
 
 #include <QTime>
 #include <QTimer>
+
+namespace Carta {
+namespace Lib {
 
 namespace Profiles
 {
@@ -158,6 +160,7 @@ private:
 class IProfileExtractor : public QObject
 {
     Q_OBJECT
+    CLASS_BOILERPLATE(IProfileExtractor);
 
 public:
 
@@ -300,7 +303,7 @@ private slots:
     void
     workTimerCB()
     {
-        //qDebug() << "profile workTimerCB()";
+        qDebug() << "profile workTimerCB()";
 
         // note that from here we ca safely emit directly, since this is executed
         // as a callback of the work timer...
@@ -310,14 +313,14 @@ private slots:
 //        while ( t.elapsed() < 100 ) {
         while ( true ) {
             // if we are done, stop timer, report result
-            //qDebug() << "profile cmp" << m_currPos[m_axis] << "to" << m_rv->dims()[m_axis];
+            qDebug() << "profile cmp" << m_currPos[m_axis] << "to" << m_rv->dims()[m_axis];
             if ( m_currPos[m_axis] >= m_rv-> dims()[m_axis] ) {
-                //qDebug() << "profile stop timer";
+                qDebug() << "profile stop timer";
                 m_workTimer.stop();
                 break;
             }
 
-            //qDebug() << "profile pos" << m_currPos;
+            qDebug() << "profile pos" << m_currPos;
 
             // get the element at the current position
             const char * data = m_rv->get( m_currPos );
@@ -417,13 +420,7 @@ public:
 
     /// is the extraction finished?
     bool
-    isFinished() const {
-        bool finished = false;
-        if ( m_totalLength == getRawDataLength() ){
-            finished = true;
-        }
-        return finished;
-    }
+    isFinished();
 
     // raw data accessors
     Carta::Lib::Image::PixelType
@@ -435,7 +432,7 @@ public:
 
     /// get the raw data length (in pixels!, not bytes)
     qint64
-    getRawDataLength() const
+    getRawDataLength()
     {
         CARTA_ASSERT( m_resultBuffer.length() % m_pixelSize == 0 );
         return m_resultBuffer.length() / m_pixelSize;
@@ -457,11 +454,11 @@ private slots:
     void
     progressCB( qint64 id, qint64 totalLength, QByteArray data )
     {
-        //qDebug() << "profile progressCB" << id << totalLength << data.size();
+        qDebug() << "profile progressCB" << id << totalLength << data.size();
 
         // ignore this signal if it's for an older id
         if ( id != m_jobId ) {
-            //qDebug() << "profile progressCB old id" << id << "!=" << m_jobId;
+            qDebug() << "profile progressCB old id" << id << "!=" << m_jobId;
             return;
         }
 
@@ -484,4 +481,6 @@ private:
     QByteArray m_resultBuffer;
     qint64 m_totalLength = - 1;
 };
+}
+}
 }
