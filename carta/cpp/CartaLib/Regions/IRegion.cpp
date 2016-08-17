@@ -13,6 +13,9 @@ namespace Lib
 {
 namespace Regions
 {
+
+
+
 bool
 RegionSet::isPointInside( const std::vector < RegionPoint > & pts )
 {
@@ -28,12 +31,14 @@ RegionSet::isPointInside( const std::vector < RegionPoint > & pts )
 //    return root()-> isPointInsideCS( qpts );
 }
 
+
+
 /// return an instance from json
 RegionBase *
 fromJson( QJsonObject json, RegionBase * parent )
 {
     RegionBase * r = nullptr;
-    QString type = json["type"].toString();
+    QString type = json[RegionBase::REGION_TYPE].toString();
     try {
         if ( type == Circle::TypeName ) {
             r = new Circle( parent );

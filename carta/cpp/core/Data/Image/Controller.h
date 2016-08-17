@@ -9,8 +9,6 @@
 #include <Data/Image/IPercentIntensityMap.h>
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
-#include "CartaLib/RegionInfo.h"
-
 #include <QString>
 #include <QList>
 #include <QObject>

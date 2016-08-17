@@ -3,7 +3,6 @@
 #include "plugins/CasaImageLoader/CCMetaDataInterface.h"
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/LoadRegion.h"
-#include "CartaLib/RegionInfo.h"
 #include "CartaLib/IImage.h"
 #include "casacore/coordinates/Coordinates/DirectionCoordinate.h"
 #include "casacore/measures/Measures/MCDirection.h"
@@ -19,11 +18,11 @@ RegionCASA::RegionCASA(QObject *parent) :
 }
 
 
-void RegionCASA::_addCorners( std::shared_ptr<Carta::Lib::RegionInfo>& rInfo,
-        const std::vector<std::pair<double,double> >& corners ){
-    int cornerCount = corners.size();
-    for ( int j = 0; j < cornerCount; j++ ){
-        rInfo->addCorner( corners[j].first, corners[j].second );
+void RegionCASA::_addCorners( Carta::Lib::Regions::Polygon* rInfo,
+        const std::vector<QPointF >& corners ){
+    if ( rInfo ){
+        QPolygonF polygonF = QPolygonF::fromStdVector( corners );
+        rInfo->setqpolyf( polygonF );
     }
 }
 
@@ -48,7 +47,7 @@ bool RegionCASA::handleHook(BaseHook & hookData){
             }
             else {
                 //Not a casa region so return an empty vector.
-                hook.result = std::vector<std::shared_ptr<Carta::Lib::RegionInfo> >();
+                hook.result = std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> >();
             }
             hookHandled = true;
         }
@@ -64,7 +63,7 @@ std::vector<HookId> RegionCASA::getInitialHookList(){
 }
 
 
-std::vector<std::pair<double,double> >
+std::vector<QPointF>
 RegionCASA::_getPixelVertices( const casa::AnnotationBase::Direction& corners,
         const casa::CoordinateSystem& csys, const casa::Vector<casa::MDirection>& directions ) const {
     std::vector<casa::Quantity> xx, xy;
@@ -75,13 +74,13 @@ RegionCASA::_getPixelVertices( const casa::AnnotationBase::Direction& corners,
     casa::String yUnit = csys.worldAxisUnits()[dirAxes[1]];
     int cornerCount = corners.size();
 
-    std::vector<std::pair<double,double> > pixelVertices( cornerCount );
+    std::vector<QPointF> pixelVertices( cornerCount );
     for (int i=0; i<cornerCount; i++) {
         world[dirAxes[0]] = xx[i].getValue(xUnit);
         world[dirAxes[1]] = xy[i].getValue(yUnit);
         casa::Vector<casa::Double> pixel;
         csys.toPixel(pixel, world);
-        pixelVertices[i]= std::pair<double,double>( pixel[dirAxes[0]], pixel[dirAxes[1]] );
+        pixelVertices[i]= QPointF( pixel[dirAxes[0]], pixel[dirAxes[1]] );
     }
     return pixelVertices;
 }
@@ -100,9 +99,10 @@ bool RegionCASA::_isCASARegion( const QString& fileName ) const {
 }
 
 
-std::vector< std::shared_ptr<Carta::Lib::RegionInfo> >
-RegionCASA::_loadRegion( const QString & fname, std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr ){
-    std::vector<std::shared_ptr<Carta::Lib::RegionInfo> > regionInfos;
+std::vector< std::shared_ptr<Carta::Lib::Regions::RegionBase> >
+RegionCASA::_loadRegion( const QString & fname,
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr ){
+    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regionInfos;
 
     casa::String fileName( fname.toStdString().c_str() );
     CCImageBase * base = dynamic_cast<CCImageBase*>( imagePtr.get() );
@@ -125,21 +125,23 @@ RegionCASA::_loadRegion( const QString & fname, std::shared_ptr<Carta::Lib::Imag
                     continue;
                 }
                 casa::CountedPtr<const casa::AnnotationBase> ann = aaregions[i].getAnnotationBase();
-                std::shared_ptr<Carta::Lib::RegionInfo> rInfo( new Carta::Lib::RegionInfo());
+                std::shared_ptr<Carta::Lib::Regions::RegionBase> rInfo( nullptr);
 
                 casa::Vector<casa::MDirection> directions = ann->getConvertedDirections();
                 casa::AnnotationBase::Direction points = ann->getDirections();
-                std::vector<std::pair<double,double> > corners =
+                std::vector<QPointF> corners =
                             _getPixelVertices( points, *cs.get(), directions );
                 int annType = ann->getType();
                 switch( annType ){
                 case casa::AnnotationBase::RECT_BOX : {
-                    _addCorners( rInfo, corners );
-                    rInfo->setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
+                    Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
+                    rInfo.reset( poly );
+                    _addCorners( poly, corners );
                 }
                 break;
                 case casa::AnnotationBase::ELLIPSE : {
-                    rInfo->setRegionType( Carta::Lib::RegionInfo::RegionType::Ellipse );
+                    Carta::Lib::Regions::Circle* regionCircle = new Carta::Lib::Regions::Circle();
+                    rInfo.reset( regionCircle );
                     const casa::AnnEllipse* ellipse = dynamic_cast<const casa::AnnEllipse*>( ann.get() );
                     casa::Int directionIndex = cs->findCoordinate(casa::Coordinate::Type::DIRECTION );
 
@@ -165,39 +167,20 @@ RegionCASA::_loadRegion( const QString & fname, std::shared_ptr<Carta::Lib::Imag
                             (pos_angle > 225.0 && pos_angle < 315.0));
                     const double xradius = (x_is_major ? major_radius : minor_radius);
                     const double yradius = (x_is_major ? minor_radius : major_radius);
-
-                    casa::Vector<casa::Double> world0(2, 0);
-                    casa::Vector<casa::Double> world1(2, 0);
-                    world0[0] = center[0] - xradius;
-                    world0[1] = center[1] - yradius;
-                    world1[0] = center[0] + xradius;
-                    world1[1] = center[1] + yradius;
-                    casa::Vector<casa::Double> pixel0(2, 0);
-                    casa::Vector<casa::Double> pixel1(2, 0);
-                    std::vector<std::pair<double,double> > ellipseCorners(2);
-
-                    const casa::CoordinateSystem ellipsCoord = ellipse->getCsys();
-                    bool firstConvert = ellipsCoord.directionCoordinate().toPixel( pixel0, world0 );
-                    bool secondConvert = ellipsCoord.directionCoordinate().toPixel( pixel1, world1 );
-                    if ( firstConvert && secondConvert ){
-                        ellipseCorners[0] = std::pair<double,double>( pixel0[0], pixel0[1] );
-                        ellipseCorners[1] = std::pair<double,double>( pixel1[0], pixel1[1] );
-                        _addCorners( rInfo, ellipseCorners );
-                    }
-                    else {
-                        qDebug() << "Problem storing ellipse corners: "<<ellipsCoord.errorMessage().c_str();
-                    }
+                    regionCircle->setRadius( xradius );
+                    QPointF circleCenter( center[0], center[1] );
+                    regionCircle->setCenter( circleCenter );
                 }
                 break;
                 case casa::AnnotationBase::POLYGON : {
-                    _addCorners( rInfo, corners );
-                    rInfo->setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
+                    Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
+                    rInfo.reset( poly );
+                    _addCorners( poly, corners );
                 }
                 break;
                 //Point????
                 case casa::AnnotationBase::SYMBOL : {
-                    _addCorners( rInfo, corners );
-                    rInfo->setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
+                    qWarning()<<"Symbol not currently supported";
                 }
                 break;
                 }

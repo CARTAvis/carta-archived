@@ -1,5 +1,5 @@
+#include <CartaLib/Regions/IRegion.h>
 #include <ContextDs9.h>
-#include <CartaLib/RegionInfo.h>
 #include <measures/Measures/MeasConvert.h>
 #include <measures/Measures/MCDirection.h>
 #include <stdlib.h>
@@ -43,8 +43,8 @@ void ContextDs9::createBoxCmd( const Vector& center, const Vector& size, double 
     qDebug() << "Create box cmd";
     double xoffset = size[0] / 2.0;
     double yoffset = size[1] / 2.0;
-    Carta::Lib::RegionInfo* info = new Carta::Lib::RegionInfo();
-    info->setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
+    Carta::Lib::Regions::Polygon* info = new Carta::Lib::Regions::Polygon();
+    QPolygonF polygon;
     if ( xoffset > 1.0 || yoffset > 1.0 ) {
         // size is big enough to make a rectangle... perhaps we should require bigger size...
         // 'width' is the line width... need to thread that through...
@@ -58,15 +58,17 @@ void ContextDs9::createBoxCmd( const Vector& center, const Vector& size, double 
         pts[2].second = center[1] - yoffset;
         pts[3].first  = center[0] + xoffset;
         pts[3].second = center[1] + yoffset;
+
         for ( int i = 0; i < cornerCount; i++ ){
-            info->addCorner( pts[i].first, pts[i].second );
+            polygon.push_back( QPointF( pts[i].first, pts[i].second) );
         }
     }
     else {
         //Just a point
-        info->addCorner( center[0], center[1] );
+        polygon.push_back( QPointF( center[0], center[1]) );
     }
-    m_regions.push_back( std::shared_ptr<Carta::Lib::RegionInfo>( info ) );
+    info->setqpolyf( polygon );
+    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::RegionBase>( info ) );
 }
 
 
@@ -89,10 +91,11 @@ void ContextDs9::createPointCmd( const Vector& v, PointShape, int, const char*, 
         const char*, unsigned short, const char*, const std::list<Tag>& ){
     qDebug() << "creating point";
     if ( v.size() == 2 ){
-        Carta::Lib::RegionInfo* info = new Carta::Lib::RegionInfo();
-        info->setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
-        info->addCorner( v[0], v[1]);
-        m_regions.push_back( std::shared_ptr<Carta::Lib::RegionInfo>(info) );
+        Carta::Lib::Regions::Polygon* info = new Carta::Lib::Regions::Polygon();
+        QPolygonF poly;
+        poly.push_back( QPointF(v[0], v[1]) );
+        info->setqpolyf( poly );
+        m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::RegionBase>(info) );
     }
 }
 
@@ -102,24 +105,10 @@ void ContextDs9::createEllipseCmd( const Vector& center, const Vector& radius, d
         const char* /*text*/, unsigned short /*prop*/, const char* /*comment*/,
         const std::list<Tag>& /*tag*/ ) {
     // 'width' is the line width... need to thread that through...
-    Carta::Lib::RegionInfo* info = new Carta::Lib::RegionInfo();
-    info->setRegionType( Carta::Lib::RegionInfo::RegionType::Ellipse );
-    int pointCount = 4;
-    std::vector<std::pair<double,double> > pts( pointCount );
-    double xoffset = radius[0];
-    double yoffset = radius[1];
-    pts[0].first  = center[0] - xoffset;
-    pts[0].second = center[1] - yoffset;
-    pts[1].first  = center[0] + xoffset;
-    pts[1].second = center[1] + yoffset;
-    pts[2].first  = center[0] - xoffset;
-    pts[2].second = center[1] + yoffset;
-    pts[3].first  = center[0] + xoffset;
-    pts[3].second = center[1] - yoffset;
-    for ( int i = 0; i < pointCount; i++ ){
-        info->addCorner( pts[i].first, pts[i].second );
-    }
-    m_regions.push_back( std::shared_ptr<Carta::Lib::RegionInfo>( info ) );
+    Carta::Lib::Regions::Circle* info = new Carta::Lib::Regions::Circle();
+    info->setRadius( radius[0] );
+    info->setCenter( QPointF( center[0], center[1]) );
+    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::Circle>( info ) );
 }
 
 
@@ -145,16 +134,17 @@ void ContextDs9::createPolygonCmd( const std::list<Vertex>& verts, const char* /
         const char* /*comment*/, const std::list<Tag>& /*tag*/ ) {
     // 'width' is the line width... need to thread that through...
     qDebug() << "createPolygonCmd";
-    Carta::Lib::RegionInfo* info = new Carta::Lib::RegionInfo();
-    info->setRegionType( Carta::Lib::RegionInfo::RegionType::Polygon );
+    Carta::Lib::Regions::Polygon* info = new Carta::Lib::Regions::Polygon();
+    QPolygonF corners;
     for ( std::list<Vertex>::const_iterator it=verts.begin( ); it != verts.end(); ++it ) {
         if ( (*it).size( ) < 2 ) return;
-        info->addCorner( (*it)[0], (*it)[1] );
+        corners.push_back( QPointF ((*it)[0], (*it)[1] ) );
     }
-    m_regions.push_back( std::shared_ptr<Carta::Lib::RegionInfo>( info ) );
+    info->setqpolyf( corners );
+    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::RegionBase>( info ) );
 }
 
-std::vector<std::shared_ptr<Carta::Lib::RegionInfo> > ContextDs9::getRegions() const {
+std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > ContextDs9::getRegions() const {
     return m_regions;
 }
 

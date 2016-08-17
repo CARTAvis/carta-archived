@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "CartaLib/Regions/IRegion.h"
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
-#include "CartaLib/RegionInfo.h"
 
 namespace Carta {
 
@@ -18,23 +18,12 @@ class Region : public Carta::State::CartaObject {
     friend class Stack;
 public:
 
-    /**
-     * Add corners to the region.
-     * @param corners - a list of corners to add to the region.
-     */
-    void addCorners( const std::vector< std::pair<double,double> >& corners );
-
-    /**
-     * Return a list of region corners.
-     * @return - a list of region corners.
-     */
-    std::vector<std::pair<double,double> > getCorners() const;
 
     /**
      * Return the information associated with this region.
      * @return - information about the region.
      */
-    Carta::Lib::RegionInfo getInfo() const;
+    virtual std::shared_ptr<Carta::Lib::Regions::RegionBase> getInfo() const;
 
     /**
      * Return the name of the region.
@@ -43,23 +32,18 @@ public:
     QString getRegionName() const;
 
     /**
-     * Return the RegionType corresponding to the given string representation.
+     * Return the case-sensitive region type corresponding to the given string representation.
      * @param regionTypeStr - a string representation of a region shape such as "ellipse".
-     * @return - the corresponding RegionType.
+     * @return - the corresponding case-sensitive region type or an empty string if there is no
+     *      such type.
      */
-    static Carta::Lib::RegionInfo::RegionType getRegionType( const QString& regionTypeStr );
+    static QString getRegionType( const QString& regionTypeStr );
 
     /**
      * Return the type of region, which corresponds to its shape.
-     * @return - the RegionType.
+     * @return - the type of region.
      */
-    Carta::Lib::RegionInfo::RegionType getRegionType() const;
-
-    /**
-     * Return a string representation of the region shape.
-     * @return - a string representation of the type of region.
-     */
-    QString regionTypeToString( Carta::Lib::RegionInfo::RegionType regionType ) const;
+    QString getRegionType() const;
 
     /**
      * Set a user-customized name for the region.
@@ -70,36 +54,30 @@ public:
     QString setRegionName( const QString& name );
 
     /**
-     * Set the type of region.
-     * @param regionType - an enumerated region type.
+     * Returns a representation of the region as a json object.
+     * @return - a representation of the region as a json objeect.
      */
-    void setRegionType( Carta::Lib::RegionInfo::RegionType regionType );
-
-    /**
-     * Returns a string representation of the region.
-     * @return - a string representation of the region.
-     */
-    QString toString() const;
+    virtual QJsonObject toJSON() const;
 
     virtual ~Region();
 
-    const static QString CLASS_NAME;
+protected:
 
-private:
-
-    static bool m_registered;
-
+    /**
+     * Restore the region state.
+     * @param state - a string representation of the state to restore.
+     */
+    virtual void _restoreState( const QString& state );
 
     /**
      * Construct a region.
      */
-    Region( const QString& path, const QString& id );
-    class Factory;
+    Region( const QString& className, const QString& path, const QString& id );
 
     const static QString REGION_TYPE;
-    const static QString CORNERS;
-    const static QString REGION_POLYGON;
-    const static QString REGION_ELLIPSE;
+    bool m_regionNameSet;
+
+private:
 
     int _findRegionIndex( std::shared_ptr<Region> region ) const;
 
@@ -112,18 +90,8 @@ private:
     void _initializeCallbacks();
     void _initializeState();
 
-    /**
-     * Restore the region state.
-     * @param state - a string representation of the state to restore.
-     */
-    void _restoreState( const QString& state );
-
     Region( const Region& other);
     Region& operator=( const Region& other );
-
-    bool m_regionNameSet;
-
-
 };
 }
 }

@@ -3,12 +3,12 @@
  */
 
 #pragma once
+
 #include "LayerGroup.h"
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/AxisInfo.h"
-#include "CartaLib/RegionInfo.h"
 
 namespace Carta {
 

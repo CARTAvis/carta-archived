@@ -11,7 +11,10 @@
 
 namespace Carta {
     namespace Lib {
-        class RegionInfo;
+        namespace Regions {
+            class Polygon;
+            class RegionBase;
+        }
     }
 }
 
@@ -38,8 +41,8 @@ private:
      * @param rInfo - the region information.
      * @param corners - the list of region corners to add.
      */
-    void _addCorners( std::shared_ptr<Carta::Lib::RegionInfo>& rInfo,
-            const std::vector<std::pair<double,double> >& corners );
+    void _addCorners( Carta::Lib::Regions::Polygon* rInfo,
+            const std::vector<QPointF>& corners );
 
     /**
      * Get a list of the corner points of a region in pixels.
@@ -48,7 +51,7 @@ private:
      * @param directions - a list of MDirections for the image.
      * @return - a list of corner points of a region in pixels.
      */
-    std::vector<std::pair<double,double> >
+    std::vector<QPointF>
         _getPixelVertices( const casa::AnnotationBase::Direction& corners,
             const casa::CoordinateSystem& csys, const casa::Vector<casa::MDirection>& directions ) const;
 
@@ -76,8 +79,8 @@ private:
      * and an image that will contain the region.
      * @param fileName - path to a .crtf file specifying one or more regions in CASA format.
      * @param imagePtr - the image that will contain the region(s).
-     * @return - a list containing draw information for the regions that were loaded.
+     * @return - a list containing information about the regions that were loaded.
      */
-    std::vector< std::shared_ptr<Carta::Lib::RegionInfo> >
+    std::vector< std::shared_ptr<Carta::Lib::Regions::RegionBase> >
         _loadRegion(const QString & fileName, std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr );
 };

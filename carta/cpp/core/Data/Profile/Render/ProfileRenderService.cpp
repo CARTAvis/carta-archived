@@ -50,12 +50,11 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
     }
 
     if ( !m_renderThread ){
-
         m_renderThread = new ProfileRenderThread();
         connect( m_renderThread, SIGNAL(finished()),
                 this, SLOT( _postResult()));
     }
-    Carta::Lib::RegionInfo regionInfo;
+    std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo(nullptr);
     if ( region ){
         regionInfo = region->getInfo();
     }

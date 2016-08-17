@@ -47,7 +47,6 @@ SOURCES += \
     Algorithms/LineCombiner.cpp \
     IImageRenderService.cpp \
     IRemoteVGView.cpp \
-    RegionInfo.cpp \
     Hooks/GetProfileExtractor.cpp \
     Regions/IRegion.cpp \
     InputEvents.cpp \
@@ -106,7 +105,6 @@ HEADERS += \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
     IRemoteVGView.h \
-    RegionInfo.h \
     Hooks/GetProfileExtractor.h \
     Regions/IRegion.h \
     InputEvents.h \

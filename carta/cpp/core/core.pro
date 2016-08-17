@@ -104,6 +104,8 @@ HEADERS += \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
+    Data/Region/RegionPolygon.h \
+    Data/Region/RegionEllipse.h \
     Data/Region/RegionFactory.h \
     Data/Snapshot/ISnapshotsImplementation.h \
     Data/Snapshot/Snapshots.h \
@@ -246,6 +248,8 @@ SOURCES += \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
+    Data/Region/RegionPolygon.cpp \
+    Data/Region/RegionEllipse.cpp \
     Data/Region/RegionFactory.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \

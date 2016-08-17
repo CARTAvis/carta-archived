@@ -3,14 +3,15 @@
 #include "plugins/CasaImageLoader/CCMetaDataInterface.h"
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/ProfileHook.h"
-#include "CartaLib/RegionInfo.h"
 #include "CartaLib/ProfileInfo.h"
+#include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/IImage.h"
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <images/Regions/WCEllipsoid.h>
 #include <images/Regions/RegionManager.h>
 
 #include <iterator>
+
 using namespace std;
 #include <imageanalysis/ImageAnalysis/PixelValueManipulator.h>
 #include <imageanalysis/ImageAnalysis/PixelValueManipulatorData.h>
@@ -46,7 +47,8 @@ casa::MFrequency::Types ProfileCASA::_determineRefFrame(
 }
 
 Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInterface < casa::Float > * imagePtr,
-        Carta::Lib::RegionInfo regionInfo, Carta::Lib::ProfileInfo profileInfo ) const {
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
+        Carta::Lib::ProfileInfo profileInfo ) const {
     std::vector<std::pair<double,double> > profileData;
     casa::CoordinateSystem cSys = imagePtr->coordinates();
     casa::uInt spectralAxis = 0;
@@ -79,14 +81,16 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
         }
     }
 
-    Carta::Lib::RegionInfo::RegionType shape = regionInfo.getRegionType();
-    std::vector<std::pair<double,double> > regionCorners = regionInfo.getCorners();
+    QString shape = regionInfo->typeName();
+    QPolygonF regionCorners = regionInfo->outlineBox();
+
     int cornerCount = regionCorners.size();
     casa::Vector<casa::Double> x(cornerCount);
     casa::Vector<casa::Double> y(cornerCount);
     for ( int i = 0; i < cornerCount; i++ ){
-        x[i] = regionCorners[i].first;
-        y[i] = regionCorners[i].second;
+        QPointF corner = regionCorners.value( i );
+        x[i] = corner.x();
+        y[i] = corner.y();
     }
     casa::Record regionRecord = _getRegionRecord( shape, cSys, x, y);
     QString spectralType = profileInfo.getSpectralType();
@@ -251,7 +255,7 @@ casa::ImageRegion* ProfileCASA::_getPolygon(const casa::CoordinateSystem& cSys,
 }
 
 
-casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType shape, const casa::CoordinateSystem& cSys,
+casa::Record ProfileCASA::_getRegionRecord( const QString& shape, const casa::CoordinateSystem& cSys,
         const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const {
     const casa::String pixUnits( PIXEL_UNIT.toStdString().c_str());
     const casa::String absStr( "abs");
@@ -260,7 +264,7 @@ casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType s
     if ( directionIndex >= 0 ){
         casa::Vector<casa::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
         casa::RegionManager regMan;
-        if ( shape == Carta::Lib::RegionInfo::RegionType::Polygon ){
+        if ( shape == Carta::Lib::Regions::Polygon::TypeName ){
             int ptCount = x.size();
             if ( ptCount == 4 ){
                 casa::Vector<casa::Quantity> blc(2);
@@ -304,7 +308,7 @@ casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType s
                 qDebug() << "Profile Error: A region must have at least one point.";
             }
         }
-        else if ( shape == Carta::Lib::RegionInfo::RegionType::Ellipse ){
+        else if ( shape == Carta::Lib::Regions::Circle::TypeName ){
             casa::ImageRegion* ellipsoid = _getEllipsoid( cSys, x, y );
             if ( ellipsoid != NULL ){
                 regionRecord = ellipsoid->toRecord("");
@@ -337,7 +341,7 @@ bool ProfileCASA::handleHook(BaseHook & hookData){
             return false;
         }
 
-        Carta::Lib::RegionInfo regionInfo = hook.paramsPtr->m_regionInfo;
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo = hook.paramsPtr->m_regionInfo;
         Carta::Lib::ProfileInfo profileInfo = hook.paramsPtr->m_profileInfo;
         hook.result = _generateProfile( casaImage, regionInfo, profileInfo );
         return true;

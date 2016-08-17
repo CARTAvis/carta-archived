@@ -381,6 +381,8 @@ public:
         m_kids.resize( 0 );
     }
 
+    static constexpr auto REGION_TYPE = "type";
+
 protected:
 
     void
@@ -401,6 +403,7 @@ private:
     std::vector < RegionBase * > m_kids;
 
     int m_coordinateSystemID = 0;
+
 };
 
 class Circle : public RegionBase
@@ -448,7 +451,6 @@ public:
 
 //        if ( hasOwnLineColor() ) {
         composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
-
 //        }
 //        if ( hasOwnFillColor() ) {
         composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
@@ -479,10 +481,18 @@ public:
     virtual bool
     initFromJson( QJsonObject obj ) override
     {
-        if ( ! RegionBase::initFromJson( obj ) ) { return false; }
-        if ( ! obj["centerx"].isDouble() ) { return false; }
-        if ( ! obj["centery"].isDouble() ) { return false; }
-        if ( ! obj["radius"].isDouble() ) { return false; }
+        if ( ! RegionBase::initFromJson( obj ) ) {
+            return false;
+        }
+        if ( ! obj["centerx"].isDouble() ) {
+            return false;
+        }
+        if ( ! obj["centery"].isDouble() ) {
+            return false;
+        }
+        if ( ! obj["radius"].isDouble() ) {
+            return false;
+        }
         m_center = QPointF( obj["centerx"].toDouble(), obj["centery"].toDouble() );
         m_radius = obj["radius"].toDouble();
         return true;
@@ -514,6 +524,9 @@ class Polygon : public RegionBase
 public:
 
     static constexpr auto TypeName = "polygon";
+    static constexpr auto POINTS = "pts";
+    static constexpr auto POINT_X = "x";
+    static constexpr auto POINT_Y = "y";
     virtual QString
     typeName() override { return TypeName; }
 
@@ -563,16 +576,16 @@ public:
         QJsonObject doc = RegionBase::toJson();
 
         // and add our own
-        doc["pts"] = QJsonArray();
+        doc[POINTS] = QJsonArray();
         QJsonArray pts;
         for ( auto & pt : m_qpolyf ) {
             QJsonObject o;
-            o["x"] = pt.x();
-            o["y"] = pt.y();
+            o[POINT_X] = pt.x();
+            o[POINT_Y] = pt.y();
             pts.push_back( o );
         }
-        doc["pts"] = pts;
-        doc["type"] = TypeName;
+        doc[POINTS] = pts;
+        doc[RegionBase::REGION_TYPE] = TypeName;
 
         return doc;
     } // toJson
@@ -581,8 +594,8 @@ public:
     initFromJson( QJsonObject obj ) override
     {
         if ( ! RegionBase::initFromJson( obj ) ) { return false; }
-        if ( ! obj["pts"].isArray() ) { return false; }
-        QJsonArray pts = obj["pts"].toArray();
+        if ( ! obj[POINTS].isArray() ) { return false; }
+        QJsonArray pts = obj[POINTS].toArray();
         for ( const auto & jv : pts ) {
             QJsonObject o = jv.toObject();
             if ( ! o["x"].isDouble() ) { return false; }

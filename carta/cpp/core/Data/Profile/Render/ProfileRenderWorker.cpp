@@ -17,7 +17,8 @@ ProfileRenderWorker::ProfileRenderWorker(){
 
 
 bool ProfileRenderWorker::setParameters(std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
-       const Carta::Lib::RegionInfo& regionInfo, const Carta::Lib::ProfileInfo& profInfo  ){
+       std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
+       const Carta::Lib::ProfileInfo& profInfo  ){
     bool paramsChanged = false;
     if ( m_regionInfo != regionInfo ){
         m_regionInfo = regionInfo;

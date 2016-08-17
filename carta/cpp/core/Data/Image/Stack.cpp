@@ -174,13 +174,15 @@ void Stack::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisType
 
 int Stack::_findRegionIndex( std::shared_ptr<Region> region ) const {
     int index = -1;
-    Carta::Lib::RegionInfo info = region->getInfo();
-    int regionCount = m_regions.size();
-    for ( int i = 0; i < regionCount; i++ ){
-        Carta::Lib::RegionInfo otherInfo = m_regions[i]->getInfo();
-        if ( info == otherInfo ){
-            index = i;
-            break;
+    if ( region ){
+        QJsonObject info = region->toJSON();
+        int regionCount = m_regions.size();
+        for ( int i = 0; i < regionCount; i++ ){
+            QJsonObject otherInfo = m_regions[i]->toJSON();
+            if ( info == otherInfo ){
+                index = i;
+                break;
+            }
         }
     }
     return index;

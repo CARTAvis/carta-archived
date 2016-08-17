@@ -6,7 +6,6 @@
 
 
 #include "CartaLib/CartaLib.h"
-#include "CartaLib/RegionInfo.h"
 #include "CartaLib/Hooks/ProfileResult.h"
 
 #include <QObject>
