@@ -34,8 +34,8 @@ public:
     deleteAll() = 0;
 
     /// read a value of an entry
-    /// if entry does not exist, val will be null
-    virtual void
+    /// if entry does not exist, false is returned
+    virtual bool
     readEntry( const QByteArray & key,
                QByteArray & val ) = 0;
 
