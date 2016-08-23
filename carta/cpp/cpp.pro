@@ -8,7 +8,8 @@ SUBDIRS = \
     core \
     desktop \
     plugins \
-    Tests
+    Tests \
+    testCache
 
 isEmpty(NOSERVER) {
 	SUBDIRS +=server
@@ -19,6 +20,8 @@ core.depends = CartaLib
 desktop.depends = core
 server.depends = core
 plugins.depends = core
+testRegion.depends = core
+testCache.depends = core
 isEmpty(NOSERVER) {
         Tests.depends = core desktop server plugins
 }
