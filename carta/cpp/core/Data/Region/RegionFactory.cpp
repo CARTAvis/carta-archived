@@ -2,6 +2,7 @@
 #include "RegionPolygon.h"
 #include "RegionEllipse.h"
 #include "Data/Util.h"
+#include "CartaLib/Regions/Ellipse.h"
 #include <QPolygonF>
 #include <QDebug>
 
@@ -43,7 +44,7 @@ std::shared_ptr<Region> RegionFactory::_makeRegionType( const QString& regionTyp
         region.reset( objMan->createObject<RegionPolygon>() );
 
     }
-    else if ( regionType == Carta::Lib::Regions::Circle::TypeName ){
+    else if ( regionType == Carta::Lib::Regions::Ellipse::TypeName ){
         region.reset( objMan->createObject<RegionEllipse>() );
     }
     else {

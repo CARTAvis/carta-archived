@@ -9,6 +9,7 @@
 #include "State/StateInterface.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/InputEvents.h"
 
 namespace Carta {
 
@@ -20,6 +21,8 @@ class DrawImageViewsSynchronizer;
 class Region;
 class Selection;
 class SaveService;
+
+typedef Carta::Lib::InputEvents::JsonEvent InputEvent;
 
 class Stack : public LayerGroup {
 
@@ -36,6 +39,8 @@ public:
 
 
 signals:
+
+	void inputEvent( const InputEvent& ev );
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
@@ -68,6 +73,7 @@ protected:
 
 private slots:
 
+
     void _viewResize();
 
     // Asynchronous result from saveFullImage().
@@ -76,9 +82,6 @@ private slots:
 private:
 
     QString _addDataImage(const QString& fileName, bool* success );
-    void _addDataRegions( std::vector<std::shared_ptr<Region>> regions );
-
-    QString _closeRegion( int index );
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll );
 
@@ -101,9 +104,7 @@ private:
     QRectF _getInputRectangle() const;
      QList<std::shared_ptr<Region> > _getRegions() const;
 
-
      int _getSelectImageIndex() const;
-     int _getSelectRegionIndex() const;
 
      /**
       * Return the state of this layer.
@@ -117,8 +118,6 @@ private:
       * @return - the size in pixels of the main image display.
       */
      QSize _getOutputSize() const;
-
-    std::shared_ptr<Region> _getRegion();
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll);
 
@@ -168,7 +167,7 @@ private:
 
 
     void _saveState( bool flush = true );
-    void _saveStateRegions();
+
     bool _setCompositionMode( const QString& id, const QString& compositionMode,
                QString& errorMsg );
     void _setFrameAxis(int value, Carta::Lib::AxisInfo::KnownType axisType);
@@ -179,6 +178,7 @@ private:
     void _setMaskColor( const QString& id, int redAmount,
                        int greenAmount, int blueAmount, QStringList& result );
     void _setPan( double imgX, double imgY, bool all );
+    void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList );
 
     void _setViewName( const QString& viewName );
     void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawStack );
@@ -203,16 +203,12 @@ private:
 
     class Factory;
     static bool m_registered;
-    static const QString REGIONS;
-
 
     std::shared_ptr<DrawStackSynchronizer> m_stackDraw;
     std::unique_ptr<DrawImageViewsSynchronizer> m_imageDraws;
 
     Selection* m_selectImage;
-    Selection* m_selectRegion;
     std::vector<Selection*> m_selects;
-    QList<std::shared_ptr<Region> > m_regions;
 
     /// Saves images
     SaveService *m_saveService;

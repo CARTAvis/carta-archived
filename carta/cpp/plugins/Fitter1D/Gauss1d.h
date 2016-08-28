@@ -206,7 +206,7 @@ struct FitterInput {
         double fn = 0.0, yy = 0.0, d = 0.0;
         for ( int x = x1 ; x <= x2 ; x++ ) {
             yy = data[x];
-            if ( isnan( yy ) ) {
+            if ( std::isnan( yy ) ) {
                 continue;
             }
             else {
@@ -252,8 +252,8 @@ struct FitterInput {
         rangeMin = rangeMax = data[x1];
         for ( int x = x1 ; x <= x2 ; x++ ) {
             double v = data[x];
-            rangeMin = ( isnan( rangeMin ) || v < rangeMin ) ? v : rangeMin;
-            rangeMax = ( isnan( rangeMax ) || v > rangeMax ) ? v : rangeMax;
+            rangeMin = ( std::isnan( rangeMin ) || v < rangeMin ) ? v : rangeMin;
+            rangeMax = ( std::isnan( rangeMax ) || v > rangeMax ) ? v : rangeMax;
         }
     }
 

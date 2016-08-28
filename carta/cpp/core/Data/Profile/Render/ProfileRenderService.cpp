@@ -56,7 +56,7 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
     }
     std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo(nullptr);
     if ( region ){
-        regionInfo = region->getInfo();
+        regionInfo = region->getModel();
     }
     std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource = layer->_getImage();
     m_worker->setParameters( dataSource, regionInfo, profInfo );

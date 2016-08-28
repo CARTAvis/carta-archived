@@ -47,6 +47,7 @@ class Layer;
 class ProfileFitService;
 class ProfileRenderService;
 class ProfileStatistics;
+
 class Settings;
 
 class UnitsIntensity;
@@ -627,7 +628,7 @@ private:
      * @return the unique server side id of the user preferences.
      */
     QString _getPreferencesId() const;
-    QList<std::shared_ptr<Region> > _getRegionForGenerateMode( Controller* controller) const;
+    std::vector<std::shared_ptr<Region> > _getRegionForGenerateMode() const;
 
     void _initializeDefaultState();
     void _initializeCallbacks();
@@ -711,6 +712,8 @@ private:
 
     //Out source the job of fitting the curve.
     std::unique_ptr<ProfileFitService> m_fitService;
+
+
 
     int m_residualPlotIndex;
 

@@ -2,6 +2,7 @@
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/Regions/IRegion.h"
 
 #include <QDebug>
 
@@ -46,7 +47,7 @@ void RegionPolygon::addCorners( const std::vector< std::pair<double,double> >& c
         //Note the type plus the bounding box is not a unique identifier for a polygon
         //but it may be the best choice for a default name as it is shorter than using
         //all of the corners.
-        std::shared_ptr<Carta::Lib::Regions::RegionBase> base = getInfo();
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> base = getModel();
         if ( base ){
             QRectF boundingBox = base->outlineBox();
             QPointF topLeft = boundingBox.topLeft();
@@ -73,7 +74,7 @@ std::vector<std::pair<double,double> > RegionPolygon::getCorners() const {
 }
 
 
-std::shared_ptr<Carta::Lib::Regions::RegionBase> RegionPolygon::getInfo() const {
+std::shared_ptr<Carta::Lib::Regions::RegionBase> RegionPolygon::getModel() const {
     std::shared_ptr<Carta::Lib::Regions::RegionBase> info( new Carta::Lib::Regions::Polygon() );
     QJsonObject jsonObject = toJSON();
     bool jsonValid = info->initFromJson( jsonObject );
@@ -84,10 +85,16 @@ std::shared_ptr<Carta::Lib::Regions::RegionBase> RegionPolygon::getInfo() const 
 }
 
 
+
+
 void RegionPolygon::_initializeState(){
     m_state.setValue<QString>( REGION_TYPE, Carta::Lib::Regions::Polygon::TypeName );
     m_state.insertArray( Carta::Lib::Regions::Polygon::POINTS, 0 );
     m_state.flushState();
+}
+
+bool RegionPolygon::isPointInside( const QPointF & /*pt*/ ) const {
+	return false;
 }
 
 

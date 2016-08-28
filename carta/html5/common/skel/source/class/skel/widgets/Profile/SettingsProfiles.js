@@ -48,7 +48,6 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                     try {
                         var obj = JSON.parse( val );
                         this._updateImageNames( obj.layers );
-                        this._updateRegionNames( obj.regions );
                     }
                     catch( err ){
                         console.log( "Could not parse profile control information: "+val );
@@ -57,6 +56,8 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 }
             }
         },
+        
+        
         
         /**
          * Update from the server.
@@ -220,8 +221,19 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         _getControlId : function(){
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_id + path.SEP_COMMAND + "registerController";
+         
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._setControlId(this) );
+        },
+        
+        /**
+         * Return the id of the region controller.
+         */
+        _getRegionId : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "registerRegionControls";
+            var params = "";
+            this.m_connector.sendCommand( cmd, params, this._setRegionId(this) );
         },
         
         /**
@@ -247,6 +259,25 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 //If it is a new name, the user renamed the existing curve
                 //and we need to notify the server.
                 this._sendRenameCmd();
+            }
+        },
+        
+        /**
+         * Update the list of regions available for profiles.
+         */
+        _regionDataChangedCB : function(){
+            if ( this.m_sharedVarControl ){
+                var val = this.m_sharedVarRegion.get();
+                if ( val ){
+                    try {
+                        var obj = JSON.parse( val );
+                        this._updateRegionNames( obj.regions );
+                    }
+                    catch( err ){
+                        console.log( "Could not parse profile region information: "+val );
+                        console.log( "Err: "+err);
+                    }
+                }
             }
         },
         
@@ -355,9 +386,22 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 object.m_sharedVarControl = object.m_connector.getSharedVar(id);
                 object.m_sharedVarControl.addCB(object._controlDataChangedCB.bind(object));
                 object._controlDataChangedCB();
+               
             }
         },
-        
+              
+        /**
+         * Callback containing information about the server-side object containing region
+         * information.
+         * @param object {Object} - server-side object containing region information.
+         */
+        _setRegionId : function( object ){
+            return function( id ){
+                object.m_sharedVarRegion = object.m_connector.getSharedVar(id);
+                object.m_sharedVarRegion.addCB(object._regionDataChangedCB.bind(object));
+                object._regionDataChangedCB();
+            }
+        },
         
         /**
          * Set the server side id of the object managing profile information.
@@ -367,6 +411,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_id = id;
             this.m_restWidget.setId( id );
             this._getControlId();
+            this._getRegionId();
         },
         
         /**
@@ -546,6 +591,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         m_sharedVarStats : null,
         m_sharedVarModes : null,
         m_sharedVarControl : null,
+        m_sharedVarRegion : null,
         m_curveInfo : null
     }
 });

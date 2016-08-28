@@ -1,4 +1,5 @@
 #include <CartaLib/Regions/IRegion.h>
+#include <CartaLib/Regions/Ellipse.h>
 #include <ContextDs9.h>
 #include <measures/Measures/MeasConvert.h>
 #include <measures/Measures/MCDirection.h>
@@ -100,15 +101,23 @@ void ContextDs9::createPointCmd( const Vector& v, PointShape, int, const char*, 
 }
 
 
-void ContextDs9::createEllipseCmd( const Vector& center, const Vector& radius, double /*angle*/,
+void ContextDs9::createEllipseCmd( const Vector& center, const Vector& radius, double angle,
         const char* /*color*/, int* /*dash*/, int /*width*/, const char* /*font*/,
         const char* /*text*/, unsigned short /*prop*/, const char* /*comment*/,
         const std::list<Tag>& /*tag*/ ) {
     // 'width' is the line width... need to thread that through...
-    Carta::Lib::Regions::Circle* info = new Carta::Lib::Regions::Circle();
-    info->setRadius( radius[0] );
+    Carta::Lib::Regions::Ellipse* info = new Carta::Lib::Regions::Ellipse();
+    if ( radius[0] >= radius[1] ){
+    	info->setRadiusMajor( radius[0] );
+    	info->setRadiusMinor( radius[1] );
+    }
+    else {
+    	info->setRadiusMajor( radius[1] );
+    	info->setRadiusMinor( radius[0] );
+    }
     info->setCenter( QPointF( center[0], center[1]) );
-    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::Circle>( info ) );
+    info->setAngle( angle );
+    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::Ellipse>( info ) );
 }
 
 

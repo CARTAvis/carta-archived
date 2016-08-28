@@ -5,6 +5,7 @@
 #include "CartaLib/Hooks/ProfileHook.h"
 #include "CartaLib/ProfileInfo.h"
 #include "CartaLib/Regions/IRegion.h"
+#include "CartaLib/Regions/Ellipse.h"
 #include "CartaLib/IImage.h"
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <images/Regions/WCEllipsoid.h>
@@ -308,7 +309,7 @@ casa::Record ProfileCASA::_getRegionRecord( const QString& shape, const casa::Co
                 qDebug() << "Profile Error: A region must have at least one point.";
             }
         }
-        else if ( shape == Carta::Lib::Regions::Circle::TypeName ){
+        else if ( shape == Carta::Lib::Regions::Ellipse::TypeName ){
             casa::ImageRegion* ellipsoid = _getEllipsoid( cSys, x, y );
             if ( ellipsoid != NULL ){
                 regionRecord = ellipsoid->toRecord("");

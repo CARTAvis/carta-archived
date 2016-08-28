@@ -5,6 +5,7 @@
 #include "Data/Image/Controller.h"
 #include "Data/Image/DataSource.h"
 #include "Data/Region/Region.h"
+#include "Data/Region/RegionControls.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "CartaLib/Regions/IRegion.h"
@@ -12,8 +13,7 @@
 #include "State/UtilState.h"
 #include "Globals.h"
 #include <QDebug>
-//#include <memory>
-//#include <vector>
+
 
 namespace Carta {
 
@@ -438,11 +438,15 @@ void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo
                 controller->getImages();
 
 
-        QList<std::shared_ptr<Region> > coreRegions = controller->getRegions();
+        std::vector<std::shared_ptr<Region> > coreRegions;
+        std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+        if ( regionControls ){
+        	coreRegions = regionControls->getRegions();
+        }
         int regionCount = coreRegions.size();
         std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions;
         for ( int i = 0; i < regionCount; i++ ){
-            regions.push_back( coreRegions[i]->getInfo() );
+            regions.push_back( coreRegions[i]->getModel() );
         }
 
         std::vector<int> frameIndices = controller->getImageSlice();

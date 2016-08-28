@@ -36,6 +36,7 @@ qx.Class.define("skel.widgets.Path", {
         this.PROFILE_GEN_MODES = this.BASE_PATH + "GenerateModes";
         this.PROFILE_STATISTICS = this.BASE_PATH + "ProfileStatistics";
         this.REGION = this.BASE_PATH + this.REGION_DATA + this.SEP;
+        this.REGION_TYPES = this.BASE_PATH + "RegionTypes";
         this.SETTINGS = this.BASE_PATH + "Settings";
         this.SNAPSHOTS = this.BASE_PATH + "Snapshots";
         this.SPECTRAL_UNITS = this.BASE_PATH + "UnitsSpectral";
@@ -84,6 +85,7 @@ qx.Class.define("skel.widgets.Path", {
         IMAGE_CONTEXT : "ImageContext",
         IMAGE_ZOOM : "ImageZoom",
         IMAGE_DATA : "image",
+        INPUT_EVENT : "inputEvent",
         INTENSITY_UNITS : "",
         LABEL_FORMATS : "",
         LAYER_COMPOSITION_MODES : "",
@@ -105,6 +107,7 @@ qx.Class.define("skel.widgets.Path", {
         PROFILE : "Profiler",
         REGION : "",
         REGION_DATA : "region",
+        REGION_TYPES : "",
         SEP : "/",
         SEP_COMMAND : ":",
         SETTINGS : "",

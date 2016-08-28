@@ -11,15 +11,19 @@ namespace Carta {
 namespace Data {
 
 
-DrawStackSynchronizer::DrawStackSynchronizer( Carta::Lib::LayeredRemoteVGView* view ){
+DrawStackSynchronizer::DrawStackSynchronizer( Carta::Lib::LayeredViewArbitrary* view ){
     m_repaintFrameQueued = false;
     m_selectIndex = -1;
     m_view.reset( view );
+    // listen for resize events
     connect( m_view.get(), SIGNAL(sizeChanged()), this, SIGNAL( viewResize() ) );
+    // listen for input events
+    connect( m_view.get(), SIGNAL(inputEvent(const InputEvent&)),
+    		this, SIGNAL( inputEvent(const InputEvent&)) );
 }
 
 void DrawStackSynchronizer::_clear(){
-    m_view->resetLayers();
+    m_view->removeAllLayers();
     QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
 }
 
@@ -88,7 +92,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
     if ( m_renderCount != m_redrawCount ) {
         return;
     }
-    m_view->resetLayers();
+    m_view->removeAllLayers();
 
     //We want the selected index to be the last one in the stack.
     int dataCount = m_layers.size();
@@ -103,15 +107,26 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
             if ( m_images.contains( layerName ) ){
                 QImage image = m_images[layerName]->getImage();
                 Carta::Lib::VectorGraphics::VGList graphicsList = m_images[layerName]->getVectorGraphics();
-                m_view->setRasterLayer( stackIndex, image );
+                m_view->setLayerRaster( stackIndex, image, false );
                 std::shared_ptr<Carta::Lib::AlphaCombiner> alphaCombine =
                         std::make_shared<Carta::Lib::AlphaCombiner>();
                 float alphaVal = m_layers[dIndex]->_getMaskAlpha();
                 alphaCombine-> setAlpha( alphaVal );
-                m_view->setRasterLayerCombiner( stackIndex, alphaCombine );
-                m_view->setVGLayer( stackIndex, graphicsList );
+                m_view->setLayerCombiner( stackIndex, alphaCombine );
+                stackIndex++;
+                if ( i == dataCount - 1 ){
+                	//Add in region graphics to the last layer.
+                	Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
+                	comp.appendList( m_regionGraphics );
+                	comp.appendList( graphicsList );
+                	m_view->setLayerVG( stackIndex, comp.vgList());
+                }
+                else {
+                	m_view->setLayerVG( stackIndex, graphicsList );
+                }
                 stackIndex++;
             }
+
         }
     }
     m_repaintFrameQueued = false;
@@ -122,7 +137,9 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
     }
 }
 
-
+void DrawStackSynchronizer::setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){
+	m_regionGraphics = regionVGList;
+}
 
 
 DrawStackSynchronizer::~DrawStackSynchronizer(){

@@ -40,7 +40,7 @@ public:
 
     /// returns the root region
     RegionBase *
-    root() { return m_root; }
+    root() const { return m_root; }
 
     /// sets the root
     void
@@ -52,7 +52,7 @@ public:
     /// test for intersection, the point must be specified as an array of points, one
     /// for each coordinate system (query this by nCoordSystems() & coordSystemConverter())
     bool
-    isPointInside( const std::vector < RegionPoint > & pts );
+    isPointInside( const std::vector < RegionPoint > & pts ) const;
 
     /// set the input coordinate system. Affects
     ///  isPointInside()
@@ -105,7 +105,7 @@ public:
     /// static constexpr auto TypeName = "None";
 
     virtual QString
-    typeName() = 0;
+    typeName() const = 0;
 
     enum class RenderType
     {
@@ -140,7 +140,7 @@ public:
 
     /// return a list of all children
     const std::vector < RegionBase * > &
-    children()
+    children() const
     {
         return m_kids;
     }
@@ -203,7 +203,7 @@ public:
     ///
     /// default implementation returns false
     virtual bool
-    isPointInside( const RegionPointV & /*p*/ )
+    isPointInside( const RegionPointV & /*p*/ ) const
     {
         return false;
     }
@@ -213,7 +213,7 @@ public:
     ///
     /// default implementation returns false
     virtual bool
-    isPointInsideCS( const RegionPointV & pts )
+    isPointInsideCS( const RegionPointV & pts ) const
     {
         CARTA_ASSERT( int ( pts.size() ) > m_coordinateSystemID );
         return false;
@@ -228,7 +228,7 @@ public:
     ///   for regions with kids, it calls the kids isPointInsideUnion() and returns
     ///   true if the point is inside any of the kids (hence the union)
     virtual bool
-    isPointInsideUnion( const RegionPointV & pts )
+    isPointInsideUnion( const RegionPointV & pts ) const
     {
         if ( canHaveChildren() ) {
             // for group regions we delegate to kids
@@ -247,7 +247,7 @@ public:
     /// big enough to render all these regions
     /// default behavior is to return a union of all childrens' outline boxes
     virtual QRectF
-    outlineBox()
+    outlineBox() const
     {
         if ( m_kids.size() == 0 ) {
             return QRectF();
@@ -261,7 +261,7 @@ public:
 
     /// returns a VG list of this region
     virtual VectorGraphics::VGList
-    vgList()
+    vgList() const
     {
         VectorGraphics::VGComposer comp;
         for ( auto kid : m_kids ) {
@@ -275,14 +275,14 @@ public:
     /// points inside regions. This should be significantly faster than doing the same
     /// for the ouline box
     virtual std::vector < QRectF >
-    boundingRects()
+    boundingRects() const
     {
         // default implementation is to return the outlineBox
         return { outlineBox() };
     }
 
     RegionBase *
-    parent() { return m_parent; }
+    parent() const { return m_parent; }
 
     /// set line color
     void
@@ -296,7 +296,7 @@ public:
     /// otherwise parent's color (if parent defined)
     /// otherwise default color
     const QColor &
-    getLineColor()
+    getLineColor() const
     {
         if ( m_lineColor.isSet() ) {
             return m_lineColor.val();
@@ -321,7 +321,7 @@ public:
     }
 
     QColor
-    getFillColor()
+    getFillColor() const
     {
         if ( m_fillColor.isSet() ) {
             return m_fillColor.val();
@@ -340,7 +340,7 @@ public:
 
     /// serialize to json
     virtual QJsonObject
-    toJson()
+    toJson() const
     {
         QJsonObject json;
 
@@ -394,6 +394,10 @@ protected:
         m_parent = parent;
     }
 
+    static constexpr auto CENTER_X = "centerx";
+    static constexpr auto CENTER_Y = "centery";
+    static constexpr auto RADIUS = "radius";
+
 private:
 
     RegionBase * m_parent = nullptr;
@@ -412,7 +416,7 @@ public:
 
     static constexpr auto TypeName = "circle";
     virtual QString
-    typeName() override { return TypeName; }
+    typeName() const override { return TypeName; }
 
     Circle( RegionBase * parent = nullptr ) : RegionBase( parent ) { }
 
@@ -423,7 +427,7 @@ public:
     }
 
     virtual bool
-    isPointInside( const RegionPointV & pts ) override
+    isPointInside( const RegionPointV & pts ) const override
     {
         const auto & p = pts[csId()];
         auto d = p - m_center;
@@ -432,20 +436,20 @@ public:
     }
 
     virtual bool
-    isPointInsideUnion( const RegionPointV & pts ) override
+    isPointInsideUnion( const RegionPointV & pts ) const override
     {
         return isPointInside( pts );
     }
 
     virtual QRectF
-    outlineBox() override
+    outlineBox() const override
     {
         return QRectF( m_center.x() - m_radius, m_center.y() - m_radius,
                        m_radius * 2, m_radius * 2 );
     }
 
     virtual VectorGraphics::VGList
-    vgList() override
+    vgList() const override
     {
         VectorGraphics::VGComposer composer;
 
@@ -464,15 +468,15 @@ public:
     } // vgList
 
     virtual QJsonObject
-    toJson() override
+    toJson() const override
     {
         // get the common properties
         QJsonObject doc = RegionBase::toJson();
 
         // and add our own
-        doc["centerx"] = m_center.x();
-        doc["centery"] = m_center.y();
-        doc["radius"] = m_radius;
+        doc[CENTER_X] = m_center.x();
+        doc[CENTER_Y] = m_center.y();
+        doc[RADIUS] = m_radius;
         doc["type"] = TypeName;
 
         return doc;
@@ -484,17 +488,17 @@ public:
         if ( ! RegionBase::initFromJson( obj ) ) {
             return false;
         }
-        if ( ! obj["centerx"].isDouble() ) {
+        if ( ! obj[CENTER_X].isDouble() ) {
             return false;
         }
-        if ( ! obj["centery"].isDouble() ) {
+        if ( ! obj[CENTER_Y].isDouble() ) {
             return false;
         }
-        if ( ! obj["radius"].isDouble() ) {
+        if ( ! obj[RADIUS].isDouble() ) {
             return false;
         }
-        m_center = QPointF( obj["centerx"].toDouble(), obj["centery"].toDouble() );
-        m_radius = obj["radius"].toDouble();
+        m_center = QPointF( obj[CENTER_X].toDouble(), obj[CENTER_Y].toDouble() );
+        m_radius = obj[RADIUS].toDouble();
         return true;
     }
 
@@ -519,6 +523,8 @@ private:
     double m_radius = 1;
 };
 
+
+
 class Polygon : public RegionBase
 {
 public:
@@ -528,31 +534,31 @@ public:
     static constexpr auto POINT_X = "x";
     static constexpr auto POINT_Y = "y";
     virtual QString
-    typeName() override { return TypeName; }
+    typeName() const override { return TypeName; }
 
     Polygon( RegionBase * parent = nullptr ) : RegionBase( parent ) { }
 
     virtual bool
-    isPointInside( const RegionPointV & pts ) override
+    isPointInside( const RegionPointV & pts ) const override
     {
         const auto & p = pts[csId()];
         return m_qpolyf.containsPoint( p, Qt::WindingFill );
     }
 
     virtual bool
-    isPointInsideUnion( const RegionPointV & pts ) override
+    isPointInsideUnion( const RegionPointV & pts ) const override
     {
         return isPointInside( pts );
     }
 
     virtual QRectF
-    outlineBox() override
+    outlineBox() const override
     {
         return m_qpolyf.boundingRect();
     }
 
     virtual VectorGraphics::VGList
-    vgList() override
+    vgList() const override
     {
         VectorGraphics::VGComposer composer;
 
@@ -570,7 +576,7 @@ public:
     } // vgList
 
     virtual QJsonObject
-    toJson() override
+    toJson() const override
     {
         // get the common properties
         QJsonObject doc = RegionBase::toJson();
@@ -624,7 +630,7 @@ public:
 
     static constexpr auto TypeName = "union";
     virtual QString
-    typeName() override { return TypeName; }
+    typeName() const override { return TypeName; }
 
     Union( RegionBase * parent = nullptr ) : RegionBase( parent ) { }
 
@@ -632,7 +638,7 @@ public:
     canHaveChildren() const override { return true; }
 
     virtual bool
-    isPointInside( const RegionPointV & pts ) override
+    isPointInside( const RegionPointV & pts ) const override
     {
         // return true if the point is inside any of the kids
         for ( auto & kid : children() ) {
@@ -644,7 +650,7 @@ public:
     }
 
     virtual QJsonObject
-    toJson() override
+    toJson() const override
     {
         QJsonObject obj = RegionBase::toJson();
         obj["type"] = TypeName;

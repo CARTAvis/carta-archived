@@ -9,12 +9,11 @@
 #include "Data/Image/Grid/GridControls.h"
 #include "Data/Image/Contour/ContourControls.h"
 #include "Data/Image/Contour/DataContours.h"
-
+#include "Data/Region/RegionControls.h"
+#include "Data/Region/Region.h"
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
 #include "Data/Error/ErrorManager.h"
-
-#include "Data/Region/Region.h"
 
 #include "Data/Util.h"
 #include "ImageView.h"
@@ -26,6 +25,7 @@
 #include <QtCore/QDir>
 #include <memory>
 #include <set>
+
 
 using namespace std;
 
@@ -67,54 +67,62 @@ using Carta::State::StateInterface;
 using Carta::Lib::AxisInfo;
 
 Controller::Controller( const QString& path, const QString& id ) :
-        CartaObject( CLASS_NAME, path, id),
-        m_stateMouse(UtilState::getLookup(path, Util::VIEW)){
+        		CartaObject( CLASS_NAME, path, id),
+				m_stateMouse(UtilState::getLookup(path, Util::VIEW)){
 
-     _initializeState();
+	_initializeState();
 
-     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+	Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
 
-     //Stack
-     Stack* layerGroupRoot = objMan->createObject<Stack>();
-     QString viewName = Carta::State::UtilState::getLookup( path, Util::VIEW);
-     layerGroupRoot->_setViewName( viewName );
-     m_stack.reset( layerGroupRoot );
-     connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
-             this, SLOT(_notifyFrameChange( Carta::Lib::AxisInfo::KnownType)));
-     connect( m_stack.get(), SIGNAL( viewLoad()), this, SLOT(_loadViewQueued()));
-     connect( m_stack.get(), SIGNAL(contourSetAdded(Layer*,const QString&)),
-                     this, SLOT(_contourSetAdded(Layer*, const QString&)));
-     connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
-                             this, SLOT(_contourSetRemoved(const QString&)));
-     connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _loadViewQueued() ));
-     connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
+	//Stack
+	Stack* layerGroupRoot = objMan->createObject<Stack>();
+	QString viewName = Carta::State::UtilState::getLookup( path, Util::VIEW);
+	layerGroupRoot->_setViewName( viewName );
+	m_stack.reset( layerGroupRoot );
+	connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
+			this, SLOT(_notifyFrameChange( Carta::Lib::AxisInfo::KnownType)));
+	connect( m_stack.get(), SIGNAL( viewLoad()), this, SLOT(_loadViewQueued()));
+	connect( m_stack.get(), SIGNAL(contourSetAdded(Layer*,const QString&)),
+			this, SLOT(_contourSetAdded(Layer*, const QString&)));
+	connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
+			this, SLOT(_contourSetRemoved(const QString&)));
+	connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _loadViewQueued() ));
+	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
+	connect( m_stack.get(), SIGNAL(inputEvent( const InputEvent&)), this,
+			SLOT( _onInputEvent(const InputEvent &)));
 
-     GridControls* gridObj = objMan->createObject<GridControls>();
-     m_gridControls.reset( gridObj );
-     connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
-             this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
-     connect( m_gridControls.get(), SIGNAL(displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )),
-                  this, SLOT( _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )));
+	GridControls* gridObj = objMan->createObject<GridControls>();
+	m_gridControls.reset( gridObj );
+	connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
+			this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
+	connect( m_gridControls.get(), SIGNAL(displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )),
+			this, SLOT( _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )));
 
-     ContourControls* contourObj = objMan->createObject<ContourControls>();
-     m_contourControls.reset( contourObj );
-     m_contourControls->setPercentIntensityMap( this );
-     connect( m_contourControls.get(), SIGNAL(drawContoursChanged()),
-             this, SLOT(_loadViewQueued()));
+	ContourControls* contourObj = objMan->createObject<ContourControls>();
+	m_contourControls.reset( contourObj );
+	m_contourControls->setPercentIntensityMap( this );
+	connect( m_contourControls.get(), SIGNAL(drawContoursChanged()),
+			this, SLOT(_loadViewQueued()));
 
-     Settings* settingsObj = objMan->createObject<Settings>();
-     m_settings.reset( settingsObj );
+	Settings* settingsObj = objMan->createObject<Settings>();
+	m_settings.reset( settingsObj );
 
-     _initializeCallbacks();
+	_initializeCallbacks();
+
+	RegionControls* regionObj = objMan->createObject<RegionControls>();
+	connect( regionObj, SIGNAL(regionsChanged()), this, SLOT(_regionsChanged()));
+	m_regionControls.reset( regionObj );
 }
 
+
+
 void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
-    m_stack->_addContourSet( contourSet );
+	m_stack->_addContourSet( contourSet );
 }
 
 QString Controller::addData(const QString& fileName, bool* success) {
-    *success = false;
-    QString result = DataFactory::addData( this, fileName, success );
+	*success = false;
+	QString result = DataFactory::addData( this, fileName, success );
     return result;
 }
 
@@ -135,12 +143,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
 }
 
 
-void Controller::_addDataRegions( std::vector<std::shared_ptr<Region> > regions ){
-    if ( regions.size() > 0 ){
-        m_stack->_addDataRegions( regions );
-        emit dataChangedRegion( this );
-    }
-}
+
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
@@ -208,15 +211,6 @@ QString Controller::closeImage( const QString& id ){
     }
     return result;
 }
-
-QString Controller::closeRegion( int index ){
-    QString result = m_stack->_closeRegion( index );
-    if ( result.isEmpty() ){
-        emit dataChangedRegion( this );
-    }
-    return result;
-}
-
 
 void Controller::centerOnPixel( double centerX, double centerY ){
     bool panZoomAll = m_state.getValue<bool>( PAN_ZOOM_ALL );
@@ -303,8 +297,9 @@ std::shared_ptr<Layer> Controller::getLayer() {
     return m_stack->_getLayer();
 }
 
-std::shared_ptr<Region> Controller::getRegion() {
-    return m_stack->_getRegion();
+
+std::shared_ptr<RegionControls> Controller::getRegionControls() {
+	return m_regionControls;
 }
 
 std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::getImages() {
@@ -413,18 +408,8 @@ QString Controller::_getPreferencesId() const {
 }
 
 
-QList<std::shared_ptr<Region> > Controller::getRegions() const {
-    QList<std::shared_ptr<Region> > regionInfos = m_stack->_getRegions();
-    return regionInfos;
-}
-
-
 int Controller::getSelectImageIndex() const {
     return m_stack->_getSelectImageIndex();
-}
-
-int Controller::getSelectRegionIndex() const {
-    return m_stack->_getSelectRegionIndex();
 }
 
 
@@ -485,6 +470,18 @@ double Controller::getZoomLevel( ) const {
 
 void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     m_stack->_gridChanged( state, applyAll );
+}
+
+void Controller::_onInputEvent(const InputEvent & ev ){
+	Carta::Lib::InputEvents::HoverEvent hover( ev );
+	if ( hover.isValid() ){
+		QPointF mousePt = hover.pos();
+		int mouseX = mousePt.x();
+		int mouseY = mousePt.y();
+		_updateCursor( mouseX, mouseY );
+		emit zoomChanged();
+	}
+	m_regionControls->_onInputEvent( ev );
 }
 
 void Controller::_initializeCallbacks(){
@@ -602,8 +599,8 @@ void Controller::_initializeCallbacks(){
             return result;
         });
 
-    QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( Util::VIEW, Util::POINTER_MOVE));
-    addStateCallback( pointerPath, [=] ( const QString& /*path*/, const QString& value ) {
+    /*QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( Util::VIEW, Util::POINTER_MOVE));
+    addStateCallback( pointerPath, [=] ( const QString& path, const QString& value ) {
         QStringList mouseList = value.split( " ");
         if ( mouseList.size() == 2 ){
             bool validX = false;
@@ -615,6 +612,20 @@ void Controller::_initializeCallbacks(){
                 emit zoomChanged();
             }
         }
+    });*/
+
+    addCommandCallback( "inputEvent", [=] (const QString & /*cmd*/,
+    		const QString & params, const QString & /*sessionId*/) ->QString {
+
+    	QJsonDocument doc = QJsonDocument::fromJson( params.toLatin1() );
+    	if ( doc.isObject() ) {
+    		InputEvent ev( doc.object() );
+    		_onInputEvent( ev );
+    	}
+    	else {
+    		qDebug() << "Input event doc not an object";
+    	}
+    	return "";
     });
 
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
@@ -626,22 +637,7 @@ void Controller::_initializeCallbacks(){
                 return result;
     });
 
-    addCommandCallback( "closeRegion", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) ->QString {
-        std::set<QString> keys = {"region"};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString regionIdStr = dataValues[*keys.begin()];
-        bool validInt = false;
-        int regionId = regionIdStr.toInt( &validInt );
-        QString result;
-        if ( validInt ){
-            result = closeRegion( regionId );
-        }
-        else {
-            result="Index of region to close must be an integer";
-        }
-        return result;
-    });
+
 
     addCommandCallback( CENTER, [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) ->QString {
@@ -705,35 +701,6 @@ void Controller::_initializeCallbacks(){
         return result;
    });
 
-    addCommandCallback( "registerShape", [=] (const QString & /*cmd*/,
-                                const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString INDEX( "index");
-        std::set<QString> keys = {Util::TYPE, INDEX};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString shapePath;
-        /*bool validIndex = false;
-        int index = dataValues[INDEX].toInt( &validIndex );
-        if ( validIndex ){
-            int regionCount = m_regions.size();
-            if ( 0 <= index && index < regionCount ){
-                //Measure the index from the end.
-                shapePath = m_regions[index]->getPath();
-            }
-            else {
-                Carta::Lib::RegionInfo::RegionType regionType = Region::getRegionType( dataValues[Util::TYPE] );
-                std::shared_ptr<Region> region = RegionFactory::makeRegion( regionType );
-                if ( region ){
-                    m_regions.append( region );
-                    shapePath = region->getPath();
-                }
-                else {
-                    qDebug()<<"Error unsupported region: "<<params;
-                }
-
-            }
-        }*/
-        return shapePath;
-    });
 
     addCommandCallback( "resetPan", [=] (const QString & /*cmd*/,
                             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
@@ -858,6 +825,15 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setRegionType", [=] (const QString & /*cmd*/,
+                                       const QString & params, const QString & /*sessionId*/) -> QString {
+               std::set<QString> keys = {Util::TYPE};
+               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+               QString shape = dataValues[Util::TYPE];
+               QString result = m_regionControls->_setRegionCreateType( shape );
+               return result;
+           });
+
     addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
@@ -932,6 +908,10 @@ void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
     m_stack->_removeContourSet( contourSet );
 }
 
+void Controller::_regionsChanged(){
+	emit dataChangedRegion( this );
+}
+
 void Controller::_renderZoom( double factor ){
     int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
     int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
@@ -975,7 +955,7 @@ void Controller::resetStateData( const QString& state ){
 
     //Notify others there has been a change to the data.
     emit dataChanged( this );
-    emit dataChangedRegion( this );
+    //emit dataChangedRegion( this );
     emit colorChanged( this );
 
     //Reset the state of the grid controls based on the selected image.

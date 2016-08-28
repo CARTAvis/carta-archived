@@ -32,6 +32,7 @@
 #include "Data/Profile/Profiler.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/GenerateModes.h"
+#include "Data/Region/RegionTypes.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics/Statistics.h"
 #include "Data/ViewPlugins.h"
@@ -101,6 +102,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<PlotStyles>();
     Util::findSingletonObject<LineStyles>();
     Util::findSingletonObject<ProfileStatistics>();
+    Util::findSingletonObject<RegionTypes>();
     Util::findSingletonObject<GenerateModes>();
     Util::findSingletonObject<UnitsFrequency>();
     Util::findSingletonObject<UnitsIntensity>();
@@ -1283,6 +1285,8 @@ ViewManager::~ViewManager(){
     obj =  Util::findSingletonObject<ProfileStatistics>();
     delete obj;
     obj =  Util::findSingletonObject<GenerateModes>();
+    delete obj;
+    obj = Util::findSingletonObject<RegionTypes>();
     delete obj;
     obj =  Util::findSingletonObject<UnitsFrequency>();
     delete obj;

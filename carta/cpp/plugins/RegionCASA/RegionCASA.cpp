@@ -3,6 +3,7 @@
 #include "plugins/CasaImageLoader/CCMetaDataInterface.h"
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/LoadRegion.h"
+#include "CartaLib/Regions/Ellipse.h"
 #include "CartaLib/IImage.h"
 #include "casacore/coordinates/Coordinates/DirectionCoordinate.h"
 #include "casacore/measures/Measures/MCDirection.h"
@@ -140,8 +141,8 @@ RegionCASA::_loadRegion( const QString & fname,
                 }
                 break;
                 case casa::AnnotationBase::ELLIPSE : {
-                    Carta::Lib::Regions::Circle* regionCircle = new Carta::Lib::Regions::Circle();
-                    rInfo.reset( regionCircle );
+                    Carta::Lib::Regions::Ellipse* regionEllipse = new Carta::Lib::Regions::Ellipse();
+                    rInfo.reset( regionEllipse );
                     const casa::AnnEllipse* ellipse = dynamic_cast<const casa::AnnEllipse*>( ann.get() );
                     casa::Int directionIndex = cs->findCoordinate(casa::Coordinate::Type::DIRECTION );
 
@@ -163,13 +164,11 @@ RegionCASA::_loadRegion( const QString & fname,
                     const double major_radius = ellipse->getSemiMajorAxis().getValue("rad");
                     const double minor_radius = ellipse->getSemiMinorAxis().getValue("rad");
                     const double pos_angle = ellipse->getPositionAngle( ).getValue("deg");
-                    const bool x_is_major = ((pos_angle > 45.0 && pos_angle < 135.0) ||
-                            (pos_angle > 225.0 && pos_angle < 315.0));
-                    const double xradius = (x_is_major ? major_radius : minor_radius);
-                    const double yradius = (x_is_major ? minor_radius : major_radius);
-                    regionCircle->setRadius( xradius );
+                    regionEllipse->setRadiusMajor( major_radius );
+                    regionEllipse->setRadiusMinor( minor_radius );
+                    regionEllipse->setAngle( pos_angle );
                     QPointF circleCenter( center[0], center[1] );
-                    regionCircle->setCenter( circleCenter );
+                    regionEllipse->setCenter( circleCenter );
                 }
                 break;
                 case casa::AnnotationBase::POLYGON : {

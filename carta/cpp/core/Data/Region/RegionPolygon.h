@@ -12,10 +12,6 @@ namespace Data {
 
 class RegionPolygon : public Region {
 
-    friend class RegionFactory;
-    friend class DataFactory;
-    friend class Stack;
-
 public:
 
     /**
@@ -34,7 +30,13 @@ public:
      * Return the information associated with this region.
      * @return - information about the region.
      */
-    virtual std::shared_ptr<Carta::Lib::Regions::RegionBase> getInfo() const Q_DECL_OVERRIDE;
+    virtual std::shared_ptr<Carta::Lib::Regions::RegionBase> getModel() const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns whether or not the point is inside the shape or not.
+     * @return - true if the point is inside the shape; false otherwise.
+     */
+    virtual bool isPointInside( const QPointF & pt ) const;
 
     /**
      * Returns a json representation of the region.

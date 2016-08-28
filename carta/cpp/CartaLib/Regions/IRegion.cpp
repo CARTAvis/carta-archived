@@ -17,7 +17,7 @@ namespace Regions
 
 
 bool
-RegionSet::isPointInside( const std::vector < RegionPoint > & pts )
+RegionSet::isPointInside( const std::vector < RegionPoint > & pts ) const
 {
     return root()-> isPointInside( pts );
 
@@ -105,7 +105,7 @@ test1( QString inputFname, QString outputFname )
 }
 }
 
-static int
+/*static int
 apiTest()
 {
     Carta::Lib::Regions::Circle * c1 = new Carta::Lib::Regions::Circle( { 5, 5 }, 3 );
@@ -145,6 +145,6 @@ apiTest()
     }
 
     return 0;
-} // apiTest
+} */// apiTest
 
 //static int foo = apiTest();

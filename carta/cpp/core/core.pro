@@ -21,6 +21,7 @@ HEADERS += \
     stable.h \
     CmdLine.h \
     MainConfig.h \
+    Shape/IShape.h \
     State/ObjectManager.h \
     State/StateInterface.h \
     State/UtilState.h \
@@ -104,9 +105,11 @@ HEADERS += \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
+    Data/Region/RegionControls.h \
     Data/Region/RegionPolygon.h \
     Data/Region/RegionEllipse.h \
     Data/Region/RegionFactory.h \
+    Data/Region/RegionTypes.h \
     Data/Snapshot/ISnapshotsImplementation.h \
     Data/Snapshot/Snapshots.h \
     Data/Snapshot/Snapshot.h \
@@ -134,6 +137,11 @@ HEADERS += \
     Plot2D/Plot2DProfile.h \
     Plot2D/Plot2DTextMarker.h \
     ProfileExtractor.h \
+    Shape/ControlPoint.h \
+    Shape/ControlPointEditable.h \
+    Shape/ShapeBase.h \
+    Shape/ShapeEllipse.h \
+    Shape/ShapePolygon.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
     Algorithms/quantileAlgorithms.h \
@@ -248,9 +256,11 @@ SOURCES += \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
+    Data/Region/RegionControls.cpp \
     Data/Region/RegionPolygon.cpp \
     Data/Region/RegionEllipse.cpp \
     Data/Region/RegionFactory.cpp \
+    Data/Region/RegionTypes.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
@@ -277,6 +287,11 @@ SOURCES += \
     ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
+    Shape/ControlPoint.cpp \
+    Shape/ControlPointEditable.cpp \
+    Shape/ShapeBase.cpp \
+    Shape/ShapeEllipse.cpp \
+    Shape/ShapePolygon.cpp \
     ImageRenderService.cpp \
     ImageSaveService.cpp \
     Algorithms/quantileAlgorithms.cpp \

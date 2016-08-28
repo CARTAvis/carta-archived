@@ -2,6 +2,7 @@
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/Regions/Ellipse.h"
 
 #include <QDebug>
 
@@ -31,15 +32,18 @@ RegionEllipse::RegionEllipse(const QString& path, const QString& id )
 }
 
 
-std::shared_ptr<Carta::Lib::Regions::RegionBase> RegionEllipse::getInfo() const {
-    std::shared_ptr<Carta::Lib::Regions::RegionBase> info( new Carta::Lib::Regions::Circle() );
+std::shared_ptr<Carta::Lib::Regions::RegionBase> RegionEllipse::getModel() const {
+    std::shared_ptr<Carta::Lib::Regions::RegionBase> info( new Carta::Lib::Regions::Ellipse() );
     return info;
 }
 
-
 void RegionEllipse::_initializeState(){
-    m_state.setValue<QString>( REGION_TYPE, Carta::Lib::Regions::Circle::TypeName );
+    m_state.setValue<QString>( REGION_TYPE, Carta::Lib::Regions::Ellipse::TypeName );
     m_state.flushState();
+}
+
+bool RegionEllipse::isPointInside( const QPointF & /*pt*/ ) const {
+	return false;
 }
 
 void RegionEllipse::_restoreState( const QString& stateStr ){

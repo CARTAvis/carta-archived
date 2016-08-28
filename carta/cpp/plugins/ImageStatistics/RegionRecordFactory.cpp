@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QtCore/qmath.h>
 #include "RegionRecordFactory.h"
+#include "CartaLib/Regions/Ellipse.h"
 #include <casacore/images/Regions/ImageRegion.h>
 #include <casacore/images/Regions/RegionManager.h>
 
@@ -204,7 +205,7 @@ casa::Record RegionRecordFactory::getRegionRecord(
     if ( regionType == Carta::Lib::Regions::Polygon::TypeName ){
         regionRecord = _getRegionRecordPolygon( casaImage, /*corners,*/region, slice, typeStr );
     }
-    else if ( regionType == Carta::Lib::Regions::Circle::TypeName ){
+    else if ( regionType == Carta::Lib::Regions::Ellipse::TypeName ){
         typeStr = "Ellipse";
         regionRecord = _getRegionRecordEllipse( casaImage, /*corners,*/ region, slice );
     }

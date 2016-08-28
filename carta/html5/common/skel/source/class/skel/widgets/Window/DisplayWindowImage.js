@@ -59,6 +59,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         _dataLoadedCB : function(){
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
+                this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
             }
             
             if (this.m_viewContent.indexOf(this.m_view) < 0) {
@@ -178,6 +179,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_supportedCmds.push( clipCmd.getLabel() );
             var dataCmd = skel.Command.Data.CommandData.getInstance();
             this.m_supportedCmds.push( dataCmd.getLabel() );
+            var regionCmd = skel.Command.Region.CommandRegions.getInstance();
+            this.m_supportedCmds.push( regionCmd.getLabel() );
             var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
             if ( saveCmd.isSaveAvailable() ){
                 this.m_supportedCmds.push( saveCmd.getLabel() );

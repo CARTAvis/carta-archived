@@ -26,7 +26,7 @@ QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "LabelFormats","Layout","LayerCompositionModes","LineStyles",
          "PlotStyles", "ProfilePlotStyles",
          "Preferences", "PreferencesSave","ProfileStatistics",
-          "TransformsImage","TransformsData",
+         "RegionTypes", "TransformsImage","TransformsData",
          "Themes",
          "UnitsFrequency","UnitsIntensity","UnitsSpectral","UnitsWavelength",
          "ViewManager"};
@@ -150,9 +150,8 @@ void CartaObject::unregisterView()
     conn()-> unregisterView( m_path +"/view" );
 }
 
-Carta::Lib::LayeredRemoteVGView* CartaObject::makeRemoteView( const QString& path ){
-     //return Carta::Lib::LayeredRemoteVGView::create( conn(), path );
-     return new Carta::Lib::LayeredRemoteVGView( conn(), path, NULL );
+Carta::Lib::LayeredViewArbitrary* CartaObject::makeRemoteView( const QString& path ){
+	return new Carta::Lib::LayeredViewArbitrary( conn(), path, NULL );
 }
 
 QString CartaObject::getStateLocation( const QString& name ) const

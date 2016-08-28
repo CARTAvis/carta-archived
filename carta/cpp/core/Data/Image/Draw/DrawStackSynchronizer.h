@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
+#include "CartaLib/InputEvents.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "Data/Image/Render/RenderRequest.h"
 #include "Data/Image/Render/RenderResponse.h"
@@ -17,7 +18,7 @@
 
 namespace Carta {
     namespace Lib {
-        class LayeredRemoteVGView;
+        class LayeredViewArbitrary;
     }
 }
 
@@ -26,7 +27,7 @@ namespace Data {
 
 class Layer;
 
-
+typedef Carta::Lib::InputEvents::JsonEvent InputEvent;
 class DrawStackSynchronizer: public QObject {
 
     friend class DrawImageViewsSynchronizer;
@@ -41,7 +42,7 @@ public:
      *  Constructor.
      *  @param view- the stack view.
      */
-    DrawStackSynchronizer( Carta::Lib::LayeredRemoteVGView* view);
+    DrawStackSynchronizer( Carta::Lib::LayeredViewArbitrary* view);
 
     /**
      * Return the client view size.
@@ -49,10 +50,22 @@ public:
      */
     QSize getClientSize() const;
 
+    /**
+     * Set the graphics for drawing regions.
+     * @param regionVGList - region drawing graphics.
+     */
+    void setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList );
+
 
     virtual ~DrawStackSynchronizer();
 
 signals:
+
+	/**
+	 * Notification that an input event such as a mouse event has occurred.
+	 * @param ev - the input event.
+	 */
+	void inputEvent( const InputEvent& ev );
 
     /**
      * The view has been resized.
@@ -85,12 +98,11 @@ private:
     void _render( const std::shared_ptr<RenderRequest>& request );
 
     //Data View
-    std::unique_ptr<Carta::Lib::LayeredRemoteVGView> m_view;
-
-
+    std::unique_ptr<Carta::Lib::LayeredViewArbitrary> m_view;
 
     QList< std::shared_ptr<Layer> > m_layers;
     QMap<QString, std::shared_ptr<RenderResponse> > m_images;
+    Carta::Lib::VectorGraphics::VGList m_regionGraphics;
     bool m_repaintFrameQueued;
 
     int m_renderCount;

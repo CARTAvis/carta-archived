@@ -17,6 +17,7 @@
 #include "Data/Profile/Fit/ProfileFitService.h"
 #include "Data/Profile/Render/ProfileRenderService.h"
 #include "Data/Profile/ProfileStatistics.h"
+#include "Data/Region/RegionControls.h"
 #include "Data/Units/UnitsFrequency.h"
 #include "Data/Units/UnitsIntensity.h"
 #include "Data/Units/UnitsSpectral.h"
@@ -148,6 +149,7 @@ Profiler::Profiler( const QString& path, const QString& id):
             this, SLOT(_cursorUpdate(double,double)));
     connect( m_plotManager.get(), SIGNAL(plotSizeChanged()), this, SLOT(_plotSizeChanged()));
 
+
     _initializeStatics();
     _initializeDefaultState();
     _initializeCallbacks();
@@ -173,6 +175,7 @@ QString Profiler::addLink( CartaObject*  target){
                 connect(controller, SIGNAL(dataChangedRegion(Controller*)),
                         this, SLOT( _loadProfile( Controller*)));
                 m_controllerLinked = true;
+
                 _loadProfile( controller);
             }
         }
@@ -753,20 +756,29 @@ QString Profiler::_getPreferencesId() const {
     return m_preferences->getPath();
 }
 
-QList<std::shared_ptr<Region> > Profiler::_getRegionForGenerateMode( Controller* controller) const {
+std::vector<std::shared_ptr<Region> > Profiler::_getRegionForGenerateMode() const {
     QString generateMode = m_state.getValue<QString>( GEN_MODE );
-    QList<std::shared_ptr<Region> > regions;
+    std::vector<std::shared_ptr<Region> > regions;
+    std::shared_ptr<RegionControls> regionControls( nullptr );
+    Controller* controller = _getControllerSelected();
+    if ( controller ){
+    	regionControls = controller->getRegionControls();
+    }
     if ( m_generateModes->isCurrent( generateMode ) ){
-        std::shared_ptr<Region> selectedRegion = controller->getRegion();
-        if ( selectedRegion ){
-            regions.append( selectedRegion );
-        }
+    	if ( regionControls ){
+    		std::shared_ptr<Region> selectedRegion = regionControls->getRegion();
+    		if ( selectedRegion ){
+    			regions.push_back( selectedRegion );
+    		}
+    	}
     }
     else if ( m_generateModes->isAll( generateMode ) || m_generateModes->isAllExcludeSingle( generateMode ) ){
-        regions = controller->getRegions();
+    	if ( regionControls ){
+    		regions = regionControls->getRegions();
+    	}
     }
     else {
-        qDebug() << "Unrecognized region generate mode: "<<generateMode;
+    	qDebug() << "Unrecognized region generate mode: "<<generateMode;
     }
     return regions;
 }
@@ -914,15 +926,39 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+
+    addCommandCallback( "registerController", [=] (const QString & /*cmd*/,
+                           const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                   QString stackId;
+                   Controller* controller = _getControllerSelected();
+                   if ( controller != nullptr ){
+                       stackId = controller->_getStackId();
+                   }
+                   return stackId;
+               });
+
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         QString result = _getPreferencesId();
         return result;
     });
 
+    addCommandCallback( "registerRegionControls", [=] (const QString & /*cmd*/,
+    		const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+    	QString controlId;
+    	Controller* controller = _getControllerSelected();
+    	if ( controller != nullptr ){
+    		std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+    		if ( regionControls ){
+    			controlId = regionControls->getPath();
+    		}
+    	}
+    	return controlId;
+    });
+
     addCommandCallback( "resetInitialFitGuesses", [=] (const QString & /*cmd*/,
-                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-            resetInitialFitGuesses();
+    		const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+    	resetInitialFitGuesses();
             return "";
         });
 
@@ -1305,15 +1341,9 @@ void Profiler::_initializeCallbacks(){
                     return result;
                 });
 
-    addCommandCallback( "registerController", [=] (const QString & /*cmd*/,
-                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                QString stackId;
-                Controller* controller = _getControllerSelected();
-                if ( controller != nullptr ){
-                    stackId = controller->_getStackId();
-                }
-                return stackId;
-            });
+
+
+
 
     addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1719,7 +1749,11 @@ QString Profiler::profileNew(){
     Controller* controller = _getControllerSelected();
     if ( controller){
         std::shared_ptr<Layer> layer = controller->getLayer();
-        std::shared_ptr<Region> region = controller->getRegion();
+        std::shared_ptr<Region> region( nullptr );
+        std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+        if ( regionControls ){
+        	region = regionControls->getRegion();
+        }
         _generateData( layer, region, true );
     }
     else {
@@ -2648,14 +2682,17 @@ QString Profiler::setSelectedRegion( const QString& regionId ){
             //Make sure this is really an existing image.
             Controller* selectedController = _getControllerSelected();
             if ( selectedController ){
-                QList<std::shared_ptr<Region> > regions = selectedController->getRegions();
-                for ( std::shared_ptr<Region> region : regions ){
-                    QString regionName = region->getRegionName();
-                    if ( regionName == regionId ){
-                        regionFound = true;
-                        break;
-                    }
-                }
+            	std::shared_ptr<RegionControls> regionControls = selectedController->getRegionControls();
+				if ( regionControls ){
+					std::vector<std::shared_ptr<Region> > regions = regionControls->getRegions();
+					for ( std::shared_ptr<Region> region : regions ){
+						QString regionName = region->getRegionName();
+						if ( regionName == regionId ){
+							regionFound = true;
+							break;
+						}
+					}
+				}
             }
         }
         if ( regionFound ){
@@ -3251,7 +3288,7 @@ bool Profiler::_updateProfiles( Controller* controller ){
     //Go through the old profiles and remove any that are no longer present.
     int curveCount = m_plotCurves.size();
     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
-    QList<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( controller );
+    std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
 
     int dataCount = layers.size();
     int regionCount = regions.size();
