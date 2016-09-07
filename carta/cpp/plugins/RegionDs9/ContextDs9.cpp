@@ -69,7 +69,7 @@ void ContextDs9::createBoxCmd( const Vector& center, const Vector& size, double 
         polygon.push_back( QPointF( center[0], center[1]) );
     }
     info->setqpolyf( polygon );
-    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::RegionBase>( info ) );
+    m_regions.push_back(  info  );
 }
 
 
@@ -96,7 +96,7 @@ void ContextDs9::createPointCmd( const Vector& v, PointShape, int, const char*, 
         QPolygonF poly;
         poly.push_back( QPointF(v[0], v[1]) );
         info->setqpolyf( poly );
-        m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::RegionBase>(info) );
+        m_regions.push_back( info );
     }
 }
 
@@ -117,7 +117,7 @@ void ContextDs9::createEllipseCmd( const Vector& center, const Vector& radius, d
     }
     info->setCenter( QPointF( center[0], center[1]) );
     info->setAngle( angle );
-    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::Ellipse>( info ) );
+    m_regions.push_back( info );
 }
 
 
@@ -150,10 +150,10 @@ void ContextDs9::createPolygonCmd( const std::list<Vertex>& verts, const char* /
         corners.push_back( QPointF ((*it)[0], (*it)[1] ) );
     }
     info->setqpolyf( corners );
-    m_regions.push_back( std::shared_ptr<Carta::Lib::Regions::RegionBase>( info ) );
+    m_regions.push_back( info );
 }
 
-std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > ContextDs9::getRegions() const {
+std::vector<Carta::Lib::Regions::RegionBase* > ContextDs9::getRegions() const {
     return m_regions;
 }
 

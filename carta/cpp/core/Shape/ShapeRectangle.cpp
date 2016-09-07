@@ -1,18 +1,18 @@
-#include "ShapeEllipse.h"
+#include "ShapeRectangle.h"
 #include "ControlPointEditable.h"
 #include "CartaLib/VectorGraphics/VGList.h"
-#include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Rectangle.h"
 
 namespace Carta {
 namespace Shape {
 
 
-ShapeEllipse::ShapeEllipse( ):
-	m_ellipseRegion( new Carta::Lib::Regions::Ellipse() ){
+ShapeRectangle::ShapeRectangle( ):
+	m_rectRegion( new Carta::Lib::Regions::Rectangle() ){
 }
 
 
-void ShapeEllipse::_controlPointCB( int index, bool final ){
+void ShapeRectangle::_controlPointCB( int index, bool final ){
 	QRectF & rect = m_shadowRect;
 	if ( index >= 0 && index < CORNER_COUNT ) {
 		QPointF corner = m_controlPoints[index]-> getPosition();
@@ -33,12 +33,11 @@ void ShapeEllipse::_controlPointCB( int index, bool final ){
 	}
 
 	if ( final ) {
-		_updateEllipseFromShadow();
+		m_rectRegion->setRectangle( m_shadowRect );
 	}
 }
 
-
-Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
+Carta::Lib::VectorGraphics::VGList ShapeRectangle::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
 	QBrush brush = Qt::NoBrush;
@@ -47,7 +46,6 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 	comp.append < vge::SetPen > ( pen );
 	comp.append < vge::SetBrush > ( brush );
 	comp.append < vge::DrawRect > ( m_shadowRect );
-	comp.append < vge::DrawEllipse > ( m_shadowRect );
 
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
@@ -63,7 +61,7 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 }
 
 
-void ShapeEllipse::_editShadow( const QPointF & pt ){
+void ShapeRectangle::_editShadow( const QPointF& pt ){
 	QPointF topLeft = m_shadowRect.topLeft();
 	double width = qAbs( topLeft.x() - pt.x() );
 	double height = qAbs( topLeft.y() - pt.y() );
@@ -72,7 +70,7 @@ void ShapeEllipse::_editShadow( const QPointF & pt ){
 }
 
 
-void ShapeEllipse::handleDragDone( const QPointF & pt ){
+void ShapeRectangle::handleDragDone( const QPointF & pt ){
 	int controlPointCount = m_controlPoints.size();
 	if ( m_dragControlIndex >= 0 && m_dragControlIndex < controlPointCount ){
 		m_controlPoints[m_dragControlIndex]->handleDragDone( pt );
@@ -89,15 +87,14 @@ void ShapeEllipse::handleDragDone( const QPointF & pt ){
 		m_dragMode = false;
 
 		// update the region
-		_updateEllipseFromShadow();
-
+		m_rectRegion-> setRectangle( m_shadowRect );
 		setEditMode( false );
 	}
-	emit shapeChanged( m_ellipseRegion->toJson() );
+	emit shapeChanged( m_rectRegion->toJson() );
 }
 
 
-bool ShapeEllipse::isCorner( const QPointF& pt ) const {
+bool ShapeRectangle::isCorner( const QPointF& pt ) const {
 	bool corner = false;
 	if ( pt == m_shadowRect.topLeft() || pt == m_shadowRect.topRight() ||
 			pt == m_shadowRect.bottomRight() || pt == m_shadowRect.bottomLeft() ){
@@ -106,30 +103,30 @@ bool ShapeEllipse::isCorner( const QPointF& pt ) const {
 	return corner;
 }
 
-bool ShapeEllipse::isPointInside( const QPointF & pt ) const {
-	bool pointInside = m_ellipseRegion-> isPointInside( {pt} );
+bool ShapeRectangle::isPointInside( const QPointF & pt ) const {
+	bool pointInside = m_rectRegion-> isPointInside( {pt} );
 	return pointInside;
 }
 
-void ShapeEllipse::_moveShadow( const QPointF& pt ){
-	// calculate offset to move the shadow polygon to match the un-edited shape
-	QRectF fixedRect = m_ellipseRegion->outlineBox();
-	QPointF alreadyMoved = m_shadowRect.topLeft() - fixedRect.topLeft();
+void ShapeRectangle::_moveShadow( const QPointF& pt ){
+	QRectF modelRect = m_rectRegion->outlineBox();
+	QPointF offset = modelRect.topLeft() - m_shadowRect.topLeft();
 
 	// now move it by the amount of drag
-	QPointF totalDrag = pt - m_dragStart;
-	QPointF amountToMove = totalDrag - alreadyMoved;
-	m_shadowRect.translate( amountToMove );
+	offset += pt - m_dragStart;
+
+	// apply the offset to the shadow
+	m_shadowRect.translate( offset );
 }
 
 
-void ShapeEllipse::setModel( const QJsonObject& json ){
-	m_ellipseRegion->initFromJson( json );
-	m_shadowRect = m_ellipseRegion->outlineBox();
+void ShapeRectangle::setModel( const QJsonObject& json ){
+	m_rectRegion->initFromJson( json );
+	m_shadowRect = m_rectRegion->outlineBox();
 }
 
 
-void ShapeEllipse::_syncShadowToCPs(){
+void ShapeRectangle::_syncShadowToCPs(){
 	// make missing control points if necessary
 	while ( int ( m_controlPoints.size() ) < CORNER_COUNT ) {
 		int index = m_controlPoints.size();
@@ -147,23 +144,6 @@ void ShapeEllipse::_syncShadowToCPs(){
 	m_controlPoints[2]->setPosition( m_shadowRect.bottomRight() );
 	m_controlPoints[3]->setPosition( m_shadowRect.bottomLeft() );
 }
-
-void ShapeEllipse::_updateEllipseFromShadow(){
-	double width = m_shadowRect.width();
-	double height = m_shadowRect.height();
-	if ( width < height ){
-		m_ellipseRegion->setRadiusMajor( height / 2 );
-		m_ellipseRegion->setRadiusMinor( width / 2 );
-		m_ellipseRegion->setAngle( 0 );
-	}
-	else {
-		m_ellipseRegion->setRadiusMajor( width / 2 );
-		m_ellipseRegion->setRadiusMinor( height / 2 );
-		m_ellipseRegion->setAngle( 90 );
-	}
-	m_ellipseRegion->setCenter( m_shadowRect.center() );
-}
-
 }
 }
 

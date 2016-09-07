@@ -1,20 +1,34 @@
 #include "ShapeBase.h"
+#include "ControlPointEditable.h"
 namespace Carta {
 
 namespace Shape{
 
-QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 0, 0, 128 ) ), 3 );
-QBrush ShapeBase::shadowBrush = QBrush( QColor( 255, 255, 255, 64 ) );
-QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 0, 255, 0, 255 ) ), 1 );
-QBrush ShapeBase::controlPointBrush = QBrush( QColor( 255, 255, 0, 255 ) );
+const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 106, 0 ) ), 3 );
+const QBrush ShapeBase::shadowBrush = QBrush( QColor( 255, 106, 0 ) );
+const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 102, 153, 204 ) ), 2 );
 
+ShapeBase::ShapeBase( QObject* parent ):
+		QObject( parent ),
+		m_dragStart(QPointF(0,0)){
+		m_dragMode = false;
+		m_dragControlIndex = -1;
+}
 
-void ShapeBase::editableChanged(){
+void ShapeBase::editModeChanged(){
+	// update the positions of control points
+	_syncShadowToCPs();
+
+	// activate/deactivate control points based on edit status
+	for ( auto & pt : m_controlPoints ) {
+		pt-> setActive( !isEditMode() );
+	}
 }
 
 QString ShapeBase::getCursor() const {
 	return m_cursor;
 }
+
 
 Carta::Lib::VectorGraphics::VGList ShapeBase::getVGList() const {
 	return Carta::Lib::VectorGraphics::VGList();
@@ -25,8 +39,28 @@ void * ShapeBase::getUserData() const {
 	return m_userData;
 }
 
+
 void ShapeBase::handleDrag( const QPointF & pt ){
-	Q_UNUSED( pt );
+	int controlPointCount = m_controlPoints.size();
+	if ( m_dragControlIndex >= 0 && m_dragControlIndex < controlPointCount ){
+		m_controlPoints[m_dragControlIndex]->handleDrag( pt );
+	}
+	else {
+
+		// calculate offset if we are starting the drag
+		if ( ! m_dragMode ) {
+			qWarning() << "dragging but not in drag mode";
+			return;
+		}
+
+		if ( !isEditMode() ){
+			_moveShadow( pt );
+			_syncShadowToCPs();
+		}
+		else {
+			_editShadow( pt );
+		}
+	}
 }
 
 void ShapeBase::handleDragDone( const QPointF & pt ) {
@@ -34,7 +68,21 @@ void ShapeBase::handleDragDone( const QPointF & pt ) {
 }
 
 void ShapeBase::handleDragStart( const QPointF & pt ) {
-	Q_UNUSED( pt );
+	//First see if any of our control points are being dragged
+	m_dragControlIndex = -1;
+	int controlCount = m_controlPoints.size();
+	for ( int i = 0; i < controlCount; i++ ){
+		if ( m_controlPoints[i]->isPointInside( pt )){
+			m_dragControlIndex = i;
+			m_controlPoints[i]->handleDragStart( pt );
+			break;
+		}
+	}
+	//We'll drag ourselves if none of the control points was targeted.
+	if ( m_dragControlIndex < 0 ){
+		m_dragMode = true;
+		m_dragStart = pt;
+	}
 }
 
 
@@ -50,8 +98,8 @@ bool ShapeBase::isDeletable() const{
 	return m_deletable;
 }
 
-bool ShapeBase::isEditable() const {
-	return m_editable;
+bool ShapeBase::isEditMode() const {
+	return m_editMode;
 }
 
 bool ShapeBase::isHovered() const{
@@ -79,21 +127,28 @@ void ShapeBase::setDeletable( bool value ){
 	m_deletable = value;
 }
 
-void ShapeBase::setEditable( bool editable ){
-	bool oldEditable = m_editable;
-	m_editable = editable;
-	if ( oldEditable != editable ) {
-		editableChanged();
+void ShapeBase::setEditMode( bool editMode ){
+	bool oldEditMode = m_editMode;
+	m_editMode = editMode;
+	if ( oldEditMode != editMode ) {
+		editModeChanged();
 	}
 }
 
-bool ShapeBase::setHovered( bool value ){
+void ShapeBase::setHovered( bool value ){
 	m_hovered = value;
-	return false;
+	int controlCount = m_controlPoints.size();
+	for ( int i = 0; i < controlCount; i++ ){
+		m_controlPoints[i]->setActive( value );
+	}
 }
 
 void ShapeBase::setSelected( bool value ){
 	m_selected = value;
+	int controlCount = m_controlPoints.size();
+	for ( int i = 0; i < controlCount; i++ ){
+		m_controlPoints[i]->setSelected( value );
+	}
 }
 
 void ShapeBase::setUserData( void * value ){

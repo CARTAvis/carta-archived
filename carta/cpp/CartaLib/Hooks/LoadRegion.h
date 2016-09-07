@@ -22,7 +22,7 @@ class LoadRegion : public BaseHook
 
 public:
 
-    typedef std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > ResultType;
+    typedef std::vector<Carta::Lib::Regions::RegionBase* > ResultType;
     struct Params {
         Params( QString p_fileName, std::shared_ptr<Image::ImageInterface> p_imagePtr )
         {

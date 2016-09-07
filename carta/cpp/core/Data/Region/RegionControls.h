@@ -3,9 +3,10 @@
  */
 
 #pragma once
-#include "Shape/IShape.h"
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
+#include "CartaLib/InputEvents.h"
+#include "CartaLib/VectorGraphics/VGList.h"
 #include <memory>
 
 namespace Carta {
@@ -51,6 +52,14 @@ public:
 	int getSelectRegionIndex() const;
 
 	/**
+	 * Create a region of the indicated type.
+	 * @param createType - an identifier for the type of region to create.
+	 * @return - an error message if the region could not be created; otherwise,
+	 * 		and empty string.
+	 */
+	QString setRegionCreateType( const QString& createType );
+
+	/**
 	 * Return the vector graphics for all the managed regions.
 	 * @return - the vector graphics for all the managed regions.
 	 */
@@ -60,12 +69,17 @@ public:
 
 	const static QString CLASS_NAME;
 
+
 signals:
 
 	/**
 	 *  Notification that the region set has been updated.
 	 */
 	void regionsChanged( );
+
+private slots:
+
+	void _editDone();
 
 private:
 
@@ -89,14 +103,12 @@ private:
 
 	bool _handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev );
 	bool _handleHover( const Carta::Lib::InputEvents::HoverEvent& ev );
-	bool _handleTap( const Carta::Lib::InputEvents::DoubleTapEvent& ev );
+	bool _handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev );
 	bool _handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev );
 
-	void _onInputEvent(const InputEvent & ev );
+	void _onInputEvent( InputEvent & ev );
 
 	void _saveStateRegions();
-
-	QString _setRegionCreateType( const QString& createType );
 
 	RegionControls( const RegionControls& other);
 	RegionControls& operator=( const RegionControls& other );
@@ -104,12 +116,9 @@ private:
 	//Selection for regions
 	Selection* m_selectRegion;
 
-	//The type of region to create.
-	QString m_regionCreateType;
-
 	//The regions
 	std::vector<std::shared_ptr<Region> > m_regions;
-
+	std::shared_ptr<Region> m_regionEdit;
 	static RegionTypes* m_regionTypes;
 	static const QString REGIONS;
 	static bool m_registered;

@@ -6,7 +6,6 @@
 #pragma once
 
 #include "State/ObjectManager.h"
-//#include "State/StateInterface.h"
 
 #include <QStringList>
 
@@ -163,8 +162,6 @@ public:
 protected:
 
     LayoutNode( const QString& className, const QString& path, const QString& id );
-    const static QString WIDTH;
-    const static QString HEIGHT;
 
 private:
     void _initializeCommands();

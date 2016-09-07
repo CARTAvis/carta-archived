@@ -571,11 +571,11 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "setThickness", [=] (const QString & /*cmd*/,
                                 const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = { Util::PEN_WIDTH, CONTOUR_SET_NAME, LEVEL_LIST };
+            std::set<QString> keys = { Util::WIDTH, CONTOUR_SET_NAME, LEVEL_LIST };
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             bool validDouble = false;
             QString result;
-            double thickness = dataValues[Util::PEN_WIDTH].toDouble(&validDouble);
+            double thickness = dataValues[Util::WIDTH].toDouble(&validDouble);
             if ( validDouble ){
                 QString setName = dataValues[CONTOUR_SET_NAME ];
                 QString levelStr = dataValues[LEVEL_LIST];
@@ -589,7 +589,7 @@ void ContourControls::_initializeCallbacks(){
                 }
             }
             else {
-                result = "Contour thickness must be an integer: "+dataValues[Util::PEN_WIDTH];
+                result = "Contour thickness must be an integer: "+dataValues[Util::WIDTH];
             }
             Util::commandPostProcess( result );
             return result;

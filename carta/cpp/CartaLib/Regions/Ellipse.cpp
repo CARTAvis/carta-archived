@@ -1,10 +1,5 @@
-/**
- *
- **/
-
 #include "Ellipse.h"
 
-//#include <QFile>
 #include <QJsonDocument>
 #include "math.h"
 
@@ -91,10 +86,22 @@ bool Ellipse::isPointInsideUnion( const RegionPointV & pts ) const {
 }
 
 QRectF Ellipse::outlineBox() const {
-	double left = m_center.x() + (cos( m_angle * ( M_PI / 180)) * m_radiusMajor);
-	double top = m_center.y() + (sin( m_angle * ( M_PI / 180)) * m_radiusMajor);
-	double right = m_center.x() + (cos(( m_angle * ( M_PI / 180)) + ( M_PI / 2)) * m_radiusMinor);
-	double bottom = m_center.y() + (sin(( m_angle * ( M_PI / 180) )+ ( M_PI / 2)) * m_radiusMinor);
+	double cosAngle = cos( m_angle * ( M_PI / 180));
+	double sinAngle = sin( m_angle * ( M_PI / 180));
+
+	//Assume non-rotated ellipse with major axis being y.
+	double left = m_center.x() - m_radiusMinor;
+	double right = m_center.x() + m_radiusMinor;
+	double top = m_center.y() - m_radiusMajor;
+	double bottom = m_center.y() + m_radiusMajor;
+
+	//Now rotate by the given angle.
+	left = left * cosAngle - top * sinAngle;
+	top = left * sinAngle + top * cosAngle;
+	right = right * cosAngle - bottom * sinAngle;
+	bottom = right * sinAngle + bottom * cosAngle;
+
+	//Height and width
 	double height = qAbs( top - bottom );
 	double width = qAbs( left - right );
 	return QRectF( left, top, width, height );
@@ -136,17 +143,12 @@ QString Ellipse::typeName() const {
 
 VectorGraphics::VGList Ellipse::vgList() const {
 	VectorGraphics::VGComposer composer;
-	//        if ( hasOwnLineColor() ) {
 	composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
-	//        }
-	//        if ( hasOwnFillColor() ) {
 	composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
-	//        }
 	QRectF rect = outlineBox();
 	composer.append < VectorGraphics::Entries::DrawEllipse > ( rect );
-
 	return composer.vgList();
-} // vgList
+}
 
 }
 }

@@ -1,9 +1,11 @@
 #include "RegionTypes.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
+#include "CartaLib/Regions/IRegion.h"
+#include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Rectangle.h"
 
 #include <QDebug>
-//#include <set>
 
 namespace Carta {
 
@@ -12,6 +14,7 @@ namespace Data {
 const QString RegionTypes::CLASS_NAME = "RegionTypes";
 const QString RegionTypes::ELLIPSE = "Ellipse";
 const QString RegionTypes::POLYGON = "Polygon";
+const QString RegionTypes::RECTANGLE = "Rectangle";
 const QString RegionTypes::TYPES = "types";
 
 
@@ -39,9 +42,25 @@ RegionTypes::RegionTypes( const QString& path, const QString& id):
     _initializeDefaultState();
 }
 
-QString RegionTypes::getDefault() const {
-	return POLYGON;
+QString RegionTypes::getActualType( const QString& name ) const {
+    int modeCount = m_state.getArraySize( TYPES );
+    QString actualType;
+    for ( int i = 0; i < modeCount; i++ ){
+    	QString arrayIndexStr = Carta::State::UtilState::getLookup( TYPES, i );
+    	QString typeStr = m_state.getValue<QString>( arrayIndexStr );
+        int result = QString::compare( name, typeStr, Qt::CaseInsensitive );
+        if ( result == 0 ){
+           actualType = typeStr;
+           break;
+        }
+    }
+    return actualType;
 }
+
+QString RegionTypes::getDefault() const {
+	return RECTANGLE;
+}
+
 QStringList RegionTypes::getRegionTypes() const {
     QStringList buff;
     int typeCount = m_state.getArraySize( TYPES );
@@ -52,12 +71,36 @@ QStringList RegionTypes::getRegionTypes() const {
     return buff;
 }
 
+QString RegionTypes::getModelType( const QString& userType ) const {
+	QString modelType;
+	QString actualType = getActualType( userType );
+	if ( !actualType.isEmpty() ){
+		if ( actualType == RECTANGLE ){
+			modelType = Carta::Lib::Regions::Rectangle::TypeName;
+		}
+		else if ( actualType == POLYGON ){
+			modelType = Carta::Lib::Regions::Polygon::TypeName;
+		}
+		else if ( actualType == ELLIPSE ){
+			modelType = Carta::Lib::Regions::Ellipse::TypeName;
+		}
+		else {
+			CARTA_ASSERT( false );
+		}
+	}
+	return modelType;
+}
+
 
 void RegionTypes::_initializeDefaultState(){
-    int regionCount = 2;
+    int regionCount = 3;
     m_state.insertArray( TYPES, regionCount );
-    _insertType( POLYGON, 0 );
-    _insertType( ELLIPSE, 1 );
+    int i = 0;
+    _insertType( RECTANGLE, i );
+    i++;
+    _insertType( POLYGON, i );
+    i++;
+    _insertType( ELLIPSE, i );
     m_state.flushState();
 }
 
@@ -65,25 +108,6 @@ void RegionTypes::_insertType( const QString& regionType, int index ){
 	QString arrayIndexStr = Carta::State::UtilState::getLookup( TYPES, index );
 	m_state.setValue<QString>( arrayIndexStr, regionType );
 }
-
-
-
-bool RegionTypes::isRegionType( const QString& name, QString& actualName ) const {
-    int modeCount = m_state.getArraySize( TYPES );
-    bool validMode = false;
-    for ( int i = 0; i < modeCount; i++ ){
-    	QString arrayIndexStr = Carta::State::UtilState::getLookup( TYPES, i );
-    	QString typeStr = m_state.getValue<QString>( arrayIndexStr );
-        int result = QString::compare( name, typeStr, Qt::CaseInsensitive );
-        if ( result == 0 ){
-           actualName = typeStr;
-           validMode = true;
-           break;
-        }
-    }
-    return validMode;
-}
-
 
 RegionTypes::~RegionTypes(){
 

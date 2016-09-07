@@ -1,5 +1,5 @@
 /**
- * An elliptical shape.
+ * A rectangle shape.
  **/
 #include "ShapeBase.h"
 #include "CartaLib/VectorGraphics/VGList.h"
@@ -10,7 +10,7 @@ namespace Carta {
 
 namespace Lib {
 namespace Regions {
-class Ellipse;
+class Rectangle;
 }
 }
 
@@ -18,25 +18,22 @@ namespace Shape {
 
 class ControlPointEditable;
 
-class ShapeEllipse : public ShapeBase {
-
-
-   CLASS_BOILERPLATE( ShapeEllipse );
+class ShapeRectangle : public ShapeBase
+{
+    CLASS_BOILERPLATE( ShapeRectangle );
 
 public:
 
     /**
      * Constructor.
      */
-    ShapeEllipse( );
-
+    ShapeRectangle( );
 
     /**
      * Return the vector graphics for the shape.
      * @return - the shape vector graphics.
      */
     virtual Carta::Lib::VectorGraphics::VGList getVGList() const override;
-
 
     /**
      * Notification that a drag event has ended.
@@ -67,24 +64,18 @@ protected:
 
     void _controlPointCB( int index, bool final );
 
-    virtual void _moveShadow( const QPointF& pt ) override;
+    virtual void _editShadow( const QPointF& pt );
+
+    virtual void _moveShadow( const QPointF& pt );
 
     virtual void _syncShadowToCPs() override;
 
-    void _updateEllipseFromShadow();
-
-    virtual void _editShadow( const QPointF & pt ) override;
-
-    std::shared_ptr<Carta::Lib::Regions::Ellipse> m_ellipseRegion;
-
+    std::shared_ptr<Carta::Lib::Regions::Rectangle> m_rectRegion;
 
     const int CORNER_COUNT = 4;
 
     // the shadow rectangle
     QRectF m_shadowRect;
-
-
-
 };
 }
 }

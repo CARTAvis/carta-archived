@@ -754,8 +754,8 @@ void Stack::_setViewName( const QString& viewName ){
     m_stackDraw.reset( new DrawStackSynchronizer(makeRemoteView( viewName)));
     m_imageDraws->setViewDraw( m_stackDraw );
     connect( m_stackDraw.get(), SIGNAL(viewResize()), this, SLOT(_viewResize()));
-    connect( m_stackDraw.get(), SIGNAL(inputEvent(/*Carta::Lib::InputEvents::JsonEvent*/const InputEvent&)),
-    		this, SIGNAL(inputEvent(/*Carta::Lib::InputEvents::JsonEvent*/const InputEvent&)));
+    connect( m_stackDraw.get(), SIGNAL(inputEvent(InputEvent)),
+    		this, SIGNAL(inputEvent(InputEvent)));
 }
 
 void Stack::_setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawContext ){

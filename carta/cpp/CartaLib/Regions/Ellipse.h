@@ -1,26 +1,17 @@
 /**
- *
+ * Model for an elliptical region.
  **/
 
 #pragma once
 #include "IRegion.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/VectorGraphics/VGList.h"
-//#include "CartaLib/Nullable.h"
-//#include "CartaLib/Regions/ICoordSystem.h"
-
-//#include <QJsonArray>
 #include <QJsonObject>
 #include <QRectF>
 
-namespace Carta
-{
-namespace Lib
-{
-namespace Regions
-{
-
-
+namespace Carta {
+namespace Lib {
+namespace Regions {
 
 class Ellipse : public RegionBase
 {
@@ -99,6 +90,7 @@ public:
 	 * Set the tilt angle of the ellipse.
 	 * @param angle - the tilt angle of the ellipse.
 	 */
+	//Assumed to be a degree major.  The angle the major axis of the ellipse makes with North
 	void setAngle( double angle );
 
 	/**
@@ -136,11 +128,12 @@ public:
 	 * @return - vector graphics for the ellipse.
 	 */
 	virtual VectorGraphics::VGList vgList() const override;
-
-private:
 	const static QString RADIUS_MAJOR;
 	const static QString RADIUS_MINOR;
 	const static QString ANGLE;
+
+private:
+
 	RegionPoint m_center { 0, 0 };
 	double m_radiusMajor = 1;
 	double m_radiusMinor = 1;

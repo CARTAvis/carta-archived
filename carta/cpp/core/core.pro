@@ -21,7 +21,6 @@ HEADERS += \
     stable.h \
     CmdLine.h \
     MainConfig.h \
-    Shape/IShape.h \
     State/ObjectManager.h \
     State/StateInterface.h \
     State/UtilState.h \
@@ -108,6 +107,7 @@ HEADERS += \
     Data/Region/RegionControls.h \
     Data/Region/RegionPolygon.h \
     Data/Region/RegionEllipse.h \
+    Data/Region/RegionRectangle.h \
     Data/Region/RegionFactory.h \
     Data/Region/RegionTypes.h \
     Data/Snapshot/ISnapshotsImplementation.h \
@@ -142,6 +142,7 @@ HEADERS += \
     Shape/ShapeBase.h \
     Shape/ShapeEllipse.h \
     Shape/ShapePolygon.h \
+    Shape/ShapeRectangle.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
     Algorithms/quantileAlgorithms.h \
@@ -260,6 +261,7 @@ SOURCES += \
     Data/Region/RegionPolygon.cpp \
     Data/Region/RegionEllipse.cpp \
     Data/Region/RegionFactory.cpp \
+    Data/Region/RegionRectangle.cpp \
     Data/Region/RegionTypes.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
@@ -292,6 +294,7 @@ SOURCES += \
     Shape/ShapeBase.cpp \
     Shape/ShapeEllipse.cpp \
     Shape/ShapePolygon.cpp \
+    Shape/ShapeRectangle.cpp \
     ImageRenderService.cpp \
     ImageSaveService.cpp \
     Algorithms/quantileAlgorithms.cpp \

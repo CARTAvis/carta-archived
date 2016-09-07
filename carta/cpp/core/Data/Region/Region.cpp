@@ -1,6 +1,7 @@
 #include "Region.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
+#include "Shape/ShapeBase.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/Regions/Ellipse.h"
@@ -24,14 +25,14 @@ Region::Region(const QString& className, const QString& path, const QString& id 
 }
 
 
-void Region::editableChanged (){
-}
-
-
 QString Region::getCursor() const {
 	return "";
 }
 
+std::shared_ptr<Carta::Lib::Regions::RegionBase> Region::getModel() const {
+	std::shared_ptr<Carta::Lib::Regions::RegionBase> info (nullptr);
+	return info;
+}
 
 QString Region::getRegionName() const {
 	QString name = m_state.getValue<QString>( Util::NAME );
@@ -42,64 +43,136 @@ QString Region::getRegionName() const {
 QString Region::getRegionType( const QString& regionTypeStr ){
 	QString regionStr;
 	int result = QString::compare( regionTypeStr, Carta::Lib::Regions::Polygon::TypeName, Qt::CaseInsensitive );
-    if ( result == 0 ){
-        regionStr = Carta::Lib::Regions::Polygon::TypeName;
-    }
-    else {
-        result = QString::compare( regionTypeStr, Carta::Lib::Regions::Ellipse::TypeName, Qt::CaseInsensitive );
-        if ( result == 0 ){
-            regionStr = Carta::Lib::Regions::Ellipse::TypeName;
-        }
-    }
-    return regionStr;
+	if ( result == 0 ){
+		regionStr = Carta::Lib::Regions::Polygon::TypeName;
+	}
+	else {
+		result = QString::compare( regionTypeStr, Carta::Lib::Regions::Ellipse::TypeName, Qt::CaseInsensitive );
+		if ( result == 0 ){
+			regionStr = Carta::Lib::Regions::Ellipse::TypeName;
+		}
+	}
+	return regionStr;
 }
 
 
 QString Region::getRegionType() const {
-    QString regionTypeStr = m_state.getValue<QString>( REGION_TYPE );
-    return regionTypeStr;
+	QString regionTypeStr = m_state.getValue<QString>( REGION_TYPE );
+	return regionTypeStr;
 }
 
 QString Region::_getStateString() const {
-    return m_state.toString();
+	return m_state.toString();
 }
 
 void * Region::getUserData() const {
 	return nullptr;
 }
 
-void Region::handleDrag( const QPointF & /*pt*/ ) {
+Carta::Lib::VectorGraphics::VGList Region::getVGList() const {
+	Carta::Lib::VectorGraphics::VGList graphicsList = m_shape->getVGList();
+	return graphicsList;
 }
 
 
-void Region::handleDragDone( const QPointF & /*pt*/ ) {
+
+
+
+void Region::handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev ){
+	if ( isDraggable() ){
+		Carta::Lib::InputEvents::Drag2Event::Phase phase = ev.phase();
+		QPointF location = ev.pos();
+		if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::Start ){
+			handleDragStart( location );
+		}
+		else if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::Progress ){
+			handleDrag( location );
+		}
+		else if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::End ){
+			handleDragDone( location );
+		}
+		else {
+			qWarning() << "Unrecognized drag event phase: "<<(int)(phase);
+		}
+	}
 }
 
-void Region::handleDragStart( const QPointF & /*pt*/ ) {
+void Region::handleDrag( const QPointF & pt ) {
+	if ( isDraggable() ){
+		if ( m_shape ){
+			m_shape->handleDrag( pt );
+		}
+	}
 }
 
 
+void Region::handleDragDone( const QPointF & pt ) {
+	if ( isDraggable() ){
+		if ( m_shape ){
+			m_shape->handleDragDone( pt );
+		}
+	}
+}
+
+void Region::handleDragStart( const QPointF & pt ) {
+	if ( isDraggable() ){
+		if ( m_shape ){
+			m_shape->handleDragStart( pt );
+		}
+	}
+}
+
+void Region::handleHover( const QPointF& pt ){
+	//Only active shapes participate in user events
+
+	if ( isActive() ){
+		bool hovered = false;
+		if ( m_shape->isPointInside( pt ) ){
+			hovered = true;
+		}
+		setHovered( hovered );
+	}
+}
+
+void Region::handleTouch( const QPointF& pt ){
+	//Only active shapes participate in user events
+	if ( isActive() ){
+		bool tapped = false;
+		if ( m_shape->isPointInside( pt ) ){
+			tapped = true;
+		}
+		setSelected( tapped );
+	}
+}
+
+void Region::handleTapDouble( const QPointF& /*pt*/ ){
+	if ( isActive() ){
+		qDebug() << "Unhandled region double tap "<<getRegionType();
+	}
+}
 void Region::handleEvent( Carta::Lib::InputEvents::JsonEvent & ev ) {
-	 qDebug() << "Region got extra event" << ev.type();
+	if ( isActive() ){
+		qDebug() << "Unhandled region extra event" << ev.type()
+				<<" region type="<<getRegionType();
+	}
 }
 
 void Region::_initializeCallbacks(){
-    addCommandCallback( "shapeChanged", [=] (const QString & /*cmd*/,
-                                    const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = { "info"};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        //resetStateData( dataValues[ *keys.begin()]);
-        return "";
-    });
+	addCommandCallback( "shapeChanged", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) -> QString {
+		std::set<QString> keys = { "info"};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		//resetStateData( dataValues[ *keys.begin()]);
+		return "";
+	});
 }
 
 void Region::_initializeState(){
-    m_state.insertValue<QString>( REGION_TYPE, "" );
-    m_state.insertValue<bool>( Util::SELECTED, true );
-    m_state.insertValue<bool>( ACTIVE, true );
-    m_state.insertValue<bool>( HOVERED, true );
-    m_state.insertValue<QString>( Util::NAME, "");
-    m_state.flushState();
+	m_state.insertValue<QString>( REGION_TYPE, "" );
+	m_state.insertValue<bool>( Util::SELECTED, true );
+	m_state.insertValue<bool>( ACTIVE, true );
+	m_state.insertValue<bool>( HOVERED, true );
+	m_state.insertValue<QString>( Util::NAME, "");
 }
 
 
@@ -108,13 +181,13 @@ bool Region::isActive() const {
 }
 
 
-bool Region::isDeletable() const {
-	return true;
+bool Region::isDraggable() const {
+	bool draggable = isActive() && (isSelected() || isEditMode() );
+	return draggable;
 }
 
-
-bool Region::isEditable() const {
-	return true;
+bool Region::isEditMode() const {
+	return m_shape->isEditMode();
 }
 
 
@@ -128,13 +201,13 @@ bool Region::isSelected() const {
 }
 
 void Region::_restoreState( const QString& stateStr ){
-    Carta::State::StateInterface dataState( "" );
-    dataState.setState( stateStr );
-    QString regionType = dataState.getValue<QString>(REGION_TYPE);
-    m_state.setValue<QString>( REGION_TYPE, regionType);
-    QString name = dataState.getValue<QString>( Util::NAME );
-    m_state.setValue<QString>(Util::NAME, name );
-    m_state.flushState();
+	Carta::State::StateInterface dataState( "" );
+	dataState.setState( stateStr );
+	QString regionType = dataState.getValue<QString>(REGION_TYPE);
+	m_state.setValue<QString>( REGION_TYPE, regionType);
+	QString name = dataState.getValue<QString>( Util::NAME );
+	m_state.setValue<QString>(Util::NAME, name );
+	m_state.flushState();
 }
 
 
@@ -143,6 +216,7 @@ void Region::setActive( bool active ) {
 	if ( active != oldActive ){
 		m_state.setValue<bool>( ACTIVE, active );
 		m_state.flushState();
+		m_shape->setActive( active );
 	}
 }
 
@@ -157,8 +231,8 @@ void Region::setDeletable( bool /*value*/ ) {
 }
 
 
-void Region::setEditable( bool /*editable*/ ) {
-
+void Region::setEditMode( bool editMode ) {
+	m_shape->setEditMode( editMode );
 }
 
 
@@ -168,23 +242,28 @@ bool Region::setHovered( bool hovered ) {
 	if ( hovered != oldHovered ){
 		m_state.setValue<bool>( HOVERED, hovered );
 		m_state.flushState();
+		m_shape->setHovered( hovered );
 		redrawNeeded = true;
 	}
 	return redrawNeeded;
 }
 
+void Region::setModel( Carta::Lib::Regions::RegionBase* /*model*/ ){
+
+}
+
 
 QString Region::setRegionName( const QString& name ){
-    QString result;
-    if ( name.trimmed().length() > 0 ){
-        QString oldName = m_state.getValue<QString>( Util::NAME );
-        if ( oldName != name ){
-            m_regionNameSet = true;
-            m_state.setValue<QString>( Util::NAME, name );
-            m_state.flushState();
-        }
-    }
-    return result;
+	QString result;
+	if ( name.trimmed().length() > 0 ){
+		QString oldName = m_state.getValue<QString>( Util::NAME );
+		if ( oldName != name ){
+			m_regionNameSet = true;
+			m_state.setValue<QString>( Util::NAME, name );
+			m_state.flushState();
+		}
+	}
+	return result;
 }
 
 void Region::setSelected( bool selected ) {
@@ -192,27 +271,26 @@ void Region::setSelected( bool selected ) {
 	if ( oldSelected != selected ){
 		m_state.setValue<bool>( Util::SELECTED, selected );
 		m_state.flushState();
+		m_shape->setSelected( selected );
 	}
 }
 
 
 void Region::setUserData( void * /*value*/ ){
-
 }
 
 QJsonObject Region::toJSON() const {
-    QString regionType = getRegionType();
-    QJsonObject regionObject;
-    regionObject.insert( REGION_TYPE, regionType );
-    return regionObject;
+	QString regionType = getRegionType();
+	QJsonObject regionObject;
+	regionObject.insert( REGION_TYPE, regionType );
+	return regionObject;
 }
 
-Carta::Lib::VectorGraphics::VGList Region::getVGList() const {
-	std::shared_ptr<Carta::Lib::Regions::RegionBase> regionBase = getModel();
-	Carta::Lib::VectorGraphics::VGList graphicsList = regionBase->vgList();
-	return graphicsList;
+void Region::_updateShapeFromState(){
+	m_shape->setActive( isActive() );
+	m_shape->setSelected( isSelected() );
+	m_shape->setHovered( isHovered() );
 }
-
 
 Region::~Region(){
 

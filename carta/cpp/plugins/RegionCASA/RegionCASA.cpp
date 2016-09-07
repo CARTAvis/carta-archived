@@ -48,7 +48,7 @@ bool RegionCASA::handleHook(BaseHook & hookData){
             }
             else {
                 //Not a casa region so return an empty vector.
-                hook.result = std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> >();
+                hook.result = std::vector<Carta::Lib::Regions::RegionBase*>();
             }
             hookHandled = true;
         }
@@ -100,10 +100,10 @@ bool RegionCASA::_isCASARegion( const QString& fileName ) const {
 }
 
 
-std::vector< std::shared_ptr<Carta::Lib::Regions::RegionBase> >
+std::vector<Carta::Lib::Regions::RegionBase*>
 RegionCASA::_loadRegion( const QString & fname,
         std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr ){
-    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regionInfos;
+    std::vector<Carta::Lib::Regions::RegionBase*> regionInfos;
 
     casa::String fileName( fname.toStdString().c_str() );
     CCImageBase * base = dynamic_cast<CCImageBase*>( imagePtr.get() );
@@ -126,7 +126,7 @@ RegionCASA::_loadRegion( const QString & fname,
                     continue;
                 }
                 casa::CountedPtr<const casa::AnnotationBase> ann = aaregions[i].getAnnotationBase();
-                std::shared_ptr<Carta::Lib::Regions::RegionBase> rInfo( nullptr);
+                Carta::Lib::Regions::RegionBase* rInfo = nullptr;
 
                 casa::Vector<casa::MDirection> directions = ann->getConvertedDirections();
                 casa::AnnotationBase::Direction points = ann->getDirections();
@@ -136,13 +136,13 @@ RegionCASA::_loadRegion( const QString & fname,
                 switch( annType ){
                 case casa::AnnotationBase::RECT_BOX : {
                     Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
-                    rInfo.reset( poly );
+                    rInfo = poly;
                     _addCorners( poly, corners );
                 }
                 break;
                 case casa::AnnotationBase::ELLIPSE : {
                     Carta::Lib::Regions::Ellipse* regionEllipse = new Carta::Lib::Regions::Ellipse();
-                    rInfo.reset( regionEllipse );
+                    rInfo = regionEllipse;
                     const casa::AnnEllipse* ellipse = dynamic_cast<const casa::AnnEllipse*>( ann.get() );
                     casa::Int directionIndex = cs->findCoordinate(casa::Coordinate::Type::DIRECTION );
 
@@ -173,7 +173,7 @@ RegionCASA::_loadRegion( const QString & fname,
                 break;
                 case casa::AnnotationBase::POLYGON : {
                     Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
-                    rInfo.reset( poly );
+                    rInfo = poly;
                     _addCorners( poly, corners );
                 }
                 break;

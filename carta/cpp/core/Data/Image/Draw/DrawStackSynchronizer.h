@@ -65,7 +65,7 @@ signals:
 	 * Notification that an input event such as a mouse event has occurred.
 	 * @param ev - the input event.
 	 */
-	void inputEvent( const InputEvent& ev );
+	void inputEvent( InputEvent ev );
 
     /**
      * The view has been resized.

@@ -7,9 +7,6 @@
 
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
-#include <vector>
-
-
 
 namespace Carta {
 
@@ -26,12 +23,21 @@ public:
     QString getDefault() const;
 
     /**
-     * Returns true if the name represents a valid region type; false, otherwise.
+     * Returns the official region type corresponding to the passed in name (which may be
+     * case insensitive).
      * @param name - a QString identifying a region type.
-     * @param actualName - the actual name of the transform in case of a case mismatch
-     * @return true if the name represents a valid region type; false, otherwise.
+     * @return - the official name of the region type or an empty string if there is no
+     * 		such type.
      */
-    bool isRegionType( const QString& name, QString& actualName ) const;
+    QString getActualType( const QString& name ) const;
+
+    /**
+     * Returns the model type corresponding to the passed in user type.
+     * @param userType - a region type used by the UI.
+     * @return - the region type used by the model.
+     */
+    QString getModelType( const QString& userType ) const;
+
 
     /**
      * Returns a list of available layer composition modes.
@@ -44,6 +50,7 @@ public:
     const static QString CLASS_NAME;
     const static QString ELLIPSE;
     const static QString POLYGON;
+    const static QString RECTANGLE;
 
 private:
     void _initializeDefaultState();

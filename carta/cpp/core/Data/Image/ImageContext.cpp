@@ -275,7 +275,7 @@ void ImageContext::_initializeDefaultPen( const QString& key, int red, int green
     QString alphaLookup = Carta::State::UtilState::getLookup( key, Util::ALPHA );
     m_state.insertValue<int>( alphaLookup, alpha );
     if ( width >= 0 ){
-        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
+        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
         m_state.insertValue<int>( widthLookup, width );
     }
 }
@@ -430,9 +430,9 @@ void ImageContext::_initializeCallbacks(){
     addCommandCallback( "setLineWidth", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {Util::PEN_WIDTH, MODE};
+        std::set<QString> keys = {Util::WIDTH, MODE};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString widthStr = dataValues[Util::PEN_WIDTH];
+        QString widthStr = dataValues[Util::WIDTH];
         bool validInt = false;
         int width = widthStr.toInt( &validInt );
         if ( validInt ){
@@ -621,7 +621,7 @@ QString ImageContext::_setLineWidth( const QString& key, const QString& userName
                 "]: "+QString::number(width);
     }
     else {
-        QString lookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
+        QString lookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
         int oldWidth = m_state.getValue<int>(lookup);
         if ( oldWidth != width ){
             m_state.setValue<int>( lookup, width);

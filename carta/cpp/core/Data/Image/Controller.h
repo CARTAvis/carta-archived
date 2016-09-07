@@ -586,7 +586,7 @@ private slots:
 	void _contourSetRemoved( const QString setName );
 
 	void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
-	void _onInputEvent( const InputEvent& ev );
+	void _onInputEvent( InputEvent ev );
 
 	//Refresh the view based on the latest data selection information.
 	void _loadView(  );

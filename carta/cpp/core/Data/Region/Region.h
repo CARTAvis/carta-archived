@@ -6,30 +6,33 @@
 
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
-#include "Shape/IShape.h"
+#include "CartaLib/VectorGraphics/VGList.h"
+#include "CartaLib/InputEvents.h"
+#include <QObject>
 
 namespace Carta {
 
 namespace Lib {
-
 namespace Regions {
 	class RegionBase;
 }
 }
 
+namespace Shape {
+	class ShapeBase;
+}
+
+
 namespace Data {
 
-class Region : public Carta::State::CartaObject, public Carta::Shape::IShape {
+class Region : public QObject, public Carta::State::CartaObject {
+
+Q_OBJECT
 
 	friend class RegionFactory;
 	friend class RegionControls;
 
 public:
-
-	/**
-	 * Notification that the editable state of the shape has changed.
-	 */
-	virtual void editableChanged();
 
 	/**
 	 * Return information about the cursor position withen the shape.
@@ -41,7 +44,7 @@ public:
 	 * Return the information associated with this region.
 	 * @return - information about the region.
 	 */
-	virtual std::shared_ptr<Carta::Lib::Regions::RegionBase> getModel() const = 0;
+	virtual std::shared_ptr<Carta::Lib::Regions::RegionBase> getModel() const;
 
 
 	/**
@@ -78,6 +81,12 @@ public:
 	Carta::Lib::VectorGraphics::VGList getVGList() const;
 
 	/**
+	 * Notification on an overall drag event from mouse down to mouse up.
+	 * @param ev - the drag event.
+	 */
+	void handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev );
+
+	/**
 	 * Notification of a drag as it progresses.
 	 * @param pt - the current location of the drag.
 	 */
@@ -96,6 +105,24 @@ public:
 	virtual void handleDragStart( const QPointF & pt );
 
 	/**
+	 * Notification of a hover event.
+	 * @param pt - the current location of the mouse.
+	 */
+	virtual void handleHover( const QPointF& pt );
+
+	/**
+	 * Notification of a click event.
+	 * @param pt - the current location of the mouse.
+	 */
+	virtual void handleTouch( const QPointF& pt );
+
+	/**
+	 * Notification of a double click event.
+	 * @param pt - the current location of the mouse.
+	 */
+	virtual void handleTapDouble( const QPointF& pt );
+
+	/**
 	 * Handle an unspecified event.
 	 * @param ev - an unspecified event.
 	 */
@@ -107,19 +134,17 @@ public:
 	 */
 	virtual bool isActive() const;
 
+	/**
+	 * Returns whether or not the region can be dragged.
+	 * @return - true if the region can be dragged; false, otherwise.
+	 */
+	bool isDraggable() const;
 
 	/**
-	 * Returns whether or not the shape can be deleted.
-	 * @return - whether or not the shape can be deleted.
+	 * Returns whether or not the shape is being edited.
+	 * @return - true if the shape is being edited; false, otherwise.
 	 */
-	virtual bool isDeletable() const;
-
-
-	/**
-	 * Returns whether or not the shapee is editable.
-	 * @return - true if the shape is editable; false, otherwise.
-	 */
-	virtual bool isEditable() const;
+	virtual bool isEditMode() const;
 
 	/**
 	 * Returns whether or not the shape is being hovered.
@@ -153,10 +178,10 @@ public:
 	virtual void setDeletable( bool value );
 
 	/**
-	 * Set whether or not the shape is editable.
-	 * @param editable - true if the shape is editable; false otherwise.
+	 * Set whether or not the shape is being edited.
+	 * @param editable - true if the shape is being edited; false otherwise.
 	 */
-	virtual void setEditable( bool editable );
+	virtual void setEditMode( bool editable );
 
 	/**
 	 * Sets whether or not the shape is in a hovered state.
@@ -165,6 +190,12 @@ public:
 	 * 	otherwise.
 	 */
 	virtual bool setHovered( bool hovered );
+
+	/**
+	 * Set the underlying model for the region.
+	 * @param model - the region model.
+	 */
+	virtual void setModel( Carta::Lib::Regions::RegionBase* model );
 
 	/**
 	 * Set a user-customized name for the region.
@@ -194,6 +225,13 @@ public:
 
 	virtual ~Region();
 
+signals:
+
+	/**
+	 * Notification that the region has been created.
+	 */
+	void editDone();
+
 protected:
 
 	/**
@@ -201,6 +239,8 @@ protected:
 	 * @param state - a string representation of the state to restore.
 	 */
 	virtual void _restoreState( const QString& state );
+
+	void _updateShapeFromState();
 
 	/**
 	 * Construct a region.
@@ -211,7 +251,9 @@ protected:
 	const static QString HOVERED;
 	const static QString REGION_TYPE;
 	bool m_regionNameSet;
-	std::shared_ptr<IShape> m_shape;
+	std::shared_ptr<Shape::ShapeBase> m_shape;
+
+
 
 private:
 
@@ -223,6 +265,7 @@ private:
 
 	void _initializeCallbacks();
 	void _initializeState();
+
 
 
 	Region( const Region& other);

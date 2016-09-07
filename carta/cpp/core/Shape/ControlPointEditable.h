@@ -28,9 +28,14 @@ public:
     ControlPointEditable( std::function < void (bool) > cb );
 
     /**
-    	 * Return the location of the point.
-    	 * @return - the location of the point.
-    	 */
+     * Notification that the editable state of the shape has changed.
+     */
+    virtual void editModeChanged() override;
+
+    /**
+     * Return the location of the point.
+     * @return - the location of the point.
+     */
     const QPointF & getPosition() const;
 
     /**
@@ -71,6 +76,12 @@ public:
     void setFillColor( QColor color );
 
     /**
+     * Set the underlying model for the region.
+     * @param json - the region model.
+     */
+    virtual void setModel( const QJsonObject& json ) override;
+
+    /**
      * Set the position of the point.
      * @param pt - the position of the point.
      */
@@ -78,11 +89,16 @@ public:
 
     virtual ~ControlPointEditable();
 
+protected:
+    virtual void _editShadow( const QPointF& pt ) override;
+    virtual void _moveShadow( const QPointF& pt ) override;
+    virtual void _syncShadowToCPs() override;
+
 private:
     std::function < void (bool) > m_cb;
     QPointF m_pos = QPointF( 0, 0 );
-    QColor m_fillColor = QColor( 255, 0, 0 );
-    double m_size = 7;
+    QColor m_fillColor;
+    double m_size = 11;
 };
 
 }

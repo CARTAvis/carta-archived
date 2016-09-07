@@ -81,6 +81,6 @@ private:
      * @param imagePtr - the image that will contain the region(s).
      * @return - a list containing information about the regions that were loaded.
      */
-    std::vector< std::shared_ptr<Carta::Lib::Regions::RegionBase> >
+    std::vector<Carta::Lib::Regions::RegionBase*>
         _loadRegion(const QString & fileName, std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr );
 };

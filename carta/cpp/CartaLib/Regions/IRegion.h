@@ -382,6 +382,10 @@ public:
     }
 
     static constexpr auto REGION_TYPE = "type";
+    static constexpr auto POINT_X = "x";
+    static constexpr auto POINT_Y = "y";
+    static constexpr auto CENTER_X = "centerx";
+    static constexpr auto CENTER_Y = "centery";
 
 protected:
 
@@ -394,9 +398,9 @@ protected:
         m_parent = parent;
     }
 
-    static constexpr auto CENTER_X = "centerx";
-    static constexpr auto CENTER_Y = "centery";
+
     static constexpr auto RADIUS = "radius";
+
 
 private:
 
@@ -477,7 +481,7 @@ public:
         doc[CENTER_X] = m_center.x();
         doc[CENTER_Y] = m_center.y();
         doc[RADIUS] = m_radius;
-        doc["type"] = TypeName;
+        doc[REGION_TYPE] = TypeName;
 
         return doc;
     }
@@ -531,8 +535,7 @@ public:
 
     static constexpr auto TypeName = "polygon";
     static constexpr auto POINTS = "pts";
-    static constexpr auto POINT_X = "x";
-    static constexpr auto POINT_Y = "y";
+
     virtual QString
     typeName() const override { return TypeName; }
 
@@ -602,12 +605,13 @@ public:
         if ( ! RegionBase::initFromJson( obj ) ) { return false; }
         if ( ! obj[POINTS].isArray() ) { return false; }
         QJsonArray pts = obj[POINTS].toArray();
+        m_qpolyf.clear();
         for ( const auto & jv : pts ) {
             QJsonObject o = jv.toObject();
-            if ( ! o["x"].isDouble() ) { return false; }
-            if ( ! o["y"].isDouble() ) { return false; }
-            double x = o["x"].toDouble();
-            double y = o["y"].toDouble();
+            if ( ! o[POINT_X].isDouble() ) { return false; }
+            if ( ! o[POINT_Y].isDouble() ) { return false; }
+            double x = o[POINT_X].toDouble();
+            double y = o[POINT_Y].toDouble();
             m_qpolyf.append( QPointF( x, y ) );
         }
         return true;
@@ -653,7 +657,7 @@ public:
     toJson() const override
     {
         QJsonObject obj = RegionBase::toJson();
-        obj["type"] = TypeName;
+        obj[REGION_TYPE] = TypeName;
         return obj;
     }
 };

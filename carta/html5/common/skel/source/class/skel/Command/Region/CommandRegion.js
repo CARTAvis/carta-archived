@@ -27,22 +27,20 @@ qx.Class.define("skel.Command.Region.CommandRegion", {
     members : {
 
         doAction : function( vals, undoCB ){
-            if ( this.m_sendToServer ){
-                var path = skel.widgets.Path.getInstance();
-                var label = this.getLabel();
-                var params = this.m_params + label;
-                var errMan = skel.widgets.ErrorHandler.getInstance();
-                if ( skel.Command.Command.m_activeWins.length > 0 ){
-                    for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
-                        var windowInfo = skel.Command.Command.m_activeWins[i];
-                        var id = windowInfo.getIdentifier();
-                        this.sendCommand( id, params, undoCB );
-                    }
-                    errMan.clearErrors();
+            var path = skel.widgets.Path.getInstance();
+            var label = this.getLabel();
+            var params = this.m_params + label;
+            var errMan = skel.widgets.ErrorHandler.getInstance();
+            if ( skel.Command.Command.m_activeWins.length > 0 ){
+                for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
+                    var windowInfo = skel.Command.Command.m_activeWins[i];
+                    var id = windowInfo.getIdentifier();
+                    this.sendCommand( id, params, undoCB );
                 }
-                else {
-                    errMan.updateErrors( "Selected window does not support regions.");
-                }
+                errMan.clearErrors();
+            }
+            else {
+                errMan.updateErrors( "Selected window does not support regions.");
             }
         },
         

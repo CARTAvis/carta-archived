@@ -18,8 +18,8 @@ DrawStackSynchronizer::DrawStackSynchronizer( Carta::Lib::LayeredViewArbitrary* 
     // listen for resize events
     connect( m_view.get(), SIGNAL(sizeChanged()), this, SIGNAL( viewResize() ) );
     // listen for input events
-    connect( m_view.get(), SIGNAL(inputEvent(const InputEvent&)),
-    		this, SIGNAL( inputEvent(const InputEvent&)) );
+    connect( m_view.get(), SIGNAL(inputEvent(InputEvent)),
+    		this, SIGNAL( inputEvent(InputEvent)) );
 }
 
 void DrawStackSynchronizer::_clear(){

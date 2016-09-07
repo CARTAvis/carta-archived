@@ -88,8 +88,8 @@ Controller::Controller( const QString& path, const QString& id ) :
 			this, SLOT(_contourSetRemoved(const QString&)));
 	connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _loadViewQueued() ));
 	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
-	connect( m_stack.get(), SIGNAL(inputEvent( const InputEvent&)), this,
-			SLOT( _onInputEvent(const InputEvent &)));
+	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
+			SLOT( _onInputEvent( InputEvent )));
 
 	GridControls* gridObj = objMan->createObject<GridControls>();
 	m_gridControls.reset( gridObj );
@@ -472,7 +472,7 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     m_stack->_gridChanged( state, applyAll );
 }
 
-void Controller::_onInputEvent(const InputEvent & ev ){
+void Controller::_onInputEvent( InputEvent  ev ){
 	Carta::Lib::InputEvents::HoverEvent hover( ev );
 	if ( hover.isValid() ){
 		QPointF mousePt = hover.pos();
@@ -481,7 +481,19 @@ void Controller::_onInputEvent(const InputEvent & ev ){
 		_updateCursor( mouseX, mouseY );
 		emit zoomChanged();
 	}
+
 	m_regionControls->_onInputEvent( ev );
+	//Note:  we set the event consumed if we are editing a region to prevent
+	//a subsequent pan operation.
+	if ( ! ev.isConsumed() ){
+		Carta::Lib::InputEvents::DoubleTapEvent doubleTap( ev );
+		if ( doubleTap.isValid() ){
+			QPointF mousePt = doubleTap.pos();
+			int mouseX = mousePt.x();
+			int mouseY = mousePt.y();
+			updatePan( mouseX, mouseY );
+		}
+	}
 }
 
 void Controller::_initializeCallbacks(){
@@ -637,23 +649,6 @@ void Controller::_initializeCallbacks(){
                 return result;
     });
 
-
-
-    addCommandCallback( CENTER, [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) ->QString {
-        bool parseError = false;
-        QString result;
-        auto vals = Util::string2VectorDouble( params, &parseError );
-        int count = vals.size();
-        if ( count > 1 ) {
-            updatePan( vals[0], vals[1]);
-        }
-        else {
-            result = "Center command must include doubles specifying the point to center: "+params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
 
     addCommandCallback( Util::ZOOM, [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
@@ -830,7 +825,7 @@ void Controller::_initializeCallbacks(){
                std::set<QString> keys = {Util::TYPE};
                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                QString shape = dataValues[Util::TYPE];
-               QString result = m_regionControls->_setRegionCreateType( shape );
+               QString result = m_regionControls->setRegionCreateType( shape );
                return result;
            });
 
@@ -904,12 +899,15 @@ void Controller::_notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis ){
     emit frameChanged( this, axis );
 }
 
-void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
-    m_stack->_removeContourSet( contourSet );
+void Controller::_regionsChanged(){
+	Carta::Lib::VectorGraphics::VGList vgList = m_regionControls->vgList();
+	m_stack-> _setRegionGraphics ( vgList );
+	_loadView();
+	emit dataChangedRegion( this );
 }
 
-void Controller::_regionsChanged(){
-	emit dataChangedRegion( this );
+void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
+    m_stack->_removeContourSet( contourSet );
 }
 
 void Controller::_renderZoom( double factor ){

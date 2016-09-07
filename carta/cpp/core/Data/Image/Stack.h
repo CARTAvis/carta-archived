@@ -40,7 +40,7 @@ public:
 
 signals:
 
-	void inputEvent( const InputEvent& ev );
+	void inputEvent( InputEvent ev );
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.
