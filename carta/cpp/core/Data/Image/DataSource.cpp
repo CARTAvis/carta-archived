@@ -68,6 +68,13 @@ void DataSource::_copyData( int frameLow, int frameHigh, int spectralIndex,
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
         int index = 0;
+	
+	// Preallocate space for both of these copies to avoid 
+	// running out of memory unnecessarily through dynamic allocation
+	std::vector<int> dims = rawData->dims();
+	int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
+	allIndices.reserve(total_size);
+	allValues.reserve(total_size);
 
         view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
