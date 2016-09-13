@@ -426,7 +426,6 @@ private:
     typedef std::map <QString, ObjectRegistryEntry> ObjectRegistry;
 
     ObjectRegistry m_objects;
-    static std::shared_ptr<ObjectManager> m_om;
 
 };
 

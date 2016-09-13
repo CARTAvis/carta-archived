@@ -188,8 +188,6 @@ const QString ObjectManager::STATE_ARRAY = "states";
 const QString ObjectManager::STATE_ID = "id";
 const QString ObjectManager::STATE_VALUE = "state";
 
-std::shared_ptr<ObjectManager> ObjectManager::m_om = nullptr;
-
 ObjectManager::ObjectManager ()
 :       m_root( "CartaObjects"),
         m_sep( "/"),
@@ -356,10 +354,8 @@ ObjectManager *
 ObjectManager::objectManager ()
 {
     // Implements a singleton pattern
-    if ( !m_om ){
-        m_om.reset( new ObjectManager() );
-    }
-    return m_om.get();
+    static ObjectManager om;
+    return &om;
 }
 
 ObjectManager::~ObjectManager (){
