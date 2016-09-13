@@ -151,13 +151,20 @@ public:
      */
     virtual bool setPlugin( const QString& nodeId, const QString& pluginType, int index ) = 0;
 
-    virtual ~LayoutNode();
+    /**
+     * Set the size of the layout cell.
+     * @param width - the width of the layout cell.
+     * @param height - the height of the layout cell.
+     */
+    virtual QString setSize( int width, int height );
 
     /**
      * Return a string representation of the state of this cell and its descendents.
      * @return a string representation of this layout and its descendents.
      */
     virtual QString toString() const;
+
+    virtual ~LayoutNode();
 
 protected:
 
@@ -166,6 +173,7 @@ protected:
 private:
     void _initializeCommands();
     void _initializeDefaultState();
+
 
     LayoutNode( const LayoutNode& other);
     LayoutNode& operator=( const LayoutNode& other );

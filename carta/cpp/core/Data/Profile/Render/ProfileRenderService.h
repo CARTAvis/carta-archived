@@ -19,6 +19,7 @@ namespace Data{
 class Layer;
 class ProfileRenderWorker;
 class ProfileRenderThread;
+class ProfileRenderRequest;
 class Region;
 
 class ProfileRenderService : public QObject {
@@ -68,15 +69,7 @@ private:
     ProfileRenderWorker* m_worker;
     ProfileRenderThread* m_renderThread;
     bool m_renderQueued;
-
-
-    struct RenderRequest {
-        bool m_createNew;
-        Carta::Lib::ProfileInfo m_profileInfo;
-        std::shared_ptr<Layer> m_layer;
-        std::shared_ptr<Region> m_region;
-    };
-    QQueue<RenderRequest> m_requests;
+    QQueue<ProfileRenderRequest> m_requests;
 
     ProfileRenderService( const ProfileRenderService& other);
     ProfileRenderService& operator=( const ProfileRenderService& other );

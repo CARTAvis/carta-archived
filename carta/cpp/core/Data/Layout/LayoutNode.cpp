@@ -57,6 +57,7 @@ int LayoutNode::getWidth() const {
     return m_state.getValue<int>( Util::WIDTH );
 }
 
+
 void LayoutNode::_initializeCommands(){
     addCommandCallback( "setSize", [=] (const QString & /*cmd*/,
                       const QString & params, const QString & /*sessionId*/) -> QString {
@@ -70,13 +71,7 @@ void LayoutNode::_initializeCommands(){
               if ( valid ){
                   int height = heightStr.toInt( &valid );
                   if ( valid ){
-                      if ( width >= 0 && height >= 0 ){
-                          m_state.setValue<int>(Util::WIDTH, width);
-                          m_state.setValue<int>(Util::HEIGHT, height );
-                      }
-                      else {
-                          result="Width/height of layout cell must be nonnegative: "+params;
-                      }
+                	  result = setSize( width, height );
                   }
                   else {
                       result = "Invalid layout height: "+heightStr;
@@ -128,6 +123,18 @@ void LayoutNode::setChildSecond( LayoutNode* /*node*/ ){
 
 void LayoutNode::setHorizontal( bool /*horizontal*/ ){
 
+}
+
+QString LayoutNode::setSize( int width, int height ){
+	QString result;
+	if ( width >= 0 && height >= 0 ){
+		m_state.setValue<int>(Util::WIDTH, width);
+		m_state.setValue<int>(Util::HEIGHT, height );
+	}
+	else {
+		result="Width/height of layout cell must be nonnegative: ("+QString::number(width)+", "+QString::number(height)+")";
+	}
+	return result;
 }
 
 QString LayoutNode::toString() const {

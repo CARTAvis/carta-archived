@@ -70,13 +70,13 @@ public:
     AnimatorType* getAnimator( const QString& type );
 
     /**
-     * Returns the number of controllees linked to this Animator.
+     * Returns the number of controllers linked to this Animator.
      * @return a count of objects controlled by the animator.
      */
     int getLinkCount() const;
 
     /**
-     * Returns the identifier of the controllee linked to the Animator.
+     * Returns the identifier of the controller linked to the Animator.
      * @param index a link index.
      * @param the path of the controller at the given index linked to this Animator;
      */

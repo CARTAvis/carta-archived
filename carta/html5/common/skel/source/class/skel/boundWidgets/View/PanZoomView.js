@@ -24,6 +24,8 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
 
         this.m_viewId = viewId;
         this.m_connector = mImport( "connector");
+        var qualityValue = this.m_connector.supportsRasterViewQuality() ? 90 : 101;
+        this.setQuality( qualityValue );
     },
 
     members: {

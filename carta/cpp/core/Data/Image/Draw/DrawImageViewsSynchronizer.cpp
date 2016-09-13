@@ -39,6 +39,18 @@ bool DrawImageViewsSynchronizer::isContextView() const {
     return contextView;
 }
 
+bool DrawImageViewsSynchronizer::_isRequested( const std::shared_ptr<RenderRequest>& request ) const {
+	bool requested = false;
+	int requestCount = m_requests.size();
+	for ( int i = 0; i < requestCount; i++ ){
+		if ( m_requests[i]->operator==( *request.get() ) ){
+			requested = true;
+			break;
+		}
+	}
+	return requested;
+}
+
 bool DrawImageViewsSynchronizer::isZoomView() const {
     bool zoomView = false;
     if ( m_drawZoom ){
@@ -47,14 +59,20 @@ bool DrawImageViewsSynchronizer::isZoomView() const {
     return zoomView;
 }
 
-void DrawImageViewsSynchronizer::render( const std::shared_ptr<RenderRequest>& request ){
-    m_requests.enqueue( request );
-    if ( m_busy ){
-        return;
-    }
 
-    //Store the data & request.
-    _startNextDraw();
+void DrawImageViewsSynchronizer::render( const std::shared_ptr<RenderRequest>& request ){
+	if ( !_isRequested( request) ){
+		m_requests.enqueue( request );
+		if ( m_busy ){
+			return;
+		}
+
+		//Store the data & request.
+		_startNextDraw();
+	}
+	else {
+		qDebug() << "Skipping render - queueSize="<<m_requests.size();
+	}
 }
 
 void DrawImageViewsSynchronizer::setViewDraw( std::shared_ptr<DrawStackSynchronizer> stackDraw ){

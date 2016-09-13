@@ -64,16 +64,26 @@ bool LayoutNodeComposite::_addWindow( const QString& nodeId, const QString& posi
                 windowAdded = true;
                 LayoutNode* emptyChild = NodeFactory::makeLeaf();
                 emptyChild->setIndex( index );
+                int oldWidth = oldComp->getWidth();
+                int oldHeight = oldComp->getHeight();
+                if ( position == NodeFactory::POSITION_TOP || position==NodeFactory::POSITION_BOTTOM ){
+                	emptyChild->setSize( oldWidth, oldHeight / 2 );
+                	oldComp->setSize( oldWidth, oldHeight / 2 );
+                }
+                else {
+                	emptyChild->setSize( oldWidth / 2, oldHeight );
+                	oldComp->setSize( oldWidth / 2, oldHeight );
+                }
                 //Make the old child a child of the composite as well as the empty leaf.
                 if ( position == NodeFactory::POSITION_TOP || position == NodeFactory::POSITION_LEFT ){
                     newComp->setChildSecond( oldComp );
                     newComp->setChildFirst( emptyChild );
                 }
                 else {
-
                     newComp->setChildSecond( emptyChild );
                     newComp->setChildFirst( oldComp );
                 }
+
                 //Make the child into a composite.
                 _setChild( childKey, child, newComp, false );
             }
@@ -422,6 +432,32 @@ bool LayoutNodeComposite::setPlugins( QStringList& names, QMap<QString,int>& use
         pluginSetTwo = m_secondChild->setPlugins( names, usedPlugins, useFirst );
     }
     return pluginSetOne && pluginSetTwo;
+}
+
+QString LayoutNodeComposite::setSize( int width, int height ){
+	QString result;
+	if ( width >= 0 && height >= 0 ){
+		m_state.setValue<int>(Util::WIDTH, width);
+		m_state.setValue<int>(Util::HEIGHT, height );
+		//If we have children, we have to divide up the space among them.
+		int childHeight = height / 2;
+		int childWidth = width;
+		if ( m_state.getValue<bool>( HORIZONTAL ) ){
+			childHeight = height;
+			childWidth = width / 2;
+		}
+		if ( m_firstChild ){
+			m_firstChild->setSize( childWidth, childHeight );
+		}
+		if ( m_secondChild ){
+			m_secondChild->setSize( childWidth, childHeight );
+		}
+	}
+	else {
+		result="Width/height of layout cell must be nonnegative: ("+
+				QString::number(width)+","+QString::number(height)+")";
+	}
+	return result;
 }
 
 

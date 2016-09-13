@@ -1694,14 +1694,12 @@ void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
         return;
     }
-
-    m_plotManager->clearData();
-
     bool profileChanged = _updateProfiles( controller );
 
     //If we removed some curves but did not generate any new ones, the plot
     //needs to get updated (it will be updated automatically if a new curve is generated.
     if ( profileChanged ){
+    	 m_plotManager->clearData();
         _updatePlotData();
     }
 }
@@ -3298,8 +3296,8 @@ bool Profiler::_updateProfiles( Controller* controller ){
         bool layerFound = false;
         for ( int j = 0; j < dataCount; j++ ){
             if ( regionCount > 0 ){
-                for ( int i = 0; i < regionCount; i++ ){
-                    QString id = _generateCurveId( layers[i], regions[j] );
+                for ( int k = 0; k < regionCount; k++ ){
+                    QString id = _generateCurveId( layers[j], regions[k] );
                     if ( id == curveId ){
                         layerFound = true;
                         break;
@@ -3310,7 +3308,7 @@ bool Profiler::_updateProfiles( Controller* controller ){
                 }
             }
             else {
-                QString id = _generateCurveId( layers[i], nullptr );
+                QString id = _generateCurveId( layers[j], nullptr );
                 if ( id == curveId ){
                     layerFound = true;
                     break;
@@ -3343,7 +3341,7 @@ bool Profiler::_updateProfiles( Controller* controller ){
     }
 
     _saveCurveState();
-    if ( removeIndices.size() > 0 && !generates ){
+    if ( (removeIndices.size() > 0 && !generates) || generates ){
         profileChanged = true;
     }
     return profileChanged;

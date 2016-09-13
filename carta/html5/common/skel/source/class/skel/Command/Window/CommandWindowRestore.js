@@ -25,7 +25,7 @@ qx.Class.define("skel.Command.Window.CommandWindowRestore", {
                 this.fireDataEvent( "windowRestored", "");
                 for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
                     var window = skel.Command.Command.m_activeWins[i];
-                    window.fireDataEvent( "restoreWindow", "");
+                    window.fireDataEvent( "windowRestored", "");
                 }
             }
         }

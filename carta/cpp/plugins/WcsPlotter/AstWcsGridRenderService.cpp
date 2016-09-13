@@ -200,25 +200,8 @@ AstWcsGridRenderService::renderNow()
         m_vgc.append < VGE::Restore > ();
     }
 
-   /* auto elements {
-        Element::BorderLines,
-        Element::AxisLines1,
-        Element::AxisLines2,
-        Element::GridLines1,
-        Element::GridLines2,
-        Element::TickLines1,
-        Element::TickLines2,
-        Element::NumText1,
-        Element::NumText2,
-        Element::LabelText1,
-        Element::LabelText2,
-        Element::Shadow,
-        Element::MarginDim
-    };*/
-
     // setup indexed pens
-    //for ( auto & e : elements ) {
-    for ( Element e=Element::BorderLines; e!=Element::MarginDim; ++e ) {
+    for ( Element e=Element::BorderLines; e!=Element::__count; ++e ) {
         m().penEntries[si( e )] =
             m_vgc.append < VGE::StoreIndexedPen > ( si( e ), pi( e ) );
     }
@@ -471,9 +454,11 @@ AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, c
 
     // if the list is valid, just change the entry directly
     if ( m_vgValid ) {
-        m_vgc.set < VGE::StoreIndexedPen > ( m().penEntries[si( e )], si( e ), pi( e ) );
-        if ( e == Element::MarginDim ) {
-            m_vgc.set < VGE::StoreIndexedBrush > ( m().dimBrushIndex, 0, pi( e ).brush() );
+    	int penIndex=m().penEntries[si(e)];
+        m_vgc.set < VGE::StoreIndexedPen > ( penIndex, si( e ), pi( e ) );
+        int brushIndex = m().dimBrushIndex;
+        if ( e == Element::MarginDim && brushIndex >= 0 ) {
+            m_vgc.set < VGE::StoreIndexedBrush > ( brushIndex, 0, pi( e ).brush() );
         }
     }
 } // setPen

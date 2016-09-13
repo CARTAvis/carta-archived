@@ -80,7 +80,7 @@ bool Stack::_closeData( const QString& id ){
         int visibleImageCount = _getStackSizeVisible();
         m_selectImage->setUpperBound( visibleImageCount );
         if ( selectedImage >= visibleImageCount ){
-            m_selectImage->setIndex(0);
+            m_selectImage->setIndex(visibleImageCount - 1);
         }
         //Update the channel upper bound and index if necessary
         int targetData = _getIndexCurrent();
@@ -499,27 +499,26 @@ void Stack::_renderZoom( int mouseX, int mouseY, double zoomFactor ){
 }
 
 QString Stack::_resetFrames( int val ){
-    //Set the image frame.
-    QString layerId;
-    if ( 0 <= val && val < m_children.size()){
-        //Update the data selectors upper bound based on the data.
-        int visibleCount = _getStackSizeVisible();
-        m_selectImage->setUpperBound( visibleCount );
-        m_selectImage->setIndex(val);
-        layerId = m_children[val]->_getLayerId();
-        int selectCount = m_selects.size();
-        for ( int i = 0; i < selectCount; i++ ){
-            AxisInfo::KnownType type = static_cast<AxisInfo::KnownType>(i);
-            int upperBound = _getFrameCount( type );
-            m_selects[i]->setUpperBound( upperBound );
-            if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
-                m_selects[i]->setIndex( 0 );
-                emit frameChanged( type );
-            }
-        }
-    }
-
-    return layerId;
+	//Set the image frame.
+	QString layerId;
+	if ( 0 <= val && val < m_children.size()){
+		//Update the data selectors upper bound based on the data.
+		int visibleCount = _getStackSizeVisible();
+		m_selectImage->setUpperBound( visibleCount );
+		m_selectImage->setIndex(val);
+		layerId = m_children[val]->_getLayerId();
+		int selectCount = m_selects.size();
+		for ( int i = 0; i < selectCount; i++ ){
+			AxisInfo::KnownType type = static_cast<AxisInfo::KnownType>(i);
+			int upperBound = _getFrameCount( type );
+			m_selects[i]->setUpperBound( upperBound );
+			if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
+				m_selects[i]->setIndex( 0 );
+				emit frameChanged( type );
+			}
+		}
+	}
+	return layerId;
 }
 
 
@@ -669,6 +668,7 @@ QString Stack::_setFrameImage( int val ){
     QString layerId;
     if ( oldIndex != val ){
         layerId = _resetFrames( val);
+        emit viewLoad();
     }
     return layerId;
 }

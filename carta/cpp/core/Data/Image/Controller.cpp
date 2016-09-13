@@ -479,10 +479,11 @@ void Controller::_onInputEvent( InputEvent  ev ){
 		int mouseX = mousePt.x();
 		int mouseY = mousePt.y();
 		_updateCursor( mouseX, mouseY );
-		emit zoomChanged();
+
 	}
 
 	m_regionControls->_onInputEvent( ev );
+
 	//Note:  we set the event consumed if we are editing a region to prevent
 	//a subsequent pan operation.
 	if ( ! ev.isConsumed() ){

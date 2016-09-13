@@ -291,6 +291,7 @@ void ObjectManager::printObjects(){
     for(map<QString,ObjectRegistryEntry>::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
         QString firstId = it->first;
         QString classId = it->second.getClassName();
+        qDebug() << "id="<<firstId<<" class="<<classId;
     }
 }
 

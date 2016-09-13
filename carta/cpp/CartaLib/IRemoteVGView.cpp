@@ -305,13 +305,13 @@ LayeredViewArbitrary::p_timerCB()
 
     // figure out which layer (from top to bottom) is fully opaque
     // we do this because we don't need to render any layer below it
-    size_t startLayer = 0;
+    int startLayer = 0;
 
     /// \todo implement this
     startLayer = m_layers.size();
     while ( 1 ) {
         startLayer--;
-        if ( startLayer == 0 ) {
+        if ( startLayer <= 0 ) {
             break;
         }
 

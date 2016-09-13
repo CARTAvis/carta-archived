@@ -98,6 +98,7 @@ HEADERS += \
     Data/Profile/Fit/ProfileFitThread.h \
     Data/Profile/Profiler.h \
     Data/Profile/ProfilePlotStyles.h \
+    Data/Profile/Render/ProfileRenderRequest.h \
     Data/Profile/Render/ProfileRenderService.h \
     Data/Profile/Render/ProfileRenderThread.h \
     Data/Profile/Render/ProfileRenderWorker.h \
@@ -251,6 +252,7 @@ SOURCES += \
     Data/Profile/Fit/ProfileFitThread.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfilePlotStyles.cpp \
+    Data/Profile/Render/ProfileRenderRequest.cpp \
     Data/Profile/Render/ProfileRenderService.cpp \
     Data/Profile/Render/ProfileRenderThread.cpp \
     Data/Profile/Render/ProfileRenderWorker.cpp \

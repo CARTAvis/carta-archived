@@ -46,6 +46,8 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
         this.m_sharedVarText = this.m_connector.getSharedVar( pathText );
         this.m_sharedVarText.addCB(this._cursorChangedCB.bind(this));
         this._cursorChangedCB();
+        var qualityValue = this.m_connector.supportsRasterViewQuality() ? 90 : 101;
+        this.setQuality( qualityValue );
     },
 
     members: {

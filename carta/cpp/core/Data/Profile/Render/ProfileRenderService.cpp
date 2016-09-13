@@ -1,6 +1,7 @@
 #include "ProfileRenderService.h"
 #include "ProfileRenderWorker.h"
 #include "ProfileRenderThread.h"
+#include "ProfileRenderRequest.h"
 #include "Data/Image/Layer.h"
 #include "Data/Region/Region.h"
 #include "CartaLib/Hooks/ProfileHook.h"
@@ -20,14 +21,12 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Layer> layer,
         std::shared_ptr<Region> region, const Carta::Lib::ProfileInfo& profInfo,
         bool createNew ){
     bool profileRender = true;
-    if ( layer && !m_renderQueued ){
-        RenderRequest request;
-        request.m_layer = layer;
-        request.m_region = region;
-        request.m_profileInfo = profInfo;
-        request.m_createNew = createNew;
-        m_requests.enqueue( request );
-        _scheduleRender( layer, region, profInfo );
+    ProfileRenderRequest request( layer, region, profInfo, createNew );
+    if ( layer ){
+    	if ( ! m_requests.contains( request ) ){
+    		m_requests.enqueue( request );
+    		_scheduleRender( layer, region, profInfo );
+    	}
     }
     else {
         profileRender = false;
@@ -72,13 +71,12 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
 
 void ProfileRenderService::_postResult(  ){
     Lib::Hooks::ProfileResult result = m_renderThread->getResult();
-    RenderRequest request = m_requests.dequeue();
-    emit profileResult(result, request.m_layer, request.m_region, request.m_createNew );
+    ProfileRenderRequest request = m_requests.dequeue();
+    emit profileResult(result, request.getLayer(), request.getRegion(), request.isCreateNew() );
     m_renderQueued = false;
     if ( m_requests.size() > 0 ){
-        RenderRequest& head = m_requests.head();
-         _scheduleRender( head.m_layer,
-                head.m_region, head.m_profileInfo );
+        ProfileRenderRequest& head = m_requests.head();
+         _scheduleRender( head.getLayer(), head.getRegion(), head.getProfileInfo() );
     }
 }
 

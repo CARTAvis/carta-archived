@@ -128,7 +128,9 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         /**
          * @type {Connector} cached instance of the connector
          */
-        m_connector: null
+        m_connector: null,
+        
+        m_quality: null
     },
 
     destruct: function()

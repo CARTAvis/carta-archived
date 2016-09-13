@@ -106,6 +106,14 @@ public:
     QSize getOutputSize() const;
 
     /**
+     * Returns whether or not the other request is equal to this one.
+     * @param other - the other request.
+     * @return - whether or not the other request is equal to this one.
+     */
+	bool operator==( const RenderRequest& other ) const;
+
+
+    /**
      * Set the list of layers to be rendered.
      * @param datas - the list of layers to be rendered.
      */

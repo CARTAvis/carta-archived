@@ -81,19 +81,21 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
             restUnit = restUnitImage;
         }
     }
+    casa::Record regionRecord;
+    if ( regionInfo ){
+    	QString shape = regionInfo->typeName();
+    	QPolygonF regionCorners = regionInfo->outlineBox();
 
-    QString shape = regionInfo->typeName();
-    QPolygonF regionCorners = regionInfo->outlineBox();
-
-    int cornerCount = regionCorners.size();
-    casa::Vector<casa::Double> x(cornerCount);
-    casa::Vector<casa::Double> y(cornerCount);
-    for ( int i = 0; i < cornerCount; i++ ){
-        QPointF corner = regionCorners.value( i );
-        x[i] = corner.x();
-        y[i] = corner.y();
+    	int cornerCount = regionCorners.size();
+    	casa::Vector<casa::Double> x(cornerCount);
+    	casa::Vector<casa::Double> y(cornerCount);
+		for ( int i = 0; i < cornerCount; i++ ){
+			QPointF corner = regionCorners.value( i );
+			x[i] = corner.x();
+			y[i] = corner.y();
+		}
+		regionRecord = _getRegionRecord( shape, cSys, x, y);
     }
-    casa::Record regionRecord = _getRegionRecord( shape, cSys, x, y);
     QString spectralType = profileInfo.getSpectralType();
     QString spectralUnit = profileInfo.getSpectralUnit();
     if ( spectralType == "Channel"){

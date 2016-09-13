@@ -50,6 +50,10 @@ qx.Class.define( "skel.boundWidgets.View.ViewWithInputDiv", {
             this.m_overlayWidget = widget;
             this.add( this.m_overlayWidget );
         },
+        
+        setQuality : function( quality ){
+        	this.m_viewWidget.setQuality( quality );
+        },
 
         /**
          * Get the view widget

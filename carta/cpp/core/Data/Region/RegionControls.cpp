@@ -149,14 +149,17 @@ bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev 
 		validDrag = true;
 		if ( m_regionEdit ){
 			m_regionEdit->handleDrag( ev );
+			emit regionsChanged();
 		}
 		else {
 			int regionCount = m_regions.size();
 			for ( int i = 0; i < regionCount; i++ ){
 				m_regions[i]->handleDrag( ev );
 			}
+			if ( regionCount > 0 ){
+				emit regionsChanged();
+			}
 		}
-		emit regionsChanged();
 	}
 	return validDrag;
 }
@@ -167,14 +170,18 @@ bool RegionControls::_handleHover( const Carta::Lib::InputEvents::HoverEvent& ev
 		validHover = true;
 		if ( m_regionEdit ){
 			m_regionEdit->handleHover( ev.pos() );
+			emit regionsChanged();
 		}
 		else {
 			int regionCount = m_regions.size();
 			for ( int i = 0; i < regionCount; i++ ){
 				m_regions[i]->handleHover( ev.pos() );
 			}
+			if ( regionCount > 0 ){
+				emit regionsChanged();
+			}
 		}
-		emit regionsChanged();
+
 	}
 	return validHover;
 }
@@ -186,14 +193,17 @@ bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev
 		validTap = true;
 		if ( m_regionEdit ){
 			m_regionEdit->handleTouch( ev.pos() );
+			emit regionsChanged();
 		}
 		else {
 			int regionCount = m_regions.size();
 			for ( int i = 0; i < regionCount; i++ ){
 				m_regions[i]->handleTouch( ev.pos() );
 			}
+			if ( regionCount > 0 ){
+				emit regionsChanged();
+			}
 		}
-		emit regionsChanged();
 	}
 	return validTap;
 }
@@ -204,8 +214,9 @@ bool RegionControls::_handleTapDouble( const Carta::Lib::InputEvents::DoubleTapE
 		if ( m_regionEdit ){
 			validTap = true;
 			m_regionEdit->handleTapDouble( ev.pos() );
+			emit regionsChanged();
 		}
-		emit regionsChanged();
+
 	}
 	return validTap;
 }

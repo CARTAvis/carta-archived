@@ -63,7 +63,7 @@ SpectralConversionPlugin::handleHook( BaseHook & hookData ){
                             hook.result = resultValues;
                         }
                         else {
-                            qDebug() << "Not converting spectral units, no spectral coordinate";
+                            //qDebug() << "Not converting spectral units, no spectral coordinate";
                         }
                     }
                 }

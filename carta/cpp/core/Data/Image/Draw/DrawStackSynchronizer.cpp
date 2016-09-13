@@ -129,12 +129,13 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
 
         }
     }
-    m_repaintFrameQueued = false;
+
     emit done( true );
     QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     for ( int i = 0; i < dataCount; i++ ){
         m_layers[i]->_renderDone();
     }
+    m_repaintFrameQueued = false;
 }
 
 void DrawStackSynchronizer::setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){

@@ -29,29 +29,33 @@ void Plot2DProfile::detachFromPlot(){
 void Plot2DProfile::drawLines (QPainter *painter, const QwtScaleMap &xMap,
         const QwtScaleMap &yMap,
         const QRectF &canvasRect, int from, int to) const{
-    QPen curvePen( m_defaultColor );
-    curvePen.setStyle( m_penStyle );
-    painter->setPen( curvePen );
-    if ( from != to ){
-        QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
-    }
-    else {
-        drawSymbol( painter, xMap, yMap, canvasRect, from, to );
-    }
+	if ( painter->isActive() ){
+		QPen curvePen( m_defaultColor );
+		curvePen.setStyle( m_penStyle );
+		painter->setPen( curvePen );
+		if ( from != to ){
+			QwtPlotCurve::drawLines( painter, xMap, yMap, canvasRect, from, to );
+		}
+		else {
+			drawSymbol( painter, xMap, yMap, canvasRect, from, to );
+		}
+	}
 }
 
 
 void Plot2DProfile::drawSteps (QPainter *painter, const QwtScaleMap &xMap,
         const QwtScaleMap &yMap, const QRectF &canvasRect, int from, int to) const {
-    QPen curvePen( m_defaultColor );
-    curvePen.setStyle( m_penStyle );
-    painter->setPen( curvePen );
-    if ( from != to ){
-        QwtPlotCurve::drawSteps( painter, xMap, yMap, canvasRect, from, to );
-    }
-    else {
-        drawSymbol( painter, xMap, yMap, canvasRect, from, to );
-    }
+	if ( painter->isActive() ){
+		QPen curvePen( m_defaultColor );
+		curvePen.setStyle( m_penStyle );
+		painter->setPen( curvePen );
+		if ( from != to ){
+			QwtPlotCurve::drawSteps( painter, xMap, yMap, canvasRect, from, to );
+		}
+		else {
+			drawSymbol( painter, xMap, yMap, canvasRect, from, to );
+		}
+	}
 }
 
 void Plot2DProfile::drawSymbol( QPainter* painter, const QwtScaleMap & xMap,

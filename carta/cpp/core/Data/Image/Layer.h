@@ -43,6 +43,7 @@ class Layer : public QObject, public Carta::State::CartaObject {
     friend class LayerGroup;
     friend class Profiler;
     friend class ProfileRenderService;
+    friend class ProfileRenderRequest;
     friend class Stack;
     friend class DrawGroupSynchronizer;
     friend class DrawStackSynchronizer;
@@ -561,6 +562,8 @@ protected:
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) = 0;
 
     virtual void _updateColor();
+
+
 
     /**
      *  Constructor.

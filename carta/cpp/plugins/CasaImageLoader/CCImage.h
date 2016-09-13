@@ -227,7 +227,7 @@ public:
 
     virtual
     ~CCImage() {
-        qDebug() << "~CCImage is getting called";
+        //qDebug() << "~CCImage is getting called";
     }
 
     /// do not use this!
