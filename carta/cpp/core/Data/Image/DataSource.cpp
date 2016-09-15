@@ -38,8 +38,6 @@ DataSource::DataSource() :
     m_cachedPercentiles(100),
     m_axisIndexX( 0 ),
     m_axisIndexY( 1 ){
-        m_cmapUseCaching = true;
-        m_cmapUseInterpolatedCaching = true;
         m_cmapCacheSize = 1000;
 
         _initializeSingletons();
@@ -381,7 +379,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
-
         std::vector < int > allIndices;
         std::vector < double > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
@@ -398,7 +395,11 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     intensities[i].second = allValues[locationIndex];
                     int divisor = 1;
                     std::vector<int> dims = m_image->dims();
-                    for ( int i = 0; i < spectralIndex; i++ ){
+                    int endIndex = spectralIndex;
+                    if ( spectralIndex < 0 ){
+                    	endIndex = dims.size();
+                    }
+                    for ( int i = 0; i < endIndex; i++ ){
                         divisor = divisor * dims[i];
                     }
                     int specIndex = allIndices[locationIndex ]/divisor;
@@ -645,6 +646,18 @@ void DataSource::_initializeSingletons( ){
     }
 }
 
+bool DataSource::_isSpectralAxis() const {
+	bool spectralAxis = false;
+	int imageSize = m_image->dims().size();
+	for ( int i = 0; i < imageSize; i++ ){
+		AxisInfo::KnownType axisType = _getAxisType( i );
+		if ( axisType == AxisInfo::KnownType::SPECTRAL ){
+			spectralAxis = true;
+			break;
+		}
+	}
+	return spectralAxis;
+}
 
 void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile){
@@ -657,8 +670,8 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
     if ( recomputeClipsOnNewFrame ){
         _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
     }
-
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+    QString cacheId=m_pixelPipeline-> cacheId();
+    m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
 
     QString renderId = _getViewIdCurrent( mFrames );
     m_renderService-> setInputView( view, renderId );
@@ -833,7 +846,6 @@ void DataSource::_setZoom( double zoomAmount){
 }
 
 
-
 void DataSource::_setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
@@ -842,33 +854,21 @@ void DataSource::_setGamma( double gamma ){
 
 void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
-    std::vector<int> mFrames = _fitFramesToImage( frames );
+	std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
-    std::vector<double> clips = m_quantileCache[ quantileIndex];
-    Carta::Lib::NdArray::Double doubleView( view.get(), false );
-    std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
-            doubleView, {minClipPercentile, maxClipPercentile });
-    bool clipsChanged = false;
-    int clipSize = newClips.size();
-    if ( clipSize >= 2 ){
-        if ( clips.size() >= 2 ){
-            double ERROR_MARGIN = 0.000001;
-            if ( qAbs( newClips[0] - clips[0]) > ERROR_MARGIN ||
-                qAbs( newClips[1] - clips[1]) > ERROR_MARGIN ){
-                clipsChanged = true;
-            }
-        }
-        else {
-            clipsChanged = true;
-        }
+    std::vector<double> clips = m_quantileCache[ quantileIndex].m_clips;
+    if ( clips.size() < 2  ||
+    		m_quantileCache[quantileIndex].m_minPercentile != minClipPercentile  ||
+			m_quantileCache[quantileIndex].m_maxPercentile != maxClipPercentile ) {
+    	Carta::Lib::NdArray::Double doubleView( view.get(), false );
+    	clips = Carta::Core::Algorithms::quantiles2pixels(
+    			doubleView, { minClipPercentile, maxClipPercentile });
+    	m_quantileCache[quantileIndex].m_clips = clips;
+    	m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
+    	m_quantileCache[quantileIndex].m_maxPercentile = maxClipPercentile;
     }
-
-    if ( clipsChanged ){
-        if ( newClips.size() >= 2 && newClips[0] != newClips[1] ){
-            m_quantileCache[ quantileIndex ] = newClips;
-            m_pixelPipeline-> setMinMax( newClips[0], newClips[1] );
-        }
-    }
+    m_pixelPipeline-> setMinMax( clips[0], clips[1] );
+    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
 std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){

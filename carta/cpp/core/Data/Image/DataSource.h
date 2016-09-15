@@ -329,6 +329,9 @@ private:
     //Initialize static objects.
     void _initializeSingletons( );
 
+    //Returns whether or not there is a spectral axis in the image.
+    bool _isSpectralAxis() const;
+
     /**
      * Generate a QImage representation of this data.
      * @param -frames a list of frames to load, one for each axis.
@@ -471,8 +474,6 @@ private:
     DataSource();
 
     QString m_fileName;
-    bool m_cmapUseCaching;
-    bool m_cmapUseInterpolatedCaching;
     int m_cmapCacheSize;
 
     //Used pointer to coordinate systems.
@@ -485,8 +486,15 @@ private:
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
 
-    /// clip cache, hard-coded to single quantile
-    std::vector< std::vector<double> > m_quantileCache;
+    struct QuantileCacheEntry {
+    	double m_minPercentile;
+    	double m_maxPercentile;
+    	std::vector<double> m_clips;
+    };
+
+    /// clip cache to avoid time-consuming operation or recomputing
+    /// unnecessary clips.
+    std::vector<QuantileCacheEntry> m_quantileCache;
 
     ///Percentile/Intensity cache
     LeastRecentlyUsedCache m_cachedPercentiles;

@@ -138,18 +138,26 @@ void Colormap::_calculateColorStops(){
             std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipe = dSource->_getPipeline();
             if ( pipe ){
                 QStringList buff;
+                double intensityMin = m_stateData.getValue<double>( INTENSITY_MIN );
+                double intensityMax = m_stateData.getValue<double>( INTENSITY_MAX );
+                pipe->setMinMax( intensityMin, intensityMax );
+                double diff = intensityMax - intensityMin;
+                double delta = diff / 100;
                 for ( int i = 0; i < 100; i++ ){
-                    float val = i / 100.0f;
+
+                    float val = intensityMin + i*delta;
+
                     Carta::Lib::PixelPipeline::NormRgb normRgb;
                     pipe->convert( val, normRgb );
                     QColor mapColor;
                     if ( normRgb[0] >= 0 && normRgb[1] >= 0 && normRgb[2] >= 0 ){
-                        mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2] );
+                    	mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2] );
                     }
                     QString hexStr = mapColor.name();
                     if ( i < 99 ){
                         hexStr = hexStr + ",";
                     }
+
                     buff.append( hexStr );
                 }
                 m_state.setValue<QString>( COLOR_STOPS, buff.join("") );
@@ -959,8 +967,6 @@ QString Colormap::setIntensityRange( double minValue, double maxValue ){
             m_stateData.flushState();
             _updateImageClips();
             _colorStateChanged();
-
-
         }
     }
     else {
@@ -1097,7 +1103,6 @@ QString Colormap::setTabIndex( int index ){
 void Colormap::_updateImageClips(){
     double minClip = m_stateData.getValue<double>( INTENSITY_MIN );
     double maxClip = m_stateData.getValue<double>( INTENSITY_MAX );
-
     //Change intensity values back to image units.
     Controller* controller = _getControllerSelected();
     if ( controller ){
@@ -1154,6 +1159,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
                   m_stateData.setValue<int>( INTENSITY_MAX_INDEX, intensities[1].first );
               }
               if ( intensityChanged ){
+            	  _colorStateChanged();
                   m_stateData.flushState();
               }
         }

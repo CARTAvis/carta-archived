@@ -65,7 +65,7 @@ IntensityConversionPlugin::handleHook( BaseHook & hookData ){
                 std::vector<double> valsY = hook.paramsPtr->m_inputListY;
                 double maxValue = hook.paramsPtr->m_maxValueY;
                 QString maxUnits = hook.paramsPtr->m_maxUnit;
-                if ( valsX.size() > 0 && valsY.size() > 0 ){
+                if ( valsY.size() > 0 ){
 					ConverterIntensity::convert( valsY, valsX,
 							oldUnits, newUnits, maxValue, maxUnits,
 							beamAngle, beamArea );

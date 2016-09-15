@@ -348,6 +348,12 @@ protected:
     virtual bool _isEmpty() const Q_DECL_OVERRIDE;
 
     /**
+     * Returns whether or not the layered images have spectral axes.
+     * @return - true if the layered images all have spectral axes; false, otherwise.
+     */
+    virtual bool _isSpectralAxis() const Q_DECL_OVERRIDE;
+
+    /**
      * Return a QImage representation of this data.
      * @param frames - a list of frames to load, one for each of the known axis types.
      * @param autoClip true if clips should be automatically generated; false otherwise.

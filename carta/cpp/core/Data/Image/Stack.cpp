@@ -9,6 +9,7 @@
 #include "Data/Region/Region.h"
 #include "Data/Region/RegionFactory.h"
 #include "Data/Selection.h"
+#include "Data/Units/UnitsIntensity.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "State/StateInterface.h"
@@ -506,6 +507,9 @@ QString Stack::_resetFrames( int val ){
 		int visibleCount = _getStackSizeVisible();
 		m_selectImage->setUpperBound( visibleCount );
 		m_selectImage->setIndex(val);
+		bool spectralAxis = m_children[val]->_isSpectralAxis();
+		UnitsIntensity* uIntensity = Util::findSingletonObject<UnitsIntensity>();
+		uIntensity->setSpectralAxisAvailable( spectralAxis );
 		layerId = m_children[val]->_getLayerId();
 		int selectCount = m_selects.size();
 		for ( int i = 0; i < selectCount; i++ ){

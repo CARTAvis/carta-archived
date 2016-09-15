@@ -694,6 +694,23 @@ bool LayerGroup::_isEmpty() const {
     return empty;
 }
 
+bool LayerGroup::_isSpectralAxis() const {
+	bool spectralAxis = false;
+
+	//All children must have a spectral axis if the group is to have one.
+	int childCount = m_children.size();
+	if ( childCount > 0 ){
+		spectralAxis = true;
+		for ( int i = 0; i < childCount; i++ ){
+			spectralAxis = m_children[i]->_isSpectralAxis();
+			if ( !spectralAxis ){
+				break;
+			}
+		}
+	}
+	return spectralAxis;
+}
+
 
 void LayerGroup::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile ){

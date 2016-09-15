@@ -162,6 +162,9 @@ bool Layer::_isSelected() const {
     return m_state.getValue<bool>( Util::SELECTED );
 }
 
+bool Layer::_isSpectralAxis() const {
+	return false;
+}
 
 bool Layer::_isVisible() const {
     return m_state.getValue<bool>(Util::VISIBLE);

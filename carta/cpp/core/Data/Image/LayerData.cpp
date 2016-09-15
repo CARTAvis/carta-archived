@@ -584,6 +584,14 @@ bool LayerData::_isContourDraw() const {
     return contourDraw;
 }
 
+bool LayerData::_isSpectralAxis() const {
+	bool spectralAxis = false;
+	if ( m_dataSource ){
+		spectralAxis = m_dataSource->_isSpectralAxis();
+	}
+	return spectralAxis;
+}
+
 void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile ){
     if ( m_dataSource ){
