@@ -62,11 +62,7 @@ Carta::Lib::VectorGraphics::VGList ShapeRectangle::getVGList() const {
 
 
 void ShapeRectangle::_editShadow( const QPointF& pt ){
-	QPointF topLeft = m_shadowRect.topLeft();
-	double width = qAbs( topLeft.x() - pt.x() );
-	double height = qAbs( topLeft.y() - pt.y() );
-	m_shadowRect.setWidth( width );
-	m_shadowRect.setHeight( height );
+	m_shadowRect.setBottomRight( pt );
 }
 
 
@@ -87,6 +83,7 @@ void ShapeRectangle::handleDragDone( const QPointF & pt ){
 		m_dragMode = false;
 
 		// update the region
+		m_shadowRect = m_shadowRect.normalized();
 		m_rectRegion-> setRectangle( m_shadowRect );
 		setEditMode( false );
 	}

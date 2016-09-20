@@ -83,8 +83,9 @@ public:
 	/**
 	 * Notification on an overall drag event from mouse down to mouse up.
 	 * @param ev - the drag event.
+	 * @param location - the position of the cursor translated to the image coordinate system.
 	 */
-	void handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev );
+	void handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& location );
 
 	/**
 	 * Notification of a drag as it progresses.
@@ -263,7 +264,6 @@ private:
 	 */
 	QString _getStateString() const;
 
-	void _initializeCallbacks();
 	void _initializeState();
 
 

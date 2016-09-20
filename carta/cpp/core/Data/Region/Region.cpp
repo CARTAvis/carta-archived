@@ -20,7 +20,6 @@ Region::Region(const QString& className, const QString& path, const QString& id 
 :CartaObject( className, path, id ),
  m_shape(nullptr){
 	m_regionNameSet = false;
-	_initializeCallbacks();
 	_initializeState();
 }
 
@@ -75,13 +74,9 @@ Carta::Lib::VectorGraphics::VGList Region::getVGList() const {
 }
 
 
-
-
-
-void Region::handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev ){
+void Region::handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& location ){
 	if ( isDraggable() ){
 		Carta::Lib::InputEvents::Drag2Event::Phase phase = ev.phase();
-		QPointF location = ev.pos();
 		if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::Start ){
 			handleDragStart( location );
 		}
@@ -110,6 +105,9 @@ void Region::handleDragDone( const QPointF & pt ) {
 	if ( isDraggable() ){
 		if ( m_shape ){
 			m_shape->handleDragDone( pt );
+			if ( isEditMode() ){
+				emit editDone();
+			}
 		}
 	}
 }
@@ -124,7 +122,6 @@ void Region::handleDragStart( const QPointF & pt ) {
 
 void Region::handleHover( const QPointF& pt ){
 	//Only active shapes participate in user events
-
 	if ( isActive() ){
 		bool hovered = false;
 		if ( m_shape->isPointInside( pt ) ){
@@ -150,6 +147,8 @@ void Region::handleTapDouble( const QPointF& /*pt*/ ){
 		qDebug() << "Unhandled region double tap "<<getRegionType();
 	}
 }
+
+
 void Region::handleEvent( Carta::Lib::InputEvents::JsonEvent & ev ) {
 	if ( isActive() ){
 		qDebug() << "Unhandled region extra event" << ev.type()
@@ -157,15 +156,6 @@ void Region::handleEvent( Carta::Lib::InputEvents::JsonEvent & ev ) {
 	}
 }
 
-void Region::_initializeCallbacks(){
-	addCommandCallback( "shapeChanged", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
-		std::set<QString> keys = { "info"};
-		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-		//resetStateData( dataValues[ *keys.begin()]);
-		return "";
-	});
-}
 
 void Region::_initializeState(){
 	m_state.insertValue<QString>( REGION_TYPE, "" );
@@ -201,13 +191,10 @@ bool Region::isSelected() const {
 }
 
 void Region::_restoreState( const QString& stateStr ){
-	Carta::State::StateInterface dataState( "" );
-	dataState.setState( stateStr );
-	QString regionType = dataState.getValue<QString>(REGION_TYPE);
-	m_state.setValue<QString>( REGION_TYPE, regionType);
-	QString name = dataState.getValue<QString>( Util::NAME );
-	m_state.setValue<QString>(Util::NAME, name );
-	m_state.flushState();
+	Carta::State::StateInterface rectState( "");
+	rectState.setState( stateStr );
+	m_state = rectState;
+	m_shape->setModel( toJSON() );
 }
 
 

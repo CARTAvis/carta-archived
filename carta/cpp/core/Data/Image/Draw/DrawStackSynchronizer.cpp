@@ -114,19 +114,9 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
                 alphaCombine-> setAlpha( alphaVal );
                 m_view->setLayerCombiner( stackIndex, alphaCombine );
                 stackIndex++;
-                if ( i == dataCount - 1 ){
-                	//Add in region graphics to the last layer.
-                	Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
-                	comp.appendList( m_regionGraphics );
-                	comp.appendList( graphicsList );
-                	m_view->setLayerVG( stackIndex, comp.vgList());
-                }
-                else {
-                	m_view->setLayerVG( stackIndex, graphicsList );
-                }
+                m_view->setLayerVG( stackIndex, graphicsList );
                 stackIndex++;
             }
-
         }
     }
 
@@ -138,9 +128,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
     m_repaintFrameQueued = false;
 }
 
-void DrawStackSynchronizer::setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){
-	m_regionGraphics = regionVGList;
-}
+
 
 
 DrawStackSynchronizer::~DrawStackSynchronizer(){

@@ -284,7 +284,7 @@ QPointF DataSource::_getImagePt( const QPointF& screenPt, double zoom, const QPo
 }
 
 QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
-    QString pixelValue = "";
+    QString pixelValue( "" );
     int valX = (int)(round(x));
     int valY = (int)(round(y));
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {

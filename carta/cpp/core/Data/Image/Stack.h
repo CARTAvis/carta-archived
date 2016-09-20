@@ -178,7 +178,6 @@ private:
     void _setMaskColor( const QString& id, int redAmount,
                        int greenAmount, int blueAmount, QStringList& result );
     void _setPan( double imgX, double imgY, bool all );
-    void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList );
 
     void _setViewName( const QString& viewName );
     void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawStack );

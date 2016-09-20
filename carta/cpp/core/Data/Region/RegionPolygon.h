@@ -72,14 +72,6 @@ public:
 
     const static QString CLASS_NAME;
 
-protected:
-
-    /**
-     * Restore the region state.
-     * @param state - a string representation of the state to restore.
-     */
-    virtual void _restoreState( const QString& state ) Q_DECL_OVERRIDE;
-
 private slots:
 
 	void _updateStateFromJson( const QJsonObject& json );

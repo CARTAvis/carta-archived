@@ -111,8 +111,10 @@ Controller::Controller( const QString& path, const QString& id ) :
 
 	RegionControls* regionObj = objMan->createObject<RegionControls>();
 	connect( regionObj, SIGNAL(regionsChanged()), this, SLOT(_regionsChanged()));
+
 	m_regionControls.reset( regionObj );
 }
+
 
 
 
@@ -418,6 +420,10 @@ std::vector<std::shared_ptr<ColorState> > Controller::getSelectedColorStates( bo
     return colorStates;
 }
 
+QString Controller::_getRegionControlsId() const {
+	return m_regionControls->getPath();
+}
+
 QString Controller::_getStackId() const {
     return m_stack->getPath();
 }
@@ -446,7 +452,8 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         dataState.setState( m_stack->_getStateString() );
         dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
         dataState.setValue<int>(StateInterface::INDEX, getIndex() );
-
+        QString regionControlState = m_regionControls->_getStateString( sessionId, type );
+        dataState.insertObject( RegionControls::REGIONS, regionControlState );
         result = dataState.toString();
     }
     return result;
@@ -473,25 +480,35 @@ void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
 }
 
 void Controller::_onInputEvent( InputEvent  ev ){
+
 	Carta::Lib::InputEvents::HoverEvent hover( ev );
 	if ( hover.isValid() ){
-		QPointF mousePt = hover.pos();
-		int mouseX = mousePt.x();
-		int mouseY = mousePt.y();
+		QPointF target = hover.pos();
+		int mouseX = target.x();
+		int mouseY = target.y();
 		_updateCursor( mouseX, mouseY );
 
 	}
 
-	m_regionControls->_onInputEvent( ev );
+	Carta::Lib::InputEvents::PointerEvent pointer( ev );
+	if ( pointer.isValid() ){
+		bool valid = false;
+		QSize outputSize = getOutputSize();
+		QPointF pointPt = pointer.pos();
+		QPointF imagePixelPt = m_stack->_getImagePt( pointPt,  outputSize, &valid  );
+		if ( valid ){
+			m_regionControls->_onInputEvent( ev, imagePixelPt );
+		}
+	}
 
 	//Note:  we set the event consumed if we are editing a region to prevent
 	//a subsequent pan operation.
 	if ( ! ev.isConsumed() ){
 		Carta::Lib::InputEvents::DoubleTapEvent doubleTap( ev );
 		if ( doubleTap.isValid() ){
-			QPointF mousePt = doubleTap.pos();
-			int mouseX = mousePt.x();
-			int mouseY = mousePt.y();
+			QPointF target = doubleTap.pos();
+			int mouseX = target.x();
+			int mouseY = target.y();
 			updatePan( mouseX, mouseY );
 		}
 	}
@@ -696,6 +713,12 @@ void Controller::_initializeCallbacks(){
         QString result = _getPreferencesId();
         return result;
    });
+
+    addCommandCallback( "registerRegionControls", [=] (const QString & /*cmd*/,
+                               const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+           QString result = _getRegionControlsId();
+           return result;
+      });
 
 
     addCommandCallback( "resetPan", [=] (const QString & /*cmd*/,
@@ -942,19 +965,10 @@ void Controller::resetStateData( const QString& state ){
     m_stack->_resetStack( dataState );
 
     //Restore the region State
-    /*m_regions.clear();
-    int regionCount = dataState.getArraySize(REGIONS);
-    for ( int i = 0; i < regionCount; i++ ){
-        QString regionLookup = Carta::State::UtilState::getLookup( REGIONS, i );
-        QString regionState = dataState.toString( regionLookup );
-        std::shared_ptr<Region> region = RegionFactory::makeRegion( regionState );
-        m_regions.append( region );
-    }
-    _saveStateRegions();*/
+    m_regionControls->resetStateData( state );
 
     //Notify others there has been a change to the data.
     emit dataChanged( this );
-    //emit dataChangedRegion( this );
     emit colorChanged( this );
 
     //Reset the state of the grid controls based on the selected image.

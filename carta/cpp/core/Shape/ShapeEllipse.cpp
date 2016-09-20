@@ -64,11 +64,7 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 
 
 void ShapeEllipse::_editShadow( const QPointF & pt ){
-	QPointF topLeft = m_shadowRect.topLeft();
-	double width = qAbs( topLeft.x() - pt.x() );
-	double height = qAbs( topLeft.y() - pt.y() );
-	m_shadowRect.setWidth( width );
-	m_shadowRect.setHeight( height );
+	m_shadowRect.setBottomRight( pt );
 }
 
 
@@ -149,6 +145,7 @@ void ShapeEllipse::_syncShadowToCPs(){
 }
 
 void ShapeEllipse::_updateEllipseFromShadow(){
+	m_shadowRect = m_shadowRect.normalized();
 	double width = m_shadowRect.width();
 	double height = m_shadowRect.height();
 	if ( width < height ){

@@ -16,6 +16,7 @@ namespace Carta {
 namespace Data {
 
 const QString RegionControls::CLASS_NAME = "RegionControls";
+const QString RegionControls::CREATE_TYPE = "createType";
 const QString RegionControls::REGIONS = "regions";
 
 RegionTypes* RegionControls::m_regionTypes = nullptr;
@@ -65,6 +66,15 @@ void RegionControls::_addDataRegions( std::vector<std::shared_ptr<Region>> regio
     emit regionsChanged();
 }
 
+void RegionControls::clearRegions(){
+	int regionCount = m_regions.size();
+	for ( int i = regionCount - 1; i>= 0; i-- ){
+		closeRegion( i );
+	}
+}
+
+
+
 
 QString RegionControls::closeRegion( int index ){
     bool regionRemoved = false;
@@ -95,10 +105,13 @@ void RegionControls::_editDone(){
 		disconnect( m_regionEdit.get(), & Region::editDone,
 		             this, & RegionControls::_editDone );
 		m_regionEdit->setEditMode( false );
+
 		m_regionEdit->setActive( true );
 		m_regions.push_back( m_regionEdit );
 		m_regionEdit = std::shared_ptr<Region>(nullptr);
-
+		m_state.setValue<QString>(CREATE_TYPE, "");
+		_saveStateRegions();
+		m_state.flushState();
 	}
 }
 
@@ -143,18 +156,24 @@ int RegionControls::getSelectRegionIndex() const {
     return selectRegionIndex;
 }
 
-bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev ){
+QString RegionControls::_getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
+	QString regionsArray = m_state.toString( REGIONS);
+	return regionsArray;
+}
+
+
+bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& imagePt ){
 	bool validDrag = false;
 	if ( ev.isValid() ){
 		validDrag = true;
 		if ( m_regionEdit ){
-			m_regionEdit->handleDrag( ev );
+			m_regionEdit->handleDrag( ev, imagePt );
 			emit regionsChanged();
 		}
 		else {
 			int regionCount = m_regions.size();
 			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleDrag( ev );
+				m_regions[i]->handleDrag( ev, imagePt );
 			}
 			if ( regionCount > 0 ){
 				emit regionsChanged();
@@ -164,18 +183,19 @@ bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev 
 	return validDrag;
 }
 
-bool RegionControls::_handleHover( const Carta::Lib::InputEvents::HoverEvent& ev ){
+bool RegionControls::_handleHover( const Carta::Lib::InputEvents::HoverEvent& ev,
+		const QPointF& imagePt ){
 	bool validHover = false;
 	if ( ev.isValid() ){
 		validHover = true;
 		if ( m_regionEdit ){
-			m_regionEdit->handleHover( ev.pos() );
+			m_regionEdit->handleHover( imagePt );
 			emit regionsChanged();
 		}
 		else {
 			int regionCount = m_regions.size();
 			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleHover( ev.pos() );
+				m_regions[i]->handleHover( imagePt );
 			}
 			if ( regionCount > 0 ){
 				emit regionsChanged();
@@ -187,18 +207,19 @@ bool RegionControls::_handleHover( const Carta::Lib::InputEvents::HoverEvent& ev
 }
 
 
-bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev ){
+bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev,
+		const QPointF& imagePt ){
 	bool validTap = false;
 	if ( ev.isValid() ){
 		validTap = true;
 		if ( m_regionEdit ){
-			m_regionEdit->handleTouch( ev.pos() );
+			m_regionEdit->handleTouch( imagePt );
 			emit regionsChanged();
 		}
 		else {
 			int regionCount = m_regions.size();
 			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleTouch( ev.pos() );
+				m_regions[i]->handleTouch( imagePt );
 			}
 			if ( regionCount > 0 ){
 				emit regionsChanged();
@@ -208,15 +229,14 @@ bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev
 	return validTap;
 }
 
-bool RegionControls::_handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev ){
+bool RegionControls::_handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev, const QPointF& imagePt ){
 	bool validTap = false;
 	if ( ev.isValid() ){
 		if ( m_regionEdit ){
 			validTap = true;
-			m_regionEdit->handleTapDouble( ev.pos() );
+			m_regionEdit->handleTapDouble( imagePt );
 			emit regionsChanged();
 		}
-
 	}
 	return validTap;
 }
@@ -250,6 +270,7 @@ void RegionControls::_initializeSelections(){
 void RegionControls::_initializeState(){
     int regionCount = m_regions.size();
     m_state.insertArray(REGIONS, regionCount );
+    m_state.insertValue<QString>( CREATE_TYPE, "" );
     m_state.flushState();
 }
 
@@ -260,11 +281,11 @@ void RegionControls::_initializeStatics(){
     }
 }
 
-void RegionControls::_onInputEvent(InputEvent & ev ){
-	if ( !_handleHover( Carta::Lib::InputEvents::HoverEvent( ev ) ) ) {
-		if ( !_handleTapDouble( Carta::Lib::InputEvents::DoubleTapEvent( ev ) ) ) {
-			if ( !_handleTouch( Carta::Lib::InputEvents::TouchEvent( ev ) ) ){
-				if( !_handleDrag( Carta::Lib::InputEvents::Drag2Event(ev))) {
+void RegionControls::_onInputEvent(InputEvent & ev, const QPointF& imagePt ){
+	if ( !_handleHover( Carta::Lib::InputEvents::HoverEvent( ev ), imagePt ) ) {
+		if ( !_handleTapDouble( Carta::Lib::InputEvents::DoubleTapEvent( ev ), imagePt ) ) {
+			if ( !_handleTouch( Carta::Lib::InputEvents::TouchEvent( ev ), imagePt ) ){
+				if( !_handleDrag( Carta::Lib::InputEvents::Drag2Event(ev), imagePt) ){
 					//qWarning() << "RegionControls:: unhandled event: "<<ev.type();
 				}
 			}
@@ -278,6 +299,22 @@ void RegionControls::_onInputEvent(InputEvent & ev ){
 }
 
 
+void RegionControls::resetStateData( const QString& state ){
+    Carta::State::StateInterface dataState( "");
+    dataState.setState( state );
+
+    clearRegions();
+    int regionCount = dataState.getArraySize( REGIONS );
+    m_regions.resize( regionCount );
+    for ( int i = 0; i < regionCount; i++ ){
+    	QString regionKey = Carta::State::UtilState::getLookup( REGIONS, i);
+    	QString regionValue = dataState.toString( regionKey );
+    	m_regions[i] = RegionFactory::makeRegion( regionValue );
+    }
+    _saveStateRegions();
+    emit regionsChanged();
+}
+
 void RegionControls::_saveStateRegions(){
     //Regions
     int regionCount = m_regions.size();
@@ -290,10 +327,7 @@ void RegionControls::_saveStateRegions(){
         QString regionTypeStr= m_regions[i]->_getStateString();
         m_state.setObject( regionKey, regionTypeStr );
     }
-    m_state.flushState();
 }
-
-
 
 
 QString RegionControls::setRegionCreateType( const QString& createType ){
@@ -301,20 +335,27 @@ QString RegionControls::setRegionCreateType( const QString& createType ){
 	QString modelType = m_regionTypes->getModelType( createType );
 	if ( !modelType.isEmpty() ){
 
-		/**
-		 * Todo:  May need to delete or put old region edit on stack when this happens.
-		 *
-		 */
 		//We already have one of the correct type.
 		QString actualType = m_regionTypes->getActualType( createType );
-		if ( m_regionEdit && m_regionEdit->getRegionType() == actualType ){
-			//Maybe set it back to default?
-		}
-		else {
+		QString oldCreateType = m_state.getValue<QString>( CREATE_TYPE );
+		if ( actualType != oldCreateType ){
+			//Clear the region edit if it exists and is not of the correct type.
+			if ( m_regionEdit && m_regionEdit->getRegionType() != actualType ){
+				disconnect( m_regionEdit.get() );
+				QString id = m_regionEdit->getId();
+				Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+				objMan->removeObject( id );
+				m_regionEdit = nullptr;
+			}
 			//Make a new region to edit.
-			m_regionEdit = RegionFactory::makeRegionType( modelType );
-			m_regionEdit->setEditMode( true );
-			connect( m_regionEdit.get(), SIGNAL(editDone()), this, SLOT(_editDone()));
+			if ( !m_regionEdit ){
+				m_regionEdit = RegionFactory::makeRegionType( modelType );
+				m_regionEdit->setEditMode( true );
+				connect( m_regionEdit.get(), SIGNAL(editDone()), this, SLOT(_editDone()));
+			}
+
+			m_state.setValue<QString>( CREATE_TYPE, actualType );
+			m_state.flushState();
 		}
 	}
 	else {

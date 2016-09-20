@@ -89,21 +89,17 @@ QRectF Ellipse::outlineBox() const {
 	double cosAngle = cos( m_angle * ( M_PI / 180));
 	double sinAngle = sin( m_angle * ( M_PI / 180));
 
-	//Assume non-rotated ellipse with major axis being y.
-	double left = m_center.x() - m_radiusMinor;
-	double right = m_center.x() + m_radiusMinor;
-	double top = m_center.y() - m_radiusMajor;
-	double bottom = m_center.y() + m_radiusMajor;
-
 	//Now rotate by the given angle.
-	left = left * cosAngle - top * sinAngle;
-	top = left * sinAngle + top * cosAngle;
-	right = right * cosAngle - bottom * sinAngle;
-	bottom = right * sinAngle + bottom * cosAngle;
+	double xTransform = m_radiusMinor * cosAngle - m_radiusMajor * sinAngle;
+	double yTransform = m_radiusMinor * sinAngle + m_radiusMajor * cosAngle;
+	double left = m_center.x() - xTransform;
+	double top = m_center.y() - yTransform;
+	double right = m_center.x() + xTransform;
+	double bottom = m_center.y() + yTransform;
 
 	//Height and width
-	double height = qAbs( top - bottom );
-	double width = qAbs( left - right );
+	double height = bottom - top;
+	double width = right - left;
 	return QRectF( left, top, width, height );
 }
 

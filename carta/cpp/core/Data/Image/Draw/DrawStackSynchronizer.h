@@ -50,13 +50,6 @@ public:
      */
     QSize getClientSize() const;
 
-    /**
-     * Set the graphics for drawing regions.
-     * @param regionVGList - region drawing graphics.
-     */
-    void setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList );
-
-
     virtual ~DrawStackSynchronizer();
 
 signals:
@@ -102,7 +95,7 @@ private:
 
     QList< std::shared_ptr<Layer> > m_layers;
     QMap<QString, std::shared_ptr<RenderResponse> > m_images;
-    Carta::Lib::VectorGraphics::VGList m_regionGraphics;
+
     bool m_repaintFrameQueued;
 
     int m_renderCount;

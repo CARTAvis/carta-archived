@@ -83,6 +83,19 @@ void RegionRectangle::handleDragStart( const QPointF & pt ){
 	}
 }
 
+void RegionRectangle::handleDragDone( const QPointF & pt ) {
+	bool editable = isEditMode();
+	if ( isDraggable() || editable ){
+		if ( m_shape ){
+			m_shape->handleDragDone( pt );
+		}
+	}
+
+	if ( editable ){
+		emit editDone();
+	}
+}
+
 void RegionRectangle::handleTouch( const QPointF& pt ){
 	if ( m_shape->isActive() ){
 		bool tapped = false;
@@ -99,14 +112,8 @@ void RegionRectangle::_initializeState(){
     m_state.insertValue<double>( Util::HEIGHT, 0 );
     m_state.insertValue<double>( Util::XCOORD, 0 );
     m_state.insertValue<double>( Util::YCOORD, 0 );
-    m_state.flushState();
 }
 
-
-void RegionRectangle::_restoreState( const QString& stateStr ){
-    Region::_restoreState( stateStr );
-    m_state.flushState();
-}
 
 void RegionRectangle::setModel( Carta::Lib::Regions::RegionBase* model ){
 	if ( model ){
@@ -154,8 +161,8 @@ void RegionRectangle::_updateStateFromJson( const QJsonObject& json ){
 	}
 	m_state.setValue<double>( Util::XCOORD, json[Util::XCOORD].toDouble() );
 	m_state.setValue<double>( Util::YCOORD, json[Util::YCOORD].toDouble() );
-	m_state.setValue<double>( Util::WIDTH, json[Util::WIDTH].toDouble());
-	m_state.setValue<double>( Util::HEIGHT, json[Util::HEIGHT].toDouble());
+	m_state.setValue<double>( Util::WIDTH, qAbs(json[Util::WIDTH].toDouble()));
+	m_state.setValue<double>( Util::HEIGHT, qAbs(json[Util::HEIGHT].toDouble()));
 }
 
 RegionRectangle::~RegionRectangle(){

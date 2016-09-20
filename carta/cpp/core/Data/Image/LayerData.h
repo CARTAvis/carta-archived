@@ -345,7 +345,11 @@ protected:
      */
     virtual QString _getPixelUnits() const Q_DECL_OVERRIDE;
 
-
+    /**
+     * Return the graphics for drawing regions.
+     * @return - a list of graphics for drawing regions.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
     /**
          * Returns true if at least one contour set should be drawn; false otherwise.
@@ -411,6 +415,11 @@ protected:
      */
     virtual void _setPan( double imgX, double imgY ) Q_DECL_OVERRIDE;
 
+    /**
+     * Set a list of graphics for drawing the current regions.
+     * @param regionVGList - graphics for drawing the current regions.
+     */
+    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
     virtual void _setSupportAlpha( bool supportAlpha );
     virtual void _setSupportColor( bool supportColor );
 
@@ -436,6 +445,7 @@ private slots:
     void _renderingDone(  QImage image,
                           Carta::Lib::VectorGraphics::VGList vgList,
                           Carta::Lib::VectorGraphics::VGList contourList,
+						  Carta::Lib::VectorGraphics::VGList regionList,
                           int64_t jobId );
 
 private:
@@ -454,6 +464,9 @@ private:
             const QRectF& outputRect, const QSize& outputSize ) const;
     QRectF _getOutputRectangle( const QSize& outputSize, bool requestMain, bool requestContext ) const;
     QPointF _getPan() const;
+
+
+    bool _getTransform( const QPointF& pan, double zoom, const QSize& size, QTransform& tf ) const;
 
     void _initializeState();
 
@@ -480,6 +493,8 @@ private:
 
      /// image-and-grid-service result synchronizer
     std::unique_ptr<DrawSynchronizer> m_drawSync;
+
+    Carta::Lib::VectorGraphics::VGList m_regionGraphics;
 
     std::shared_ptr<ColorState> m_stateColor;
 

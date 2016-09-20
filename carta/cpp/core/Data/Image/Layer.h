@@ -345,6 +345,12 @@ protected:
     virtual QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const = 0;
 
     /**
+     * Return the graphics for drawing regions.
+     * @return - a list of graphics for drawing regions.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const = 0;
+
+    /**
      * Return the size of the saved image based on the user defined output size and the aspect
      * ratio mode.
      * @param outputSize - the output image size specified by the user.
@@ -540,6 +546,11 @@ protected:
      */
     virtual void _setPan( double imgX, double imgY ) = 0;
 
+    /**
+     * Set a list of graphics for drawing the current regions.
+     * @param regionVGList - graphics for drawing the current regions.
+     */
+    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) = 0;
 
     /**
      * Set this data source selected.

@@ -286,7 +286,11 @@ protected:
     virtual QString _getPixelValue( double x, double y,
             const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
 
-
+    /**
+     * Return the graphics for drawing regions.
+     * @return - a list of graphics for drawing regions.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
     /**
      * Return the size of the saved image based on the user defined output size and the aspect
@@ -411,6 +415,12 @@ protected:
 
     virtual bool _setMaskColor( const QString& id, int redAmount,
                 int greenAmount, int blueAmount ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set a list of graphics for drawing the current regions.
+     * @param regionVGList - graphics for drawing the current regions.
+     */
+    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
 
     /**
      * Set this data source selected.

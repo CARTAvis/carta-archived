@@ -212,8 +212,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
             return linkable;
         },
-        
-        
+               
 
         /**
          * Returns whether or not this window supports establishing a two-way
@@ -290,6 +289,26 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
         
         /**
+         * Update region specific elements from the shared variable.
+         */
+        _sharedVarRegionsCB : function(){
+            var val = this.m_sharedVarRegions.get();
+            if ( val ){
+                try {
+                    var winObj = JSON.parse( val );
+                    var regionShape = winObj.createType;
+                  
+                    var regionDrawCmds = skel.Command.Region.CommandRegions.getInstance();
+                    regionDrawCmds.setDrawType( regionShape );
+                }
+                catch( err ){
+                    console.log( "DisplayWindowImage could not parse region update: "+val );
+                    console.log( "Error: "+err);
+                }
+            }
+        },
+        
+        /**
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
@@ -324,7 +343,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             this.m_view.setVisibility( "hidden" );
                         }
                     }
-                    this._updateRegionsCB( winObj );
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
                     this._initContextMenu();
@@ -336,33 +354,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
         },
         
+       
         /**
-         * Update window specific elements from the shared variable.
-         * @param winObj {String} represents the server state of this window.
+         * Callback for when the registration is complete and an id is available.
+         * @param anObject {skel.widgets.Image.Region.RegionControls}.
          */
-        _updateRegionsCB : function( winObj){
-            this.m_regions = [];
-            //Add close menu buttons for all the images that are loaded.
-            var regionObjs = winObj.regions;
-                   
-            if ( regionObjs ){
-                for ( var i = 0; i < regionObjs.length; i++ ){
-                    var regionId = regionObjs[i].id;
-                    var regionType = regionObjs[i].regionType;
-                    var vertices = regionObjs[i].corners;
-                    this.m_regions[i] = new skel.widgets.Image.Region( regionId, regionType, vertices );
-                }
-            }
-        },
-        
-        /**
-         * Update the commands about clip settings.
-         */
-        updateCmds : function(){
-            var autoClipCmd = skel.Command.Clip.CommandClipAuto.getInstance();
-            autoClipCmd.setValue( this.m_autoClip );
-            var clipValsCmd = skel.Command.Clip.CommandClipValues.getInstance();
-            clipValsCmd.setClipValue( this.m_clipPercent );
+        _registrationRegionCallback : function( anObject ){
+            return function( id ){
+                anObject._setRegionId( id );
+            };
         },
         
         /**
@@ -375,6 +375,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             };
         },
         
+        /**
+         * Register to get updates on stack data settings from the server.
+         */
+        _registerControlsRegion : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_identifier + path.SEP_COMMAND + "registerRegionControls";
+            var params = "";
+            this.m_connector.sendCommand( cmd, params, this._registrationRegionCallback( this));
+        },
 
         /**
          * Register to get updates on stack data settings from the server.
@@ -386,7 +395,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_connector.sendCommand( cmd, params, this._registrationStackCallback( this));
         },
         
-        
+        /**
+         * Set the identifier for the server-side object that manages the stack.
+         * @param id {String} - the server-side id of the object that manages the stack.
+         */
+        _setRegionId : function( id ){
+            this.m_regionId = id;
+            this.m_sharedVarRegions = this.m_connector.getSharedVar( id );
+            this.m_sharedVarRegions.addCB(this._sharedVarRegionsCB.bind(this));
+            this._sharedVarRegionsCB();
+        },
         
         /**
          * Set the identifier for the server-side object that manages the stack.
@@ -399,6 +417,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this._sharedVarStackCB();
         },
         
+        
+        /**
+         * Update the commands about clip settings.
+         */
+        updateCmds : function(){
+            var autoClipCmd = skel.Command.Clip.CommandClipAuto.getInstance();
+            autoClipCmd.setValue( this.m_autoClip );
+            var clipValsCmd = skel.Command.Clip.CommandClipValues.getInstance();
+            clipValsCmd.setClipValue( this.m_clipPercent );
+        },
+        
+        
         /**
          * Implemented to initialize the context menu.
          */
@@ -406,6 +436,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             arguments.callee.base.apply(this, arguments);
            
             this._registerControlsStack();
+            this._registerControlsRegion();
             this._initStatistics();
             this._dataLoadedCB();
             
@@ -434,7 +465,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_datas : [],
         m_regions : [],
         m_sharedVarStack : null,
+        m_sharedVarRegions : null,
         m_stackId : null,
+        m_regionId : null,
        
         m_view : null,
         m_viewContent : null,

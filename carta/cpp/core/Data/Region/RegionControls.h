@@ -28,6 +28,11 @@ class RegionControls : public QObject, public Carta::State::CartaObject {
 public:
 
 	/**
+	 * Remove existing regions.
+	 */
+	void clearRegions();
+
+	/**
 	 * Close a particular region.
 	 * @param index - the index of the region to close.
 	 */
@@ -50,6 +55,13 @@ public:
 	 * @return - the index of the selected region.
 	 */
 	int getSelectRegionIndex() const;
+
+
+	/**
+	 * Reset the state back to a different state.
+	 * @param state - a different state.
+	 */
+	void resetStateData( const QString& state );
 
 	/**
 	 * Create a region of the indicated type.
@@ -77,6 +89,7 @@ signals:
 	 */
 	void regionsChanged( );
 
+
 private slots:
 
 	void _editDone();
@@ -90,23 +103,19 @@ private:
 
 	int _findRegionIndex( std::shared_ptr<Region> region ) const;
 
-	/**
-	 * Return the region state as a string.
-	 * @return - the region state as a string.
-	 */
-	QString _getStateString() const;
+	QString _getStateString( const QString& sessionId, SnapshotType type ) const;
 
 	void _initializeCallbacks();
 	void _initializeSelections();
 	void _initializeState();
 	void _initializeStatics();
 
-	bool _handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev );
-	bool _handleHover( const Carta::Lib::InputEvents::HoverEvent& ev );
-	bool _handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev );
-	bool _handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev );
+	bool _handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& imagePt );
+	bool _handleHover( const Carta::Lib::InputEvents::HoverEvent& ev, const QPointF& imagePt );
+	bool _handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev, const QPointF& imagePt );
+	bool _handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev, const QPointF& imagePt );
 
-	void _onInputEvent( InputEvent & ev );
+	void _onInputEvent( InputEvent & ev, const QPointF& imagePt );
 
 	void _saveStateRegions();
 
@@ -121,6 +130,7 @@ private:
 	std::shared_ptr<Region> m_regionEdit;
 	static RegionTypes* m_regionTypes;
 	static const QString REGIONS;
+	static const QString CREATE_TYPE;
 	static bool m_registered;
 };
 }

@@ -55,6 +55,12 @@ public:
 	virtual void handleDragStart( const QPointF & pt ) Q_DECL_OVERRIDE;
 
 	/**
+	 * Notification of a drag as it progresses.
+	 * @param pt - the current location of the drag.
+	 */
+	virtual void handleDragDone( const QPointF & pt ) Q_DECL_OVERRIDE;
+
+	/**
 	 * Set the center of the ellipse.
 	 * @param center - the center of the ellipse.
 	 */
@@ -75,14 +81,6 @@ public:
     virtual ~RegionEllipse();
 
     const static QString CLASS_NAME;
-
-protected:
-
-    /**
-     * Restore the region state.
-     * @param state - a string representation of the state to restore.
-     */
-    virtual void _restoreState( const QString& state );
 
 private slots:
 

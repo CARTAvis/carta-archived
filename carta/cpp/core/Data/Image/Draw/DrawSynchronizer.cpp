@@ -43,7 +43,7 @@ DrawSynchronizer::DrawSynchronizer( std::shared_ptr<Carta::Core::ImageRenderServ
 void DrawSynchronizer::_checkAndEmit(){
     // emit done only if all three are finished
     if ( m_grsDone && m_irsDone && m_cecDone ) {
-        emit done( m_irsImage, m_grsVGList, m_cecVGList, m_jobId );
+        emit done( m_irsImage, m_grsVGList, m_cecVGList, m_regionVGList, m_jobId );
     }
 }
 
@@ -105,6 +105,10 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
     if ( drawing ){
         m_cec->setLevels( levels );
     }
+}
+
+void DrawSynchronizer::setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){
+	m_regionVGList = regionVGList;
 }
 
 int64_t DrawSynchronizer::start( bool contourDraw, bool gridDraw, int64_t jobId ){

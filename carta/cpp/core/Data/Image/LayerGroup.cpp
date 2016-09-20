@@ -394,6 +394,8 @@ std::shared_ptr<DataSource> LayerGroup::_getDataSource(){
     return dSource;
 }
 
+
+
 QSize LayerGroup::_getDisplaySize() const {
     QSize size;
     int dataIndex = _getIndexCurrent();
@@ -542,18 +544,6 @@ QPointF LayerGroup::_getPixelCoordinates( double ra, double dec, bool* valid ) c
 }
 
 
-
-QPointF LayerGroup::_getWorldCoordinates( double pixelX, double pixelY,
-        Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
-    QPointF result;
-    int dataIndex = _getIndexCurrent();
-    *valid = false;
-    if ( dataIndex >= 0 ){
-        result = m_children[dataIndex]->_getWorldCoordinates( pixelX, pixelY, coordSys, valid );
-    }
-    return result;
-}
-
 QString LayerGroup::_getPixelUnits() const {
     QString units;
     int dataIndex = _getIndexCurrent();
@@ -564,7 +554,7 @@ QString LayerGroup::_getPixelUnits() const {
 }
 
 QString LayerGroup::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
-    QString pixelValue = "";
+    QString pixelValue("");
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         pixelValue = m_children[dataIndex]->_getPixelValue( x, y, frames );
@@ -572,7 +562,14 @@ QString LayerGroup::_getPixelValue( double x, double y, const std::vector<int>& 
     return pixelValue;
 }
 
-
+Carta::Lib::VectorGraphics::VGList LayerGroup::_getRegionGraphics() const {
+	Carta::Lib::VectorGraphics::VGList vgList;
+	int dataIndex = _getIndexCurrent();
+	if ( dataIndex >= 0 ){
+		vgList = m_children[dataIndex]->_getRegionGraphics();
+	}
+	return vgList;
+}
 
 QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {
     QSize saveSize = outputSize;
@@ -636,6 +633,17 @@ QString LayerGroup::_getStateString( bool truncatePaths ) const{
     return stateStr;
 }
 
+
+QPointF LayerGroup::_getWorldCoordinates( double pixelX, double pixelY,
+        Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
+    QPointF result;
+    int dataIndex = _getIndexCurrent();
+    *valid = false;
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_getWorldCoordinates( pixelX, pixelY, coordSys, valid );
+    }
+    return result;
+}
 
 double LayerGroup::_getZoom() const {
     double zoom = DataSource::ZOOM_DEFAULT;
@@ -985,6 +993,13 @@ void LayerGroup::_setPan( double imgX, double imgY ){
     for ( std::shared_ptr<Layer> node : m_children ){
         node -> _setPan( imgX, imgY );
     }
+}
+
+void LayerGroup::_setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList){
+	//Only the top layer needs them, but we store in all layers.
+	for( std::shared_ptr<Layer> layer : m_children ){
+		layer->_setRegionGraphics( regionVGList );
+	}
 }
 
 bool LayerGroup::_setSelected( QStringList& names){

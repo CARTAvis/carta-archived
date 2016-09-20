@@ -872,9 +872,7 @@ void Stack::_updateZoom( double centerX, double centerY, double zoomFactor,
     }
 }
 
-void Stack::_setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){
-	m_stackDraw->setRegionGraphics( regionVGList );
-}
+
 
 void Stack::_viewResize(){
     emit viewLoad();

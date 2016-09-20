@@ -42,6 +42,12 @@ public:
      */
     double getWidth() const;
 
+    /**
+     * Notification that a drag event has ended.
+     * @param pt - the ending point of the drag.
+     */
+    virtual void handleDragDone( const QPointF & pt ) Q_DECL_OVERRIDE;
+
 	/**
 	 * Notification that a drag event has started on the shape.
 	 * @param pt - the starting point of the drag.
@@ -82,14 +88,6 @@ public:
     virtual ~RegionRectangle();
 
     const static QString CLASS_NAME;
-
-protected:
-
-    /**
-     * Restore the region state.
-     * @param state - a string representation of the state to restore.
-     */
-    virtual void _restoreState( const QString& state );
 
 private slots:
 

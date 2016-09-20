@@ -95,6 +95,7 @@ QString ImageContext::addLink( CartaObject* cartaObject ){
 void ImageContext::_clearDraw(){
     //Reset the context draw parameters so they will not be shown.
     setImageRectangle( QPointF(0, 0), QPointF(0, 0) );
+    m_stateData.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA );
     m_stateData.setValue<int>( IMAGE_WIDTH, 0 );
     m_stateData.setValue<int>( IMAGE_HEIGHT, 0 );
     m_stateData.flushState();

@@ -146,6 +146,7 @@ void ImageZoom::_initializeDefaultState(){
     QString c1Y = Carta::State::UtilState::getLookup( CORNER_1, Util::YCOORD );
     m_stateData.insertValue<double>( c1X, 0 );
     m_stateData.insertValue<double>( c1Y, 0 );
+    m_stateData.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA );
     m_stateData.flushState();
 
     m_state.insertValue<bool>( BOX_VISIBLE, true );

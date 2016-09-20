@@ -174,24 +174,6 @@ void RegionPolygon::handleTapDouble( const QPointF& pt ){
 }
 
 
-void RegionPolygon::_restoreState( const QString& stateStr ){
-    Region::_restoreState( stateStr );
-    Carta::State::StateInterface dataState( "" );
-    dataState.setState( stateStr );
-    int cornerCount = dataState.getArraySize( Carta::Lib::Regions::Polygon::POINTS );
-    m_state.resizeArray( Carta::Lib::Regions::Polygon::POINTS, cornerCount );
-    for ( int i = 0; i < cornerCount; i++ ){
-        QString eleLookup = Carta::State::UtilState::getLookup( Carta::Lib::Regions::Polygon::POINTS, i );
-        QString xLookup = Carta::State::UtilState::getLookup( eleLookup, Util::XCOORD );
-        QString yLookup = Carta::State::UtilState::getLookup( eleLookup, Util::YCOORD );
-        double xValue = dataState.getValue<double>( xLookup );
-        double yValue = dataState.getValue<double>( yLookup );
-        m_state.insertValue<double>( xLookup, xValue );
-        m_state.insertValue<double>( yLookup, yValue );
-    }
-    m_state.flushState();
-}
-
 void RegionPolygon::setModel( Carta::Lib::Regions::RegionBase* model ){
 	if ( model ){
 		QString regionType = model->typeName();

@@ -80,6 +80,19 @@ void RegionEllipse::handleDragStart( const QPointF & pt ){
 	}
 }
 
+void RegionEllipse::handleDragDone( const QPointF & pt ) {
+	bool editable = isEditMode();
+	if ( isDraggable() || editable ){
+		if ( m_shape ){
+			m_shape->handleDragDone( pt );
+		}
+	}
+
+	if ( editable ){
+		emit editDone();
+	}
+}
+
 void RegionEllipse::_initializeState(){
     m_state.setValue<QString>( REGION_TYPE, Carta::Lib::Regions::Ellipse::TypeName );
     m_state.insertValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X, 0 );
@@ -87,12 +100,6 @@ void RegionEllipse::_initializeState(){
     m_state.insertValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MAJOR, 1 );
     m_state.insertValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, 1 );
     m_state.insertValue<double>( Carta::Lib::Regions::Ellipse::ANGLE, 0 );
-    m_state.flushState();
-}
-
-
-void RegionEllipse::_restoreState( const QString& stateStr ){
-    Region::_restoreState( stateStr );
     m_state.flushState();
 }
 

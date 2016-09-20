@@ -10,7 +10,7 @@ namespace Data {
 
 const QString TransformsData::DATA_TRANSFORMS = "dataTransforms";
 const QString TransformsData::CLASS_NAME = "TransformsData";
-const QString TransformsData::TRANSFORM_NONE = "None";
+const QString TransformsData::TRANSFORM_NONE = "Linear";
 const QString TransformsData::TRANSFORM_ROOT = "Square Root";
 const QString TransformsData::TRANSFORM_SQUARE = "Square";
 const QString TransformsData::TRANSFORM_LOG = "Logarithm";

@@ -57,6 +57,25 @@ qx.Class.define("skel.Command.Region.CommandRegions", {
              }
     	},
     	
+    	 /**
+         * Set the shape to draw.
+         * @param val {String} - the shape to draw.
+         */
+        setDrawType : function ( val ){
+            for ( var i = 0; i < this.m_cmds.length; i++ ){
+                var drawType = this.m_cmds[i].getLabel();
+                this.m_cmds[i].setServerSend( false );
+                if ( drawType == val ){
+                    this.m_cmds[i].setValue( true );
+                }
+                else {
+                	this.m_cmds[i].setValue( false );
+                }
+                this.m_cmds[i].setServerSend( true );
+            }
+        },
+        
+    	
     	m_sharedVarTypes : null
     }
 });

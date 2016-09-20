@@ -615,7 +615,6 @@ private:
 	//Clear image statistics.
 	void _clearStatistics();
 
-
 	std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
 	std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
@@ -629,7 +628,7 @@ private:
 	//in the context view.
 	QRectF _getInputRectangle() const;
 	QString _getPreferencesId() const;
-
+	QString _getRegionControlsId() const;
 	QString _getStackId() const;
 
 	//Provide default values for state.

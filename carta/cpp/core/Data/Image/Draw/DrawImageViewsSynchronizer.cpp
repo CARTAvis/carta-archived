@@ -70,9 +70,6 @@ void DrawImageViewsSynchronizer::render( const std::shared_ptr<RenderRequest>& r
 		//Store the data & request.
 		_startNextDraw();
 	}
-	else {
-		qDebug() << "Skipping render - queueSize="<<m_requests.size();
-	}
 }
 
 void DrawImageViewsSynchronizer::setViewDraw( std::shared_ptr<DrawStackSynchronizer> stackDraw ){
