@@ -289,6 +289,19 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> LayerData::_getImage(){
     return image;
 }
 
+QPointF LayerData::_getContextPt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const {
+	QPointF contextPt;
+	if ( m_dataSource ){
+		double zoom = 1;
+		QPointF imageCenter = m_dataSource->_getCenter();
+		contextPt = m_dataSource->_getImagePt( screenPt, zoom, imageCenter, outputSize, valid );
+	}
+	else {
+		*valid = false;
+	}
+	return contextPt;
+}
+
 QPointF LayerData::_getImagePt( const QPointF& screenPt, const QSize& outputSize,  bool* valid ) const {
     QPointF imagePt;
     if ( m_dataSource ){
@@ -343,7 +356,7 @@ QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRe
             m_dataSource->_getRenderer();
     QPointF topLeftInput = imageService-> screen2image( topLeft, pan, zoom, outputSize );
     QPointF bottomRightInput = imageService->screen2image( bottomRight, pan, zoom, outputSize );
-    QSize size( qAbs( topLeft.x() - bottomRightInput.x()), qAbs( topLeft.y() - bottomRightInput.y()));
+    QSize size( qAbs( topLeftInput.x() - bottomRightInput.x()), qAbs( topLeftInput.y() - bottomRightInput.y()));
     QRectF inputRect( topLeftInput, size );
     return inputRect;
 }

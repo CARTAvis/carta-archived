@@ -135,6 +135,16 @@ protected:
     virtual QString _getCompositionMode() const;
 
     /**
+     * Return the point on the image corresponding to the pixel point in the context
+     * view.
+     * @param pixelPt - a pixel position in the context view.
+     * @param outputSize - the size of the context view in pixels.
+     * @param valid - whether or not the returned point is valid.
+     * @return - the pixel position of the point in image coordinates.
+     */
+    virtual QPointF _getContextPt( const QPointF& pixelPt, const QSize& outputSize, bool* valid ) const = 0;
+
+    /**
      * Return the contour set with the indicated name.
      * @return - the corresponding contour set with the designated name or a nullptr
      *  if no such set exists.

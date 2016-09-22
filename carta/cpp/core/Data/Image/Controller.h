@@ -618,6 +618,9 @@ private:
 	std::set<Carta::Lib::AxisInfo::KnownType> _getAxesHidden() const;
 	std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const;
 
+	//Return the point on the image that corresponds to the cursor point on the context image.
+	QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const;
+
 	//Return the size of the image in display coordinates.  Normally, this
 	//will be the number of frames in RA x DEC, but in a case were the image
 	//axes are Frequency x RA, it will be in channel count frames and RA frames.

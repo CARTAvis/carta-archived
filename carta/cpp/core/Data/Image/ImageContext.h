@@ -199,7 +199,7 @@ private:
             const QString& key, const QString& userID );
     QString _setLineWidth( const QString& key, const QString& userName, int width );
     void _setVisible( bool visible, const QString& key);
-
+    void _updateImageView( const QPointF& topLeft, const QPointF& bottomRight );
     void _updateSelection( int mouseX, int mouseY );
 
     //Link management
@@ -217,6 +217,7 @@ private:
     static bool m_registered;
 
     bool m_mouseDown = false;
+
 
     const static QString CORNER_0;
     const static QString CORNER_1;

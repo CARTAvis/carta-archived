@@ -428,6 +428,18 @@ QPointF LayerGroup::_getImagePt( const QPointF& screenPt, const QSize& outputSiz
     return imagePt;
 }
 
+QPointF LayerGroup::_getContextPt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const {
+	QPointF contextPt;
+	int dataIndex = _getIndexCurrent();
+	if ( dataIndex >= 0 ){
+		contextPt = m_children[dataIndex]->_getContextPt( screenPt, outputSize, valid );
+	}
+	else {
+		*valid = false;
+	}
+	return contextPt;
+}
+
 std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_getImages(){
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_children.size();

@@ -269,6 +269,10 @@ double Controller::getClipPercentileMin() const {
     return clipValueMin;
 }
 
+QPointF Controller::_getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const {
+	return m_stack->_getContextPt( mousePt, outputSize, valid );
+}
+
 Carta::Lib::KnownSkyCS Controller::getCoordinateSystem() const {
     return m_stack->_getCoordinateSystem();
 }
