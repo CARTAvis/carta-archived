@@ -156,10 +156,8 @@ qx.Class.define("skel.Command.Session.SaveDialog", {
         _registrationCallback : function( anObject ){
             return function( id ){
                 if ( id && id.length > 0 ){
-                	console.log( "anObject.m_identifier="+anObject.m_identifier);
                     if ( id != anObject.m_identifier ){
-                        anObject.m_identifier = id;
-                        
+                        anObject.m_identifier = id;                       
                     }
                 }
             };

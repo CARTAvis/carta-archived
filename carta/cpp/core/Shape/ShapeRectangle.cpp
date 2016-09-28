@@ -15,7 +15,7 @@ ShapeRectangle::ShapeRectangle( ):
 void ShapeRectangle::_controlPointCB( int index, bool final ){
 	QRectF & rect = m_shadowRect;
 	if ( index >= 0 && index < CORNER_COUNT ) {
-		QPointF corner = m_controlPoints[index]-> getPosition();
+		QPointF corner = m_controlPoints[index]-> getCenter();
 		//Update the corner points of the shadow rectangle to match
 		if ( index == 0 ){
 			rect.setTopLeft( corner );
@@ -35,6 +35,14 @@ void ShapeRectangle::_controlPointCB( int index, bool final ){
 	if ( final ) {
 		m_rectRegion->setRectangle( m_shadowRect );
 	}
+}
+
+QPointF ShapeRectangle::getCenter() const {
+	return m_rectRegion->outlineBox().center();
+}
+
+QSizeF ShapeRectangle::getSize() const {
+	return m_rectRegion->outlineBox().size();
 }
 
 Carta::Lib::VectorGraphics::VGList ShapeRectangle::getVGList() const {
@@ -84,6 +92,7 @@ void ShapeRectangle::handleDragDone( const QPointF & pt ){
 
 		// update the region
 		m_shadowRect = m_shadowRect.normalized();
+
 		m_rectRegion-> setRectangle( m_shadowRect );
 		setEditMode( false );
 	}
@@ -120,6 +129,7 @@ void ShapeRectangle::_moveShadow( const QPointF& pt ){
 void ShapeRectangle::setModel( const QJsonObject& json ){
 	m_rectRegion->initFromJson( json );
 	m_shadowRect = m_rectRegion->outlineBox();
+	_syncShadowToCPs();
 }
 
 

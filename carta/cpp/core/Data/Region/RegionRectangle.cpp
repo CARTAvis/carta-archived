@@ -35,8 +35,6 @@ RegionRectangle::RegionRectangle(const QString& path, const QString& id )
 	m_shape.reset( new ShapeRectangle() );
 	 connect( m_shape.get(), SIGNAL(shapeChanged( const QJsonObject&)),
 			 this, SLOT(_updateStateFromJson(const QJsonObject&)));
-
-	m_constructed = false;
     _initializeState();
 
     _updateShapeFromState();
@@ -57,12 +55,6 @@ double RegionRectangle::getHeight() const {
 	return m_state.getValue<double>( Util::HEIGHT );
 }
 
-QPointF RegionRectangle::getTopLeft() const {
-	QPointF pt;
-	pt.setX( m_state.getValue<double>( Util::XCOORD) );
-	pt.setY( m_state.getValue<double>( Util::YCOORD) );
-	return pt;
-}
 
 double RegionRectangle::getWidth() const {
 	return m_state.getValue<double>( Util::WIDTH );
@@ -70,11 +62,10 @@ double RegionRectangle::getWidth() const {
 
 
 void RegionRectangle::handleDragStart( const QPointF & pt ){
-
 	if ( isDraggable() ){
 		if ( isEditMode() ){
-			//Add the lop left corner
-			setTopLeft( pt );
+			//Add the point
+			setCenter( pt );
 			m_shape->handleDragStart( pt );
 		}
 		else if ( m_shape->isPointInside( pt ) ){
@@ -96,16 +87,6 @@ void RegionRectangle::handleDragDone( const QPointF & pt ) {
 	}
 }
 
-void RegionRectangle::handleTouch( const QPointF& pt ){
-	if ( m_shape->isActive() ){
-		bool tapped = false;
-		if ( m_shape->isPointInside( pt ) ){
-			tapped = true;
-		}
-		setSelected( tapped );
-	}
-}
-
 void RegionRectangle::_initializeState(){
     m_state.setValue<QString>( REGION_TYPE, Carta::Lib::Regions::Rectangle::TypeName );
     m_state.insertValue<double>( Util::WIDTH, 0);
@@ -114,43 +95,67 @@ void RegionRectangle::_initializeState(){
     m_state.insertValue<double>( Util::YCOORD, 0 );
 }
 
+bool RegionRectangle::setHeight( double height ){
+	CARTA_ASSERT( height >= 0 );
+	bool heightChanged = false;
+	double oldHeight = m_state.getValue<double>( Util::HEIGHT );
+	if ( qAbs( oldHeight - height ) > ERROR_MARGIN ){
+		heightChanged = true;
+		m_state.setValue<double>( Util::HEIGHT, height );
+		m_shape->setModel( toJSON() );
+		_updateName();
+	}
+	return heightChanged;
+}
+
 
 void RegionRectangle::setModel( Carta::Lib::Regions::RegionBase* model ){
 	if ( model ){
 		QString regionType = model->typeName();
 		CARTA_ASSERT( regionType == Carta::Lib::Regions::Polygon::TypeName );
-		m_shape->setModel( model->toJson() );
-		m_constructed = true;
+		QJsonObject modelJson = model->toJson();
+		m_shape->setModel( modelJson );
+		_updateStateFromJson( modelJson );
 	}
 }
 
-void RegionRectangle::_setRectPt( const QPointF& pt ){
-	double width = qAbs( pt.x() - getTopLeft().x() );
-	double height = qAbs( pt.y() - getTopLeft().y() );
-	setRectangleSize( width, height );
-}
 
-void RegionRectangle::setRectangleSize( double width, double height ){
+bool RegionRectangle::setWidth( double width ){
 	CARTA_ASSERT( width >= 0 );
-	CARTA_ASSERT( height >= 0 );
-	m_state.setValue<double>( Util::WIDTH, width );
-	m_state.setValue<double>( Util::HEIGHT, height );
-	m_shape->setModel( toJSON() );
+	bool widthChanged = false;
+	double oldWidth = m_state.getValue<double>( Util::WIDTH );
+	if ( qAbs( width - oldWidth ) > 0 ){
+		widthChanged = true;
+		m_state.setValue<double>( Util::WIDTH, width );
+		m_shape->setModel( toJSON() );
+		_updateName();
+	}
+	return widthChanged;
 }
 
-void RegionRectangle::setTopLeft( const QPointF& pt ){
-	m_state.setValue<double>( Util::XCOORD, pt.x());
-	m_state.setValue<double>( Util::YCOORD, pt.y());
-	m_shape->setModel( toJSON() );
+
+bool RegionRectangle::setCenter( const QPointF& pt ){
+	bool centerChanged = false;
+	double oldX = m_state.getValue<double>( Util::XCOORD );
+	double oldY = m_state.getValue<double>( Util::YCOORD );
+	if ( qAbs( oldX - pt.x()) > ERROR_MARGIN || qAbs( oldY - pt.y() ) > ERROR_MARGIN ){
+		centerChanged = true;
+		m_state.setValue<double>( Util::XCOORD, pt.x());
+		m_state.setValue<double>( Util::YCOORD, pt.y());
+		m_shape->setModel( toJSON() );
+
+		_updateName();
+	}
+	return centerChanged;
 }
+
 
 QJsonObject RegionRectangle::toJSON() const {
     QJsonObject descript = Region::toJSON();
-    descript.insert( Util::WIDTH, getWidth() );
+    descript.insert( Util::WIDTH, getWidth());
     descript.insert( Util::HEIGHT, getHeight() );
-    QPointF topLeft = getTopLeft();
-    descript.insert( Util::XCOORD, topLeft.x() );
-    descript.insert( Util::YCOORD, topLeft.y() );
+    descript.insert( Util::XCOORD, m_state.getValue<double>( Util::XCOORD) );
+    descript.insert( Util::YCOORD, m_state.getValue<double>( Util::YCOORD) );
     return descript;
 }
 
@@ -163,6 +168,8 @@ void RegionRectangle::_updateStateFromJson( const QJsonObject& json ){
 	m_state.setValue<double>( Util::YCOORD, json[Util::YCOORD].toDouble() );
 	m_state.setValue<double>( Util::WIDTH, qAbs(json[Util::WIDTH].toDouble()));
 	m_state.setValue<double>( Util::HEIGHT, qAbs(json[Util::HEIGHT].toDouble()));
+	_updateName();
+	emit regionShapeChanged();
 }
 
 RegionRectangle::~RegionRectangle(){

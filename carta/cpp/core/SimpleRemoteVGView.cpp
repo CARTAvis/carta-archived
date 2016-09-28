@@ -123,11 +123,12 @@ SimpleRemoteVGView::size()
     if ( m_buffer.isNull() ) {
         m_buffer = m_raster;
         QPainter painter( & m_buffer );
-        Carta::Lib::VectorGraphics::VGListQPainterRenderer renderer;
-        renderer.render( m_vgList, painter );
-        painter.end();
+        if ( painter.isActive() ){
+			Carta::Lib::VectorGraphics::VGListQPainterRenderer renderer;
+			renderer.render( m_vgList, painter );
+			painter.end();
+        }
     }
-
     return m_buffer.size();
 }
 

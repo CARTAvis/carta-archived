@@ -17,8 +17,13 @@ bool Rectangle::initFromJson( QJsonObject obj ){
 			!obj.contains(POINT_X) || !obj.contains(POINT_Y) ){
 		return false;
 	}
-	m_rectf = QRectF( obj[POINT_X].toDouble(), obj[POINT_Y].toDouble(),
-			obj[WIDTH].toDouble(), obj[HEIGHT].toDouble() );
+	double centerX = obj[POINT_X].toDouble();
+	double centerY = obj[POINT_Y].toDouble();
+	double width = obj[WIDTH].toDouble();
+	double height = obj[HEIGHT].toDouble();
+	double left = centerX - width / 2;
+	double top = centerY - height / 2;
+	m_rectf = QRectF( left, top, width, height );
 	return true;
 }
 
@@ -49,8 +54,9 @@ QJsonObject Rectangle::toJson() const {
 	QJsonObject doc = RegionBase::toJson();
 	doc[WIDTH] = m_rectf.width();
 	doc[HEIGHT] = m_rectf.height();
-	doc[POINT_X] = m_rectf.x();
-	doc[POINT_Y] = m_rectf.y();
+	QPointF centerPt = m_rectf.center();
+	doc[POINT_X] = centerPt.x();
+	doc[POINT_Y] = centerPt.y();
 	return doc;
 }
 

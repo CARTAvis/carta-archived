@@ -45,6 +45,12 @@ public:
 	std::shared_ptr<Region> getRegion() const;
 
 	/**
+	 * Return the number of regions.
+	 * @return - the number of regions.
+	 */
+	int getRegionCount() const;
+
+	/**
 	 * Return the managed regions.
 	 * @return - the managed regions.
 	 */
@@ -54,14 +60,38 @@ public:
 	 * Get the index of the selected region.
 	 * @return - the index of the selected region.
 	 */
-	int getSelectRegionIndex() const;
-
+	int getIndexCurrent() const;
 
 	/**
-	 * Reset the state back to a different state.
-	 * @param state - a different state.
+	 * Return whether or not regions are being selected automatically.
+	 * @return - true if regions are being selected automatically; false otherwise.
 	 */
-	void resetStateData( const QString& state );
+	bool isAutoSelect() const;
+
+	/**
+	 * Reset the state based on the string passed in.
+	 * @param state - the state to restore.
+	 */
+	void resetStateString( const QString& state );
+
+	/**
+	 * Set whether or not to auto select regions based on the animator.
+	 * @param autoSelect - true if regions should be automatically selected;
+	 * 		false otherwise.
+	 */
+	void setAutoSelect( bool autoSelect );
+
+	/**
+	 * Set the index of the current regions.
+	 * @param index - the index of the current regions.
+	 */
+	void setIndexCurrent( int index );
+
+	/**
+	 * Set the center of all selected regions.
+	 * @param center - the center of all selected regions.
+	 */
+	void setRegionCenter( const QPointF& center );
 
 	/**
 	 * Create a region of the indicated type.
@@ -70,6 +100,38 @@ public:
 	 * 		and empty string.
 	 */
 	QString setRegionCreateType( const QString& createType );
+
+	/**
+	 * Set the height of all selected regions.
+	 * @param height - the new height of the selected regions.
+	 * @return - an error message if the height could not be set; otherwise, an
+	 * 			empty string.
+	 */
+	virtual QString setRegionHeight( double height );
+
+	/**
+	 * Set the major radius of all selected regions (where a major radius makes sense).
+	 * @param radius - the new radius for all selected regions.
+	 * @return - an error message if the new radius could not be set; otherwise, an
+	 * 		empty string.
+	 */
+	QString setRegionRadiusMajor( double radius );
+
+	/**
+	 * Set the minor radius of all selected regions (where a minor radius makes sense).
+	 * @param radius - the new radius for all selected regions.
+	 * @return - an error message if the new radius could not be set; otherwise, an
+	 * 		empty string.
+	 */
+	QString setRegionRadiusMinor( double radius );
+
+	/**
+	 * Set the width of all selected regions.
+	 * @param width - the new width of the selected regions.
+	 * @return - an error message if the width could not be set; otherwise, an
+	 * 			empty string.
+	 */
+	virtual QString setRegionWidth( double width );
 
 	/**
 	 * Return the vector graphics for all the managed regions.
@@ -94,6 +156,12 @@ private slots:
 
 	void _editDone();
 
+	void _indexChanged();
+
+	void _regionSelectionChanged( const QString& id );
+
+	void _regionShapeChanged();
+
 private:
 
 	RegionControls (const QString& path, const QString& id );
@@ -101,7 +169,7 @@ private:
 
 	void _addDataRegions( std::vector<std::shared_ptr<Region>> regions );
 
-	int _findRegionIndex( std::shared_ptr<Region> region ) const;
+	int _findRegionIndex( const QString& id ) const;
 
 	QString _getStateString( const QString& sessionId, SnapshotType type ) const;
 
@@ -117,10 +185,20 @@ private:
 
 	void _onInputEvent( InputEvent & ev, const QPointF& imagePt );
 
+	/**
+	 * Reset the state back to a different state.
+	 * @param state - a different state.
+	 */
+	void _resetStateData( const QString& state );
+
 	void _saveStateRegions();
+	void _setRegionsSelected( QStringList ids );
 
 	RegionControls( const RegionControls& other);
 	RegionControls& operator=( const RegionControls& other );
+
+	//Data State
+	Carta::State::StateInterface m_stateData;
 
 	//Selection for regions
 	Selection* m_selectRegion;
@@ -129,8 +207,12 @@ private:
 	std::vector<std::shared_ptr<Region> > m_regions;
 	std::shared_ptr<Region> m_regionEdit;
 	static RegionTypes* m_regionTypes;
-	static const QString REGIONS;
+
 	static const QString CREATE_TYPE;
+	static const QString REGIONS;
+	static const QString REGION_INDEX;
+	static const QString REGION_SELECT_AUTO;
+
 	static bool m_registered;
 };
 }

@@ -54,13 +54,31 @@ public:
      */
     virtual void handleTapDouble( const QPointF& pt );
 
+    /**
+     * Set the center of the rectangle.
+     * @param pt - the center of the rectangle.
+     */
+    virtual bool setCenter( const QPointF& pt ) Q_DECL_OVERRIDE;
 
+    /**
+     * Set the height of the bounding box of the region.
+     * @param value - the height of the region bounding box.
+     * @return - true if the height was successfully set; false, otherwise.
+     */
+    virtual bool setHeight( double value );
 
-	/**
-	 * Set the underlying model for the region.
+    /**
+     * Set the underlying model for the region.
 	 * @param model - the region model.
 	 */
     virtual void setModel( Carta::Lib::Regions::RegionBase* model );
+
+    /**
+     * Set the width of the bounding box of the region.
+     * @param value - the width of the region bounding box.
+     * @return - true if the width was successfully set; false, otherwise.
+     */
+    virtual bool setWidth( double value );
 
     /**
      * Returns a json representation of the region.
@@ -71,6 +89,7 @@ public:
     virtual ~RegionPolygon();
 
     const static QString CLASS_NAME;
+
 
 private slots:
 

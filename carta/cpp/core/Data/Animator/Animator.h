@@ -83,6 +83,12 @@ public:
     QString getLinkId( int linkindex ) const;
 
     /**
+     * Return the number of regions being animated.
+     * @return - the number of regions being animated.
+     */
+    int getMaxRegionCount() const;
+
+    /**
      * Return a string representing the animator state of a particular type.
      * @param type - the type of state needed.
      * @return a QString representing the corresponding animator state.
@@ -145,6 +151,7 @@ private slots:
     void _adjustStateController( Controller* controller);
     void _axesChanged();
     void _frameChanged( int index, const QString& axisName );
+    void _regionsChanged( Controller* controller );
     void _updateFrame( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
 
 private:
@@ -159,6 +166,7 @@ private:
     bool _addAnimatorType( const QString& type, QString& animatorTypeId );
     void _adjustStateAnimatorTypes();
     void _addRemoveImageAnimator();
+    void _addRemoveRegionAnimator();
     Controller* _getControllerSelected() const;
 
     int _getAnimatorTypeVisibleCount() const;
@@ -168,6 +176,7 @@ private:
     QString _initAnimator( const QString& type, bool* newAnimator );
 
     void _resetAnimationParameters( int selectedImage );
+    void _resetAnimationRegion( int selectedIndex );
 
     //Reset the preferences state of an individual animator.
     void _resetStateAnimator( const QString& key );

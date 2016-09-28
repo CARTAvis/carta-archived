@@ -289,6 +289,12 @@ public:
     QString getPixelUnits() const;
 
     /**
+     * Return a count of the number of regions that have been loaded.
+     * @return - a count of the number of regions that have been loaded.
+     */
+    int getRegionCount() const;
+
+    /**
      * Return the index of the image that is currently at the top of the stack.
      * @return - the index of the current image.
      */
@@ -303,6 +309,12 @@ public:
      *      that have been selected.
      */
     std::vector<std::shared_ptr<ColorState> > getSelectedColorStates( bool global );
+
+    /**
+     * Return the index of the current region.
+     * @return - the index of the current region.
+     */
+    int getRegionIndexCurrent() const;
 
     /**
      * Return a count of the number of image layers in the stack.
@@ -393,9 +405,15 @@ public:
 
     /**
      *  Make a data selection.
-     *  @param imageIndex - a String representing the index of a specific data selection.
+     *  @param imageIndex - the index of a specific data selection.
      */
     void setFrameImage(int imageIndex);
+
+    /**
+     * Make a region selection.
+     * @pram regionIndex - the index of the region to select.
+     */
+    void setFrameRegion( int regionIndex );
 
     /**
      * Set the zoom level

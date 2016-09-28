@@ -36,7 +36,13 @@ public:
      * Return the location of the point.
      * @return - the location of the point.
      */
-    const QPointF & getPosition() const;
+    QPointF getCenter() const;
+
+    /**
+     * Return the size of the point.
+     * @return - the size of the point.
+     */
+    QSizeF getSize() const;
 
     /**
      * Returns the graphics for drawing the control point.
@@ -96,7 +102,7 @@ protected:
 
 private:
     std::function < void (bool) > m_cb;
-    QPointF m_pos = QPointF( 0, 0 );
+    QPointF m_pos;
     QColor m_fillColor;
     double m_size = 11;
 };

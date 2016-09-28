@@ -413,9 +413,16 @@ QString Controller::_getPreferencesId() const {
     return id;
 }
 
+int Controller::getRegionCount() const {
+	return m_regionControls->getRegionCount();
+}
 
 int Controller::getSelectImageIndex() const {
     return m_stack->_getSelectImageIndex();
+}
+
+int Controller::getRegionIndexCurrent() const {
+	return m_regionControls->getIndexCurrent();
 }
 
 
@@ -449,6 +456,7 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
         prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
         prefState.insertValue<QString>(Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
+        prefState.insertValue<QString>(RegionControls::CLASS_NAME, m_regionControls->_getStateString( sessionId,type));
         result = prefState.toString();
     }
     else if ( type == SNAPSHOT_DATA ){
@@ -457,7 +465,7 @@ QString Controller::getStateString( const QString& sessionId, SnapshotType type 
         dataState.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA);
         dataState.setValue<int>(StateInterface::INDEX, getIndex() );
         QString regionControlState = m_regionControls->_getStateString( sessionId, type );
-        dataState.insertObject( RegionControls::REGIONS, regionControlState );
+        dataState.insertObject( RegionControls::CLASS_NAME, regionControlState );
         result = dataState.toString();
     }
     return result;
@@ -956,6 +964,9 @@ void Controller::resetState( const QString& state ){
     QString settingStr = restoredState.getValue<QString>(Settings::SETTINGS);
     m_settings->resetStateString( settingStr );
 
+    QString regionControlStr = restoredState.getValue<QString>(RegionControls::CLASS_NAME);
+    m_regionControls->resetStateString( regionControlStr );
+
     QString prefStr = restoredState.getValue<QString>(Util::PREFERENCES);
     m_state.setState( prefStr );
     m_state.flushState();
@@ -969,7 +980,8 @@ void Controller::resetStateData( const QString& state ){
     m_stack->_resetStack( dataState );
 
     //Restore the region State
-    m_regionControls->resetStateData( state );
+    QString regionControlStr = dataState.toString(RegionControls::CLASS_NAME);
+    m_regionControls->_resetStateData( regionControlStr );
 
     //Notify others there has been a change to the data.
     emit dataChanged( this );
@@ -1084,6 +1096,10 @@ void Controller::setFrameImage( int val) {
         _updateCursorText( true );
         emit dataChanged( this );
     }
+}
+
+void Controller::setFrameRegion( int val ){
+	m_regionControls->setIndexCurrent( val );
 }
 
 

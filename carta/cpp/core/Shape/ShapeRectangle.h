@@ -30,6 +30,18 @@ public:
     ShapeRectangle( );
 
     /**
+     * Return the center of the rectangle.
+     * @return - the center of the rectangle.
+     */
+    virtual QPointF getCenter() const;
+
+    /**
+     * Return the size of the rectangle.
+     * @return - the size of the rectangle.
+     */
+    virtual QSizeF getSize() const;
+
+    /**
      * Return the vector graphics for the shape.
      * @return - the shape vector graphics.
      */

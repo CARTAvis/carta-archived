@@ -397,7 +397,8 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
          */
         _setRegionId : function( object ){
             return function( id ){
-                object.m_sharedVarRegion = object.m_connector.getSharedVar(id);
+            	var path = skel.widgets.Path.getInstance();
+                object.m_sharedVarRegion = object.m_connector.getSharedVar(id + path.SEP + path.DATA);
                 object.m_sharedVarRegion.addCB(object._regionDataChangedCB.bind(object));
                 object._regionDataChangedCB();
             }

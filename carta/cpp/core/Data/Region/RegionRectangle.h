@@ -55,10 +55,11 @@ public:
 	virtual void handleDragStart( const QPointF & pt ) Q_DECL_OVERRIDE;
 
 	/**
-		 * Notification that a touch event has started on the shape.
-		 * @param pt - the location of the touch.
-		 */
-	virtual void handleTouch( const QPointF& pt );
+	 * Set the height of the bounding box of the region.
+	 * @param value - the height of the region bounding box.
+	 * @return - true if the height was successfully set; false, otherwise.
+	 */
+	virtual bool setHeight( double value ) Q_DECL_OVERRIDE;
 
 	/**
 	 * Set the underlying model for the region.
@@ -67,17 +68,17 @@ public:
     virtual void setModel( Carta::Lib::Regions::RegionBase* model );
 
     /**
-     * Set the width and height of the rectangle.
-     * @param width - the width of the rectangle.
-     * @param height - the height of the rectangle.
+     * Set the center of the rectangle.
+     * @param pt - the center of the rectangle.
      */
-    void setRectangleSize( double width, double height );
+    virtual bool setCenter( const QPointF& pt ) Q_DECL_OVERRIDE;
 
     /**
-     * Set the top left corner of the rectangle.
-     * @param pt - the top left corner of the rectangle.
+     * Set the width of the bounding box of the region.
+     * @param value - the width of the region bounding box.
+     * @return - true if the width was successfully set; false, otherwise.
      */
-    void setTopLeft( const QPointF& pt );
+    virtual bool setWidth( double value ) Q_DECL_OVERRIDE;
 
     /**
      * Returns a json representation of the region.
@@ -97,11 +98,7 @@ private:
 
     void _initializeState();
 
-    void _setRectPt( const QPointF& pt );
-
-
     static bool m_registered;
-    bool m_constructed;
 
     /**
      * Construct a region.

@@ -15,18 +15,24 @@ namespace Data {
 const QString Region::ACTIVE = "active";
 const QString Region::HOVERED = "hovered";
 const QString Region::REGION_TYPE = "regionType";
+const QString Region::CUSTOM_NAME = "customName";
+const double Region::ERROR_MARGIN = 0.000001;
 
 Region::Region(const QString& className, const QString& path, const QString& id )
 :CartaObject( className, path, id ),
  m_shape(nullptr){
-	m_regionNameSet = false;
 	_initializeState();
+}
+
+QPointF Region::getCenter() const {
+	return m_shape->getCenter();
 }
 
 
 QString Region::getCursor() const {
 	return "";
 }
+
 
 std::shared_ptr<Carta::Lib::Regions::RegionBase> Region::getModel() const {
 	std::shared_ptr<Carta::Lib::Regions::RegionBase> info (nullptr);
@@ -58,6 +64,10 @@ QString Region::getRegionType( const QString& regionTypeStr ){
 QString Region::getRegionType() const {
 	QString regionTypeStr = m_state.getValue<QString>( REGION_TYPE );
 	return regionTypeStr;
+}
+
+QSizeF Region::getSize() const {
+	return m_shape->getSize();
 }
 
 QString Region::_getStateString() const {
@@ -131,6 +141,8 @@ void Region::handleHover( const QPointF& pt ){
 	}
 }
 
+
+
 void Region::handleTouch( const QPointF& pt ){
 	//Only active shapes participate in user events
 	if ( isActive() ){
@@ -160,9 +172,11 @@ void Region::handleEvent( Carta::Lib::InputEvents::JsonEvent & ev ) {
 void Region::_initializeState(){
 	m_state.insertValue<QString>( REGION_TYPE, "" );
 	m_state.insertValue<bool>( Util::SELECTED, true );
+	m_state.insertValue<bool>( CUSTOM_NAME, false );
 	m_state.insertValue<bool>( ACTIVE, true );
 	m_state.insertValue<bool>( HOVERED, true );
 	m_state.insertValue<QString>( Util::NAME, "");
+	m_state.insertValue<QString>( Util::ID, getId() );
 }
 
 
@@ -191,9 +205,10 @@ bool Region::isSelected() const {
 }
 
 void Region::_restoreState( const QString& stateStr ){
-	Carta::State::StateInterface rectState( "");
-	rectState.setState( stateStr );
-	m_state = rectState;
+	Carta::State::StateInterface regState( "");
+	regState.setState( stateStr );
+	m_state = regState;
+	m_state.setValue<QString>(Util::ID, getId() );
 	m_shape->setModel( toJSON() );
 }
 
@@ -222,6 +237,9 @@ void Region::setEditMode( bool editMode ) {
 	m_shape->setEditMode( editMode );
 }
 
+bool Region::setHeight( double /*value*/ ){
+	return false;
+}
 
 bool Region::setHovered( bool hovered ) {
 	bool oldHovered = isHovered();
@@ -236,16 +254,27 @@ bool Region::setHovered( bool hovered ) {
 }
 
 void Region::setModel( Carta::Lib::Regions::RegionBase* /*model*/ ){
-
+	//_updateName();
 }
 
+QString Region::setRadiusMajor( double /*length*/, bool* changed ){
+	QString result = "Major radius is not supported for shapes of type: "+getType();
+	*changed = false;
+	return result;
+}
+
+QString Region::setRadiusMinor( double /*length*/, bool* changed ){
+	QString result = "Minor radius is not supported for shapes of type: "+getType();
+	*changed = false;
+	return result;
+}
 
 QString Region::setRegionName( const QString& name ){
 	QString result;
 	if ( name.trimmed().length() > 0 ){
 		QString oldName = m_state.getValue<QString>( Util::NAME );
 		if ( oldName != name ){
-			m_regionNameSet = true;
+			m_state.setValue<bool>( CUSTOM_NAME, true );
 			m_state.setValue<QString>( Util::NAME, name );
 			m_state.flushState();
 		}
@@ -257,8 +286,8 @@ void Region::setSelected( bool selected ) {
 	bool oldSelected = isSelected();
 	if ( oldSelected != selected ){
 		m_state.setValue<bool>( Util::SELECTED, selected );
-		m_state.flushState();
 		m_shape->setSelected( selected );
+		emit regionSelectionChanged( getId());
 	}
 }
 
@@ -266,11 +295,30 @@ void Region::setSelected( bool selected ) {
 void Region::setUserData( void * /*value*/ ){
 }
 
+bool Region::setWidth( double /*value*/ ){
+	return false;
+}
+
 QJsonObject Region::toJSON() const {
-	QString regionType = getRegionType();
 	QJsonObject regionObject;
-	regionObject.insert( REGION_TYPE, regionType );
+	regionObject.insert( Util::ID, getId());
+	regionObject.insert( REGION_TYPE, getRegionType() );
 	return regionObject;
+}
+
+void Region::_updateName(){
+	if ( !m_state.getValue<bool>(CUSTOM_NAME) ){
+		QPointF center = getCenter();
+		QSizeF size = getSize();
+		QString type = getRegionType();
+		QString dName = type + "[cX="+QString::number( center.x()) + " cY=" +QString::number( center.y() ) +
+				" width=" +QString::number(size.width())+" height="+QString::number(size.height())+"]";
+		QString oldName = m_state.getValue<QString>( Util::NAME );
+		if ( oldName != dName ){
+			m_state.setValue<QString>( Util::NAME, dName );
+			m_state.flushState();
+		}
+	}
 }
 
 void Region::_updateShapeFromState(){

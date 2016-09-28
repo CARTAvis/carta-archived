@@ -63,14 +63,31 @@ public:
 	/**
 	 * Set the center of the ellipse.
 	 * @param center - the center of the ellipse.
+	 * @return - true if the center was changed; false otherwise.
 	 */
-	void setCenter( const QPointF& center );
+	virtual bool setCenter( const QPointF& center ) Q_DECL_OVERRIDE;
 
 	/**
 	 * Set the underlying model for the region.
 	 * @param model - the region model.
 	 */
     virtual void setModel( Carta::Lib::Regions::RegionBase* model );
+
+    /**
+     * Set the major radius of the ellipse.
+     * @param length - the length of the ellipse's major radius.
+     * @param changed - set to true if the major radius is changed; false otherwise.
+     * @return - an error message if there was a problem setting the major radius.
+     */
+    virtual QString setRadiusMajor( double length, bool* changed ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set the minor radius of the ellipse.
+     * @param length - the length of the ellipse's minor radius.
+     * @param changed - set to true if the minor radius is changed; false otherwise.
+     * @return - an error message if there was a problem setting the minor radius.
+     */
+    virtual QString setRadiusMinor( double length, bool* changed ) Q_DECL_OVERRIDE;
 
     /**
      * Returns a json representation of the region.

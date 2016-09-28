@@ -51,25 +51,10 @@ void RegionPolygon::_addCorners( const std::vector< QPointF >& corners ){
     for ( int i = oldArraySize; i < newArraySize; i++ ){
     	_insertCorner( i, corners[i-oldArraySize] );
     }
+    _updateName();
     m_state.flushState();
 
     m_shape->setModel( toJSON() );
-
-    //User has not set a custom name
-    if ( ! m_regionNameSet ){
-        //Note the type plus the bounding box is not a unique identifier for a polygon
-        //but it may be the best choice for a default name as it is shorter than using
-        //all of the corners.
-        std::shared_ptr<Carta::Lib::Regions::RegionBase> base = getModel();
-        if ( base ){
-            QRectF boundingBox = base->outlineBox();
-            QPointF topLeft = boundingBox.topLeft();
-            QPointF bottomRight = boundingBox.bottomRight();
-            QString name = getType() + " [("+topLeft.x()+","+topLeft.y()+
-                    "),("+bottomRight.x()+","+bottomRight.y()+")]";
-            m_state.setValue<QString>(Util::NAME, name );
-        }
-    }
 }
 
 void RegionPolygon::_closePolygon(){
@@ -84,7 +69,6 @@ void RegionPolygon::_closePolygon(){
 				std::vector<QPointF> corners(1);
 				corners[0] = firstPoint;
 				_addCorners( corners );
-
 				emit editDone();
 			}
 		}
@@ -174,6 +158,67 @@ void RegionPolygon::handleTapDouble( const QPointF& pt ){
 }
 
 
+bool RegionPolygon::setCenter( const QPointF& pt ){
+	std::shared_ptr<Carta::Lib::Regions::RegionBase> rBase = getModel();
+	QRectF box = rBase->outlineBox();
+	bool centerChanged = false;
+	QPointF oldCenter = box.center();
+	double xMove = pt.x() - oldCenter.x();
+	double yMove = pt.y() - oldCenter.y();
+
+	if ( xMove != 0 || yMove != 0 ){
+		//Move all the corners by the indicated amount.
+		int cornerCount = m_state.getArraySize( Carta::Lib::Regions::Polygon::POINTS);
+		if ( cornerCount > 0 ){
+			centerChanged = true;
+			for ( int i = 0; i < cornerCount; i++ ){
+				QString key = Carta::State::UtilState::getLookup( Carta::Lib::Regions::Polygon::POINTS, i );
+				QString xKey = Carta::State::UtilState::getLookup( key, Carta::Lib::Regions::RegionBase::POINT_X);
+				QString yKey = Carta::State::UtilState::getLookup( key, Carta::Lib::Regions::RegionBase::POINT_Y);
+				double cornerX = m_state.getValue<double>( xKey );
+				double cornerY = m_state.getValue<double>( yKey );
+				cornerX = cornerX + xMove;
+				cornerY = cornerY + yMove;
+				m_state.setValue<double>( xKey, cornerX );
+				m_state.setValue<double>( yKey, cornerY );
+			}
+			m_shape->setModel( toJSON() );
+			_updateName();
+		}
+	}
+	return centerChanged;
+}
+
+bool RegionPolygon::setHeight( double height ){
+	CARTA_ASSERT( height >= 0 );
+	bool heightChanged = false;
+	//Get the old height of the outline box and see if there is a change.
+	std::shared_ptr<Carta::Lib::Regions::RegionBase> rBase = getModel();
+	QRectF box = rBase->outlineBox();
+	double oldHeight = box.height();
+	if ( oldHeight != height ){
+		QPointF centerPt = box.center();
+		int cornerCount = m_state.getArraySize( Carta::Lib::Regions::Polygon::POINTS );
+		if ( cornerCount > 0 ){
+			heightChanged = true;
+			for ( int i = 0; i < cornerCount; i++ ){
+				QString key = Carta::State::UtilState::getLookup( Carta::Lib::Regions::Polygon::POINTS, i );
+				QString yKey = Carta::State::UtilState::getLookup( key, Carta::Lib::Regions::RegionBase::POINT_Y);
+				//Move the points proportionally, depending on their distance from the center.
+				double cornerY = m_state.getValue<double>( yKey );
+				double centerDist = cornerY  - centerPt.y();
+				double newAmount = centerDist / oldHeight * height;
+				cornerY = centerPt.y() + newAmount;
+				m_state.setValue<double>( yKey, cornerY );
+			}
+			m_shape->setModel( toJSON() );
+			_updateName();
+		}
+	}
+	return heightChanged;
+}
+
+
 void RegionPolygon::setModel( Carta::Lib::Regions::RegionBase* model ){
 	if ( model ){
 		QString regionType = model->typeName();
@@ -187,9 +232,40 @@ void RegionPolygon::setModel( Carta::Lib::Regions::RegionBase* model ){
 			addCorner( poly.value(i) );
 		}
 		_closePolygon();
+		_updateName();
 	}
 }
 
+bool RegionPolygon::setWidth( double width ){
+	CARTA_ASSERT( width >= 0 );
+	bool widthChanged = false;
+	//Get the old width of the outline box and see if there is a change.
+	std::shared_ptr<Carta::Lib::Regions::RegionBase> rBase = getModel();
+	QRectF box = rBase->outlineBox();
+	double oldWidth = box.width();
+	if ( oldWidth != width ){
+		//Move the points proportionally, depending on their distance from the
+		//center.
+		QPointF centerPt = box.center();
+		int cornerCount = m_state.getArraySize( Carta::Lib::Regions::Polygon::POINTS );
+		if ( cornerCount > 0 ){
+			widthChanged = true;
+			for ( int i = 0; i < cornerCount; i++ ){
+				QString key = Carta::State::UtilState::getLookup( Carta::Lib::Regions::Polygon::POINTS, i );
+				QString xKey = Carta::State::UtilState::getLookup( key, Carta::Lib::Regions::RegionBase::POINT_X);
+
+				double cornerX = m_state.getValue<double>( xKey );
+				double centerDist = cornerX  - centerPt.x();
+				double newAmount = centerDist / oldWidth * width;
+				cornerX = centerPt.x() + newAmount;
+				m_state.setValue<double>( xKey, cornerX );
+			}
+			m_shape->setModel( toJSON() );
+			_updateName();
+		}
+	}
+	return widthChanged;
+}
 
 QJsonObject RegionPolygon::toJSON() const {
     QJsonObject descript = Region::toJSON();
@@ -225,6 +301,8 @@ void RegionPolygon::_updateStateFromJson( const QJsonObject& json ){
 			}
 		}
 	}
+	_updateName();
+	emit regionShapeChanged();
 }
 
 RegionPolygon::~RegionPolygon(){

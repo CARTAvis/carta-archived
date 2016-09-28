@@ -30,6 +30,18 @@ public:
     ShapePolygon( );
 
     /**
+     * Return the center of the bounding box containing the polygon.
+     * @return - the center of the bounding box containing the polygon.
+     */
+    virtual QPointF getCenter() const;
+
+    /**
+     * Return the size of the bounding box containing the polygon.
+     * @return - the size of the bounding box containing the polygon.
+     */
+    virtual QSizeF getSize() const;
+
+    /**
      * Return the vector graphics for the shape.
      * @return - the shape vector graphics.
      */

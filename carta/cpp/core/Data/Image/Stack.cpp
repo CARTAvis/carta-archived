@@ -609,6 +609,7 @@ QString Stack::_saveImage( const QString& saveName ){
     std::shared_ptr<RenderRequest> request( new RenderRequest( frameIndices, _getCoordinateSystem()));
     request->setOutputSize( QSize(width, height) );
     request->setTopIndex( _getIndexCurrent());
+    request->setRequestMain( true );
     bool saveStarted = m_saveService->saveImage(/*frameIndices, _getCoordinateSystem()*/request);
     if ( !saveStarted ){
         result = "Image was not saved.  Please check the file name.";

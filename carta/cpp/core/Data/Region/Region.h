@@ -35,10 +35,22 @@ Q_OBJECT
 public:
 
 	/**
+	 * Returns the center point of the bounding box enclosing the region.
+	 * @return - the center point of the bounding box enclosing the region.
+	 */
+	QPointF getCenter() const;
+
+	/**
 	 * Return information about the cursor position withen the shape.
 	 * @retun - information about the cursor position in the shape.
 	 */
 	virtual QString getCursor() const;
+
+	/**
+	 * Returns the size of the bounding box enclosing the regions.
+	 * @return - the size of the bounding box enclosing the region.
+	 */
+	QSizeF getSize() const;
 
 	/**
 	 * Return the information associated with this region.
@@ -79,6 +91,7 @@ public:
 	 * @return - the shape vector graphics.
 	 */
 	Carta::Lib::VectorGraphics::VGList getVGList() const;
+
 
 	/**
 	 * Notification on an overall drag event from mouse down to mouse up.
@@ -167,6 +180,13 @@ public:
 	virtual void setActive( bool flag );
 
 	/**
+	 * Set the center of the region.
+	 * @param center - the center point of the region.
+	 * @return - true if the center has been changed; false, otherwise.
+	 */
+	virtual bool setCenter( const QPointF& center ) = 0;
+
+	/**
 	 * Set information about the current cursor position in the shape.
 	 * @param value - information about the cursor position in the shape.
 	 */
@@ -185,6 +205,13 @@ public:
 	virtual void setEditMode( bool editable );
 
 	/**
+	 * Set the height of the bounding box of the region.
+	 * @param value - the height of the region bounding box.
+	 * @return - true if the height was successfully set; false, otherwise.
+	 */
+	virtual bool setHeight( double value );
+
+	/**
 	 * Sets whether or not the shape is in a hovered state.
 	 * @param hovered - true if the shape is hovered; false otherwise.
 	 * @return - true if the underlying VG graphics need to be updated; false,
@@ -199,6 +226,26 @@ public:
 	virtual void setModel( Carta::Lib::Regions::RegionBase* model );
 
 	/**
+	 * Set the major radius of the region.
+	 * @param length - the length of the region's major radius.
+	 * @param changed - set to true if the major radius is changed; false otherwise.
+	 * @return - an error message if there was a problem setting the major radius; an
+	 * 		empty string otherwise.
+	 */
+	//Default implementation does nothing since most shapes do not have a radius.
+	virtual QString setRadiusMajor( double length, bool* changed );
+
+	/**
+	 * Set the minor radius of the region.
+	 * @param length - the length of the region's minor radius.
+	 * @param changed - set to true if the minor radius is changed; false otherwise.
+	 * @return - an error message if there was a problem setting the minor radius; an
+	 * 		empty string otherwise.
+	 */
+	//Default implementation does nothing since most shapes do not have a radius.
+	virtual QString setRadiusMinor( double length, bool* changed );
+
+	/**
 	 * Set a user-customized name for the region.
 	 * @param name - a user name for the region.
 	 * @return - an error message if the region name was not correctly set; an empty string
@@ -210,7 +257,14 @@ public:
 	 * Set whether or not the shape is selected;
 	 * @param value - true if the shape is selected; false otherwise.
 	 */
-	virtual void setSelected( bool value );
+	void setSelected( bool value );
+
+	/**
+	 * Set the width of the bounding box of the region.
+	 * @param value - the width of the region bounding box.
+	 * @return - true if the width was successfully set; false, otherwise.
+	 */
+	virtual bool setWidth( double value );
 
 	/**
 	 * Set user data associated with the shape.
@@ -233,6 +287,17 @@ signals:
 	 */
 	void editDone();
 
+	/**
+	 * Notification that the region has changed its selection status.
+	 * @param id - an identifier for this region.
+	 */
+	void regionSelectionChanged( const QString& id );
+
+	/**
+	 * Notification that the shape of the region changed.
+	 */
+	void regionShapeChanged( );
+
 protected:
 
 	/**
@@ -243,18 +308,20 @@ protected:
 
 	void _updateShapeFromState();
 
+	void _updateName();
+
 	/**
 	 * Construct a region.
 	 */
 	Region( const QString& className, const QString& path, const QString& id );
 
 	const static QString ACTIVE;
+	const static QString CUSTOM_NAME;
 	const static QString HOVERED;
 	const static QString REGION_TYPE;
-	bool m_regionNameSet;
+	const static double ERROR_MARGIN;
+
 	std::shared_ptr<Shape::ShapeBase> m_shape;
-
-
 
 private:
 

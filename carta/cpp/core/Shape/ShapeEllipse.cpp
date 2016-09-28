@@ -15,7 +15,7 @@ ShapeEllipse::ShapeEllipse( ):
 void ShapeEllipse::_controlPointCB( int index, bool final ){
 	QRectF & rect = m_shadowRect;
 	if ( index >= 0 && index < CORNER_COUNT ) {
-		QPointF corner = m_controlPoints[index]-> getPosition();
+		QPointF corner = m_controlPoints[index]-> getCenter();
 		//Update the corner points of the shadow rectangle to match
 		if ( index == 0 ){
 			rect.setTopLeft( corner );
@@ -35,6 +35,18 @@ void ShapeEllipse::_controlPointCB( int index, bool final ){
 	if ( final ) {
 		_updateEllipseFromShadow();
 	}
+}
+
+void ShapeEllipse::_editShadow( const QPointF & pt ){
+	m_shadowRect.setBottomRight( pt );
+}
+
+QPointF ShapeEllipse::getCenter() const {
+	return m_ellipseRegion->getCenter();
+}
+
+QSizeF ShapeEllipse::getSize() const {
+	return m_ellipseRegion->outlineBox().size();
 }
 
 
@@ -60,11 +72,6 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 		}
 	}
 	return comp.vgList();
-}
-
-
-void ShapeEllipse::_editShadow( const QPointF & pt ){
-	m_shadowRect.setBottomRight( pt );
 }
 
 
@@ -122,6 +129,7 @@ void ShapeEllipse::_moveShadow( const QPointF& pt ){
 void ShapeEllipse::setModel( const QJsonObject& json ){
 	m_ellipseRegion->initFromJson( json );
 	m_shadowRect = m_ellipseRegion->outlineBox();
+	_syncShadowToCPs();
 }
 
 

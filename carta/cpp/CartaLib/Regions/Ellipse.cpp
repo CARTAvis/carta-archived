@@ -77,7 +77,8 @@ bool Ellipse::isPointInside( const RegionPointV & pts ) const {
 	double yDiff = p.y() - m_center.y();
 	double termMajor = xDiff*cos(m_angle) + yDiff*sin(m_angle);
 	double termMinor = xDiff*sin(m_angle) + yDiff*cos(m_angle);
-	double d = termMajor/(m_radiusMajor * m_radiusMajor) + termMinor/(m_radiusMinor * m_radiusMinor);
+	double d = (termMajor * termMajor)/(m_radiusMajor * m_radiusMajor) +
+			(termMinor*termMinor)/(m_radiusMinor * m_radiusMinor);
 	return ( d < 1 );
 }
 

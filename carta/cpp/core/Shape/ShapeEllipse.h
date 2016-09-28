@@ -30,6 +30,17 @@ public:
      */
     ShapeEllipse( );
 
+    /**
+     * Return the center of the ellipse.
+     * @return - the center of the ellipse.
+     */
+    virtual QPointF getCenter() const;
+
+    /**
+     * Return the size of the bounding box containing the ellipse.
+     * @return - the size of the bounding box containing the ellipse.
+     */
+    virtual QSizeF getSize() const;
 
     /**
      * Return the vector graphics for the shape.

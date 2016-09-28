@@ -47,5 +47,9 @@ private:
             const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const;
     casa::Record _getRegionRecord( const QString& shape, const casa::CoordinateSystem& cSys,
             const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const;
+
+    casa::Vector<casa::Double> _toWorld( const casa::CoordinateSystem& cSys,
+    		double x, double y, bool* successful ) const;
     const QString PIXEL_UNIT;
+    const QString RADIAN_UNIT;
 };

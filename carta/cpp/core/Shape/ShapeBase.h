@@ -51,10 +51,22 @@ public:
 	bool isDeletable() const;
 
 	/**
+	 * Return the center of the bounding box containing the shape.
+	 * @return - the center of the bounding box containing the shape.
+	 */
+	virtual QPointF getCenter() const = 0;
+
+	/**
 	 * Return information about the cursor position withen the shape.
 	 * @retun - information about the cursor position in the shape.
 	 */
 	QString getCursor() const;
+
+	/**
+	 * Return the size of the bounding box containing the shape.
+	 * @return - the size of the bounding box containing the shape.
+	 */
+	virtual QSizeF getSize() const = 0;
 
 	/**
 	 * Return the vector graphics for the shape.

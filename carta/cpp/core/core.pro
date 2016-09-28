@@ -125,7 +125,6 @@ HEADERS += \
     Data/ViewPlugins.h \
     GrayColormap.h \
     ImageRenderService.h \
-    ImageSaveService.h \
     Plot2D/Plot.h \
     Plot2D/Plot2DGenerator.h \
     Plot2D/Plot2DRangeMarker.h \
@@ -298,7 +297,6 @@ SOURCES += \
     Shape/ShapePolygon.cpp \
     Shape/ShapeRectangle.cpp \
     ImageRenderService.cpp \
-    ImageSaveService.cpp \
     Algorithms/quantileAlgorithms.cpp \
     ScriptedClient/Listener.cpp \
     ScriptedClient/ScriptedCommandInterpreter.cpp \

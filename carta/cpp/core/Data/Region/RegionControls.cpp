@@ -18,6 +18,8 @@ namespace Data {
 const QString RegionControls::CLASS_NAME = "RegionControls";
 const QString RegionControls::CREATE_TYPE = "createType";
 const QString RegionControls::REGIONS = "regions";
+const QString RegionControls::REGION_INDEX = "regionIndex";
+const QString RegionControls::REGION_SELECT_AUTO = "regionAutoSelect";
 
 RegionTypes* RegionControls::m_regionTypes = nullptr;
 
@@ -40,6 +42,7 @@ bool RegionControls::m_registered =
 
 RegionControls::RegionControls(const QString& path, const QString& id )
 :CartaObject( CLASS_NAME, path, id ),
+ 	 m_stateData( Carta::State::UtilState::getLookup(path, Carta::State::StateInterface::STATE_DATA)),
  	 m_selectRegion( nullptr ),
 	 m_regionEdit( nullptr ){
 	_initializeStatics();
@@ -52,7 +55,8 @@ void RegionControls::_addDataRegions( std::vector<std::shared_ptr<Region>> regio
 
     int count = regions.size();
     for ( int i = 0; i < count; i++ ){
-        int regionIndex = _findRegionIndex( regions[i] );
+    	const QString id = regions[i]->getId();
+        int regionIndex = _findRegionIndex( id );
         if ( regionIndex < 0 ){
         	regions[i]->setEditMode( false );
             m_regions.push_back( regions[i]);
@@ -74,8 +78,6 @@ void RegionControls::clearRegions(){
 }
 
 
-
-
 QString RegionControls::closeRegion( int index ){
     bool regionRemoved = false;
     QString result;
@@ -90,8 +92,14 @@ QString RegionControls::closeRegion( int index ){
         regionRemoved = true;
     }
     if ( regionRemoved ){
-        _saveStateRegions();
-        emit regionsChanged();
+    	int selectedRegion = m_selectRegion->getIndex();
+    	int regionCount = m_regions.size();
+    	m_selectRegion->setUpperBound( regionCount );
+    	if ( selectedRegion >= regionCount ){
+    		m_selectRegion->setIndex(regionCount - 1);
+    	}
+    	_saveStateRegions();
+    	emit regionsChanged();
     }
     else {
         result = "Could not find region to remove for index="+QString::number(index);
@@ -108,6 +116,12 @@ void RegionControls::_editDone(){
 
 		m_regionEdit->setActive( true );
 		m_regions.push_back( m_regionEdit );
+		connect( m_regionEdit.get(), SIGNAL(regionSelectionChanged(const QString&)),
+				this, SLOT(_regionSelectionChanged( const QString&)));
+		connect( m_regionEdit.get(), SIGNAL(regionShapeChanged()),
+				this, SLOT(_regionShapeChanged()));
+
+		m_selectRegion->setUpperBound( m_regions.size() );
 		m_regionEdit = std::shared_ptr<Region>(nullptr);
 		m_state.setValue<QString>(CREATE_TYPE, "");
 		_saveStateRegions();
@@ -116,20 +130,17 @@ void RegionControls::_editDone(){
 }
 
 
-int RegionControls::_findRegionIndex( std::shared_ptr<Region> region ) const {
-    int index = -1;
-    if ( region ){
-        QJsonObject info = region->toJSON();
-        int regionCount = m_regions.size();
-        for ( int i = 0; i < regionCount; i++ ){
-            QJsonObject otherInfo = m_regions[i]->toJSON();
-            if ( info == otherInfo ){
-                index = i;
-                break;
-            }
-        }
-    }
-    return index;
+int RegionControls::_findRegionIndex( const QString& id ) const {
+	int index = -1;
+	int regionCount = m_regions.size();
+	for ( int i = 0; i < regionCount; i++ ){
+		QString otherId = m_regions[i]->getId();
+		if ( id == otherId ){
+			index = i;
+			break;
+		}
+	}
+	return index;
 }
 
 std::shared_ptr<Region> RegionControls::getRegion() const {
@@ -142,13 +153,16 @@ std::shared_ptr<Region> RegionControls::getRegion() const {
     return region;
 }
 
+int RegionControls::getRegionCount() const {
+	return m_regions.size();
+}
 
 std::vector<std::shared_ptr<Region> > RegionControls::getRegions() const {
     return m_regions;
 }
 
 
-int RegionControls::getSelectRegionIndex() const {
+int RegionControls::getIndexCurrent() const {
     int selectRegionIndex = -1;
     if ( m_regions.size() > 0 ){
         selectRegionIndex = m_selectRegion->getIndex();
@@ -156,9 +170,18 @@ int RegionControls::getSelectRegionIndex() const {
     return selectRegionIndex;
 }
 
-QString RegionControls::_getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
-	QString regionsArray = m_state.toString( REGIONS);
-	return regionsArray;
+QString RegionControls::_getStateString( const QString& /*sessionId*/, SnapshotType type ) const {
+	QString result;
+	if ( type == SNAPSHOT_PREFERENCES ){
+		result = m_state.toString();
+	}
+	else if ( type == SNAPSHOT_DATA ){
+		Carta::State::StateInterface state( "" );
+		state.setState( m_stateData.toString() );
+		state.insertValue<QString>( Selection::REGION, m_selectRegion->getStateString());
+		result = state.toString();
+	}
+	return result;
 }
 
 
@@ -243,34 +266,163 @@ bool RegionControls::_handleTapDouble( const Carta::Lib::InputEvents::DoubleTapE
 
 
 void RegionControls::_initializeCallbacks(){
-    addCommandCallback( "closeRegion", [=] (const QString & /*cmd*/,
-                           const QString & params, const QString & /*sessionId*/) ->QString {
-           std::set<QString> keys = {"region"};
-           std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-           QString regionIdStr = dataValues[*keys.begin()];
-           bool validInt = false;
-           int regionId = regionIdStr.toInt( &validInt );
-           QString result;
-           if ( validInt ){
-               result = closeRegion( regionId );
-           }
-           else {
-               result="Index of region to close must be an integer";
-           }
-           return result;
-       });
+	addCommandCallback( "closeRegion", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+		std::set<QString> keys = {"region"};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		QString regionIdStr = dataValues[*keys.begin()];
+		bool validInt = false;
+		int regionId = regionIdStr.toInt( &validInt );
+		QString result;
+		if ( validInt ){
+			result = closeRegion( regionId );
+		}
+		else {
+			result="Index of region to close must be an integer";
+		}
+		return result;
+	});
+
+	addCommandCallback( "setAutoSelect", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+		std::set<QString> keys = {"autoSelect"};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		QString autoStr = dataValues[*keys.begin()];
+		bool validBool = false;
+		bool autoSelect = Util::toBool( autoStr, &validBool );
+		QString result;
+		if ( validBool ){
+			setAutoSelect( autoSelect );
+		}
+		else {
+			result="Whether or not to auto select regions must be true/false: "+params;
+		}
+		return result;
+	});
+
+	addCommandCallback( "setCenter", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+		std::set<QString> keys = {Util::XCOORD, Util::YCOORD};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		QString xStr = dataValues[Util::XCOORD];
+		QString yStr = dataValues[Util::YCOORD];
+		bool validDoubleX = false;
+		double xVal = xStr.toDouble(&validDoubleX);
+		bool validDoubleY = false;
+		double yVal = yStr.toDouble(&validDoubleY);
+		QString result;
+		if ( validDoubleX && validDoubleY ){
+			setRegionCenter( QPointF(xVal,yVal) );
+		}
+		else {
+			result="The coordinates of the region center must be numbers: "+params;
+		}
+		return result;
+	});
+
+	addCommandCallback( "setHeight", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+		std::set<QString> keys = {Util::HEIGHT};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		QString heightStr = dataValues[*keys.begin()];
+		bool validDouble = false;
+		double height = heightStr.toDouble(&validDouble);
+		QString result;
+		if ( validDouble ){
+			setRegionHeight( height );
+		}
+		else {
+			result="The height of the selected region must be a number: "+params;
+		}
+		return result;
+	});
+
+	addCommandCallback( "setRadiusMajor", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+		std::set<QString> keys = {Carta::Lib::Regions::Ellipse::RADIUS_MAJOR};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		QString radiusStr = dataValues[*keys.begin()];
+		bool validDouble = false;
+		double radius = radiusStr.toDouble(&validDouble);
+		QString result;
+		if ( validDouble ){
+			result = setRegionRadiusMajor( radius );
+		}
+		else {
+			result="The major radius of the selected region must be a number: "+params;
+		}
+		return result;
+	});
+
+	addCommandCallback( "setRadiusMinor", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+		std::set<QString> keys = {Carta::Lib::Regions::Ellipse::RADIUS_MINOR};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		QString radiusStr = dataValues[*keys.begin()];
+		bool validDouble = false;
+		double radius = radiusStr.toDouble(&validDouble);
+		QString result;
+		if ( validDouble ){
+			result = setRegionRadiusMinor( radius );
+		}
+		else {
+			result="The minor radius of the selected region must be a number: "+params;
+		}
+		return result;
+	});
+
+	addCommandCallback( "setRegionsSelected", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) -> QString {
+		QString result;
+		QStringList names = params.split(";");
+		if ( names.size() == 0 ){
+			result = "Please specify the regions to select.";
+		}
+		else {
+			_setRegionsSelected( names );
+		}
+		Util::commandPostProcess( result );
+		return result;
+	});
+
+	addCommandCallback( "setWidth", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+		std::set<QString> keys = {Util::WIDTH};
+		std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+		QString widthStr = dataValues[*keys.begin()];
+		bool validDouble = false;
+		double width = widthStr.toDouble(&validDouble);
+		QString result;
+		if ( validDouble ){
+			setRegionWidth( width );
+		}
+		else {
+			result="The width of the selected region must be a number: "+params;
+		}
+		return result;
+	});
 }
 
 void RegionControls::_initializeSelections(){
 	Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-	//connect( m_selectImage, SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
 	m_selectRegion = objMan->createObject<Selection>();
+	connect( m_selectRegion, SIGNAL(indexChanged()), this, SLOT(_indexChanged()));
+}
+
+void RegionControls::_indexChanged(){
+	int index = m_selectRegion->getIndex();
+	m_stateData.setValue<int>( REGION_INDEX, index );
+	m_stateData.flushState();
 }
 
 void RegionControls::_initializeState(){
     int regionCount = m_regions.size();
-    m_state.insertArray(REGIONS, regionCount );
+    m_stateData.insertValue<int>( REGION_INDEX, 0 );
+    m_stateData.insertArray(REGIONS, regionCount );
+    m_stateData.flushState();
+
     m_state.insertValue<QString>( CREATE_TYPE, "" );
+    m_state.insertValue<bool>(REGION_SELECT_AUTO, true );
     m_state.flushState();
 }
 
@@ -279,6 +431,10 @@ void RegionControls::_initializeStatics(){
     if ( m_regionTypes == nullptr ){
         m_regionTypes = Util::findSingletonObject<RegionTypes>();
     }
+}
+
+bool RegionControls::isAutoSelect() const {
+	return m_state.getValue<bool>( REGION_SELECT_AUTO );
 }
 
 void RegionControls::_onInputEvent(InputEvent & ev, const QPointF& imagePt ){
@@ -299,7 +455,23 @@ void RegionControls::_onInputEvent(InputEvent & ev, const QPointF& imagePt ){
 }
 
 
-void RegionControls::resetStateData( const QString& state ){
+void RegionControls::_regionSelectionChanged( const QString& id ){
+	if ( !isAutoSelect() ){
+		int regionIndex = _findRegionIndex( id );
+		if ( regionIndex >= 0 ){
+			if ( m_regions[regionIndex]->isSelected() ){
+				setIndexCurrent( regionIndex );
+			}
+		}
+	}
+	_saveStateRegions();
+}
+
+void RegionControls::_regionShapeChanged( ){
+	_saveStateRegions();
+}
+
+void RegionControls::_resetStateData( const QString& state ){
     Carta::State::StateInterface dataState( "");
     dataState.setState( state );
 
@@ -310,23 +482,74 @@ void RegionControls::resetStateData( const QString& state ){
     	QString regionKey = Carta::State::UtilState::getLookup( REGIONS, i);
     	QString regionValue = dataState.toString( regionKey );
     	m_regions[i] = RegionFactory::makeRegion( regionValue );
+    	connect( m_regions[i].get(), SIGNAL(regionSelectionChanged(const QString&)),
+    					this, SLOT(_regionSelectionChanged( const QString&)));
+    	connect( m_regions[i].get(), SIGNAL(regionShapeChanged()),
+    					this, SLOT(_regionShapeChanged()));
     }
+    int regionIndex = dataState.getValue<int>(REGION_INDEX);
+    m_stateData.setValue<int>(REGION_INDEX, regionIndex);
+    QString selectStateStr = dataState.getValue<QString>( Selection::REGION );
+    m_selectRegion ->resetState( selectStateStr );
     _saveStateRegions();
     emit regionsChanged();
+}
+
+void RegionControls::resetStateString( const QString& stateStr ){
+	Carta::State::StateInterface state( "");
+	state.setState( stateStr );
+	m_state.setValue<bool>(REGION_SELECT_AUTO, state.getValue<bool>(REGION_SELECT_AUTO) );
+	m_state.setValue<QString>(CREATE_TYPE, state.getValue<QString>(CREATE_TYPE));
+
+	m_state.flushState();
 }
 
 void RegionControls::_saveStateRegions(){
     //Regions
     int regionCount = m_regions.size();
-    int oldRegionCount = m_state.getArraySize( REGIONS);
+    int oldRegionCount = m_stateData.getArraySize( REGIONS);
     if ( regionCount != oldRegionCount){
-        m_state.resizeArray( REGIONS, regionCount, Carta::State::StateInterface::PreserveNone );
+        m_stateData.resizeArray( REGIONS, regionCount, Carta::State::StateInterface::PreserveNone );
     }
     for ( int i = 0; i < regionCount; i++ ){
         QString regionKey = Carta::State::UtilState::getLookup( REGIONS, i);
         QString regionTypeStr= m_regions[i]->_getStateString();
-        m_state.setObject( regionKey, regionTypeStr );
+        m_stateData.setObject( regionKey, regionTypeStr );
     }
+    m_stateData.flushState();
+}
+
+void RegionControls::setAutoSelect( bool autoSelect ){
+	bool oldSelect = m_state.getValue<bool>( REGION_SELECT_AUTO );
+	if ( oldSelect != autoSelect ){
+		m_state.setValue<bool>( REGION_SELECT_AUTO, autoSelect );
+		m_state.flushState();
+	}
+}
+
+void RegionControls::setIndexCurrent( int index ){
+	int oldIndex = m_selectRegion->getIndex();
+	m_selectRegion->setIndex( index );
+	if ( oldIndex != index ){
+		_saveStateRegions();
+		emit regionsChanged();
+	}
+}
+
+void RegionControls::setRegionCenter( const QPointF& center ){
+	bool centerChanged = false;
+	int regionCount = m_regions.size();
+	for ( int i = 0; i < regionCount; i++ ){
+		if ( m_regions[i]->isSelected() ){
+			if ( m_regions[i]->setCenter( center ) ){
+				centerChanged = true;
+			}
+		}
+	}
+	if ( centerChanged ){
+		_saveStateRegions();
+		emit regionsChanged();
+	}
 }
 
 
@@ -364,6 +587,126 @@ QString RegionControls::setRegionCreateType( const QString& createType ){
 	return result;
 }
 
+QString RegionControls::setRegionHeight( double height ){
+	QString result;
+
+	if ( height >= 0 ){
+		bool heightChanged = false;
+		int regionCount = m_regions.size();
+		for ( int i = 0; i < regionCount; i++ ){
+			if ( m_regions[i]->isSelected() ){
+				if ( m_regions[i]->setHeight( height ) ){
+					heightChanged = true;
+				}
+			}
+		}
+		if ( heightChanged ){
+			_saveStateRegions();
+			emit regionsChanged();
+		}
+	}
+	else {
+		result = "Height of region must be nonnegative: "+QString::number( height );
+	}
+	return result;
+}
+
+QString RegionControls::setRegionRadiusMajor( double radius ){
+	QString result;
+	if ( radius >= 0 ){
+		bool radiusChanged = false;
+		int regionCount = m_regions.size();
+		for ( int i = 0; i < regionCount; i++ ){
+			if ( m_regions[i]->isSelected() ){
+				bool changed = false;
+				result = m_regions[i]->setRadiusMajor( radius, &changed );
+				if ( changed ){
+					radiusChanged = true;
+				}
+			}
+		}
+		if ( radiusChanged ){
+			_saveStateRegions();
+			emit regionsChanged();
+		}
+	}
+	else {
+		result = "Major radius of region must be nonnegative: "+QString::number( radius );
+	}
+	return result;
+}
+
+QString RegionControls::setRegionRadiusMinor( double radius ){
+	QString result;
+	if ( radius >= 0 ){
+		bool radiusChanged = false;
+		int regionCount = m_regions.size();
+		for ( int i = 0; i < regionCount; i++ ){
+			if ( m_regions[i]->isSelected() ){
+				bool changed = false;
+				result = m_regions[i]->setRadiusMinor( radius, &changed );
+				if ( changed ){
+					radiusChanged = true;
+				}
+			}
+		}
+		if ( radiusChanged ){
+			_saveStateRegions();
+			emit regionsChanged();
+		}
+	}
+	else {
+		result = "Minor radius of region must be nonnegative: "+QString::number( radius );
+	}
+	return result;
+}
+
+QString RegionControls::setRegionWidth( double width ){
+	QString result;
+	if ( width >= 0 ){
+		bool widthChanged = false;
+		int regionCount = m_regions.size();
+		for ( int i = 0; i < regionCount; i++ ){
+			if ( m_regions[i]->isSelected() ){
+				if ( m_regions[i]->setWidth( width ) ){
+					widthChanged = true;
+				}
+			}
+		}
+		if ( widthChanged ){
+			_saveStateRegions();
+			emit regionsChanged();
+		}
+	}
+	else {
+		result = "Width of region must be nonnegative: "+QString::number( width );
+	}
+	return result;
+}
+
+
+void RegionControls::_setRegionsSelected( QStringList ids ){
+	int regionCount = m_regions.size();
+	int indexCurrent = -1;
+
+	//First set all regions unselected
+	for ( int i = 0; i < regionCount; i++ ){
+		m_regions[i]->setSelected( false );
+	}
+	for ( int i = 0; i < regionCount; i++ ){
+		QString id = m_regions[i]->getId();
+		if ( ids.contains ( id ) ){
+			m_regions[i]->setSelected( true );
+			if ( indexCurrent == -1 ){
+				indexCurrent = i;
+			}
+		}
+	}
+	_saveStateRegions();
+	if ( indexCurrent >= 0  ){
+		setIndexCurrent( indexCurrent );
+	}
+}
 
 Carta::Lib::VectorGraphics::VGList RegionControls::vgList() const {
 	//Get the region graphics

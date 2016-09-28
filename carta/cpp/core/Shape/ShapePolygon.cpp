@@ -13,13 +13,28 @@ ShapePolygon::ShapePolygon( ):
 void ShapePolygon::_controlPointCB( int index, bool final ){
 	auto & poly = m_shadowPolygon;
 	if ( index >= 0 && index < poly.size() ) {
-		poly[index] = m_controlPoints[index]-> getPosition();
+		poly[index] = m_controlPoints[index]-> getCenter();
 	}
 
 	if ( final ) {
 		m_polygonRegion->setqpolyf( m_shadowPolygon );
 	}
 }
+
+void ShapePolygon::_editShadow( const QPointF& pt ){
+	_moveShadow( pt );
+	_syncShadowToCPs();
+}
+
+QPointF ShapePolygon::getCenter() const {
+	QRectF box = m_polygonRegion->outlineBox();
+	return box.center();
+}
+
+QSizeF ShapePolygon::getSize() const {
+	return m_polygonRegion->outlineBox().size();
+}
+
 
 
 Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
@@ -66,10 +81,7 @@ Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
 }
 
 
-void ShapePolygon::_editShadow( const QPointF& pt ){
-	_moveShadow( pt );
-	_syncShadowToCPs();
-}
+
 
 void ShapePolygon::handleDragDone( const QPointF & pt ){
 	int controlPointCount = m_controlPoints.size();
@@ -120,6 +132,7 @@ void ShapePolygon::_moveShadow( const QPointF& pt ){
 void ShapePolygon::setModel( const QJsonObject& json ){
 	m_polygonRegion->initFromJson( json );
 	m_shadowPolygon = m_polygonRegion->qpolyf();
+	_syncShadowToCPs();
 }
 
 

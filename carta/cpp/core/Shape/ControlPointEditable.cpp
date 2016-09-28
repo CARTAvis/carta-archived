@@ -5,6 +5,7 @@ namespace Shape {
 
 ControlPointEditable::ControlPointEditable( std::function < void (bool) > cb ){
 	m_cb = cb;
+	m_pos = QPointF(0,0);
 	m_fillColor = shadowBrush.color();
 }
 
@@ -17,8 +18,12 @@ void ControlPointEditable::_editShadow( const QPointF& /*pt*/ ){
 }
 
 
-const QPointF & ControlPointEditable::getPosition() const {
+QPointF ControlPointEditable::getCenter() const {
 	return m_pos;
+}
+
+QSizeF ControlPointEditable::getSize() const {
+	return QSize(0,0);
 }
 
 Carta::Lib::VectorGraphics::VGList ControlPointEditable::getVGList() const {
