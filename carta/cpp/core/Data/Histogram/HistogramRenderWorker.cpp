@@ -89,6 +89,8 @@ int HistogramRenderWorker::computeHist(){
     }
 
     // We're our own process
+    // Close the read end of the pipe
+    close( histogramPipes[0] );
     auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::HistogramHook>(m_dataSource, m_binCount,
                                   m_minChannel, m_maxChannel, m_minFrequency, m_maxFrequency, m_rangeUnits,
@@ -107,6 +109,8 @@ int HistogramRenderWorker::computeHist(){
     QFile file;
     if ( !file.open( histogramPipes[1], QIODevice::WriteOnly, QFileDevice::AutoCloseHandle ) ){
         qDebug() << "Could not write histogram results";
+        close( histogramPipes[1] );
+        exit(0);
         return 0;
     }
     QDataStream dataStream( &file );

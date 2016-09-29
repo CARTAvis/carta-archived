@@ -21,7 +21,6 @@ bool HistogramRenderService::renderHistogram(std::shared_ptr<Carta::Lib::Image::
         const QString& fileName ){
     bool histogramRender = true;
     if ( dataSource ){
-
         _scheduleRender( dataSource, binCount, minChannel, maxChannel, minFrequency, maxFrequency,
                 rangeUnits, minIntensity, maxIntensity, fileName );
     }
@@ -45,7 +44,6 @@ void HistogramRenderService::_scheduleRender( std::shared_ptr<Carta::Lib::Image:
     bool paramsChanged = m_worker->setParameters( dataSource, binCount, minChannel, maxChannel, minFrequency, maxFrequency,
                rangeUnits, minIntensity, maxIntensity, fileName );
     if ( paramsChanged ){
-
         int pid = m_worker->computeHist();
         if ( pid != -1 ){
             if ( !m_renderThread ){
@@ -76,8 +74,11 @@ void HistogramRenderService::_postResult( ){
 
 
 HistogramRenderService::~HistogramRenderService(){
+    if ( m_renderThread ){
+    	m_renderThread->wait();
+    	delete m_renderThread;
+    }
     delete m_worker;
-    delete m_renderThread;
 }
 }
 }

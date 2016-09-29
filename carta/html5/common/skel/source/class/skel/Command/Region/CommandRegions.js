@@ -14,7 +14,7 @@ qx.Class.define("skel.Command.Region.CommandRegions", {
      * Constructor.
      */
     construct : function( ) {
-        this.base( arguments, "Region" );
+        this.base( arguments, "Draw" );
         this.m_global = false;
         this.setEnabled(false);
         this.m_cmds = [];

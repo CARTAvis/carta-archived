@@ -56,7 +56,7 @@ qx.Class.define("skel.Command.Data.CommandDataCloses", {
                         var closeRegions = activeWins[i].getRegions();
                         if ( closeRegions ){
                             for ( j = 0; j < closeRegions.length; j++ ){
-                                this.m_cmds[k] = new skel.Command.Data.CommandDataClose( closeRegions[j].getLabel(), 
+                                this.m_cmds[k] = new skel.Command.Data.CommandDataClose( closeRegions[j].name, 
                                         path.REGION_DATA, path.CLOSE_REGION, j );
                                 k++;
                             }
