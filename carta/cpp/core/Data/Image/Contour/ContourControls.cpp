@@ -481,9 +481,9 @@ void ContourControls::_initializeCallbacks(){
 
     addCommandCallback( "setStyle", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = { Contour::STYLE, CONTOUR_SET_NAME, LEVEL_LIST };
+        std::set<QString> keys = { Util::STYLE, CONTOUR_SET_NAME, LEVEL_LIST };
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString style = dataValues[Contour::STYLE];
+        QString style = dataValues[Util::STYLE];
         QString setName = dataValues[CONTOUR_SET_NAME];
         QString levelStr = dataValues[LEVEL_LIST];
         QString result;

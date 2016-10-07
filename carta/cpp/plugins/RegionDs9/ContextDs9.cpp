@@ -1,5 +1,6 @@
 #include <CartaLib/Regions/IRegion.h>
 #include <CartaLib/Regions/Ellipse.h>
+#include <CartaLib/Regions/Rectangle.h>
 #include <ContextDs9.h>
 #include <measures/Measures/MeasConvert.h>
 #include <measures/Measures/MCDirection.h>
@@ -41,35 +42,21 @@ void ContextDs9::createBoxCmd( const Vector& center, const Vector& size, double 
         const char* /*color*/, int* /*dash*/, int /*width*/, const char* /*font*/,
         const char* /*text*/, unsigned short /*prop*/, const char* /*comment*/,
         const std::list<Tag>& /*tag*/ ) {
-    qDebug() << "Create box cmd";
-    double xoffset = size[0] / 2.0;
-    double yoffset = size[1] / 2.0;
-    Carta::Lib::Regions::Polygon* info = new Carta::Lib::Regions::Polygon();
-    QPolygonF polygon;
-    if ( xoffset > 1.0 || yoffset > 1.0 ) {
-        // size is big enough to make a rectangle... perhaps we should require bigger size...
-        // 'width' is the line width... need to thread that through...
-        int cornerCount = 4;
-        std::vector<std::pair<double,double> > pts(cornerCount);
-        pts[0].first  = center[0] - xoffset;
-        pts[0].second = center[1] - yoffset;
-        pts[1].first  = center[0] - xoffset;
-        pts[1].second = center[1] + yoffset;
-        pts[2].first  = center[0] + xoffset;
-        pts[2].second = center[1] - yoffset;
-        pts[3].first  = center[0] + xoffset;
-        pts[3].second = center[1] + yoffset;
-
-        for ( int i = 0; i < cornerCount; i++ ){
-            polygon.push_back( QPointF( pts[i].first, pts[i].second) );
-        }
+    int centerCount = center.size();
+    int sizeCount = size.size();
+    Carta::Lib::Regions::Rectangle* info = nullptr;
+    if ( sizeCount >= 2 && centerCount >= 2 ){
+    	info = new Carta::Lib::Regions::Rectangle();
+    	QRectF rect;
+    	rect.setWidth( size[0] );
+    	rect.setHeight( size[1] );
+    	rect.setX( center[0] );
+    	rect.setY( center[1] );
+    	info->setRectangle( rect );
     }
-    else {
-        //Just a point
-        polygon.push_back( QPointF( center[0], center[1]) );
+    if ( info ){
+    	m_regions.push_back(  info  );
     }
-    info->setqpolyf( polygon );
-    m_regions.push_back(  info  );
 }
 
 

@@ -454,6 +454,11 @@ void RegionControls::_onInputEvent(InputEvent & ev, const QPointF& imagePt ){
 	}
 }
 
+void RegionControls::refreshState(){
+	CartaObject::refreshState();
+	m_stateData.refreshState();
+}
+
 
 void RegionControls::_regionSelectionChanged( const QString& id ){
 	if ( !isAutoSelect() ){

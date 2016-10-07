@@ -175,7 +175,6 @@ QString Profiler::addLink( CartaObject*  target){
                 connect(controller, SIGNAL(dataChangedRegion(Controller*)),
                         this, SLOT( _loadProfile( Controller*)));
                 m_controllerLinked = true;
-
                 _loadProfile( controller);
             }
         }
@@ -470,7 +469,7 @@ bool Profiler::_generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Reg
 QString Profiler::_generateCurveId( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ) const {
     QString id;
     if ( layer ){
-        id = layer->_getLayerId();
+        id = layer->_getLayerName();
         if ( region ){
             QString regionName = region->getRegionName();
             if ( regionName.length() > 0 ){
@@ -1494,9 +1493,9 @@ void Profiler::_initializeCallbacks(){
 
     addCommandCallback( "setLineStyle", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {CurveData::STYLE, Util::NAME};
+        std::set<QString> keys = {Util::STYLE, Util::NAME};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString lineStyle = dataValues[CurveData::STYLE];
+        QString lineStyle = dataValues[Util::STYLE];
         QString curveName = dataValues[Util::NAME];
         QString result = setLineStyle( curveName, lineStyle );
         Util::commandPostProcess( result );
@@ -1533,9 +1532,9 @@ void Profiler::_initializeCallbacks(){
 
     addCommandCallback( "setPlotStyle", [=] (const QString & /*cmd*/,
                const QString & params, const QString & /*sessionId*/) -> QString {
-           std::set<QString> keys = {CurveData::STYLE, Util::NAME};
+           std::set<QString> keys = {Util::STYLE, Util::NAME};
            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-           QString plotStyle = dataValues[CurveData::STYLE];
+           QString plotStyle = dataValues[Util::STYLE];
            QString curveName = dataValues[Util::NAME];
            QString result = setPlotStyle( curveName, plotStyle );
            Util::commandPostProcess( result );
@@ -1860,6 +1859,13 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
             _updatePlotData();
         }
     }
+}
+
+void Profiler::refreshState(){
+	CartaObject::refreshState();
+	m_stateData.refreshState();
+	m_stateFit.refreshState();
+	m_stateFitStatistics.refreshState();
 }
 
 
@@ -3287,12 +3293,11 @@ bool Profiler::_updateProfiles( Controller* controller ){
     int curveCount = m_plotCurves.size();
     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
-
     int dataCount = layers.size();
     int regionCount = regions.size();
     QList<int> removeIndices;
     for ( int i = 0; i < curveCount; i++ ){
-        QString curveId = m_plotCurves[i]->getId();
+    	QString curveId = m_plotCurves[i]->getName();
         bool layerFound = false;
         for ( int j = 0; j < dataCount; j++ ){
             if ( regionCount > 0 ){

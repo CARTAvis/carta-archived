@@ -21,7 +21,6 @@ namespace Carta {
 namespace Data {
 
 const QString CurveData::CLASS_NAME = "CurveData";
-const QString CurveData::COLOR = "color";
 const QString CurveData::FIT = "fit";
 const QString CurveData::FIT_CENTER = "center";
 const QString CurveData::FIT_PEAK = "peak";
@@ -33,7 +32,6 @@ const QString CurveData::FIT_SELECT = "fitSelect";
 const QString CurveData::INITIAL_GUESSES = "fitGuesses";
 const QString CurveData::POINT_SOURCE = "pointSource";
 const QString CurveData::PLOT_STYLE = "plotStyle";
-const QString CurveData::STYLE = "style";
 const QString CurveData::STYLE_FIT = "styleFit";
 const QString CurveData::STATISTIC = "stat";
 const QString CurveData::REST_FREQUENCY = "restFrequency";
@@ -158,7 +156,7 @@ void CurveData::copy( const std::shared_ptr<CurveData> & other ){
         m_state.setValue<int>( Util::RED, otherColor.red() );
         m_state.setValue<int>( Util::GREEN, otherColor.green() );
         m_state.setValue<int>( Util::BLUE, otherColor.blue() );
-        m_state.setValue<QString>( STYLE, other->getLineStyle() );
+        m_state.setValue<QString>( Util::STYLE, other->getLineStyle() );
         m_state.setValue<QString>( STYLE_FIT, other->getLineStyleFit());
         m_state.setValue<QString>( STATISTIC, other->getStatistic());
         m_state.setValue<double>(REST_FREQUENCY, other->getRestFrequency() );
@@ -243,7 +241,7 @@ QString CurveData::getDefaultName() const {
     }
     QString dName = layerName;
     if ( !regionName.isEmpty() ){
-        dName = dName +" x "+regionName;
+        dName = dName +"["+regionName+"]";
     }
     return dName;
 }
@@ -351,7 +349,7 @@ void CurveData::getMinMax(double* xmin, double* xmax, double* ymin,
 
 
 QString CurveData::getLineStyle() const {
-    return m_state.getValue<QString>( STYLE );
+    return m_state.getValue<QString>( Util::STYLE );
 }
 
 QString CurveData::getLineStyleFit() const {
@@ -450,7 +448,7 @@ void CurveData::_initializeDefaultState(){
 
     QString defaultLineStyle = m_lineStyles->getDefault();
 
-    m_state.insertValue<QString>( STYLE, defaultLineStyle );
+    m_state.insertValue<QString>( Util::STYLE, defaultLineStyle );
     QString defaultLineStyleFit = m_lineStyles->getDefaultSecondary();
     m_state.insertValue<QString>( STYLE_FIT, defaultLineStyleFit );
     QString defaultPlotStyle = m_plotStyles->getDefault();
@@ -497,7 +495,8 @@ bool CurveData::isFitted() const {
 
 bool CurveData::isMatch( const QString& name ) const {
     bool match = false;
-    if ( m_state.getValue<QString>(Util::NAME) == name ){
+    QString curveName = m_state.getValue<QString>(Util::NAME);
+    if ( curveName == name ){
         match = true;
     }
     return match;
@@ -692,11 +691,11 @@ void CurveData::setRestQuantity( double restFrequency, const QString& restUnit )
 
 QString CurveData::setLineStyle( const QString& lineStyle ){
     QString result;
-    QString oldStyle = m_state.getValue<QString>( STYLE );
+    QString oldStyle = m_state.getValue<QString>( Util::STYLE );
     QString actualStyle = m_lineStyles->getActualLineStyle( lineStyle );
     if ( !actualStyle.isEmpty() ){
         if ( actualStyle != oldStyle ){
-            m_state.setValue<QString>( STYLE, actualStyle );
+            m_state.setValue<QString>( Util::STYLE, actualStyle );
         }
     }
     else {

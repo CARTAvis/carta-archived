@@ -399,7 +399,7 @@ bool ProfileCASA::handleHook(BaseHook & hookData){
 casa::Vector<casa::Double> ProfileCASA::_toWorld( const casa::CoordinateSystem& cSys,
 		double x, double y, bool* successful ) const {
 	int pixelCount = cSys.nPixelAxes();
-	casa::Vector<casa::Double> pixelPt( pixelCount );
+	casa::Vector<casa::Double> pixelPt( pixelCount, 0 );
 	casa::Vector<casa::Double> worldPt;
 	if ( pixelCount >= 2 ){
 		pixelPt[0] = x;
@@ -409,7 +409,7 @@ casa::Vector<casa::Double> ProfileCASA::_toWorld( const casa::CoordinateSystem& 
 			*successful = true;
 		}
 		catch( const casa::AipsError& error ){
-			qDebug() << error.getMesg().c_str();
+			qDebug() << error.getMesg().c_str()<<" pixel=("<<x<<","<<y<<")";
 			*successful = false;
 		}
 	}

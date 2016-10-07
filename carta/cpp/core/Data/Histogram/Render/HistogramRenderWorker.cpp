@@ -18,51 +18,21 @@ HistogramRenderWorker::HistogramRenderWorker(){
 }
 
 
-bool HistogramRenderWorker::setParameters(std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
-        int binCount, int minChannel, int maxChannel, double minFrequency, double maxFrequency,
-        const QString& rangeUnits, double minIntensity, double maxIntensity,
-        const QString& fileName ){
-    bool paramsChanged = false;
-    if ( m_binCount != binCount ){
-        m_binCount = binCount;
-        paramsChanged = true;
-    }
-    if ( m_minChannel != minChannel ){
-        m_minChannel = minChannel;
-        paramsChanged = true;
-    }
-    if ( m_maxChannel != maxChannel ){
-        m_maxChannel = maxChannel;
-        paramsChanged = true;
-    }
-    if ( m_minFrequency != minFrequency ){
-        m_minFrequency = minFrequency;
-        paramsChanged = true;
-    }
-    if ( m_maxFrequency != maxFrequency ){
-        m_maxFrequency = maxFrequency;
-        paramsChanged = true;
-    }
-    if ( m_rangeUnits != rangeUnits ){
-        m_rangeUnits = rangeUnits;
-        paramsChanged = true;
-    }
-    if ( m_minIntensity != minIntensity ){
-        m_minIntensity = minIntensity;
-        paramsChanged = true;
-    }
-    if ( m_maxIntensity != maxIntensity ){
-        m_maxIntensity = maxIntensity;
-        paramsChanged = true;
-    }
-    if ( m_fileName != fileName){
-        m_fileName = fileName;
-        paramsChanged = true;
-    }
-    if ( m_dataSource.get() != dataSource.get() ){
-        m_dataSource = dataSource;
-    }
-    return paramsChanged;
+void HistogramRenderWorker::setParameters( const HistogramRenderRequest& request ){
+    m_binCount = request.getBinCount();
+    m_minChannel = request.getChannelMin();
+    m_maxChannel = request.getChannelMax();
+    m_minFrequency = request.getFrequencyMin();
+    m_maxFrequency = request.getFrequencyMax();
+    m_rangeUnits = request.getRangeUnits();
+    m_minIntensity = request.getIntensityMin();
+    m_maxIntensity = request.getIntensityMax();
+    m_fileName = request.getFileName();
+
+    m_dataSource = request.getImage();
+    m_region = request.getRegion();
+    m_regionId = request.getRegionId();
+
 }
 
 
@@ -94,7 +64,7 @@ int HistogramRenderWorker::computeHist(){
     auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::HistogramHook>(m_dataSource, m_binCount,
                                   m_minChannel, m_maxChannel, m_minFrequency, m_maxFrequency, m_rangeUnits,
-                                  m_minIntensity, m_maxIntensity);
+                                  m_minIntensity, m_maxIntensity, m_region, m_regionId );
     auto lam = [=] ( const Carta::Lib::Hooks::HistogramResult &data ) {
         m_result = data;
     };

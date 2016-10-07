@@ -189,6 +189,11 @@ public:
     QString profileRemove( const QString& name );
 
     /**
+     * Force a state refresh.
+     */
+    virtual void refreshState() Q_DECL_OVERRIDE;
+
+    /**
      * Reset the initial fit manual guesses.
      */
     void resetInitialFitGuesses();

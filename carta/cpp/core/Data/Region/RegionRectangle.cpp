@@ -112,7 +112,7 @@ bool RegionRectangle::setHeight( double height ){
 void RegionRectangle::setModel( Carta::Lib::Regions::RegionBase* model ){
 	if ( model ){
 		QString regionType = model->typeName();
-		CARTA_ASSERT( regionType == Carta::Lib::Regions::Polygon::TypeName );
+		CARTA_ASSERT( regionType == Carta::Lib::Regions::Rectangle::TypeName );
 		QJsonObject modelJson = model->toJson();
 		m_shape->setModel( modelJson );
 		_updateStateFromJson( modelJson );

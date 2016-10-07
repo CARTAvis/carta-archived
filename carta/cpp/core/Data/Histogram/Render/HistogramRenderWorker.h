@@ -5,20 +5,23 @@
 #pragma once
 
 #include <memory>
+#include "HistogramRenderRequest.h"
 #include "CartaLib/Hooks/HistogramResult.h"
 
 namespace Carta {
 namespace Lib {
 
-
 namespace Image {
 class ImageInterface;
 }
+namespace Regions {
+class RegionBase;
 }
 }
 
-namespace Carta{
 namespace Data{
+
+class Region;
 
 class HistogramRenderWorker{
 
@@ -31,21 +34,10 @@ public:
 
     /**
      * Store the parameters needed for computing the histogram.
-     * @param dataSource - the image that will bee the source of the histogram.
-     * @param binCount - the number of bins the histogram should have.
-     * @param minChannel - the minimum channel or -1 if there is no minimum.
-     * @param maxChannel - the maximum channel or -1 if there is no maximum.
-     * @param minFrequency - the minimum frequency.
-     * @param maxFrequency - the maximum frequency.
-     * @param rangeUnits - intensity units for the histogram.
-     * @param minIntensity - minimum histogram intensity.
-     * @param maxIntensity - maximum histogram intensity.
-     * @param fileName - the file name.
+     * @param request - a collection of parameters specifying how the histogram
+     * 	should be computed.
      */
-    bool setParameters(std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
-            int binCount, int minChannel, int maxChannel, double minFrequency, double maxFrequency,
-            const QString& rangeUnits, double minIntensity, double maxIntensity,
-            const QString& fileName);
+    void setParameters( const HistogramRenderRequest& request );
 
     /**
      * Performs the work of computing the histogram data in a separate process.
@@ -70,7 +62,9 @@ private:
     double m_minIntensity;
     double m_maxIntensity;
     QString m_fileName;
+    QString m_regionId;
     Carta::Lib::Hooks::HistogramResult m_result;
+    std::shared_ptr<Carta::Lib::Regions::RegionBase> m_region;
 
     HistogramRenderWorker( const HistogramRenderWorker& other);
     HistogramRenderWorker& operator=( const HistogramRenderWorker& other );

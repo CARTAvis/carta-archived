@@ -122,6 +122,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             //Initialize region selection
             var regionLabel = new qx.ui.basic.Label( "Region:");
             this.m_regionSelect = new skel.widgets.CustomUI.SelectBox();
+            skel.widgets.TestID.addTestId( this.m_regionSelect, "ProfileSelectedRegion" );
             var names = [];
             names[0] = this.m_NONE;
             this.m_regionSelect.setSelectItems( names );
@@ -271,7 +272,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 if ( val ){
                     try {
                         var obj = JSON.parse( val );
-                        this._updateRegionNames( obj.regions );
+                        this._updateRegionNames( obj.regions, obj.regionIndex );
                     }
                     catch( err ){
                         console.log( "Could not parse profile region information: "+val );
@@ -397,10 +398,12 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
          */
         _setRegionId : function( object ){
             return function( id ){
-            	var path = skel.widgets.Path.getInstance();
-                object.m_sharedVarRegion = object.m_connector.getSharedVar(id + path.SEP + path.DATA);
-                object.m_sharedVarRegion.addCB(object._regionDataChangedCB.bind(object));
-                object._regionDataChangedCB();
+            	if ( object.m_sharedVarRegion == null ){
+	            	var path = skel.widgets.Path.getInstance();
+	                object.m_sharedVarRegion = object.m_connector.getSharedVar(id + path.SEP + path.DATA);
+	                object.m_sharedVarRegion.addCB(object._regionDataChangedCB.bind(object));
+	                object._regionDataChangedCB();
+            	}
             }
         },
         
@@ -499,26 +502,25 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         /**
          * Update the names of the available regions based on server-side values.
          * @param data {Array} - a list of regions that have been loaded.
+         * @param dataIndex {Number} - the index of the current region.
          */
-        _updateRegionNames : function( data){
+        _updateRegionNames : function( data, dataIndex){
             var names = [];
-            var dataIndex = -1;
             var selectedRegion = this.m_regionSelect.getValue();
             for ( var i = 0; i < data.length; i++ ){
                 names[i] = data[i].name;
-                if ( data[i].selected ){
-                    dataIndex = i;
-                }
             }
             //Add in None so that the user can profile the whole plane.
             names[data.length] = this.m_NONE;
+            if ( names.length == 1 ){
+            	dataIndex = 0;
+            }
             this.m_regionSelect.setSelectItems( names );
-            var newSelectedRegion = this.m_regionSelect.getValue();
-            if ( newSelectedRegion != selectedRegion && dataIndex >= 0 ){
+            if ( dataIndex >= 0 ){
                 if ( this.m_regionSelectListenId !== null ){
                     this.m_regionSelect.removeListenerById( this.m_regionSelectListenId );
                 }
-                this.m_regionSelect.setSelectValue( data[dataIndex].name );
+                this.m_regionSelect.setSelectValue( names[dataIndex] );
                 this.m_regionSelectListenId = this.m_regionSelect.addListener( "changeValue", 
                         this._sendRegionSelectCmd, this );
             }

@@ -360,6 +360,11 @@ public:
     QString moveSelectedLayers( bool moveDown );
 
     /**
+     * Force a state refresh.
+     */
+    virtual void refreshState() Q_DECL_OVERRIDE;
+
+    /**
      * Remove a contour set from the images.
      * @param contourSet - the contour set to remove.
      */

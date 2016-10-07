@@ -464,7 +464,6 @@ public:
 
 private:
 
-    const static QString COLOR;
     const static QString FIT;
     const static QString FIT_CENTER;
     const static QString FIT_PEAK;
@@ -478,7 +477,6 @@ private:
     const static QString PLOT_STYLE;
 
     const static QString STATISTIC;
-    const static QString STYLE;
     const static QString STYLE_FIT;
     const static QString REST_FREQUENCY;
     const static QString REST_FREQUENCY_UNITS;

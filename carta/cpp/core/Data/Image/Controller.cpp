@@ -935,6 +935,14 @@ void Controller::_notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis ){
     emit frameChanged( this, axis );
 }
 
+void Controller::refreshState(){
+    CartaObject::refreshState();
+    m_settings->refreshState();
+    m_regionControls->refreshState();
+    m_gridControls->refreshState();
+    m_contourControls->refreshState();
+}
+
 void Controller::_regionsChanged(){
 	Carta::Lib::VectorGraphics::VGList vgList = m_regionControls->vgList();
 	m_stack-> _setRegionGraphics ( vgList );

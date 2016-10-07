@@ -69,6 +69,11 @@ public:
 	bool isAutoSelect() const;
 
 	/**
+	 * Force a state refresh.
+	 */
+	virtual void refreshState() Q_DECL_OVERRIDE;
+
+	/**
 	 * Reset the state based on the string passed in.
 	 * @param state - the state to restore.
 	 */

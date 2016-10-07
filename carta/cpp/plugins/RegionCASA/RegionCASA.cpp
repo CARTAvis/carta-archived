@@ -4,6 +4,7 @@
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/LoadRegion.h"
 #include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Rectangle.h"
 #include "CartaLib/IImage.h"
 #include "casacore/coordinates/Coordinates/DirectionCoordinate.h"
 #include "casacore/measures/Measures/MCDirection.h"
@@ -135,9 +136,31 @@ RegionCASA::_loadRegion( const QString & fname,
                 int annType = ann->getType();
                 switch( annType ){
                 case casa::AnnotationBase::RECT_BOX : {
-                    Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
-                    rInfo = poly;
-                    _addCorners( poly, corners );
+                    Carta::Lib::Regions::Rectangle* rect = new Carta::Lib::Regions::Rectangle();
+                    rInfo = rect;
+                    int cornerCount = corners.size();
+                    double dataMinX = std::numeric_limits<double>::max();
+                    double dataMinY = std::numeric_limits<double>::max();
+                    double dataMaxX = -1 * dataMinX;
+                    double dataMaxY = -1 * dataMaxY;
+                    QRectF rectangle;
+                    for ( int i = 0; i < cornerCount; i++ ){
+                    	if ( corners[i].x() < dataMinX ){
+                    		dataMinX = corners[i].x();
+                    	}
+                    	if ( corners[i].y() < dataMinY ){
+                    		dataMinY = corners[i].y();
+                    	}
+                    	if ( corners[i].x() > dataMaxX ){
+                    		dataMaxX = corners[i].x();
+                    	}
+                    	if ( corners[i].y() > dataMaxY ){
+                    		dataMaxY = corners[i].y();
+                    	}
+                    }
+                    rectangle.setTopLeft( QPointF(dataMinX, dataMaxY) );
+                    rectangle.setBottomRight( QPointF(dataMaxX, dataMinY) );
+                    rect->setRectangle( rectangle );
                 }
                 break;
                 case casa::AnnotationBase::ELLIPSE : {

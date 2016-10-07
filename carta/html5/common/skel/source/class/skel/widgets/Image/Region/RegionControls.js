@@ -95,6 +95,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionControls", {
             
             var TABLE_WIDTH = 200;
             this.m_regionList  = new skel.widgets.CustomUI.ItemTable( "Regions", TABLE_WIDTH);
+            skel.widgets.TestID.addTestId( this.m_regionList, "RegionsTable");
             this.m_regionList.setTestId( "regionsTable");
             this.m_regionList.setToolTipText( "Select a region to customize." );
             this.m_regionList.setWidth( TABLE_WIDTH );

@@ -290,7 +290,43 @@ class tProfile(unittest.TestCase):
         #There should now be just one profile loaded
         time.sleep(2)
         self._checkProfileCount( driver, 1 )
-  
+        
+    # Test that we can profile a region in an image
+    def test_profileRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        #Load a default image
+        Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load a region for the image
+        Util.load_image( self, driver, "OrionMethanolRegion.crtf")
+        time.sleep( timeout )
+        
+        self._showProfile( driver )
+        time.sleep( timeout )
+        
+        #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep( timeout )
+        
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep( timeout )
+        
+        Util.clickTab( driver, "Profiles" )
+        time.sleep( timeout )
+        
+        #Check that there is a region we are profiling
+        regionCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ProfileSelectedRegion")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", regionCombo )
+        nameDiv = regionCombo.find_element_by_xpath( ".//div/div")
+        regionName = nameDiv.get_attribute( "innerHTML").strip()
+        print "Region is ",regionName
+        self.assertTrue( regionName != "None", "Expected a region to be profiled")
+        
+        
     def tearDown(self):
         #Close the browser
         self.driver.close()
