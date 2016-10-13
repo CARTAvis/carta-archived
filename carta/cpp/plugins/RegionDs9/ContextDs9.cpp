@@ -47,11 +47,9 @@ void ContextDs9::createBoxCmd( const Vector& center, const Vector& size, double 
     Carta::Lib::Regions::Rectangle* info = nullptr;
     if ( sizeCount >= 2 && centerCount >= 2 ){
     	info = new Carta::Lib::Regions::Rectangle();
-    	QRectF rect;
-    	rect.setWidth( size[0] );
-    	rect.setHeight( size[1] );
-    	rect.setX( center[0] );
-    	rect.setY( center[1] );
+    	double left = center[0] - size[0] / 2;
+    	double top = center[1] - size[1] / 2;
+    	QRectF rect( left, top, size[0], size[1]);
     	info->setRectangle( rect );
     }
     if ( info ){

@@ -99,9 +99,11 @@ bool RegionRectangle::setHeight( double height ){
 	CARTA_ASSERT( height >= 0 );
 	bool heightChanged = false;
 	double oldHeight = m_state.getValue<double>( Util::HEIGHT );
-	if ( qAbs( oldHeight - height ) > ERROR_MARGIN ){
+	double roundedHeight = Util::roundToDigits( height, SIGNIFICANT_DIGITS );
+	double errorMargin = _getErrorMargin();
+	if ( qAbs( oldHeight - roundedHeight ) > errorMargin ){
 		heightChanged = true;
-		m_state.setValue<double>( Util::HEIGHT, height );
+		m_state.setValue<double>( Util::HEIGHT, roundedHeight );
 		m_shape->setModel( toJSON() );
 		_updateName();
 	}
@@ -124,9 +126,11 @@ bool RegionRectangle::setWidth( double width ){
 	CARTA_ASSERT( width >= 0 );
 	bool widthChanged = false;
 	double oldWidth = m_state.getValue<double>( Util::WIDTH );
-	if ( qAbs( width - oldWidth ) > 0 ){
+	double errorMargin = _getErrorMargin();
+	double roundedWidth = Util::roundToDigits( width, SIGNIFICANT_DIGITS );
+	if ( qAbs( roundedWidth - oldWidth ) > errorMargin ){
 		widthChanged = true;
-		m_state.setValue<double>( Util::WIDTH, width );
+		m_state.setValue<double>( Util::WIDTH, roundedWidth );
 		m_shape->setModel( toJSON() );
 		_updateName();
 	}
@@ -138,12 +142,14 @@ bool RegionRectangle::setCenter( const QPointF& pt ){
 	bool centerChanged = false;
 	double oldX = m_state.getValue<double>( Util::XCOORD );
 	double oldY = m_state.getValue<double>( Util::YCOORD );
-	if ( qAbs( oldX - pt.x()) > ERROR_MARGIN || qAbs( oldY - pt.y() ) > ERROR_MARGIN ){
+	double errorMargin = _getErrorMargin();
+	double centerX = Util::roundToDigits( pt.x(), SIGNIFICANT_DIGITS );
+	double centerY = Util::roundToDigits( pt.y(), SIGNIFICANT_DIGITS );
+	if ( qAbs( oldX - centerX ) > errorMargin || qAbs( oldY - centerY ) > errorMargin ){
 		centerChanged = true;
-		m_state.setValue<double>( Util::XCOORD, pt.x());
-		m_state.setValue<double>( Util::YCOORD, pt.y());
+		m_state.setValue<double>( Util::XCOORD, centerX );
+		m_state.setValue<double>( Util::YCOORD, centerY );
 		m_shape->setModel( toJSON() );
-
 		_updateName();
 	}
 	return centerChanged;
@@ -164,10 +170,15 @@ void RegionRectangle::_updateStateFromJson( const QJsonObject& json ){
 			!json[Util::WIDTH].isDouble() || !json[Util::HEIGHT].isDouble() ){
 		return;
 	}
-	m_state.setValue<double>( Util::XCOORD, json[Util::XCOORD].toDouble() );
-	m_state.setValue<double>( Util::YCOORD, json[Util::YCOORD].toDouble() );
-	m_state.setValue<double>( Util::WIDTH, qAbs(json[Util::WIDTH].toDouble()));
-	m_state.setValue<double>( Util::HEIGHT, qAbs(json[Util::HEIGHT].toDouble()));
+	double xCoord = Util::roundToDigits( json[Util::XCOORD].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Util::XCOORD, xCoord );
+	double yCoord = Util::roundToDigits( json[Util::YCOORD].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Util::YCOORD, yCoord );
+	double width = Util::roundToDigits( json[Util::WIDTH].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Util::WIDTH, width );
+	double heightVal = json[Util::HEIGHT].toDouble();
+	double height = Util::roundToDigits( heightVal, SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Util::HEIGHT, height );
 	_updateName();
 	emit regionShapeChanged();
 }

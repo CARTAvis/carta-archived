@@ -300,6 +300,8 @@ signals:
 
 protected:
 
+	double _getErrorMargin() const;
+
 	/**
 	 * Restore the region state.
 	 * @param state - a string representation of the state to restore.
@@ -319,11 +321,12 @@ protected:
 	const static QString CUSTOM_NAME;
 	const static QString HOVERED;
 	const static QString REGION_TYPE;
-	const static double ERROR_MARGIN;
-
+	const static int SIGNIFICANT_DIGITS;
 	std::shared_ptr<Shape::ShapeBase> m_shape;
 
 private:
+
+
 
 	/**
 	 * Return the region state as a string.

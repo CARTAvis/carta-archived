@@ -36,10 +36,10 @@ class tRegion(unittest.TestCase):
         
         # Load a specific region in the image.
         Util.load_image( self, driver, "OrionMethanolRegion.crtf")
-        time.sleep( timeout )
+        time.sleep( 4 )
         
         #Open the image settings
-        #Open the stack tab
+        #Open the regions tab
         Util.openSettings( self, driver, "Image", True )
         time.sleep(4)
         Util.clickTab( driver, "Regions" )
@@ -66,7 +66,7 @@ class tRegion(unittest.TestCase):
         
         # Load a specific region in the image.
         Util.load_image( self, driver, "OrionMethanolRegion.crtf")
-        time.sleep( timeout )
+        time.sleep( 4 )
         
          #Open the image settings
         #Open the stack tab
@@ -84,6 +84,89 @@ class tRegion(unittest.TestCase):
             Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
         
+    # Test that if a negative number is entered for the width of a region, an error message is
+    # reported.  If the value is corrected, the error message goes away.
+    def test_negativeRegionWidth(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Default")
+        time.sleep( timeout )
+        
+        # Load a specific region in the image.
+        Util.load_image( self, driver, "OrionMethanolRegion.crtf")
+        time.sleep( 4 )
+        
+         #Open the image settings
+        #Open the stack tab
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        Util.clickTab( driver, "Regions" )
+        
+         #Change the width to -40 and check for an error.
+        widthText = driver.find_element_by_xpath("//div[@id='RectangleRegionWidth']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", widthText )
+        Util._changeElementText(self, driver, widthText, -10)
+        widthError = driver.find_element_by_xpath("//div[@id='RectangleRegionWidth']/div[contains(text(),'Range error:')]")
+        self.assertIsNotNone( widthError, "No error was posted")
+        time.sleep( timeout )
+        
+        #Change the width to 40 and check that the error is not there
+        Util._changeElementText(self, driver, widthText, 40 );
+        try:
+            widthError = driver.find_element_by_xpath("//div[@id='RectangleRegionWidth']/div[contains(text(),'Range error:')]")
+            self.assertTrue( False, "Should not be able to find a range error.")
+        except Exception:
+            print "Good, the error disappeared!"
+            
+    # Test that the major radius of an elliptical region cannot be made smaller than the
+    # minor radius of an ellipse        
+    def test_ellipseMinorMajorSwitch(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Default")
+        time.sleep( timeout )
+        
+        # Load a specific region in the image.
+        Util.load_image( self, driver, "OrionMethanolRegionEllipse.reg")
+        time.sleep( 6 )
+        
+        #Open the image settings
+        #Open the stack tab
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        Util.clickTab( driver, "Regions" )
+        
+        #Store the value of the minor radius.
+        minorRadiusText = driver.find_element_by_xpath("//div[@id='EllipseRegionMinorRadius']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", minorRadiusText )
+        minorRadius = minorRadiusText.get_attribute( "value")
+        
+        #Try setting the minor radius to 20, which is larger than the major radius.
+        #There should be an error message from the server.
+        Util._changeElementText(self, driver, minorRadiusText, 20)
+        time.sleep( timeout )
+        
+        #Check that an error is posted
+        radiusError = driver.find_element_by_xpath("//div[@id='EllipseRegionMinorRadius']/div[contains(text(),'Required: MajorRadius >= MinorRadius')]")
+        self.assertIsNotNone( radiusError, "No error was posted")
+        time.sleep( timeout )
+        
+        #Set the minor radius back to 5.
+        Util._changeElementText(self, driver, minorRadiusText, 5 )
+        time.sleep( timeout )
+        
+        #Check there is no longer and error
+        try:
+            radiusError = driver.find_element_by_xpath("//div[@id='EllipseRegionMinorRadius']/div[contains(text(),'Required: MajorRadius >= MinorRadius')]")
+            self.assertTrue( False, "Should not be able to find a radius error.")
+        except Exception:
+            print "Good, the error disappeared!"
+        
+        
     # Test that a region file in CASA format can be loaded and then closed.
     def test_load_regionDS9(self):
         driver = self.driver
@@ -95,7 +178,7 @@ class tRegion(unittest.TestCase):
         
         # Load a specific region in the image.
         Util.load_image( self, driver, "OrionMethanolRegion.reg")
-        time.sleep( timeout )
+        time.sleep( 4 )
         
          #Open the image settings
         #Open the stack tab

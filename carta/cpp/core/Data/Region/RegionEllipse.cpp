@@ -52,6 +52,8 @@ QPointF RegionEllipse::getCenter() const {
 	return QPointF( centerX, centerY );
 }
 
+
+
 std::shared_ptr<Carta::Lib::Regions::RegionBase> RegionEllipse::getModel() const {
 	std::shared_ptr<Carta::Lib::Regions::RegionBase> info( new Carta::Lib::Regions::Ellipse() );
 	QJsonObject jsonObject = toJSON();
@@ -108,14 +110,18 @@ void RegionEllipse::_initializeState(){
     m_state.flushState();
 }
 
+
 bool RegionEllipse::setCenter( const QPointF& center ){
 	double oldX = m_state.getValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X );
 	double oldY = m_state.getValue<double>( Carta::Lib::Regions::RegionBase::CENTER_Y );
 	bool centerChanged = false;
-	if ( qAbs(center.x() - oldX ) > ERROR_MARGIN || qAbs( center.y() - oldY ) > ERROR_MARGIN ){
+	double centerX = Util::roundToDigits( center.x(), SIGNIFICANT_DIGITS );
+	double centerY = Util::roundToDigits( center.y(), SIGNIFICANT_DIGITS );
+	double errorMargin = _getErrorMargin();
+	if ( qAbs( centerX - oldX ) > errorMargin || qAbs( centerY - oldY ) > errorMargin ){
 		centerChanged = true;
-		m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X, center.x() );
-		m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_Y, center.y() );
+		m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X, centerX );
+		m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_Y, centerY );
 		m_shape->setModel( toJSON() );
 		_updateName();
 	}
@@ -138,12 +144,14 @@ QString RegionEllipse::setRadiusMajor( double length, bool* changed ){
 	CARTA_ASSERT( length >= 0 );
 	double oldRadiusMajor = getRadiusMajor();
 	double oldRadiusMinor = getRadiusMinor();
-	if ( length < oldRadiusMinor ){
+	double roundedLength = Util::roundToDigits( length, SIGNIFICANT_DIGITS );
+	double errorMargin = _getErrorMargin();
+	if ( roundedLength < oldRadiusMinor ){
 		result = "The major radius must be larger than the minor radius.";
 	}
-	else if ( qAbs( oldRadiusMajor - length) > ERROR_MARGIN ){
+	else if ( qAbs( oldRadiusMajor - roundedLength ) > errorMargin ){
 		*changed = true;
-		m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MAJOR, length );
+		m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MAJOR, roundedLength );
 		m_shape->setModel( toJSON() );
 		_updateName();
 	}
@@ -156,12 +164,14 @@ QString RegionEllipse::setRadiusMinor( double length, bool* changed ){
 	CARTA_ASSERT( length >= 0 );
 	double oldRadiusMajor = getRadiusMajor();
 	double oldRadiusMinor = getRadiusMinor();
-	if ( length > oldRadiusMajor ){
+	double errorMargin = _getErrorMargin();
+	double roundedLength = Util::roundToDigits( length, SIGNIFICANT_DIGITS );
+	if ( roundedLength > oldRadiusMajor ){
 		result = "The minor radius must be smaller than the major radius.";
 	}
-	else if ( qAbs( oldRadiusMinor - length) > ERROR_MARGIN ){
+	else if ( qAbs( oldRadiusMinor - roundedLength) > errorMargin ){
 		*changed = true;
-		m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, length );
+		m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, roundedLength );
 		m_shape->setModel( toJSON() );
 		_updateName();
 	}
@@ -191,11 +201,16 @@ void RegionEllipse::_updateStateFromJson( const QJsonObject& json ){
 			!json[Carta::Lib::Regions::Ellipse::ANGLE].isDouble()){
 		return;
 	}
-	m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X, json[Carta::Lib::Regions::RegionBase::CENTER_X].toDouble() );
-	m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_Y, json[Carta::Lib::Regions::RegionBase::CENTER_Y].toDouble() );
-	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MAJOR, json[Carta::Lib::Regions::Ellipse::RADIUS_MAJOR].toDouble());
-	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, json[Carta::Lib::Regions::Ellipse::RADIUS_MINOR].toDouble());
-	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::ANGLE, json[Carta::Lib::Regions::Ellipse::ANGLE].toDouble());
+	double centerX = Util::roundToDigits( json[Carta::Lib::Regions::RegionBase::CENTER_X].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X, centerX );
+	double centerY = Util::roundToDigits( json[Carta::Lib::Regions::RegionBase::CENTER_Y].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_Y, centerY );
+	double radiusMajor = Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::RADIUS_MAJOR].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MAJOR, radiusMajor );
+	double radiusMinor = Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::RADIUS_MINOR].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, radiusMinor );
+	double angle = Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::ANGLE].toDouble(), SIGNIFICANT_DIGITS );
+	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::ANGLE, angle );
 	_updateName();
 	emit regionShapeChanged();
 }

@@ -509,7 +509,18 @@ void Controller::_onInputEvent( InputEvent  ev ){
 		QPointF pointPt = pointer.pos();
 		QPointF imagePixelPt = m_stack->_getImagePt( pointPt,  outputSize, &valid  );
 		if ( valid ){
-			m_regionControls->_onInputEvent( ev, imagePixelPt );
+			//Only handle region events that are inside the image itself.
+			Carta::Lib::AxisInfo::KnownType xType = m_stack->_getAxisXType();
+			Carta::Lib::AxisInfo::KnownType yType = m_stack->_getAxisYType();
+			int frameCountX = m_stack->_getFrameCount( xType );
+			int frameCountY = m_stack->_getFrameCount( yType );
+
+
+			if ( 0 <= imagePixelPt.x() && imagePixelPt.x() <= frameCountX ){
+				if ( 0 <= imagePixelPt.y() && imagePixelPt.y() <= frameCountY ){
+					m_regionControls->_onInputEvent( ev, imagePixelPt );
+				}
+			}
 		}
 	}
 

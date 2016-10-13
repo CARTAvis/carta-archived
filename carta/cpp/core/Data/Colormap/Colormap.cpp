@@ -35,7 +35,6 @@ const QString Colormap::INTENSITY_MIN = "intensityMin";
 const QString Colormap::INTENSITY_MAX = "intensityMax";
 const QString Colormap::INTENSITY_MIN_INDEX = "intensityMinIndex";
 const QString Colormap::INTENSITY_MAX_INDEX = "intensityMaxIndex";
-const QString Colormap::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Colormap::TAB_INDEX = "tabIndex";
 
 
@@ -349,7 +348,7 @@ QString Colormap::_getPreferencesId() const {
 }
 
 int Colormap::getSignificantDigits() const {
-    return m_state.getValue<int>( SIGNIFICANT_DIGITS );
+    return m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
 }
 
 QString Colormap::getStateString( const QString& sessionId, SnapshotType type ) const{
@@ -376,7 +375,7 @@ void Colormap::_initializeDefaultState(){
 
     m_state.insertValue<bool>( GLOBAL, true );
     m_state.insertValue<QString>( COLOR_STOPS, "");
-    m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
+    m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
     m_state.insertValue<int>(TAB_INDEX, 0 );
     m_state.insertValue<QString>( IMAGE_UNITS, m_intensityUnits->getDefault() );
     m_state.flushState();
@@ -569,9 +568,9 @@ void Colormap::_initializeCallbacks(){
     addCommandCallback( "setSignificantDigits", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
                 QString result;
-                std::set<QString> keys = {SIGNIFICANT_DIGITS};
+                std::set<QString> keys = {Util::SIGNIFICANT_DIGITS};
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString digitsStr = dataValues[SIGNIFICANT_DIGITS];
+                QString digitsStr = dataValues[Util::SIGNIFICANT_DIGITS];
                 bool validDigits = false;
                 int digits = digitsStr.toInt( &validDigits );
                 if ( validDigits ){
@@ -1077,7 +1076,7 @@ QString Colormap::setSignificantDigits( int digits ){
     }
     else {
         if ( getSignificantDigits() != digits ){
-            m_state.setValue<int>(SIGNIFICANT_DIGITS, digits );
+            m_state.setValue<int>(Util::SIGNIFICANT_DIGITS, digits );
             _setErrorMargin();
             //emit colorStateChanged();
         }

@@ -478,6 +478,7 @@ void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo
                         }
                     }
                 }
+                m_stateData.flushState();
             };
             try {
                 result.forEach( lam );
@@ -491,8 +492,9 @@ void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo
         //No statistics
         else {
             m_stateData.resizeArray( STATS, 0 );
+            m_stateData.flushState();
         }
-        m_stateData.flushState();
+
     }
 }
 

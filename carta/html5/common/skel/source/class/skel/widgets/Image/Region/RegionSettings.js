@@ -65,6 +65,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettings", {
         	}
         	else if ( regionType == "polygon"){
         		region = new skel.widgets.Image.Region.RegionSettingsPolygon();
+        		region.setSignificantDigits( this.m_significantDigits );
         	}
         	if ( region !== null ){
         		region.setId( this.m_id );
@@ -106,6 +107,8 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettings", {
             }
         },
         
+        
+        
         /**
          * Set the region whose settings should be displayed.
          * @param region {Object} - the region whose settings should be displayed.
@@ -120,7 +123,19 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettings", {
         		this.m_region = this._makeRegion( regionType );
         		this.m_content.add( this.m_region );
         	}
+        	
         	this.m_region.setRegion( region );
+        },
+        
+        /**
+         * Set the number of significant digits to round to when doing a computation.
+         * @param digits {Number} - the number of significant digits for rounding.
+         */
+        setSignificantDigits : function( digits ){
+        	this.m_significantDigits = digits;
+        	if ( this.m_region !== null ){
+        		this.m_region.setSignificantDigits( digits );
+        	}
         },
         
         m_autoSelect : null,
@@ -128,6 +143,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettings", {
         m_connector : null,
         m_content : null,
         m_id : null,
-        m_region : null  
+        m_region : null,
+        m_significantDigits : null
     }
 });

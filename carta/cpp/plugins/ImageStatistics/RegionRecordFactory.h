@@ -62,6 +62,11 @@ private:
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
 	        const std::vector<int>& slice, QString& typeStr );
 
+	static casa::Record _getRegionRecordRectangle(
+	        casa::ImageInterface<casa::Float>* casaImage,
+	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
+	        const std::vector<int>& slice, QString& typeStr );
+
 	static bool _getWorldVertex( int pixelX, int pixelY, const casa::CoordinateSystem& cSys,
 	        const std::vector<int>& slice, casa::Vector<casa::Double>& worldVertices );
 };

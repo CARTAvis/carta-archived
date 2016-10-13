@@ -50,7 +50,13 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsPolygon", {
         	var width = maxX - minX;
         	var height = maxY - minY;
         	var centerX = ( minX + maxX ) / 2;
-        	var centerY = ( minY + maxY ) / 2;
+        	var centerY = ( minY + maxY ) / 2;  	
+        	if ( this.m_significantDigits !== null ){
+        		width = Math.round(width * Math.pow(10, this.m_significantDigits)) / Math.pow(10, this.m_significantDigits);
+        		height = Math.round(height * Math.pow(10, this.m_significantDigits)) / Math.pow(10, this.m_significantDigits);
+        		centerX = Math.round(centerX * Math.pow(10, this.m_significantDigits)) / Math.pow(10, this.m_significantDigits);
+        		centerY = Math.round(centerY * Math.pow(10, this.m_significantDigits)) / Math.pow(10, this.m_significantDigits);
+        	}
         	
         	this.m_centerXText.removeListenerById( this.m_centerXListenId );
         	this.m_centerXText.setValue( centerX.toString() );
@@ -71,6 +77,17 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsPolygon", {
         	this.m_widthText.setValue( width );
         	this.m_widthListenId = this.m_widthText.addListener( "textChanged", 
         			this._sendWidthCmd, this );
-        }
+        },
+        
+        /**
+         * Set the number of significant digits to use when doing a computation.
+         * @param digits {Number} - the number of significant digits to use when doing a computation.
+         */
+        setSignificantDigits : function( digits ){
+        	this.m_significantDigits = digits;
+        },
+        
+        m_significantDigits: null
     }
+    
 });

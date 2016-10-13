@@ -52,7 +52,6 @@ RegionControls::RegionControls(const QString& path, const QString& id )
 }
 
 void RegionControls::_addDataRegions( std::vector<std::shared_ptr<Region>> regions ){
-
     int count = regions.size();
     for ( int i = 0; i < count; i++ ){
     	const QString id = regions[i]->getId();
@@ -63,9 +62,12 @@ void RegionControls::_addDataRegions( std::vector<std::shared_ptr<Region>> regio
         }
     }
     count = m_regions.size();
+
     m_selectRegion->setUpperBound( count );
-    //The last loaded region should be selected.
-    m_selectRegion->setIndex( count - 1 );
+    if ( count >= 1 ){
+    	int selectIndex = count - 1;
+    	m_selectRegion->setIndex( selectIndex );
+    }
     _saveStateRegions();
     emit regionsChanged();
 }
@@ -241,10 +243,14 @@ bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev
 		}
 		else {
 			int regionCount = m_regions.size();
+			int selectedIndex =m_selectRegion->getIndex();
 			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleTouch( imagePt );
+				m_regions[i]->handleTouch( imagePt);
 			}
 			if ( regionCount > 0 ){
+				//If it was a tap outside all of the regions, it may have unselected
+				//all of them, but the current region should be selected.
+				m_regions[selectedIndex]->setSelected( true );
 				emit regionsChanged();
 			}
 		}
@@ -280,6 +286,7 @@ void RegionControls::_initializeCallbacks(){
 		else {
 			result="Index of region to close must be an integer";
 		}
+		Util::commandPostProcess( result );
 		return result;
 	});
 
@@ -297,6 +304,7 @@ void RegionControls::_initializeCallbacks(){
 		else {
 			result="Whether or not to auto select regions must be true/false: "+params;
 		}
+		Util::commandPostProcess( result );
 		return result;
 	});
 
@@ -317,6 +325,7 @@ void RegionControls::_initializeCallbacks(){
 		else {
 			result="The coordinates of the region center must be numbers: "+params;
 		}
+		Util::commandPostProcess( result );
 		return result;
 	});
 
@@ -334,6 +343,7 @@ void RegionControls::_initializeCallbacks(){
 		else {
 			result="The height of the selected region must be a number: "+params;
 		}
+		Util::commandPostProcess( result );
 		return result;
 	});
 
@@ -351,6 +361,7 @@ void RegionControls::_initializeCallbacks(){
 		else {
 			result="The major radius of the selected region must be a number: "+params;
 		}
+		Util::commandPostProcess( result );
 		return result;
 	});
 
@@ -368,6 +379,7 @@ void RegionControls::_initializeCallbacks(){
 		else {
 			result="The minor radius of the selected region must be a number: "+params;
 		}
+		Util::commandPostProcess( result );
 		return result;
 	});
 
@@ -399,6 +411,7 @@ void RegionControls::_initializeCallbacks(){
 		else {
 			result="The width of the selected region must be a number: "+params;
 		}
+		Util::commandPostProcess( result );
 		return result;
 	});
 }
@@ -423,6 +436,7 @@ void RegionControls::_initializeState(){
 
     m_state.insertValue<QString>( CREATE_TYPE, "" );
     m_state.insertValue<bool>(REGION_SELECT_AUTO, true );
+    m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, Region::SIGNIFICANT_DIGITS );
     m_state.flushState();
 }
 

@@ -107,6 +107,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             this._add( this.m_dataCombo );
             
             this.m_imageUnitsCombo = new skel.widgets.CustomUI.SelectBox( "setImageUnits", "imageUnits");
+            skel.widgets.TestID.addTestId( this.m_imageUnitsCombo, "colorImageUnits" ); 
             this.m_imageUnitsCombo.setToolTipText( "Select units for the intensity bounds.");
             this._add( this.m_imageUnitsCombo );
             

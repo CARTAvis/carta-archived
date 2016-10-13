@@ -32,6 +32,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsRectangle", {
             this.m_content.add( boxLabel, {row:0,column:0,colSpan:2} );
             var widthLabel = new qx.ui.basic.Label( "Width:");
             this.m_widthText =  new skel.widgets.CustomUI.NumericTextField(0,null);
+            skel.widgets.TestID.addTestId( this.m_widthText, "RectangleRegionWidth");
             this.m_widthText.setToolTipText( "Set the width of the region.");
             this.m_widthText.setIntegerOnly( false );
             this.m_widthListenId = this.m_widthText.addListener( "textChanged", this._sendWidthCmd, this );
@@ -39,6 +40,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsRectangle", {
             this.m_content.add( this.m_widthText, {row:1,column:1});
             var heightLabel = new qx.ui.basic.Label( "Height:");
             this.m_heightText = new skel.widgets.CustomUI.NumericTextField(0,null);
+            skel.widgets.TestID.addTestId( this.m_heightText, "RectangleRegionHeight");
             this.m_heightText.setToolTipText( "Set the height of the region.");
             this.m_heightText.setIntegerOnly( false );
             this.m_heightListenId = this.m_heightText.addListener( "textChanged", this._sendHeightCmd, this );

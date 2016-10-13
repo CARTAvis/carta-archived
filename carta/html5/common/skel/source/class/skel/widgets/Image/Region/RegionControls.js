@@ -29,6 +29,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionControls", {
                  try {
                      var controls = JSON.parse( val );       
                      this.m_regionSettings.setAutoSelect( controls.regionAutoSelect );
+                     this.m_regionSettings.setSignificantDigits( controls.significantDigits );
                      this.m_regionList.setEnabled( !controls.regionAutoSelect );
                      var errorMan = skel.widgets.ErrorHandler.getInstance();
                      errorMan.clearErrors();

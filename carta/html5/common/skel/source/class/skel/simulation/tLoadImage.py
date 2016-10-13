@@ -32,6 +32,24 @@ class tLoadImage(unittest.TestCase):
         ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
+        
+    # Test was written in response to Issue 178.  Loading a particular image produced
+    # a crash.
+    def test_load_image178(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "SI1.fits")
+        time.sleep( timeout )
+
+        # Make sure we have not crashed by closing the image
+        ActionChains(driver).double_click( imageWindow ).perform()
+        dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
+        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
+        time.sleep( timeout )
+
 
     # Test that we can load a large number of images, one after another
     def test_load_images(self):

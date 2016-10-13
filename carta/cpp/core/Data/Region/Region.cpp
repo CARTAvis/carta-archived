@@ -7,6 +7,7 @@
 #include "CartaLib/Regions/Ellipse.h"
 
 #include <QDebug>
+#include <QtMath>
 
 namespace Carta {
 
@@ -16,7 +17,7 @@ const QString Region::ACTIVE = "active";
 const QString Region::HOVERED = "hovered";
 const QString Region::REGION_TYPE = "regionType";
 const QString Region::CUSTOM_NAME = "customName";
-const double Region::ERROR_MARGIN = 0.000001;
+const int Region::SIGNIFICANT_DIGITS = 6;
 
 Region::Region(const QString& className, const QString& path, const QString& id )
 :CartaObject( className, path, id ),
@@ -33,6 +34,10 @@ QString Region::getCursor() const {
 	return "";
 }
 
+double Region::_getErrorMargin() const {
+	double errorMargin = 1.0 / qPow( 10, SIGNIFICANT_DIGITS );
+	return errorMargin;
+}
 
 std::shared_ptr<Carta::Lib::Regions::RegionBase> Region::getModel() const {
 	std::shared_ptr<Carta::Lib::Regions::RegionBase> info (nullptr);
