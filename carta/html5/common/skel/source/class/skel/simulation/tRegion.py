@@ -53,7 +53,62 @@ class tRegion(unittest.TestCase):
         ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_RIGHT).send_keys(Keys.ENTER).perform()
         time.sleep( timeout )
-           
+        
+    #Test that if we load two images and then turn auto select off we can
+    #select the other image and see a region information update in text fields
+    def test_noAutoSelect(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Default")
+        time.sleep( timeout )
+        
+        # Load a rectangular region in the image.
+        Util.load_image( self, driver, "OrionMethanolRegion.crtf")
+        time.sleep( timeout )
+        
+        # Load an elliptical region in the image.
+        Util.load_image( self, driver, "OrionMethanolRegionEllipse.crtf")
+        time.sleep( 10 )
+        
+        # Open the regions tab in the image window
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(timeout)
+        Util.clickTab( driver, "Regions" )
+        
+        # Turn off auto select
+        autoSelectBox = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.XPATH, "//div[@id[starts-with(.,'RegionAutoSelect')]]/div[@qxclass='qx.ui.basic.Image']") ) )
+        Util.setChecked(self, driver, autoSelectBox, False)
+        time.sleep( timeout )
+        
+        # The second region loaded (the ellipse) should be selected.
+        # Store the center of the ellipse.
+        centerXText = driver.find_element_by_xpath("//div[@id[starts-with(.,'RegionCenterX')]]/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", centerXText )
+        centerX = centerXText.get_attribute( "value" )
+        centerYText = driver.find_element_by_xpath("//div[@id[starts-with(.,'RegionCenterY')]]/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", centerYText )
+        centerY = centerYText.get_attribute( "value" )
+        print "Ellipse center at (", centerX, " and ", centerY, ")"
+        
+        # Select the other region
+        firstItem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='regionsTable']/div/div/div/div/div/div/div[contains(text(),'rectangle')]")))
+        ActionChains( driver).click( firstItem ).perform()
+        time.sleep(timeout)
+        
+        # Verify that the region information is updated
+        centerXText = driver.find_element_by_xpath("//div[@id[starts-with(.,'RegionCenterX')]]/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", centerXText )
+        newCenterX = centerXText.get_attribute( "value" )
+        centerYText = driver.find_element_by_xpath("//div[@id[starts-with(.,'RegionCenterY')]]/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", centerYText )
+        newCenterY = centerYText.get_attribute( "value" )
+        print "Center of rectangle (",newCenterX,",",newCenterY,")"
+        self.assertTrue( float( centerX) != float( newCenterX), "Center X did not change!")
+        self.assertTrue( float( centerY) != float( newCenterY), "Center Y did not change!")
+    
+    
 
     # Test that a region file in CASA format can be loaded and then closed.
     def test_load_regionCASA(self):
@@ -66,12 +121,12 @@ class tRegion(unittest.TestCase):
         
         # Load a specific region in the image.
         Util.load_image( self, driver, "OrionMethanolRegion.crtf")
-        time.sleep( 4 )
+        time.sleep( 8 )
         
          #Open the image settings
         #Open the stack tab
         Util.openSettings( self, driver, "Image", True )
-        time.sleep(4)
+        time.sleep( timeout )
         Util.clickTab( driver, "Regions" )
         
         #Verify that there is one region in the region list.
@@ -198,7 +253,7 @@ class tRegion(unittest.TestCase):
         
 
     # Test that we can load several regions
-    def test_load_images(self):
+    def test_load_regions(self):
         driver = self.driver
         timeout = selectBrowser._getSleep()
 

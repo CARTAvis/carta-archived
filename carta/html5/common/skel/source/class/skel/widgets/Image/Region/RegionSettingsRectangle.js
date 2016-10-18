@@ -91,8 +91,17 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsRectangle", {
         	this.m_widthListenId = this.m_widthText.addListener( "textChanged", this._sendWidthCmd, this );
         },
         
+        /**
+         * Set the number of significant digits to use when doing a computation.
+         * @param digits {Number} - the number of significant digits to use when doing a computation.
+         */
+        setSignificantDigits : function( digits ){
+        	this.m_significantDigits = digits;
+        }, 
+        
         m_heightText : null,
         m_heightListenId : null,
+        m_significantDigits: null,
         m_widthText : null,
         m_widthListenId : null
     }

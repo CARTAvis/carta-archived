@@ -80,6 +80,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             this._setLayout(widgetLayout);
             
             this.m_intensityLowText = new skel.widgets.CustomUI.NumericTextField( null, null);
+            skel.widgets.TestID.addTestId( this.m_intensityLowText, "clipMinIntensity" ); 
             this.m_intensityLowListenId = this.m_intensityLowText.addListener( "textChanged",
                     this._intensityChanged, this );
             this.m_intensityLowText.setToolTipText( "Set the lower intensity bound.");
@@ -113,6 +114,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             
             this._add( new qx.ui.core.Spacer(), {flex:1});
             this.m_intensityHighText = new skel.widgets.CustomUI.NumericTextField(null, null);
+            skel.widgets.TestID.addTestId( this.m_intensityHighText, "clipMinIntensity" ); 
             this.m_intensityHighText.setToolTipText( "Set the upper intensity bound.");
             this.m_intensityHighListenId = this.m_intensityHighText.addListener( "textChanged",
                     this._intensityChanged, this );

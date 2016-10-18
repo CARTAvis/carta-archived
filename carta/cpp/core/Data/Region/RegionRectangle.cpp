@@ -174,9 +174,9 @@ void RegionRectangle::_updateStateFromJson( const QJsonObject& json ){
 	m_state.setValue<double>( Util::XCOORD, xCoord );
 	double yCoord = Util::roundToDigits( json[Util::YCOORD].toDouble(), SIGNIFICANT_DIGITS );
 	m_state.setValue<double>( Util::YCOORD, yCoord );
-	double width = Util::roundToDigits( json[Util::WIDTH].toDouble(), SIGNIFICANT_DIGITS );
+	double width = qAbs(Util::roundToDigits( json[Util::WIDTH].toDouble(), SIGNIFICANT_DIGITS ));
 	m_state.setValue<double>( Util::WIDTH, width );
-	double heightVal = json[Util::HEIGHT].toDouble();
+	double heightVal = qAbs(json[Util::HEIGHT].toDouble());
 	double height = Util::roundToDigits( heightVal, SIGNIFICANT_DIGITS );
 	m_state.setValue<double>( Util::HEIGHT, height );
 	_updateName();

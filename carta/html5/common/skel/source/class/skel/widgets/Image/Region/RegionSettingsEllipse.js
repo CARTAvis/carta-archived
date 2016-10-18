@@ -130,11 +130,19 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsEllipse", {
         	this.m_radiusMinorListenId = this.m_radiusMinorText.addListener( "textChanged", this._sendRadiusMinorCmd, this );
         },
         
-     
+        /**
+         * Set the number of significant digits to use when doing a computation.
+         * @param digits {Number} - the number of significant digits to use when doing a computation.
+         */
+        setSignificantDigits : function( digits ){
+        	this.m_significantDigits = digits;
+        }, 
+        
         m_radiusMajorText : null,
         m_radiusMinorText : null,
         m_radiusMajorListenId : null,
-        m_radiusMinorListenId : null
+        m_radiusMinorListenId : null,
+        m_significantDigits : null
       
     }
 });

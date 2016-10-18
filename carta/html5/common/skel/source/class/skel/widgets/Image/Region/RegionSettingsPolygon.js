@@ -77,17 +77,9 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsPolygon", {
         	this.m_widthText.setValue( width );
         	this.m_widthListenId = this.m_widthText.addListener( "textChanged", 
         			this._sendWidthCmd, this );
-        },
+        }
         
-        /**
-         * Set the number of significant digits to use when doing a computation.
-         * @param digits {Number} - the number of significant digits to use when doing a computation.
-         */
-        setSignificantDigits : function( digits ){
-        	this.m_significantDigits = digits;
-        },
         
-        m_significantDigits: null
     }
     
 });

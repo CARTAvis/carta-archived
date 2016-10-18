@@ -33,6 +33,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettings", {
             this._add( this.m_content );
             
             this.m_autoSelect = new qx.ui.form.CheckBox( "Auto Select");
+            skel.widgets.TestID.addTestId( this.m_autoSelect, "RegionAutoSelect");
             this.m_autoSelect.setToolTipText( "Auto selection based on animator or manual selection of regions.");
             this.m_autoListenId = this.m_autoSelect.addListener( "changeValue", this._sendAutoSelectCmd, this );
             var checkContainer = new qx.ui.container.Composite();

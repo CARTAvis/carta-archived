@@ -49,6 +49,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsShared", {
             var xLabel = new qx.ui.basic.Label( "X:");
             //Note:  need to re-evaluate whether the actual lower bound should be 0.
             this.m_centerXText = new skel.widgets.CustomUI.NumericTextField( null, null );
+            skel.widgets.TestID.addTestId( this.m_centerXText, "RegionCenterX");
             this.m_centerXText.setToolTipText( "Set the x-coordinate of the region center.");
             this.m_centerXText.setIntegerOnly( false );
             this.m_centerXListenId = this.m_centerXText.addListener( "textChanged", this._sendCenterCmd, this );
@@ -56,6 +57,7 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsShared", {
             this.m_content.add( this.m_centerXText, {row:1,column:4});
             var yLabel = new qx.ui.basic.Label( "Y:");
             this.m_centerYText = new skel.widgets.CustomUI.NumericTextField( null, null );
+            skel.widgets.TestID.addTestId( this.m_centerYText, "RegionCenterY");
             this.m_centerYText.setToolTipText( "Set the y-coordinate of the region center.");
             this.m_centerYText.setIntegerOnly( false );
             this.m_centerYListenId = this.m_centerYText.addListener( "textChanged", this._sendCenterCmd, this );

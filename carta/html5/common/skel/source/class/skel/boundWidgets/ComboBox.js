@@ -19,7 +19,9 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         this.base(arguments);
         this.m_cmd = cmd;
         this.m_paramId = paramId;
-        this.m_connector = mImport("connector");
+        if ( typeof mImport !== "undefined"){
+        	this.m_connector = mImport("connector");
+        }
         this.m_comboListener = this.addListener( skel.widgets.Path.CHANGE_VALUE, this._sendCmd, this );
     },
     
@@ -35,7 +37,7 @@ qx.Class.define("skel.boundWidgets.ComboBox", {
         _sendCmd : function(){
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
-            if ( this.m_id !== null ){
+            if ( this.m_id !== null && this.m_connector !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
                 var coordSystem = this.getValue();

@@ -205,9 +205,9 @@ void RegionEllipse::_updateStateFromJson( const QJsonObject& json ){
 	m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X, centerX );
 	double centerY = Util::roundToDigits( json[Carta::Lib::Regions::RegionBase::CENTER_Y].toDouble(), SIGNIFICANT_DIGITS );
 	m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_Y, centerY );
-	double radiusMajor = Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::RADIUS_MAJOR].toDouble(), SIGNIFICANT_DIGITS );
+	double radiusMajor = qAbs(Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::RADIUS_MAJOR].toDouble(), SIGNIFICANT_DIGITS ));
 	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MAJOR, radiusMajor );
-	double radiusMinor = Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::RADIUS_MINOR].toDouble(), SIGNIFICANT_DIGITS );
+	double radiusMinor = qAbs(Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::RADIUS_MINOR].toDouble(), SIGNIFICANT_DIGITS ));
 	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, radiusMinor );
 	double angle = Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::ANGLE].toDouble(), SIGNIFICANT_DIGITS );
 	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::ANGLE, angle );

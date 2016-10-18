@@ -39,18 +39,21 @@ qx.Class.define("skel.test.HistogramCubeTest", {
             this.assertTrue( this.m_rangeWidget.m_unitCombo.isEnabled());
             this.assertTrue( this.m_rangeWidget.m_rangeMinText.isEnabled());
             this.assertTrue( this.m_rangeWidget.m_rangeMaxText.isEnabled());
+            
         },
         
         /**
          * Test that plane specification widgets are all disabled if we are in
-         * entire cube modee.
+         * entire cube mode.
          */
         testAllPlaneEnable : function() {
             this.m_rangeWidget.setPlaneMode("All");
             this.assertFalse( this.m_rangeWidget.m_unitCombo.isEnabled());
             this.assertFalse( this.m_rangeWidget.m_rangeMinText.isEnabled());
             this.assertFalse( this.m_rangeWidget.m_rangeMaxText.isEnabled());
+            
         },
+        
         /**
          * Test that we can set valid values.
          */
@@ -61,6 +64,18 @@ qx.Class.define("skel.test.HistogramCubeTest", {
             this.m_rangeWidget.m_rangeMaxText.setValue( "10");
             this.assertEquals( this.m_rangeWidget.m_rangeMaxText.getValue(), "10");
         },
+        
+        /**
+         * Test the limit on cube size in the histogram.
+         */
+        testAllValues : function(){
+        	this.m_rangeWidget.setPlaneMode( "All");
+        	this.m_rangeWidget.m_smallCheck.setValue( false );
+        	this.assertFalse( this.m_rangeWidget.m_pixelText.isEnabled() );
+        	this.m_rangeWidget.m_smallCheck.setValue( true );
+        	this.assertTrue( this.m_rangeWidget.m_pixelText.isEnabled() );  	
+        },
+        
         m_rangeWidget : null
 
     }

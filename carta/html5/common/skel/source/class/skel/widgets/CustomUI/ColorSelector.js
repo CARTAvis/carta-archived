@@ -257,7 +257,9 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                         rowIndex = Math.floor( colorPos / colCount );
                         colIndex = colorPos - rowIndex * colCount;
                         colorField = this.getChildControl("colorbucket#" + colorPos);
-                        colorField.setBackgroundColor(this.__presetTable[colorPos]);
+                        if ( typeof this.__presetTable !=="undefined" ){
+                        	colorField.setBackgroundColor(this.__presetTable[colorPos]);
+                        }
                         control.add(colorField, {column: colIndex, row: rowIndex});
                       }
                     }
