@@ -271,6 +271,13 @@ protected:
             const std::vector<double>& percentiles ) const = 0;
 
     /**
+     * Returns whether or not the layer can be loaded with the indicated frames.
+     * @param frames - list of frame indices to load.
+     * @return - whether or not the layer can be loaded with the indicated frames.
+     */
+    virtual bool _isLoadable( const std::vector<int>& frames ) const;
+
+    /**
      * Return the current layer.
      * @return - the current layer.
      */
@@ -515,7 +522,14 @@ protected:
      *      in and the name was successfully reset; false otherwise.
      */
     virtual bool _setLayerName( const QString& id, const QString& name );
-    virtual bool _setLayersGrouped( bool grouped ) = 0;
+
+    /**
+     * Group or ungroup any child layers.
+     * @param grouped - true if child layers should be grouped; false, otherwise.
+     * @param viewSize - the view size.
+     * @return - true if the operation was performed; false otherwise.
+     */
+    virtual bool _setLayersGrouped( bool grouped, const QSize& viewSize ) = 0;
 
     /**
      * Set the color to use for the mask.

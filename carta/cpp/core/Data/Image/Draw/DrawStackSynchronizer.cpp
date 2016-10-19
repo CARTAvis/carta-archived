@@ -32,6 +32,19 @@ QSize DrawStackSynchronizer::getClientSize() const {
 }
 
 
+QList<std::shared_ptr<Layer> > DrawStackSynchronizer::_getLoadableData( const std::shared_ptr<RenderRequest>& request ){
+	QList<std::shared_ptr<Layer> > loadables;
+	QList<std::shared_ptr<Layer> > datas = request->getData();
+	std::vector<int> frames = request->getFrames();
+	int dataCount = datas.size();
+	for ( int i = 0; i < dataCount; i++ ){
+		if ( datas[i]->_isLoadable(frames) ){
+			loadables.push_back( datas[i] );
+		}
+	}
+	return loadables;
+}
+
 void DrawStackSynchronizer::_repaintFrameNow(){
     m_view->scheduleRepaint();
 
@@ -49,7 +62,7 @@ void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& reque
         return;
     }
     m_repaintFrameQueued = true;
-    QList<std::shared_ptr<Layer> > datas = request->getData();
+    QList<std::shared_ptr<Layer> > datas = _getLoadableData( request );
     int dataCount = datas.size();
     m_images.clear();
     m_layers = datas;

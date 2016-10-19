@@ -329,6 +329,9 @@ private:
     //Initialize static objects.
     void _initializeSingletons( );
 
+    ///Returns whether the frames actually exist in the image.
+    bool _isLoadable( std::vector<int> frames ) const;
+
     //Returns whether or not there is a spectral axis in the image.
     bool _isSpectralAxis() const;
 

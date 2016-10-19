@@ -66,7 +66,7 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-bool Stack::_addGroup( /*const QString& state*/ ){
+bool Stack::_addGroup( ){
     bool groupAdded = LayerGroup::_addGroup();
     if ( groupAdded ){
         _saveState();
@@ -689,7 +689,8 @@ bool Stack::_setLayerName( const QString& id, const QString& name ){
 }
 
 bool Stack::_setLayersGrouped( bool grouped  ){
-    bool operationPerformed = LayerGroup::_setLayersGrouped( grouped );
+	QSize clientSize = m_stackDraw->getClientSize();
+    bool operationPerformed = LayerGroup::_setLayersGrouped( grouped, clientSize);
     if ( operationPerformed ){
         emit viewLoad();
         _saveState();

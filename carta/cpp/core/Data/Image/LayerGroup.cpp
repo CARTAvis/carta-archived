@@ -53,8 +53,8 @@ LayerGroup::LayerGroup(const QString& className, const QString& path, const QStr
     m_drawSync.reset( new DrawGroupSynchronizer( ) );
 
     // connect its done() slot to our renderingSlot()
-    connect( m_drawSync.get(), SIGNAL(done(QImage)),
-                            this, SLOT(_renderingDone(QImage)));
+    connect( m_drawSync.get(), SIGNAL(done(QImage,Carta::Lib::VectorGraphics::VGList)),
+                            this, SLOT(_renderingDone(QImage,Carta::Lib::VectorGraphics::VGList)));
 }
 
 void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
@@ -714,6 +714,19 @@ bool LayerGroup::_isEmpty() const {
     return empty;
 }
 
+bool LayerGroup::_isLoadable( const std::vector<int>& frames ) const {
+	//A group is loadable if there is one loadable image in the group.
+	bool loadable = false;
+	int childCount = m_children.size();
+	for ( int i = 0; i < childCount; i++ ){
+		if ( m_children[i]->_isLoadable( frames ) ){
+			loadable = true;
+			break;
+		}
+	}
+	return loadable;
+}
+
 bool LayerGroup::_isSpectralAxis() const {
 	bool spectralAxis = false;
 
@@ -790,7 +803,16 @@ void LayerGroup::_renderStart( ){
     if ( m_renderRequests.size() > 0 ){
         m_renderQueued = true;
         std::shared_ptr<RenderRequest> request = m_renderRequests.pop();
-        m_drawSync->setLayers( m_children );
+        //Only load the layers which have the required frames.
+        std::vector<int> frames = request->getFrames();
+        QList<std::shared_ptr<Layer> > loadables;
+        int childCount = m_children.size();
+        for ( int i = 0; i < childCount; i++ ){
+        	if ( m_children[i]->_isLoadable( frames ) ){
+        		loadables.append( m_children[i] );
+        	}
+        }
+        m_drawSync->setLayers( loadables );
         m_drawSync->setCombineMode( _getCompositionMode() );
         int topIndex = -1;
         if ( request->isStackTop()){
@@ -802,8 +824,7 @@ void LayerGroup::_renderStart( ){
 }
 
 
-void LayerGroup ::_renderingDone( QImage image ){
-    Carta::Lib::VectorGraphics::VGList graphics;
+void LayerGroup ::_renderingDone( QImage image, Carta::Lib::VectorGraphics::VGList graphics ){
     std::shared_ptr<RenderResponse> response( new RenderResponse(image, graphics, _getLayerId()));
     emit renderingDone( response );
 }
@@ -900,14 +921,14 @@ bool LayerGroup::_setCompositionMode( const QString& id, const QString& composit
 }
 
 
-bool LayerGroup::_setLayersGrouped( bool grouped  ){
+bool LayerGroup::_setLayersGrouped( bool grouped, const QSize& clientSize  ){
     bool operationPerformed = false;
     int dataCount = m_children.size();
     if ( !grouped ){
         //First see if any of the children can do the operation.
         //For now, it only makes sense to allow groups one deep.
         for ( int i = 0; i < dataCount; i++ ){
-            bool childPerformed = m_children[i]->_setLayersGrouped( grouped );
+            bool childPerformed = m_children[i]->_setLayersGrouped( grouped, clientSize );
             if ( childPerformed ){
                 operationPerformed = true;
                 break;
@@ -945,6 +966,7 @@ bool LayerGroup::_setLayersGrouped( bool grouped  ){
                             this, SLOT( _removeLayer( Layer*)));
                 QStringList selections;
                 selections.append( groupLayer->_getLayerId());
+                groupLayer->_setViewSize( clientSize );
                 groupLayer->_setSelected( selections );
                 operationPerformed = true;
             }
@@ -1056,6 +1078,11 @@ void LayerGroup::_setMaskAlphaDefault(){
     }
 }
 
+void LayerGroup::_setViewSize( const QSize& size ){
+	if ( m_drawSync ){
+		m_drawSync->viewResize( size );
+	}
+}
 
 bool LayerGroup::_setVisible( const QString& id, bool visible ){
     bool layerFound = Layer::_setVisible( id, visible );

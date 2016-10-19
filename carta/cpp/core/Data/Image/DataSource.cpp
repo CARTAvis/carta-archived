@@ -540,6 +540,7 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     if ( m_image ){
         int imageSize = m_image->dims().size();
         int mult = 1;
+
         for ( int i = imageSize-1; i >= 0; i-- ){
             if ( i != m_axisIndexX && i != m_axisIndexY ){
                 AxisInfo::KnownType axisType = _getAxisType( i );
@@ -547,6 +548,7 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
                 if ( AxisInfo::KnownType::OTHER != axisType ){
                     int index = static_cast<int>( axisType );
                     frame = frames[index];
+
                 }
                 cacheIndex = cacheIndex + mult * frame;
                 int frameCount = m_image->dims()[i];
@@ -646,6 +648,29 @@ void DataSource::_initializeSingletons( ){
     }
 }
 
+
+bool DataSource::_isLoadable( std::vector<int> frames ) const {
+	int imageDim =m_image->dims().size();
+	bool loadable = true;
+	for ( int i = 0; i < imageDim; i++ ){
+		AxisInfo::KnownType type = _getAxisType( i );
+		if ( AxisInfo::KnownType::OTHER != type ){
+			int axisIndex = static_cast<int>( type );
+			int frameIndex = frames[axisIndex];
+			int frameCount = m_image->dims()[axisIndex];
+			if ( frameIndex >= frameCount ){
+				loadable = false;
+				break;
+			}
+		}
+		else {
+			loadable = false;
+			break;
+		}
+	}
+	return loadable;
+}
+
 bool DataSource::_isSpectralAxis() const {
 	bool spectralAxis = false;
 	int imageSize = m_image->dims().size();
@@ -661,20 +686,25 @@ bool DataSource::_isSpectralAxis() const {
 
 void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile){
-    int frameSize = frames.size();
-    CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
-    std::vector<int> mFrames = _fitFramesToImage( frames );
-    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
-    std::vector<int> dimVector = view->dims();
-    //Update the clip values
-    if ( recomputeClipsOnNewFrame ){
-        _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
-    }
-    QString cacheId=m_pixelPipeline-> cacheId();
-    m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
+	//Only load if the frames make sense for the image.  I.e., the frame index
+	//should be less than the image size.
+	if ( _isLoadable( frames ) ){
+		int frameSize = frames.size();
+		CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
+		std::vector<int> mFrames = _fitFramesToImage( frames );
+		std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+		std::vector<int> dimVector = view->dims();
 
-    QString renderId = _getViewIdCurrent( mFrames );
-    m_renderService-> setInputView( view, renderId );
+		//Update the clip values
+		if ( recomputeClipsOnNewFrame ){
+			_updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
+		}
+		QString cacheId=m_pixelPipeline-> cacheId();
+		m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
+
+		QString renderId = _getViewIdCurrent( mFrames );
+		m_renderService-> setInputView( view, renderId );
+	}
 }
 
 

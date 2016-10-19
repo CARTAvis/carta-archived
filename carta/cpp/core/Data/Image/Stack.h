@@ -48,7 +48,7 @@ signals:
 
 protected:
 
-    virtual bool _addGroup( /*const QString& state*/ ) Q_DECL_OVERRIDE;
+    virtual bool _addGroup( ) Q_DECL_OVERRIDE;
     virtual bool _closeData( const QString& id ) Q_DECL_OVERRIDE;
     virtual int _getIndexCurrent( ) const;
 

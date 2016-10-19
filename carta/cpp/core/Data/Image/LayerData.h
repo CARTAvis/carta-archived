@@ -284,6 +284,13 @@ protected:
     virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
 
     /**
+     * Returns whether or not the layer can be loaded with the indicated frames.
+     * @param frames - list of frame indices to load.
+     * @return - whether or not the layer can be loaded with the indicated frames.
+     */
+    virtual bool _isLoadable( const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
+
+    /**
      * Returns whether or not the image has a spectral axis.
      * @return - true if the image has a spectral axes; false, otherwise.
      */
@@ -389,7 +396,13 @@ protected:
      */
     virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
 
-    virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
+    /**
+     * Group or ungroup any child layers.
+     * @param grouped - true if child layers should be grouped; false, otherwise.
+     * @param viewSize - the view size.
+     * @return - true if the operation was performed; false otherwise.
+     */
+    virtual bool _setLayersGrouped( bool grouped, const QSize& viewSize ) Q_DECL_OVERRIDE;
 
     /**
      * Set the opacity of the mask.

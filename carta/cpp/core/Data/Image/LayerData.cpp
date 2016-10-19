@@ -629,6 +629,14 @@ bool LayerData::_isContourDraw() const {
     return contourDraw;
 }
 
+bool LayerData::_isLoadable( const std::vector<int>& frames ) const {
+	bool loadable = false;
+	if ( m_dataSource ){
+		loadable = m_dataSource->_isLoadable( frames );
+	}
+	return loadable;
+}
+
 bool LayerData::_isSpectralAxis() const {
 	bool spectralAxis = false;
 	if ( m_dataSource ){
@@ -920,7 +928,7 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
     return result;
 }
 
-bool LayerData::_setLayersGrouped( bool /*grouped*/  ){
+bool LayerData::_setLayersGrouped( bool /*grouped*/, const QSize& /*viewSize*/  ){
     return false;
 }
 

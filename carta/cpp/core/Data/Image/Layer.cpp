@@ -148,6 +148,9 @@ bool Layer::_isEmpty() const {
     return false;
 }
 
+bool Layer::_isLoadable( const std::vector<int>& /*frames*/ ) const {
+	return false;
+}
 
 bool Layer::_isMatch( const QString& name ) const {
     bool matched = false;

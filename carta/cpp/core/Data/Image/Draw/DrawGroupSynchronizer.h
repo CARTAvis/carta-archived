@@ -67,7 +67,7 @@ signals:
     /**
      * Signal that rendering has finished.
      */
-    void done( QImage img );
+    void done( QImage img, Carta::Lib::VectorGraphics::VGList graphics );
 
 
 private slots:

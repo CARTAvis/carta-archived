@@ -53,7 +53,7 @@ protected:
 
 
 
-    virtual bool _addGroup( /*const QString& state*/ );
+    virtual bool _addGroup();
 
     /**
      * Add a layer to this one at the given index.
@@ -362,6 +362,13 @@ protected:
     virtual bool _isEmpty() const Q_DECL_OVERRIDE;
 
     /**
+     * Returns whether or not the layer can be loaded with the indicated frames.
+     * @param frames - list of frame indices to load.
+     * @return - whether or not the layer can be loaded with the indicated frames.
+     */
+    virtual bool _isLoadable( const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
+
+    /**
      * Returns whether or not the layered images have spectral axes.
      * @return - true if the layered images all have spectral axes; false, otherwise.
      */
@@ -421,7 +428,13 @@ protected:
      */
     virtual bool _setLayerName( const QString& id, const QString& name ) Q_DECL_OVERRIDE;
 
-    virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
+    /**
+     * Group or ungroup any child layers.
+     * @param grouped - true if child layers should be grouped; false, otherwise.
+     * @param viewSize - the view size.
+     * @return - true if the operation was performed; false otherwise.
+     */
+    virtual bool _setLayersGrouped( bool grouped, const QSize& size ) Q_DECL_OVERRIDE;
 
     virtual bool _setMaskColor( const QString& id, int redAmount,
                 int greenAmount, int blueAmount ) Q_DECL_OVERRIDE;
@@ -479,6 +492,7 @@ protected:
     virtual void _setZoom( double zoomFactor ) Q_DECL_OVERRIDE;
 
 
+
     virtual void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) Q_DECL_OVERRIDE;
 
@@ -498,7 +512,7 @@ protected slots:
     virtual void _colorChanged() Q_DECL_OVERRIDE;
 
 private slots:
-    void _renderingDone( QImage image );
+    void _renderingDone( QImage image, Carta::Lib::VectorGraphics::VGList graphics );
     void _removeLayer( Layer* group );
 
 private:
@@ -519,6 +533,8 @@ private:
 
     //Set the color support of the child to conform to that of the group.
     void _setColorSupport( Layer* layer );
+
+    void _setViewSize( const QSize& size );
 
     class Factory;
     static bool m_registered;
