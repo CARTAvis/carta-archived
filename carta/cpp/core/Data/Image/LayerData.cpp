@@ -356,8 +356,8 @@ QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRe
             m_dataSource->_getRenderer();
     QPointF topLeftInput = imageService-> screen2image( topLeft, pan, zoom, outputSize );
     QPointF bottomRightInput = imageService->screen2image( bottomRight, pan, zoom, outputSize );
-    QSize size( qAbs( topLeftInput.x() - bottomRightInput.x()), qAbs( topLeftInput.y() - bottomRightInput.y()));
-    QRectF inputRect( topLeftInput, size );
+    //QSize size( qAbs( topLeftInput.x() - bottomRightInput.x()), qAbs( topLeftInput.y() - bottomRightInput.y()));
+    QRectF inputRect( topLeftInput, bottomRightInput );
     return inputRect;
 }
 
