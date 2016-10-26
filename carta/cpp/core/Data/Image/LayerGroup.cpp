@@ -492,17 +492,42 @@ std::vector<std::pair<int,double> > LayerGroup::_getIntensity( int frameLow, int
     return results;
 }
 
-std::shared_ptr<Layer> LayerGroup::_getLayer(){
+std::shared_ptr<Layer> LayerGroup::_getLayer( const QString& name ){
     std::shared_ptr<Layer> layer(nullptr);
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        if ( !m_children[dataIndex]->_isComposite() ){
-            layer = m_children[dataIndex];
-        }
-        else {
-            layer = m_children[dataIndex]->_getLayer();
-        }
+    int dataIndex = -1;
+    //Use the current layer
+    if ( name.isEmpty() || name.trimmed().length() == 0 ){
+    	dataIndex = _getIndexCurrent();
     }
+    else {
+    	//See if one of the children has a matching id.
+    	int childCount = m_children.size();
+    	for ( int i = 0; i < childCount; i++ ){
+    		if ( !m_children[i]->_isComposite() ){
+    			if ( m_children[i]->_getLayerName() == name ){
+    				dataIndex = i;
+    				break;
+    			}
+    		}
+    	}
+    }
+    if ( dataIndex >= 0 ){
+    	layer = m_children[dataIndex];
+    }
+    //See if any of the composite children have matching layers
+    else {
+    	int childCount = m_children.size();
+    	for ( int i = 0; i < childCount; i++ ){
+    		if ( m_children[i]->_isComposite() ){
+    			layer = m_children[i]->_getLayer( name );
+    			if ( layer ){
+    				break;
+    			}
+    		}
+        }
+
+    }
+
     return layer;
 }
 
@@ -744,14 +769,6 @@ bool LayerGroup::_isSpectralAxis() const {
 	return spectralAxis;
 }
 
-
-void LayerGroup::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
-        double minClipPercentile, double maxClipPercentile ){
-    int childCount = m_children.size();
-    for ( int i = 0; i < childCount; i++ ){
-        m_children[i]->_load( frames, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
-    }
-}
 
 void LayerGroup::_removeData( int index ){
     int childCount = m_children.size();

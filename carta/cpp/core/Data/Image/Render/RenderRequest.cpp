@@ -18,9 +18,19 @@ RenderRequest::RenderRequest( const std::vector<int>& frames,
     m_requestMain = false;
     m_requestContext = false;
     m_requestZoom = false;
+    m_minClipPercent = 0.025;
+    m_maxClipPercent = 0.975;
+    m_recomputeClips = true;
     m_pan = QPointF( nan(""), nan(""));
 }
 
+double RenderRequest::getClipPercentMin() const {
+	return m_minClipPercent;
+}
+
+double RenderRequest::getClipPercentMax() const {
+	return m_maxClipPercent;
+}
 
 std::vector<int> RenderRequest::getFrames() const {
     return m_frames;
@@ -56,6 +66,9 @@ int RenderRequest::getTopIndex() const {
     return m_topIndex;
 }
 
+bool RenderRequest::isRecomputeClips() const {
+	return m_recomputeClips;
+}
 
 bool RenderRequest::isStackTop() const {
     return m_stackTop;
@@ -69,6 +82,10 @@ bool RenderRequest::isPanSet() const {
     }
     return panSet;
 }
+
+/*bool RenderRequest::isRecomputeClips() const {
+	return m_recomputeClips;
+}*/
 
 bool RenderRequest::isRequestContext() const {
     return m_requestContext;
@@ -174,6 +191,14 @@ void RenderRequest::setZoom( double zoomValue ){
     m_zoom = zoomValue;
 }
 
+void RenderRequest::setRecomputeClips( bool recomputeClipsOnNewFrame ){
+	m_recomputeClips = recomputeClipsOnNewFrame;
+}
+
+void RenderRequest::setClipPercents( double minClipPercent, double maxClipPercent ){
+	m_minClipPercent = minClipPercent;
+	m_maxClipPercent = maxClipPercent;
+}
 
 RenderRequest::~RenderRequest(){
 

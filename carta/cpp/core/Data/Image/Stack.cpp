@@ -361,15 +361,6 @@ void Stack::_initializeState(){
     m_state.flushState();
 }
 
-void Stack::_load( bool recomputeClipsOnNewFrame,
-        double minClipPercentile, double maxClipPercentile ){
-    std::vector<int> frames = _getFrameIndices();
-    int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        m_children[i]->_load( frames, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
-    }
-    _renderAll();
-}
 
 QString Stack::_moveSelectedLayers( bool moveDown ){
     QString result;
@@ -434,7 +425,8 @@ QString Stack::_moveSelectedLayers( bool moveDown ){
     return result;
 }
 
-void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex){
+void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex,
+		bool recomputeClipsOnNewFrame, double minClipPercentile, double maxClipPercentile ){
     std::vector<int> frames =_getFrameIndices();
     const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
     std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs));
@@ -442,15 +434,19 @@ void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex){
     request->setRequestMain( true );
     request->setRequestContext( true );
     request->setData( datas );
+    request->setRecomputeClips( recomputeClipsOnNewFrame );
+    request->setClipPercents( minClipPercentile, maxClipPercentile );
     m_imageDraws->render( request);
 }
 
 
 
-void Stack::_renderAll(){
+void Stack::_renderAll(bool recomputeClipsOnNewFrame,
+        double minClipPercentile, double maxClipPercentile){
+
     int gridIndex = _getIndexCurrent();
     QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
-    _render( datas, gridIndex );
+    _render( datas, gridIndex, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
 }
 
 void Stack::_renderContext( double zoomFactor ){
@@ -467,7 +463,6 @@ void Stack::_renderContext( double zoomFactor ){
         QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
         request->setData( datas );
         m_imageDraws->render( request);
-
     }
 }
 

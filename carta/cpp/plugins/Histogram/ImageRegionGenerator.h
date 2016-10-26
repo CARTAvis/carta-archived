@@ -7,6 +7,7 @@
 #include <casacore/coordinates/Coordinates/CoordinateSystem.h>
 #include <casacore/casa/Arrays/Vector.h>
 #include <QString>
+#include <QRectF>
 
 namespace casa {
     class ImageRegion;
@@ -41,7 +42,7 @@ private:
 	static std::pair<casa::Vector<casa::Quantity>,casa::Vector<casa::Quantity> > _getEllipsePositionRadii(
 			Carta::Lib::Regions::Ellipse* ellipse, const casa::CoordinateSystem &cs );
 	static casa::ImageRegion* _makeRegionRectangle( casa::ImageInterface<casa::Float> * casaImage,
-			Carta::Lib::Regions::Rectangle* rectangle);
+			const QRectF& outlineBox);
 	static casa::ImageRegion* _makeRegionEllipse( casa::ImageInterface<casa::Float> * casaImage,
 			Carta::Lib::Regions::Ellipse* ellipse);
 	static casa::ImageRegion* _makeRegionPolygon( casa::ImageInterface<casa::Float> * casaImage,

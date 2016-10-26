@@ -227,10 +227,12 @@ protected:
             const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
 
     /**
-     * Return the current layer.
+     * Return the layer with the given name, if a name is specified; otherwise, return the current
+     * layer.
+     * @name - the name of a layer or an empty string to specify the current layer.
      * @return - the current layer.
      */
-    virtual std::shared_ptr<Layer> _getLayer() Q_DECL_OVERRIDE;
+    virtual std::shared_ptr<Layer> _getLayer( const QString& name) Q_DECL_OVERRIDE;
 
     /**
      * Return all layers containing images.
@@ -373,16 +375,6 @@ protected:
      * @return - true if the layered images all have spectral axes; false, otherwise.
      */
     virtual bool _isSpectralAxis() const Q_DECL_OVERRIDE;
-
-    /**
-     * Return a QImage representation of this data.
-     * @param frames - a list of frames to load, one for each of the known axis types.
-     * @param autoClip true if clips should be automatically generated; false otherwise.
-     * @param clipMinPercentile the minimum clip value.
-     * @param clipMaxPercentile the maximum clip value.
-     */
-    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
-               double clipMaxPercentile ) Q_DECL_OVERRIDE;
 
     /**
      * Remove the contour set from this layer.

@@ -57,6 +57,11 @@ private:
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
 	        const std::vector<int>& slice);
 
+	static casa::Record _getRegionRecordPoint(
+	        casa::ImageInterface<casa::Float>* casaImage,
+	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
+	        const std::vector<int>& slice, QString& typeStr );
+
 	static casa::Record _getRegionRecordPolygon(
 	        casa::ImageInterface<casa::Float>* casaImage,
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,

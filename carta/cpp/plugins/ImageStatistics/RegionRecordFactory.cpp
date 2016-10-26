@@ -2,6 +2,7 @@
 #include <QtCore/qmath.h>
 #include "RegionRecordFactory.h"
 #include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Point.h"
 #include "CartaLib/Regions/Rectangle.h"
 #include <casacore/images/Regions/ImageRegion.h>
 #include <casacore/images/Regions/RegionManager.h>
@@ -212,6 +213,9 @@ casa::Record RegionRecordFactory::getRegionRecord(
     else if ( regionType == Carta::Lib::Regions::Rectangle::TypeName ){
     	regionRecord = _getRegionRecordRectangle( casaImage, region, slice, typeStr );
     }
+    else if ( regionType == Carta::Lib::Regions::Point::TypeName ){
+    	regionRecord = _getRegionRecordPoint( casaImage, region, slice, typeStr );
+    }
     else {
         qDebug() <<"RegionRecordFactory::getRegionRecord unrecognized region type: "+regionType;
     }
@@ -281,6 +285,26 @@ casa::Record RegionRecordFactory::_getRegionRecordPolygon(
     return regionRecord;
 }
 
+casa::Record RegionRecordFactory::_getRegionRecordPoint(
+        casa::ImageInterface<casa::Float>* casaImage,
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
+        const std::vector<int>& slice, QString& typeStr ){
+    casa::Record regionRecord;
+    if ( region ){
+    	Carta::Lib::Regions::Point* pointRegion = dynamic_cast<Carta::Lib::Regions::Point*>( region.get());
+    	QRectF polygon = pointRegion->outlineBox();
+    	QPointF centerVal = polygon.center();
+    	QRectF pointRect( centerVal.x(), centerVal.y(), centerVal.x(), centerVal.y() );
+    	typeStr = "Point";
+    	casa::ImageRegion* region = _getRectangle( casaImage, pointRect, slice );
+    	if ( region != nullptr ){
+    		regionRecord = region->toRecord("");
+    		delete region;
+    	}
+    }
+    return regionRecord;
+}
+
 
 casa::Record RegionRecordFactory::_getRegionRecordRectangle(
         casa::ImageInterface<casa::Float>* casaImage,
@@ -297,12 +321,8 @@ casa::Record RegionRecordFactory::_getRegionRecordRectangle(
     	//Rectangular region or point
     	if ( width > 0 || height > 0 ){
     		typeStr = "Rectangle";
+    		region = _getRectangle( casaImage, polygon, slice );
     	}
-    	else {
-    		typeStr = "Point";
-    	}
-    	region = _getRectangle( casaImage, polygon, slice );
-
     	if ( region != nullptr ){
     		regionRecord = region->toRecord("");
     		delete region;

@@ -4,6 +4,7 @@
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/LoadRegion.h"
 #include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Point.h"
 #include "CartaLib/Regions/Rectangle.h"
 #include "CartaLib/IImage.h"
 #include "casacore/coordinates/Coordinates/DirectionCoordinate.h"
@@ -104,124 +105,131 @@ bool RegionCASA::_isCASARegion( const QString& fileName ) const {
 
 std::vector<Carta::Lib::Regions::RegionBase*>
 RegionCASA::_loadRegion( const QString & fname,
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr ){
-    std::vector<Carta::Lib::Regions::RegionBase*> regionInfos;
+		std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr ){
+	std::vector<Carta::Lib::Regions::RegionBase*> regionInfos;
 
-    casa::String fileName( fname.toStdString().c_str() );
-    CCImageBase * base = dynamic_cast<CCImageBase*>( imagePtr.get() );
-    if ( base ){
-        Carta::Lib::Image::MetaDataInterface::SharedPtr metaPtr = base->metaData();
-        CCMetaDataInterface* metaData = dynamic_cast<CCMetaDataInterface*>(metaPtr.get());
-        if ( metaData ){
-            std::shared_ptr<casa::CoordinateSystem> cs = metaData->getCoordinateSystem();
-            std::vector < int > dimensions = imagePtr->dims();
-            int dimCount = dimensions.size();
-            casa::IPosition shape(dimCount);
-            for ( int i = 0; i < dimCount; i++ ){
-                shape[i] = dimensions[i];
-            }
-            casa::RegionTextList regionList( fileName, *cs.get(), shape );
-            casa::Vector<casa::AsciiAnnotationFileLine> aaregions = regionList.getLines();
-            int regionCount = aaregions.size();
-            for ( int i = 0; i < regionCount; i++ ){
-                if ( aaregions[i].getType() != casa::AsciiAnnotationFileLine::ANNOTATION ){
-                    continue;
-                }
+	casa::String fileName( fname.toStdString().c_str() );
+	CCImageBase * base = dynamic_cast<CCImageBase*>( imagePtr.get() );
+	if ( base ){
+		Carta::Lib::Image::MetaDataInterface::SharedPtr metaPtr = base->metaData();
+		CCMetaDataInterface* metaData = dynamic_cast<CCMetaDataInterface*>(metaPtr.get());
+		if ( metaData ){
+			std::shared_ptr<casa::CoordinateSystem> cs = metaData->getCoordinateSystem();
+			std::vector < int > dimensions = imagePtr->dims();
+			int dimCount = dimensions.size();
+			casa::IPosition shape(dimCount);
+			for ( int i = 0; i < dimCount; i++ ){
+				shape[i] = dimensions[i];
+			}
+			casa::RegionTextList regionList( fileName, *cs.get(), shape );
+			casa::Vector<casa::AsciiAnnotationFileLine> aaregions = regionList.getLines();
+			int regionCount = aaregions.size();
+			for ( int i = 0; i < regionCount; i++ ){
+				if ( aaregions[i].getType() != casa::AsciiAnnotationFileLine::ANNOTATION ){
+					continue;
+				}
 
-                casa::CountedPtr<const casa::AnnotationBase> ann = aaregions[i].getAnnotationBase();
-                Carta::Lib::Regions::RegionBase* rInfo = nullptr;
+				casa::CountedPtr<const casa::AnnotationBase> ann = aaregions[i].getAnnotationBase();
+				Carta::Lib::Regions::RegionBase* rInfo = nullptr;
 
-                casa::Vector<casa::MDirection> directions = ann->getConvertedDirections();
-                casa::AnnotationBase::Direction points = ann->getDirections();
-                std::vector<QPointF> corners =
-                            _getPixelVertices( points, *cs.get(), directions );
+				casa::Vector<casa::MDirection> directions = ann->getConvertedDirections();
+				casa::AnnotationBase::Direction points = ann->getDirections();
+				std::vector<QPointF> corners =
+						_getPixelVertices( points, *cs.get(), directions );
 
-                int annType = ann->getType();
-                switch( annType ){
-                case casa::AnnotationBase::RECT_BOX : {
-                    Carta::Lib::Regions::Rectangle* rect = new Carta::Lib::Regions::Rectangle();
-                    rInfo = rect;
-                    int cornerCount = corners.size();
-                    double dataMinX = std::numeric_limits<double>::max();
-                    double dataMinY = std::numeric_limits<double>::max();
-                    double dataMaxX = -1 * dataMinX;
-                    double dataMaxY = -1 * dataMaxY;
-                    QRectF rectangle;
-                    for ( int i = 0; i < cornerCount; i++ ){
-                    	if ( corners[i].x() < dataMinX ){
-                    		dataMinX = corners[i].x();
-                    	}
-                    	if ( corners[i].y() < dataMinY ){
-                    		dataMinY = corners[i].y();
-                    	}
-                    	if ( corners[i].x() > dataMaxX ){
-                    		dataMaxX = corners[i].x();
-                    	}
-                    	if ( corners[i].y() > dataMaxY ){
-                    		dataMaxY = corners[i].y();
-                    	}
-                    }
+				int annType = ann->getType();
+				switch( annType ){
+				case casa::AnnotationBase::RECT_BOX : {
+					Carta::Lib::Regions::Rectangle* rect = new Carta::Lib::Regions::Rectangle();
+					rInfo = rect;
+					int cornerCount = corners.size();
+					double dataMinX = std::numeric_limits<double>::max();
+					double dataMinY = std::numeric_limits<double>::max();
+					double dataMaxX = -1 * dataMinX;
+					double dataMaxY = -1 * dataMaxY;
+					QRectF rectangle;
+					for ( int i = 0; i < cornerCount; i++ ){
+						if ( corners[i].x() < dataMinX ){
+							dataMinX = corners[i].x();
+						}
+						if ( corners[i].y() < dataMinY ){
+							dataMinY = corners[i].y();
+						}
+						if ( corners[i].x() > dataMaxX ){
+							dataMaxX = corners[i].x();
+						}
+						if ( corners[i].y() > dataMaxY ){
+							dataMaxY = corners[i].y();
+						}
+					}
 
-                    rectangle.setTopLeft( QPointF(dataMinX, dataMinY) );
-                    rectangle.setBottomRight( QPointF(dataMaxX, dataMaxY) );
-                    rect->setRectangle( rectangle );
-                }
-                break;
-                case casa::AnnotationBase::ELLIPSE : {
-                    Carta::Lib::Regions::Ellipse* regionEllipse = new Carta::Lib::Regions::Ellipse();
-                    rInfo = regionEllipse;
-                    const casa::AnnEllipse* ellipse = dynamic_cast<const casa::AnnEllipse*>( ann.get() );
-                    casa::Int directionIndex = cs->findCoordinate(casa::Coordinate::Type::DIRECTION );
+					rectangle.setTopLeft( QPointF(dataMinX, dataMinY) );
+					rectangle.setBottomRight( QPointF(dataMaxX, dataMaxY) );
+					rect->setRectangle( rectangle );
+				}
+				break;
+				case casa::AnnotationBase::ELLIPSE : {
+					Carta::Lib::Regions::Ellipse* regionEllipse = new Carta::Lib::Regions::Ellipse();
+					rInfo = regionEllipse;
+					const casa::AnnEllipse* ellipse = dynamic_cast<const casa::AnnEllipse*>( ann.get() );
+					casa::Int directionIndex = cs->findCoordinate(casa::Coordinate::Type::DIRECTION );
 
-                    casa::MDirection::Types csType = casa::MDirection::EXTRA;
-                    if ( directionIndex >= 0 ){
-                        casa::DirectionCoordinate  dCoord = cs->directionCoordinate(directionIndex);
-                        csType = dCoord.directionType();
-                    }
+					casa::MDirection::Types csType = casa::MDirection::EXTRA;
+					if ( directionIndex >= 0 ){
+						casa::DirectionCoordinate  dCoord = cs->directionCoordinate(directionIndex);
+						csType = dCoord.directionType();
+					}
 
-                    if ( csType == casa::MDirection::EXTRA ){
-                        qWarning( "Unable to complete elliptical region, unspecified direction type.");
-                        continue;
-                    }
+					if ( csType == casa::MDirection::EXTRA ){
+						qWarning( "Unable to complete elliptical region, unspecified direction type.");
+						continue;
+					}
 
 
-                    casa::MDirection dir_center = casa::MDirection::Convert(ellipse->getCenter( ), csType)();
-                    casa::Vector<double> center = dir_center.getAngle("rad").getValue( );
-                    // 90 deg around 0 & 180 deg
-                    const double major_radius = ellipse->getSemiMajorAxis().getValue("rad");
-                    const double minor_radius = ellipse->getSemiMinorAxis().getValue("rad");
-                    const double pos_angle = ellipse->getPositionAngle( ).getValue("deg");
-                    QPointF centerRadian( center[0], center[1]);
-                    double majorRadiusPixel = _getRadiusPixel( centerRadian, corners[0],
-                    		major_radius, pos_angle, *(cs.get()) );
-                    double minorRadiusPixel = _getRadiusPixel( centerRadian, corners[0],
-                                       		minor_radius, pos_angle, *(cs.get()) );
+					casa::MDirection dir_center = casa::MDirection::Convert(ellipse->getCenter( ), csType)();
+					casa::Vector<double> center = dir_center.getAngle("rad").getValue( );
+					// 90 deg around 0 & 180 deg
+					const double major_radius = ellipse->getSemiMajorAxis().getValue("rad");
+					const double minor_radius = ellipse->getSemiMinorAxis().getValue("rad");
+					const double pos_angle = ellipse->getPositionAngle( ).getValue("deg");
+					QPointF centerRadian( center[0], center[1]);
+					double majorRadiusPixel = _getRadiusPixel( centerRadian, corners[0],
+							major_radius, pos_angle, *(cs.get()) );
+					double minorRadiusPixel = _getRadiusPixel( centerRadian, corners[0],
+							minor_radius, pos_angle, *(cs.get()) );
 
-                    regionEllipse->setRadiusMajor( majorRadiusPixel );
-                    regionEllipse->setRadiusMinor( minorRadiusPixel );
-                    regionEllipse->setAngle( pos_angle );
-                    QPointF circleCenter( corners[0].x(), corners[0].y() );
-                    regionEllipse->setCenter( circleCenter );
-                }
-                break;
-                case casa::AnnotationBase::POLYGON : {
-                    Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
-                    rInfo = poly;
-                    _addCorners( poly, corners );
-                }
-                break;
-                //Point????
-                case casa::AnnotationBase::SYMBOL : {
-                    qWarning()<<"Symbol not currently supported";
-                }
-                break;
-                }
-                regionInfos.push_back( rInfo );
+					regionEllipse->setRadiusMajor( majorRadiusPixel );
+					regionEllipse->setRadiusMinor( minorRadiusPixel );
+					regionEllipse->setAngle( pos_angle );
+					QPointF circleCenter( corners[0].x(), corners[0].y() );
+					regionEllipse->setCenter( circleCenter );
+				}
+				break;
+				case casa::AnnotationBase::POLYGON : {
+					Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
+					rInfo = poly;
+					_addCorners( poly, corners );
+				}
+				break;
+				//Point????
+				case casa::AnnotationBase::SYMBOL : {
+					if ( corners.size() == 1 ){
+						Carta::Lib::Regions::Point* point = new Carta::Lib::Regions::Point();
+						point->setPoint( corners[0] );
+						rInfo = point;
+					}
+					else {
+						qWarning()<<"Point incorrectly specified with "<<corners.size()<<" corners.";
+					}
+				}
+				break;
+				}
+				regionInfos.push_back( rInfo );
 
-            }
-        }
-    }
-    return regionInfos;
+			}
+		}
+	}
+	return regionInfos;
 }
 
 double RegionCASA::_getRadiusPixel( const QPointF& centerRadian, const QPointF& centerPixel,

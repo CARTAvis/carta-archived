@@ -68,6 +68,9 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettings", {
         		region = new skel.widgets.Image.Region.RegionSettingsPolygon();
         		region.setSignificantDigits( this.m_significantDigits );
         	}
+        	else if ( regionType == "Point"){
+        		region = new skel.widgets.Image.Region.RegionSettingsPoint();
+        	}
         	if ( region !== null ){
         		region.setId( this.m_id );
         	}

@@ -2,9 +2,11 @@
 #include "RegionPolygon.h"
 #include "RegionEllipse.h"
 #include "RegionRectangle.h"
+#include "RegionPoint.h"
 #include "Data/Util.h"
 #include "CartaLib/Regions/Ellipse.h"
 #include "CartaLib/Regions/Rectangle.h"
+#include "CartaLib/Regions/Point.h"
 #include <QDebug>
 
 namespace Carta {
@@ -38,6 +40,9 @@ std::shared_ptr<Region> RegionFactory::makeRegionType( const QString& regionType
     }
     else if ( regionType == Carta::Lib::Regions::Ellipse::TypeName ){
         region.reset( objMan->createObject<RegionEllipse>() );
+    }
+    else if ( regionType == Carta::Lib::Regions::Point::TypeName ){
+    	region.reset( objMan->createObject<RegionPoint>() );
     }
     else {
         qWarning()<<"makeRegion:: Unrecognized region: "<<regionType;

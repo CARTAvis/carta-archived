@@ -53,6 +53,7 @@ qx.Class.define("skel.widgets.Profile.Settings", {
         prefUpdate : function( profilePrefs ){
             this.m_pages[this.m_INDEX_PLOT].prefUpdate( profilePrefs );
             this.m_pages[this.m_INDEX_FIT].prefUpdate( profilePrefs );
+            this.m_pages[this.m_INDEX_PROFILES].prefUpdate( profilePrefs );
             var tabIndex = profilePrefs.tabIndex;
             this._selectTab( tabIndex );
         },

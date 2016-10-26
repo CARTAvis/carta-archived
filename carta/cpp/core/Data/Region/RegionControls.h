@@ -40,9 +40,10 @@ public:
 
 	/**
 	 * Return the selected region.
+	 * @param name - the name of the region.
 	 * @return - the selected region.
 	 */
-	std::shared_ptr<Region> getRegion() const;
+	std::shared_ptr<Region> getRegion( const QString& name ) const;
 
 	/**
 	 * Return the number of regions.

@@ -42,6 +42,7 @@ namespace Carta {
 namespace Data {
 
 const QString Profiler::CLASS_NAME = "Profiler";
+const QString Profiler::AUTO_GENERATE = "autoGenerate";
 const QString Profiler::AXIS_UNITS_BOTTOM = "axisUnitsBottom";
 const QString Profiler::AXIS_UNITS_LEFT = "axisUnitsLeft";
 const QString Profiler::CURVES = "curves";
@@ -553,10 +554,7 @@ void Profiler::_generateFit( ){
 }
 
 
-
-
-std::vector<std::tuple<double,double,double> >
-Profiler::_generateFitGuesses( int count, bool random ){
+std::vector<std::tuple<double,double,double> > Profiler::_generateFitGuesses( int count, bool random ){
     CARTA_ASSERT( count >= 0 );
     std::vector<std::tuple<double,double,double> > guesses(count);
 
@@ -650,7 +648,7 @@ std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode( Controll
     QString generateMode = m_state.getValue<QString>( GEN_MODE );
     std::vector<std::shared_ptr<Layer> > dataSources;
     if ( m_generateModes->isCurrent( generateMode ) ){
-        std::shared_ptr<Layer> dataSource = controller->getLayer();
+        std::shared_ptr<Layer> dataSource = controller->getLayer("");
         if ( dataSource ){
             dataSources.push_back( dataSource );
         }
@@ -765,7 +763,7 @@ std::vector<std::shared_ptr<Region> > Profiler::_getRegionForGenerateMode() cons
     }
     if ( m_generateModes->isCurrent( generateMode ) ){
     	if ( regionControls ){
-    		std::shared_ptr<Region> selectedRegion = regionControls->getRegion();
+    		std::shared_ptr<Region> selectedRegion = regionControls->getRegion( "");
     		if ( selectedRegion ){
     			regions.push_back( selectedRegion );
     		}
@@ -780,6 +778,14 @@ std::vector<std::shared_ptr<Region> > Profiler::_getRegionForGenerateMode() cons
     	qDebug() << "Unrecognized region generate mode: "<<generateMode;
     }
     return regions;
+}
+
+QString Profiler::getSelectedLayer() const {
+	return m_stateData.getValue<QString>( IMAGE_SELECT );
+}
+
+QString Profiler::getSelectedRegion() const {
+	return m_stateData.getValue<QString>( REGION_SELECT );
 }
 
 QString Profiler::getStateString( const QString& sessionId, SnapshotType type ) const{
@@ -855,6 +861,7 @@ void Profiler::_initializeDefaultState(){
     QString bottomUnit = m_spectralUnits->getDefault();
     QString unitType = _getUnitType( bottomUnit );
     m_plotManager->setTitleAxisX( unitType );
+    m_state.insertValue<bool>(AUTO_GENERATE, true );
     m_state.insertValue<QString>( AXIS_UNITS_BOTTOM, bottomUnit );
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
     m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
@@ -961,6 +968,23 @@ void Profiler::_initializeCallbacks(){
             return "";
         });
 
+    	addCommandCallback( "setAutoGenerate", [=] (const QString & /*cmd*/,
+                   const QString & params, const QString & /*sessionId*/) -> QString {
+               QString result;
+               std::set<QString> keys = {AUTO_GENERATE};
+               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+               QString generateStr = dataValues[*keys.begin()];
+               bool validBool = false;
+               bool autoGen = Util::toBool( generateStr, &validBool );
+               if ( validBool ){
+                   setAutoGenerate( autoGen );
+               }
+               else {
+                   result = "Whether or not to automatically generate profiles must be true/false: " + params;
+               }
+               Util::commandPostProcess( result );
+               return result;
+           });
 
     addCommandCallback( "setAxisUnitsBottom", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1659,6 +1683,10 @@ void Profiler::_initializeStatics(){
     }
 }
 
+bool Profiler::isAutoGenerate() const {
+	return m_state.getValue<bool>( AUTO_GENERATE );
+}
+
 bool Profiler::isFitManualGuess( ) const {
     QString key = Carta::State::UtilState::getLookup( CurveData::FIT, MANUAL_GUESS );
     return m_stateFit.getValue<bool>( key );
@@ -1745,13 +1773,20 @@ QString Profiler::profileNew(){
     QString result;
     Controller* controller = _getControllerSelected();
     if ( controller){
-        std::shared_ptr<Layer> layer = controller->getLayer();
+    	QString layerId = getSelectedLayer();
+        std::shared_ptr<Layer> layer = controller->getLayer( layerId );
         std::shared_ptr<Region> region( nullptr );
         std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
         if ( regionControls ){
-        	region = regionControls->getRegion();
+        	QString regionId = getSelectedRegion();
+        	region = regionControls->getRegion( regionId );
         }
-        _generateData( layer, region, true );
+        if ( layer ){
+        	_generateData( layer, region, true );
+        }
+        else {
+        	result = "Cannot render without a layer";
+        }
     }
     else {
         result = "Could not generate a profile - no linked images.";
@@ -1818,7 +1853,6 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
         if ( dataCount > 0 ){
             std::vector<double> plotDataX( dataCount );
             std::vector<double> plotDataY( dataCount );
-
             for( int i = 0 ; i < dataCount; i ++ ){
                 plotDataX[i] = data[i].first;
                 plotDataY[i] = data[i].second;
@@ -1972,6 +2006,15 @@ void Profiler::_saveCurveState(){
     m_stateData.flushState();
 }
 
+void Profiler::setAutoGenerate( bool autoGenerate ){
+	bool oldAutoGenerate = m_state.getValue<bool>( AUTO_GENERATE );
+	if ( oldAutoGenerate != autoGenerate ){
+		m_state.setValue<bool>( AUTO_GENERATE, autoGenerate );
+		m_state.flushState();
+		Controller* controller = _getControllerSelected();
+		_loadProfile( controller );
+	}
+}
 
 QString Profiler::setAxisUnitsX( const QString& unitStr ){
     QString result;
@@ -2377,21 +2420,25 @@ QString Profiler::setGaussCount( int count ){
     return result;
 }
 
-
 QString Profiler::setGenerateMode( const QString& modeStr ){
     QString result;
-    QString actualMode = m_generateModes->getActualMode( modeStr );
-    if ( !actualMode.isEmpty() ){
-        QString oldMode = m_state.getValue<QString>( GEN_MODE );
-        if ( actualMode != oldMode ){
-            m_state.setValue<QString>( GEN_MODE, actualMode);
-            m_state.flushState();
-            Controller* controller = _getControllerSelected();
-            _loadProfile( controller );
-        }
+    if ( isAutoGenerate() ){
+		QString actualMode = m_generateModes->getActualMode( modeStr );
+		if ( !actualMode.isEmpty() ){
+			QString oldMode = m_state.getValue<QString>( GEN_MODE );
+			if ( actualMode != oldMode ){
+				m_state.setValue<QString>( GEN_MODE, actualMode);
+				m_state.flushState();
+				Controller* controller = _getControllerSelected();
+				_loadProfile( controller );
+			}
+		}
+		else {
+			result = "Unrecognized profile generation mode: "+modeStr;
+		}
     }
     else {
-        result = "Unrecognized profile generation mode: "+modeStr;
+    	result = "Custom profiles can only be set when auto-generation is turned off.";
     }
     return result;
 }
@@ -2642,6 +2689,7 @@ QString Profiler::setSelectedCurve( const QString& curveId ){
     return result;
 }
 
+
 QString Profiler::setSelectedLayer( const QString& imageId ){
     QString result;
     if ( imageId.trimmed().length() > 0 ){
@@ -2675,11 +2723,12 @@ QString Profiler::setSelectedLayer( const QString& imageId ){
     return result;
 }
 
-QString Profiler::setSelectedRegion( const QString& regionId ){
+
+QString Profiler::setSelectedRegion( const QString& regionName ){
     QString result;
-    if ( regionId.trimmed().length() > 0 ){
+    if ( regionName.trimmed().length() > 0 ){
         bool regionFound = false;
-        if ( regionId == NO_REGION ){
+        if ( regionName == NO_REGION ){
             regionFound = true;
         }
         else {
@@ -2688,26 +2737,23 @@ QString Profiler::setSelectedRegion( const QString& regionId ){
             if ( selectedController ){
             	std::shared_ptr<RegionControls> regionControls = selectedController->getRegionControls();
 				if ( regionControls ){
-					std::vector<std::shared_ptr<Region> > regions = regionControls->getRegions();
-					for ( std::shared_ptr<Region> region : regions ){
-						QString regionName = region->getRegionName();
-						if ( regionName == regionId ){
-							regionFound = true;
-							break;
-						}
+					std::shared_ptr<Region> region = regionControls->getRegion( regionName );
+					if ( region ){
+						regionFound = true;
 					}
 				}
             }
         }
+
         if ( regionFound ){
             QString oldRegion = m_stateData.getValue<QString>( REGION_SELECT );
-            if ( oldRegion != regionId ){
-                m_stateData.setValue<QString>( REGION_SELECT, regionId );
+            if ( oldRegion != regionName ){
+                m_stateData.setValue<QString>( REGION_SELECT, regionName );
                 m_stateData.flushState();
             }
         }
         else {
-            result = "Could not find region to select: "+regionId;
+            result = "Could not find region to select: "+regionName;
         }
     }
     else {
@@ -3289,65 +3335,69 @@ void Profiler::_updatePlotData(){
 
 bool Profiler::_updateProfiles( Controller* controller ){
     bool profileChanged = false;
-    //Go through the old profiles and remove any that are no longer present.
-    int curveCount = m_plotCurves.size();
-    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
-    std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
-    int dataCount = layers.size();
-    int regionCount = regions.size();
-    QList<int> removeIndices;
-    for ( int i = 0; i < curveCount; i++ ){
-    	QString curveId = m_plotCurves[i]->getName();
-        bool layerFound = false;
-        for ( int j = 0; j < dataCount; j++ ){
-            if ( regionCount > 0 ){
-                for ( int k = 0; k < regionCount; k++ ){
-                    QString id = _generateCurveId( layers[j], regions[k] );
-                    if ( id == curveId ){
-                        layerFound = true;
-                        break;
-                    }
-                }
-                if ( layerFound ){
-                    break;
-                }
-            }
-            else {
-                QString id = _generateCurveId( layers[j], nullptr );
-                if ( id == curveId ){
-                    layerFound = true;
-                    break;
-                }
-            }
-        }
-        if ( !layerFound ){
-            removeIndices.append( i );
-        }
-    }
 
-    //Remove curves that we don't need.
-    int removeCount = removeIndices.size();
-    for ( int i = removeCount - 1; i >= 0; i-- ){
-        m_plotCurves.removeAt( removeIndices[i] );
-    }
+    if ( isAutoGenerate() ){
+		//Go through the old profiles and remove any that are no longer present.
+		int curveCount = m_plotCurves.size();
+		std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
+		std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
+		int dataCount = layers.size();
+		int regionCount = regions.size();
+		QList<int> removeIndices;
+		for ( int i = 0; i < curveCount; i++ ){
+			QString curveId = m_plotCurves[i]->getName();
+			bool layerFound = false;
+			for ( int j = 0; j < dataCount; j++ ){
+				if ( regionCount > 0 ){
+					for ( int k = 0; k < regionCount; k++ ){
+						QString id = _generateCurveId( layers[j], regions[k] );
+						if ( id == curveId ){
+							layerFound = true;
+							break;
+						}
+					}
+					if ( layerFound ){
+						break;
+					}
+				}
+				else {
+					QString id = _generateCurveId( layers[j], nullptr );
+					if ( id == curveId ){
+						layerFound = true;
+						break;
+					}
+				}
+			}
+			if ( !layerFound ){
+				removeIndices.append( i );
+			}
+		}
 
-    //Make profiles for any new data that has been loaded.
-    bool generates = false;
-    for ( int i = 0; i < dataCount; i++ ) {
-        if ( regionCount > 0 ){
-            for ( int j = 0; j < regionCount; j++ ){
-                generates = _generateCurve( layers[i], regions[j] );
-            }
-        }
-        else {
-            //Profile of entire image
-            generates = _generateCurve( layers[i], nullptr );
-        }
-    }
+		//Remove curves that we don't need.
+		int removeCount = removeIndices.size();
+		for ( int i = removeCount - 1; i >= 0; i-- ){
+			m_plotCurves.removeAt( removeIndices[i] );
+		}
 
-    _saveCurveState();
-    if ( (removeIndices.size() > 0 && !generates) || generates ){
-        profileChanged = true;
+
+		//Make profiles for any new data that has been loaded.
+		bool generates = false;
+		for ( int i = 0; i < dataCount; i++ ) {
+			if ( regionCount > 0 ){
+				for ( int j = 0; j < regionCount; j++ ){
+					generates = _generateCurve( layers[i], regions[j] );
+				}
+			}
+			else {
+				//Profile of entire image
+				generates = _generateCurve( layers[i], nullptr );
+			}
+		}
+
+		_saveCurveState();
+		if ( (removeIndices.size() > 0 && !generates) || generates ){
+			profileChanged = true;
+		}
     }
     return profileChanged;
 }

@@ -3,6 +3,7 @@
 #include "State/UtilState.h"
 #include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Point.h"
 #include "CartaLib/Regions/Rectangle.h"
 
 #include <QDebug>
@@ -15,6 +16,7 @@ const QString RegionTypes::CLASS_NAME = "RegionTypes";
 const QString RegionTypes::ELLIPSE = "Ellipse";
 const QString RegionTypes::POLYGON = "Polygon";
 const QString RegionTypes::RECTANGLE = "Rectangle";
+const QString RegionTypes::POINT = "Point";
 const QString RegionTypes::TYPES = "types";
 
 
@@ -81,6 +83,9 @@ QString RegionTypes::getModelType( const QString& userType ) const {
 		else if ( actualType == POLYGON ){
 			modelType = Carta::Lib::Regions::Polygon::TypeName;
 		}
+		else if ( actualType == POINT ){
+			modelType = Carta::Lib::Regions::Point::TypeName;
+		}
 		else if ( actualType == ELLIPSE ){
 			modelType = Carta::Lib::Regions::Ellipse::TypeName;
 		}
@@ -93,7 +98,7 @@ QString RegionTypes::getModelType( const QString& userType ) const {
 
 
 void RegionTypes::_initializeDefaultState(){
-    int regionCount = 3;
+    int regionCount = 4;
     m_state.insertArray( TYPES, regionCount );
     int i = 0;
     _insertType( RECTANGLE, i );
@@ -101,6 +106,8 @@ void RegionTypes::_initializeDefaultState(){
     _insertType( POLYGON, i );
     i++;
     _insertType( ELLIPSE, i );
+    i++;
+    _insertType( POINT, i );
     m_state.flushState();
 }
 

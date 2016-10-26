@@ -1,6 +1,7 @@
 #include "ImageRegionGenerator.h"
 #include "CartaLib/Regions/Rectangle.h"
 #include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Point.h"
 
 #include <QDebug>
 #include <QRectF>
@@ -93,7 +94,8 @@ casa::ImageRegion* ImageRegionGenerator::makeRegion( casa::ImageInterface<casa::
 		if ( regionType == "rectangle" ){
 			Carta::Lib::Regions::Rectangle* rect =
 					dynamic_cast<Carta::Lib::Regions::Rectangle*>( region.get() );
-			imageRegion = _makeRegionRectangle( casaImage, rect );
+			QRectF box = rect->outlineBox();
+			imageRegion = _makeRegionRectangle( casaImage, box );
 		}
 		else if ( regionType == "ellipse" ){
 			Carta::Lib::Regions::Ellipse* ellipse =
@@ -105,6 +107,13 @@ casa::ImageRegion* ImageRegionGenerator::makeRegion( casa::ImageInterface<casa::
 					dynamic_cast<Carta::Lib::Regions::Polygon*>( region.get() );
 			imageRegion = _makeRegionPolygon( casaImage, poly );
 		}
+		else if ( regionType == "Point" ){
+			Carta::Lib::Regions::Point* point =
+					dynamic_cast<Carta::Lib::Regions::Point*>( region.get() );
+			QPointF center = point->outlineBox().center();
+			QRectF box( center.x(), center.y(), center.x(), center.y());
+			imageRegion = _makeRegionRectangle( casaImage, box );
+		}
 		else {
 			qDebug() << "RegionGenerator::makeRegion unsupported regionType: "<<regionType;
 		}
@@ -113,7 +122,7 @@ casa::ImageRegion* ImageRegionGenerator::makeRegion( casa::ImageInterface<casa::
 }
 
 casa::ImageRegion* ImageRegionGenerator::_makeRegionRectangle( casa::ImageInterface<casa::Float> * image,
-		Carta::Lib::Regions::Rectangle* rectangle){
+		const QRectF& outlineBox){
 	casa::ImageRegion* imageRegion = nullptr;
 	if ( image ){
 		casa::Vector<casa::Int> dispAxes(2);
@@ -127,7 +136,6 @@ casa::ImageRegion* ImageRegionGenerator::_makeRegionRectangle( casa::ImageInterf
 			casa::Vector<casa::Quantum<casa::Double> > qbrc(2);
 			casa::Vector<casa::Quantum<casa::Double> > qtlc(2);
 
-			QRectF outlineBox = rectangle->outlineBox();
 			QPointF tlc = outlineBox.topLeft();
 			QPointF brc = outlineBox.bottomRight();
 			bool blcValid = false;

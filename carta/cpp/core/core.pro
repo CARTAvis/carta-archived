@@ -110,6 +110,7 @@ HEADERS += \
     Data/Region/RegionControls.h \
     Data/Region/RegionPolygon.h \
     Data/Region/RegionEllipse.h \
+    Data/Region/RegionPoint.h \
     Data/Region/RegionRectangle.h \
     Data/Region/RegionFactory.h \
     Data/Region/RegionTypes.h \
@@ -143,6 +144,7 @@ HEADERS += \
     Shape/ControlPointEditable.h \
     Shape/ShapeBase.h \
     Shape/ShapeEllipse.h \
+    Shape/ShapePoint.h \
     Shape/ShapePolygon.h \
     Shape/ShapeRectangle.h \
     ScriptedClient/ScriptedCommandListener.h \
@@ -263,6 +265,7 @@ SOURCES += \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
     Data/Region/RegionControls.cpp \
+    Data/Region/RegionPoint.cpp \
     Data/Region/RegionPolygon.cpp \
     Data/Region/RegionEllipse.cpp \
     Data/Region/RegionFactory.cpp \
@@ -298,6 +301,7 @@ SOURCES += \
     Shape/ControlPointEditable.cpp \
     Shape/ShapeBase.cpp \
     Shape/ShapeEllipse.cpp \
+    Shape/ShapePoint.cpp \
     Shape/ShapePolygon.cpp \
     Shape/ShapeRectangle.cpp \
     ImageRenderService.cpp \

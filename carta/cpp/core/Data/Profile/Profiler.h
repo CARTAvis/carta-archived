@@ -106,6 +106,18 @@ public:
      */
     int getPolyCount() const;
 
+    /**
+     * Return the name of the layer that has been selected to profile.
+     * @return - the name of the layer to be profiled.
+     */
+    QString getSelectedLayer() const;
+
+    /**
+     * Return the name of the region that has been selected to profile.
+     * @return - the name of the region to be profiled.
+     */
+    QString getSelectedRegion() const;
+
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
 
     /**
@@ -131,6 +143,12 @@ public:
      * @return - the percentile zoom for the upper bound of the x-axis.
      */
     double getZoomMaxPercent() const;
+
+    /**
+     * Returns whether or not profiles will be automatically generated.
+     * @return - true if profiles are automatically generated; false, otherwise.
+     */
+    bool isAutoGenerate() const;
 
     /**
      * Return true if initial guesses will be specified manually; false, otherwise.
@@ -208,6 +226,13 @@ public:
 
 
     virtual void resetState( const QString& state ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set whether or not profiles should be automatically generated.
+     * @param autoGenerate - true if they should be automatically generated; false,
+     * 		otherwise.
+     */
+    void setAutoGenerate( bool autoGenerate );
 
     /**
      * Set the bottom axis units.
@@ -547,6 +572,7 @@ private slots:
     QString _zoomToSelection();
 
 private:
+    const static QString AUTO_GENERATE;
     const static QString AXIS_UNITS_BOTTOM;
     const static QString AXIS_UNITS_LEFT;
     const static QString CURVES;

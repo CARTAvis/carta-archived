@@ -277,6 +277,9 @@ QString ImageContext::getStateString( const QString& sessionId, SnapshotType typ
 
         result = m_stateData.toString();
     }
+    else if ( type == SNAPSHOT_LAYOUT ){
+           result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
+    }
     return result;
 }
 

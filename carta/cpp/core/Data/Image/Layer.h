@@ -277,11 +277,14 @@ protected:
      */
     virtual bool _isLoadable( const std::vector<int>& frames ) const;
 
+
     /**
-     * Return the current layer.
+     * Return the layer with the given name, if a name is specified; otherwise, return the current
+     * layer.
+     * @name - the name of a layer or an empty string to specify the current layer.
      * @return - the current layer.
      */
-    virtual std::shared_ptr<Layer> _getLayer();
+    virtual std::shared_ptr<Layer> _getLayer( const QString& name );
 
     /**
      * Return all layers containing images.
@@ -440,16 +443,6 @@ protected:
      * @return - true if the layered images all have spectral axes; false, otherwise.
      */
     virtual bool _isSpectralAxis() const;
-
-    /**
-     * Return a QImage representation of this data.
-     * @param frames - a list of frames to load, one for each of the known axis types.
-     * @param autoClip true if clips should be automatically generated; false otherwise.
-     * @param clipMinPercentile the minimum clip value.
-     * @param clipMaxPercentile the maximum clip value.
-     */
-    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
-            double clipMaxPercentile ) = 0;
 
     /**
      * Remove the contour set from this layer.

@@ -656,6 +656,10 @@ void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
                 gridService->setInputImage( m_dataSource->_getImage() );
             }
         }
+        if ( m_drawSync ){
+        	std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
+        	m_drawSync->setInput( rawData );
+        }
     }
 }
 
@@ -675,41 +679,43 @@ void LayerData::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
 
 
 void LayerData::_renderingDone(
-        QImage image,
-        Carta::Lib::VectorGraphics::VGList gridVG,
-        Carta::Lib::VectorGraphics::VGList contourVG,
+		QImage image,
+		Carta::Lib::VectorGraphics::VGList gridVG,
+		Carta::Lib::VectorGraphics::VGList contourVG,
 		Carta::Lib::VectorGraphics::VGList regionVG,
-        int64_t /*jobId*/){
-    /// \todo we should make sure the jobId matches the last submitted job...
-    Carta::Lib::VectorGraphics::VGList vectorGraphics;
-    QImage qImage;
-    if ( !image.isNull()){
-        qImage = image;
-        Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
+		int64_t /*jobId*/){
+	/// \todo we should make sure the jobId matches the last submitted job...
 
-        QPointF pan = _getPan();
-        double zoom = _getZoom();
-        QTransform tf;
-        bool valid =  _getTransform( pan, zoom, qImage.size(), tf );
-        if ( _isContourDraw() && valid ){
-        	if ( m_dataSource ){
-        		comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
-        		comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
-        		comp.appendList( contourVG);
-        		comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
-        	}
-        }
-        if ( regionVG.entries().size() > 0 && valid ){
-        	comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
-        	comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
-        	comp.appendList( regionVG);
-        	comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
-        }
-        comp.appendList( gridVG);
-        vectorGraphics = comp.vgList();
-    }
-    std::shared_ptr<RenderResponse> response( new RenderResponse(qImage, vectorGraphics, _getLayerId()) );
-    emit renderingDone( response );
+	Carta::Lib::VectorGraphics::VGList vectorGraphics;
+	QImage qImage;
+	if ( !image.isNull()){
+		qImage = image;
+		Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
+
+		QPointF pan = _getPan();
+		double zoom = _getZoom();
+		QTransform tf;
+		bool valid =  _getTransform( pan, zoom, qImage.size(), tf );
+		if ( _isContourDraw() && valid ){
+			if ( m_dataSource ){
+				comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
+				comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
+				comp.appendList( contourVG);
+				comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
+			}
+		}
+		if ( regionVG.entries().size() > 0 && valid ){
+			comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
+			comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
+			comp.appendList( regionVG);
+			comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
+		}
+		comp.appendList( gridVG);
+		vectorGraphics = comp.vgList();
+	}
+
+	std::shared_ptr<RenderResponse> response( new RenderResponse(qImage, vectorGraphics, _getLayerId()) );
+	emit renderingDone( response );
 }
 
 
@@ -722,6 +728,7 @@ void LayerData::_renderStart(){
     //Get the render parameters from the next request.
     std::shared_ptr<RenderRequest> request = m_renderRequests.pop();
     std::vector<int> frames = request->getFrames();
+
     Carta::Lib::KnownSkyCS cs = request->getCoordinateSystem();
     bool topOfStack = request->isStackTop();
     QSize outputSize = request->getOutputSize();
@@ -759,6 +766,8 @@ void LayerData::_renderStart(){
     gridService-> setImageRect( inputRect );
     gridService-> setOutputRect( outputRect );
 
+
+    _load( frames, request->isRecomputeClips(), request->getClipPercentMin(), request->getClipPercentMax());
     std::vector<AxisDisplayInfo> axisInfo = m_dataSource->_getAxisDisplayInfo();
     int axisCount = axisInfo.size();
     for ( int i = 0; i < axisCount; i++ ){
@@ -771,9 +780,6 @@ void LayerData::_renderStart(){
         }
     }
     gridService->setAxisDisplayInfo( axisInfo );
-
-    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
-    m_drawSync->setInput( rawData );
 
     //Only draw contours and grid for main image.
     if ( request->isRequestMain() ){

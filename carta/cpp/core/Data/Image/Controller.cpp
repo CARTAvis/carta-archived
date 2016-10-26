@@ -299,8 +299,8 @@ std::vector< std::shared_ptr<Layer> > Controller::getLayers() {
 }
 
 
-std::shared_ptr<Layer> Controller::getLayer() {
-    return m_stack->_getLayer();
+std::shared_ptr<Layer> Controller::getLayer( const QString& name ) {
+    return m_stack->_getLayer( name );
 }
 
 
@@ -932,7 +932,7 @@ void Controller::_loadView(){
     bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
     double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
     double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
-    m_stack->_load( autoClip, clipValueMin, clipValueMax );
+    m_stack->_renderAll( autoClip, clipValueMin, clipValueMax );
     emit contextChanged();
 }
 

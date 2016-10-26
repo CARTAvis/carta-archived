@@ -281,8 +281,13 @@ class tProfile(unittest.TestCase):
         time.sleep(2)
         self._checkProfileCount( driver, 2 )
         
-        #Hit the delete button
+        #Uncheck auto-generate so we can customize the profiles.
         Util.clickTab( driver, "Profiles")
+        autoCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='profileAutoGenerate']/div")))
+        Util.setChecked(self, driver, autoCheck, False)
+        time.sleep(timeout)
+        
+        #Hit the delete button
         deleteButton = driver.find_element_by_id("profileRemoveButton")
         driver.execute_script( "arguments[0].scrollIntoView(true);", deleteButton )
         ActionChains(driver).click( deleteButton ).perform()
@@ -334,6 +339,7 @@ class tProfile(unittest.TestCase):
         time.sleep(2)
         #Close the session and delete temporary files
         self.driver.quit()
+    
 
 if __name__ == "__main__":
     unittest.main()

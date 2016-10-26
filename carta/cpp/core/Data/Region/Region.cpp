@@ -1,4 +1,5 @@
 #include "Region.h"
+#include "Data/Region/RegionTypes.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
 #include "Shape/ShapeBase.h"
@@ -316,8 +317,11 @@ void Region::_updateName(){
 		QPointF center = getCenter();
 		QSizeF size = getSize();
 		QString type = getRegionType();
-		QString dName = type + "[cX="+QString::number( center.x()) + " cY=" +QString::number( center.y() ) +
-				" width=" +QString::number(size.width())+" height="+QString::number(size.height())+"]";
+		QString dName = type + "[cX="+QString::number( center.x()) + " cY=" +QString::number( center.y() );
+		if ( type != RegionTypes::POINT ){
+				dName = dName + " width=" +QString::number(size.width())+" height="+QString::number(size.height());
+		}
+		dName = dName+"]";
 		QString oldName = m_state.getValue<QString>( Util::NAME );
 		if ( oldName != dName ){
 			m_state.setValue<QString>( Util::NAME, dName );

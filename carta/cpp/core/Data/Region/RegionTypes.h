@@ -49,6 +49,7 @@ public:
 
     const static QString CLASS_NAME;
     const static QString ELLIPSE;
+    const static QString POINT;
     const static QString POLYGON;
     const static QString RECTANGLE;
 

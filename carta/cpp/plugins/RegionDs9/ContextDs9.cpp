@@ -1,5 +1,6 @@
 #include <CartaLib/Regions/IRegion.h>
 #include <CartaLib/Regions/Ellipse.h>
+#include <CartaLib/Regions/Point.h>
 #include <CartaLib/Regions/Rectangle.h>
 #include <ContextDs9.h>
 #include <measures/Measures/MeasConvert.h>
@@ -75,12 +76,9 @@ DEFINE_POINT_COMMAND(BoxCirclePoint)
 
 void ContextDs9::createPointCmd( const Vector& v, PointShape, int, const char*, int*, int, const char*,
         const char*, unsigned short, const char*, const std::list<Tag>& ){
-    qDebug() << "creating point";
-    if ( v.size() == 2 ){
-        Carta::Lib::Regions::Polygon* info = new Carta::Lib::Regions::Polygon();
-        QPolygonF poly;
-        poly.push_back( QPointF(v[0], v[1]) );
-        info->setqpolyf( poly );
+    if ( v.size() >= 2 ){
+        Carta::Lib::Regions::Point* info = new Carta::Lib::Regions::Point();
+        info->setPoint( QPointF( v[0], v[1] ) );
         m_regions.push_back( info );
     }
 }

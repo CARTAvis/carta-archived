@@ -297,15 +297,14 @@ protected:
     virtual bool _isSpectralAxis() const Q_DECL_OVERRIDE;
 
     /**
-         * Return a QImage representation of this data.
-         * @param frames - a list of frames to load, one for each of the known axis types.
-         * @param autoClip true if clips should be automatically generated; false otherwise.
-         * @param clipMinPercentile the minimum clip value.
-         * @param clipMaxPercentile the maximum clip value.
-         */
-    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
-                double clipMaxPercentile ) Q_DECL_OVERRIDE;
-
+     * Return a QImage representation of this data.
+     * @param frames - a list of frames to load, one for each of the known axis types.
+     * @param autoClip true if clips should be automatically generated; false otherwise.
+     * @param clipMinPercentile the minimum clip value.
+     * @param clipMaxPercentile the maximum clip value.
+     */
+    void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
+    		double clipMaxPercentile );
 
     /**
      * Center the image.

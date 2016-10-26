@@ -102,18 +102,21 @@ Controller* ImageZoom::_getControllerSelected() const {
 }
 
 QString ImageZoom::getStateString( const QString& sessionId, SnapshotType type ) const{
-    QString result("");
-    if ( type == SNAPSHOT_PREFERENCES ){
-        StateInterface prefState( "");
-        prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
-        prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
-        prefState.insertValue<QString>(Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
-        result = prefState.toString();
-    }
-    else if ( type == SNAPSHOT_DATA ){
-        result = m_stateData.toString();
-    }
-    return result;
+	QString result("");
+	if ( type == SNAPSHOT_PREFERENCES ){
+		StateInterface prefState( "");
+		prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
+		prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
+		prefState.insertValue<QString>(Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
+		result = prefState.toString();
+	}
+	else if ( type == SNAPSHOT_DATA ){
+		result = m_stateData.toString();
+	}
+	else if ( type == SNAPSHOT_LAYOUT ){
+		result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
+	}
+	return result;
 }
 
 

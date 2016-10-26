@@ -145,12 +145,26 @@ int RegionControls::_findRegionIndex( const QString& id ) const {
 	return index;
 }
 
-std::shared_ptr<Region> RegionControls::getRegion() const {
-    int regionIndex = m_selectRegion->getIndex();
+std::shared_ptr<Region> RegionControls::getRegion( const QString& regionName ) const {
     std::shared_ptr<Region> region( nullptr );
+    int regionIndex = -1;
+    //Used the current region if the passed in id is empty
+    if ( regionName.isEmpty() || regionName.length() == 0 ){
+		regionIndex = m_selectRegion->getIndex();
+    }
+    else {
+    	//Find the region with matching id.
+    	int regionCount = m_regions.size();
+    	for ( int i = 0; i < regionCount; i++ ){
+    		if ( m_regions[i]->getRegionName() == regionName ){
+    			regionIndex = i;
+    			break;
+    		}
+    	}
+    }
     int regionCount = m_regions.size();
     if ( regionIndex >= 0 && regionIndex < regionCount ){
-        region = m_regions[regionIndex];
+    	region = m_regions[regionIndex];
     }
     return region;
 }

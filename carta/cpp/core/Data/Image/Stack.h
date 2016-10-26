@@ -124,20 +124,10 @@ private:
     void _initializeSelections();
     void _initializeState();
 
-    /**
-     * Return a QImage representation of this data.
-     * @param renderAll - true if all images in the stack should be drawn; false, for
-     *      just the current one.
-     * @param autoClip true if clips should be automatically generated; false otherwise.
-     * @param clipMinPercentile the minimum clip value.
-     * @param clipMaxPercentile the maximum clip value.
-     */
-    void _load( bool autoClip, double clipMinPercentile, double clipMaxPercentile );
-
-
     QString _moveSelectedLayers( bool moveDown );
-    void _render(QList<std::shared_ptr<Layer> > datas, int gridIndex);
-    void _renderAll();
+    void _render(QList<std::shared_ptr<Layer> > datas, int gridIndex,
+    		bool recomputeClipsOnNewFrame, double minClipPercentile, double maxClipPercentile);
+    void _renderAll(bool recomputeClipsOnNewFrame, double minClipPercentile, double maxClipPercentile);
     void _renderContext( double zoomFactor );
     void _renderZoom( int mouseX, int mouseY, double factor );
 

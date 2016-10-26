@@ -6,6 +6,7 @@
 #include "CartaLib/ProfileInfo.h"
 #include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Point.h"
 #include "CartaLib/Regions/Rectangle.h"
 #include "CartaLib/IImage.h"
 #include <coordinates/Coordinates/DirectionCoordinate.h>
@@ -96,6 +97,14 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
     		y[0] = topLeft.y();
     		x[1] = bottomRight.x();
     		y[1] = bottomRight.y();
+    		regionRecord = _getRegionRecord( shape, cSys, x, y );
+    	}
+    	else if ( shape == "Point"){
+    		casa::Vector<casa::Double> x(1);
+    		casa::Vector<casa::Double> y(1);
+    		QRectF box = regionInfo->outlineBox();
+    		x[0] = box.center().x();
+    		x[1] = box.center().y();
     		regionRecord = _getRegionRecord( shape, cSys, x, y );
     	}
     	else {
@@ -293,7 +302,8 @@ casa::Record ProfileCASA::_getRegionRecord( const QString& shape, const casa::Co
     if ( directionIndex >= 0 ){
         casa::Vector<casa::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
         casa::RegionManager regMan;
-        if ( shape == Carta::Lib::Regions::Rectangle::TypeName ){
+        if ( shape == Carta::Lib::Regions::Rectangle::TypeName ||
+        		shape == Carta::Lib::Regions::Point::TypeName ){
             int ptCount = x.size();
             if ( ptCount == 2 ){
                 casa::Vector<casa::Quantity> blc(2);

@@ -54,6 +54,7 @@ SOURCES += \
     Hooks/CoordSystemHook.cpp \
     Regions/CoordinateSystemFormatter.cpp \
     Regions/Ellipse.cpp \
+    Regions/Point.cpp \
     Regions/Rectangle.cpp \
     IPCache.cpp
 
@@ -114,6 +115,7 @@ HEADERS += \
     Hooks/CoordSystemHook.h \
     Regions/CoordinateSystemFormatter.h \
     Regions/Ellipse.h \
+    Regions/Point.h \
     Regions/Rectangle.h \
     IPCache.h
 

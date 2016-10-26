@@ -212,10 +212,12 @@ public:
             const std::vector<double>& percentiles ) const;
 
     /**
-     * Return the current layer.
+     * Return the layer with the given name, if a name is specified; otherwise, return the current
+     * layer.
+     * @name - the name of a layer or an empty string to specify the current layer.
      * @return - the current layer.
      */
-    std::shared_ptr<Layer> getLayer();
+    std::shared_ptr<Layer> getLayer( const QString& name );
 
     /**
      * Return all layers containing images.

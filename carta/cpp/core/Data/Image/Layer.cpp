@@ -81,7 +81,7 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Layer::_getIma
     return images;
 }
 
-std::shared_ptr<Layer> Layer::_getLayer(){
+std::shared_ptr<Layer> Layer::_getLayer( const QString& /*name*/ ){
     std::shared_ptr<Layer> layer( nullptr );
     return layer;
 }

@@ -1031,7 +1031,7 @@ void Histogram::_loadData( Controller* controller ){
         QString footPrint = getFootPrint2D();
         std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
         if ( footPrint == FOOT_PRINT_REGION ){
-        	std::shared_ptr<Region> region = regionControls->getRegion();
+        	std::shared_ptr<Region> region = regionControls->getRegion("");
         	if ( region ){
         		regions.push_back( region );
         	}
