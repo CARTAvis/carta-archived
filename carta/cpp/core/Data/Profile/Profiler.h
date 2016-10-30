@@ -52,6 +52,8 @@ class Settings;
 
 class UnitsIntensity;
 class UnitsSpectral;
+class UnitsFrequency;
+class UnitsWavelength;
 
 
 class Profiler : public QObject, public Carta::State::CartaObject, public ILinkable {
@@ -107,6 +109,20 @@ public:
     int getPolyCount() const;
 
     /**
+     * Return the rest frequency used to compute the profile.
+     * @param curveName - an identifier for the profile curve.
+     * @return the rest frequency used to compute the profile.
+     */
+    double getRestFrequency( const QString& curveName ) const;
+
+    /**
+     * Return the rest units used in computing the profile.
+     * @param curveName - an identifier for the profile curve.
+     * @return - the rest units used in computing the profile.
+     */
+    QString getRestUnits( const QString& curveName ) const;
+
+    /**
      * Return the name of the layer that has been selected to profile.
      * @return - the name of the layer to be profiled.
      */
@@ -118,7 +134,27 @@ public:
      */
     QString getSelectedRegion() const;
 
+    /**
+     * Return the current spectral type.
+     * @return - the current spectral type.
+     */
+    QString getSpectralType() const;
+
+    /**
+     * Return the current spectral units.
+     * @return - the current spectral units.
+     */
+    QString getSpectralUnits() const;
+
+
     virtual QString getStateString( const QString& sessionId, SnapshotType type ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Return the aggregation statistic used to compute the profile.
+     * @param curveName - an identifier for the curve.
+     * @return - the aggregation statistic used to compute the profile.
+     */
+    QString getStatistic( const QString& curveName ) const;
 
     /**
      * Returns the upper limit of the zoom range on the x-axis.
@@ -189,14 +225,6 @@ public:
      *      string otherwise.
      */
     QString profileNew();
-
-    /**
-     * Generate a new profile based on the given profile.
-     * @param baseName - an identifier for the profile to copy.
-     * @return - an error message if a copy of the given profile could not be
-     *      generated; an empty string otherwise.
-     */
-    QString profileCopy( const QString& baseName );
 
     /**
      * Delete the indicated profile.
@@ -565,7 +593,7 @@ private slots:
     void _plotSizeChanged();
     void _profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
             std::shared_ptr<Layer> layer, std::shared_ptr<Region> region, bool createNew );
-
+    void _removeUnsupportedCurves();
     void _resetFitGuessPixels();
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateZoomRangeBasedOnPercent();
@@ -595,6 +623,7 @@ private:
     const static QString PLOT_TOP;
     const static QString POLY_DEGREE;
     const static QString REGION_SELECT;
+    const static QString REST_UNITS;
     const static QString SHOW_FRAME;
     const static QString SHOW_GUESSES;
     const static QString SHOW_MEAN_RMS;
@@ -639,7 +668,7 @@ private:
     int _findCurveIndex( const QString& curveId ) const;
 
     bool _generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
-    QString _generateCurveId( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ) const;
+
     void _generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
             bool createNew = false);
 
@@ -732,6 +761,8 @@ private:
 
     static UnitsSpectral* m_spectralUnits;
     static UnitsIntensity* m_intensityUnits;
+    static UnitsFrequency* m_frequencyUnits;
+    static UnitsWavelength* m_wavelengthUnits;
     static ProfileStatistics* m_stats;
     static GenerateModes* m_generateModes;
     static LineStyles* m_lineStyles;

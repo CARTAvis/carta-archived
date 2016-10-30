@@ -617,6 +617,14 @@ QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode as
     return saveSize;
 }
 
+std::pair<double,QString> LayerGroup::_getRestFrequency() const {
+	std::pair<double,QString> restFreq( -1, "");
+	int dataIndex = _getIndexCurrent();
+	if ( dataIndex >= 0 ){
+		restFreq = m_children[dataIndex]->_getRestFrequency();
+	}
+	return restFreq;
+}
 
 std::shared_ptr<Layer> LayerGroup::_getSelectedGroup() {
     std::shared_ptr<Layer> group( nullptr );

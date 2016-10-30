@@ -180,12 +180,16 @@ QString Stack::_getCursorText( int mouseX, int mouseY ){
 QList<std::shared_ptr<Layer> > Stack::_getDrawChildren() const {
     QList<std::shared_ptr<Layer> > datas;
     int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        bool visible = m_children[i]->_isVisible();
-        bool empty = m_children[i]->_isEmpty();
-        if ( visible && !empty ){
-            datas.append( m_children[i] );
-        }
+    int currentIndex = _getIndexCurrent();
+    if ( currentIndex >= 0 ){
+		for ( int i = 0; i < dataCount; i++ ){
+			int childIndex = (currentIndex + i ) % dataCount;
+			bool visible = m_children[childIndex]->_isVisible();
+			bool empty = m_children[childIndex]->_isEmpty();
+			if ( visible && !empty ){
+				datas.append( m_children[childIndex] );
+			}
+		}
     }
     return datas;
 }
@@ -443,8 +447,7 @@ void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex,
 
 void Stack::_renderAll(bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile){
-
-    int gridIndex = _getIndexCurrent();
+    int gridIndex = 0;
     QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
     _render( datas, gridIndex, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
 }

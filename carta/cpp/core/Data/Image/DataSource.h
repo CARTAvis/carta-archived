@@ -264,6 +264,13 @@ private:
     QPointF _getPixelCoordinates( double ra, double dec, bool* valid ) const;
 
     /**
+     * Return the rest frequency and units for the image.
+     * @return - the image rest frequency and units; a blank string and a negative
+     * 		value are returned with the rest frequency can not be found.
+     */
+    std::pair<double,QString> _getRestFrequency() const;
+
+    /**
      * Return the world coordinates corresponding to the given pixel coordinates.
      * @param pixelX - the first pixel coordinate.
      * @param pixelY - the second pixel coordinate.

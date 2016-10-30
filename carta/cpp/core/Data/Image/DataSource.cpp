@@ -464,6 +464,14 @@ QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) c
     return result;
 }
 
+std::pair<double,QString> DataSource::_getRestFrequency() const {
+	std::pair<double,QString> restFreq( -1, "");
+	if ( m_image ){
+		restFreq = m_image->metaData()->getRestFrequency();
+	}
+	return restFreq;
+}
+
 QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
         double zoom, const QSize& outputSize, bool* valid ) const {
     QPointF screenPt;

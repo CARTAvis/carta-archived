@@ -27,6 +27,9 @@ public:
 //    coordinateGridPlotter() override;
     std::shared_ptr<casa::CoordinateSystem> getCoordinateSystem() const;
 
+    ///Return the rest frequency and units
+    virtual std::pair<double,QString> getRestFrequency() const override;
+
     virtual PlotLabelGeneratorInterface::SharedPtr
     plotLabelGenerator() override;
 

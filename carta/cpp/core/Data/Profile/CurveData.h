@@ -34,12 +34,6 @@ public:
     void clearFit();
 
     /**
-     * Copy the state of the other curve into this one.
-     * @param other - the curve whose state should be copied.
-     */
-    void copy( const std::shared_ptr<CurveData> & other );
-
-    /**
      * Return the color to use in plotting the points of the curve.
      * @return - the color to use in plotting the points of the curve.
      */
@@ -216,6 +210,18 @@ public:
     QString getRestUnits() const;
 
     /**
+     * Return the spectral type used to compute the profile.
+     * @return - the spectral type used to compute the profile.
+     */
+    QString getSpectralType() const;
+
+    /**
+     * Return the units of the spectral axis.
+     * @return - the spectral axis units.
+     */
+    QString getSpectralUnit() const;
+
+    /**
      * Return the internal state of the curve as a string.
      * @return - the curve state.
      */
@@ -252,12 +258,22 @@ public:
     std::vector<double> getValuesYFit() const;
 
     /**
-     * Returns true if the identifier passed in matches this curve's identifier;
-     * false otherwise.
-     * @param name - an identifier for a curve.
-     * @return - true if the identifiers match; false otherwise.
+     * Returns whether or not this profile is being actively used (visible) or not.
+     * @return - if the profile is being actively used; false, otherwise.
      */
-    bool isMatch( const QString& name ) const;
+    bool isActive() const;
+
+    /**
+     * Returns true if the identifiers passed in matches those in this curve;
+     * false otherwise.
+     * @param layer - a layer containing an image
+     * @param region - a region in an image.
+     * @param otherProfInfo - information for producing a profile.
+     * @return - true if the information passed in match those in this profile; false,
+     * 		otherwise.
+     */
+    bool isMatch( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
+    		Carta::Lib::ProfileInfo otherProfInfo ) const;
 
     /**
      * Return whether or not the curve has been fit.
@@ -265,6 +281,12 @@ public:
      *      false otherwise.
      */
     bool isFitted() const;
+
+    /**
+     * Returns whether or not the profiler is currently in frequency units.
+     * @return - true for frequency units; false otherwise.
+     */
+    bool isFrequencyUnits() const;
 
     /**
      * Returns whether or not the curve has been selected for fitting.
@@ -276,6 +298,13 @@ public:
      * Set the rest frequency back to its original value.
      */
     void resetRestFrequency();
+
+    /**
+     * Set whether this profile is active (visible) or just cached for future reference.
+     * @param active - true if the profile is being actively used; false, otherwise.
+     * @return - true if the active status of the profile has changed; false, otherwise.
+     */
+    bool setActive( bool active );
 
     /**
      * Set the color to use in plotting the points of the curve.
@@ -353,21 +382,6 @@ public:
     void setFitPolyCoeffs( const std::vector<double>& polyCoeffs );
 
     /**
-     * Set an identifier
-     * @param id - an identifier for the curve.
-     */
-    void setId( const QString& id );
-
-    /**
-     * Set the name of the layer that is the source of profile.
-     * @param layerName - an identifier for the layer that is the source of
-     *  the profile.
-     * @return - an error message if there was a problem setting the name; otherwise, an
-     *      empty string.
-     */
-    //QString setLayerName( const QString& layerName );
-
-    /**
      * Set the line style (outline,solid, etc) for drawing the curve.
      * @param lineStyle - the style to be used for connecting the curve points.
      */
@@ -425,10 +439,9 @@ public:
      * @param restUnits - the rest frequency units.
      * @param significantDigits - the number of significant digits to store.
      * @param errorMargin - required difference before deciding a value is significantly different.
-     * @return - an error message if the rest frequency units could not be set;
-     *      otherwise, and empty string.
+     * @return - true if the rest units were changed; false, otherwise.
      */
-    QString setRestUnits( const QString& restUnits, int significantDigits, double errorMargin);
+    bool setRestUnits( const QString& restUnits, int significantDigits, double errorMargin);
 
     /**
      * Set whether the rest units are frequency or wavelength.
@@ -436,8 +449,9 @@ public:
      *      if it is specified as wavelength.
      * @param significantDigits - the number of significant digits to store.
      * @param errorMargin - required difference before deciding a value is significantly different.
+     * @return - whether or not the rest unit type was changed.
      */
-    void setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin );
+    bool setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin );
 
 
     /**
@@ -445,6 +459,13 @@ public:
      * @param selected - true if the curve should be fit; false, otherwise.
      */
     void setSelectedFit( bool selected );
+
+    /**
+     * Store the spectral information used to compute the profile.
+     * @param spectralType - the spectral type.
+     * @param spectralUnit - the spectral units.
+     */
+    void setSpectralInfo( const QString& spectralType, const QString& spectralUnit );
 
     /**
      * Set the method used to summarize profile points.
@@ -463,7 +484,7 @@ public:
     const static QString CLASS_NAME;
 
 private:
-
+    const static QString ACTIVE;
     const static QString FIT;
     const static QString FIT_CENTER;
     const static QString FIT_PEAK;
@@ -482,13 +503,17 @@ private:
     const static QString REST_FREQUENCY_UNITS;
     const static QString REST_UNIT_FREQ;
     const static QString REST_UNIT_WAVE;
+    const static QString SPECTRAL_TYPE;
+    const static QString SPECTRAL_UNIT;
 
     double _calculateRelativeError( double minValue, double maxValue ) const;
     void _calculateRelativeErrors( double& errorX, double& errorY ) const;
     void _convertRestFrequency( const QString& oldUnits, const QString& newUnits,
             int significantDigits, double errorMargin );
-
+    static QString _generateName( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
     QString _generatePeakLabel( int index, const QString& xUnit, const QString& yUnit ) const;
+    static Carta::Lib::ProfileInfo _generateProfileInfo( double restFrequency, const QString& restUnit,
+    	const QString& statistic, const QString& spectralType, const QString& spectralUnit );
     void _initializeDefaultState();
     void _initializeStatics();
     bool _isPointSource() const;
@@ -513,10 +538,7 @@ private:
     std::vector<std::tuple<double,double,double> > m_gaussParams;
     std::vector<double> m_fitPolyCoeffs;
 
-    double m_restFrequency;
     double m_fitRMS;
-    QString m_restUnits;
-
     QString m_fitStatus;
 
     //So that the curve can be reproduced with different parameters we store the
@@ -527,7 +549,6 @@ private:
     Carta::State::StateInterface m_stateFit;
 
     bool m_nameSet;
-    //QString m_layerName;
 
 	CurveData( const CurveData& other);
 	CurveData& operator=( const CurveData& other );

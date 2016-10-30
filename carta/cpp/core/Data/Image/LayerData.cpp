@@ -479,6 +479,14 @@ Carta::Lib::VectorGraphics::VGList LayerData::_getRegionGraphics() const {
 	return m_regionGraphics;
 }
 
+std::pair<double,QString> LayerData::_getRestFrequency() const {
+	std::pair<double,QString> restFreq(-1,"");
+	if ( m_dataSource ){
+		restFreq = m_dataSource->_getRestFrequency();
+	}
+	return restFreq;
+}
+
 QSize LayerData::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {
     QSize saveSize = outputSize;
 

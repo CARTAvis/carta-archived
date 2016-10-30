@@ -292,6 +292,10 @@ public:
 //    virtual CoordinateGridPlotterInterface::SharedPtr
 //    coordinateGridPlotter() = 0;
 
+    ///Return the rest frequency and units; an empty string and a negative value
+    ///will be returned if the rest frequency cannot be found.
+    virtual std::pair<double,QString> getRestFrequency() const = 0;
+
     /// get a labeler algorithm
     /// \note this is not being used anywhere, and maybe it won't be used ever
     virtual PlotLabelGeneratorInterface::SharedPtr

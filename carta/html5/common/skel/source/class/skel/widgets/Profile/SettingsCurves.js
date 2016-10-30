@@ -45,7 +45,9 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             this.m_curveInfo = curveUpdate.curves;
             var curveNames = [];
             for ( var i = 0; i < this.m_curveInfo.length; i++ ){
-                curveNames[i] = this.m_curveInfo[i].name;
+            	if ( this.m_curveInfo[i].active ){
+            		curveNames[i] = this.m_curveInfo[i].name;
+            	}
             }
             this.m_curveList.setItems( curveNames );
             this._updateColor();

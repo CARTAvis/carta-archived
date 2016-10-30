@@ -21,6 +21,7 @@
 #include "Data/Units/UnitsFrequency.h"
 #include "Data/Units/UnitsIntensity.h"
 #include "Data/Units/UnitsSpectral.h"
+#include "Data/Units/UnitsWavelength.h"
 #include "Plot2D/Plot2DGenerator.h"
 #include "CartaLib/Hooks/Plot2DResult.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
@@ -65,6 +66,7 @@ const QString Profiler::PLOT_LEFT = "plotLeft";
 const QString Profiler::PLOT_TOP = "plotTop";
 const QString Profiler::POLY_DEGREE = "polyDegree";
 const QString Profiler::REGION_SELECT = "regionSelect";
+const QString Profiler::REST_UNITS = "restUnits";
 const QString Profiler::SHOW_FRAME = "showFrame";
 const QString Profiler::SHOW_GUESSES = "showGuesses";
 const QString Profiler::SHOW_MEAN_RMS = "showMeanRMS";
@@ -94,6 +96,8 @@ bool Profiler::m_registered =
 UnitsSpectral* Profiler::m_spectralUnits = nullptr;
 UnitsIntensity* Profiler::m_intensityUnits = nullptr;
 GenerateModes* Profiler::m_generateModes = nullptr;
+UnitsFrequency* Profiler::m_frequencyUnits = nullptr;
+UnitsWavelength* Profiler::m_wavelengthUnits = nullptr;
 ProfileStatistics* Profiler::m_stats = nullptr;
 LineStyles* Profiler::m_lineStyles = nullptr;
 
@@ -382,7 +386,7 @@ int Profiler::_findCurveIndex( const QString& name ) const {
     int curveCount = m_plotCurves.size();
     int index = -1;
     for ( int i = 0; i < curveCount; i++ ){
-        if ( m_plotCurves[i]->isMatch( name ) ){
+        if ( m_plotCurves[i]->getName() == name ){
             index = i;
             break;
         }
@@ -457,48 +461,59 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
 }
 
 bool Profiler::_generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ){
-    QString curveId = _generateCurveId( layer, region );
     bool generates = false;
-    int profileIndex = _findCurveIndex( curveId );
-    if ( profileIndex < 0 ){
-        generates = true;
-        _generateData( layer, region);
+    if ( layer ){
+		QString curveId = CurveData::_generateName( layer, region );
+		int profileIndex = _findCurveIndex( curveId );
+		if ( profileIndex < 0 ){
+			_generateData( layer, region);
+			generates = true;
+		}
+		else {
+			//Set the curve active
+			m_plotCurves[profileIndex]->setActive( true );
+		}
+
     }
     return generates;
 }
 
-QString Profiler::_generateCurveId( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ) const {
-    QString id;
-    if ( layer ){
-        id = layer->_getLayerName();
-        if ( region ){
-            QString regionName = region->getRegionName();
-            if ( regionName.length() > 0 ){
-                id = id + "[" + regionName + "]";
-            }
-        }
-    }
-    return id;
-}
+
 
 
 void Profiler::_generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
         bool createNew ){
-    QString id = _generateCurveId( layer, region );
+    QString id = CurveData::_generateName( layer, region );
     int curveIndex = _findCurveIndex( id );
     Carta::Lib::ProfileInfo profInfo;
     if ( curveIndex >= 0 ){
         profInfo = m_plotCurves[curveIndex]->getProfileInfo();
     }
-    QString xUnits = getAxisUnitsX();
-
-    profInfo.setSpectralUnit( _getUnitUnits( xUnits) );
-    QString typeStr = _getUnitType( xUnits );
-    if ( typeStr == UnitsSpectral::NAME_FREQUENCY ){
-        typeStr = "";
+    else {
+    	//Provide profile info based on the current settings.
+    	profInfo.setRestFrequency( getRestFrequency( ""));
+    	QString stat = getStatistic( "" );
+    	Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
+    	profInfo.setAggregateType( aggType );
+    	profInfo.setRestUnit( getRestUnits("") );
     }
-    profInfo.setSpectralType( typeStr );
+    profInfo.setSpectralUnit( getSpectralUnits() );
+    profInfo.setSpectralType( getSpectralType() );
     m_renderService->renderProfile(layer, region, profInfo, createNew );
+}
+
+QString Profiler::getSpectralUnits() const {
+	QString xUnits = getAxisUnitsX();
+	return _getUnitUnits( xUnits );
+}
+
+QString Profiler::getSpectralType() const {
+	QString xUnits = getAxisUnitsX();
+	QString typeStr = _getUnitType( xUnits );
+	if ( typeStr == UnitsSpectral::NAME_FREQUENCY ){
+		typeStr = "";
+	}
+	return typeStr;
 }
 
 
@@ -780,6 +795,31 @@ std::vector<std::shared_ptr<Region> > Profiler::_getRegionForGenerateMode() cons
     return regions;
 }
 
+double Profiler::getRestFrequency( const QString& curveName ) const {
+	double restFrequency = -1;
+	int curveIndex = _findCurveIndex( curveName );
+	if ( curveIndex >= 0 ){
+		restFrequency = m_plotCurves[curveIndex]->getRestFrequency();
+	}
+	else {
+		restFrequency = m_state.getValue<double>( CurveData::REST_FREQUENCY );
+	}
+	return restFrequency;
+}
+
+QString Profiler::getRestUnits( const QString& curveName ) const {
+	QString restUnits;
+	int curveIndex = _findCurveIndex( curveName );
+	if ( curveIndex >= 0 ){
+		restUnits = m_plotCurves[curveIndex]->getRestUnits();
+	}
+	else {
+		restUnits = m_state.getValue<QString>( REST_UNITS );
+	}
+	return restUnits;
+}
+
+
 QString Profiler::getSelectedLayer() const {
 	return m_stateData.getValue<QString>( IMAGE_SELECT );
 }
@@ -802,6 +842,18 @@ QString Profiler::getStateString( const QString& sessionId, SnapshotType type ) 
         result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
     }
     return result;
+}
+
+QString Profiler::getStatistic( const QString& curveName ) const {
+	QString stat;
+		int curveIndex = _findCurveIndex( curveName );
+		if ( curveIndex >= 0 ){
+			stat = m_plotCurves[curveIndex]->getStatistic();
+		}
+		else {
+			stat = m_state.getValue<QString>( CurveData::STATISTIC );
+		}
+		return stat;
 }
 
 QString Profiler::_getUnitType( const QString& unitStr ){
@@ -866,6 +918,13 @@ void Profiler::_initializeDefaultState(){
     m_state.insertValue<QString>( AXIS_UNITS_LEFT, m_intensityUnits->getDefault());
     m_state.insertValue<QString>(GEN_MODE, m_generateModes->getDefault());
     m_state.insertValue<QString>( CurveData::STYLE_FIT, m_lineStyles->getDefaultSecondary());
+
+    //For creating new profiles
+    m_state.insertValue<QString>(CurveData::STATISTIC, m_stats->getDefault());
+    m_state.insertValue<double>(CurveData::REST_FREQUENCY, 0 );
+    m_state.insertValue<QString>( REST_UNITS, m_frequencyUnits->getDefault());
+    m_state.insertValue<bool>(CurveData::REST_FREQUENCY_UNITS, true );
+    m_state.insertValue<QString>( Util::NAME, "");
 
     //Legend
     bool external = false;
@@ -1354,20 +1413,6 @@ void Profiler::_initializeCallbacks(){
                 return result;
             });
 
-    addCommandCallback( "copyProfile", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-                    std::set<QString> keys = {Util::NAME};
-                    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                    QString nameStr = dataValues[Util::NAME];
-                    QString result = profileCopy( nameStr );
-                    Util::commandPostProcess( result );
-                    return result;
-                });
-
-
-
-
-
     addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {Util::NAME};
@@ -1681,6 +1726,12 @@ void Profiler::_initializeStatics(){
     if ( m_lineStyles == nullptr ){
         m_lineStyles = Util::findSingletonObject<LineStyles>();
     }
+    if ( m_frequencyUnits == nullptr ){
+    	m_frequencyUnits = Util::findSingletonObject<UnitsFrequency>();
+    }
+    if ( m_wavelengthUnits == nullptr ){
+    	m_wavelengthUnits = Util::findSingletonObject<UnitsWavelength>();
+    }
 }
 
 bool Profiler::isAutoGenerate() const {
@@ -1721,16 +1772,53 @@ void Profiler::_loadProfile( Controller* controller ){
     if( ! controller) {
         return;
     }
-    bool profileChanged = _updateProfiles( controller );
-
+    m_plotManager->clearData();
+    bool generatingNew = _updateProfiles( controller );
     //If we removed some curves but did not generate any new ones, the plot
     //needs to get updated (it will be updated automatically if a new curve is generated.
-    if ( profileChanged ){
-    	 m_plotManager->clearData();
+    if ( !generatingNew ){
         _updatePlotData();
     }
 }
 
+void Profiler::_makeInitialGuesses( int count ){
+    QString guessKey = Carta::State::UtilState::getLookup( CurveData::FIT, CurveData::INITIAL_GUESSES );
+    int oldCount = m_stateFit.getArraySize( guessKey );
+    int diffCount = count - oldCount;
+    if ( diffCount != 0 ){
+        //Update the initial guess count in the curves.
+        m_stateFit.resizeArray( guessKey, count, Carta::State::StateInterface::PreserveAll );
+    }
+    if ( diffCount > 0 ){
+        //Set up uniformly spaced guesses based on the first curve that has been
+        //selected to fit.
+        bool random = true;
+        if ( oldCount == 0 ){
+            random = false;
+        }
+
+        std::vector<std::tuple<double,double,double> > guesses = _generateFitGuesses( diffCount, random );
+        //Store the guesses.
+        for ( int i = oldCount; i < count; i++ ){
+            QString indexKey = Carta::State::UtilState::getLookup( guessKey, i );
+            m_stateFit.setObject( indexKey );
+            QString centerKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_CENTER );
+            m_stateFit.insertValue<double>( centerKey, std::get<0>(guesses[i-oldCount]) );
+            QString peakKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_PEAK );
+            m_stateFit.insertValue<double>( peakKey, std::get<1>(guesses[i-oldCount]) );
+            QString fbhwKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_FBHW );
+            m_stateFit.insertValue<double>( fbhwKey, std::get<2>(guesses[i-oldCount]) );
+
+            //Pixels
+            centerKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_CENTER_PIXEL );
+            m_stateFit.insertValue<int>( centerKey, 0 );
+            peakKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_PEAK_PIXEL );
+            m_stateFit.insertValue<int>( peakKey, 0 );
+            fbhwKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_FBHW_PIXEL );
+            m_stateFit.insertValue<int>( fbhwKey, 1 );
+        }
+    }
+}
 
 void Profiler::_movieFrame(){
     //Get the new frame from the plot
@@ -1782,7 +1870,25 @@ QString Profiler::profileNew(){
         	region = regionControls->getRegion( regionId );
         }
         if ( layer ){
-        	_generateData( layer, region, true );
+			//Get the name that is stored.  If it matches an existing profile, just set
+        	//the existing profile active.  Otherwise, generate a new one.
+			Carta::Lib::ProfileInfo profInfo = CurveData::_generateProfileInfo( getRestFrequency(""), getRestUnits(""),
+				getStatistic( ""), getSpectralType(), getSpectralUnits() );
+			int curveCount = m_plotCurves.size();
+			int curveIndex = -1;
+			for ( int i = 0; i < curveCount; i++ ){
+				bool match = m_plotCurves[i]->isMatch( layer, region, profInfo );
+				if ( match ){
+					curveIndex = i;
+					break;
+				}
+			}
+			if ( curveIndex >= 0 ){
+				m_plotCurves[curveIndex]->setActive( true );
+			}
+			else {
+				_generateData( layer, region, true );
+			}
         }
         else {
         	result = "Cannot render without a layer";
@@ -1794,32 +1900,6 @@ QString Profiler::profileNew(){
     return result;
 }
 
-QString Profiler::profileCopy( const QString& baseName ){
-    QString result;
-    int curveIndex = _findCurveIndex( baseName );
-    if ( curveIndex >= 0 ){
-        //Create a new plot curve, and copy data.
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        std::shared_ptr<CurveData> profileCurve( objMan->createObject<CurveData>() );
-        profileCurve->copy( m_plotCurves[curveIndex]);
-        //Generate a unique id for the copy of the profile.
-        int index = 2;
-        QString id = baseName;
-        while ( curveIndex >= 0 ){
-            id = baseName + " - " + QString::number( index );
-            curveIndex = _findCurveIndex( id );
-            index ++;
-        }
-        profileCurve->setId( id );
-        m_plotCurves.append( profileCurve );
-        _saveCurveState();
-        _updatePlotData();
-    }
-    else {
-        result = "Could not find the profile "+baseName+" to copy.";
-    }
-    return result;
-}
 
 QString Profiler::profileRemove( const QString& name ){
     QString result;
@@ -1859,20 +1939,34 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
             }
 
             std::shared_ptr<CurveData> profileCurve( nullptr );
-            QString id = _generateCurveId( layer, region );
+            QString id = CurveData::_generateName( layer, region );
             int curveIndex = _findCurveIndex( id );
             if ( curveIndex < 0 || createNew ){
                 Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
                 profileCurve.reset( objMan->createObject<CurveData>() );
-                profileCurve->setId( id );
                 double restFrequency = result.getRestFrequency();
                 int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
                 double restRounded = Util::roundToDigits( restFrequency, significantDigits );
                 QString restUnit = result.getRestUnits();
                 profileCurve->setRestQuantity( restRounded, restUnit );
+                profileCurve->setSpectralInfo( getSpectralType(), getSpectralUnits() );
                 _assignColor( profileCurve );
                 if ( curveIndex < 0 ){
                     m_plotCurves.append( profileCurve );
+                }
+                else if ( createNew ){
+                	//It will have the same name as an existing curve.  So we set a custom name
+                	//be appending a number after the default name.
+                	QString curveName = CurveData::_generateName( layer, region );
+                	int existIndex = _findCurveIndex( curveName );
+                	int i = 1;
+                	while ( existIndex >= 0 ){
+                		curveName = curveName + QString::number(i);
+                		existIndex = _findCurveIndex( curveName );
+                		i++;
+                	}
+                	profileCurve->setName( curveName );
+                	m_plotCurves.append( profileCurve );
                 }
                 else {
                     m_plotCurves.replace( curveIndex, profileCurve );
@@ -1900,6 +1994,47 @@ void Profiler::refreshState(){
 	m_stateData.refreshState();
 	m_stateFit.refreshState();
 	m_stateFitStatistics.refreshState();
+}
+
+void Profiler::_removeUnsupportedCurves(){
+	//If the image or the region used by the profile is not longer present, remove
+	//the profile.
+	Controller* controller = _getControllerSelected();
+	if ( controller ){
+		std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+		int curveCount = m_plotCurves.size();
+		std::vector<int> removeIndices;
+		for ( int i = 0; i < curveCount; i++ ){
+			std::shared_ptr<Layer> layer = m_plotCurves[i]->getLayer();
+			QString layerName = layer->_getLayerName();
+			std::shared_ptr<Layer> existingLayer = controller->getLayer(layerName );
+			if ( existingLayer ){
+				//Check if region is still supported.
+				if ( regionControls ){
+					std::shared_ptr<Region> region = m_plotCurves[i]->getRegion();
+					if ( region ){
+						QString regionName = region->getRegionName();
+						std::shared_ptr<Region> existingRegion = regionControls->getRegion( regionName );
+						if (!existingRegion ){
+							removeIndices.push_back( i );
+						}
+					}
+				}
+			}
+			else {
+				removeIndices.push_back( i );
+			}
+		}
+		//Go through the plot curves and remove the ones marked for removal
+		int removeCount = removeIndices.size();
+		for ( int i = removeCount - 1; i >= 0; i-- ){
+			m_plotCurves.removeAt( removeIndices[i] );
+		}
+	}
+	else {
+		//No controller, we should not have any curves.
+		m_plotCurves.clear();
+	}
 }
 
 
@@ -1959,8 +2094,16 @@ void Profiler::resetInitialFitGuesses(){
 QString Profiler::resetRestFrequency( const QString& curveName ){
     QString result;
     int index = _findCurveIndex( curveName );
-    if ( index >= 0 ){
+    if ( index >= 0 && index < m_plotCurves.size() ){
         m_plotCurves[index]->resetRestFrequency();
+        double resetRest = m_plotCurves[index]->getRestFrequency();
+        QString resetUnits = m_plotCurves[index]->getRestUnits();
+        bool resetType = m_plotCurves[index]->isFrequencyUnits();
+        //Store the new rest frequency
+        m_state.setValue<double>(CurveData::REST_FREQUENCY, resetRest );
+        m_state.setValue<QString>(REST_UNITS, resetUnits );
+        m_state.setValue<bool>( CurveData::REST_FREQUENCY_UNITS, resetType );
+        m_state.flushState();
         _saveCurveState( index );
         m_stateData.flushState();
         _generateData( m_plotCurves[index]->getLayer(),
@@ -1992,9 +2135,14 @@ void Profiler::resetState( const QString& state ){
 
 
 void Profiler::_saveCurveState( int index ){
-    QString key = Carta::State::UtilState::getLookup( CURVES, index );
-    QString curveState = m_plotCurves[index]->getStateString();
-    m_stateData.setObject( key, curveState );
+	int curveCount = m_plotCurves.size();
+	int arraySize = m_stateData.getArraySize( CURVES );
+	if ( curveCount != arraySize ){
+		m_stateData.resizeArray( CURVES, curveCount );
+	}
+	QString key = Carta::State::UtilState::getLookup( CURVES, index );
+	QString curveState = m_plotCurves[index]->getStateString();
+	m_stateData.setObject( key, curveState );
 }
 
 void Profiler::_saveCurveState(){
@@ -2160,6 +2308,8 @@ QString Profiler::setCurveName( const QString& id, const QString& newName ){
         _saveCurveState( curveIndex );
         m_stateData.flushState();
         m_plotManager->setCurveName( id, newName );
+        m_state.setValue<QString>( Util::NAME, newName );
+        m_state.flushState();
     }
     else {
         result = "Profile name could not be set because of invalid identifier: "+id;
@@ -2229,44 +2379,7 @@ void Profiler::setFitManualGuess( bool manualGuess ){
     }
 }
 
-void Profiler::_makeInitialGuesses( int count ){
-    QString guessKey = Carta::State::UtilState::getLookup( CurveData::FIT, CurveData::INITIAL_GUESSES );
-    int oldCount = m_stateFit.getArraySize( guessKey );
-    int diffCount = count - oldCount;
-    if ( diffCount != 0 ){
-        //Update the initial guess count in the curves.
-        m_stateFit.resizeArray( guessKey, count, Carta::State::StateInterface::PreserveAll );
-    }
-    if ( diffCount > 0 ){
-        //Set up uniformly spaced guesses based on the first curve that has been
-        //selected to fit.
-        bool random = true;
-        if ( oldCount == 0 ){
-            random = false;
-        }
 
-        std::vector<std::tuple<double,double,double> > guesses = _generateFitGuesses( diffCount, random );
-        //Store the guesses.
-        for ( int i = oldCount; i < count; i++ ){
-            QString indexKey = Carta::State::UtilState::getLookup( guessKey, i );
-            m_stateFit.setObject( indexKey );
-            QString centerKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_CENTER );
-            m_stateFit.insertValue<double>( centerKey, std::get<0>(guesses[i-oldCount]) );
-            QString peakKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_PEAK );
-            m_stateFit.insertValue<double>( peakKey, std::get<1>(guesses[i-oldCount]) );
-            QString fbhwKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_FBHW );
-            m_stateFit.insertValue<double>( fbhwKey, std::get<2>(guesses[i-oldCount]) );
-
-            //Pixels
-            centerKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_CENTER_PIXEL );
-            m_stateFit.insertValue<int>( centerKey, 0 );
-            peakKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_PEAK_PIXEL );
-            m_stateFit.insertValue<int>( peakKey, 0 );
-            fbhwKey = Carta::State::UtilState::getLookup( indexKey, CurveData::FIT_FBHW_PIXEL );
-            m_stateFit.insertValue<int>( fbhwKey, 1 );
-        }
-    }
-}
 
 QString Profiler::setFitInitialGuessesPixels(const std::vector<std::tuple<int,int,int> >& guessPixels ){
     QString result;
@@ -2607,38 +2720,59 @@ void Profiler::setRandomHeuristics( bool randomHeuristics ){
 
 QString Profiler::setRestFrequency( double freq, const QString& curveName ){
     QString result;
-    int index = _findCurveIndex( curveName );
-    if ( index >= 0 ){
-        int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
-        double roundedFreq = Util::roundToDigits( freq, significantDigits );
-        bool freqSet = false;
-        result = m_plotCurves[index]->setRestFrequency( roundedFreq, m_errorMargin, &freqSet );
-        if ( freqSet ){
-            _saveCurveState( index );
-            m_stateData.flushState();
-            _generateData( m_plotCurves[index]->getLayer(), m_plotCurves[index]->getRegion(), false );
-        }
+    if ( freq >= 0 ){
+		int index = _findCurveIndex( curveName );
+		int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
+		double roundedFreq = Util::roundToDigits( freq, significantDigits );
+		if ( index >= 0 ){
+			bool freqSet = false;
+			result = m_plotCurves[index]->setRestFrequency( roundedFreq, m_errorMargin, &freqSet );
+			if ( freqSet ){
+				_saveCurveState( index );
+				m_stateData.flushState();
+				_generateData( m_plotCurves[index]->getLayer(), m_plotCurves[index]->getRegion(), false );
+			}
+		}
+
+		//We store the frequency, assuming the user will be using it to create a new
+		//profile.
+		m_state.setValue<double>(CurveData::REST_FREQUENCY, roundedFreq );
+		m_state.flushState();
     }
     else {
-        result = "Unrecognized profile curve: "+curveName;
+    	result = "Frequency must be nonnegative.";
     }
     return result;
 }
 
 QString Profiler::setRestUnits( const QString& restUnits, const QString& curveName ){
-    QString result;
-    int index = _findCurveIndex( curveName );
-    if ( index >= 0 ){
-        int signDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
-        result = m_plotCurves[index]->setRestUnits( restUnits, signDigits, m_errorMargin );
-        if ( result.isEmpty() ){
-            _saveCurveState( index );
-            m_stateData.flushState();
-        }
-    }
-    else {
-        result = "Unrecognized profile curve: "+curveName;
-    }
+	QString result;
+	bool freqUnits = m_state.getValue<bool>( CurveData::REST_FREQUENCY_UNITS );
+
+	QString actualUnits;
+	if ( freqUnits ){
+		actualUnits = m_frequencyUnits->getActualUnits( restUnits );
+	}
+	else {
+		actualUnits = m_wavelengthUnits ->getActualUnits( restUnits );
+	}
+	if ( !actualUnits.isEmpty() ){
+		int index = _findCurveIndex( curveName );
+		if ( index >= 0 ){
+			int signDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
+			bool restUnitsChanged = m_plotCurves[index]->setRestUnits( actualUnits, signDigits, m_errorMargin );
+			if ( restUnitsChanged ){
+				_saveCurveState( index );
+				m_stateData.flushState();
+			}
+		}
+		m_state.setValue<QString>(REST_UNITS, actualUnits );
+		m_state.flushState();
+	}
+	else {
+		result = "Unrecognized rest units: " + restUnits;
+	}
+
     return result;
 }
 
@@ -2648,13 +2782,23 @@ QString Profiler::setRestUnitType( bool restUnitsFreq, const QString& curveName 
     int index = _findCurveIndex( curveName );
     if ( index >= 0 ){
         int signDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
-        m_plotCurves[index]->setRestUnitType( restUnitsFreq, signDigits, m_errorMargin );
-        _saveCurveState( index );
-        m_stateData.flushState();
+        bool changed = m_plotCurves[index]->setRestUnitType( restUnitsFreq, signDigits, m_errorMargin );
+        if ( changed ){
+        	double restFreq = m_plotCurves[index]->getRestFrequency();
+        	QString restUnits = m_plotCurves[index]->getRestUnits();
+        	if ( getRestFrequency("") != restFreq ){
+        		m_state.setValue<double>(CurveData::REST_FREQUENCY, restFreq );
+        		m_state.setValue<QString>(REST_UNITS, restUnits );
+        	}
+        	_saveCurveState( index );
+        	m_stateData.flushState();
+        }
     }
-    else {
-        result = "Unrecognized profile curve:"+curveName;
+    if ( m_state.getValue<bool>(CurveData::REST_FREQUENCY_UNITS) != restUnitsFreq ){
+    	m_state.setValue<bool>( CurveData::REST_FREQUENCY_UNITS, restUnitsFreq );
+    	 m_state.flushState();
     }
+
     return result;
 }
 
@@ -2696,11 +2840,14 @@ QString Profiler::setSelectedLayer( const QString& imageId ){
         //Make sure this is really an existing image.
         Controller* selectedController = _getControllerSelected();
         bool layerFound = false;
+        std::pair<double,QString> restFreq(-1,"");
         if ( selectedController ){
             std::vector<std::shared_ptr<Layer> > layers = selectedController->getLayers();
             for ( std::shared_ptr<Layer> layer : layers ){
                 QString layerName = layer->_getLayerName();
+
                 if ( layerName == imageId ){
+                	restFreq = layer->_getRestFrequency();
                     layerFound = true;
                     break;
                 }
@@ -2709,6 +2856,9 @@ QString Profiler::setSelectedLayer( const QString& imageId ){
         if ( layerFound ){
             QString oldImageName = m_stateData.getValue<QString>( IMAGE_SELECT );
             if ( oldImageName != imageId ){
+            	//Update the rest frequency to reflect that of the image
+            	setRestFrequency( restFreq.first, imageId );
+            	setRestUnits( restFreq.second, imageId );
                 m_stateData.setValue<QString>( IMAGE_SELECT, imageId );
                 m_stateData.flushState();
             }
@@ -2873,21 +3023,24 @@ QString Profiler::setSignificantDigits( int digits ){
 
 QString Profiler::setStatistic( const QString& statStr, const QString& curveName ){
     QString result;
-    int index = _findCurveIndex( curveName );
-    if ( index >= 0 ){
-        result = m_plotCurves[index]->setStatistic( statStr );
-        if ( result.isEmpty() ){
-            _saveCurveState( index );
-            m_stateData.flushState();
-            Carta::Lib::ProfileInfo::AggregateType agType = m_stats->getTypeFor( statStr );
-            m_intensityUnits->resetUnits( agType );
-            QString unitDefault = m_intensityUnits->getDefault();
-            setAxisUnitsY( unitDefault );
-            _generateData( m_plotCurves[index]->getLayer(), m_plotCurves[index]->getRegion(), false );
-        }
+    Carta::Lib::ProfileInfo::AggregateType agType = m_stats->getTypeFor( statStr );
+    if ( agType != Carta::Lib::ProfileInfo::AggregateType::OTHER ){
+		int index = _findCurveIndex( curveName );
+		if ( index >= 0 ){
+			result = m_plotCurves[index]->setStatistic( statStr );
+			if ( result.isEmpty() ){
+				_saveCurveState( index );
+				m_stateData.flushState();
+				m_intensityUnits->resetUnits( agType );
+				QString unitDefault = m_intensityUnits->getDefault();
+				setAxisUnitsY( unitDefault );
+				_generateData( m_plotCurves[index]->getLayer(), m_plotCurves[index]->getRegion(), false );
+			}
+		}
+		m_state.setValue<QString>(CurveData::STATISTIC, statStr );
     }
     else {
-        result = "Could not set the profile statistic - unrecognized curve: "+curveName;
+    	result = "Unknown profile aggregate type.";
     }
     return result;
 }
@@ -3258,16 +3411,22 @@ void Profiler::_updateResidualData(){
 }
 
 void Profiler::_updateSelectedCurve(){
-    //If we have removed the selected plot curve, choose the last curve in the list
-    //as the new selected one
-    int curveCount = m_plotCurves.size();
-    if ( curveCount == 0 ){
-        m_stateData.setValue<QString>( CURVE_SELECT, "");
-    }
-    else {
-        QString selectedName = m_plotCurves[curveCount-1]->getName();
-        setSelectedCurve( selectedName );
-    }
+	if ( isAutoGenerate() ){
+		int curveCount = m_plotCurves.size();
+		if ( curveCount == 0 ){
+			m_stateData.setValue<QString>( CURVE_SELECT, "");
+		}
+		else {
+			//Choose the curve with largest index that is active and matches
+			//the current region and image.
+			for ( int i = curveCount - 1; i >= 0; i-- ){
+				if ( m_plotCurves[i]->isActive() ){
+					 QString selectedName = m_plotCurves[i]->getName();
+					 setSelectedCurve( selectedName );
+				}
+			}
+		}
+	}
 }
 
 void Profiler::_updateZoomRangeBasedOnPercent(){
@@ -3303,26 +3462,28 @@ void Profiler::_updatePlotData(){
 
     //Put the data into the plot.
     for ( int i = 0; i < curveCount; i++ ){
-        std::vector< std::pair<double,double> > plotData = m_plotCurves[i]->getPlotData();
-        QString dataId = m_plotCurves[i]->getName();
-        Carta::Lib::Hooks::Plot2DResult plotResult( dataId, "", "", plotData );
-        m_plotManager->addData( &plotResult );
-        bool fitted = m_plotCurves[i]->isFitted();
-        if ( fitted ){
-            std::vector< std::pair<double,double> > fitData = m_plotCurves[i]->getFitData();
-            Carta::Lib::Hooks::Plot2DResult fitResult( dataId, "", "", fitData );
+    	if ( m_plotCurves[i]->isActive() ){
+			std::vector< std::pair<double,double> > plotData = m_plotCurves[i]->getPlotData();
+			QString dataId = m_plotCurves[i]->getName();
+			Carta::Lib::Hooks::Plot2DResult plotResult( dataId, "", "", plotData );
+			m_plotManager->addData( &plotResult );
+			bool fitted = m_plotCurves[i]->isFitted();
+			if ( fitted ){
+				std::vector< std::pair<double,double> > fitData = m_plotCurves[i]->getFitData();
+				Carta::Lib::Hooks::Plot2DResult fitResult( dataId, "", "", fitData );
 
-            m_plotManager->addData( &fitResult, 0, false );
-            m_plotManager->setLineStyle( m_plotCurves[i]->getLineStyleFit(),
-                    dataId, 0, false);
-            QString xUnits = getAxisUnitsX();
-            QString yUnits = getAxisUnitsY();
-            if ( isShowPeakLabels() ){
-                std::vector< std::tuple<double,double,QString> > peakLabels = m_plotCurves[i]->getPeakLabels(xUnits, yUnits );
-                m_plotManager->addLabels( peakLabels );
-            }
-        }
-        m_plotManager->setColor( m_plotCurves[i]->getColor(), dataId );
+				m_plotManager->addData( &fitResult, 0, false );
+				m_plotManager->setLineStyle( m_plotCurves[i]->getLineStyleFit(),
+						dataId, 0, false);
+				QString xUnits = getAxisUnitsX();
+				QString yUnits = getAxisUnitsY();
+				if ( isShowPeakLabels() ){
+					std::vector< std::tuple<double,double,QString> > peakLabels = m_plotCurves[i]->getPeakLabels(xUnits, yUnits );
+					m_plotManager->addLabels( peakLabels );
+				}
+			}
+			m_plotManager->setColor( m_plotCurves[i]->getColor(), dataId );
+    	}
     }
 
     QString bottomUnit = m_state.getValue<QString>( AXIS_UNITS_BOTTOM );
@@ -3337,20 +3498,22 @@ bool Profiler::_updateProfiles( Controller* controller ){
     bool profileChanged = false;
 
     if ( isAutoGenerate() ){
-		//Go through the old profiles and remove any that are no longer present.
+		//Go through the old profiles and set inactive any whose regions&layers are not in
+    	//the prescribed list.
+    	_removeUnsupportedCurves();
 		int curveCount = m_plotCurves.size();
 		std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
 		std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
 		int dataCount = layers.size();
 		int regionCount = regions.size();
-		QList<int> removeIndices;
+		bool curveStatusChange = false;
 		for ( int i = 0; i < curveCount; i++ ){
 			QString curveId = m_plotCurves[i]->getName();
 			bool layerFound = false;
 			for ( int j = 0; j < dataCount; j++ ){
 				if ( regionCount > 0 ){
 					for ( int k = 0; k < regionCount; k++ ){
-						QString id = _generateCurveId( layers[j], regions[k] );
+						QString id = CurveData::_generateName( layers[j], regions[k] );
 						if ( id == curveId ){
 							layerFound = true;
 							break;
@@ -3361,42 +3524,41 @@ bool Profiler::_updateProfiles( Controller* controller ){
 					}
 				}
 				else {
-					QString id = _generateCurveId( layers[j], nullptr );
+					QString id = CurveData::_generateName( layers[j], nullptr );
 					if ( id == curveId ){
 						layerFound = true;
 						break;
 					}
 				}
 			}
-			if ( !layerFound ){
-				removeIndices.append( i );
+			bool activeChanged = m_plotCurves[i]->setActive( layerFound );
+			if ( activeChanged ){
+				curveStatusChange = true;
 			}
 		}
 
-		//Remove curves that we don't need.
-		int removeCount = removeIndices.size();
-		for ( int i = removeCount - 1; i >= 0; i-- ){
-			m_plotCurves.removeAt( removeIndices[i] );
-		}
-
-
 		//Make profiles for any new data that has been loaded.
-		bool generates = false;
 		for ( int i = 0; i < dataCount; i++ ) {
 			if ( regionCount > 0 ){
 				for ( int j = 0; j < regionCount; j++ ){
-					generates = _generateCurve( layers[i], regions[j] );
+					bool curveGenerated = _generateCurve( layers[i], regions[j] );
+					if ( curveGenerated ){
+						profileChanged = true;
+					}
 				}
 			}
 			else {
 				//Profile of entire image
-				generates = _generateCurve( layers[i], nullptr );
+				bool curveGenerated = _generateCurve( layers[i], nullptr );
+				if ( curveGenerated ){
+					profileChanged = true;
+				}
 			}
 		}
 
 		_saveCurveState();
-		if ( (removeIndices.size() > 0 && !generates) || generates ){
-			profileChanged = true;
+		if ( curveStatusChange && !profileChanged ){
+			_updateSelectedCurve();
 		}
     }
     return profileChanged;

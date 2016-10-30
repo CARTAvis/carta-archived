@@ -39,6 +39,19 @@ CCMetaDataInterface::plotLabelGenerator()
     qFatal( "not implemented" );
 }
 
+std::pair<double,QString> CCMetaDataInterface::getRestFrequency() const {
+	std::pair<double,QString> restFreq;
+	if ( m_casaCS ){
+		//Fill in the image rest frequency & unit
+		if ( m_casaCS->hasSpectralAxis() ){
+			restFreq.first = m_casaCS->spectralCoordinate().restFrequency();
+			restFreq.second = m_casaCS->spectralCoordinate().worldAxisUnits()[0].c_str();
+
+		}
+	}
+	return restFreq;
+}
+
 QString
 CCMetaDataInterface::title( TextFormat format )
 {

@@ -21,6 +21,7 @@ namespace Carta {
 namespace Data {
 
 const QString CurveData::CLASS_NAME = "CurveData";
+const QString CurveData::ACTIVE = "active";
 const QString CurveData::FIT = "fit";
 const QString CurveData::FIT_CENTER = "center";
 const QString CurveData::FIT_PEAK = "peak";
@@ -38,6 +39,8 @@ const QString CurveData::REST_FREQUENCY = "restFrequency";
 const QString CurveData::REST_FREQUENCY_UNITS = "restFrequencyUnits";
 const QString CurveData::REST_UNIT_FREQ = "restUnitFreq";
 const QString CurveData::REST_UNIT_WAVE = "restUnitWave";
+const QString CurveData::SPECTRAL_TYPE = "spectralType";
+const QString CurveData::SPECTRAL_UNIT = "spectralUnit";
 
 
 class CurveData::Factory : public Carta::State::CartaObjectFactory {
@@ -143,26 +146,18 @@ void CurveData::_convertRestFrequency( const QString& oldUnits, const QString& n
 }
 
 
-
-void CurveData::copy( const std::shared_ptr<CurveData> & other ){
-    if ( other ){
-        m_plotDataX = other->m_plotDataX;
-        m_plotDataY = other->m_plotDataY;
-        m_region = other->m_region;
-        m_layer = other->m_layer;
-
-        m_state.setValue<QString>( Util::NAME, other->getName());
-        QColor otherColor = other->getColor();
-        m_state.setValue<int>( Util::RED, otherColor.red() );
-        m_state.setValue<int>( Util::GREEN, otherColor.green() );
-        m_state.setValue<int>( Util::BLUE, otherColor.blue() );
-        m_state.setValue<QString>( Util::STYLE, other->getLineStyle() );
-        m_state.setValue<QString>( STYLE_FIT, other->getLineStyleFit());
-        m_state.setValue<QString>( STATISTIC, other->getStatistic());
-        m_state.setValue<double>(REST_FREQUENCY, other->getRestFrequency() );
-        m_state.setValue<bool>(FIT_SELECT, other->isSelectedFit());
-        m_state.setValue<bool>( POINT_SOURCE, other->_isPointSource());
+QString CurveData::_generateName( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ){
+    QString id;
+    if ( layer ){
+        id = layer->_getLayerName();
+        if ( region ){
+            QString regionName = region->getRegionName();
+            if ( regionName.length() > 0 ){
+                id = id + "[" + regionName + "]";
+            }
+        }
     }
+    return id;
 }
 
 QString CurveData::_generatePeakLabel( int index, const QString& xUnit, const QString& yUnit ) const {
@@ -231,18 +226,7 @@ int CurveData::getDataCount() const {
 }
 
 QString CurveData::getDefaultName() const {
-    QString regionName;
-    QString layerName;
-    if ( m_region ){
-        regionName = m_region->getRegionName();
-    }
-    if ( m_layer ){
-        layerName = m_layer->_getLayerName();
-    }
-    QString dName = layerName;
-    if ( !regionName.isEmpty() ){
-        dName = dName +"["+regionName+"]";
-    }
+	QString dName = _generateName( m_layer, m_region );
     return dName;
 }
 
@@ -381,14 +365,34 @@ std::vector< std::pair<double, double> > CurveData::getPlotData() const {
     return data;
 }
 
+QString CurveData::getSpectralType() const {
+	return m_state.getValue<QString>( SPECTRAL_TYPE );
+}
+
+QString CurveData::getSpectralUnit() const {
+	return m_state.getValue<QString>( SPECTRAL_UNIT );
+}
+
+Carta::Lib::ProfileInfo CurveData::_generateProfileInfo( double restFrequency, const QString& restUnit,
+	const QString& statistic, const QString& spectralType, const QString& spectralUnit ){
+	 Carta::Lib::ProfileInfo profInfo;
+	    profInfo.setRestFrequency( restFrequency );
+	    profInfo.setRestUnit( restUnit );
+	    Carta::Lib::ProfileInfo::AggregateType agType = m_stats ->getTypeFor( statistic );
+	    profInfo.setAggregateType( agType );
+	    profInfo.setSpectralUnit( spectralUnit );
+	    profInfo.setSpectralType( spectralType );
+	    return profInfo;
+}
 
 Carta::Lib::ProfileInfo CurveData::getProfileInfo() const {
-    Carta::Lib::ProfileInfo profInfo;
-    profInfo.setRestFrequency( getRestFrequency() );
-    profInfo.setRestUnit( getRestUnits() );
+    double restFreq = getRestFrequency();
+    QString restUnits = getRestUnits();
     QString stat = getStatistic();
-    Carta::Lib::ProfileInfo::AggregateType agType = m_stats ->getTypeFor( stat );
-    profInfo.setAggregateType( agType );
+    QString spectralUnit = getSpectralUnit();
+    QString spectralType = getSpectralType();
+    Carta::Lib::ProfileInfo profInfo = _generateProfileInfo( restFreq, restUnits, stat,
+    		spectralType, spectralUnit );
     return profInfo;
 }
 
@@ -412,7 +416,6 @@ QString CurveData::getRestUnits() const {
     }
     return units;
 }
-
 
 QString CurveData::getStateString() const{
     return m_state.toString();
@@ -441,10 +444,11 @@ std::vector<double> CurveData::getValuesYFit() const{
 
 void CurveData::_initializeDefaultState(){
     m_state.insertValue<QString>( Util::NAME, "");
-    m_state.insertValue<QString>( Util::ID, "");
+    //m_state.insertValue<QString>( Util::ID, "");
     m_state.insertValue<int>( Util::RED, 255 );
     m_state.insertValue<int>( Util::GREEN, 0 );
     m_state.insertValue<int>( Util::BLUE, 0 );
+    m_state.insertValue<bool>( ACTIVE, true );
 
     QString defaultLineStyle = m_lineStyles->getDefault();
 
@@ -461,6 +465,8 @@ void CurveData::_initializeDefaultState(){
     m_state.insertValue<bool>(REST_FREQUENCY_UNITS, true );
     m_state.insertValue<QString>(REST_UNIT_FREQ, m_frequencyUnits->getDefault());
     m_state.insertValue<QString>(REST_UNIT_WAVE, m_wavelengthUnits->getDefault());
+    m_state.insertValue<QString>(SPECTRAL_TYPE, "");
+    m_state.insertValue<QString>(SPECTRAL_UNIT, "");
 
     m_state.insertValue<bool>(FIT_SELECT, true );
     m_stateFit.insertObject( FIT );
@@ -485,6 +491,10 @@ void CurveData::_initializeStatics(){
     }
 }
 
+bool CurveData::isActive() const {
+	return m_state.getValue<bool>( ACTIVE );
+}
+
 bool CurveData::isFitted() const {
     bool fitted = false;
     if ( m_fitDataX.size() > 0 && m_fitDataY.size() > 0 ){
@@ -493,12 +503,23 @@ bool CurveData::isFitted() const {
     return fitted;
 }
 
-bool CurveData::isMatch( const QString& name ) const {
+bool CurveData::isFrequencyUnits() const {
+	return m_state.getValue<bool>( REST_FREQUENCY_UNITS );
+}
+
+bool CurveData::isMatch( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
+		Carta::Lib::ProfileInfo otherProfInfo ) const {
     bool match = false;
-    QString curveName = m_state.getValue<QString>(Util::NAME);
-    if ( curveName == name ){
-        match = true;
-    }
+    if ( layer && m_layer ){
+    	if ( layer->_getLayerName() == m_layer->_getLayerName()){
+			if ( (!region && !m_region) || (m_region && region && m_region->getRegionName()== region->getRegionName()) ){
+				Carta::Lib::ProfileInfo profInfo = getProfileInfo();
+				if ( profInfo == otherProfInfo ){
+					match = true;
+				}
+			}
+    	}
+	}
     return match;
 }
 
@@ -512,20 +533,20 @@ bool CurveData::isSelectedFit() const {
 
 
 void CurveData::resetRestFrequency(){
-    bool restFreqSet = false;
-    setRestFrequency( m_restFrequency, 0, &restFreqSet );
-    QString freqUnits = m_frequencyUnits->getActualUnits( m_restUnits );
-    if ( !freqUnits.isEmpty() ){
-        m_state.setValue<bool>(REST_FREQUENCY_UNITS, true );
-        m_state.setValue<QString>( REST_UNIT_FREQ, freqUnits);
+    if ( m_layer ){
+    	std::pair<double,QString> quant = m_layer->_getRestFrequency();
+    	setRestQuantity( quant.first, quant.second );
     }
-    else {
-        QString waveUnits = m_wavelengthUnits->getActualUnits( m_restUnits );
-        if ( !waveUnits.isEmpty()){
-            m_state.setValue<bool>(REST_FREQUENCY_UNITS, false );
-            m_state.setValue<QString>( REST_UNIT_WAVE, waveUnits );
-        }
-    }
+}
+
+bool CurveData::setActive( bool active ){
+	bool activeChanged = false;
+	bool oldActive = m_state.getValue<bool>( ACTIVE );
+	if ( oldActive != active ){
+		activeChanged = true;
+		m_state.setValue<bool>( ACTIVE, active );
+	}
+	return activeChanged;
 }
 
 
@@ -548,7 +569,6 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
 }
 
 
-
 void CurveData::setDataX( const std::vector<double>& valsX ){
     CARTA_ASSERT( m_plotDataY.size() == valsX.size());
     m_plotDataX = valsX;
@@ -569,9 +589,7 @@ void CurveData::setDataYFit( const std::vector<double>& valsY ){
     m_fitDataY = valsY;
 }
 
-void CurveData::setGaussParams( const std::vector<std::tuple<double,double,double> >& params ){
-    m_gaussParams = params;
-}
+
 
 void CurveData::setFit( const std::vector<double>& valsX, const std::vector<double>& valsY  ){
     CARTA_ASSERT( valsX.size() == valsY.size() );
@@ -584,25 +602,21 @@ void CurveData::setFitParams( const QString& fitParams ){
 }
 
 
-
 void CurveData::setFitRMS( double rms ){
     m_fitRMS = rms;
 }
-
 
 
 void CurveData::setFitPolyCoeffs( const std::vector<double>& polyCoeffs ){
     m_fitPolyCoeffs = polyCoeffs;
 }
 
-void CurveData::setFitStatus( const QString& fitStatus ) {
-    m_fitStatus = fitStatus;
+void CurveData::setGaussParams( const std::vector<std::tuple<double,double,double> >& params ){
+    m_gaussParams = params;
 }
 
-void CurveData::setId( const QString& id ){
-    if ( id.trimmed().length() > 0 ){
-        m_state.setValue<QString>( Util::ID, id );
-    }
+void CurveData::setFitStatus( const QString& fitStatus ) {
+    m_fitStatus = fitStatus;
 }
 
 
@@ -616,75 +630,6 @@ void CurveData::_setPointSource( bool pointSource ){
     if ( oldPointSource != pointSource ){
         m_state.setValue<bool>( POINT_SOURCE, pointSource );
         m_state.flushState();
-    }
-}
-
-void CurveData::setRegion( std::shared_ptr<Region> region ){
-    m_region = region;
-    if ( !m_nameSet ){
-        QString dName = getDefaultName();
-        m_state.setValue<QString>( Util::NAME, dName );
-        m_state.flushState();
-    }
-}
-
-QString CurveData::setRestFrequency( double freq, double errorMargin, bool* valueChanged ){
-    QString result;
-    *valueChanged = false;
-    if ( freq >= 0 ){
-        double oldRestFrequency = m_state.getValue<double>( REST_FREQUENCY );
-        if ( qAbs( freq - oldRestFrequency ) > errorMargin ){
-            *valueChanged = true;
-            m_state.setValue<double>( REST_FREQUENCY, freq );
-        }
-    }
-    else {
-        result = "Rest frequency must be nonnegative.";
-    }
-    return result;
-}
-
-
-void CurveData::setSelectedFit( bool selected ){
-    m_state.setValue<bool>( FIT_SELECT, selected );
-}
-
-QString CurveData::setStatistic( const QString& stat ){
-    QString result;
-    QString actualStat = m_stats->getActualStatistic( stat );
-    if ( !actualStat.isEmpty() ){
-        QString oldStat = m_state.getValue<QString>( STATISTIC );
-        if ( oldStat != actualStat ){
-            m_state.setValue<QString>( STATISTIC, actualStat );
-        }
-    }
-    else {
-        result = "Unrecognized profile statistic: "+stat;
-    }
-    return result;
-}
-
-void CurveData::setRestQuantity( double restFrequency, const QString& restUnit ){
-    if ( restFrequency >= 0 ){
-        m_restFrequency = restFrequency;
-        m_restUnits = restUnit;
-        QString actualUnit = m_frequencyUnits->getActualUnits( restUnit );
-        bool restUnitType = true;
-        if ( actualUnit.isEmpty()){
-            //Not a valid frequency unit, try a wavelength unit.
-            actualUnit = m_wavelengthUnits->getActualUnits( restUnit );
-            restUnitType = false;
-        }
-        if ( !actualUnit.isEmpty() ){
-            m_state.setValue<double>(REST_FREQUENCY, restFrequency );
-            m_state.setValue<bool>(REST_FREQUENCY_UNITS, restUnitType );
-            if ( restUnitType ){
-                m_state.setValue<QString>(REST_UNIT_FREQ, actualUnit);
-            }
-            else {
-                m_state.setValue<QString>(REST_UNIT_WAVE, actualUnit );
-            }
-        }
     }
 }
 
@@ -750,37 +695,76 @@ QString CurveData::setPlotStyle( const QString& plotStyle ){
     return result;
 }
 
-QString CurveData::setRestUnits( const QString& restUnits, int significantDigits, double errorMargin){
-    bool freqUnits = m_state.getValue<bool>( REST_FREQUENCY_UNITS );
-    QString result;
-    QString actualUnits;
-    if ( freqUnits ){
-        actualUnits = m_frequencyUnits->getActualUnits( restUnits );
+void CurveData::setRegion( std::shared_ptr<Region> region ){
+    m_region = region;
+    if ( !m_nameSet ){
+        QString dName = getDefaultName();
+        m_state.setValue<QString>( Util::NAME, dName );
+        m_state.flushState();
     }
-    else {
-        actualUnits = m_wavelengthUnits ->getActualUnits( restUnits );
-    }
-    if ( !actualUnits.isEmpty() ){
-        QString oldUnits = getRestUnits();
-        if ( actualUnits != oldUnits ){
-            _convertRestFrequency( oldUnits, actualUnits, significantDigits, errorMargin );
-            if ( freqUnits ){
-                m_state.setValue<QString>( REST_UNIT_FREQ, actualUnits );
+}
+
+
+void CurveData::setRestQuantity( double restFrequency, const QString& restUnit ){
+    if ( restFrequency >= 0 ){
+        QString actualUnit = m_frequencyUnits->getActualUnits( restUnit );
+        bool restUnitType = true;
+        if ( actualUnit.isEmpty()){
+            //Not a valid frequency unit, try a wavelength unit.
+            actualUnit = m_wavelengthUnits->getActualUnits( restUnit );
+            restUnitType = false;
+        }
+        if ( !actualUnit.isEmpty() ){
+            m_state.setValue<double>(REST_FREQUENCY, restFrequency );
+            m_state.setValue<bool>(REST_FREQUENCY_UNITS, restUnitType );
+            if ( restUnitType ){
+                m_state.setValue<QString>(REST_UNIT_FREQ, actualUnit);
             }
             else {
-                m_state.setValue<QString>( REST_UNIT_WAVE, actualUnits );
+                m_state.setValue<QString>(REST_UNIT_WAVE, actualUnit );
             }
         }
     }
+}
+
+QString CurveData::setRestFrequency( double freq, double errorMargin, bool* valueChanged ){
+    QString result;
+    *valueChanged = false;
+    if ( freq >= 0 ){
+        double oldRestFrequency = m_state.getValue<double>( REST_FREQUENCY );
+        if ( qAbs( freq - oldRestFrequency ) > errorMargin ){
+            *valueChanged = true;
+            m_state.setValue<double>( REST_FREQUENCY, freq );
+        }
+    }
     else {
-        result = "Unrecognized rest units: " + restUnits;
+        result = "Rest frequency must be nonnegative.";
     }
     return result;
 }
 
-void CurveData::setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin ){
-    bool oldType = m_state.getValue<bool>( REST_FREQUENCY_UNITS );
+bool CurveData::setRestUnits( const QString& actualUnits, int significantDigits, double errorMargin){
+	bool freqUnits = m_state.getValue<bool>( REST_FREQUENCY_UNITS );
+	bool restUnitsChanged = false;
+	QString oldUnits = getRestUnits();
+	if ( actualUnits != oldUnits ){
+		_convertRestFrequency( oldUnits, actualUnits, significantDigits, errorMargin );
+		if ( freqUnits ){
+			m_state.setValue<QString>( REST_UNIT_FREQ, actualUnits );
+		}
+		else {
+			m_state.setValue<QString>( REST_UNIT_WAVE, actualUnits );
+		}
+		restUnitsChanged = true;
+	}
+	return restUnitsChanged;
+}
+
+bool CurveData::setRestUnitType( bool restUnitsFreq, int significantDigits, double errorMargin ){
+    bool typeChanged = false;
+	bool oldType = m_state.getValue<bool>( REST_FREQUENCY_UNITS );
     if ( oldType != restUnitsFreq ){
+    	typeChanged = true;
         m_state.setValue<bool>(REST_FREQUENCY_UNITS, restUnitsFreq );
         //Need to translate the old frequency, unit pair to a new one.
         QString oldUnits = m_state.getValue<QString>( REST_UNIT_FREQ );
@@ -792,8 +776,33 @@ void CurveData::setRestUnitType( bool restUnitsFreq, int significantDigits, doub
         }
         _convertRestFrequency( oldUnits, newUnits, significantDigits, errorMargin );
     }
+    return typeChanged;
 }
 
+void CurveData::setSelectedFit( bool selected ){
+    m_state.setValue<bool>( FIT_SELECT, selected );
+}
+
+
+void CurveData::setSpectralInfo( const QString& spectralType, const QString& spectralUnit ){
+	m_state.setValue<QString>( SPECTRAL_TYPE, spectralType );
+	m_state.setValue<QString>( SPECTRAL_UNIT, spectralUnit );
+}
+
+QString CurveData::setStatistic( const QString& stat ){
+    QString result;
+    QString actualStat = m_stats->getActualStatistic( stat );
+    if ( !actualStat.isEmpty() ){
+        QString oldStat = m_state.getValue<QString>( STATISTIC );
+        if ( oldStat != actualStat ){
+            m_state.setValue<QString>( STATISTIC, actualStat );
+        }
+    }
+    else {
+        result = "Unrecognized profile statistic: "+stat;
+    }
+    return result;
+}
 
 CurveData::~CurveData(){
 }

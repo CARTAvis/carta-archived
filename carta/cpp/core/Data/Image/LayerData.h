@@ -228,6 +228,13 @@ protected:
              bool* valid) const Q_DECL_OVERRIDE;
 
      /**
+      * Return the rest frequency and units for the image.
+      * @return - the image rest frequency and units; a blank string and a negative
+      * 		value are returned with the rest frequency can not be found.
+      */
+     virtual std::pair<double,QString> _getRestFrequency() const Q_DECL_OVERRIDE;
+
+     /**
       * Return the world coordinates corresponding to the given pixel coordinates.
       * @param pixelX - the first pixel coordinate.
       * @param pixelY - the second pixel coordinate.

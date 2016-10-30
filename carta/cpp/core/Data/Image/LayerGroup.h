@@ -305,6 +305,13 @@ protected:
     virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
     /**
+     * Return the rest frequency and units for the image.
+     * @return - the image rest frequency and units; a blank string and a negative
+     * 		value are returned with the rest frequency can not be found.
+     */
+    virtual std::pair<double,QString> _getRestFrequency() const Q_DECL_OVERRIDE;
+
+    /**
      * Return the size of the saved image based on the user defined output size and the aspect
      * ratio mode.
      * @param outputSize - the output image size specified by the user.

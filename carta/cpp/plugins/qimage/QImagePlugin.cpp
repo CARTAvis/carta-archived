@@ -368,6 +368,11 @@ public:
         return m_coordinateFormatter;
     }
 
+    std::pair<double,QString> getRestFrequency() const override {
+    	std::pair<double,QString> restFreq(0,"");
+    	return restFreq;
+    }
+
     virtual PlotLabelGeneratorInterface::SharedPtr
     plotLabelGenerator() override
     {
