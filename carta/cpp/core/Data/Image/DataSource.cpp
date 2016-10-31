@@ -468,7 +468,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         }
                         for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end();) {
                             if (intensities[*it].second == val) {
-                                intensities[*it].first = index;
+                                // Calculate the frame in which this intensity is found
+                                int frame = index * dims[spectralIndex] / total_size;
+                                intensities[*it].first = frame;
                                 it = missingLocations.erase(it);
                             } else {
                                  ++it;
