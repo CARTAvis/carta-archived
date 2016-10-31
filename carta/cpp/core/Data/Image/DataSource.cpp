@@ -460,6 +460,13 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 // indices for which the locations still have to be found
                 std::vector<int> missingLocations = calculated;
                 qDebug() << "+++++++++++++++++++++ Are we about to do something stupid like divide by zero? total_size =" << total_size << ", dims[spectralIndex] =" << dims[spectralIndex];
+                qDebug() << "+++++++++++++++++++++ spectral index:" << spectralIndex << "; dims:";
+                for (int i = 0; i < dims.size(); i++) {
+                    qDebug() << dims[i];
+                }
+
+
+                 
                 int divisor = total_size / dims[spectralIndex];
                 int index = 0;
                 try{
@@ -471,7 +478,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end();) {
                             if (intensities[*it].second == val) {
                                 // Calculate the frame in which this intensity is found
-                                qDebug() << "+++++++++++++++++++++ Are we about to do something stupid like divide by zero? index =" << index << ", divisor =" << divisor;
                                 intensities[*it].first = index / divisor;
                                 it = missingLocations.erase(it);
                             } else {
