@@ -388,30 +388,33 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
         //_copyData( frameLow, frameHigh, spectralIndex, allIndices, allValues );
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
-        if ( rawData != nullptr ){
-            Carta::Lib::NdArray::TypedView<double> view( rawData, false );
-
-            // read in all values from the view into an array
-            // we need our own copy because we'll do quickselect on it...
-            //int index = 0;
-        
-            // Preallocate space for both of these copies to avoid 
-            // running out of memory unnecessarily through dynamic allocation
-            std::vector<int> dims = rawData->dims();
-            int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
-            //allIndices.reserve(total_size);
-            allValues.reserve(total_size);
-
-            //view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
-            view.forEach( [& allValues] ( const double  val ) {
-                if ( std::isfinite( val ) ) {
-                    allValues.push_back( val );
-                    //allIndices.push_back( index );
-                }
-                //index++;
-            }
-            );
+        if ( rawData == nullptr ){
+            qError() << "Could not retrieve image data to calculate missing intensities.";
+            return intensities;
         }
+        
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
+
+        // read in all values from the view into an array
+        // we need our own copy because we'll do quickselect on it...
+        //int index = 0;
+    
+        // Preallocate space for both of these copies to avoid 
+        // running out of memory unnecessarily through dynamic allocation
+        std::vector<int> dims = rawData->dims();
+        int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
+        //allIndices.reserve(total_size);
+        allValues.reserve(total_size);
+
+        //view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
+        view.forEach( [& allValues] ( const double  val ) {
+            if ( std::isfinite( val ) ) {
+                allValues.push_back( val );
+                //allIndices.push_back( index );
+            }
+            //index++;
+        }
+        );
 
         if ( allValues.size() > 0 ){
 
