@@ -389,7 +389,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         //_copyData( frameLow, frameHigh, spectralIndex, allIndices, allValues );
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
         if ( rawData == nullptr ){
-            qError() << "Could not retrieve image data to calculate missing intensities.";
+            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
             return intensities;
         }
         
