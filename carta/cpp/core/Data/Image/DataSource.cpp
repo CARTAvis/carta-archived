@@ -447,7 +447,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 }
             }
 
-            if (frameLow == frameHigh) {
+            if (frameLow == frameHigh && frameLow != -1) {
                 // if we're calculating this for a single frame, that's the location
 
                 for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
