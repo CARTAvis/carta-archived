@@ -374,12 +374,14 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
         allValues.reserve(total_size);
 
+        qDebug() << "+++++++++++++++++++++++++++++ starting to copy image data";
         view.forEach( [& allValues] ( const double  val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( val );
             }
         }
         );
+        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data";
 
         if ( allValues.size() > 0 ){
 
@@ -421,6 +423,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
                 int index = 0;
 
+                qDebug() << "+++++++++++++++++++++++++++++ starting location search";
                 try{
                     view.forEach( [&intensities, &missingLocations, &divisor, &index] ( const double  val ) {
                         if (missingLocations.empty()) {
@@ -442,6 +445,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 } catch (ExitForEach e) {
                     // do nothing; just exit the forEach
                 }
+                qDebug() << "+++++++++++++++++++++++++++++ finished location search";
             }
 
             // now put these tuples in the cache
