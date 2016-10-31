@@ -466,10 +466,12 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                             // Throw exception to exit the loop
                             throw ExitForEach();
                         }
-                        for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end(); ++it) {
+                        for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end();) {
                             if (intensities[*it].second == val) {
                                 intensities[*it].first = index;
                                 it = missingLocations.erase(it);
+                            } else {
+                                 ++it;
                             }
                         }
                         index++;
