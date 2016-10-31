@@ -59,33 +59,33 @@ DataSource::DataSource() :
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-void DataSource::_copyData( int frameLow, int frameHigh, int spectralIndex,
-        std::vector<int>& allIndices, std::vector<double>& allValues ){
-    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
-    if ( rawData != nullptr ){
-        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
+//void DataSource::_copyData( int frameLow, int frameHigh, int spectralIndex,
+        //std::vector<int>& allIndices, std::vector<double>& allValues ){
+    //Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+    //if ( rawData != nullptr ){
+        //Carta::Lib::NdArray::TypedView<double> view( rawData, false );
 
-        // read in all values from the view into an array
-        // we need our own copy because we'll do quickselect on it...
-        int index = 0;
+        //// read in all values from the view into an array
+        //// we need our own copy because we'll do quickselect on it...
+        //int index = 0;
     
-        // Preallocate space for both of these copies to avoid 
-        // running out of memory unnecessarily through dynamic allocation
-        std::vector<int> dims = rawData->dims();
-        int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
-        allIndices.reserve(total_size);
-        allValues.reserve(total_size);
+        //// Preallocate space for both of these copies to avoid 
+        //// running out of memory unnecessarily through dynamic allocation
+        //std::vector<int> dims = rawData->dims();
+        //int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
+        //allIndices.reserve(total_size);
+        //allValues.reserve(total_size);
 
-        view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( val );
-                allIndices.push_back( index );
-            }
-            index++;
-        }
-        );
-    }
-}
+        //view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
+            //if ( std::isfinite( val ) ) {
+                //allValues.push_back( val );
+                //allIndices.push_back( index );
+            //}
+            //index++;
+        //}
+        //);
+    //}
+//}
 
 
 int DataSource::_getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const {
@@ -382,11 +382,42 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
 
-        std::vector < int > allIndices;
+        //std::vector < int > allIndices;
         std::vector < double > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-        _copyData( frameLow, frameHigh, spectralIndex, allIndices, allValues );
+
+        //_copyData( frameLow, frameHigh, spectralIndex, allIndices, allValues );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+        if ( rawData != nullptr ){
+            Carta::Lib::NdArray::TypedView<double> view( rawData, false );
+
+            // read in all values from the view into an array
+            // we need our own copy because we'll do quickselect on it...
+            //int index = 0;
+        
+            // Preallocate space for both of these copies to avoid 
+            // running out of memory unnecessarily through dynamic allocation
+            std::vector<int> dims = rawData->dims();
+            int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
+            //allIndices.reserve(total_size);
+            allValues.reserve(total_size);
+
+            //view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
+            view.forEach( [& allValues] ( const double  val ) {
+                if ( std::isfinite( val ) ) {
+                    allValues.push_back( val );
+                    //allIndices.push_back( index );
+                }
+                //index++;
+            }
+            );
+        }
+
         if ( allValues.size() > 0 ){
+
+            // indices for which the intensities have to be found
+            std::vector<int> calculated;
+                    
             for ( int i = 0; i < percentileCount; i++ ){
                 //Missing intensity
                 if ( intensities[i].first < 0 ){
@@ -396,16 +427,59 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     }
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
                     intensities[i].second = allValues[locationIndex];
-                    int divisor = 1;
-                    std::vector<int> dims = m_image->dims();
-                    for ( int i = 0; i < spectralIndex; i++ ){
-                        divisor = divisor * dims[i];
-                    }
-                    int specIndex = allIndices[locationIndex ]/divisor;
-                    intensities[i].first = specIndex;
-                    //Store the found intensity in the cache.
-                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+
+                    // save this index; we will fill in the locations later
+                    calculated.push_back(i);
+                    
+                    //int divisor = 1;
+                    //std::vector<int> dims = m_image->dims();
+                    //for ( int i = 0; i < spectralIndex; i++ ){
+                        //divisor = divisor * dims[i];
+                    //}
+                    //int specIndex = allIndices[locationIndex ]/divisor;
+                    //intensities[i].first = specIndex;
+                    
+                    ////Store the found intensity in the cache.
+                    //m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
+            }
+
+            if (frameLow == frameHigh) {
+                // if we're calculating this for a single frame, that's the location
+
+                for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
+                    calculated[*it].first = frameLow;
+                }
+            
+            } else {
+                // otherwise find the missing indices in a single pass over the data
+
+                // indices for which the locations still have to be found
+                std::vector<int> missingLocations = calculated;
+                int index = 0;
+                try{
+                    view.forEach( [& calculated, &missingLocations, &index] ( const double  val ) {
+                        if (missingLocations.empty()) {
+                            // raise exception to catch outside
+                        }
+                        for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end(); ++it) {
+                            if (intensities[*it].second == val) {
+                                intensities[*it].first = index;
+                                it = missingLocations.erase(it);
+                            }
+                        }
+                        index++;
+                    }
+                    );
+                } catch (ExitForEach e) {
+                    // do nothing; just exit the forEach
+                }
+            }
+
+            // now put these tuples in the cache
+            for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
+                qDebug() << "+++++++++++++++++ CACHING " << frameLow << frameHigh << intensities[*it].first << percentiles[*it] << intensities[*it].second;
+                m_cachedPercentiles.put( frameLow, frameHigh, intensities[*it].first, percentiles[*it], intensities[*it].second );
             }
         }
     }

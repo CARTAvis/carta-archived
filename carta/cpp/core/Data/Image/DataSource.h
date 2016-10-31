@@ -38,6 +38,9 @@ class Service;
 
 namespace Data {
 
+class ExitForEach : public std::exception {
+};
+
 class CoordinateSystems;
 
 class DataSource : public QObject {
@@ -71,8 +74,8 @@ private:
      * @param allIndices - the indices of the spectral values in the image.
      * @param allValues - the intensities of the values in the image.
      */
-    void _copyData( int frameLow, int frameHigh, int spectralIndex,
-            std::vector<int>& allIndices, std::vector<double>& allValues );
+    //void _copyData( int frameLow, int frameHigh, int spectralIndex,
+            //std::vector<int>& allIndices, std::vector<double>& allValues );
 
     /**
      * Resizes the frame indices to fit the current image.
