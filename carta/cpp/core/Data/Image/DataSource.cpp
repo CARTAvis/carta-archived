@@ -461,7 +461,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 std::vector<int> missingLocations = calculated;
                 int index = 0;
                 try{
-                    view.forEach( [& calculated, &missingLocations, &index] ( const double  val ) {
+                    view.forEach( [&intensities, &calculated, &missingLocations, &index] ( const double  val ) {
                         if (missingLocations.empty()) {
                             // Throw exception to exit the loop
                             throw ExitForEach();
