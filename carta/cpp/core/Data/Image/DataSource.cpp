@@ -448,7 +448,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 // if we're calculating this for a single frame, that's the location
 
                 for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
-                    calculated[*it].first = frameLow;
+                    intensities[*it].first = frameLow;
                 }
             
             } else {
