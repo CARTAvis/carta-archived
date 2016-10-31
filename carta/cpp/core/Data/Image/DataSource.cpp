@@ -471,7 +471,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end();) {
                             if (intensities[*it].second == val) {
                                 // Calculate the frame in which this intensity is found
-                                qDebug() << "+++++++++++++++++++++ Are we about to do something stupid like divide by zero? index =" << index << ", divisor =" divisor;
+                                qDebug() << "+++++++++++++++++++++ Are we about to do something stupid like divide by zero? index =" << index << ", divisor =" << divisor;
                                 intensities[*it].first = index / divisor;
                                 it = missingLocations.erase(it);
                             } else {
