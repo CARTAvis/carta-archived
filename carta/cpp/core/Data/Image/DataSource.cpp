@@ -59,34 +59,6 @@ DataSource::DataSource() :
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-//void DataSource::_copyData( int frameLow, int frameHigh, int spectralIndex,
-        //std::vector<int>& allIndices, std::vector<double>& allValues ){
-    //Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
-    //if ( rawData != nullptr ){
-        //Carta::Lib::NdArray::TypedView<double> view( rawData, false );
-
-        //// read in all values from the view into an array
-        //// we need our own copy because we'll do quickselect on it...
-        //int index = 0;
-    
-        //// Preallocate space for both of these copies to avoid 
-        //// running out of memory unnecessarily through dynamic allocation
-        //std::vector<int> dims = rawData->dims();
-        //int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
-        //allIndices.reserve(total_size);
-        //allValues.reserve(total_size);
-
-        //view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
-            //if ( std::isfinite( val ) ) {
-                //allValues.push_back( val );
-                //allIndices.push_back( index );
-            //}
-            //index++;
-        //}
-        //);
-    //}
-//}
-
 
 int DataSource::_getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const {
     int frameIndex = 0;
@@ -382,11 +354,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
 
-        //std::vector < int > allIndices;
         std::vector < double > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
 
-        //_copyData( frameLow, frameHigh, spectralIndex, allIndices, allValues );
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
         if ( rawData == nullptr ){
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
@@ -397,22 +367,17 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
-        //int index = 0;
     
-        // Preallocate space for both of these copies to avoid 
+        // Preallocate space to avoid 
         // running out of memory unnecessarily through dynamic allocation
         std::vector<int> dims = rawData->dims();
         int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
-        //allIndices.reserve(total_size);
         allValues.reserve(total_size);
 
-        //view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
         view.forEach( [& allValues] ( const double  val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( val );
-                //allIndices.push_back( index );
             }
-            //index++;
         }
         );
 
@@ -433,17 +398,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
                     // save this index; we will fill in the locations later
                     calculated.push_back(i);
-                    
-                    //int divisor = 1;
-                    //std::vector<int> dims = m_image->dims();
-                    //for ( int i = 0; i < spectralIndex; i++ ){
-                        //divisor = divisor * dims[i];
-                    //}
-                    //int specIndex = allIndices[locationIndex ]/divisor;
-                    //intensities[i].first = specIndex;
-                    
-                    ////Store the found intensity in the cache.
-                    //m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
             }
 
@@ -492,7 +446,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             // now put these tuples in the cache
             for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
-                qDebug() << "+++++++++++++++++ CACHING " << frameLow << frameHigh << intensities[*it].first << percentiles[*it] << intensities[*it].second;
                 m_cachedPercentiles.put( frameLow, frameHigh, intensities[*it].first, percentiles[*it], intensities[*it].second );
             }
         }
