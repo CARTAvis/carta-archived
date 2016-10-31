@@ -459,9 +459,10 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
                 // indices for which the locations still have to be found
                 std::vector<int> missingLocations = calculated;
+                int divisor = total_size / dims[spectralIndex];
                 int index = 0;
                 try{
-                    view.forEach( [&intensities, &calculated, &missingLocations, &index] ( const double  val ) {
+                    view.forEach( [&intensities, &missingLocations, &divisor, &index] ( const double  val ) {
                         if (missingLocations.empty()) {
                             // Throw exception to exit the loop
                             throw ExitForEach();
@@ -469,8 +470,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end();) {
                             if (intensities[*it].second == val) {
                                 // Calculate the frame in which this intensity is found
-                                int frame = index * dims[spectralIndex] / total_size;
-                                intensities[*it].first = frame;
+                                intensities[*it].first = index / divisor;
                                 it = missingLocations.erase(it);
                             } else {
                                  ++it;
