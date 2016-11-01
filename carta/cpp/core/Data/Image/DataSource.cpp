@@ -452,6 +452,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     );
                 } catch (ExitForEach e) {
                     // do nothing; just exit the forEach
+                    qDebug() << "Exited forEach at index" << index;
                 }
                 std::clock_t search_end = std::clock();
                 qDebug() << "+++++++++++++++++++++++++++++ finished location search.";
