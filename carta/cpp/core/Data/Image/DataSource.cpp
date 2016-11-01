@@ -13,6 +13,7 @@
 #include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <sys/time.h>
+#include <ctime>
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -375,13 +376,15 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         allValues.reserve(total_size);
 
         qDebug() << "+++++++++++++++++++++++++++++ starting to copy image data";
+        std::clock_t copy_begin = std::clock();
         view.forEach( [& allValues] ( const double  val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( val );
             }
         }
         );
-        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data";
+        std::clock_t copy_end = std::clock();
+        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data. Total size:" << total_size << "Time elapsed:" << (copy_end - copy_begin);
 
         if ( allValues.size() > 0 ){
 
@@ -424,6 +427,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 int index = 0;
 
                 qDebug() << "+++++++++++++++++++++++++++++ starting location search";
+                std::clock_t search_begin = std::clock();
                 try{
                     view.forEach( [&intensities, &missingLocations, &divisor, &index] ( const double  val ) {
                         if (missingLocations.empty()) {
@@ -445,7 +449,8 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 } catch (ExitForEach e) {
                     // do nothing; just exit the forEach
                 }
-                qDebug() << "+++++++++++++++++++++++++++++ finished location search";
+                std::clock_t search_end = std::clock();
+                qDebug() << "+++++++++++++++++++++++++++++ finished location search. Total size:" << total_size << "Time elapsed:" << (search_end - search_begin);
             }
 
             // now put these tuples in the cache
