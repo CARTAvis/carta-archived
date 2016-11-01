@@ -408,7 +408,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 }
             }
             std::clock_t intensity_end = std::clock();
-            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities. Total size:" << total_size << "Time elapsed:" << (intensity_begin - intensity_end);
+            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities. Total size:" << total_size << "Time elapsed:" << (intensity_end - intensity_begin);
 
             if (frameLow == frameHigh && frameLow != -1) {
                 // if we're calculating this for a single frame, that's the location
