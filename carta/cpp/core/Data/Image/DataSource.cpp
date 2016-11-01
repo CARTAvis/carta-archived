@@ -390,7 +390,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             // indices for which the intensities have to be found
             std::vector<int> calculated;
-                    
+                  
+            qDebug() << "+++++++++++++++++++++++++++++ starting to search for intensities";
+            std::clock_t intensity_begin = std::clock();
             for ( int i = 0; i < percentileCount; i++ ){
                 //Missing intensity
                 if ( intensities[i].first < 0 ){
@@ -405,6 +407,8 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     calculated.push_back(i);
                 }
             }
+            std::clock_t intensity_end = std::clock();
+            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities. Total size:" << total_size << "Time elapsed:" << (intensity_begin - intensity_end);
 
             if (frameLow == frameHigh && frameLow != -1) {
                 // if we're calculating this for a single frame, that's the location
