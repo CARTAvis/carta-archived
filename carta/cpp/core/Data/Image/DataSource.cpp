@@ -455,14 +455,14 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 }
                 std::clock_t search_end = std::clock();
                 qDebug() << "+++++++++++++++++++++++++++++ finished location search.";
+
+                qDebug() << "============================ execution times (per element): copy" << (float(copy_end - copy_begin)/total_size) << "; intensity search" << (float(intensity_end - intensity_begin)/total_size) << "; location search" << (float(search_end - search_begin)/total_size);
             }
 
             // now put these tuples in the cache
             for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
                 m_cachedPercentiles.put( frameLow, frameHigh, intensities[*it].first, percentiles[*it], intensities[*it].second );
             }
-
-            qDebug() << "============================ execution times (per element): copy" << (float(copy_end - copy_begin)/total_size) << "; intensity search" << (float(intensity_end - intensity_begin)/total_size) << "; location search" << (float(search_end - search_begin)/total_size);
         }
     }
     return intensities;
