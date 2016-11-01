@@ -384,7 +384,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         }
         );
         std::clock_t copy_end = std::clock();
-        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data. Total size:" << total_size << "Time elapsed:" << (copy_end - copy_begin);
+        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data.";
 
         if ( allValues.size() > 0 ){
 
@@ -408,7 +408,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 }
             }
             std::clock_t intensity_end = std::clock();
-            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities. Total size:" << total_size << "Time elapsed:" << (intensity_end - intensity_begin);
+            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities.";
 
             if (frameLow == frameHigh && frameLow != -1) {
                 // if we're calculating this for a single frame, that's the location
@@ -454,13 +454,15 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     // do nothing; just exit the forEach
                 }
                 std::clock_t search_end = std::clock();
-                qDebug() << "+++++++++++++++++++++++++++++ finished location search. Total size:" << total_size << "Time elapsed:" << (search_end - search_begin);
+                qDebug() << "+++++++++++++++++++++++++++++ finished location search.";
             }
 
             // now put these tuples in the cache
             for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
                 m_cachedPercentiles.put( frameLow, frameHigh, intensities[*it].first, percentiles[*it], intensities[*it].second );
             }
+
+            qDebug() << "============================ execution times (per element): copy" << (float(copy_end - copy_begin)/total_size) << "; intensity search" << (float(intensity_end - intensity_begin)/total_size) << "; location search" << (float(search_end - search_begin)/total_size);
         }
     }
     return intensities;
