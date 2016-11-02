@@ -13,7 +13,6 @@
 #include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <sys/time.h>
-#include <ctime>
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -355,7 +354,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
 
-        std::vector<std::pair<double, int> > allValues;
+        std::vector<std::pair<int,double> > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
 
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
@@ -376,17 +375,13 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         allValues.reserve(total_size);
         int index = 0;
 
-        qDebug() << "+++++++++++++++++++++++++++++ starting to copy image data with locations";
-        std::clock_t copy_begin = std::clock();
         view.forEach( [&allValues, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
-                allValues.push_back( std::make_pair(val, index) );
+                allValues.push_back( std::make_pair(index, val) );
             }
             index++;
         }
         );
-        std::clock_t copy_end = std::clock();
-        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data with locations.";
 
         if ( allValues.size() > 0 ){
 
@@ -395,10 +390,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 divisor /= dims[spectralIndex];
             }
 
-            auto compareIntensityTuples = [] (const std::pair<double,int>& lhs, const std::pair<double,int>& rhs) { return lhs.first < rhs.first; };
-                  
-            qDebug() << "+++++++++++++++++++++++++++++ starting to search for intensities and locations";
-            std::clock_t intensity_begin = std::clock();
+            // only compare the intensity values; ignore the indices
+            auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
+
             for ( int i = 0; i < percentileCount; i++ ){
                 //Missing intensity
                 if ( intensities[i].first < 0 ){
@@ -407,16 +401,15 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         locationIndex = 0;
                     }
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
-                    intensities[i].second = allValues[locationIndex].first;
-                    intensities[i].first = allValues[locationIndex].second / divisor;
-
-                    qDebug() << "-------------------------- caching quantile:" << frameLow << frameHigh << intensities[i].first << percentiles[i] << intensities[i].second; 
+                    
+                    intensities[i].second = allValues[locationIndex].second;
+                    intensities[i].first = allValues[locationIndex].first / divisor;
+                    
+                    qDebug() << "-------------------------- caching quantile:" << frameLow << frameHigh << intensities[i].first << percentiles[i] << intensities[i].second;
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
             }
-            std::clock_t intensity_end = std::clock();
-            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities and locations.";
-            qDebug() << "============================ execution times (per element): copy" << (float(copy_end - copy_begin)/total_size) << "; search" << (float(intensity_end - intensity_begin)/total_size);
+
         }
     }
     return intensities;
