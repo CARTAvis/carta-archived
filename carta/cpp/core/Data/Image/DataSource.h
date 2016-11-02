@@ -38,9 +38,6 @@ class Service;
 
 namespace Data {
 
-class ExitForEach : public std::exception {
-};
-
 class CoordinateSystems;
 
 class DataSource : public QObject {

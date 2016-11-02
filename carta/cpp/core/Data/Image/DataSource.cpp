@@ -355,7 +355,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
 
-        std::vector < double > allValues;
+        std::vector<std:tuple<double, int> > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
 
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
@@ -374,24 +374,28 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         std::vector<int> dims = rawData->dims();
         int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
         allValues.reserve(total_size);
+        int index = 0;
 
-        qDebug() << "+++++++++++++++++++++++++++++ starting to copy image data";
+        qDebug() << "+++++++++++++++++++++++++++++ starting to copy image data with locations";
         std::clock_t copy_begin = std::clock();
-        view.forEach( [& allValues] ( const double  val ) {
+        view.forEach( [&allValues, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
-                allValues.push_back( val );
+                allValues.push_back( std::make_tuple(val, index) );
             }
+            index++;
         }
         );
         std::clock_t copy_end = std::clock();
-        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data.";
+        qDebug() << "+++++++++++++++++++++++++++++ finished copying image data with locations.";
 
         if ( allValues.size() > 0 ){
 
-            // indices for which the intensities have to be found
-            std::vector<int> calculated;
+            int divisor = total_size;
+            if (spectralIndex != -1) {
+                divisor /= dims[spectralIndex];
+            }
                   
-            qDebug() << "+++++++++++++++++++++++++++++ starting to search for intensities";
+            qDebug() << "+++++++++++++++++++++++++++++ starting to search for intensities and locations";
             std::clock_t intensity_begin = std::clock();
             for ( int i = 0; i < percentileCount; i++ ){
                 //Missing intensity
@@ -401,69 +405,15 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         locationIndex = 0;
                     }
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
-                    intensities[i].second = allValues[locationIndex];
+                    intensities[i].second = allValues[locationIndex].first;
+                    intensities[i].first = allValues[locationIndex].second / divisor;
 
-                    // save this index; we will fill in the locations later
-                    calculated.push_back(i);
+                    qDebug() << "-------------------------- caching quantile:" << frameLow << frameHigh << intensities[i].first << percentiles[i] << intensities[i].second; 
+                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
             }
             std::clock_t intensity_end = std::clock();
-            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities.";
-
-            if (frameLow == frameHigh && frameLow != -1) {
-                // if we're calculating this for a single frame, that's the location
-
-                for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
-                    intensities[*it].first = frameLow;
-                }
-            
-            } else {
-                // otherwise find the missing indices in a single pass over the data
-
-                // indices for which the locations still have to be found
-                std::vector<int> missingLocations = calculated;
-
-                int divisor = total_size;
-                if (spectralIndex != -1) {
-                    divisor /= dims[spectralIndex];
-                }
-
-                int index = 0;
-
-                qDebug() << "+++++++++++++++++++++++++++++ starting location search";
-                std::clock_t search_begin = std::clock();
-                try{
-                    view.forEach( [&intensities, &missingLocations, &divisor, &index] ( const double  val ) {
-                        if (missingLocations.empty()) {
-                            // Throw exception to exit the loop
-                            throw ExitForEach();
-                        }
-                        for(std::vector<int>::iterator it = missingLocations.begin(); it != missingLocations.end();) {
-                            if (intensities[*it].second == val) {
-                                // Calculate the frame in which this intensity is found
-                                intensities[*it].first = index / divisor;
-                                it = missingLocations.erase(it);
-                            } else {
-                                 ++it;
-                            }
-                        }
-                        index++;
-                    }
-                    );
-                } catch (ExitForEach e) {
-                    // do nothing; just exit the forEach
-                    qDebug() << "Exited forEach at index" << index;
-                }
-                std::clock_t search_end = std::clock();
-                qDebug() << "+++++++++++++++++++++++++++++ finished location search.";
-
-                qDebug() << "============================ execution times (per element): copy" << (float(copy_end - copy_begin)/total_size) << "; intensity search" << (float(intensity_end - intensity_begin)/total_size) << "; location search" << (float(search_end - search_begin)/total_size);
-            }
-
-            // now put these tuples in the cache
-            for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
-                m_cachedPercentiles.put( frameLow, frameHigh, intensities[*it].first, percentiles[*it], intensities[*it].second );
-            }
+            qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities and locations.";
         }
     }
     return intensities;
