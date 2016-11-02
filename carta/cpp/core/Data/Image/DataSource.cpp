@@ -31,6 +31,11 @@ const int DataSource::INDEX_PERCENTILE = 2;
 const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
 
+bool compareIntensityTuples(const std::pair<double,int>& lhs, const std::pair<double,int>& rhs)
+{
+  return lhs.first < rhs.first;
+}
+
 CoordinateSystems* DataSource::m_coords = nullptr;
 
 DataSource::DataSource() :

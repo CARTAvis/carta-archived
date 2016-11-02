@@ -38,10 +38,7 @@ class Service;
 
 namespace Data {
 
-bool compareIntensityTuples(const std::pair<double,int>& lhs, const std::pair<double,int>& rhs)
-{
-  return lhs.first < rhs.first;
-}
+bool compareIntensityTuples(const std::pair<double,int>& lhs, const std::pair<double,int>& rhs);
 
 class CoordinateSystems;
 
