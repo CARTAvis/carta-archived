@@ -355,7 +355,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
 
-        std::vector<std:tuple<double, int> > allValues;
+        std::vector<std::pair<double, int> > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
 
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
@@ -380,7 +380,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         std::clock_t copy_begin = std::clock();
         view.forEach( [&allValues, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
-                allValues.push_back( std::make_tuple(val, index) );
+                allValues.push_back( std::make_pair(val, index) );
             }
             index++;
         }
@@ -414,6 +414,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             }
             std::clock_t intensity_end = std::clock();
             qDebug() << "+++++++++++++++++++++++++++++ finished searching for intensities and locations.";
+            qDebug() << "============================ execution times (per element): copy" << (float(copy_end - copy_begin)/total_size) << "; search" << (float(intensity_end - intensity_begin)/total_size);
         }
     }
     return intensities;
