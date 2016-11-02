@@ -405,7 +405,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     intensities[i].second = allValues[locationIndex].second;
                     intensities[i].first = allValues[locationIndex].first / divisor;
                     
-                    qDebug() << "-------------------------- caching quantile:" << frameLow << frameHigh << intensities[i].first << percentiles[i] << intensities[i].second;
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
             }
