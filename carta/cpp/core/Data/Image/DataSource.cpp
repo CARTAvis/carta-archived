@@ -404,7 +404,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     if ( locationIndex < 0 ){
                         locationIndex = 0;
                     }
-                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
+                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
                     intensities[i].second = allValues[locationIndex].first;
                     intensities[i].first = allValues[locationIndex].second / divisor;
 
