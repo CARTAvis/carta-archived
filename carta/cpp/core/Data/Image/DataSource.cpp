@@ -31,11 +31,6 @@ const int DataSource::INDEX_PERCENTILE = 2;
 const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
 
-bool compareIntensityTuples(const std::pair<double,int>& lhs, const std::pair<double,int>& rhs)
-{
-  return lhs.first < rhs.first;
-}
-
 CoordinateSystems* DataSource::m_coords = nullptr;
 
 DataSource::DataSource() :
@@ -399,6 +394,8 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             if (spectralIndex != -1) {
                 divisor /= dims[spectralIndex];
             }
+
+            auto compareIntensityTuples = [] (const std::pair<double,int>& lhs, const std::pair<double,int>& rhs) { return lhs.first < rhs.first; };
                   
             qDebug() << "+++++++++++++++++++++++++++++ starting to search for intensities and locations";
             std::clock_t intensity_begin = std::clock();
