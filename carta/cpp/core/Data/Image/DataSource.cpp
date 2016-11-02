@@ -462,6 +462,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             // now put these tuples in the cache
             for(std::vector<int>::iterator it = calculated.begin(); it != calculated.end(); ++it) {
+                qDebug() << "-------------------------- caching quantile:" << frameLow << frameHigh << intensities[*it].first << percentiles[*it] << intensities[*it].second; 
                 m_cachedPercentiles.put( frameLow, frameHigh, intensities[*it].first, percentiles[*it], intensities[*it].second );
             }
         }
