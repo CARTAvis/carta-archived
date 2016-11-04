@@ -52,15 +52,20 @@ RegionControls::RegionControls(const QString& path, const QString& id )
 }
 
 void RegionControls::_addDataRegions( std::vector<std::shared_ptr<Region>> regions ){
-    int count = regions.size();
-    for ( int i = 0; i < count; i++ ){
-    	const QString id = regions[i]->getId();
-        int regionIndex = _findRegionIndex( id );
-        if ( regionIndex < 0 ){
-        	regions[i]->setEditMode( false );
-            m_regions.push_back( regions[i]);
-        }
-    }
+	int count = regions.size();
+	for ( int i = 0; i < count; i++ ){
+		const QString id = regions[i]->getId();
+		int regionIndex = _findRegionIndex( id );
+		if ( regionIndex < 0 ){
+			regions[i]->setEditMode( false );
+			m_regions.push_back( regions[i]);
+			int regionIndex = m_regions.size() - 1;
+			connect( m_regions[regionIndex].get(), SIGNAL(regionSelectionChanged(const QString&)),
+					this, SLOT(_regionSelectionChanged( const QString&)));
+			connect( m_regions[regionIndex].get(), SIGNAL(regionShapeChanged()),
+					this, SLOT(_regionShapeChanged()));
+		}
+	}
     count = m_regions.size();
 
     m_selectRegion->setUpperBound( count );
@@ -118,9 +123,10 @@ void RegionControls::_editDone(){
 
 		m_regionEdit->setActive( true );
 		m_regions.push_back( m_regionEdit );
-		connect( m_regionEdit.get(), SIGNAL(regionSelectionChanged(const QString&)),
+		int regionCount = m_regions.size();
+		connect( m_regions[regionCount-1].get(), SIGNAL(regionSelectionChanged(const QString&)),
 				this, SLOT(_regionSelectionChanged( const QString&)));
-		connect( m_regionEdit.get(), SIGNAL(regionShapeChanged()),
+		connect( m_regions[regionCount-1].get(), SIGNAL(regionShapeChanged()),
 				this, SLOT(_regionShapeChanged()));
 
 		m_selectRegion->setUpperBound( m_regions.size() );

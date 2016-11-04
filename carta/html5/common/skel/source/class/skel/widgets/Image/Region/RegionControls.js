@@ -60,23 +60,30 @@ qx.Class.define("skel.widgets.Image.Region.RegionControls", {
                     		selections.push( i );
                     	}
                     }
-                    if ( this.m_regions.length > 0 ){
-                    	this.m_regionList.setItems( regionNames );
-                    	var selectedRegions = [];
-                    	//If it is auto select, use the animated region.
-                    	if ( this.m_regionSettings.isAutoSelect() ){
-                    		selectedRegions[0] = selectedIndex;
-                    	}
-                    	//If it is user selected, use the ones selected by the user.
-                    	else {
-                    		selectedRegions = selections;
-                    	}
-                    	this.m_regionList.removeListenerById( this.m_regionListListenId );
-                    	this.m_regionList.setSelected( selectedRegions );
-                    	this.m_regionListListenId = this.m_regionList.addListener( "itemsSelected", 
+                    
+                    this.m_regionList.setItems( regionNames );
+                    var selectedRegions = [];
+                    //If it is auto select, use the animated region.
+                    if ( this.m_regionSettings.isAutoSelect() && selections.length > 0 ){
+                    	selectedRegions[0] = selectedIndex;
+                    }
+                    //If it is user selected, use the ones selected by the user.
+                    else {
+                    	selectedRegions = selections;
+                    }
+                    this.m_regionList.removeListenerById( this.m_regionListListenId );
+                    this.m_regionList.setSelected( selectedRegions );
+                    	
+                    this.m_regionListListenId = this.m_regionList.addListener( "itemsSelected", 
                          		this._updateSelectedRegion, this );
+                    	
+                    if ( selectedIndex >= 0 && selectedIndex < this.m_regions.length ){
                     	this.m_regionSettings.setRegion( this.m_regions[selectedIndex] );
                     }
+                    else {
+                    	this.m_regionSettings.setRegion( null );
+                    }
+                    
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
                 }

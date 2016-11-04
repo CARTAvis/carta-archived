@@ -451,13 +451,28 @@ void Histogram::_histogramRendered(const Carta::Lib::Hooks::HistogramResult& res
 		hr->registerError( resultName );
 	}
 	else {
+		//Only create a new one if there is not an existing one that
+		//matches.
+		int targetIndex = -1;
+		int dataCount = m_binDatas.size();
+		for ( int i = 0; i < dataCount; i++ ){
+			if ( m_binDatas[i]->getName() == resultName ){
+				targetIndex = i;
+				break;
+			}
+		}
 		//Add the result to our list of plots.
-		Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-		CartaObject* binObj = objMan->createObject<BinData>();
-		std::shared_ptr<BinData> binData(dynamic_cast<BinData*>(binObj));
-		_assignColor( binData );
-		binData->setHistogramResult( result );
-		m_binDatas.append( binData );
+		if ( targetIndex == -1 ){
+			Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+			CartaObject* binObj = objMan->createObject<BinData>();
+			std::shared_ptr<BinData> binData(dynamic_cast<BinData*>(binObj));
+			_assignColor( binData );
+			binData->setName( resultName );
+			m_binDatas.append( binData );
+			targetIndex = m_binDatas.size() - 1;
+		}
+		m_binDatas[targetIndex]->setHistogramResult( result );
+
 		double freqLow = result.getFrequencyMin();
 		double freqHigh = result.getFrequencyMax();
 		setPlaneRange( freqLow, freqHigh);
@@ -1073,7 +1088,7 @@ void Histogram::_loadData( Controller* controller ){
         	std::shared_ptr<Carta::Lib::Regions::RegionBase> nullRegion( nullptr );
         	HistogramRenderRequest request( image, binCount, minChannel, maxChannel,
         				minFrequency, maxFrequency, rangeUnits, minIntensity, maxIntensity,
-        				fileName, nullRegion, "" );
+        				fileName, nullRegion, "!" );
         	//Only make a new one if we don't already have this one stored since making a
         	//histogram is data intensive.
         	requests.push_back( request );
@@ -1905,6 +1920,7 @@ QString Histogram::_set2DFootPrint( const QString& params ){
         if ( footPrintStr != oldFootPrint){
             m_state.setValue<QString>(FOOT_PRINT, footPrintStr );
             m_state.flushState();
+
             _generateHistogram( nullptr );
         }
     }
@@ -2071,7 +2087,7 @@ std::vector<HistogramRenderRequest> Histogram::_updateBinDatas( std::vector<Hist
 		bool binFound = false;
 		for ( int j = 0; j < dataCount; j++ ){
 			QString id = m_binDatas[j]->getName();
-			if ( id == requestId ){
+			if ( requestId.startsWith( id ) ){
 				binFound = true;
 				break;
 			}
@@ -2088,7 +2104,7 @@ std::vector<HistogramRenderRequest> Histogram::_updateBinDatas( std::vector<Hist
 		QString binDataId = m_binDatas[j]->getName();
 		for ( int i = 0; i < requestCount; i++ ){
 			QString requestId = requests[i].getId();
-			if ( requestId == binDataId ){
+			if ( requestId.startsWith(binDataId)){
 				requested = true;
 				break;
 			}
@@ -2100,7 +2116,7 @@ std::vector<HistogramRenderRequest> Histogram::_updateBinDatas( std::vector<Hist
 
 	//Remove bin data that we don't need.
 	int removeCount = removeIndices.size();
-	for ( int i = 0; i < removeCount; i++ ){
+	for ( int i = removeCount-1; i>= 0; i-- ){
 		_removeData( removeIndices[i] );
 	}
 	return newRequests;
@@ -2171,7 +2187,6 @@ void Histogram::_updatePlots( ){
 	m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
 	m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
 	m_plotManager->updatePlot();
-
 }
 
 QString Histogram::_zoomToSelection(){

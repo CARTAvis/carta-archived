@@ -57,6 +57,12 @@ public:
      */
     void setHistogramResult( const Carta::Lib::Hooks::HistogramResult& result  );
 
+    /**
+     * Set an identifier for the data.
+     * @param name - an identifier for the data.
+     */
+    void setName( const QString& name );
+
     virtual ~BinData();
     const static QString CLASS_NAME;
 

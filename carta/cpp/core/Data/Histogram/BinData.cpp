@@ -73,6 +73,9 @@ void BinData::setHistogramResult( const Carta::Lib::Hooks::HistogramResult& resu
 	m_result = result;
 }
 
+void BinData::setName( const QString& name ){
+	m_state.setValue<QString>( Util::NAME, name );
+}
 
 BinData::~BinData(){
 }

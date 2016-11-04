@@ -118,17 +118,25 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettings", {
          * @param region {Object} - the region whose settings should be displayed.
          */
         setRegion : function( region ){
-        	var regionType = region.regionType;
+        	var regionType = "";
+        	if ( region !== null ){
+        		regionType = region.regionType;
+        	}
+        	
         	if ( this.m_region === null || this.m_region.getType() != regionType ){
         		var contentIndex = this.m_content.indexOf( this.m_region);
         		if ( contentIndex >= 0 ){ 
         			this.m_content.remove( this.m_region );
         		}
-        		this.m_region = this._makeRegion( regionType );
-        		this.m_content.add( this.m_region );
-        	}
         	
-        	this.m_region.setRegion( region );
+        		this.m_region = this._makeRegion( regionType );
+        		if ( this.m_region ){
+        			this.m_content.add( this.m_region );
+        		}
+        	}
+        	if ( region !== null ){
+        		this.m_region.setRegion( region );
+        	}
         },
         
         /**
