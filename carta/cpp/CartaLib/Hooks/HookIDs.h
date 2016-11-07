@@ -31,7 +31,7 @@ enum class UniqueHookIDs {
     ProfileHook_ID,
     Fit1DHook_ID,
     ImageStatisticsHook_ID,
-
+    GetPersistantCache_ID,
 
     /// experimental, soon to be removed:
     PreRender_ID,

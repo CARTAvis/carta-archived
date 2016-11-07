@@ -21,7 +21,7 @@ LevelDbIPCache::LevelDbIPCache()
 //    options.write_buffer_size *= 256;
     options.create_if_missing = true;
 
-    leveldb::Status status = leveldb::DB::Open( options, "/scratch/testLevelDb.leveldb", & db );
+    leveldb::Status status = leveldb::DB::Open( options, "/scratchSD/testLevelDb.leveldb", & db );
 
     if ( false == status.ok() ) {
         qDebug() << "Unable to open/create test database './testdb'" << endl;

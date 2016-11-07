@@ -171,6 +171,11 @@ PluginManager::loadPlugins()
             initInfo.pluginPath = pInfo.dirPath;
             auto json = Globals::instance()-> mainConfig()-> json();
             initInfo.json = json["plugins"].toObject()[pInfo.json.name].toObject();
+            if( 0) {
+                QJsonDocument doc( initInfo.json);
+                qDebug() << "  name:" << pInfo.json.name;
+                qDebug() << "  json:" << doc.toJson();
+            }
             pInfo.rawPlugin->initialize( initInfo );
 
             // find out what hooks this plugin wants to listen to

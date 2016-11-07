@@ -25,6 +25,8 @@ SUBDIRS += ColormapsPy
 SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 
+SUBDIRS += PCacheSqlite3
+
 # adrianna's render plugin
 
 SUBDIRS += hpcImgRender

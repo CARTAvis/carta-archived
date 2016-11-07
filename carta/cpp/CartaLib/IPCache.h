@@ -1,9 +1,8 @@
-/**
- *
- **/
+/// IPCache is a set of APIs to access persistant cache.
 
 #pragma once
 
+#include "CartaLib/CartaLib.h"
 #include <QJsonObject>
 #include <QByteArray>
 #include <QString>
@@ -15,6 +14,8 @@ namespace Lib
 {
 class IPCache
 {
+    CLASS_BOILERPLATE( IPCache );
+
 public:
 
     /// return maximum storage in bytes
