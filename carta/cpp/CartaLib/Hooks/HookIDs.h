@@ -27,6 +27,8 @@ enum class UniqueHookIDs {
     GetImageRenderService_ID,
     GetProfileExtractor_ID,
 
+    GetPersistantCache_ID,
+
     /// region related stuff, still to be considered experimental
     CoordSystemHook_ID,
     DeserializeCoordSysConverterHook_ID,

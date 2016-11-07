@@ -1,19 +1,25 @@
 //#include "core/Viewer.h"
+#include "CartaLib/Hooks/Initialize.h"
+#include "CartaLib/Hooks/GetPersistantCache.h"
 #include "core/MyQApp.h"
 #include "core/CmdLine.h"
 #include "core/MainConfig.h"
 #include "core/Globals.h"
-#include "CartaLib/Hooks/LoadAstroImage.h"
-#include "CartaLib/Hooks/Initialize.h"
 #include "LevelDbIPCache.h"
+#include "SqLitePCache.h"
 #include <QDebug>
 #include <QTime>
 
 namespace tCache
 {
-std::unique_ptr < Carta::Lib::IPCache > pcache;
+std::shared_ptr < Carta::Lib::IPCache > pcache;
+
+//int imWidth = 20;
+//int imHeight = 8000;
+//int imDepth = 16000;
+
 int imWidth = 20;
-int imHeight = 8000;
+int imHeight = 20;
 int imDepth = 16000;
 
 double
@@ -32,39 +38,43 @@ genProfile( int x, int y )
     return arr;
 }
 
-QByteArray vd2qb( const std::vector<double> & vd) {
+QByteArray
+vd2qb( const std::vector < double > & vd )
+{
     QByteArray ba;
-    for( const double & d : vd) {
-        ba.append( (const char *)( & d), sizeof( double));
+    for ( const double & d : vd ) {
+        ba.append( (const char *) ( & d ), sizeof( double ) );
     }
     return ba;
 }
 
-std::vector<double> qb2vd( const QByteArray & ba) {
-    std::vector<double> vd;
-    if( ba.size() % sizeof(double) != 0) {
+std::vector < double >
+qb2vd( const QByteArray & ba )
+{
+    std::vector < double > vd;
+    if ( ba.size() % sizeof( double ) != 0 ) {
         return vd;
     }
     const char * cptr = ba.constData();
-    for( int i = 0 ; i < ba.size() ; i += sizeof(double)) {
-        vd.push_back( * ((const double *) (cptr + i)));
+    for ( int i = 0 ; i < ba.size() ; i += sizeof( double ) ) {
+        vd.push_back( * ( (const double *) ( cptr + i ) ) );
     }
     return vd;
 }
 
 static std::vector < double >
-readProfile( int x, int y) {
-
-    QString key = QString( "%1/%2").arg(x).arg(y);
+readProfile( int x, int y )
+{
+    QString key = QString( "%1/%2" ).arg( x ).arg( y );
     QByteArray val;
-    if( ! pcache-> readEntry( key.toUtf8(), val))
-    {
-        return {};
+    if ( ! pcache-> readEntry( key.toUtf8(), val ) ) {
+        return { };
     }
-    if( val.size() != int(sizeof(double) * imDepth)) {
+    if ( val.size() != int (sizeof( double ) * imDepth) ) {
         qWarning() << "Cache size mismatch";
-        return {};
+        return { };
     }
+
 //    std::vector<double> res(imWidth);
 //    const double * dptr = reinterpret_cast<const double*> (val.constData());
 //    for( int z = 0 ; z < imDepth ; z ++ ) {
@@ -72,8 +82,8 @@ readProfile( int x, int y) {
 //        dptr ++;
 //    }
 
-    return qb2vd( val);
-}
+    return qb2vd( val );
+} // readProfile
 
 static void
 populateCache()
@@ -100,14 +110,7 @@ populateCache()
 
             // write the entry
             QString keyString = QString( "%1/%2" ).arg( x ).arg( y );
-
-//            QByteArray ba = QByteArray::fromRawData(
-//                reinterpret_cast < char * > ( & arr[0] ),
-//                sizeof( double ) * imDepth );
-//            pcache-> setEntry(
-//                keyString.toUtf8(), ba, 0 );
-
-            pcache-> setEntry( keyString.toUtf8(), vd2qb(arr), 0);
+            pcache-> setEntry( keyString.toUtf8(), vd2qb( arr ), 0 );
         }
         pcache-> setEntry( "lastx", QString::number( x + 1 ).toUtf8(), 0 );
     }
@@ -126,13 +129,13 @@ readCache()
             QString keyString = QString( "%1/%2" ).arg( x ).arg( y );
 
             QByteArray ba;
-            if( ! pcache-> readEntry( keyString.toUtf8(), ba)) {
+            if ( ! pcache-> readEntry( keyString.toUtf8(), ba ) ) {
                 qCritical() << "Failed to read" << x << y;
+                continue;
             }
-            std::vector< double> arr2 = qb2vd(ba);
-            if( arr != arr2) {
+            std::vector < double > arr2 = qb2vd( ba );
+            if ( arr != arr2 ) {
                 qCritical() << "Failed to match" << x << y;
-
             }
 
             /*
@@ -153,16 +156,29 @@ readCache()
             }
             */
         }
-        qDebug() << "  " << (x+1) * imHeight * 1000.0 / t.elapsed() << "pix/s";
+        qDebug() << "  " << ( x + 1 ) * imHeight * 1000.0 / t.elapsed() << "pix/s";
     }
-
-}
+} // readCache
 
 static void
 testCache()
 {
-    pcache.reset(
-        new LevelDbIPCache() );
+//    pcache.reset(
+//        new LevelDbIPCache() );
+
+//    pcache.reset(
+//        new SqLitePCache() );
+
+    {
+        pcache-> setEntry( "hello", "world", 0 );
+        QByteArray val;
+        if ( pcache-> readEntry( "hello", val ) ) {
+            qDebug() << "hello=" << val;
+        }
+        else {
+            qDebug() << "hello not found";
+        }
+    }
 
     // populate cache
     populateCache();
@@ -238,6 +254,19 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     qDebug() << "List of loaded plugins: [" << infoList.size() << "]";
     for ( const auto & entry : infoList ) {
         qDebug() << "  path:" << entry.json.name;
+    }
+
+    // send an initialize hook to all plugins, because some may rely on it
+    pm-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
+
+    // let's get pcache object
+    auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistantCache >().first();
+    if( pcacheRes.isNull()) {
+        qWarning() << "Could not initialize persistent cache.";
+        return -1;
+    }
+    else {
+        pcache = pcacheRes.val();
     }
 
     testCache();

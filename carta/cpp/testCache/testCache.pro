@@ -2,14 +2,16 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  webkitwidgets network widgets xml
+QT      +=  webkitwidgets network widgets xml sql
 
 HEADERS += \
-    LevelDbIPCache.h
+    LevelDbIPCache.h \
+    SqLitePCache.h
 
 SOURCES += \
     main.cpp \
-    LevelDbIPCache.cpp
+    LevelDbIPCache.cpp \
+    SqLitePCache.cpp
 
 RESOURCES =
 

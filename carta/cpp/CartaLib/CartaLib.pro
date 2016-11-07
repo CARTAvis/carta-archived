@@ -39,7 +39,8 @@ SOURCES += \
     Regions/ICoordSystem.cpp \
     Hooks/CoordSystemHook.cpp \
     Regions/CoordinateSystemFormatter.cpp \
-    IPCache.cpp
+    IPCache.cpp \
+    Hooks/GetPersistantCache.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -83,7 +84,8 @@ HEADERS += \
     Regions/ICoordSystem.h \
     Hooks/CoordSystemHook.h \
     Regions/CoordinateSystemFormatter.h \
-    IPCache.h
+    IPCache.h \
+    Hooks/GetPersistantCache.h
 
 unix {
     target.path = /usr/lib

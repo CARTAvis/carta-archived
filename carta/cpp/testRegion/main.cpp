@@ -17,7 +17,6 @@
 
 namespace tRegion
 {
-
 namespace CLR = Carta::Lib::Regions;
 
 static void
@@ -61,13 +60,58 @@ testFormatting()
     // format a coordinate
     qDebug() << "Coord:" << f.format( cs, { 1.0, 2.0, 3.0, 1.0 }
                                       );
-
 } // apiTestFormatting
-
 
 typedef Carta::Lib::Regions::RegionSet RegionSet;
 typedef Carta::Lib::Image::ImageInterface Image;
 typedef Carta::Lib::Regions::ICoordSystemConverter ICoordSystemConverter;
+
+class IStagedConverter
+{
+public:
+
+    virtual bool
+    src2dst( const Carta::Lib::Regions::PointN & pt,
+             Carta::Lib::Regions::PointN & result ) = 0;
+
+    virtual bool
+    dst2src( const Carta::Lib::Regions::PointN & pt,
+             Carta::Lib::Regions::PointN & result ) = 0;
+
+};
+
+class StagedCSConverter : public ICoordSystemConverter
+{
+public:
+
+    virtual bool
+    src2dst( const Carta::Lib::Regions::PointN & pt,
+             Carta::Lib::Regions::PointN & result ) override
+    {
+        result.resize( m_dstCS.ndim(), 0.0 );
+        for ( auto & cvt : m_converters ) {
+            cvt-> src2dst( pt, result );
+        }
+    }
+
+    virtual bool
+    dst2src( const Carta::Lib::Regions::PointN & pt,
+             Carta::Lib::Regions::PointN & result ) override
+    { }
+
+    virtual const Carta::Lib::Regions::CompositeCoordinateSystem &
+    srcCS() override
+    { }
+
+    virtual const Carta::Lib::Regions::CompositeCoordinateSystem &
+    dstCS() override
+    { }
+
+private:
+
+    Carta::Lib::Regions::CompositeCoordinateSystem m_srcCS, m_dstCS;
+    std::vector < IStagedConverter * > m_converters;
+};
 
 RegionSet *
 readRegionSet( QString /*fname*/ )
@@ -86,13 +130,26 @@ readRegionSet( QString /*fname*/ )
     c2->setLineColor( "blue" );
 
     RegionSet * rSet = new RegionSet();
-    rSet-> setRoot( c1);
+    rSet-> setRoot( c1 );
 
-    auto cvt = std::make_shared<CLR::PixelIdentityCSConverter>( 2);
-    rSet-> addCoordSystemConverter( cvt);
+    auto cvt = std::make_shared < CLR::PixelIdentityCSConverter > ( 2 );
+    rSet-> addCoordSystemConverter( cvt );
 
     return rSet;
 } // readRegionSet
+
+/// makes a converter between two composite coordinate systems using the provided
+/// permutation
+Carta::Lib::Regions::ICoordSystemConverter *
+makeConverter( const CLR::CompositeCoordinateSystem & src,
+               const CLR::CompositeCoordinateSystem & dst,
+               const std::vector < int > & perm )
+{ }
+
+std::vector < int >
+findPermutation( const CLR::CompositeCoordinateSystem & src,
+                 const CLR::CompositeCoordinateSystem & dst )
+{ }
 
 /// makes a converter between two composite coordinate systems
 Carta::Lib::Regions::ICoordSystemConverter *
@@ -103,6 +160,12 @@ makeConverter( const CLR::CompositeCoordinateSystem & src,
     int ndim = std::min( src.ndim(), dst.ndim() );
 
     return new Carta::Lib::Regions::PixelIdentityCSConverter( ndim );
+
+    /// find a possible permutation from src to dst
+    std::vector < int > perm = findPermutation( src, dst );
+
+    /// use the permutation to create the converter
+    return makeConverter( src, dst, perm );
 }
 
 static void
@@ -188,7 +251,6 @@ testRegionOnImage( QString imageFname, QString regionFname )
     auto dataSliceRaw = astroImage->getDataSlice( SliceND() );
     auto dataSlice = Carta::Lib::NdArray::TypedView < double > ( dataSliceRaw, true );
 
-
     // iterate through the data one pixel at a time
     for ( double y = 0 ; y < height ; y++ ) {
         qDebug() << "y=" << y;
@@ -202,8 +264,10 @@ testRegionOnImage( QString imageFname, QString regionFname )
             for ( int i = 0 ; i < nRegionCS ; i++ ) {
                 // first convert from image WCS to region's WCS
                 converters[i]-> src2dst( fPos, fPos2 );
+
                 // convert from region's WCS to region's pixel CS
-                rSet->coordSystemConverter(i).dst2src( fPos2, fPos3);
+                rSet->coordSystemConverter( i ).dst2src( fPos2, fPos3 );
+
                 // convert to QPointF
                 cvPoints[i] = QPointF( fPos2[0], fPos2[1] );
             }
@@ -224,7 +288,7 @@ testRegionOnImage( QString imageFname, QString regionFname )
     qDebug() << "#pixels in region:" << stats.nPixelsReal;
     qDebug() << "#non-nan pixels in region:" << stats.nPixelsReal;
     qDebug() << "sum:" << stats.sum;
-}
+} // testRegionOnImage
 
 static int
 coreMainCPP( QString platformString, int argc, char * * argv )
@@ -284,7 +348,6 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     for ( const auto & entry : infoList ) {
         qDebug() << "  path:" << entry.json.name;
     }
-
 
     testFormatting();
 
