@@ -47,7 +47,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindow", {
 
     events : {
         "closeWindow" : "qx.event.type.Data",
-        "registered" : "qx.event.type.Data"
+        "registered" : "qx.event.type.Data",
+        "windowRestored" : "qx.event.type.Data",
+        "windowMaximized" : "qx.event.type.Data",
+        "iconify" : "qx.event.type.Data"
     },
 
     statics : {

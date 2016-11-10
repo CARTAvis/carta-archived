@@ -100,7 +100,6 @@ public:
 
     static const QString CLASS_NAME;
     static const QString LEVEL;
-    static const QString STYLE;
     static const double ERROR_MARGIN;
 
     virtual ~Contour();

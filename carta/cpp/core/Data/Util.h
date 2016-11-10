@@ -113,6 +113,7 @@ public:
 
      static const QString PREFERENCES;
      static const QString ALPHA;
+     static const QString COLOR;
      static const QString APPLY;
      static const QString RED;
      static const QString GREEN;
@@ -120,9 +121,12 @@ public:
      static const QString ERROR;
      static const QString ID;
      static const QString NAME;
-     static const QString PEN_WIDTH;
+     static const QString WIDTH;
+     static const QString HEIGHT;
      static const QString POINTER_MOVE;
+     static const QString SELECTED;
      static const QString SIGNIFICANT_DIGITS;
+     static const QString STYLE;
      static const QString TAB_INDEX;
      static const QString TYPE;
      static const QString UNITS;

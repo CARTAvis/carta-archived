@@ -368,6 +368,11 @@ public:
         return m_coordinateFormatter;
     }
 
+    std::pair<double,QString> getRestFrequency() const override {
+    	std::pair<double,QString> restFreq(0,"");
+    	return restFreq;
+    }
+
     virtual PlotLabelGeneratorInterface::SharedPtr
     plotLabelGenerator() override
     {
@@ -393,6 +398,8 @@ public:
         return QStringList()
                << "This is a qimage";
     }
+
+    virtual Carta::Lib::Regions::ICoordSystemConverter::SharedPtr getCSConv() override;
 
 private:
 
@@ -588,4 +595,14 @@ QImagePlugin::getInitialHookList()
                Initialize::staticId,
                LoadAstroImage::staticId
     };
+}
+
+Carta::Lib::Regions::ICoordSystemConverter::SharedPtr QImageMDI::getCSConv() {
+    int ndim =  m_ii-> dims().size();
+    auto ptr = Carta::Lib::Regions::makePixelIdentityConverter( ndim);
+    Carta::Lib::Regions::ICoordSystemConverter::SharedPtr sptr( std::move(ptr));
+    return sptr;
+
+//    return std::make_shared< Carta::Lib::Regions::DefaultCoordSystemConverter>(ndim);
+//    return std::make_shared< Carta::Lib::Regions::PixelIdentityCSConverter>(ndim);
 }

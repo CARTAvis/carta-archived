@@ -133,13 +133,19 @@ void ConverterIntensity::convert( std::vector<double>& values,
         QString strippedNew = newUnitsBase;
         if ( isJansky( newUnitsBase)) {
             strippedNew = getJanskyBaseUnits( newUnitsBase );
-        } else if ( isKelvin( newUnitsBase)) {
+        }
+        else if ( isKelvin( newUnitsBase)) {
             strippedNew = getKelvinBaseUnits( newUnitsBase );
         }
 
         //Do the conversion using the base units without the prefix.
+        int hertzCount = hertzValues.size();
         for ( int i = 0; i < maxPoints; i++ ) {
-            values[ i ] = convertQuantity( values[i], hertzValues[i],
+        	double hertzValue = 0;
+        	if ( i < hertzCount ){
+        		hertzValue = hertzValues[i];
+        	}
+            values[ i ] = convertQuantity( values[i], hertzValue,
                     strippedBase, strippedNew,
                     beamAngle, beamArea );
         }
@@ -259,6 +265,7 @@ double ConverterIntensity::arcsecondsToSr( double yValue ) {
 
 void ConverterIntensity::convert( std::vector<double> &resultValues, int sourceIndex,
         int destIndex) {
+
     if ( sourceIndex >= 0 && destIndex >= 0 ) {
         int diff = qAbs( destIndex - sourceIndex );
         float power = pow( 10, diff );
@@ -269,8 +276,8 @@ void ConverterIntensity::convert( std::vector<double> &resultValues, int sourceI
             resultValues[i] = resultValues[i] * power;
         }
     } else {
-        /*qDebug() <<  "Converter: could not convert sourceIndex=" <<
-                        sourceIndex << " destIndex=" << destIndex;*/
+       // qDebug() <<  "Converter: could not convert sourceIndex=" <<
+        //                sourceIndex << " destIndex=" << destIndex;
     }
 }
 
@@ -285,7 +292,8 @@ double ConverterIntensity::convertNonKelvinUnits( double value,
                     convertedValue = arcsecondsToSr( convertedValue );
                 }
             }
-        } else if ( oldUnits == JY_SR ) {
+        }
+        else if ( oldUnits == JY_SR ) {
             if ( newUnits != JY_SR ) {
                 convertedValue = srToArcseconds( value );
                 if ( newUnits == JY_BEAM ) {

@@ -1,4 +1,6 @@
 #include "UnitsIntensity.h"
+#include "Data/Profile/ProfileStatistics.h"
+#include "Data/Util.h"
 #include "CartaLib/CartaLib.h"
 #include "State/UtilState.h"
 #include <QDebug>
@@ -38,6 +40,9 @@ bool UnitsIntensity::m_registered =
 
 UnitsIntensity::UnitsIntensity( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
+	m_spectralAxisAvailable = false;
+	ProfileStatistics* stats = Util::findSingletonObject<ProfileStatistics>();
+	m_stat = stats->getTypeFor( stats->getDefault() );
     _initializeDefaultState();
 }
 
@@ -68,46 +73,64 @@ void UnitsIntensity::_initUnit( int * index, const QString& name ){
 }
 
 void UnitsIntensity::_initializeDefaultState(){
-    m_state.insertArray( UNIT_LIST, 4 );
+	int count = 4;
+	if ( !m_spectralAxisAvailable ){
+		count = 3;
+	}
+    m_state.insertArray( UNIT_LIST, count );
     int i = 0;
     _initUnit( &i, NAME_JYBEAM );
     _initUnit( &i, NAME_JYSR );
     _initUnit( &i, NAME_JYARCSEC );
-    _initUnit( &i, NAME_KELVIN );
+    if ( m_spectralAxisAvailable ){
+    	 _initUnit( &i, NAME_KELVIN );
+    }
+
     m_defaultUnit = NAME_JYBEAM;
     m_state.flushState();
 }
 
-
+void UnitsIntensity::setSpectralAxisAvailable( bool available ){
+	if ( available != m_spectralAxisAvailable ){
+		m_spectralAxisAvailable = available;
+		resetUnits( m_stat );
+	}
+}
 
 void UnitsIntensity::resetUnits( Carta::Lib::ProfileInfo::AggregateType stat ){
-    QStringList units;
-    if ( stat == Carta::Lib::ProfileInfo::AggregateType::SUM ){
-        const QString PIXELS = "*pixels";
-        units.append( NAME_JYBEAM + PIXELS );
-        units.append( NAME_JYSR + PIXELS );
-        units.append( NAME_JYARCSEC + PIXELS );
-        units.append( NAME_KELVIN + PIXELS );
-        m_defaultUnit = NAME_JYBEAM + PIXELS;
-    }
-    else if ( stat == Carta::Lib::ProfileInfo::AggregateType::FLUX_DENSITY ){
-        units.append( NAME_JY );
-        m_defaultUnit = NAME_JY;
-    }
-    else {
-        units.append( NAME_JYBEAM );
-        units.append( NAME_JYSR );
-        units.append( NAME_JYARCSEC );
-        units.append( NAME_KELVIN );
-        m_defaultUnit = NAME_JYBEAM;
-    }
-    int unitCount = units.size();
-    m_state.resizeArray( UNIT_LIST, unitCount );
-    for ( int i = 0; i < unitCount; i++ ){
-        QString key = Carta::State::UtilState::getLookup( UNIT_LIST, i );
-        m_state.setValue<QString>( key, units[i] );
-    }
-    m_state.flushState();
+
+	QStringList units;
+	if ( stat == Carta::Lib::ProfileInfo::AggregateType::SUM ){
+		const QString PIXELS = "*pixels";
+		units.append( NAME_JYBEAM + PIXELS );
+		units.append( NAME_JYSR + PIXELS );
+		units.append( NAME_JYARCSEC + PIXELS );
+		if ( m_spectralAxisAvailable ){
+			units.append( NAME_KELVIN + PIXELS );
+			m_defaultUnit = NAME_JYBEAM + PIXELS;
+		}
+	}
+	else if ( stat == Carta::Lib::ProfileInfo::AggregateType::FLUX_DENSITY ){
+		units.append( NAME_JY );
+		m_defaultUnit = NAME_JY;
+	}
+	else {
+		units.append( NAME_JYBEAM );
+		units.append( NAME_JYSR );
+		units.append( NAME_JYARCSEC );
+		if ( m_spectralAxisAvailable ){
+			units.append( NAME_KELVIN );
+		}
+		m_defaultUnit = NAME_JYBEAM;
+	}
+	int unitCount = units.size();
+	m_state.resizeArray( UNIT_LIST, unitCount );
+	for ( int i = 0; i < unitCount; i++ ){
+		QString key = Carta::State::UtilState::getLookup( UNIT_LIST, i );
+		m_state.setValue<QString>( key, units[i] );
+	}
+
+	m_state.flushState();
 }
 
 

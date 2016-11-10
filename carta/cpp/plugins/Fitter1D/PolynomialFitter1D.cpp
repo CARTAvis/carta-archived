@@ -472,7 +472,7 @@ GuoFit::runIterativeGuo()
 
         // did we improve solution enough?
         bool improvement = false;
-        if ( isnan( lastDiffSq ) ) {
+        if ( std::isnan( lastDiffSq ) ) {
             improvement = true;
         }
         else {

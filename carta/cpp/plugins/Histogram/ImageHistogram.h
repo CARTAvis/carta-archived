@@ -30,7 +30,7 @@ public:
     virtual bool compute() Q_DECL_OVERRIDE;
 
 	int getDataCount() const;
-	void setRegion(casa::ImageRegion* region);
+	void setRegion(casa::ImageRegion* region, const QString& id );
 	void defineLine( int index, QVector<double>& xVals, QVector<double>& yVals,
 			bool useLogY ) const;
 	void defineStepHorizontal( int index, QVector<double>& xVals, QVector<double>& yVals,
@@ -55,6 +55,8 @@ public:
 
 	void setImage(const casa::ImageInterface<T>*  val);
 	static double computeYValue( double value, bool useLog );
+
+
 	virtual ~ImageHistogram();
 
 private:
@@ -76,4 +78,5 @@ private:
 	double m_intensityMin;
 	double m_intensityMax;
 	int m_binCount;
+	QString m_regionId;
 };

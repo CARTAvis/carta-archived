@@ -53,7 +53,7 @@ protected:
 
 
 
-    virtual bool _addGroup( /*const QString& state*/ );
+    virtual bool _addGroup();
 
     /**
      * Add a layer to this one at the given index.
@@ -102,6 +102,16 @@ protected:
      * @return - a string identifier for the composition mode.
      */
     virtual QString _getCompositionMode() const Q_DECL_OVERRIDE;
+
+    /**
+     * Return the point on the image corresponding to the pixel point in the context
+     * view.
+     * @param pixelPt - a pixel position in the context view.
+     * @param outputSize - the size of the context view in pixels.
+     * @param valid - whether or not the returned point is valid.
+     * @return - the pixel position of the point in image coordinates.
+     */
+    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const;
 
     virtual std::shared_ptr<DataContours> _getContour( const QString& name );
 
@@ -217,10 +227,12 @@ protected:
             const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
 
     /**
-     * Return the current layer.
+     * Return the layer with the given name, if a name is specified; otherwise, return the current
+     * layer.
+     * @name - the name of a layer or an empty string to specify the current layer.
      * @return - the current layer.
      */
-    virtual std::shared_ptr<Layer> _getLayer() Q_DECL_OVERRIDE;
+    virtual std::shared_ptr<Layer> _getLayer( const QString& name) Q_DECL_OVERRIDE;
 
     /**
      * Return all layers containing images.
@@ -286,7 +298,18 @@ protected:
     virtual QString _getPixelValue( double x, double y,
             const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Return the graphics for drawing regions.
+     * @return - a list of graphics for drawing regions.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
+    /**
+     * Return the rest frequency and units for the image.
+     * @return - the image rest frequency and units; a blank string and a negative
+     * 		value are returned with the rest frequency can not be found.
+     */
+    virtual std::pair<double,QString> _getRestFrequency() const Q_DECL_OVERRIDE;
 
     /**
      * Return the size of the saved image based on the user defined output size and the aspect
@@ -348,14 +371,17 @@ protected:
     virtual bool _isEmpty() const Q_DECL_OVERRIDE;
 
     /**
-     * Return a QImage representation of this data.
-     * @param frames - a list of frames to load, one for each of the known axis types.
-     * @param autoClip true if clips should be automatically generated; false otherwise.
-     * @param clipMinPercentile the minimum clip value.
-     * @param clipMaxPercentile the maximum clip value.
+     * Returns whether or not the layer can be loaded with the indicated frames.
+     * @param frames - list of frame indices to load.
+     * @return - whether or not the layer can be loaded with the indicated frames.
      */
-    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
-               double clipMaxPercentile ) Q_DECL_OVERRIDE;
+    virtual bool _isLoadable( const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns whether or not the layered images have spectral axes.
+     * @return - true if the layered images all have spectral axes; false, otherwise.
+     */
+    virtual bool _isSpectralAxis() const Q_DECL_OVERRIDE;
 
     /**
      * Remove the contour set from this layer.
@@ -401,10 +427,22 @@ protected:
      */
     virtual bool _setLayerName( const QString& id, const QString& name ) Q_DECL_OVERRIDE;
 
-    virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
+    /**
+     * Group or ungroup any child layers.
+     * @param grouped - true if child layers should be grouped; false, otherwise.
+     * @param viewSize - the view size.
+     * @return - true if the operation was performed; false otherwise.
+     */
+    virtual bool _setLayersGrouped( bool grouped, const QSize& size ) Q_DECL_OVERRIDE;
 
     virtual bool _setMaskColor( const QString& id, int redAmount,
                 int greenAmount, int blueAmount ) Q_DECL_OVERRIDE;
+
+    /**
+     * Set a list of graphics for drawing the current regions.
+     * @param regionVGList - graphics for drawing the current regions.
+     */
+    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
 
     /**
      * Set this data source selected.
@@ -453,6 +491,7 @@ protected:
     virtual void _setZoom( double zoomFactor ) Q_DECL_OVERRIDE;
 
 
+
     virtual void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ) Q_DECL_OVERRIDE;
 
@@ -472,7 +511,7 @@ protected slots:
     virtual void _colorChanged() Q_DECL_OVERRIDE;
 
 private slots:
-    void _renderingDone( QImage image );
+    void _renderingDone( QImage image, Carta::Lib::VectorGraphics::VGList graphics );
     void _removeLayer( Layer* group );
 
 private:
@@ -493,6 +532,8 @@ private:
 
     //Set the color support of the child to conform to that of the group.
     void _setColorSupport( Layer* layer );
+
+    void _setViewSize( const QSize& size );
 
     class Factory;
     static bool m_registered;

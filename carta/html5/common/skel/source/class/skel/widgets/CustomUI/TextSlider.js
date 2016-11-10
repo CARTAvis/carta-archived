@@ -171,6 +171,14 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         },
         
         /**
+         * Returns whether or not a warning is posted.
+         * @return {boolean} - true, if a warning is posted; false, otherwise.
+         */
+        _isWarning : function(){
+        	return this.m_text._isWarning();
+        },
+        
+        /**
          * Send a value change to the server.
          */
         _sendCmd : function(){
@@ -291,6 +299,7 @@ qx.Class.define("skel.widgets.CustomUI.TextSlider", {
         setWidgetEnabled : function( enabled ){
             this.m_slider.setEnabled( enabled );
             this.m_text.setTextEnabled( enabled );
+            this.setEnabled( enabled );
         },
         
         m_cmd : null,

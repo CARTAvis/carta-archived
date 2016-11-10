@@ -26,7 +26,7 @@ QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "LabelFormats","Layout","LayerCompositionModes","LineStyles",
          "PlotStyles", "ProfilePlotStyles",
          "Preferences", "PreferencesSave","ProfileStatistics",
-          "TransformsImage","TransformsData",
+         "RegionTypes", "TransformsImage","TransformsData",
          "Themes",
          "UnitsFrequency","UnitsIntensity","UnitsSpectral","UnitsWavelength",
          "ViewManager"};
@@ -150,9 +150,8 @@ void CartaObject::unregisterView()
     conn()-> unregisterView( m_path +"/view" );
 }
 
-Carta::Lib::LayeredRemoteVGView* CartaObject::makeRemoteView( const QString& path ){
-     //return Carta::Lib::LayeredRemoteVGView::create( conn(), path );
-     return new Carta::Lib::LayeredRemoteVGView( conn(), path, NULL );
+Carta::Lib::LayeredViewArbitrary* CartaObject::makeRemoteView( const QString& path ){
+	return new Carta::Lib::LayeredViewArbitrary( conn(), path, NULL );
 }
 
 QString CartaObject::getStateLocation( const QString& name ) const
@@ -188,8 +187,6 @@ const QString ObjectManager::DestroyObject = "DestroyObject";
 const QString ObjectManager::STATE_ARRAY = "states";
 const QString ObjectManager::STATE_ID = "id";
 const QString ObjectManager::STATE_VALUE = "state";
-
-std::shared_ptr<ObjectManager> ObjectManager::m_om = nullptr;
 
 ObjectManager::ObjectManager ()
 :       m_root( "CartaObjects"),
@@ -292,6 +289,7 @@ void ObjectManager::printObjects(){
     for(map<QString,ObjectRegistryEntry>::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
         QString firstId = it->first;
         QString classId = it->second.getClassName();
+        qDebug() << "id="<<firstId<<" class="<<classId;
     }
 }
 
@@ -356,10 +354,8 @@ ObjectManager *
 ObjectManager::objectManager ()
 {
     // Implements a singleton pattern
-    if ( !m_om ){
-        m_om.reset( new ObjectManager() );
-    }
-    return m_om.get();
+    static ObjectManager om;
+    return &om;
 }
 
 ObjectManager::~ObjectManager (){

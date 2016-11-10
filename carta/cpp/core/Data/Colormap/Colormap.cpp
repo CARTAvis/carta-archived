@@ -35,7 +35,6 @@ const QString Colormap::INTENSITY_MIN = "intensityMin";
 const QString Colormap::INTENSITY_MAX = "intensityMax";
 const QString Colormap::INTENSITY_MIN_INDEX = "intensityMinIndex";
 const QString Colormap::INTENSITY_MAX_INDEX = "intensityMaxIndex";
-const QString Colormap::SIGNIFICANT_DIGITS = "significantDigits";
 const QString Colormap::TAB_INDEX = "tabIndex";
 
 
@@ -138,18 +137,26 @@ void Colormap::_calculateColorStops(){
             std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipe = dSource->_getPipeline();
             if ( pipe ){
                 QStringList buff;
+                double intensityMin = m_stateData.getValue<double>( INTENSITY_MIN );
+                double intensityMax = m_stateData.getValue<double>( INTENSITY_MAX );
+                pipe->setMinMax( intensityMin, intensityMax );
+                double diff = intensityMax - intensityMin;
+                double delta = diff / 100;
                 for ( int i = 0; i < 100; i++ ){
-                    float val = i / 100.0f;
+
+                    float val = intensityMin + i*delta;
+
                     Carta::Lib::PixelPipeline::NormRgb normRgb;
                     pipe->convert( val, normRgb );
                     QColor mapColor;
                     if ( normRgb[0] >= 0 && normRgb[1] >= 0 && normRgb[2] >= 0 ){
-                        mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2] );
+                    	mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2] );
                     }
                     QString hexStr = mapColor.name();
                     if ( i < 99 ){
                         hexStr = hexStr + ",";
                     }
+
                     buff.append( hexStr );
                 }
                 m_state.setValue<QString>( COLOR_STOPS, buff.join("") );
@@ -341,7 +348,7 @@ QString Colormap::_getPreferencesId() const {
 }
 
 int Colormap::getSignificantDigits() const {
-    return m_state.getValue<int>( SIGNIFICANT_DIGITS );
+    return m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
 }
 
 QString Colormap::getStateString( const QString& sessionId, SnapshotType type ) const{
@@ -368,7 +375,7 @@ void Colormap::_initializeDefaultState(){
 
     m_state.insertValue<bool>( GLOBAL, true );
     m_state.insertValue<QString>( COLOR_STOPS, "");
-    m_state.insertValue<int>(SIGNIFICANT_DIGITS, 6 );
+    m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
     m_state.insertValue<int>(TAB_INDEX, 0 );
     m_state.insertValue<QString>( IMAGE_UNITS, m_intensityUnits->getDefault() );
     m_state.flushState();
@@ -561,9 +568,9 @@ void Colormap::_initializeCallbacks(){
     addCommandCallback( "setSignificantDigits", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
                 QString result;
-                std::set<QString> keys = {SIGNIFICANT_DIGITS};
+                std::set<QString> keys = {Util::SIGNIFICANT_DIGITS};
                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString digitsStr = dataValues[SIGNIFICANT_DIGITS];
+                QString digitsStr = dataValues[Util::SIGNIFICANT_DIGITS];
                 bool validDigits = false;
                 int digits = digitsStr.toInt( &validDigits );
                 if ( validDigits ){
@@ -959,8 +966,6 @@ QString Colormap::setIntensityRange( double minValue, double maxValue ){
             m_stateData.flushState();
             _updateImageClips();
             _colorStateChanged();
-
-
         }
     }
     else {
@@ -1071,7 +1076,7 @@ QString Colormap::setSignificantDigits( int digits ){
     }
     else {
         if ( getSignificantDigits() != digits ){
-            m_state.setValue<int>(SIGNIFICANT_DIGITS, digits );
+            m_state.setValue<int>(Util::SIGNIFICANT_DIGITS, digits );
             _setErrorMargin();
             //emit colorStateChanged();
         }
@@ -1097,7 +1102,6 @@ QString Colormap::setTabIndex( int index ){
 void Colormap::_updateImageClips(){
     double minClip = m_stateData.getValue<double>( INTENSITY_MIN );
     double maxClip = m_stateData.getValue<double>( INTENSITY_MAX );
-
     //Change intensity values back to image units.
     Controller* controller = _getControllerSelected();
     if ( controller ){
@@ -1154,6 +1158,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
                   m_stateData.setValue<int>( INTENSITY_MAX_INDEX, intensities[1].first );
               }
               if ( intensityChanged ){
+            	  _colorStateChanged();
                   m_stateData.flushState();
               }
         }

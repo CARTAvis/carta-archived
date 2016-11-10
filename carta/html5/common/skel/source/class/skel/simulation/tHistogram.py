@@ -406,6 +406,96 @@ class tHistogram( unittest.TestCase ):
         # Check that the histogram values are not default values
         newMaxZoomValue = Util._getTextValue( self, driver, "histogramZoomMaxValue")
         self.assertNotEqual( float(newMaxZoomValue), 1, "Histogram did not update to newly linked image")
+    
+    # Test that if we have no region loaded, and switch between the 2D footprint options,
+    # image, current region, and selected region there are no problems (same histogram appears).  
+    def test_histogramNoRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+
+        # Load an image
+        Util.load_image( self, driver, "Default")
+        time.sleep(2)
+        
+        # Find and select the Histogram window
+        histWindow = self._getHistogramWindow( driver )
+        ActionChains(driver).click( histWindow ).perform()
+
+        # Click the settings button to expose the settings
+        self._openHistogramSettings( driver )
+
+         # Open the Selection settings for the Histogram window
+        selectionTab = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.tabview.TabButton']/div[contains(text(),'Selection')]/..")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", selectionTab)
+        ActionChains(driver).click( selectionTab ).perform()
+        
+        #Choose selected region as the foot print.
+        regionId = "Histogram2DFootPrintRegion"
+        selectRegionRadio = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "Histogram2DFootPrintRegion")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", selectRegionRadio)
+        ActionChains(driver).click( selectRegionRadio ).perform()
+        time.sleep( timeout )
+        selectRegion = Util.isCheckedRadio( self, selectRegionRadio )
+        print "Select region=",selectRegion
+        self.assertEqual( selectRegion, True, "Histogram not displaying current region")
+        
+         #Choose all regions as the foot print.
+        selectRegionsRadio = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "Histogram2DFootPrintRegions")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", selectRegionsRadio)
+        ActionChains(driver).click( selectRegionsRadio ).perform()
+        time.sleep( timeout )
+        selectRegions = Util.isCheckedRadio( self, selectRegionsRadio )
+        print "Select region=",selectRegions
+        self.assertEqual( selectRegions, True, "Histogram not displaying all region")
+    
+    # Test that if we load a region and the change the histogram to selected region, then delete
+    # the region there will not be a problem.  
+    def test_histogramSelectRegionDelete(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+
+        # Load an image
+        Util.load_image( self, driver, "Default")
+        time.sleep(2)
+        
+        # Load a region
+        Util.load_image( self, driver, "OrionMethanolRegion.crtf")
+        time.sleep(2)
+        
+        # Find and select the Histogram window
+        histWindow = self._getHistogramWindow( driver )
+        ActionChains(driver).click( histWindow ).perform()
+
+        # Click the settings button to expose the settings
+        self._openHistogramSettings( driver )
+
+         # Open the Selection settings for the Histogram window
+        selectionTab = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.tabview.TabButton']/div[contains(text(),'Selection')]/..")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", selectionTab)
+        ActionChains(driver).click( selectionTab ).perform()
+        
+        #Choose selected region as the foot print.
+        regionId = "Histogram2DFootPrintRegion"
+        selectRegionRadio = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "Histogram2DFootPrintRegion")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", selectRegionRadio)
+        ActionChains(driver).click( selectRegionRadio ).perform()
+        time.sleep( timeout )
+        selectRegion = Util.isCheckedRadio( self, selectRegionRadio )
+        print "Select region=",selectRegion
+        self.assertEqual( selectRegion, True, "Histogram not displaying current region")
+        
+        #Delete the region
+        ActionChains(driver).double_click( imageWindow ).perform()
+        dataButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[text()='Data']/..")))
+        ActionChains(driver).click( dataButton ).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_RIGHT).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        time.sleep( timeout ) 
 
     def tearDown(self):
         # Close the browser

@@ -42,45 +42,44 @@ SimpleRemoteVGView::setVG( const Lib::IRemoteVGView::VGList & vglist )
     m_vgList = vglist;
 }
 
-void SimpleRemoteVGView::setRasterAndVG(const QImage & image, const Lib::IRemoteVGView::VGList & vglist)
+void
+SimpleRemoteVGView::setRasterAndVG( const QImage & image, const Lib::IRemoteVGView::VGList & vglist )
 {
-    setRaster( image);
-    setVG( vglist);
+    setRaster( image );
+    setVG( vglist );
 }
 
-void SimpleRemoteVGView::setVGrenderedOnServer(bool flag)
+void
+SimpleRemoteVGView::setVGrenderedOnServer( bool flag )
 {
     /// \todo client side rendering is not implemented yet
-    CARTA_ASSERT( flag == true);
-    Q_UNUSED( flag);
+    CARTA_ASSERT( flag == true );
+    Q_UNUSED( flag );
 }
 
-bool SimpleRemoteVGView::isVGrenderedOnServer()
+bool
+SimpleRemoteVGView::isVGrenderedOnServer()
 {
     /// \todo only server side is supported at the moment
     return true;
 }
 
-//void SimpleRemoteVGView::enableInputEvent( Carta::Lib::InputEvent::Type type, QString name)
-//{
-//    Q_UNUSED( type);
-//    Q_UNUSED( name);
-//}
-
 qint64
 SimpleRemoteVGView::scheduleRepaint( qint64 id )
 {
-    m_buffer = m_raster;
-    QPainter painter( & m_buffer);
-    Carta::Lib::VectorGraphics::VGListQPainterRenderer renderer;
-    renderer.render( m_vgList, painter);
-    painter.end();
+    // indicate m_buffer needs to be repainted
+    m_buffer = QImage();
 
+    // remember the ID of the job
     if ( id == - 1 ) {
-        id = m_lastRepaintId++;
+        id = m_lastRepaintId + 1;
     }
     m_lastRepaintId = id;
-    m_connector-> refreshView( this);
+
+    // ask the connector for a repaint
+    m_connector-> refreshView( this );
+
+    // return the id
     return id;
 }
 
@@ -100,15 +99,15 @@ SimpleRemoteVGView::SimpleRemoteVGView( QObject * parent,
     using namespace std::placeholders;
 
     m_connector->addCommandCallback(
-                QString( "vgview/inputEvent/%1").arg(viewName),
-                std::bind(  & Me::inputEventCB, this, _1, _2, _3));
+        QString( "vgview/inputEvent/%1" ).arg( viewName ),
+        std::bind( & Me::inputEventCB, this, _1, _2, _3 ) );
 }
 
 void
 SimpleRemoteVGView::registration( IConnector * connector )
 {
     CARTA_ASSERT( connector == m_connector );
-    Q_UNUSED(connector); // get rid of warning in release build
+    Q_UNUSED( connector ); // get rid of warning in release build
     qDebug() << "VGView " << m_viewName << "registered";
 }
 
@@ -121,12 +120,22 @@ SimpleRemoteVGView::name() const
 QSize
 SimpleRemoteVGView::size()
 {
+    if ( m_buffer.isNull() ) {
+        m_buffer = m_raster;
+        QPainter painter( & m_buffer );
+        if ( painter.isActive() ){
+			Carta::Lib::VectorGraphics::VGListQPainterRenderer renderer;
+			renderer.render( m_vgList, painter );
+			painter.end();
+        }
+    }
     return m_buffer.size();
 }
 
 const QImage &
 SimpleRemoteVGView::getBuffer()
 {
+    (void) size();
     return m_buffer;
 }
 
@@ -145,19 +154,23 @@ void
 SimpleRemoteVGView::handleKeyEvent( const QKeyEvent & /*event*/ )
 { }
 
-void SimpleRemoteVGView::viewRefreshed(qint64 id)
+void
+SimpleRemoteVGView::viewRefreshed( qint64 id )
 {
-    Q_UNUSED( id);
+    Q_UNUSED( id );
 }
 
-QString SimpleRemoteVGView::inputEventCB(const QString & cmd, const QString & params, const QString & sessionId)
+QString
+SimpleRemoteVGView::inputEventCB( const QString & cmd,
+                                  const QString & params,
+                                  const QString & sessionId )
 {
-    Q_UNUSED( cmd);
-    Q_UNUSED( sessionId);
+    Q_UNUSED( cmd );
+    Q_UNUSED( sessionId );
     qDebug() << "Input event[" << this->m_viewName << "]:" << params;
 
 //    emit inputEvent( Carta::Lib::InputEvent( Carta::Lib::InputEvent::Type::Custom, "tap"));
-    emit inputEvent( Carta::Lib::InputEvent( QJsonDocument::fromJson( params.toLatin1()).object()));
+    emit inputEvent( Carta::Lib::InputEvent( QJsonDocument::fromJson( params.toLatin1() ).object() ) );
     return QString();
 }
 }

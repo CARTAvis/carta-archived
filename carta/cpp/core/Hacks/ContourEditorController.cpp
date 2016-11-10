@@ -54,22 +54,23 @@ ContourEditorController::ContourEditorController( QObject * parent,
     connect( vname.get(), & type::valueChanged, this, & Me::stdVarCB )
 
     QStringList initialText;
-    initialText << "# specify color"
+    initialText << "# comment out the 'level' lines to turn on the contours"
+                << "## specify color"
                 << "color blue"
-                << "# set width"
+                << "## set width"
                 << "width 3"
-                << "# and alpha"
+                << "## and alpha"
                 << "alpha 0.5"
-                << "# set desired level(s)"
-                << "level 0 1"
-                << "#change width and alpha"
+                << "## set desired level(s)"
+                << "#level 0 1"
+                << "##change width and alpha"
                 << "w 1"
                 << "a 1"
-                << "# add another contour"
-                << "level 0.5"
-                << "# yet another color, this time hex"
+                << "## add another contour"
+                << "#level 0.5"
+                << "## yet another color, this time hex"
                 << "c #ff0000"
-                << "l -1";
+                << "#l -1";
     QString s = initialText.join("\n").toLatin1().toBase64();
 
     SetupVar( m_stringVar, SS::StringVar,

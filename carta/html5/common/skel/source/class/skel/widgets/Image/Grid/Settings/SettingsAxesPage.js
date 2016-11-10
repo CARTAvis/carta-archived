@@ -14,7 +14,9 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
      */
     construct : function( ) {
         this.base(arguments, "Settings", "");
-        this.m_connector = mImport("connector");
+        if ( typeof mImport !== "undefined"){
+            this.m_connector = mImport("connector");
+        }
         this._init();
     },
 
@@ -112,22 +114,26 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
          * Sends a command to the server to change the visibility of the axes.
          */
         _sendShowAxisCmd : function(){
-            var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_id + path.SEP_COMMAND + "setShowAxis";
-            var showAxis = this.m_showAxes.getValue();
-            var params = "showAxis:"+showAxis;
-            this.m_connector.sendCommand( cmd, params, function(){});
+        	if ( this.m_connector !== null ){
+        		var path = skel.widgets.Path.getInstance();
+        		var cmd = this.m_id + path.SEP_COMMAND + "setShowAxis";
+        		var showAxis = this.m_showAxes.getValue();
+        		var params = "showAxis:"+showAxis;
+        		this.m_connector.sendCommand( cmd, params, function(){});
+        	}
         },
         
         /**
          * Sends a command to the server to change whether the axes are internal/external.
          */
         _sendShowInternalLabelsCmd : function(){
-            var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_id + path.SEP_COMMAND + "setShowInternalLabels";
-            var showLabels = this.m_showInternalLabels.getValue();
-            var params = "showInternalLabels:"+showLabels;
-            this.m_connector.sendCommand( cmd, params, function(){});
+        	if ( this.m_connector !== null ){
+        		var path = skel.widgets.Path.getInstance();
+        		var cmd = this.m_id + path.SEP_COMMAND + "setShowInternalLabels";
+        		var showLabels = this.m_showInternalLabels.getValue();
+        		var params = "showInternalLabels:"+showLabels;
+        		this.m_connector.sendCommand( cmd, params, function(){});
+        	}
         },
         
         
@@ -155,6 +161,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
                     this.m_showAxes.getValue() != showAxes ){
                 this.m_showAxes.removeListenerById( this.m_showListenerId );
                 this.m_showAxes.setValue( showAxes );
+                this._setAxesWidgetsEnabled( showAxes );
                 this.m_showListenerId = this.m_showAxes.addListener( skel.widgets.Path.CHANGE_VALUE, 
                         this._showAxesChanged, this);
             }
@@ -181,16 +188,25 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsAxesPage", {
          */
         _showAxesChanged : function(){ 
             var showAxes = this.m_showAxes.getValue();
-            if ( this.m_showInternalLabels !== null ){
-                this.m_showInternalLabels.setEnabled( showAxes );
+            this._setAxesWidgetsEnabled( showAxes );
+            this._sendShowAxisCmd();
+        },
+        
+        /**
+         * Enable/disable the widgets for setting axis properties.
+         * @param enabled {boolean} - true to enable the axis property widgets;
+         * 		false, otherwise.
+         */
+        _setAxesWidgetsEnabled : function( enabled ){
+        	if ( this.m_showInternalLabels !== null ){
+                this.m_showInternalLabels.setEnabled( enabled );
             }
             if ( this.m_thickness !== null ){
-                this.m_thickness.setWidgetEnabled( showAxes );
+                this.m_thickness.setWidgetEnabled( enabled );
             }
             if ( this.m_transparency !== null ){
-                this.m_transparency.setWidgetEnabled( showAxes );
+                this.m_transparency.setWidgetEnabled( enabled );
             }
-            this._sendShowAxisCmd();
         },
 
         /**

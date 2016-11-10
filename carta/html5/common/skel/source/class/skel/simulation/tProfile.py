@@ -24,7 +24,13 @@ class tProfile(unittest.TestCase):
         selectCount = len( cells )
         print "Profile curve count=", selectCount
         self.assertEqual( float(selectCount), expected, "Incorrect number of profiles loaded.")
-        
+    
+    def _getRestFrequency(self, driver):
+        restFrequencyText = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, 'profileRestFrequency' ) ) )
+        restFrequency = restFrequencyText.get_attribute("value")
+        print "Rest frequency=",restFrequency
+        return restFrequency
+      
     # Show the profile window, which is at the moment hidden.
     def _showProfile(self, driver ):
         histWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")))
@@ -34,6 +40,57 @@ class tProfile(unittest.TestCase):
         ActionChains(driver).click( viewMenuButton ).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+            
+    def _animateForward(self, animator, driver):
+        forwardAnimateButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, animator+"TapeDeckIncrement")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", forwardAnimateButton)
+        ActionChains(driver).click( forwardAnimateButton ).perform()
+    
+    def _hitNew(self, driver):
+        newButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID,"profileNewButton")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", newButton )
+        ActionChains(driver).click( newButton ).perform()
+        
+    def _hitDelete(self, driver, time ):
+        deleteButton = WebDriverWait(driver,10).until(EC.presence_of_element_located((By.ID,"profileRemoveButton")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", deleteButton )
+        ActionChains(driver).move_to_element( deleteButton ).perform()
+        time.sleep(2)
+        ActionChains(driver).click( deleteButton ).perform()
+        
+    def _setAutoGenerate(self, driver, auto ):
+        autoCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='profileAutoGenerate']/div")))
+        Util.setChecked(self, driver, autoCheck, auto)
+
+        
+    def _checkRegionProfiled(self, expected, driver ):
+        comboPath = "//div[starts-with(@id,'ProfileSelectedRegion')]/div/div"
+        regionCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, comboPath)))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", regionCombo )
+        regionComboVal = regionCombo.text
+        print "Region profiled, ", regionComboVal
+        if ( expected not in regionComboVal ):
+            self.assertTrue( False, "Not profiling correct region")
+        profileCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[starts-with(@id,'profileNameSelect')]/input")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", profileCombo )
+        profileComboVal = profileCombo.get_attribute( "value")
+        print "Profile name, ",profileComboVal
+        if ( expected not in profileComboVal ):
+            self.assertTrue( False, "Not profiling correct profile")
+        
+    def _checkImageProfiled(self, expected, driver ):
+        comboPath = "//div[starts-with(@id,'ProfileSelectedImage')]/div/div"
+        imageCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, comboPath)))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", imageCombo )
+        imageComboVal = imageCombo.text
+        print "Image profiled, ", imageComboVal
+        self.assertEqual( expected, imageComboVal, "Second image was not selected")
+        profileCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[starts-with(@id,'profileNameSelect')]/input")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", profileCombo )
+        profileComboVal = profileCombo.get_attribute( "value")
+        print "Profile name, ",profileComboVal
+        if ( expected not in profileComboVal ):
+            self.assertTrue( False, "Not profiling correct image")
 
     # Test that we can change from frequency to wavelength units, alter the rest
     # frequency, and then reset it back to its original values.
@@ -43,8 +100,9 @@ class tProfile(unittest.TestCase):
 
         #Load a default image
         Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
-        
+        time.sleep(1)
         self._showProfile( driver )
+        time.sleep(2)
         
         #Open the profile settings to the Profiles tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
@@ -60,15 +118,18 @@ class tProfile(unittest.TestCase):
         driver.execute_script( "arguments[0].scrollIntoView(true);", unitsCombo)
         ActionChains(driver).click( unitsCombo).perform()
         ActionChains(driver).send_keys(Keys.ENTER).perform()
-        restFrequencyText = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, 'profileRestFrequency' ) ) )
-        restFrequency = restFrequencyText.get_attribute("value")
-        print "Rest frequency=",restFrequency
-        self.assertEqual( float(restFrequency), 229759000000, "Rest frequency was not correct")
         
+        restFrequency = self._getRestFrequency(driver)
+        self.assertEqual( float(restFrequency), 229759000000, "Rest frequency was not correct")
+        time.sleep(10)
     
         #Change the units to wavelength
         waveUnitTypeRadio = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, 'profileWaveUnitType' ) ) )
+        driver.execute_script( "arguments[0].scrollIntoView(true);", waveUnitTypeRadio)
+        ActionChains(driver).move_to_element( waveUnitTypeRadio ).perform()
         ActionChains(driver).click( waveUnitTypeRadio ).perform()
+        time.sleep(10)
+        
         
         #Verify the rest frequency has been converted to wavelength
         restFrequencyText = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, 'profileRestFrequency' ) ) )
@@ -103,6 +164,7 @@ class tProfile(unittest.TestCase):
         Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
         
         self._showProfile( driver )
+        time.sleep(4)
         
         #Open the profile settings to the Range tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
@@ -152,9 +214,11 @@ class tProfile(unittest.TestCase):
 
         # Load an image
         Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep(4)
         
         # Show the profile view
         self._showProfile( driver )
+        time.sleep(4)
         
         #Open the profile settings to the Range tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
@@ -205,10 +269,11 @@ class tProfile(unittest.TestCase):
         Util.load_image(self, driver, "TWHydra_CO2_1line.image.fits")
         time.sleep(1)
         Util.load_image(self, driver, "Orion.cont.image.fits")
-        time.sleep(1)
+        time.sleep(4)
         
          # Show the profile view
         self._showProfile( driver )
+        time.sleep(4)
         
         #Open the profile settings to the Profiles tab.
         profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
@@ -239,13 +304,362 @@ class tProfile(unittest.TestCase):
         Util.clickTab( driver, "Profiles")
         ActionChains(driver).click( genSelect ).send_keys(Keys.ARROW_DOWN).send_keys(
             Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
+        
+        #There should now be two profiles loaded.
+        time.sleep(6)
+        self._checkProfileCount( driver, 2 )
+    
+    
+    #Load one image and two regions
+    #Test that if the generate mode is current, only one profile will be seen.
+    #Test that if the generate mode is all, we see two profiles.
+    #Test that if the generate mode is all but single plane, we also see two profiles.
+    def test_generateModeRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+         # Wait for the image window to be present (ensures browser is fully loaded)
+        imageWindow = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowImage']")))
+
+        # Load one image and two regions
+        Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep(1)
+        Util.load_image(self, driver, "OrionMethanolRegion.crtf")
+        time.sleep(1)
+        Util.load_image(self, driver, "OrionMethanolRegionEllipse.crtf")
+        time.sleep(1)
+        
+         # Show the profile view
+        self._showProfile( driver )
+        
+        #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
+        Util.clickTab( driver, "Profiles" )
+        
+        #Get the profiles combo and count how many are listed.  Since
+        #the mode is current there should be just one.
+        self._checkProfileCount( driver, 1)
+        
+        #Change the generate mode to all
+        Util.clickTab( driver, "Profiles")
+        time.sleep(1)
+        genSelect = driver.find_element_by_id("profileGenerateMode")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", genSelect )
+        ActionChains(driver).click( genSelect ).send_keys(
+            Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
+    
+        #There should now be two profiles loaded.
+        time.sleep(2)
+        self._checkProfileCount( driver, 2 )
+    
+        
+        #Change the generate mode to all except single plane.
+        Util.clickTab( driver, "Profiles")
+        ActionChains(driver).click( genSelect ).send_keys(Keys.ARROW_DOWN).send_keys(
+            Keys.ARROW_DOWN).send_keys(Keys.ENTER).perform()
             
         #There should now be two profiles loaded.
         time.sleep(2)
         self._checkProfileCount( driver, 2 )
-        
     
-
+    
+    #Test that if we are on Auto generate current mode, then we can animate through images and
+    #see the profile updated.
+    def test_autoGenerateCurrent(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+          #Load two profiles
+        firstImage = "Orion.methanol.cbc.contsub.image.fits"
+        Util.load_image(self, driver, firstImage )
+        time.sleep(1)
+        secondImage = "TWHydra_CO2_1line.image.fits"
+        Util.load_image(self, driver, secondImage )
+        time.sleep(1)
+        
+         # Show the profile view
+        self._showProfile( driver )
+        time.sleep(2)
+        
+         #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
+        Util.clickTab( driver, "Profiles" )  
+        
+        #Check that the profile is on the second image.
+        self._checkImageProfiled( secondImage, driver )
+        
+        #Animate to the first image
+        self._animateForward( "Image", driver )
+        time.sleep( timeout )
+        
+        #Check that the profile is on the first image
+        self._checkImageProfiled( firstImage, driver )
+        
+        #Animate to the first image
+        self._animateForward( "Image", driver)
+        time.sleep( timeout )
+        
+        #Check that the profile is on the second image
+        self._checkImageProfiled( secondImage, driver )
+        
+        
+    #Test that if we are on Auto generate current mode, then we can animate through regions and
+    #see the profile updated.
+    def test_autoGenerateCurrentRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+        #Load one image and two regions
+        Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits" )
+        time.sleep(1)
+        Util.load_image(self, driver, "OrionMethanolRegion.crtf" )
+        time.sleep( 1)
+        Util.load_image(self, driver, "OrionMethanolRegionEllipse.crtf" )
+        time.sleep(1)
+        
+         # Show the profile view
+        self._showProfile( driver )
+        time.sleep(2)
+        
+         #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
+        Util.clickTab( driver, "Profiles" )
+             
+        #Check that the profile is on the second Region.
+        self._checkRegionProfiled( "ellipse", driver )
+        
+        #Animate to the first region
+        self._animateForward( "Region", driver )
+        time.sleep( timeout )
+        
+        #Check that the profile is on the first region
+        self._checkRegionProfiled( "rectangle", driver )
+        
+        #Animate to the second region
+        self._animateForward( "Region", driver)
+        time.sleep( timeout )
+        
+        #Check that the profile is on the second region
+        self._checkRegionProfiled( "ellipse", driver ) 
+        
+    #Load two images; initially the mode should be auto generate and current so we
+    #should see only one profile.  Turn off auto generate, change the image, and
+    #hit the new button.  We should now see profiles for both images.
+    #Turn auto generate back on, and we should only see one profile.
+    def test_newProfileExisting(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        print "Timeout=",timeout
+        
+        #Load two images
+        Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits" )
+        time.sleep(1)
+        Util.load_image(self, driver, "TWHydra_CO2_1line.image.fits" )
+        time.sleep( 1)
+        
+         # Show the profile view
+        self._showProfile( driver )
+        time.sleep(2)
+        
+         #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
+        Util.clickTab( driver, "Profiles" )
+        
+        #Get the profiles combo and count how many are listed.  Since
+        #the mode is auto generate and current there should be just one.
+        self._checkProfileCount( driver, 1)
+        
+        #Turn off auto generate.
+        Util.clickTab( driver, "Profiles" )
+        self._setAutoGenerate( driver, False )
+        time.sleep( timeout )
+        
+        #Store the image rest frequency.
+        restFrequency = self._getRestFrequency( driver )
+        
+        #Select the other image and test the rest frequency changes to match
+        #the selected image
+        comboPath = "//div[starts-with(@id,'ProfileSelectedImage')]"
+        imageCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, comboPath)))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", imageCombo )
+        ActionChains(driver).click( imageCombo ).perform()
+        ActionChains(driver).click( imageCombo).send_keys(Keys.UP).send_keys( Keys.ENTER).perform()
+        time.sleep( timeout )
+        newRestFrequency = self._getRestFrequency( driver )
+        self.assertNotEqual( restFrequency, newRestFrequency, "Image rest frequency did not change")
+        
+        #Hit the new profile button.
+        self._hitNew( driver )
+        time.sleep( 4 )
+    
+        #Verify that we now have two profiles.
+        self._checkProfileCount( driver, 2 )
+        
+        #Turn on auto generate
+        Util.clickTab( driver, "Profiles" )
+        self._setAutoGenerate( driver, True )
+        time.sleep( timeout )
+        
+        #Verify that we are back to one profile.
+        self._checkProfileCount( driver, 1 )
+    
+    #Test that we can load a non existent profile    
+    def test_newProfile(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+        #Load two images
+        Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits" )
+        time.sleep(1)
+        Util.load_image(self, driver, "Orion.cont.image.fits" )
+        time.sleep( 1)
+        
+        # Show the profile view
+        self._showProfile( driver )
+        time.sleep(2)
+        
+        # Open the profiles tab
+         #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
+        Util.clickTab( driver, "Profiles" )
+        
+        # Change current to all and verify that we see two profiles.
+        genSelect = driver.find_element_by_id("profileGenerateMode")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", genSelect )
+        ActionChains(driver).click( genSelect ).send_keys(
+            Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
+            
+        # Turn off auto-generate
+        self._setAutoGenerate( driver, False )
+        time.sleep( timeout )
+        
+        # Delete one of the profiles and verify that there is just one profile.
+        self._hitDelete( driver, time )
+        time.sleep( 4 )
+        self._checkProfileCount(driver, 1)
+        
+        # Add the image to that of the profile that was deleted.
+        Util.clickTab( driver, "Profiles" )
+        time.sleep( timeout)
+        self._hitNew( driver )
+        time.sleep( timeout)
+        
+        # Verify that there are two profiles.
+        self._checkProfileCount( driver, 2)
+        
+    #Test that we can load a new profile with everything the same except for a different
+    #frequency from an existing profile.
+    def test_newProfileFrequency(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()  
+        
+        #Load one image
+        Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits" )
+        time.sleep(1)
+        
+         # Show the profile view
+        self._showProfile( driver )
+        time.sleep(2)
+        
+         #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
+        Util.clickTab( driver, "Profiles" )
+        
+        #Get the profiles combo and count how many are listed.  Since
+        #the mode is auto generate and current there should be just one.
+        self._checkProfileCount( driver, 1)
+        
+        #Turn off auto generate.
+        Util.clickTab( driver, "Profiles" )
+        self._setAutoGenerate( driver, False )
+        time.sleep( timeout )
+        
+        #Change the frequency to a different value.
+        restFrequency = self._getRestFrequency( driver )
+        self.assertEqual( float(restFrequency), 229759000000, "Rest frequency was not correct")
+        newRestFrequency = 229000000000
+        freqText = WebDriverWait(driver, 10).until(EC.presence_of_element_located( ( By.ID, 'profileRestFrequency' ) ) )
+        Util._changeElementText( self, driver, freqText, newRestFrequency )
+        
+        #Hit the new profile button.
+        self._hitNew( driver )
+        time.sleep( 4 )
+    
+        #Verify that we now have two profiles.
+        self._checkProfileCount( driver, 2 )
+        
+    #Test that we can load a new profile with everything the same except for a different
+    #statistic from an existing profile.
+    def test_newProfileStatistic(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()  
+        
+        #Load one image
+        Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits" )
+        time.sleep(1)
+        
+         # Show the profile view
+        self._showProfile( driver )
+        time.sleep(2)
+        
+         #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep(2)
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep(2)
+        Util.clickTab( driver, "Profiles" )
+        
+        #Get the profiles combo and count how many are listed.  Since
+        #the mode is auto generate and current there should be just one.
+        self._checkProfileCount( driver, 1)
+        
+        #Turn off auto generate.
+        Util.clickTab( driver, "Profiles" )
+        self._setAutoGenerate( driver, False )
+        time.sleep( timeout )
+        
+        #Change the statistics to a different value.
+        comboPath = "//div[starts-with(@id,'profileAggregateStatistics')]"
+        statsCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, comboPath)))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", statsCombo )
+        ActionChains(driver).click( statsCombo ).perform()
+        ActionChains(driver).click( statsCombo).send_keys(Keys.DOWN).send_keys(Keys.DOWN).send_keys( Keys.ENTER).perform()
+        time.sleep( timeout )
+        
+        #Hit the new profile button.
+        self._hitNew( driver )
+        time.sleep( 4 )
+    
+        #Verify that we now have two profiles.
+        self._checkProfileCount( driver, 2 )
+        
+       
+    
     #Test that we can remove a profile curve.
     def test_removeProfile(self):
         driver = self.driver
@@ -281,16 +695,56 @@ class tProfile(unittest.TestCase):
         time.sleep(2)
         self._checkProfileCount( driver, 2 )
         
-        #Hit the delete button
+        #Uncheck auto-generate so we can customize the profiles.
         Util.clickTab( driver, "Profiles")
-        deleteButton = driver.find_element_by_id("profileRemoveButton")
-        driver.execute_script( "arguments[0].scrollIntoView(true);", deleteButton )
-        ActionChains(driver).click( deleteButton ).perform()
+        #autoCheck = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@id='profileAutoGenerate']/div")))
+        #Util.setChecked(self, driver, autoCheck, False)
+        #time.sleep(timeout)
+        self._setAutoGenerate( False )
+        
+        #Hit the delete button
+        self._hitDelete( driver, time )
         
         #There should now be just one profile loaded
         time.sleep(2)
         self._checkProfileCount( driver, 1 )
-  
+        
+    # Test that we can profile a region in an image
+    def test_profileRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        #Load a default image
+        Util.load_image( self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load a region for the image
+        Util.load_image( self, driver, "OrionMethanolRegion.crtf")
+        time.sleep( timeout )
+        
+        self._showProfile( driver )
+        time.sleep( timeout )
+        
+        #Open the profile settings to the Profiles tab.
+        profileWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowProfile']")))
+        ActionChains(driver).click( profileWindow ).perform()
+        time.sleep( timeout )
+        
+        Util.openSettings( self, driver, "Profile", True )
+        time.sleep( timeout )
+        
+        Util.clickTab( driver, "Profiles" )
+        time.sleep( timeout )
+        
+        #Check that there is a region we are profiling
+        regionCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "ProfileSelectedRegion")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", regionCombo )
+        nameDiv = regionCombo.find_element_by_xpath( ".//div/div")
+        regionName = nameDiv.get_attribute( "innerHTML").strip()
+        print "Region is ",regionName
+        self.assertTrue( regionName != "None", "Expected a region to be profiled")
+        
+        
     def tearDown(self):
         #Close the browser
         self.driver.close()
@@ -298,6 +752,7 @@ class tProfile(unittest.TestCase):
         time.sleep(2)
         #Close the session and delete temporary files
         self.driver.quit()
+    
 
 if __name__ == "__main__":
     unittest.main()

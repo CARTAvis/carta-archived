@@ -39,8 +39,11 @@ class LayerCompositionModes;
 class Layer : public QObject, public Carta::State::CartaObject {
 
     friend class Controller;
+    friend class CurveData;
     friend class LayerGroup;
     friend class Profiler;
+    friend class ProfileRenderService;
+    friend class ProfileRenderRequest;
     friend class Stack;
     friend class DrawGroupSynchronizer;
     friend class DrawStackSynchronizer;
@@ -130,6 +133,16 @@ protected:
      * @return - a string identifier for the composition mode.
      */
     virtual QString _getCompositionMode() const;
+
+    /**
+     * Return the point on the image corresponding to the pixel point in the context
+     * view.
+     * @param pixelPt - a pixel position in the context view.
+     * @param outputSize - the size of the context view in pixels.
+     * @param valid - whether or not the returned point is valid.
+     * @return - the pixel position of the point in image coordinates.
+     */
+    virtual QPointF _getContextPt( const QPointF& pixelPt, const QSize& outputSize, bool* valid ) const = 0;
 
     /**
      * Return the contour set with the indicated name.
@@ -258,10 +271,20 @@ protected:
             const std::vector<double>& percentiles ) const = 0;
 
     /**
-     * Return the current layer.
+     * Returns whether or not the layer can be loaded with the indicated frames.
+     * @param frames - list of frame indices to load.
+     * @return - whether or not the layer can be loaded with the indicated frames.
+     */
+    virtual bool _isLoadable( const std::vector<int>& frames ) const;
+
+
+    /**
+     * Return the layer with the given name, if a name is specified; otherwise, return the current
+     * layer.
+     * @name - the name of a layer or an empty string to specify the current layer.
      * @return - the current layer.
      */
-    virtual std::shared_ptr<Layer> _getLayer();
+    virtual std::shared_ptr<Layer> _getLayer( const QString& name );
 
     /**
      * Return all layers containing images.
@@ -342,6 +365,19 @@ protected:
     virtual QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const = 0;
 
     /**
+     * Return the graphics for drawing regions.
+     * @return - a list of graphics for drawing regions.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const = 0;
+
+    /**
+     * Return the rest frequency and units for the image.
+     * @return - the image rest frequency and units; a blank string and a negative
+     * 		value are returned with the rest frequency can not be found.
+     */
+    virtual std::pair<double,QString> _getRestFrequency() const = 0;
+
+    /**
      * Return the size of the saved image based on the user defined output size and the aspect
      * ratio mode.
      * @param outputSize - the output image size specified by the user.
@@ -410,14 +446,10 @@ protected:
     bool _isSelected() const;
 
     /**
-     * Return a QImage representation of this data.
-     * @param frames - a list of frames to load, one for each of the known axis types.
-     * @param autoClip true if clips should be automatically generated; false otherwise.
-     * @param clipMinPercentile the minimum clip value.
-     * @param clipMaxPercentile the maximum clip value.
+     * Returns whether or not the layered images have spectral axes.
+     * @return - true if the layered images all have spectral axes; false, otherwise.
      */
-    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
-            double clipMaxPercentile ) = 0;
+    virtual bool _isSpectralAxis() const;
 
     /**
      * Remove the contour set from this layer.
@@ -490,7 +522,14 @@ protected:
      *      in and the name was successfully reset; false otherwise.
      */
     virtual bool _setLayerName( const QString& id, const QString& name );
-    virtual bool _setLayersGrouped( bool grouped ) = 0;
+
+    /**
+     * Group or ungroup any child layers.
+     * @param grouped - true if child layers should be grouped; false, otherwise.
+     * @param viewSize - the view size.
+     * @return - true if the operation was performed; false otherwise.
+     */
+    virtual bool _setLayersGrouped( bool grouped, const QSize& viewSize ) = 0;
 
     /**
      * Set the color to use for the mask.
@@ -531,6 +570,11 @@ protected:
      */
     virtual void _setPan( double imgX, double imgY ) = 0;
 
+    /**
+     * Set a list of graphics for drawing the current regions.
+     * @param regionVGList - graphics for drawing the current regions.
+     */
+    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) = 0;
 
     /**
      * Set this data source selected.
@@ -560,15 +604,15 @@ protected:
 
     virtual void _updateColor();
 
+
+
     /**
      *  Constructor.
      */
     Layer( const QString& className, const QString& path, const QString& id );
 
-    static const QString LAYER_NAME;
     static const QString GROUP;
     static const QString LAYER;
-    static const QString SELECTED;
 
     bool m_renderQueued;
 

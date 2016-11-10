@@ -20,12 +20,14 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
         }
         this._init( );
         
-        var path = skel.widgets.Path.getInstance();
+        if ( this.m_connector !== null ){
+        	var path = skel.widgets.Path.getInstance();
         
-        //Curve styles
-        this.m_sharedVarStyles = this.m_connector.getSharedVar(path.LINE_STYLES);
-        this.m_sharedVarStyles.addCB(this._lineStylesChangedCB.bind(this));
-        this._lineStylesChangedCB();
+        	//Curve styles
+        	this.m_sharedVarStyles = this.m_connector.getSharedVar(path.LINE_STYLES);
+        	this.m_sharedVarStyles.addCB(this._lineStylesChangedCB.bind(this));
+        	this._lineStylesChangedCB();
+        }
     },
 
     members : {
@@ -238,7 +240,7 @@ qx.Class.define("skel.widgets.Profile.FitDisplay", {
          * Notify the server that the user has changed the color of a profile curve.
          */
         _sendStyleChangeFitCmd : function(){
-            if ( this.m_id !== null ){
+            if ( this.m_id !== null && this.m_connector !== null ){
                 var style = this.m_styleFitCombo.getValue();
                 var params = "styleFit:"+style;
                 var path = skel.widgets.Path.getInstance();

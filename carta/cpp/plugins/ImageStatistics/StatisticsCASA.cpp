@@ -50,7 +50,7 @@ StatisticsCASA::handleHook( BaseHook & hookData ){
             statResults.append( statResultImage );
 
             //Get the region statistics if there are some
-            std::vector<Carta::Lib::RegionInfo> regionInfos = hook.paramsPtr->m_regionInfos;
+            std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regionInfos = hook.paramsPtr->m_regionInfos;
             //Get the vector of current plane information
             std::vector<int> slice = hook.paramsPtr->m_slice;
             int regionCount = regionInfos.size();

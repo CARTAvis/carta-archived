@@ -72,6 +72,7 @@ ImageContext::ImageContext( const QString& path, const QString& id ):
 }
 
 
+
 QString ImageContext::addLink( CartaObject* cartaObject ){
     Controller* controller = dynamic_cast<Controller*>(cartaObject);
     bool linkAdded = false;
@@ -81,7 +82,7 @@ QString ImageContext::addLink( CartaObject* cartaObject ){
         if ( linkAdded ){
             controller->_setViewDrawContext( m_contextDraw );
             connect( m_contextDraw.get(), SIGNAL(viewResize()), this, SLOT(_contextChanged()));
-            connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_contextChanged()));
+            //connect( controller, SIGNAL(dataChanged(Controller*)), this, SLOT(_contextChanged()));
             connect( controller, SIGNAL(contextChanged()), this, SLOT(_contextChanged()));
             _contextChanged();
         }
@@ -95,6 +96,7 @@ QString ImageContext::addLink( CartaObject* cartaObject ){
 void ImageContext::_clearDraw(){
     //Reset the context draw parameters so they will not be shown.
     setImageRectangle( QPointF(0, 0), QPointF(0, 0) );
+    m_stateData.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA );
     m_stateData.setValue<int>( IMAGE_WIDTH, 0 );
     m_stateData.setValue<int>( IMAGE_HEIGHT, 0 );
     m_stateData.flushState();
@@ -105,106 +107,121 @@ void ImageContext::_clearView(){
 }
 
 void ImageContext::_contextChanged(){
-    int linkCount = m_linkImpl->getLinkCount();
-    if ( linkCount > 0 ){
-        Controller* alt = dynamic_cast<Controller*>( m_linkImpl->getLink(0) );
-        if ( alt != nullptr ){
-            //Get the size of the image.
-            QSize imageSize = alt->_getDisplaySize();
-            double outputHeight = imageSize.height();
-            double outputWidth = imageSize.width();
-            if ( outputHeight > 1 && outputWidth > 1 ){
+	if ( !m_mouseDown ){
+		int linkCount = m_linkImpl->getLinkCount();
+		if ( linkCount > 0 ){
+			Controller* alt = dynamic_cast<Controller*>( m_linkImpl->getLink(0) );
+			if ( alt != nullptr ){
+				//Get the size of the image.
+				QSize imageSize = alt->_getDisplaySize();
+				double outputHeight = imageSize.height();
+				double outputWidth = imageSize.width();
+				if ( outputHeight > 1 && outputWidth > 1 ){
 
-                //Size of the context window.
-                QSize contextSize = m_contextDraw->getClientSize();
-                double contextWidth = contextSize.width();
-                double contextHeight = contextSize.height();
+					//Size of the context window.
+					QSize contextSize = m_contextDraw->getClientSize();
+					double contextWidth = contextSize.width();
+					double contextHeight = contextSize.height();
 
-                //Actual output size should be the minimum of the image and the
-                //context rectangle - we don't want an image larger that the view
-                //that can hold it.  However, we do want to preserve the image dimensions.
-                double actualHeight = outputHeight;
-                double actualWidth = outputWidth;
-                double zoomFactor = 1;
-                //Determine whether width or height is the most constrained factor.
-                double widthRatio = contextWidth / outputWidth;
-                double heightRatio = contextHeight / outputHeight;
-                //Height is the more constrained resource.
-                if ( heightRatio < widthRatio ){
-                    //Choose height to be the smallest of image and window height.
-                    actualHeight = qMin( contextHeight, outputHeight );
-                    //Determine how much it has been constrained
-                    zoomFactor = actualHeight / outputHeight;
-                    //Use the ratio to get width
-                    actualWidth = outputWidth * zoomFactor;
-                }
-                else {
-                    actualWidth = qMin( contextWidth, outputWidth );
-                    zoomFactor = actualWidth / outputWidth;
-                    actualHeight = outputHeight * zoomFactor;
-                }
+					//Actual output size should be the minimum of the image and the
+					//context rectangle - we don't want an image larger that the view
+					//that can hold it.  However, we do want to preserve the image dimensions.
+					double actualHeight = outputHeight;
+					double actualWidth = outputWidth;
+					double zoomFactor = 1;
+					//Determine whether width or height is the most constrained factor.
+					double widthRatio = contextWidth / outputWidth;
+					double heightRatio = contextHeight / outputHeight;
+					//Height is the more constrained resource.
+					if ( heightRatio < widthRatio ){
+						//Choose height to be the smallest of image and window height.
+						actualHeight = qMin( contextHeight, outputHeight );
+						//Determine how much it has been constrained
+						zoomFactor = actualHeight / outputHeight;
+						//Use the ratio to get width
+						actualWidth = outputWidth * zoomFactor;
+					}
+					else {
+						actualWidth = qMin( contextWidth, outputWidth );
+						zoomFactor = actualWidth / outputWidth;
+						actualHeight = outputHeight * zoomFactor;
+					}
 
-                if ( zoomFactor > 0 ){
-                    m_stateData.setValue( IMAGE_WIDTH, actualWidth );
-                    m_stateData.setValue( IMAGE_HEIGHT, actualHeight );
+					if ( zoomFactor > 0 ){
+						bool contextChanged = false;
+						int oldWidth = m_stateData.getValue<int>( IMAGE_WIDTH );
+						int oldHeight = m_stateData.getValue<int>( IMAGE_HEIGHT );
+						if ( oldWidth != actualWidth || oldHeight != actualHeight ){
+							m_stateData.setValue<int>( IMAGE_WIDTH, actualWidth );
+							m_stateData.setValue<int>( IMAGE_HEIGHT, actualHeight );
+							contextChanged = true;
+						}
 
-                    //Get the rectangle inside the image that is visible in the
-                    //main view.
-                    QRectF inputRect = alt->_getInputRectangle();
-                    QPointF topLeft = inputRect.topLeft();
-                    QPointF bottomRight = inputRect.bottomRight();
+						//Get the rectangle inside the image that is visible in the
+						//main view.
+						QRectF inputRect = alt->_getInputRectangle();
+						QPointF topLeft = inputRect.topLeft();
+						QPointF bottomRight = inputRect.bottomRight();
 
-                    //Scale the input rectangle to the context zoom.
-                    QPointF topLeftZoomed (topLeft.x() * zoomFactor, topLeft.y() * zoomFactor );
-                    QPointF bottomRightZoomed( bottomRight.x() * zoomFactor,bottomRight.y() * zoomFactor );
+						//Scale the input rectangle to the context zoom.
+						QPointF topLeftZoomed (topLeft.x() * zoomFactor, topLeft.y() * zoomFactor );
+						QPointF bottomRightZoomed( bottomRight.x() * zoomFactor,bottomRight.y() * zoomFactor );
 
-                    //Account for margins between the view window and the actual image.
-                    double translateX = (contextWidth - actualWidth) / 2;
-                    double translateY = (contextHeight - actualHeight) / 2;
-                    double topY = topLeftZoomed.y() + translateY;
-                    double leftX = topLeftZoomed.x() + translateX;
-                    QPointF topLeftTranslate( leftX, topY );
-                    double bottomY = bottomRightZoomed.y() + translateY;
-                    double rightX = bottomRightZoomed.x() + translateX;
-                    QPointF bottomRightTranslate( rightX, bottomY );
+						//Account for margins between the view window and the actual image.
+						double translateX = (contextWidth - actualWidth) / 2;
+						double translateY = (contextHeight - actualHeight) / 2;
+						double topY = topLeftZoomed.y() + translateY;
+						double leftX = topLeftZoomed.x() + translateX;
+						QPointF topLeftTranslate( leftX, topY );
+						double bottomY = bottomRightZoomed.y() + translateY;
+						double rightX = bottomRightZoomed.x() + translateX;
+						QPointF bottomRightTranslate( rightX, bottomY );
 
-                    //Store the location of the image rectangle.
-                    setImageRectangle(  bottomRightTranslate, topLeftTranslate );
+						//Store the location of the image rectangle.
+						QRectF oldRect = getImageRectangle();
+						if ( oldRect.bottomRight() != bottomRightTranslate || oldRect.topLeft() != topLeftTranslate ){
+							setImageRectangle(  bottomRightTranslate, topLeftTranslate );
+							contextChanged = true;
+						}
 
-                    //Get the native value at the center
-                    bool validCenter = false;
-                    QPointF imageCenterWorld = alt->getWorldCoordinates( outputWidth/2, outputHeight/2, &validCenter );
+						//Get the native value at the center
+						bool validCenter = false;
+						QPointF imageCenterWorld = alt->getWorldCoordinates( outputWidth/2, outputHeight/2, &validCenter );
 
-                    //Get the native value to the left of center.
-                    bool validLeft = false;
-                    QPointF imageLeftWorld = alt->getWorldCoordinates( 0, outputHeight/2, &validLeft );
-                    if ( validLeft && validCenter ){
-                        //Calculate the angle.
-                        double ratio = ( imageCenterWorld.y() - imageLeftWorld.y() ) /
-                                ( imageCenterWorld.x() - imageLeftWorld.x() );
-                        double angle = atan ( ratio );
-
-                        m_stateData.setValue<double>( COORD_ROTATION, angle );
-                        m_stateData.flushState();
-                    }
-                    //Redraw it.
-                    alt->_renderContext( zoomFactor );
-                }
-            }
-            else {
-                _clearDraw();
-                _clearView();
-            }
-        }
-    }
-    //No controllers so just clear the view.
-    else {
-       _clearDraw();
-       _clearView();
-    }
+						//Get the native value to the left of center.
+						bool validLeft = false;
+						QPointF imageLeftWorld = alt->getWorldCoordinates( 0, outputHeight/2, &validLeft );
+						if ( validLeft && validCenter ){
+							//Calculate the angle.
+							double ratio = ( imageCenterWorld.y() - imageLeftWorld.y() ) /
+									( imageCenterWorld.x() - imageLeftWorld.x() );
+							double angle = atan ( ratio );
+							double oldAngle = m_stateData.getValue<double>(COORD_ROTATION);
+							if ( angle != oldAngle ){
+								m_stateData.setValue<double>( COORD_ROTATION, angle );
+								contextChanged = true;
+							}
+						}
+						if ( contextChanged ){
+							m_stateData.flushState();
+							//Redraw it.
+							alt->_renderContext( zoomFactor );
+						}
+					}
+				}
+				else {
+					_clearDraw();
+					_clearView();
+				}
+			}
+		}
+		//No controllers so just clear the view.
+		else {
+			_clearDraw();
+			_clearView();
+		}
+	}
 }
-
-
 
 
 Controller* ImageContext::_getControllerSelected() const {
@@ -260,6 +277,9 @@ QString ImageContext::getStateString( const QString& sessionId, SnapshotType typ
 
         result = m_stateData.toString();
     }
+    else if ( type == SNAPSHOT_LAYOUT ){
+           result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
+    }
     return result;
 }
 
@@ -275,7 +295,7 @@ void ImageContext::_initializeDefaultPen( const QString& key, int red, int green
     QString alphaLookup = Carta::State::UtilState::getLookup( key, Util::ALPHA );
     m_state.insertValue<int>( alphaLookup, alpha );
     if ( width >= 0 ){
-        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
+        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
         m_state.insertValue<int>( widthLookup, width );
     }
 }
@@ -430,9 +450,9 @@ void ImageContext::_initializeCallbacks(){
     addCommandCallback( "setLineWidth", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {Util::PEN_WIDTH, MODE};
+        std::set<QString> keys = {Util::WIDTH, MODE};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString widthStr = dataValues[Util::PEN_WIDTH];
+        QString widthStr = dataValues[Util::WIDTH];
         bool validInt = false;
         int width = widthStr.toInt( &validInt );
         if ( validInt ){
@@ -523,6 +543,7 @@ void ImageContext::_updateSelection( int mouseX, int mouseY ){
         QPointF newTopLeft( topLeft.x() + moveX, topLeft.y() + moveY );
         QPointF newBottomRight( bottomRight.x() + moveX, bottomRight.y() + moveY );
         setImageRectangle(newBottomRight, newTopLeft );
+        _updateImageView( newTopLeft, newBottomRight );
     }
 }
 
@@ -621,7 +642,7 @@ QString ImageContext::_setLineWidth( const QString& key, const QString& userName
                 "]: "+QString::number(width);
     }
     else {
-        QString lookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
+        QString lookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
         int oldWidth = m_state.getValue<int>(lookup);
         if ( oldWidth != width ){
             m_state.setValue<int>( lookup, width);
@@ -669,15 +690,48 @@ bool ImageContext::_setColor( const QString& key, const QString& majorKey,
 }
 
 void ImageContext::setImageRectangle( QPointF br, QPointF tl ){
-    QString c0X = Carta::State::UtilState::getLookup( CORNER_0, Util::XCOORD );
-    QString c0Y = Carta::State::UtilState::getLookup( CORNER_0, Util::YCOORD );
-    m_stateData.setValue<double>( c0X, tl.x() );
-    m_stateData.setValue<double>( c0Y, tl.y() );
-    QString c1X = Carta::State::UtilState::getLookup( CORNER_1, Util::XCOORD );
-    QString c1Y = Carta::State::UtilState::getLookup( CORNER_1, Util::YCOORD );
-    m_stateData.setValue<double>( c1X, br.x() );
-    m_stateData.setValue<double>( c1Y, br.y() );
-    m_stateData.flushState();
+	//Ignore if nans
+	if ( br.x() == br.x() && br.y() == br.y() && tl.x() == tl.x() && tl.y() == tl.y() ){
+		QString c0X = Carta::State::UtilState::getLookup( CORNER_0, Util::XCOORD );
+		QString c0Y = Carta::State::UtilState::getLookup( CORNER_0, Util::YCOORD );
+		double oldC0X = m_stateData.getValue<double>( c0X );
+		double oldC0Y = m_stateData.getValue<double>( c0Y );
+		bool rectChanged = false;
+		if ( oldC0X != tl.x() || oldC0Y != tl.y() ){
+			m_stateData.setValue<double>( c0X, tl.x() );
+			m_stateData.setValue<double>( c0Y, tl.y() );
+			rectChanged = true;
+		}
+		QString c1X = Carta::State::UtilState::getLookup( CORNER_1, Util::XCOORD );
+		QString c1Y = Carta::State::UtilState::getLookup( CORNER_1, Util::YCOORD );
+		double oldC1X = m_stateData.getValue<double>( c1X );
+		double oldC1Y = m_stateData.getValue<double>( c1Y );
+		if ( oldC1X != br.x() || oldC1Y != br.y() ){
+			m_stateData.setValue<double>( c1X, br.x() );
+			m_stateData.setValue<double>( c1Y, br.y() );
+			rectChanged = true;
+		}
+		if ( rectChanged ){
+			m_stateData.flushState();
+		}
+	}
+}
+
+void ImageContext::_updateImageView( const QPointF& topLeft, const QPointF& bottomRight ){
+	//Change pixels to image coordinates.
+	Controller* controller = _getControllerSelected();
+	if ( controller ){
+		QSize clientSize = m_contextDraw->getClientSize();
+		bool tlValid = false;
+		QPointF imageTL = controller->_getContextPt( topLeft, clientSize, &tlValid );
+		bool brValid = false;
+		QPointF imageBR = controller->_getContextPt( bottomRight, clientSize, &brValid );
+		if ( tlValid && brValid ){
+			double centerX = ( imageTL.x() + imageBR.x() ) / 2;
+			double centerY = ( imageTL.y() + imageBR.y() ) / 2;
+			controller->centerOnPixel( centerX, centerY);
+		}
+	}
 }
 
 QString ImageContext::setTabIndex( int index ){

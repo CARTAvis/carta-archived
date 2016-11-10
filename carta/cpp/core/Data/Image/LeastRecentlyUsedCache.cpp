@@ -5,7 +5,7 @@ namespace Carta {
 
 namespace Data {
 
-const double LeastRecentlyUsedCache::ERROR_MARGIN = 0.0001;
+const double LeastRecentlyUsedCache::ERROR_MARGIN = 0.000001;
 
 LeastRecentlyUsedCache::LeastRecentlyUsedCache(int size){
     m_maxSize = size;

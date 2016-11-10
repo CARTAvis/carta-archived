@@ -2,6 +2,7 @@ import unittest
 import selectBrowser
 import Util
 import time
+import tAnimator
 from selenium import webdriver
 from flaky import flaky
 from selenium.webdriver.common.keys import Keys
@@ -12,7 +13,7 @@ from selenium.webdriver.common.by import By
 
 # Tests of Animator link functionality
 @flaky(max_runs=3)
-class tAnimatorLinks(unittest.TestCase):
+class tAnimatorLinks(tAnimator.tAnimator):
 
     def setUp(self):
         browser = selectBrowser._getBrowser()
@@ -89,15 +90,17 @@ class tAnimatorLinks(unittest.TestCase):
         Util.load_image( self, driver, "Default")
         time.sleep(2)
 
-        # Enable the animation window
+        # Enable the animation window by a context click
+        # Note, clicking on the animation window is not working because the center of the
+        # animation window is the stop button, and clicking that does not select the window.
         animWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowAnimation']")))
-        ActionChains(driver).click( animWindow ).perform()
+        ActionChains(driver).context_click( animWindow ).perform()
 
         # Remove Animator link to the image window
         linkMenuButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[text()='Links...']")))
         ActionChains(driver).click( linkMenuButton ).perform()
         Util.remove_main_link( self, driver, imageWindow)
-
+    
         # Load an image in a different window
         imageWindow2 = Util.load_image_different_window( self, driver, "Orion.methanol.cbc.contsub.image.fits")
 

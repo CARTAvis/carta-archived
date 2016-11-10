@@ -39,6 +39,38 @@ class tColorMap(unittest.TestCase):
                 ).send_keys( Keys.ENTER).perform()
         time.sleep( timeout )
         
+    
+    # This was written in response to issue #180.  Change the units in the color bar with a 2D
+    # image produced a crash.
+    def test_unitChange(self):    
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+        
+        #Load a 2D image
+        Util.load_image( self, driver, "aH.fits")
+        
+        #Get the old units
+        unitCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "colorImageUnits")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", unitCombo )
+        unitText = unitCombo.find_element_by_xpath( ".//div/div")
+        oldUnits = unitText.text
+        print "Old units=", oldUnits
+        
+        #Change the units
+        ActionChains(driver).click(unitCombo).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN
+                ).send_keys( Keys.ENTER).perform()
+        time.sleep( timeout )
+        
+        #Verify the units are changed.
+        unitCombo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "colorImageUnits")))
+        driver.execute_script( "arguments[0].scrollIntoView(true);", unitCombo )
+        unitText = unitCombo.find_element_by_xpath( ".//div/div")
+        newUnits = unitText.text
+        print "New units=",newUnits
+        self.assertTrue( newUnits != oldUnits, "Color map units did not change")
+        
+        
+    
         
     # Load 3 images and check that if we change the color map of one of them,
     # all three of them are changed.

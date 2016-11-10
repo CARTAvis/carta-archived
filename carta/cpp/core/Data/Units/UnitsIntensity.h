@@ -41,6 +41,15 @@ public:
      */
     void resetUnits( Carta::Lib::ProfileInfo::AggregateType stat );
 
+    /**
+     * Set whether a spectral axis is available in the current display.
+     * @return - true if a spectral axis is available; false otherwise.
+     */
+    //Conversion to particular units may only be possible with a spectral axis
+    //available.  Thus, the list of available units may need to be expanded or
+    //restricted based on the availability of a spectral axis for conversion.
+    void setSpectralAxisAvailable( bool available );
+
     const static QString CLASS_NAME;
     const static QString UNIT_LIST;
 
@@ -56,6 +65,8 @@ private:
     const static QString NAME_KELVIN;
 
     QString m_defaultUnit;
+    Carta::Lib::ProfileInfo::AggregateType m_stat;
+    bool m_spectralAxisAvailable;
 
     void _initializeDefaultState();
     void _initUnit( int * index, const QString& name);

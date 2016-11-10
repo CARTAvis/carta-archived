@@ -45,7 +45,7 @@ enum class InputEventType
     Mouse,
     Pointer
 };
-
+/*
 class InputEvent
 {
 public:
@@ -63,6 +63,7 @@ public:
     Qt::MouseButtons
     buttons();
 };
+*/
 
 /*
 class ManagedLayerView : public QObject

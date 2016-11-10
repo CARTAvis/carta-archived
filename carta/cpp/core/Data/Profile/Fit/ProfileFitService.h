@@ -6,12 +6,14 @@
 
 
 #include "CartaLib/CartaLib.h"
-#include "CartaLib/RegionInfo.h"
 #include "CartaLib/Hooks/FitResult.h"
-
+#include "CartaLib/Regions/IRegion.h"
+#include "CartaLib/ProfileInfo.h"
+#include "CartaLib/IImage.h"
 #include <QObject>
 #include <QQueue>
 #include <memory>
+
 
 
 
@@ -63,14 +65,14 @@ private:
 
 
     struct FitRequest {
-        /*bool m_createNew;
+        bool m_createNew;
         int m_curveIndex;
         QString m_layerName;
         Carta::Lib::ProfileInfo m_profileInfo;
-        Carta::Lib ::RegionInfo m_regionInfo;
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;*/
+        std::shared_ptr<Carta::Lib ::Regions::RegionBase> m_regionInfo;
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;
     };
-    //QQueue<RenderRequest> m_requests;
+    QQueue<FitRequest> m_requests;
 
     ProfileFitService( const ProfileFitService& other);
     ProfileFitService& operator=( const ProfileFitService& other );

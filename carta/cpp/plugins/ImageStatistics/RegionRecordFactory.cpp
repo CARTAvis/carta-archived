@@ -1,6 +1,9 @@
 #include <QDebug>
 #include <QtCore/qmath.h>
 #include "RegionRecordFactory.h"
+#include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Point.h"
+#include "CartaLib/Regions/Rectangle.h"
 #include <casacore/images/Regions/ImageRegion.h>
 #include <casacore/images/Regions/RegionManager.h>
 
@@ -76,26 +79,28 @@ RegionRecordFactory::_getEllipsoid(
 
 
 void
-RegionRecordFactory::_getMinMaxCorners( const std::vector<std::pair<double,double> > & corners,
+RegionRecordFactory::_getMinMaxCorners( const QPolygonF & corners,
         std::pair<double,double>& minCorner, std::pair<double,double>& maxCorner){
     int cornerCount = corners.size();
     if ( cornerCount > 0 ){
-        int minX = qRound(corners[0].first);
-        int maxX = qRound(corners[0].first);
-        int minY = qRound(corners[0].second);
-        int maxY = qRound(corners[0].second);
+        QPointF firstCorner = corners.value( 0 );
+        int minX = qRound(firstCorner.x());
+        int maxX = qRound(firstCorner.x());
+        int minY = qRound(firstCorner.y());
+        int maxY = qRound(firstCorner.y());
         for ( int i = 1; i < cornerCount; i++ ){
-            if ( corners[i].first < minX ){
-                minX = corners[i].first;
+            QPointF corner = corners.value( i );
+            if ( corner.x() < minX ){
+                minX = corner.x();
             }
-            else if ( corners[i].first > maxX ){
-                maxX = corners[i].first;
+            else if ( corner.x() > maxX ){
+                maxX = corner.x();
             }
-            if ( corners[i].second < minY ){
-                minY = corners[i].second;
+            if ( corner.y() < minY ){
+                minY = corner.y();
             }
-            else if ( corners[i].second > maxY ){
-                maxY = corners[i].second;
+            else if ( corner.y() > maxY ){
+                maxY = corner.y();
             }
         }
         minCorner.first = minX;
@@ -108,7 +113,7 @@ RegionRecordFactory::_getMinMaxCorners( const std::vector<std::pair<double,doubl
 
 casa::ImageRegion*
 RegionRecordFactory::_getPolygon( casa::ImageInterface<casa::Float>* casaImage,
-        const std::vector<std::pair<double,double> >& corners, const std::vector<int>& slice ){
+        const QPolygonF& corners, const std::vector<int>& slice ){
     casa::ImageRegion* imageRegion = NULL;
 
     casa::CoordinateSystem cSys = casaImage->coordinates();
@@ -121,14 +126,15 @@ RegionRecordFactory::_getPolygon( casa::ImageInterface<casa::Float>* casaImage,
     if ( directionIndex >= 0 ){
         for ( int i = 0; i < cornerCount; i++ ){
             casa::Vector<casa::Double> worldVertex(imageDim);
-            bool validVertex = _getWorldVertex( corners[i].first, corners[i].second, cSys,
+            QPointF corner = corners.value( i );
+            bool validVertex = _getWorldVertex( corner.x(), corner.y(), cSys,
                 slice, worldVertex );
             if ( validVertex ){
                 worldVertexX[i] = casa::Quantity( worldVertex[0], axisUnits[0] );
                 worldVertexY[i] = casa::Quantity( worldVertex[1], axisUnits[1] );
             }
             else {
-                qWarning() << "Could not convert vertex: ("<<corners[i].first<<", "<<corners[i].second;
+                qWarning() << "Could not convert vertex: ("<<corner.x()<< ", "<<corner.y()<<")";
             }
         }
         casa::Vector<casa::Int> dirPixelAxis = cSys.pixelAxes( directionIndex );
@@ -144,12 +150,12 @@ RegionRecordFactory::_getPolygon( casa::ImageInterface<casa::Float>* casaImage,
 
 casa::ImageRegion*
 RegionRecordFactory::_getRectangle( casa::ImageInterface<casa::Float>* casaImage,
-        const std::vector<std::pair<double,double> >& corners, const std::vector<int>& slice ){
+        const QPolygonF& corners, const std::vector<int>& slice ){
     casa::ImageRegion* imageRegion = NULL;
+
     std::pair<double,double> minCorners;
     std::pair<double,double> maxCorners;
     _getMinMaxCorners( corners, minCorners, maxCorners );
-
     casa::CoordinateSystem cSys = casaImage->coordinates();
     int imageDim = casaImage->shape().nelements();
     casa::Vector<casa::Double> worldVerticesBLC( imageDim );
@@ -175,9 +181,9 @@ RegionRecordFactory::_getRectangle( casa::ImageInterface<casa::Float>* casaImage
 }
 
 
-casa::Record RegionRecordFactory::getRegionRecord( Carta::Lib::RegionInfo::RegionType type,
+casa::Record RegionRecordFactory::getRegionRecord(
         casa::ImageInterface<casa::Float>* casaImage,
-    std::vector<std::pair<double,double> >& corners,
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
     const std::vector<int>& slice,
     QString& typeStr ){
     casa::Record regionRecord;
@@ -196,16 +202,22 @@ casa::Record RegionRecordFactory::getRegionRecord( Carta::Lib::RegionInfo::Regio
             }
         }
     }
-    if ( type == Carta::Lib::RegionInfo::RegionType::Polygon ){
-        regionRecord = _getRegionRecordPolygon( casaImage, corners, slice, typeStr );
+    QString regionType = region->typeName();
+    if ( regionType == Carta::Lib::Regions::Polygon::TypeName ){
+    	regionRecord = _getRegionRecordPolygon( casaImage, region, slice, typeStr );
     }
-    else if ( type == Carta::Lib::RegionInfo::RegionType::Ellipse ){
+    else if ( regionType == Carta::Lib::Regions::Ellipse::TypeName ){
         typeStr = "Ellipse";
-        regionRecord = _getRegionRecordEllipse( casaImage, corners, slice );
+        regionRecord = _getRegionRecordEllipse( casaImage, region, slice );
+    }
+    else if ( regionType == Carta::Lib::Regions::Rectangle::TypeName ){
+    	regionRecord = _getRegionRecordRectangle( casaImage, region, slice, typeStr );
+    }
+    else if ( regionType == Carta::Lib::Regions::Point::TypeName ){
+    	regionRecord = _getRegionRecordPoint( casaImage, region, slice, typeStr );
     }
     else {
-        qDebug() <<"RegionRecordFactory::getRegionRecord unrecognized region type: "+
-                QString::number((int)(type));
+        qDebug() <<"RegionRecordFactory::getRegionRecord unrecognized region type: "+regionType;
     }
     return regionRecord;
 }
@@ -213,14 +225,15 @@ casa::Record RegionRecordFactory::getRegionRecord( Carta::Lib::RegionInfo::Regio
 
 casa::Record RegionRecordFactory::_getRegionRecordEllipse(
         casa::ImageInterface<casa::Float>* casaImage,
-        std::vector<std::pair<double,double> >& corners,
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
         const std::vector<int>& slice){
     casa::Record regionRecord;
-    int cornerCount = corners.size();
-    if ( cornerCount == 2 ){
-        std::pair<double,double> minCorner;
-        std::pair<double,double> maxCorner;
-        _getMinMaxCorners( corners, minCorner, maxCorner );
+    if ( region ){
+        QRectF boundingRect = region->outlineBox();
+        QPointF topLeftCorner = boundingRect.topLeft();
+        QPointF bottomRightCorner = boundingRect.bottomRight();
+        std::pair<double,double> minCorner( topLeftCorner.x(), topLeftCorner.y());
+        std::pair<double,double> maxCorner( bottomRightCorner.x(), bottomRightCorner.y());
 
         //Get the bounding box corners for the ellipse in world coordinates.
         casa::CoordinateSystem cSys = casaImage->coordinates();
@@ -247,33 +260,73 @@ casa::Record RegionRecordFactory::_getRegionRecordEllipse(
 
 casa::Record RegionRecordFactory::_getRegionRecordPolygon(
         casa::ImageInterface<casa::Float>* casaImage,
-        std::vector<std::pair<double,double> >& corners,
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
         const std::vector<int>& slice, QString& typeStr ){
-
-    int cornerCount = corners.size();
     casa::Record regionRecord;
-    casa::ImageRegion* region = nullptr;
-    //Rectangular region or point
-    if ( cornerCount == 4 || cornerCount == 1 ){
-        if ( cornerCount == 4 ){
-            typeStr = "Rectangle";
+    if ( region ){
+        Carta::Lib::Regions::Polygon* polygonRegion = dynamic_cast<Carta::Lib::Regions::Polygon*>( region.get());
+        QPolygonF polygon = polygonRegion->qpolyf();
+        int cornerCount = polygon.size();
+
+        casa::ImageRegion* region = nullptr;
+        //Polygonal region
+        if ( cornerCount >= 3 ){
+            typeStr = "Polygon";
+            region = _getPolygon( casaImage, polygon, slice );
         }
         else {
-            typeStr = "Point";
+            qWarning() << "Unknown polygon region with: "<<cornerCount<<" corners.";
         }
-        region = _getRectangle( casaImage, corners, slice );
+        if ( region != nullptr ){
+            regionRecord = region->toRecord("");
+            delete region;
+        }
     }
-    //Polygonal region
-    else if ( cornerCount == 3 || cornerCount > 4 ){
-        typeStr = "Polygon";
-        region = _getPolygon( casaImage, corners, slice );
+    return regionRecord;
+}
+
+casa::Record RegionRecordFactory::_getRegionRecordPoint(
+        casa::ImageInterface<casa::Float>* casaImage,
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
+        const std::vector<int>& slice, QString& typeStr ){
+    casa::Record regionRecord;
+    if ( region ){
+    	Carta::Lib::Regions::Point* pointRegion = dynamic_cast<Carta::Lib::Regions::Point*>( region.get());
+    	QRectF polygon = pointRegion->outlineBox();
+    	QPointF centerVal = polygon.center();
+    	QRectF pointRect( centerVal.x(), centerVal.y(), centerVal.x(), centerVal.y() );
+    	typeStr = "Point";
+    	casa::ImageRegion* region = _getRectangle( casaImage, pointRect, slice );
+    	if ( region != nullptr ){
+    		regionRecord = region->toRecord("");
+    		delete region;
+    	}
     }
-    else {
-        qWarning() << "Unknown region with: "<<cornerCount<<" corners.";
-    }
-    if ( region != nullptr ){
-        regionRecord = region->toRecord("");
-        delete region;
+    return regionRecord;
+}
+
+
+casa::Record RegionRecordFactory::_getRegionRecordRectangle(
+        casa::ImageInterface<casa::Float>* casaImage,
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
+        const std::vector<int>& slice, QString& typeStr ){
+    casa::Record regionRecord;
+    if ( region ){
+    	Carta::Lib::Regions::Rectangle* rectRegion = dynamic_cast<Carta::Lib::Regions::Rectangle*>( region.get());
+    	QRectF polygon = rectRegion->outlineBox();
+    	int width = polygon.width();
+    	int height = polygon.height();
+
+    	casa::ImageRegion* region = nullptr;
+    	//Rectangular region or point
+    	if ( width > 0 || height > 0 ){
+    		typeStr = "Rectangle";
+    		region = _getRectangle( casaImage, polygon, slice );
+    	}
+    	if ( region != nullptr ){
+    		regionRecord = region->toRecord("");
+    		delete region;
+    	}
     }
     return regionRecord;
 }

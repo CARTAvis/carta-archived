@@ -165,8 +165,12 @@ void ImageHistogram<T>::setImage( const casa::ImageInterface<T>*  val ){
 }
 
 template <class T>
-void ImageHistogram<T>::setRegion( casa::ImageRegion* region ){
-	m_region = region;
+void ImageHistogram<T>::setRegion( casa::ImageRegion* region, const QString& id ){
+	if ( m_region == nullptr || m_regionId != id ){
+		delete m_region;
+		m_region = region;
+		m_regionId = id;
+	}
 }
 
 template <class T>
@@ -318,6 +322,8 @@ template <class T>
 QString ImageHistogram<T>::getName() const {
     casa::String strname = ImageHistogram::m_image->name(true);
     QString qname(strname.c_str());
+    qname = qname + m_regionId;
+
     return qname;
 }
 
@@ -353,6 +359,8 @@ pair<float,float> ImageHistogram<T>::getDataRange() const {
     return range;
 }
 
+
+
 template <class T>
 void ImageHistogram<T>::toAscii( QTextStream& out ) const {
 	const QString LINE_END( "\n");
@@ -373,6 +381,7 @@ void ImageHistogram<T>::toAscii( QTextStream& out ) const {
 
 template <class T>
 ImageHistogram<T>::~ImageHistogram() {
+	delete m_region;
 }
 
 template class ImageHistogram<float>;

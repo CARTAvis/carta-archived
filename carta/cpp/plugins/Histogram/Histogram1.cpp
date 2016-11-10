@@ -1,19 +1,19 @@
 #include "Histogram1.h"
 #include "CartaLib/Hooks/Histogram.h"
 #include "ImageHistogram.h"
+#include "ImageRegionGenerator.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/Initialize.h"
 #include <casacore/coordinates/Coordinates/SpectralCoordinate.h>
+#include <casacore/images/Regions/ImageRegion.h>
 #include <QDebug>
 
 Histogram1::Histogram1( QObject * parent ) :
     QObject( parent )
 { }
 
-Carta::Lib::Hooks::HistogramResult
-Histogram1::_computeHistogram()
-{
-    vector < std::pair < double, double > > data;
+Carta::Lib::Hooks::HistogramResult Histogram1::_computeHistogram( ){
+    std::vector < std::pair < double, double > > data;
     QString name;
     QString unitsX = "";
     QString unitsY = "";
@@ -148,7 +148,9 @@ Histogram1::_getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
     bounds.second = std::max( freqLow, freqHigh);;
 
     return bounds;
-} // _getFrequencyBounds
+}
+
+
 
 bool
 Histogram1::handleHook( BaseHook & hookData )
@@ -165,7 +167,7 @@ Histogram1::handleHook( BaseHook & hookData )
             return false;
         }
 
-        auto casaImage = cartaII2casaII_float( image );
+        casa::ImageInterface<casa::Float> * casaImage = cartaII2casaII_float( image );
         if( ! casaImage) {
             qWarning() << "Histogram plugin: not an image created by casaimageloader...";
             return false;
@@ -173,7 +175,13 @@ Histogram1::handleHook( BaseHook & hookData )
         if ( !m_histogram ){
             m_histogram.reset(new ImageHistogram < casa::Float >());
         }
-
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionBase = hook.paramsPtr->region;
+        QString regionId = hook.paramsPtr->regionId;
+        casa::ImageRegion* imageRegion = nullptr;
+        if ( regionBase ){
+        	imageRegion = ImageRegionGenerator::makeRegion( casaImage, regionBase );
+        }
+        m_histogram->setRegion( imageRegion, regionId  );
         m_histogram-> setBinCount( hook.paramsPtr->binCount );
 
         double frequencyMin = hook.paramsPtr->minFrequency;
@@ -214,8 +222,7 @@ Histogram1::handleHook( BaseHook & hookData )
 } // handleHook
 
 std::vector < HookId >
-Histogram1::getInitialHookList()
-{
+Histogram1::getInitialHookList(){
     return {
                Carta::Lib::Hooks::Initialize::staticId,
                Carta::Lib::Hooks::HistogramHook::staticId

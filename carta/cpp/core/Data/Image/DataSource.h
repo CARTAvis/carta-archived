@@ -264,6 +264,13 @@ private:
     QPointF _getPixelCoordinates( double ra, double dec, bool* valid ) const;
 
     /**
+     * Return the rest frequency and units for the image.
+     * @return - the image rest frequency and units; a blank string and a negative
+     * 		value are returned with the rest frequency can not be found.
+     */
+    std::pair<double,QString> _getRestFrequency() const;
+
+    /**
      * Return the world coordinates corresponding to the given pixel coordinates.
      * @param pixelX - the first pixel coordinate.
      * @param pixelY - the second pixel coordinate.
@@ -328,6 +335,12 @@ private:
 
     //Initialize static objects.
     void _initializeSingletons( );
+
+    ///Returns whether the frames actually exist in the image.
+    bool _isLoadable( std::vector<int> frames ) const;
+
+    //Returns whether or not there is a spectral axis in the image.
+    bool _isSpectralAxis() const;
 
     /**
      * Generate a QImage representation of this data.
@@ -471,8 +484,6 @@ private:
     DataSource();
 
     QString m_fileName;
-    bool m_cmapUseCaching;
-    bool m_cmapUseInterpolatedCaching;
     int m_cmapCacheSize;
 
     //Used pointer to coordinate systems.
@@ -485,8 +496,15 @@ private:
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
 
-    /// clip cache, hard-coded to single quantile
-    std::vector< std::vector<double> > m_quantileCache;
+    struct QuantileCacheEntry {
+    	double m_minPercentile;
+    	double m_maxPercentile;
+    	std::vector<double> m_clips;
+    };
+
+    /// clip cache to avoid time-consuming operation or recomputing
+    /// unnecessary clips.
+    std::vector<QuantileCacheEntry> m_quantileCache;
 
     ///Percentile/Intensity cache
     LeastRecentlyUsedCache m_cachedPercentiles;

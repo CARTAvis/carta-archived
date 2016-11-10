@@ -6,7 +6,8 @@
 
 #include <QMap>
 #include <QString>
-#include "CartaLib/RegionInfo.h"
+
+#include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/StatInfo.h"
 #include "casacore/images/Images/ImageInterface.h"
 #include "casacore/casa/Containers/Record.h"
@@ -25,7 +26,7 @@ public:
      *      image.
      */
     static QList<Carta::Lib::StatInfo>
-    getStats( casa::ImageInterface<casa::Float>* image, Carta::Lib::RegionInfo& regionInfo,
+    getStats( casa::ImageInterface<casa::Float>* image, std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
             const std::vector<int>& slice );
 private:
     StatisticsCASARegion();

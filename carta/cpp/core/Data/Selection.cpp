@@ -14,6 +14,7 @@ const QString Selection::LOW_KEY_USER = "frameStartUser";
 const QString Selection::CLASS_NAME = "Selection";
 const QString Selection::SELECTIONS = "selections";
 const QString Selection::IMAGE = "Image";
+const QString Selection::REGION = "Region";
 const QString Selection::CHANNEL = "Channel";
 
 bool Selection::m_registered =

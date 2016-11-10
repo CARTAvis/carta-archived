@@ -10,6 +10,7 @@
 #include "CartaLib/IRemoteVGView.h"
 #include "core/IConnector.h"
 #include <QObject>
+#include <QTimer>
 
 namespace Carta
 {
@@ -35,17 +36,29 @@ public:
     virtual QString
     layerName() { return m_layerName; }
 
+    /// reimplement this to react to layer removed, the default is to auto-destruct
+    virtual void
+    onLayerRemoved()
+    {
+        this->deleteLater();
+    }
+
     /// reimplement this to react to view resizes
     virtual void
     onResize( const QSize & size ) { Q_UNUSED( size ); }
 
     /// reimplement this to react to input events
+    /// consume the event if you don't want it to propagate further
     virtual void
-    onInputEvent( const Carta::Lib::InputEvent & event ) { Q_UNUSED( event ); }
+    onInputEvent( Carta::Lib::InputEvent & event ) { Q_UNUSED( event ); }
 
     /// call this to update the rendering of raster
     void
     setRaster( const QImage & image );
+
+    /// call this to update the rendering vector graphics
+    void
+    setVG( const Carta::Lib::VectorGraphics::VGList & vgList );
 
     /// does the layer have input?
     bool
@@ -122,22 +135,34 @@ public:
     void
     setInputLayers( const std::vector < ManagedLayerBase::ID > & list = { } );
 
+    /// move the specified layers 'up'
+    void
+    moveLayersUp( const std::vector < ManagedLayerBase::ID > & list );
+
+    void
+    moveLayersDown( const std::vector < ManagedLayerBase::ID > & list );
+
+    void
+    removeLayers( const std::vector < ManagedLayerBase::ID > & list );
+
     virtual
     ~ManagedLayerView() { }
 
-    QString viewName() { return m_lrv-> viewName(); }
+    QString
+    viewName() { return m_lrv-> viewName(); }
 
 //    IConnector *
 //    connector();
 
 signals:
 
-    /// emitted when the list of layers has been updated
+    /// emitted when the list of layers has been modified (e.g. by user interface)
     void
     layersUpdated();
 
 public slots:
 
+    /// schedules a repaint and returns a repaint ID
     qint64
     scheduleRepaint();
 
@@ -151,6 +176,10 @@ private slots:
     void
     inputEventCB( Carta::Lib::InputEvent e );
 
+    // internal repaint timer callback
+    void
+    repaintTimerCB();
+
 private:
 
     virtual ManagedLayerBase::ID
@@ -162,14 +191,18 @@ private:
     ManagedLayerBase::ID m_nextId = 0;
 
     // we use layered remote view to do the rendering
-    Carta::Lib::LayeredRemoteVGView::SharedPtr m_lrv = nullptr;
+//    Carta::Lib::LayeredRemoteVGView::SharedPtr m_lrv = nullptr;
+    Carta::Lib::LayeredViewArbitrary::SharedPtr m_lrv = nullptr;
 
     // here we keep track of all our layers, and since we don't own the layers
     // we keep raw pointers
     std::vector < ManagedLayerBase * > m_layers;
 
-    // which layers have input
-//    std::vector < ManagedLayerBase::ID > m_inputLayers;
+    // repaint timer - to allow multiple repaint requests, but only repaint one
+    QTimer m_repaintTimer;
+
+    // repaint id
+    qint64 m_repaintId = 0;
 };
 
 //std::shared_ptr < ManagedLayerViewInh >

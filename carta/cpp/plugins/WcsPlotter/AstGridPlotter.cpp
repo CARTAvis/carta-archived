@@ -460,6 +460,12 @@ AstGridPlotter::plot()
     }
     std::string stdstr = m_fitsHeader.toStdString();
     astPutCards( fitschan, stdstr.c_str() );
+    if ( ! astOK ) {
+        qDebug() << "astPutCards() failed";
+        m_errorString = "astPutCards() failed, check logs.";
+        return false;
+    }
+
     if ( m_carLin ) {
         astSet( fitschan, "CarLin=1" );
     }
@@ -470,7 +476,7 @@ AstGridPlotter::plot()
     // try to get WCS out of the fits data
     AstFrameSet * wcsinfo = static_cast < AstFrameSet * > ( astRead( fitschan ) );
     if ( ! astOK ) {
-        m_errorString = "Some AST LIB error, check logs.";
+        m_errorString = "astRead() failed, check logs.";
         return false;
     }
     else if ( wcsinfo == AST__NULL ) {
