@@ -13,7 +13,7 @@
 #include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <sys/time.h>
-
+#include <numeric>
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 

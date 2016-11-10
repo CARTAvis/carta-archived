@@ -35,7 +35,8 @@ LIBS += -L$${CFITSIODIR}/lib -lcfitsio
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 unix:macx{
-    LIBS += -L$${FLEXANDBISONDIR} -lfl -ly
+    LIBS += -L$${FLEXANDBISONDIR}/lib -lfl -ly
+    INCLUDEPATH += $${FLEXANDBISONDIR}/include
 } else {
     LIBS += -lfl -ly
 }
