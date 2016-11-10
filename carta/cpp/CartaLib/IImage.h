@@ -24,28 +24,31 @@
 #include "Slice.h"
 #include "ICoordinateFormatter.h"
 #include "IPlotLabelGenerator.h"
+#include "Regions/ICoordSystem.h"
 #include <QObject>
 #include <functional>
 #include <initializer_list>
 #include <cstdint>
 #include <memory>
 
-namespace Carta {
-namespace Lib {
-
-
+namespace Carta
+{
+namespace Lib
+{
 /// description of a unit
 /// this will hopefully evolve a lot...
 /// for now it's essentially an alias for QString
 class Unit
 {
 public:
+
     QString
     toStr() const { return m_string; }
 
     Unit( const QString & str = "" ) : m_string( str ) { }
 
 protected:
+
     QString m_string;
 };
 
@@ -105,6 +108,11 @@ public:
     virtual const VI &
     currentPos() = 0;
 
+    /// return a unique ID for this instance
+    /// \todo motivation for this is a cheap comparison, but maybe we could implement
+    /// a real comparison as well?
+//    quint64 uniqueId() const;
+
     /// virtual destructor
     virtual
     ~RawViewInterface() { }
@@ -136,9 +144,10 @@ public:
     virtual int64_t
     read( int64_t buffSize, char * buff,
           Traversal traversal = Traversal::Sequential ) = 0;
+
     /// reset the position for the next read()
     virtual void
-    seek( int64_t ind = 0) = 0;
+    seek( int64_t ind = 0 ) = 0;
 
     /// Another High performance accessor to data, motivated by unix's read(), except
     /// it's stateless
@@ -165,7 +174,9 @@ template < typename Type >
 class TypedView
 {
     CLASS_BOILERPLATE( TypedView );
+
 public:
+
     typedef std::vector < int > VI;
 
     /// \brief Construct a typed view from raw view.
@@ -183,7 +194,8 @@ public:
 
     /// get the max. dimensions allowed in this accessor
     const VI &
-    dims() {
+    dims()
+    {
         return m_rawView-> dims();
     }
 
@@ -220,11 +232,14 @@ public:
     }
 
     /// return the associated raw view
-    RawViewInterface * rawView() {
+    RawViewInterface *
+    rawView()
+    {
         return m_rawView;
     }
 
 protected:
+
     /// pointer to the raw view
     RawViewInterface * m_rawView;
 
@@ -237,8 +252,8 @@ protected:
 };
 
 /// convenience types
-typedef TypedView < double >  Double;
-typedef TypedView < float >   Float;
+typedef TypedView < double > Double;
+typedef TypedView < float > Float;
 typedef TypedView < uint8_t > Byte;
 typedef TypedView < int16_t > Int16;
 typedef TypedView < int32_t > Int32;
@@ -277,6 +292,10 @@ public:
 //    virtual CoordinateGridPlotterInterface::SharedPtr
 //    coordinateGridPlotter() = 0;
 
+    ///Return the rest frequency and units; an empty string and a negative value
+    ///will be returned if the rest frequency cannot be found.
+    virtual std::pair<double,QString> getRestFrequency() const = 0;
+
     /// get a labeler algorithm
     /// \note this is not being used anywhere, and maybe it won't be used ever
     virtual PlotLabelGeneratorInterface::SharedPtr
@@ -291,8 +310,15 @@ public:
     virtual QStringList
     otherInfo( TextFormat format = TextFormat::Plain ) = 0;
 
-    virtual ~MetaDataInterface();
+    virtual
+    ~MetaDataInterface();
 
+    /// experimental - return coordinate system converter for the image
+    /// the converter's srcCS will be pixel coordinate system, and dstCS will be world
+    /// coordinate system if it's there, otherwise it'll be also pixel
+    /// \todo change this to pure virtual
+    virtual Regions::ICoordSystemConverter::SharedPtr
+    getCSConv() = 0;
 };
 
 /// Main interface class for representing an image inside the viewer. This is used to pass
@@ -300,12 +326,12 @@ public:
 /// an image would have to implement this interface.
 class ImageInterface
 {
-    CLASS_BOILERPLATE(ImageInterface);
+    CLASS_BOILERPLATE( ImageInterface );
 
 public:
 
     /// similar to BITPIX
-    typedef Image::PixelType    PixelType;
+    typedef Image::PixelType PixelType;
     typedef std::vector < int > VI;
 
     ImageInterface() { }
@@ -371,11 +397,11 @@ public:
     /// \todo booleans as bytes is wasting resources, we should specialize
     /// the NdArray::TypedView for bools
     virtual NdArray::Byte *
-    getMaskSlice( const SliceND & sliceInfo) = 0;
+    getMaskSlice( const SliceND & sliceInfo ) = 0;
 
     /// get the errors
-    virtual NdArray::RawViewInterface  *
-    getErrorSlice( const SliceND & sliceInfo) = 0;
+    virtual NdArray::RawViewInterface *
+    getErrorSlice( const SliceND & sliceInfo ) = 0;
 
     /// return a pointer to a meta data object, which is essentially a collection
     /// of algorithms that allows us to do useful things with metadata stored with
@@ -384,8 +410,6 @@ public:
     metaData() = 0;
 };
 } // namespace Image
-
-
 }
 }
 
@@ -413,7 +437,8 @@ test_apis()
 
     // or
     typedef Slice1D S;
-    SliceND vp2( { S().start( 3 ).step( - 1 ), S(), S( 3 ) });
+    SliceND vp2( { S().start( 3 ).step( - 1 ), S(), S( 3 ) }
+                 );
 
     // describe the slice we want to extract
     // note: uninitialized slice should denote 'entire array view'
@@ -446,7 +471,9 @@ test_apis()
 
     // iterate over all pixels
     double sum = 0.0;
-    doubleReader.forEach([& sum] ( const double & x ) { sum += x; });
+    doubleReader.forEach([& sum] ( const double & x ) { sum += x;
+                         }
+                         );
 
     // META DATA API tests:
     // ===========================

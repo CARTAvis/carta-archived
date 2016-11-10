@@ -20,6 +20,8 @@ public:
     virtual std::vector<HookId> getInitialHookList() override;
     virtual ~CasaImageLoader();
 
+
+
 //    void forgot_to_define_this();
 
 private:

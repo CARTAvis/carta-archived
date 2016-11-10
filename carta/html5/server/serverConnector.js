@@ -99,6 +99,9 @@
         if( quality < 1) {
             quality = 1;
         }
+        else if ( typeof( quality) == "undefined" ){
+        	quality = connector.supportsRasterViewQuality() ? 90 : 101;
+        }
         this.m_quality = quality;
         var params = {};
         // support for safari... (browsers that don't support binary format?)

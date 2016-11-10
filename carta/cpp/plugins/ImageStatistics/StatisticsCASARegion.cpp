@@ -12,12 +12,12 @@ StatisticsCASARegion::StatisticsCASARegion() {
 QList<Carta::Lib::StatInfo>
 StatisticsCASARegion::getStats(
         casa::ImageInterface<casa::Float>* image,
-        Carta::Lib::RegionInfo& regionInfo, const std::vector<int>& slice ){
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
+        const std::vector<int>& slice ){
     QList<Carta::Lib::StatInfo> stats;
-    std::vector<std::pair<double,double> > corners = regionInfo.getCorners();
-    Carta::Lib::RegionInfo::RegionType regionType = regionInfo.getRegionType();
     QString regionTypeStr;
-    casa::Record regionRecord = RegionRecordFactory:: getRegionRecord( regionType, image, corners, slice, regionTypeStr );
+    casa::Record regionRecord = RegionRecordFactory:: getRegionRecord(
+            image, regionInfo, slice, regionTypeStr );
     _getStatsFromCalculator( image, regionRecord, slice, stats, regionTypeStr );
     return stats;
 }

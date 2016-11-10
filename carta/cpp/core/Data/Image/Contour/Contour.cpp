@@ -10,7 +10,6 @@ namespace Data {
 
 const QString Contour::CLASS_NAME = "Contour";
 const QString Contour::LEVEL = "level";
-const QString Contour::STYLE = "style";
 const double Contour::ERROR_MARGIN = 0.000001;
 ContourStyles* Contour::m_contourStyles = nullptr;
 
@@ -32,7 +31,7 @@ QString Contour::getStateString() const {
 QPen Contour::getPen() const {
     QPen pen;
     pen.setCosmetic( true );
-    pen.setWidthF( m_state.getValue<double>( Util::PEN_WIDTH) );
+    pen.setWidthF( m_state.getValue<double>( Util::WIDTH) );
     int redAmount = m_state.getValue<int>( Util::RED );
     int greenAmount = m_state.getValue<int>( Util::GREEN );
     int blueAmount = m_state.getValue<int>( Util::BLUE );
@@ -53,10 +52,10 @@ void Contour::_initializeState(){
     m_state.insertValue<int>( Util::BLUE, 0 );
     m_state.insertValue<int>( Util::GREEN, 0 );
     m_state.insertValue<int>( Util::ALPHA, 255 );
-    m_state.insertValue<double>(Util::PEN_WIDTH, 1 );
+    m_state.insertValue<double>(Util::WIDTH, 1 );
     m_state.insertValue<double>( LEVEL, 0 );
     QString lineStyle = m_contourStyles->getLineStyleDefault();
-    m_state.insertValue<QString>( STYLE, lineStyle );
+    m_state.insertValue<QString>( Util::STYLE, lineStyle );
     m_state.insertValue<bool>( Util::VISIBLE, true );
     //Don't need to flush the state since there isn't a view listening.
 }
@@ -141,10 +140,10 @@ QString Contour::setStyle( const QString& style, bool* changedState ){
     QString result;
     QString actualStyle = m_contourStyles->getLineStyle( style );
     if ( !actualStyle.isEmpty() ){
-        QString oldStyle = m_state.getValue<QString>( STYLE );
+        QString oldStyle = m_state.getValue<QString>( Util::STYLE );
         if ( oldStyle != actualStyle ){
             *changedState = true;
-            m_state.setValue<QString>( STYLE, actualStyle );
+            m_state.setValue<QString>( Util::STYLE, actualStyle );
         }
     }
     else {
@@ -167,9 +166,9 @@ QString Contour::setWidth( double width, bool* changedState ){
     QString result;
     *changedState = false;
     if ( width > 0 ){
-        double oldWidth = m_state.getValue<double>( Util::PEN_WIDTH );
+        double oldWidth = m_state.getValue<double>( Util::WIDTH );
         if ( qAbs( width  - oldWidth ) > ERROR_MARGIN ){
-            m_state.setValue( Util::PEN_WIDTH, width );
+            m_state.setValue( Util::WIDTH, width );
             *changedState = true;
         }
     }

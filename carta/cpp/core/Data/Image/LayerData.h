@@ -92,12 +92,21 @@ protected:
 
     virtual std::shared_ptr<ColorState> _getColorState() Q_DECL_OVERRIDE;
 
+    /**
+     * Return the point on the image corresponding to the pixel point in the context
+     * view.
+     * @param pixelPt - a pixel position in the context view.
+     * @param outputSize - the size of the context view in pixels.
+     * @param valid - whether or not the returned point is valid.
+     * @return - the pixel position of the point in image coordinates.
+     */
+    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const Q_DECL_OVERRIDE;
 
     /**
-         * Return the contour set with the indicated name.
-         * @return - the corresponding contour set with the designated name or a nullptr
-         *  if no such set exists.
-         */
+     * Return the contour set with the indicated name.
+     * @return - the corresponding contour set with the designated name or a nullptr
+     *  if no such set exists.
+     */
     virtual std::shared_ptr<DataContours> _getContour( const QString& name ) Q_DECL_OVERRIDE;
 
 
@@ -219,6 +228,13 @@ protected:
              bool* valid) const Q_DECL_OVERRIDE;
 
      /**
+      * Return the rest frequency and units for the image.
+      * @return - the image rest frequency and units; a blank string and a negative
+      * 		value are returned with the rest frequency can not be found.
+      */
+     virtual std::pair<double,QString> _getRestFrequency() const Q_DECL_OVERRIDE;
+
+     /**
       * Return the world coordinates corresponding to the given pixel coordinates.
       * @param pixelX - the first pixel coordinate.
       * @param pixelY - the second pixel coordinate.
@@ -275,15 +291,27 @@ protected:
     virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
 
     /**
-         * Return a QImage representation of this data.
-         * @param frames - a list of frames to load, one for each of the known axis types.
-         * @param autoClip true if clips should be automatically generated; false otherwise.
-         * @param clipMinPercentile the minimum clip value.
-         * @param clipMaxPercentile the maximum clip value.
-         */
-    virtual void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
-                double clipMaxPercentile ) Q_DECL_OVERRIDE;
+     * Returns whether or not the layer can be loaded with the indicated frames.
+     * @param frames - list of frame indices to load.
+     * @return - whether or not the layer can be loaded with the indicated frames.
+     */
+    virtual bool _isLoadable( const std::vector<int>& frames ) const Q_DECL_OVERRIDE;
 
+    /**
+     * Returns whether or not the image has a spectral axis.
+     * @return - true if the image has a spectral axes; false, otherwise.
+     */
+    virtual bool _isSpectralAxis() const Q_DECL_OVERRIDE;
+
+    /**
+     * Return a QImage representation of this data.
+     * @param frames - a list of frames to load, one for each of the known axis types.
+     * @param autoClip true if clips should be automatically generated; false otherwise.
+     * @param clipMinPercentile the minimum clip value.
+     * @param clipMaxPercentile the maximum clip value.
+     */
+    void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
+    		double clipMaxPercentile );
 
     /**
      * Center the image.
@@ -339,7 +367,11 @@ protected:
      */
     virtual QString _getPixelUnits() const Q_DECL_OVERRIDE;
 
-
+    /**
+     * Return the graphics for drawing regions.
+     * @return - a list of graphics for drawing regions.
+     */
+    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
     /**
          * Returns true if at least one contour set should be drawn; false otherwise.
@@ -370,7 +402,13 @@ protected:
      */
     virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
 
-    virtual bool _setLayersGrouped( bool grouped ) Q_DECL_OVERRIDE;
+    /**
+     * Group or ungroup any child layers.
+     * @param grouped - true if child layers should be grouped; false, otherwise.
+     * @param viewSize - the view size.
+     * @return - true if the operation was performed; false otherwise.
+     */
+    virtual bool _setLayersGrouped( bool grouped, const QSize& viewSize ) Q_DECL_OVERRIDE;
 
     /**
      * Set the opacity of the mask.
@@ -405,6 +443,11 @@ protected:
      */
     virtual void _setPan( double imgX, double imgY ) Q_DECL_OVERRIDE;
 
+    /**
+     * Set a list of graphics for drawing the current regions.
+     * @param regionVGList - graphics for drawing the current regions.
+     */
+    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
     virtual void _setSupportAlpha( bool supportAlpha );
     virtual void _setSupportColor( bool supportColor );
 
@@ -430,6 +473,7 @@ private slots:
     void _renderingDone(  QImage image,
                           Carta::Lib::VectorGraphics::VGList vgList,
                           Carta::Lib::VectorGraphics::VGList contourList,
+						  Carta::Lib::VectorGraphics::VGList regionList,
                           int64_t jobId );
 
 private:
@@ -448,6 +492,9 @@ private:
             const QRectF& outputRect, const QSize& outputSize ) const;
     QRectF _getOutputRectangle( const QSize& outputSize, bool requestMain, bool requestContext ) const;
     QPointF _getPan() const;
+
+
+    bool _getTransform( const QPointF& pan, double zoom, const QSize& size, QTransform& tf ) const;
 
     void _initializeState();
 
@@ -474,6 +521,8 @@ private:
 
      /// image-and-grid-service result synchronizer
     std::unique_ptr<DrawSynchronizer> m_drawSync;
+
+    Carta::Lib::VectorGraphics::VGList m_regionGraphics;
 
     std::shared_ptr<ColorState> m_stateColor;
 

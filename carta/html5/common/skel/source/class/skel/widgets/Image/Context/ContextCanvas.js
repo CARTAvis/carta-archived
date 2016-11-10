@@ -388,7 +388,6 @@ qx.Class.define("skel.widgets.Image.Context.ContextCanvas",{
                     this.m_compassXYLineWidth = controls.compassXY.width;
                 }
                 if ( controls.compassNE != "undefined" ){
-                    console.log( "Setting compass NE Color green="+controls.compassNE.green );
                     this.setCompassColorNE( controls.compassNE.red, controls.compassNE.green, controls.compassNE.blue );
                     this.m_compassNELineWidth = controls.compassNE.width;
                 }

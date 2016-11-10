@@ -32,7 +32,9 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
 
     events : {
         "findChild" : "qx.event.type.Data",
-        "iconifyWindow" : "qx.event.type.Data"
+        "iconifyWindow" : "qx.event.type.Data",
+        "leafResize" : "qx.event.type.Data",
+        "iconify" : "qx.event.type.Data"
     },
 
     members : {

@@ -187,7 +187,7 @@ QPen DataGrid::_getPen( const QString& key, const Carta::State::StateInterface& 
     int blueAmount = state.getValue<int>( blueLookup );
     QString alphaLookup = Carta::State::UtilState::getLookup( key, Util::ALPHA );
     int alphaAmount = state.getValue<int>( alphaLookup );
-    QString widthLookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
+    QString widthLookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
     int widthAmount = state.getValue<int>( widthLookup );
     QPen pen( QColor(redAmount, greenAmount, blueAmount, alphaAmount));
     pen.setWidth( widthAmount);
@@ -234,7 +234,7 @@ void DataGrid::_initializeDefaultPen( const QString& key, int red, int green, in
     QString alphaLookup = Carta::State::UtilState::getLookup( key, Util::ALPHA );
     m_state.insertValue<int>( alphaLookup, alpha );
     if ( width >= 0 ){
-        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
+        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
         m_state.insertValue<int>( widthLookup, width );
     }
 }
@@ -531,7 +531,7 @@ QString DataGrid::_setAxesThickness( int thickness, bool* thicknessChanged ){
                 "1]: "+QString::number(thickness);
     }
     else {
-        QString lookup = Carta::State::UtilState::getLookup( AXES, Util::PEN_WIDTH );
+        QString lookup = Carta::State::UtilState::getLookup( AXES, Util::WIDTH );
         int oldThickness = m_state.getValue<int>(lookup);
         if ( oldThickness != thickness ){
             m_state.setValue<int>( lookup, thickness);
@@ -694,7 +694,7 @@ QString DataGrid::_setGridThickness( int thickness, bool* coordChanged ){
                 QString::number(thickness);
     }
     else {
-        QString lookup = Carta::State::UtilState::getLookup( GRID, Util::PEN_WIDTH );
+        QString lookup = Carta::State::UtilState::getLookup( GRID, Util::WIDTH );
         int oldThickness = m_state.getValue<int>(lookup);
         if ( oldThickness != thickness ){
             m_state.setValue<int>( lookup, thickness);
@@ -880,7 +880,7 @@ QString DataGrid::_setTickThickness( int tickThickness, bool* thicknessChanged )
                 "]: "+QString::number(tickThickness);
     }
     else {
-        QString lookup = Carta::State::UtilState::getLookup( TICK, Util::PEN_WIDTH );
+        QString lookup = Carta::State::UtilState::getLookup( TICK, Util::WIDTH );
         int oldThickness = m_state.getValue<int>(lookup);
         if ( oldThickness != tickThickness ){
             m_state.setValue<int>( lookup, tickThickness);

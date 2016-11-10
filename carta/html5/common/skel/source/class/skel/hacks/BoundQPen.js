@@ -1,6 +1,5 @@
 /**
- * Created with IntelliJ IDEA.
- * User: pfederl
+ * Widget for controlling properties of a QPen.
  */
 
 /* global qx, mImport */

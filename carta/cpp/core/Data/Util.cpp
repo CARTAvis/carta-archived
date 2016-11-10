@@ -11,6 +11,7 @@ namespace Data {
 
 const QString Util::ALPHA = "alpha";
 const QString Util::APPLY = "apply";
+const QString Util::COLOR = "color";
 const QString Util::TRUE = "true";
 const QString Util::FALSE = "false";
 const QString Util::ERROR = "Error";
@@ -20,13 +21,16 @@ const QString Util::BLUE = "blue";
 const QString Util::GREEN = "green";
 const QString Util::ID = "id";
 const QString Util::NAME = "name";
-const QString Util::PEN_WIDTH = "width";
+const QString Util::WIDTH = "width";
+const QString Util::HEIGHT = "height";
 const QString Util::TAB_INDEX = "tabIndex";
 const QString Util::TYPE = "type";
 const QString Util::UNITS = "units";
 const QString Util::VISIBLE = "visible";
 const QString Util::POINTER_MOVE = "pointer-move";
+const QString Util::SELECTED = "selected";
 const QString Util::SIGNIFICANT_DIGITS = "significantDigits";
+const QString Util::STYLE = "style";
 const QString Util::VIEW = "view";
 const QString Util::XCOORD = "x";
 const QString Util::YCOORD = "y";

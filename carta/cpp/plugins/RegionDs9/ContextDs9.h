@@ -9,7 +9,9 @@
 
 namespace Carta {
     namespace Lib {
-        class RegionInfo;
+        namespace Regions {
+            class RegionBase;
+        }
     }
 }
 
@@ -104,7 +106,7 @@ public:
      * Returns a list of regions that were read by the parser.
      * @return - a list of regions returned by the parser.
      */
-    std::vector<std::shared_ptr<Carta::Lib::RegionInfo> > getRegions() const;
+    std::vector<Carta::Lib::Regions::RegionBase* > getRegions() const;
 
     //-----------------------------------------------------------------------------------------
     //               Internal methods called by the parser.
@@ -275,6 +277,6 @@ public:
 
     virtual ~ContextDs9();
 private:
-    std::vector<std::shared_ptr<Carta::Lib::RegionInfo> > m_regions;
+    std::vector<Carta::Lib::Regions::RegionBase*> m_regions;
 };
 

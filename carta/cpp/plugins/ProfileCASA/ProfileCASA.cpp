@@ -3,25 +3,31 @@
 #include "plugins/CasaImageLoader/CCMetaDataInterface.h"
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/ProfileHook.h"
-#include "CartaLib/RegionInfo.h"
 #include "CartaLib/ProfileInfo.h"
+#include "CartaLib/Regions/IRegion.h"
+#include "CartaLib/Regions/Ellipse.h"
+#include "CartaLib/Regions/Point.h"
+#include "CartaLib/Regions/Rectangle.h"
 #include "CartaLib/IImage.h"
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <images/Regions/WCEllipsoid.h>
 #include <images/Regions/RegionManager.h>
 
 #include <iterator>
+
 using namespace std;
 #include <imageanalysis/ImageAnalysis/PixelValueManipulator.h>
 #include <imageanalysis/ImageAnalysis/PixelValueManipulatorData.h>
 #include <imageanalysis/ImageAnalysis/ImageCollapserData.h>
 
-
+#include <iostream>
 #include <QDebug>
 
 
 ProfileCASA::ProfileCASA(QObject *parent) :
-    QObject(parent){
+    QObject(parent),
+    PIXEL_UNIT( "pix"),
+	RADIAN_UNIT( "rad"){
 }
 
 
@@ -32,7 +38,6 @@ casa::MFrequency::Types ProfileCASA::_determineRefFrame(
         casa::CoordinateSystem cSys=img->coordinates();
         casa::Int specAx=cSys.findCoordinate(casa::Coordinate::SPECTRAL);
         if ( specAx >= 0 ) {
-
             casa::SpectralCoordinate specCoor=cSys.spectralCoordinate(specAx);
             casa::MFrequency::Types tfreqtype;
             casa::MEpoch tepoch;
@@ -46,7 +51,8 @@ casa::MFrequency::Types ProfileCASA::_determineRefFrame(
 }
 
 Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInterface < casa::Float > * imagePtr,
-        Carta::Lib::RegionInfo regionInfo, Carta::Lib::ProfileInfo profileInfo ) const {
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
+        Carta::Lib::ProfileInfo profileInfo ) const {
     std::vector<std::pair<double,double> > profileData;
     casa::CoordinateSystem cSys = imagePtr->coordinates();
     casa::uInt spectralAxis = 0;
@@ -78,23 +84,48 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
             restUnit = restUnitImage;
         }
     }
+    casa::Record regionRecord;
+    if ( regionInfo ){
+    	QString shape = regionInfo->typeName();
+    	if ( shape == "ellipse" || shape=="rectangle"){
+    		QRectF box = regionInfo->outlineBox();
+    		QPointF topLeft = box.topLeft();
+    		QPointF bottomRight = box.bottomRight();
+    		casa::Vector<casa::Double> x(2);
+    		casa::Vector<casa::Double> y(2);
+    		x[0] = topLeft.x();
+    		y[0] = topLeft.y();
+    		x[1] = bottomRight.x();
+    		y[1] = bottomRight.y();
+    		regionRecord = _getRegionRecord( shape, cSys, x, y );
+    	}
+    	else if ( shape == "Point"){
+    		casa::Vector<casa::Double> x(1);
+    		casa::Vector<casa::Double> y(1);
+    		QRectF box = regionInfo->outlineBox();
+    		x[0] = box.center().x();
+    		x[1] = box.center().y();
+    		regionRecord = _getRegionRecord( shape, cSys, x, y );
+    	}
+    	else {
+			QPolygonF regionCorners = regionInfo->outlineBox();
+			int cornerCount = regionCorners.size();
+			casa::Vector<casa::Double> x(cornerCount);
+			casa::Vector<casa::Double> y(cornerCount);
+			for ( int i = 0; i < cornerCount; i++ ){
+				QPointF corner = regionCorners.value( i );
+				x[i] = corner.x();
+				y[i] = corner.y();
+			}
+			regionRecord = _getRegionRecord( shape, cSys, x, y);
+    	}
 
 
-    Carta::Lib::RegionInfo::RegionType shape = regionInfo.getRegionType();
-    std::vector<std::pair<double,double> > regionCorners = regionInfo.getCorners();
-    int cornerCount = regionCorners.size();
-    casa::Vector<casa::Double> x(cornerCount);
-    casa::Vector<casa::Double> y(cornerCount);
-    for ( int i = 0; i < cornerCount; i++ ){
-        x[i] = regionCorners[i].first;
-        y[i] = regionCorners[i].second;
     }
-    casa::Record regionRecord = _getRegionRecord( shape, cSys, x, y);
-
     QString spectralType = profileInfo.getSpectralType();
     QString spectralUnit = profileInfo.getSpectralUnit();
     if ( spectralType == "Channel"){
-        spectralUnit = "pixel";
+        spectralUnit = PIXEL_UNIT;
         spectralType = "default";
     }
     casa::String pixelSpectralType( spectralType.toStdString().c_str() );
@@ -112,7 +143,6 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casa::ImageInter
         casa::String frame = casa::String( casa::MFrequency::showType( freqType));
 
         casa::Quantity restFreq( restFrequency, casa::Unit( restUnit.toStdString().c_str()));
-
         casa::Record result = pvm.getProfile( spectralAxis, funct, unit, specType,
                 &restFreq, frame );
 
@@ -174,46 +204,55 @@ casa::ImageRegion* ProfileCASA::_getEllipsoid(const casa::CoordinateSystem& cSys
     casa::Vector<casa::Quantity> radius(2);
     casa::ImageRegion* imageRegion = NULL;
     if ( x.size() == 2 && y.size() == 2 ){
-        const casa::String radUnits( "rad");
-        center[0] = casa::Quantity( (x[0]+x[1])/2, radUnits );
-        center[1] = casa::Quantity( (y[0]+y[1])/2, radUnits );
+    	bool successful0 = false;
+    	casa::Vector<casa::Double> world0 = _toWorld( cSys, x[0], y[0], &successful0 );
+    	bool successful1 = false;
+    	casa::Vector<casa::Double> world1 = _toWorld( cSys, x[1], y[1], &successful1 );
+    	if ( successful0 && successful1 ){
+			const casa::String radUnits( RADIAN_UNIT.toStdString().c_str());
+			center[0] = casa::Quantity(  (world0[0]+world1[0])/2, radUnits );
+			center[1] = casa::Quantity( (world0[1]+world1[1])/2, radUnits );
+			casa::MDirection::Types type = casa::MDirection::N_Types;
+			int directionIndex = cSys.findCoordinate( casa::Coordinate::DIRECTION );
+			if ( directionIndex >= 0 ){
+				casa::uInt dirIndex = static_cast<casa::uInt>(directionIndex);
+				type = cSys.directionCoordinate(dirIndex).directionType(true);
 
-        casa::MDirection::Types type = casa::MDirection::N_Types;
-        int directionIndex = cSys.findCoordinate( casa::Coordinate::DIRECTION );
-        if ( directionIndex >= 0 ){
-            casa::uInt dirIndex = static_cast<casa::uInt>(directionIndex);
-            type = cSys.directionCoordinate(dirIndex).directionType(true);
+				casa::Vector<casa::Double> qCenter(2);
+				qCenter[0] = center[0].getValue();
+				qCenter[1] = center[1].getValue();
+				const casa::String angleUnits( "deg");
+				casa::MDirection mdcenter( casa::Quantum<casa::Vector<casa::Double> >(qCenter,angleUnits), type );
 
-            casa::Vector<casa::Double> qCenter(2);
-            qCenter[0] = center[0].getValue();
-            qCenter[1] = center[1].getValue();
-            casa::MDirection mdcenter( casa::Quantum<casa::Vector<casa::Double> >(qCenter,radUnits), type );
+				casa::Vector<casa::Double> blc_pix_x(2);
+				blc_pix_x[0] = world0[0];
+				blc_pix_x[1] = center[1].getValue();
+				casa::MDirection mdblc_x( casa::Quantum<casa::Vector<casa::Double> >(blc_pix_x,angleUnits),type );
 
-            casa::Vector<casa::Double> blc_rad_x(2);
-            blc_rad_x[0] = x[0];
-            blc_rad_x[1] = center[1].getValue();
-            casa::MDirection mdblc_x( casa::Quantum<casa::Vector<casa::Double> >(blc_rad_x,radUnits),type );
+				casa::Vector<casa::Double> blc_pix_y(2);
+				blc_pix_y[0] = center[0].getValue();
+				blc_pix_y[1] = world0[1];
+				casa::MDirection mdblc_y( casa::Quantum<casa::Vector<casa::Double> >(blc_pix_y,angleUnits),type );
 
-            casa::Vector<casa::Double> blc_rad_y(2);
-            blc_rad_y[0] = center[0].getValue();
-            blc_rad_y[1] = y[0];
-            casa::MDirection mdblc_y( casa::Quantum<casa::Vector<casa::Double> >(blc_rad_y,radUnits),type );
+				double xdistance = mdcenter.getValue( ).separation(mdblc_x.getValue( ));
+				double ydistance = mdcenter.getValue( ).separation(mdblc_y.getValue( ));
+				const float ERR = 0;
+				if ( xdistance > ERR && ydistance > ERR ){
+					radius[0] = casa::Quantity(xdistance, radUnits );
+					radius[1] = casa::Quantity(ydistance, radUnits );
 
-            double xdistance = mdcenter.getValue( ).separation(mdblc_x.getValue( ));
-            double ydistance = mdcenter.getValue( ).separation(mdblc_y.getValue( ));
-            const float ERR = 0;
-            if ( xdistance > ERR && ydistance > ERR ){
-                radius[0] = casa::Quantity(xdistance, radUnits );
-                radius[1] = casa::Quantity(ydistance, radUnits );
-
-                casa::Vector<casa::Int> pixax(2);
-                casa::Vector<casa::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
-                pixax(0) = dirPixelAxis[0];
-                pixax(1) = dirPixelAxis[1];
-                casa::WCEllipsoid ellipsoid( center, radius, casa::IPosition(dirPixelAxis), cSys);
-                imageRegion = new casa::ImageRegion( ellipsoid );
-            }
+					casa::Vector<casa::Int> pixax(2);
+					casa::Vector<casa::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
+					pixax(0) = dirPixelAxis[0];
+					pixax(1) = dirPixelAxis[1];
+					casa::WCEllipsoid ellipsoid( center, radius, casa::IPosition(dirPixelAxis), cSys);
+					imageRegion = new casa::ImageRegion( ellipsoid );
+				}
+			}
         }
+    	else {
+    		qDebug() << "Could not convert pixels to world coordinates";
+    	}
     }
     else {
         qDebug() << "Invalid size (2) for an ellipse: "<<x.size()<<" and "<<y.size();
@@ -233,14 +272,14 @@ std::vector<HookId> ProfileCASA::getInitialHookList(){
 casa::ImageRegion* ProfileCASA::_getPolygon(const casa::CoordinateSystem& cSys,
         const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const {
     casa::ImageRegion* polygon = NULL;
-    const casa::String radUnits( "rad");
+    const casa::String pixUnits( "pixel" );
     casa::RegionManager regMan;
     int n = x.size();
     casa::Vector<casa::Quantity> xvertex(n);
     casa::Vector<casa::Quantity> yvertex(n);
     for (casa::Int k = 0; k < n; ++k) {
-        xvertex[k] = casa::Quantity(x[k], radUnits);
-        yvertex[k] = casa::Quantity(y[k], radUnits);
+        xvertex[k] = casa::Quantity(x[k], pixUnits );
+        yvertex[k] = casa::Quantity(y[k], pixUnits );
     }
     int directionIndex = cSys.findCoordinate( casa::Coordinate::DIRECTION );
     if ( directionIndex >= 0 ){
@@ -254,65 +293,83 @@ casa::ImageRegion* ProfileCASA::_getPolygon(const casa::CoordinateSystem& cSys,
 }
 
 
-casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType shape, const casa::CoordinateSystem& cSys,
+casa::Record ProfileCASA::_getRegionRecord( const QString& shape, const casa::CoordinateSystem& cSys,
         const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y) const {
-    const casa::String radUnits( "rad");
+	const casa::String radUnits( RADIAN_UNIT.toStdString().c_str());
     const casa::String absStr( "abs");
     casa::Record regionRecord;
     casa::Int directionIndex = cSys.findCoordinate(casa::Coordinate::DIRECTION);
     if ( directionIndex >= 0 ){
         casa::Vector<casa::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
         casa::RegionManager regMan;
-        if ( shape == Carta::Lib::RegionInfo::RegionType::Polygon ){
+        if ( shape == Carta::Lib::Regions::Rectangle::TypeName ||
+        		shape == Carta::Lib::Regions::Point::TypeName ){
             int ptCount = x.size();
             if ( ptCount == 2 ){
                 casa::Vector<casa::Quantity> blc(2);
                 casa::Vector<casa::Quantity> trc(2);
-                blc(0) = casa::Quantity(x[0], radUnits);
-                blc(1) = casa::Quantity(y[0], radUnits);
-                trc(0) = casa::Quantity(x[1], radUnits);
-                trc(1) = casa::Quantity(y[1], radUnits);
-                casa::Vector<casa::Int> pixax(2);
-                pixax(0) = dirPixelAxis[0];
-                pixax(1) = dirPixelAxis[1];
+                bool successful0 = false;
+                casa::Vector<casa::Double> w0 = _toWorld( cSys, x[0], y[0], &successful0 );
+                bool successful1 = false;
+                casa::Vector<casa::Double> w1 = _toWorld( cSys, x[1], y[1], &successful1 );
+                if ( successful0 && successful1 ){
+					blc(0) = casa::Quantity(w0[0], radUnits);
+					blc(1) = casa::Quantity(w0[1], radUnits);
+					trc(0) = casa::Quantity(w1[0], radUnits);
+					trc(1) = casa::Quantity(w1[1], radUnits);
+					casa::Vector<casa::Int> pixax(2);
+					pixax(0) = dirPixelAxis[0];
+					pixax(1) = dirPixelAxis[1];
 
-                casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, radUnits);
-                regionRecord = *imagregRecord;
-                delete imagregRecord;
+					casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, radUnits);
+					regionRecord = *imagregRecord;
+					delete imagregRecord;
+                }
+                else {
+                	qWarning() << "Could not generate region profile";
+                }
             }
             else if ( ptCount == 1 ){
                 //Try a rectangle with blc=trc;
                 casa::Vector<casa::Quantity> blc(2);
                 casa::Vector<casa::Quantity> trc(2);
-                blc(0) = casa::Quantity(x[0], radUnits);
-                blc(1) = casa::Quantity(y[0], radUnits);
-                trc(0) = casa::Quantity(x[0], radUnits);
-                trc(1) = casa::Quantity(y[0], radUnits);
-                casa::Vector<casa::Int> pixax(2);
-                pixax(0) = dirPixelAxis[0];
-                pixax(1) = dirPixelAxis[1];
+                bool successful0 = false;
+                casa::Vector<casa::Double> w0 = _toWorld( cSys, x[0], y[0], &successful0 );
+                if ( successful0 ){
+					blc(0) = casa::Quantity(w0[0], radUnits);
+					blc(1) = casa::Quantity(w0[1], radUnits);
+					trc(0) = casa::Quantity(w0[0], radUnits);
+					trc(1) = casa::Quantity(w0[1], radUnits);
+					casa::Vector<casa::Int> pixax(2);
+					pixax(0) = dirPixelAxis[0];
+					pixax(1) = dirPixelAxis[1];
 
-                casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, radUnits);
-                regionRecord=*imagregRecord;
-                delete imagregRecord;
-            }
-            else if ( ptCount > 0 ){
-                casa::ImageRegion* polygon = _getPolygon( cSys, x, y );
-                if ( polygon != NULL ){
-                    regionRecord = polygon->toRecord(casa::String(""));
-                    delete polygon;
+					casa::Record* imagregRecord = regMan.wbox(blc, trc, pixax, cSys, absStr, radUnits);
+					regionRecord=*imagregRecord;
+					delete imagregRecord;
                 }
             }
             else {
-                qDebug() << "Profile Error: A region must have at least one point.";
+            	qWarning()<<"Unrecognized point count "<<ptCount;
             }
         }
-        else if ( shape == Carta::Lib::RegionInfo::RegionType::Ellipse ){
-            casa::ImageRegion* ellipsoid = _getEllipsoid( cSys, x, y );
+        else if ( shape == Carta::Lib::Regions::Polygon::TypeName ){
+        	casa::ImageRegion* polygon = _getPolygon( cSys, x, y );
+        	if ( polygon != NULL ){
+        		regionRecord = polygon->toRecord(casa::String(""));
+        		delete polygon;
+        	}
+
+        }
+        else if ( shape == Carta::Lib::Regions::Ellipse::TypeName ){
+        	casa::ImageRegion* ellipsoid = _getEllipsoid( cSys, x, y );
             if ( ellipsoid != NULL ){
                 regionRecord = ellipsoid->toRecord("");
                 delete ellipsoid;
             }
+        }
+        else {
+        	qDebug() << "getRegion record shape not handled: "<<shape;
         }
     }
     return regionRecord;
@@ -320,7 +377,7 @@ casa::Record ProfileCASA::_getRegionRecord( Carta::Lib::RegionInfo::RegionType s
 
 
 bool ProfileCASA::handleHook(BaseHook & hookData){
-    qDebug() << "ProfileCASA plugin is handling hook #" << hookData.hookId();
+    //qDebug() << "ProfileCASA plugin is handling hook #" << hookData.hookId();
     if( hookData.is<Carta::Lib::Hooks::Initialize>()) {
         return true;
     }
@@ -340,7 +397,7 @@ bool ProfileCASA::handleHook(BaseHook & hookData){
             return false;
         }
 
-        Carta::Lib::RegionInfo regionInfo = hook.paramsPtr->m_regionInfo;
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo = hook.paramsPtr->m_regionInfo;
         Carta::Lib::ProfileInfo profileInfo = hook.paramsPtr->m_profileInfo;
         hook.result = _generateProfile( casaImage, regionInfo, profileInfo );
         return true;
@@ -349,6 +406,28 @@ bool ProfileCASA::handleHook(BaseHook & hookData){
     return false;
 }
 
+casa::Vector<casa::Double> ProfileCASA::_toWorld( const casa::CoordinateSystem& cSys,
+		double x, double y, bool* successful ) const {
+	int pixelCount = cSys.nPixelAxes();
+	casa::Vector<casa::Double> pixelPt( pixelCount, 0 );
+	casa::Vector<casa::Double> worldPt;
+	if ( pixelCount >= 2 ){
+		pixelPt[0] = x;
+		pixelPt[1] = y;
+		try {
+			worldPt = cSys.toWorld( pixelPt );
+			*successful = true;
+		}
+		catch( const casa::AipsError& error ){
+			qDebug() << error.getMesg().c_str()<<" pixel=("<<x<<","<<y<<")";
+			*successful = false;
+		}
+	}
+	else {
+		*successful = false;
+	}
+	return worldPt;
+}
 
 ProfileCASA::~ProfileCASA(){
 

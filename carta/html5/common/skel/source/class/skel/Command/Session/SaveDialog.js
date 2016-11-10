@@ -8,15 +8,13 @@
  ******************************************************************************/
 qx.Class.define("skel.Command.Session.SaveDialog", {
     extend : qx.ui.core.Widget,
-    include : [skel.Command.Session.SnapRegistration],
     
     /**
      * Constructor.
      */
     construct : function( ) {
         this.base(arguments);
-        this.registerSnapshot( null );
-
+        this.registerSnapshot();
         var nameContainer = new qx.ui.container.Composite();
         nameContainer.setLayout(new qx.ui.layout.HBox(2));
         var nameLabel = new qx.ui.basic.Label( "Save Name:");
@@ -97,16 +95,30 @@ qx.Class.define("skel.Command.Session.SaveDialog", {
         this._add( nameContainer );
         this._add( checkContainer );
         this._add( descriptContainer );
-        this._add( butContainer );
-       
+        this._add( butContainer );     
     },
-
+    
     events : {
         "closeSessionSave" : "qx.event.type.Data"
     },
 
     members : {
+    	
+    	/**
+         * Send the command to get the shared variable containing snapshot information.
+         * @param callback {Function} the function to be called when the shared variable changes.
+         */
+        registerSnapshot : function(  ){
+            this.m_connector = mImport( "connector");
+            var params = "";
+            var pathDict = skel.widgets.Path.getInstance();
+            var regCmd = pathDict.getCommandRegisterSnapshots();
+            this.m_connector.sendCommand( regCmd, params, this._registrationCallback(this));
+        },
         
+        /**
+         * Send a command to the server to save a snapshot.
+         */
         _saveSnapshot : function(){
             var path = skel.widgets.Path.getInstance();
             var errMan = skel.widgets.ErrorHandler.getInstance();
@@ -126,17 +138,33 @@ qx.Class.define("skel.Command.Session.SaveDialog", {
             //error.
             if ( saveLayout || savePreferences || saveData ){
                 errMan.clearErrors();
-                var connector = mImport("connector");
+                
                 var cmd = this.m_identifier + path.SEP_COMMAND + "saveSnapshot";
                 var params = "fileName:"+fileName+",layoutSnapshot:"+saveLayout+
                     ",preferencesSnapshot:"+savePreferences+",dataSnapshot:"+saveData+",description:"+description;
-                connector.sendCommand( cmd, params, function(val){} );
+                this.m_connector.sendCommand( cmd, params, function(val){} );
             }
             else {
                 errMan.updateErrors( "Please select the type of state to save.");
             }
         },
         
+        /**
+         * Callback for obtaining the snapshot server id.
+         * @param anObject {skel.Command.Session.SaveDialog} -this object.
+         */
+        _registrationCallback : function( anObject ){
+            return function( id ){
+                if ( id && id.length > 0 ){
+                    if ( id != anObject.m_identifier ){
+                        anObject.m_identifier = id;                       
+                    }
+                }
+            };
+        },
+        
+        m_connector : null,
+        m_identifier : null,
         m_DEFAULT_SAVE : "session_default",
         m_layoutCheck : null,
         m_preferencesCheck : null,

@@ -32,7 +32,7 @@ QString ProfileInfo::getSpectralUnit() const {
     return m_spectralUnit;
 }
 
-bool ProfileInfo::operator==( const ProfileInfo& rhs ) {
+bool ProfileInfo::operator==( const ProfileInfo& rhs ) const {
     bool equalProfiles = false;
     if ( m_aggregateType == rhs.m_aggregateType ){
         if ( m_restUnit == rhs.m_restUnit ){

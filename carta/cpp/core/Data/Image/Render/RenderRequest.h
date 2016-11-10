@@ -27,6 +27,18 @@ public:
             const Carta::Lib::KnownSkyCS& cs );
 
     /**
+     * Return the minimum clip percent.
+     * @return - the minimum clip percent.
+     */
+    double getClipPercentMin() const;
+
+    /**
+     * Return the maximum clip percent.
+     * @return - the maximum clip percent.
+     */
+    double getClipPercentMax() const;
+
+    /**
      * Return the layers that will be rendered.
      * @return - a list of layers to be rendered.
      */
@@ -61,6 +73,12 @@ public:
      * @return - the index of the image that should be at the top of the stack.
      */
     int getTopIndex() const;
+
+    /**
+     * Returns whether or not clips should be recomputed on a new frame.
+     * @return - true if clips should be recomputed for a new frame; false, otherwise.
+     */
+    bool isRecomputeClips() const;
 
     /**
      * Returns whether the request includes a context rendering.
@@ -106,6 +124,20 @@ public:
     QSize getOutputSize() const;
 
     /**
+     * Returns whether or not the other request is equal to this one.
+     * @param other - the other request.
+     * @return - whether or not the other request is equal to this one.
+     */
+	bool operator==( const RenderRequest& other ) const;
+
+	/**
+	 * Set the min and max clip percentiles.
+	 * @param minClipPercent - the minimum clip percentile.
+	 * @param maxClipPercent - the maximum clip percentile.
+	 */
+	void setClipPercents( double minClipPercent, double maxClipPercent );
+
+    /**
      * Set the list of layers to be rendered.
      * @param datas - the list of layers to be rendered.
      */
@@ -144,6 +176,12 @@ public:
     void setOutputSize( const QSize& size );
 
     /**
+     * Set whether or not clips should be recomputed on a new frame.
+     * @param recomputeClipsOnNewFrame - true if clips should be recomputed; false, otherwise.
+     */
+    void setRecomputeClips( bool recomputeClipsOnNewFrame );
+
+    /**
      * Set whether or not to include the grid with the rendering.
      * @param stackTop - true if the grid should be included; false, otherwise.
      */
@@ -176,6 +214,9 @@ private:
     QPointF m_pan;
     QSize m_outputSize;
     QList<std::shared_ptr<Layer> > m_datas;
+    bool m_recomputeClips;
+    double m_minClipPercent;
+    double m_maxClipPercent;
 
     RenderRequest& operator=( const RenderRequest& other );
 };

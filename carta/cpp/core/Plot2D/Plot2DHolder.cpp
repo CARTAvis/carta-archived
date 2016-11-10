@@ -57,10 +57,6 @@ void Plot2DHolder::addData(std::vector<std::pair<double,double> > dataVector,
     std::shared_ptr<Plot2D> pData = _findData( id, true );
     if ( !pData && primary  ){
         pData = _makeData();
-        if ( m_plotType == PlotType::HISTOGRAM ){
-            //For right now, just one histogram plot
-            clearData();
-        }
         m_datas.append( pData );
     }
     else if ( pData && !primary ){
@@ -77,12 +73,10 @@ void Plot2DHolder::addData(std::vector<std::pair<double,double> > dataVector,
         }
     }
 
-
     if ( pData ){
         pData->setId( id );
         pData->setData( dataVector );
         pData->attachToPlot(m_plot);
-
         _updateScales();
     }
 }

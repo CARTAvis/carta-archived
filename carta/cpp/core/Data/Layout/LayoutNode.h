@@ -6,7 +6,6 @@
 #pragma once
 
 #include "State/ObjectManager.h"
-//#include "State/StateInterface.h"
 
 #include <QStringList>
 
@@ -152,7 +151,12 @@ public:
      */
     virtual bool setPlugin( const QString& nodeId, const QString& pluginType, int index ) = 0;
 
-    virtual ~LayoutNode();
+    /**
+     * Set the size of the layout cell.
+     * @param width - the width of the layout cell.
+     * @param height - the height of the layout cell.
+     */
+    virtual QString setSize( int width, int height );
 
     /**
      * Return a string representation of the state of this cell and its descendents.
@@ -160,15 +164,16 @@ public:
      */
     virtual QString toString() const;
 
+    virtual ~LayoutNode();
+
 protected:
 
     LayoutNode( const QString& className, const QString& path, const QString& id );
-    const static QString WIDTH;
-    const static QString HEIGHT;
 
 private:
     void _initializeCommands();
     void _initializeDefaultState();
+
 
     LayoutNode( const LayoutNode& other);
     LayoutNode& operator=( const LayoutNode& other );

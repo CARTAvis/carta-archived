@@ -181,6 +181,19 @@ qx.Class.define( "skel.widgets.CustomUI.NumericTextField",
             },
             
             /**
+             * Returns whether or not the text field is showing a warning.
+             * @return {boolean} - true if the text field is showing an error; false,
+             * 		otherwise.
+             */
+            _isWarning : function(){
+            	var warning = false;
+            	if ( this.indexOf( this.m_warning) >= 0 ){
+                    warning = true;
+                }
+            	return warning;
+            },
+            
+            /**
              * Layout the text field.
              */
             _layoutControls : function(){

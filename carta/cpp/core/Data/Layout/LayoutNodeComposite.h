@@ -47,10 +47,11 @@ public:
     virtual void setChildSecond( LayoutNode* node ) Q_DECL_OVERRIDE;
     virtual bool setPlugin( const QString& nodeId, const QString& nodeType, int index ) Q_DECL_OVERRIDE;
     virtual bool setPlugins( QStringList& names, QMap<QString,int>& usedPlugins, bool useFirst ) Q_DECL_OVERRIDE;
-    virtual ~LayoutNodeComposite();
-    const static QString CLASS_NAME;;
-
+    virtual QString setSize( int width, int height );
     virtual QString toString() const  Q_DECL_OVERRIDE;
+    virtual ~LayoutNodeComposite();
+
+    const static QString CLASS_NAME;;
     const static QString PLUGIN_LEFT;
     const static QString PLUGIN_RIGHT;
 

@@ -44,7 +44,9 @@ public:
     BetterQPainter( QPainter & qPainter )
         : m_qPainter( qPainter )
     {
+        auto oldHints = qPainter.renderHints();
         reset();
+        qPainter.setRenderHints( oldHints);
     }
 
     void reset() {
@@ -97,6 +99,21 @@ public:
     drawPolyline( const QPolygonF & poly )
     {
         m_qPainter.drawPolyline( poly );
+    }
+
+    /// draw a polygon
+    void
+    drawPolygon( const QPolygonF & poly )
+    {
+        m_qPainter.drawPolygon( poly );
+    }
+
+
+    /// draw an ellipse
+    void
+    drawEllipse( const QRectF & rect)
+    {
+        m_qPainter.drawEllipse( rect);
     }
 
     /// set the width of lines

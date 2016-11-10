@@ -107,6 +107,7 @@ public:
     static const QString SELECTIONS;
     //Identifier for an image.
     const static QString IMAGE;
+    const static QString REGION;
     //Identifier for a channel.
     static const QString CHANNEL;
 

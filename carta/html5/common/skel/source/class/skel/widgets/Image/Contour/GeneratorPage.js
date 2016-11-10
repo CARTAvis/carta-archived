@@ -18,15 +18,20 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
         this._init( );
         
         //Shared variable for method used to generate contour levels.
-        this.m_connector = mImport( "connector" );
-        var pathDict = skel.widgets.Path.getInstance();
-        this.m_sharedVarGenerateModes = this.m_connector.getSharedVar(pathDict.CONTOUR_GENERATE_MODES);
-        this.m_sharedVarGenerateModes.addCB(this._generateModesChangedCB.bind(this));
-        this._generateModesChangedCB();
+        if ( typeof mImport !== "undefined"){
+        	this.m_connector = mImport( "connector" );
+        }
         
-        this.m_sharedVarSpacingModes = this.m_connector.getSharedVar( pathDict.CONTOUR_SPACING_MODES );
-        this.m_sharedVarSpacingModes.addCB( this._spacingModesChangedCB.bind(this));
-        this._spacingModesChangedCB();
+        if ( this.m_connector !== null ){
+        	var pathDict = skel.widgets.Path.getInstance();
+        	this.m_sharedVarGenerateModes = this.m_connector.getSharedVar(pathDict.CONTOUR_GENERATE_MODES);
+        	this.m_sharedVarGenerateModes.addCB(this._generateModesChangedCB.bind(this));
+        	this._generateModesChangedCB();
+        
+        	this.m_sharedVarSpacingModes = this.m_connector.getSharedVar( pathDict.CONTOUR_SPACING_MODES );
+        	this.m_sharedVarSpacingModes.addCB( this._spacingModesChangedCB.bind(this));
+        	this._spacingModesChangedCB();
+        }
     },
 
     members : {
@@ -449,6 +454,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
         _setGenerateMethod : function( method ){
             if ( this.m_limitCombo.getValue() != method ){
                 this.m_limitCombo.setSelectValue( method, false );
+                this._generateMethodChanged();
             }
         },
         

@@ -5,8 +5,9 @@
 #pragma once
 
 #include <memory>
+
+#include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/Hooks/ProfileResult.h"
-#include "CartaLib/RegionInfo.h"
 #include "CartaLib/ProfileInfo.h"
 
 namespace Carta {
@@ -40,7 +41,8 @@ public:
      *      otherwise.
      */
     bool setParameters(std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource,
-         Carta::Lib::RegionInfo& regionInfo, Carta::Lib::ProfileInfo& profInfo );
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
+        const Carta::Lib::ProfileInfo& profInfo );
 
     /**
      * Performs the work of computing the Profile data in a separate process.
@@ -56,7 +58,7 @@ public:
 
 private:
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_dataSource;
-    Carta::Lib::RegionInfo m_regionInfo;
+    std::shared_ptr<Carta::Lib::Regions::RegionBase> m_regionInfo;
     Carta::Lib::ProfileInfo m_profileInfo;
     Carta::Lib::Hooks::ProfileResult m_result;
 

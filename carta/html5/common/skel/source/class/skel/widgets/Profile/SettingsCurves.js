@@ -14,6 +14,7 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
      */
     construct : function( ) {
         this.base(arguments, "Curves", "");
+        this.m_colorAppeared = false;
         this._init();
         
         //Initiate connector.
@@ -43,8 +44,12 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
         dataUpdate : function( curveUpdate ){
             this.m_curveInfo = curveUpdate.curves;
             var curveNames = [];
+            var j = 0;
             for ( var i = 0; i < this.m_curveInfo.length; i++ ){
-                curveNames[i] = this.m_curveInfo[i].name;
+            	if ( this.m_curveInfo[i].active ){
+            		curveNames[j] = this.m_curveInfo[i].name;
+            		j++;
+            	}
             }
             this.m_curveList.setItems( curveNames );
             this._updateColor();
@@ -90,6 +95,10 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
             curveContainer.add( styleContainer );
             
             this.m_colorSelector = new skel.widgets.CustomUI.ColorSelector();
+            this.m_colorSelector.addListener("appear", function() {
+                this.m_colorAppeared = true;
+                this._updateColor();
+            }, this );
             this.m_colorListenerId = this.m_colorSelector.addListener( "changeValue", this._sendColorChangeCmd, this );
             curveContainer.add( this.m_colorSelector );
             
@@ -201,26 +210,29 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
         _updateColor : function(){
             if ( this.m_curveList !== null && this.m_colorSelector !== null &&
                     this.m_curveInfo !== null ){
-                this.m_colorSelector.removeListenerById( this.m_colorListenerId );
-                var curveIndex = this.m_curveList.getSelectedIndex();
-                if ( curveIndex < this.m_curveInfo.length ){
-                    var oldRed = this.m_colorSelector.getRed();
-                    var newRed = this.m_curveInfo[curveIndex].red;
-                    if ( oldRed != newRed ){
-                        this.m_colorSelector.setRed( newRed );
+                if ( this.m_colorAppeared ){
+                    this.m_colorSelector.removeListenerById( this.m_colorListenerId );
+                    var curveIndex = this.m_curveList.getSelectedIndex();
+                    if ( curveIndex < this.m_curveInfo.length ){
+                        var oldRed = this.m_colorSelector.getRed();
+                        var newRed = this.m_curveInfo[curveIndex].red;
+                        if ( oldRed != newRed ){
+                            this.m_colorSelector.setRed( newRed );
+                        }
+                        var oldGreen = this.m_colorSelector.getGreen();
+                        var newGreen = this.m_curveInfo[curveIndex].green;
+                        if ( oldGreen != newGreen ){
+                            this.m_colorSelector.setGreen( newGreen );
+                        }
+                        var oldBlue = this.m_colorSelector.getBlue();
+                        var newBlue = this.m_curveInfo[curveIndex].blue;
+                        if ( oldBlue != newBlue ){
+                            this.m_colorSelector.setBlue( newBlue );
+                        }
                     }
-                    var oldGreen = this.m_colorSelector.getGreen();
-                    var newGreen = this.m_curveInfo[curveIndex].green;
-                    if ( oldGreen != newGreen ){
-                        this.m_colorSelector.setGreen( newGreen );
-                    }
-                    var oldBlue = this.m_colorSelector.getBlue();
-                    var newBlue = this.m_curveInfo[curveIndex].blue;
-                    if ( oldBlue != newBlue ){
-                        this.m_colorSelector.setBlue( newBlue );
-                    }
+                    this.m_colorListenerId = this.m_colorSelector.addListener( "changeValue", 
+                            this._sendColorChangeCmd, this );
                 }
-                this.m_colorListenerId = this.m_colorSelector.addListener( "changeValue", this._sendColorChangeCmd, this );
             }
         },
         
@@ -248,6 +260,7 @@ qx.Class.define("skel.widgets.Profile.SettingsCurves", {
         },
         
         m_id : null,
+        m_colorAppeared : null,
         m_connector : null,
         m_curveList : null,
         m_curveInfo : null,

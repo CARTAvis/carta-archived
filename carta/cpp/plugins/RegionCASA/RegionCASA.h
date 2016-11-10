@@ -11,7 +11,10 @@
 
 namespace Carta {
     namespace Lib {
-        class RegionInfo;
+        namespace Regions {
+            class Polygon;
+            class RegionBase;
+        }
     }
 }
 
@@ -38,8 +41,8 @@ private:
      * @param rInfo - the region information.
      * @param corners - the list of region corners to add.
      */
-    void _addCorners( std::shared_ptr<Carta::Lib::RegionInfo>& rInfo,
-            const std::vector<std::pair<double,double> >& corners );
+    void _addCorners( Carta::Lib::Regions::Polygon* rInfo,
+            const std::vector<QPointF>& corners );
 
     /**
      * Get a list of the corner points of a region in pixels.
@@ -48,9 +51,20 @@ private:
      * @param directions - a list of MDirections for the image.
      * @return - a list of corner points of a region in pixels.
      */
-    std::vector<std::pair<double,double> >
+    std::vector<QPointF>
         _getPixelVertices( const casa::AnnotationBase::Direction& corners,
             const casa::CoordinateSystem& csys, const casa::Vector<casa::MDirection>& directions ) const;
+
+    /**
+     * Convert the length is world coordinates to pixel coordinates.
+     * @param centerRadian - an initial point of the radius in world coordinates.
+     * @param centerPixel - the corresponding initial point in pixel coordinates.
+     * @param radius - a length in world coordinates.
+     * @param cSys - the image coordinate system.
+     * @return - the corresponding length in pixel coordinates.
+     */
+    double _getRadiusPixel( const QPointF& centerRadian, const QPointF& centerPixel,
+       		double radius, double angleDegrees, const casa::CoordinateSystem& cSys ) const;
 
     /**
      * Get a lists of x- and y- coordinates of the corner points of a region based on world
@@ -76,8 +90,19 @@ private:
      * and an image that will contain the region.
      * @param fileName - path to a .crtf file specifying one or more regions in CASA format.
      * @param imagePtr - the image that will contain the region(s).
-     * @return - a list containing draw information for the regions that were loaded.
+     * @return - a list containing information about the regions that were loaded.
      */
-    std::vector< std::shared_ptr<Carta::Lib::RegionInfo> >
-        _loadRegion(const QString & fileName, std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr );
+    std::vector<Carta::Lib::Regions::RegionBase*>
+    _loadRegion(const QString & fileName, std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr );
+
+    /**
+     * Convert a point in world coordinates to pixel coordinates.
+     * @param cSys - the image coordinate system.
+     * @param x - the world x-coordinate.
+     * @param y - the world y-coordinate.
+     * @param successful - set to true if the point is successfully converted; otherwise set to false.
+     * @return - a list of the corresponding pixel coordinates.
+     */
+    casa::Vector<casa::Double> _toPixel( const casa::CoordinateSystem& cSys,
+    		double x, double y, bool* successful ) const;
 };
