@@ -63,18 +63,6 @@ public:
 private:
 
     /**
-     * Creates a copy of image data that can later be modified by a selection
-     * sort.
-     * @param frameLow - lower frame boundary.
-     * @param frameHigh - upper frame boundary.
-     * @param spectralIndex  - the spectral index.
-     * @param allIndices - the indices of the spectral values in the image.
-     * @param allValues - the intensities of the values in the image.
-     */
-    void _copyData( int frameLow, int frameHigh, int spectralIndex,
-            std::vector<int>& allIndices, std::vector<double>& allValues );
-
-    /**
      * Resizes the frame indices to fit the current image.
      * @param sourceFrames - a list of current image frames.
      * @return a list of frames that will fit the current image.

@@ -57,34 +57,6 @@ DataSource::DataSource() :
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
-void DataSource::_copyData( int frameLow, int frameHigh, int spectralIndex,
-        std::vector<int>& allIndices, std::vector<double>& allValues ){
-    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
-    if ( rawData != nullptr ){
-        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
-
-        // read in all values from the view into an array
-        // we need our own copy because we'll do quickselect on it...
-        int index = 0;
-    
-        // Preallocate space for both of these copies to avoid 
-        // running out of memory unnecessarily through dynamic allocation
-        std::vector<int> dims = rawData->dims();
-        int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
-        allIndices.reserve(total_size);
-        allValues.reserve(total_size);
-
-        view.forEach( [& allValues, &allIndices, &index] ( const double  val ) {
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( val );
-                allIndices.push_back( index );
-            }
-            index++;
-        }
-        );
-    }
-}
-
 
 int DataSource::_getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const {
     int frameIndex = 0;
@@ -379,11 +351,46 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
-        std::vector < int > allIndices;
-        std::vector < double > allValues;
+
+        std::vector<std::pair<int,double> > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-        _copyData( frameLow, frameHigh, spectralIndex, allIndices, allValues );
+
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+        if ( rawData == nullptr ){
+            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+            return intensities;
+        }
+        
+        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
+
+        // read in all values from the view into an array
+        // we need our own copy because we'll do quickselect on it...
+    
+        // Preallocate space to avoid 
+        // running out of memory unnecessarily through dynamic allocation
+        std::vector<int> dims = rawData->dims();
+        int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
+        allValues.reserve(total_size);
+        int index = 0;
+
+        view.forEach( [&allValues, &index] ( const double  val ) {
+            if ( std::isfinite( val ) ) {
+                allValues.push_back( std::make_pair(index, val) );
+            }
+            index++;
+        }
+        );
+
         if ( allValues.size() > 0 ){
+
+            int divisor = total_size;
+            if (spectralIndex != -1) {
+                divisor /= dims[spectralIndex];
+            }
+
+            // only compare the intensity values; ignore the indices
+            auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
+
             for ( int i = 0; i < percentileCount; i++ ){
                 //Missing intensity
                 if ( intensities[i].first < 0 ){
@@ -391,20 +398,16 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     if ( locationIndex < 0 ){
                         locationIndex = 0;
                     }
-                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end() );
-                    intensities[i].second = allValues[locationIndex];
-                    int divisor = 1;
-                    std::vector<int> dims = m_image->dims();
-                    int endIndex = spectralIndex;
-                    if ( spectralIndex < 0 ){
-                    	endIndex = dims.size();
+
+                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
+                    
+                    intensities[i].second = allValues[locationIndex].second;
+                    intensities[i].first = allValues[locationIndex].first / divisor;
+
+                    if ( frameLow >= 0 ){
+                        intensities[i].first += frameLow;
                     }
-                    for ( int i = 0; i < endIndex; i++ ){
-                        divisor = divisor * dims[i];
-                    }
-                    int specIndex = allIndices[locationIndex ]/divisor;
-                    intensities[i].first = specIndex;
-                    //Store the found intensity in the cache.
+                    
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
             }
