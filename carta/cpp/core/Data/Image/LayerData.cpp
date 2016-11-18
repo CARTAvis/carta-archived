@@ -245,6 +245,8 @@ int LayerData::_getDimension() const {
     return imageSize;
 }
 
+
+
 QSize LayerData::_getDisplaySize() const {
     Carta::Lib::AxisInfo::KnownType xType = _getAxisXType();
     Carta::Lib::AxisInfo::KnownType yType = _getAxisYType();
@@ -285,6 +287,19 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> LayerData::_getImage(){
         image = m_dataSource->_getImage();
     }
     return image;
+}
+
+QPointF LayerData::_getContextPt( const QPointF& screenPt, const QSize& outputSize, bool* valid ) const {
+	QPointF contextPt;
+	if ( m_dataSource ){
+		double zoom = 1;
+		QPointF imageCenter = m_dataSource->_getCenter();
+		contextPt = m_dataSource->_getImagePt( screenPt, zoom, imageCenter, outputSize, valid );
+	}
+	else {
+		*valid = false;
+	}
+	return contextPt;
 }
 
 QPointF LayerData::_getImagePt( const QPointF& screenPt, const QSize& outputSize,  bool* valid ) const {
@@ -341,8 +356,8 @@ QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRe
             m_dataSource->_getRenderer();
     QPointF topLeftInput = imageService-> screen2image( topLeft, pan, zoom, outputSize );
     QPointF bottomRightInput = imageService->screen2image( bottomRight, pan, zoom, outputSize );
-    QSize size( qAbs( topLeft.x() - bottomRightInput.x()), qAbs( topLeft.y() - bottomRightInput.y()));
-    QRectF inputRect( topLeftInput, size );
+    //QSize size( qAbs( topLeftInput.x() - bottomRightInput.x()), qAbs( topLeftInput.y() - bottomRightInput.y()));
+    QRectF inputRect( topLeftInput, bottomRightInput );
     return inputRect;
 }
 
@@ -453,11 +468,23 @@ QString LayerData::_getPixelUnits() const {
 }
 
 QString LayerData::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
-    QString pixelValue("");
+    QString pixelValue( "" );
     if ( m_dataSource ){
         pixelValue = m_dataSource->_getPixelValue( x, y, frames );
     }
     return pixelValue;
+}
+
+Carta::Lib::VectorGraphics::VGList LayerData::_getRegionGraphics() const {
+	return m_regionGraphics;
+}
+
+std::pair<double,QString> LayerData::_getRestFrequency() const {
+	std::pair<double,QString> restFreq(-1,"");
+	if ( m_dataSource ){
+		restFreq = m_dataSource->_getRestFrequency();
+	}
+	return restFreq;
 }
 
 QSize LayerData::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {
@@ -537,6 +564,32 @@ QString LayerData::_getStateString( bool truncatePaths ) const{
     return stateStr;
 }
 
+bool LayerData::_getTransform( const QPointF& pan, double zoom, const QSize& size,
+		QTransform& tf ) const {
+	bool valid = false;
+	//where does 0.5, 0.5 map to?
+	bool valid1 = false;
+	QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, pan, zoom, size,  &valid1 );
+	// where does 1.5, 1.5 map to?
+	bool valid2 = false;
+	QPointF p2 = m_dataSource->_getScreenPt( { 1.5, 1.5 }, pan, zoom, size, &valid2 );
+	if ( valid1 && valid2 ){
+		valid = true;
+		double m11 = p2.x() - p1.x();
+		double m22 = p2.y() - p1.y();
+		double m33 = 1; // no projection
+		double m13 = 0; // no projection
+		double m23 = 0; // no projection
+		double m12 = 0; // no shearing
+		double m21 = 0; // no shearing
+		double m31 = p1.x() - m11 * 0.5;
+		double m32 = p1.y() - m22 * 0.5;
+		tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
+	}
+	return valid;
+}
+
+
 double LayerData::_getZoom() const {
     double zoom = m_state.getValue<double>( Util::ZOOM );
     return zoom;
@@ -584,6 +637,22 @@ bool LayerData::_isContourDraw() const {
     return contourDraw;
 }
 
+bool LayerData::_isLoadable( const std::vector<int>& frames ) const {
+	bool loadable = false;
+	if ( m_dataSource ){
+		loadable = m_dataSource->_isLoadable( frames );
+	}
+	return loadable;
+}
+
+bool LayerData::_isSpectralAxis() const {
+	bool spectralAxis = false;
+	if ( m_dataSource ){
+		spectralAxis = m_dataSource->_isSpectralAxis();
+	}
+	return spectralAxis;
+}
+
 void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile ){
     if ( m_dataSource ){
@@ -595,7 +664,10 @@ void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
                 gridService->setInputImage( m_dataSource->_getImage() );
             }
         }
-
+        if ( m_drawSync ){
+        	std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
+        	m_drawSync->setInput( rawData );
+        }
     }
 }
 
@@ -614,56 +686,47 @@ void LayerData::_removeContourSet( std::shared_ptr<DataContours> contourSet ){
 }
 
 
-
 void LayerData::_renderingDone(
-        QImage image,
-        Carta::Lib::VectorGraphics::VGList gridVG,
-        Carta::Lib::VectorGraphics::VGList contourVG,
-        int64_t /*jobId*/){
-    /// \todo we should make sure the jobId matches the last submitted job...
-    Carta::Lib::VectorGraphics::VGList vectorGraphics;
-    QImage qImage;
-    if ( !image.isNull()){
-        qImage = image;
-        Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
-        if ( _isContourDraw()){
+		QImage image,
+		Carta::Lib::VectorGraphics::VGList gridVG,
+		Carta::Lib::VectorGraphics::VGList contourVG,
+		Carta::Lib::VectorGraphics::VGList regionVG,
+		int64_t /*jobId*/){
+	/// \todo we should make sure the jobId matches the last submitted job...
 
-            if ( m_dataSource ){
-                QPointF pan = _getPan();
-                double zoom = _getZoom();
+	Carta::Lib::VectorGraphics::VGList vectorGraphics;
+	QImage qImage;
+	if ( !image.isNull()){
+		qImage = image;
+		Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
 
-                bool valid1 = false;
-                //where does 0.5, 0.5 map to?
-                QPointF p1 = m_dataSource->_getScreenPt( { 0.5, 0.5 }, pan, zoom, qImage.size(),  &valid1 );
-                // where does 1.5, 1.5 map to?
-                bool valid2 = false;
-                QPointF p2 = m_dataSource->_getScreenPt( { 1.5, 1.5 }, pan, zoom, qImage.size(), &valid2 );
-                if ( valid1 && valid2 ){
-                    QTransform tf;
-                    double m11 = p2.x() - p1.x();
-                    double m22 = p2.y() - p1.y();
-                    double m33 = 1; // no projection
-                    double m13 = 0; // no projection
-                    double m23 = 0; // no projection
-                    double m12 = 0; // no shearing
-                    double m21 = 0; // no shearing
-                    double m31 = p1.x() - m11 * 0.5;
-                    double m32 = p1.y() - m22 * 0.5;
-                    tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
+		QPointF pan = _getPan();
+		double zoom = _getZoom();
+		QTransform tf;
+		bool valid =  _getTransform( pan, zoom, qImage.size(), tf );
+		if ( _isContourDraw() && valid ){
+			if ( m_dataSource ){
+				comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
+				comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
+				comp.appendList( contourVG);
+				comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
+			}
+		}
+		if ( regionVG.entries().size() > 0 && valid ){
+			comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
+			comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
+			comp.appendList( regionVG);
+			comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
+		}
+		comp.appendList( gridVG);
+		vectorGraphics = comp.vgList();
+	}
 
-                    comp.append< Carta::Lib::VectorGraphics::Entries::Save >( );
-                    comp.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf );
-                    comp.appendList( contourVG);
-                    comp.append< Carta::Lib::VectorGraphics::Entries::Restore >( );
-                }
-            }
-        }
-        comp.appendList( gridVG);
-        vectorGraphics = comp.vgList();
-    }
-    std::shared_ptr<RenderResponse> response( new RenderResponse(qImage, vectorGraphics, _getLayerId()) );
-    emit renderingDone( response );
+	std::shared_ptr<RenderResponse> response( new RenderResponse(qImage, vectorGraphics, _getLayerId()) );
+	emit renderingDone( response );
 }
+
+
 
 
 void LayerData::_renderStart(){
@@ -673,6 +736,7 @@ void LayerData::_renderStart(){
     //Get the render parameters from the next request.
     std::shared_ptr<RenderRequest> request = m_renderRequests.pop();
     std::vector<int> frames = request->getFrames();
+
     Carta::Lib::KnownSkyCS cs = request->getCoordinateSystem();
     bool topOfStack = request->isStackTop();
     QSize outputSize = request->getOutputSize();
@@ -703,7 +767,6 @@ void LayerData::_renderStart(){
     m_dataSource->_setPan( center.x(), center.y());
 
     gridService-> setOutputSize( outputSize );
-
     QRectF outputRect = _getOutputRectangle( outputSize, request->isRequestMain(),
             request->isRequestContext() );
     QRectF inputRect = _getInputRectangle( center, zoom, outputRect, outputSize );
@@ -711,6 +774,8 @@ void LayerData::_renderStart(){
     gridService-> setImageRect( inputRect );
     gridService-> setOutputRect( outputRect );
 
+
+    _load( frames, request->isRecomputeClips(), request->getClipPercentMin(), request->getClipPercentMax());
     std::vector<AxisDisplayInfo> axisInfo = m_dataSource->_getAxisDisplayInfo();
     int axisCount = axisInfo.size();
     for ( int i = 0; i < axisCount; i++ ){
@@ -723,9 +788,6 @@ void LayerData::_renderStart(){
         }
     }
     gridService->setAxisDisplayInfo( axisInfo );
-
-    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawData( m_dataSource->_getRawData( frames ));
-    m_drawSync->setInput( rawData );
 
     //Only draw contours and grid for main image.
     if ( request->isRequestMain() ){
@@ -750,7 +812,13 @@ void LayerData::_renderStart(){
     bool contourDraw = _isContourDraw() && request->isRequestMain();
     bool gridDraw = false;
     if ( topOfStack && request->isRequestMain() ){
+    	m_drawSync->setRegionGraphics( m_regionGraphics );
         gridDraw = m_dataGrid->_isGridVisible();
+    }
+    else {
+    	//Empty list
+    	Carta::Lib::VectorGraphics::VGList vgList;
+    	m_drawSync->setRegionGraphics( vgList );
     }
 
     m_drawSync-> start( contourDraw, gridDraw );
@@ -773,8 +841,8 @@ void LayerData::_resetStateContours(const Carta::State::StateInterface& restoreS
        std::shared_ptr<DataContours> contourSet = _getContour( contourName );
        if ( !contourSet ){
            newContourSet = true;
-          contourSet = std::shared_ptr<DataContours>(objMan->createObject<DataContours>());
-          m_dataContours.insert( contourSet );
+           contourSet = std::shared_ptr<DataContours>(objMan->createObject<DataContours>());
+           m_dataContours.insert( contourSet );
        }
 
        QString contourSetState = restoreState.toString( lookup );
@@ -785,7 +853,7 @@ void LayerData::_resetStateContours(const Carta::State::StateInterface& restoreS
    }
 
    //Remove any contours no longer there
-    for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
+   for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
             it != m_dataContours.end(); it++ ){
         QString contourSetName = (*it)->getName();
         if ( !supportedContours.contains( contourSetName )){
@@ -864,9 +932,9 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
         //the user has explicitly set it.
         DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
         QString shortName = dLoader->getShortName( fileName );
-        QString layerName = m_state.getValue<QString>( LAYER_NAME );
+        QString layerName = m_state.getValue<QString>( Util::NAME );
         if ( layerName.isEmpty() || layerName.length() == 0 ){
-            m_state.setValue<QString>( LAYER_NAME, shortName );
+            m_state.setValue<QString>( Util::NAME, shortName );
             m_state.flushState();
         }
         result = m_state.getValue<QString>( Util::ID );
@@ -874,7 +942,7 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
     return result;
 }
 
-bool LayerData::_setLayersGrouped( bool /*grouped*/  ){
+bool LayerData::_setLayersGrouped( bool /*grouped*/, const QSize& /*viewSize*/  ){
     return false;
 }
 
@@ -929,6 +997,10 @@ void LayerData::_setPan( double imgX, double imgY ){
     QString panKeyY = Carta::State::UtilState::getLookup( PAN, Util::YCOORD );
     m_state.setValue<double>( panKeyX, imgX );
     m_state.setValue<double>( panKeyY, imgY );
+}
+
+void LayerData::_setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){
+	m_regionGraphics = regionVGList;
 }
 
 void LayerData::_setSupportAlpha( bool supportAlpha ){

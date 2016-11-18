@@ -53,6 +53,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
             
             this.m_coordSystem = new skel.boundWidgets.ComboBox("setCoordinateSystem", "skyCS");
             this.m_coordSystem.setToolTipText( "Select a coordinate system for the image.");
+            skel.widgets.TestID.addTestId( this.m_coordSystem, "ImageCoordinateSystem");
             var systemLabel = new qx.ui.basic.Label( "System:");
             systemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
             systemContainer.add( systemLabel );

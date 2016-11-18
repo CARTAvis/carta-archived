@@ -411,7 +411,10 @@ PluginManager::loadNativePlugin( PluginManager::PluginInfo & pInfo )
             auto libPath = pInfo.libPaths[ind];
             qDebug() << "    " + QFileInfo( libPath ).fileName();
             QLibrary lib( libPath );
-            lib.setLoadHints(QLibrary::ResolveAllSymbolsHint | QLibrary::ExportExternalSymbolsHint);
+            // if we don't use ExportExternalSymbolsHint, the seg fault on exit bug seems to
+            // disappear
+            lib.setLoadHints(QLibrary::ResolveAllSymbolsHint);
+//            lib.setLoadHints(QLibrary::ResolveAllSymbolsHint | QLibrary::ExportExternalSymbolsHint);
             if ( ! lib.load() ) {
                 qDebug() << "      error:" + lib.errorString();
                 libsToLoad.push_back( ind );

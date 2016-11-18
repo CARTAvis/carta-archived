@@ -23,8 +23,10 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
     },
 
     events : {
-        "iconifyWindow" : "qx.event.type.Data"
-        
+        "iconifyWindow" : "qx.event.type.Data",
+        "findChild" : "qx.event.type.Data",
+        "leafResize" : "qx.event.type.Data",
+        "iconify" : "qx.event.type.Data"
     },
 
     members : {
@@ -44,7 +46,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
                     this.fireDataEvent("iconifyWindow", data);
                 }
             }, this);
-           this.m_maxListenerId = this.m_window.addListener("maximizeWindow",
+           this.m_maxListenerId = this.m_window.addListener("windowMaximized",
                function() {
                    var appRoot = this.m_desktop.getApplicationRoot();
                    appRoot.add(this.m_window);
@@ -56,7 +58,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeLeaf",{
                        appRoot.remove( this.m_window );
                    }
            }, this );
-           this.m_restoreListenerId = this.m_window.addListener( "restoreWindow",
+           this.m_restoreListenerId = this.m_window.addListener( "windowRestored",
                function(){
                    this.restoreWindow( this.m_id );
                }, this );

@@ -59,6 +59,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         _dataLoadedCB : function(){
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
+                this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
             }
             
             if (this.m_viewContent.indexOf(this.m_view) < 0) {
@@ -94,6 +95,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          */
         getDatas : function(){
             return this.m_datas;
+        },
+        
+        /**
+         * Return the identifier for the region controller.
+         * @return {String} - the identifier of the region controller.
+         */
+        getRegionIdentifier : function(){
+        	return this.m_regionId;
         },
         
         /**
@@ -178,6 +187,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_supportedCmds.push( clipCmd.getLabel() );
             var dataCmd = skel.Command.Data.CommandData.getInstance();
             this.m_supportedCmds.push( dataCmd.getLabel() );
+            var regionCmd = skel.Command.Region.CommandRegions.getInstance();
+            this.m_supportedCmds.push( regionCmd.getLabel() );
             var saveCmd = skel.Command.Save.CommandSaveImage.getInstance();
             if ( saveCmd.isSaveAvailable() ){
                 this.m_supportedCmds.push( saveCmd.getLabel() );
@@ -209,8 +220,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
             return linkable;
         },
-        
-        
+               
 
         /**
          * Returns whether or not this window supports establishing a two-way
@@ -259,6 +269,47 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
         
         /**
+         * Register to get updates on stack data settings from the server.
+         */
+        _registerControlsRegion : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_identifier + path.SEP_COMMAND + "registerRegionControls";
+            var params = "";
+            this.m_connector.sendCommand( cmd, params, this._registrationRegionCallback( this));
+        },
+
+        /**
+         * Register to get updates on stack data settings from the server.
+         */
+        _registerControlsStack : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_identifier + path.SEP_COMMAND + "registerStack";
+            var params = "";
+            this.m_connector.sendCommand( cmd, params, this._registrationStackCallback( this));
+        },
+        
+        
+        /**
+         * Callback for when the registration is complete and an id is available.
+         * @param anObject {skel.widgets.Image.Region.RegionControls}.
+         */
+        _registrationRegionCallback : function( anObject ){
+            return function( id ){           	
+                anObject._setRegionId( id );
+            };
+        },
+        
+        /**
+         * Callback for when the registration is complete and an id is available.
+         * @param anObject {skel.widgets.Image.Stack.StackControls}.
+         */
+        _registrationStackCallback : function( anObject ){
+            return function( id ){
+                anObject._setStackId( id );
+            };
+        },
+        
+        /**
          * Show/hide the cursor statistics control.
          * @param visible {boolean} - true if the cursor statistics widget
          *      should be shown; false otherwise.
@@ -284,6 +335,49 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this._initSupportedCommands();
             this.updateCmds();
             arguments.callee.base.apply(this, arguments, selected, multiple );
+        },
+        
+        /**
+         * Update region specific elements from the shared variable.
+         */
+        _sharedVarRegionsCB : function(){
+            var val = this.m_sharedVarRegions.get();
+            if ( val ){
+                try {
+                    var winObj = JSON.parse( val );
+                    var regionShape = winObj.createType;
+                  
+                    var regionDrawCmds = skel.Command.Region.CommandRegions.getInstance();
+                    regionDrawCmds.setDrawType( regionShape );
+                }
+                catch( err ){
+                    console.log( "DisplayWindowImage could not parse region update: "+val );
+                    console.log( "Error: "+err);
+                }
+            }
+        },
+        
+        /**
+         * Update region data specific elements from the shared variable.
+         */
+        _sharedVarRegionsDataCB : function(){
+            var val = this.m_sharedVarRegionsData.get();
+            if ( val ){
+                try {
+                    var regionObj = JSON.parse( val );
+                    this.m_regions = [];
+                    for ( var i = 0; i < regionObj.regions.length; i++ ){
+                    	this.m_regions[i] = regionObj.regions[i];
+                    }
+                    var dataCmd = skel.Command.Data.CommandData.getInstance();
+                    dataCmd.datasChanged();
+                    this._initContextMenu();       
+                }
+                catch( err ){
+                    console.log( "DisplayWindowImage could not parse region data update: "+val );
+                    console.log( "Error: "+err);
+                }
+            }
         },
         
         /**
@@ -321,7 +415,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             this.m_view.setVisibility( "hidden" );
                         }
                     }
-                   
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
                     this._initContextMenu();
@@ -332,66 +425,23 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-        
+               
+     
         /**
-         * Update window specific elements from the shared variable.
-         * @param winObj {String} represents the server state of this window.
+         * Set the identifier for the server-side object that manages the stack.
+         * @param id {String} - the server-side id of the object that manages the stack.
          */
-        _sharedVarDataCB : function(){
-            var val = this.m_sharedVarData.get();
-            if ( val ){
-                try {
-                    var winObj = JSON.parse( val );
-                    this.m_regions = [];
-                    //Add close menu buttons for all the images that are loaded.
-                    var regionObjs = winObj.regions;
-                   
-                    if ( regionObjs ){
-                        for ( var i = 0; i < regionObjs.length; i++ ){
-                            var regionId = regionObjs[i].id;
-                            var regionType = regionObjs[i].regionType;
-                            var vertices = regionObjs[i].corners;
-                            this.m_regions[i] = new skel.widgets.Image.Region( regionId, regionType, vertices );
-                        }
-                    }
-                    this._initContextMenu();
-                }
-                catch( err ){
-                    console.log( "DisplayWindowImage could not parse: "+val );
-                    console.log( "Error: "+err);
-                }
-            }
-        },
-        
-        /**
-         * Update the commands about clip settings.
-         */
-        updateCmds : function(){
-            var autoClipCmd = skel.Command.Clip.CommandClipAuto.getInstance();
-            autoClipCmd.setValue( this.m_autoClip );
-            var clipValsCmd = skel.Command.Clip.CommandClipValues.getInstance();
-            clipValsCmd.setClipValue( this.m_clipPercent );
-        },
-        
-        /**
-         * Callback for when the registration is complete and an id is available.
-         * @param anObject {skel.widgets.Image.Stack.StackControls}.
-         */
-        _registrationStackCallback : function( anObject ){
-            return function( id ){
-                anObject._setStackId( id );
-            };
-        },
-        
-
-        /**
-         * Register to get updates on stack data settings from the server.
-         */
-        _registerControlsStack : function(){
+        _setRegionId : function( id ){
+            this.m_regionId = id;
+            this.m_sharedVarRegions = this.m_connector.getSharedVar( id );
+            this.m_sharedVarRegions.addCB(this._sharedVarRegionsCB.bind(this));
+            this._sharedVarRegionsCB();
+            
             var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_identifier + path.SEP_COMMAND + "registerStack";
-            var params = "";
-            this.m_connector.sendCommand( cmd, params, this._registrationStackCallback( this));
+        	var regionDataId = id + path.SEP + path.DATA;
+        	this.m_sharedVarRegionsData = this.m_connector.getSharedVar( regionDataId );
+        	this.m_sharedVarRegionsData.addCB( this._sharedVarRegionsDataCB.bind(this));
+        	this._sharedVarRegionsDataCB();
         },
         
         /**
@@ -405,16 +455,26 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this._sharedVarStackCB();
         },
         
+        
+        /**
+         * Update the commands about clip settings.
+         */
+        updateCmds : function(){
+            var autoClipCmd = skel.Command.Clip.CommandClipAuto.getInstance();
+            autoClipCmd.setValue( this.m_autoClip );
+            var clipValsCmd = skel.Command.Clip.CommandClipValues.getInstance();
+            clipValsCmd.setClipValue( this.m_clipPercent );
+        },
+        
+        
         /**
          * Implemented to initialize the context menu.
          */
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
-            var path = skel.widgets.Path.getInstance();
-            this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +path.DATA );
-            this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
-            this._sharedVarDataCB();
+           
             this._registerControlsStack();
+            this._registerControlsRegion();
             this._initStatistics();
             this._dataLoadedCB();
             
@@ -442,9 +502,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_drawCanvas : null,
         m_datas : [],
         m_regions : [],
-        m_sharedVarData : null,
         m_sharedVarStack : null,
+        m_sharedVarRegions : null,
+        m_sharedVarRegionsData : null,
         m_stackId : null,
+        m_regionId : null,
        
         m_view : null,
         m_viewContent : null,

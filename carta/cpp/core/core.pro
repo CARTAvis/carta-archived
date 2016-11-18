@@ -37,12 +37,14 @@ HEADERS += \
     Data/DataLoader.h \
     Data/Error/ErrorReport.h \
     Data/Error/ErrorManager.h \
+    Data/Histogram/BinData.h \
     Data/Histogram/Histogram.h \
     Data/Histogram/ChannelUnits.h \
     Data/Histogram/PlotStyles.h \
-    Data/Histogram/HistogramRenderService.h \
-    Data/Histogram/HistogramRenderThread.h \
-    Data/Histogram/HistogramRenderWorker.h \
+    Data/Histogram/Render/HistogramRenderService.h \
+    Data/Histogram/Render/HistogramRenderThread.h \
+    Data/Histogram/Render/HistogramRenderWorker.h \
+    Data/Histogram/Render/HistogramRenderRequest.h \
     Data/ILinkable.h \
     Data/Settings.h \
     Data/Image/Controller.h \
@@ -98,13 +100,20 @@ HEADERS += \
     Data/Profile/Fit/ProfileFitThread.h \
     Data/Profile/Profiler.h \
     Data/Profile/ProfilePlotStyles.h \
+    Data/Profile/Render/ProfileRenderRequest.h \
     Data/Profile/Render/ProfileRenderService.h \
     Data/Profile/Render/ProfileRenderThread.h \
     Data/Profile/Render/ProfileRenderWorker.h \
     Data/Profile/ProfileStatistics.h \
     Data/Profile/GenerateModes.h \
     Data/Region/Region.h \
+    Data/Region/RegionControls.h \
+    Data/Region/RegionPolygon.h \
+    Data/Region/RegionEllipse.h \
+    Data/Region/RegionPoint.h \
+    Data/Region/RegionRectangle.h \
     Data/Region/RegionFactory.h \
+    Data/Region/RegionTypes.h \
     Data/Snapshot/ISnapshotsImplementation.h \
     Data/Snapshot/Snapshots.h \
     Data/Snapshot/Snapshot.h \
@@ -119,7 +128,6 @@ HEADERS += \
     Data/ViewPlugins.h \
     GrayColormap.h \
     ImageRenderService.h \
-    ImageSaveService.h \
     Plot2D/Plot.h \
     Plot2D/Plot2DGenerator.h \
     Plot2D/Plot2DRangeMarker.h \
@@ -132,6 +140,13 @@ HEADERS += \
     Plot2D/Plot2DProfile.h \
     Plot2D/Plot2DTextMarker.h \
     ProfileExtractor.h \
+    Shape/ControlPoint.h \
+    Shape/ControlPointEditable.h \
+    Shape/ShapeBase.h \
+    Shape/ShapeEllipse.h \
+    Shape/ShapePoint.h \
+    Shape/ShapePolygon.h \
+    Shape/ShapeRectangle.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
     Algorithms/quantileAlgorithms.h \
@@ -153,7 +168,8 @@ HEADERS += \
     coreMain.h \
     SimpleRemoteVGView.h \
     Hacks/ManagedLayerView.h \
-    Hacks/LayeredViewDemo.h
+    Hacks/LayeredViewDemo.h \
+    Hacks/InteractiveShapes.h
 
 SOURCES += \
     Viewer.cpp \
@@ -216,11 +232,13 @@ SOURCES += \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \
+    Data/Histogram/BinData.cpp \
     Data/Histogram/Histogram.cpp \
     Data/Histogram/ChannelUnits.cpp \
-    Data/Histogram/HistogramRenderService.cpp \
-    Data/Histogram/HistogramRenderThread.cpp \
-    Data/Histogram/HistogramRenderWorker.cpp \
+    Data/Histogram/Render/HistogramRenderService.cpp \
+    Data/Histogram/Render/HistogramRenderThread.cpp \
+    Data/Histogram/Render/HistogramRenderWorker.cpp \
+    Data/Histogram/Render/HistogramRenderRequest.cpp \
     Data/Histogram/PlotStyles.cpp \
     Data/LinkableImpl.cpp \
     Data/Selection.cpp \
@@ -239,13 +257,20 @@ SOURCES += \
     Data/Profile/Fit/ProfileFitThread.cpp \
     Data/Profile/Profiler.cpp \
     Data/Profile/ProfilePlotStyles.cpp \
+    Data/Profile/Render/ProfileRenderRequest.cpp \
     Data/Profile/Render/ProfileRenderService.cpp \
     Data/Profile/Render/ProfileRenderThread.cpp \
     Data/Profile/Render/ProfileRenderWorker.cpp \
     Data/Profile/ProfileStatistics.cpp \
     Data/Profile/GenerateModes.cpp \
     Data/Region/Region.cpp \
+    Data/Region/RegionControls.cpp \
+    Data/Region/RegionPoint.cpp \
+    Data/Region/RegionPolygon.cpp \
+    Data/Region/RegionEllipse.cpp \
     Data/Region/RegionFactory.cpp \
+    Data/Region/RegionRectangle.cpp \
+    Data/Region/RegionTypes.cpp \
     Data/Snapshot/Snapshots.cpp \
     Data/Snapshot/Snapshot.cpp \
     Data/Snapshot/SnapshotsFile.cpp \
@@ -272,8 +297,14 @@ SOURCES += \
     ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
+    Shape/ControlPoint.cpp \
+    Shape/ControlPointEditable.cpp \
+    Shape/ShapeBase.cpp \
+    Shape/ShapeEllipse.cpp \
+    Shape/ShapePoint.cpp \
+    Shape/ShapePolygon.cpp \
+    Shape/ShapeRectangle.cpp \
     ImageRenderService.cpp \
-    ImageSaveService.cpp \
     Algorithms/quantileAlgorithms.cpp \
     ScriptedClient/Listener.cpp \
     ScriptedClient/ScriptedCommandInterpreter.cpp \
@@ -293,7 +324,8 @@ SOURCES += \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \
     Hacks/ManagedLayerView.cpp \
-    Hacks/LayeredViewDemo.cpp
+    Hacks/LayeredViewDemo.cpp \
+    Hacks/InteractiveShapes.cpp
 
 
 #message( "common            PWD=$$PWD")

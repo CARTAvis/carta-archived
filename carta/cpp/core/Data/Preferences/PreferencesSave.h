@@ -82,8 +82,6 @@ private:
     static const QString ASPECT_EXPAND;
     static const QString ASPECT_IGNORE;
     static const QString ASPECT_RATIO_MODE;
-    static const QString WIDTH;
-    static const QString HEIGHT;
     static bool m_registered;
 
     PreferencesSave( const QString& path, const QString& id );

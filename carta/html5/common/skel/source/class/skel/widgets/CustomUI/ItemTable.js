@@ -53,6 +53,25 @@ qx.Class.define("skel.widgets.CustomUI.ItemTable", {
         },
         
         /**
+         * Returns the indices of the items that have been selected.
+         * @return {Array} - a list of indices of selected items.
+         */
+        getSelectedIndices : function(){
+        	var indices = [];
+        	 var index = 0;
+             var selectModel = this.m_table.getSelectionModel();
+             var map = selectModel.getSelectedRanges();
+             for ( var i = 0; i < map.length; i++ ){
+                 var min = map[i].minIndex;
+                 var max = map[i].maxIndex;
+                 for ( var j = min; j<=max; j++ ){
+                	 indices.push( j );
+                 }
+             }
+        	return indices;
+        },
+        
+        /**
          * Returns a list of user selected text items.
          * @return {Array} a list of text items the user has selected.
          */
@@ -142,9 +161,10 @@ qx.Class.define("skel.widgets.CustomUI.ItemTable", {
                 this.m_tableModel.setData( rowArray );
                 this.m_table.setTableModel( this.m_tableModel );
                 var selectModel = this.m_table.getSelectionModel();
-                if ( rowArray.length > 0 ){
+                /*if ( rowArray.length > 0 ){
+                	console.log( "Setting 0 selected");
                     selectModel.setSelectionInterval( 0, 0 );
-                }
+                }*/
             }
         },
         

@@ -79,7 +79,7 @@ public:
         double f = 0.0, yy = 0.0;
         for ( int x = di.x1 ; x <= di.x2 ; x++ ) {
             yy = di.get( x );
-            if ( isnan( yy ) ) {
+            if ( std::isnan( yy ) ) {
                 * p = 0.0;
             }
             else {

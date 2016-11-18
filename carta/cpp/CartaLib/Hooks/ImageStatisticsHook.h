@@ -7,8 +7,8 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
-#include "CartaLib/RegionInfo.h"
 #include "CartaLib/StatInfo.h"
+#include "CartaLib/Regions/IRegion.h"
 #include <QMap>
 #include <QList>
 
@@ -43,7 +43,7 @@ public:
      struct Params {
 
             Params( std::vector< std::shared_ptr<Image::ImageInterface> > p_dataSources,
-                    std::vector<Carta::Lib::RegionInfo> regionInfos,
+                    std::vector< std::shared_ptr<Carta::Lib::Regions::RegionBase> > regionInfos,
                     std::vector<int> slice
                     ){
                 m_dataSources = p_dataSources;
@@ -52,7 +52,7 @@ public:
             }
 
             std::vector<std::shared_ptr<Image::ImageInterface> > m_dataSources;
-            std::vector<Carta::Lib::RegionInfo> m_regionInfos;
+            std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > m_regionInfos;
             std::vector<int> m_slice;
         };
 

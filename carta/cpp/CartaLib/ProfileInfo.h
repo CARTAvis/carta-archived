@@ -64,7 +64,7 @@ public:
      * @param rhs - the other ProfileInfo to compare to.
      * @return true if the other ProfileInfo matches this one; false otherwise.
      */
-    bool operator==( const ProfileInfo& rhs );
+    bool operator==( const ProfileInfo& rhs ) const;
 
     /**
      * Inequality operator.

@@ -19,7 +19,9 @@ qx.Class.define("skel.widgets.CustomUI.SelectBox", {
         this.base(arguments);
         this.m_cmd = cmd;
         this.m_paramId = paramId;
-        this.m_connector = mImport("connector");
+        if ( typeof mImport !== "undefined"){
+            this.m_connector = mImport("connector");
+        }
         this.m_selectListener = this.addListener( "changeSelection", this._sendCmd, this );
     },
     
@@ -69,20 +71,22 @@ qx.Class.define("skel.widgets.CustomUI.SelectBox", {
          * Sends a value change to the server.
          */
         _sendCmd : function(){
-            var errorMan = skel.widgets.ErrorHandler.getInstance();
-            errorMan.clearErrors();
-            var selectValue = this.getValue();
-            if ( selectValue !== null && selectValue.length > 0 ){
-                if ( this.m_id !== null ){
+        	if ( this.m_connector !== null ){
+        		var errorMan = skel.widgets.ErrorHandler.getInstance();
+        		errorMan.clearErrors();
+        		var selectValue = this.getValue();
+        		if ( selectValue !== null && selectValue.length > 0 ){
+        			if ( this.m_id !== null ){
                 
-                    var path = skel.widgets.Path.getInstance();
-                    var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
+        				var path = skel.widgets.Path.getInstance();
+        				var cmd = this.m_id + path.SEP_COMMAND + this.m_cmd;
                 
-                    var params = this.m_paramId + ":"+selectValue;
-                    this.m_connector.sendCommand( cmd, params, function(){});
-                }
-                this.fireDataEvent( "selectChanged", null );
-            }
+        				var params = this.m_paramId + ":"+selectValue;
+        				this.m_connector.sendCommand( cmd, params, function(){});
+        			}
+        			this.fireDataEvent( "selectChanged", null );
+        		}
+        	}
         },
         
         /**

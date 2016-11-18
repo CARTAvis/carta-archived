@@ -13,7 +13,7 @@
 #include "../../Algorithms/quantileAlgorithms.h"
 #include <QDebug>
 #include <sys/time.h>
-
+#include <numeric>
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 
@@ -38,8 +38,6 @@ DataSource::DataSource() :
     m_cachedPercentiles(100),
     m_axisIndexX( 0 ),
     m_axisIndexY( 1 ){
-        m_cmapUseCaching = true;
-        m_cmapUseInterpolatedCaching = true;
         m_cmapCacheSize = 1000;
 
         _initializeSingletons();
@@ -258,7 +256,7 @@ QPointF DataSource::_getImagePt( const QPointF& screenPt, double zoom, const QPo
 }
 
 QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& frames ) const {
-    QString pixelValue = "";
+    QString pixelValue( "" );
     int valX = (int)(round(x));
     int valY = (int)(round(y));
     if ( valX >= 0 && valX < m_image->dims()[m_axisIndexX] && valY >= 0 && valY < m_image->dims()[m_axisIndexY] ) {
@@ -400,10 +398,15 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     if ( locationIndex < 0 ){
                         locationIndex = 0;
                     }
+
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
                     
                     intensities[i].second = allValues[locationIndex].second;
                     intensities[i].first = allValues[locationIndex].first / divisor;
+
+                    if ( frameLow >= 0 ){
+                        intensities[i].first += frameLow;
+                    }
                     
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
@@ -462,6 +465,14 @@ QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) c
         result = QPointF( pixel[0], pixel[1]);
     }
     return result;
+}
+
+std::pair<double,QString> DataSource::_getRestFrequency() const {
+	std::pair<double,QString> restFreq( -1, "");
+	if ( m_image ){
+		restFreq = m_image->metaData()->getRestFrequency();
+	}
+	return restFreq;
 }
 
 QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
@@ -540,6 +551,7 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     if ( m_image ){
         int imageSize = m_image->dims().size();
         int mult = 1;
+
         for ( int i = imageSize-1; i >= 0; i-- ){
             if ( i != m_axisIndexX && i != m_axisIndexY ){
                 AxisInfo::KnownType axisType = _getAxisType( i );
@@ -547,6 +559,7 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
                 if ( AxisInfo::KnownType::OTHER != axisType ){
                     int index = static_cast<int>( axisType );
                     frame = frames[index];
+
                 }
                 cacheIndex = cacheIndex + mult * frame;
                 int frameCount = m_image->dims()[i];
@@ -647,22 +660,62 @@ void DataSource::_initializeSingletons( ){
 }
 
 
+bool DataSource::_isLoadable( std::vector<int> frames ) const {
+	int imageDim =m_image->dims().size();
+	bool loadable = true;
+	for ( int i = 0; i < imageDim; i++ ){
+		AxisInfo::KnownType type = _getAxisType( i );
+		if ( AxisInfo::KnownType::OTHER != type ){
+			int axisIndex = static_cast<int>( type );
+			int frameIndex = frames[axisIndex];
+			int frameCount = m_image->dims()[axisIndex];
+			if ( frameIndex >= frameCount ){
+				loadable = false;
+				break;
+			}
+		}
+		else {
+			loadable = false;
+			break;
+		}
+	}
+	return loadable;
+}
+
+bool DataSource::_isSpectralAxis() const {
+	bool spectralAxis = false;
+	int imageSize = m_image->dims().size();
+	for ( int i = 0; i < imageSize; i++ ){
+		AxisInfo::KnownType axisType = _getAxisType( i );
+		if ( axisType == AxisInfo::KnownType::SPECTRAL ){
+			spectralAxis = true;
+			break;
+		}
+	}
+	return spectralAxis;
+}
+
 void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile){
-    int frameSize = frames.size();
-    CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
-    std::vector<int> mFrames = _fitFramesToImage( frames );
-    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
-    std::vector<int> dimVector = view->dims();
-    //Update the clip values
-    if ( recomputeClipsOnNewFrame ){
-        _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
-    }
+	//Only load if the frames make sense for the image.  I.e., the frame index
+	//should be less than the image size.
+	if ( _isLoadable( frames ) ){
+		int frameSize = frames.size();
+		CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
+		std::vector<int> mFrames = _fitFramesToImage( frames );
+		std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+		std::vector<int> dimVector = view->dims();
 
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+		//Update the clip values
+		if ( recomputeClipsOnNewFrame ){
+			_updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
+		}
+		QString cacheId=m_pixelPipeline-> cacheId();
+		m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
 
-    QString renderId = _getViewIdCurrent( mFrames );
-    m_renderService-> setInputView( view, renderId );
+		QString renderId = _getViewIdCurrent( mFrames );
+		m_renderService-> setInputView( view, renderId );
+	}
 }
 
 
@@ -834,7 +887,6 @@ void DataSource::_setZoom( double zoomAmount){
 }
 
 
-
 void DataSource::_setGamma( double gamma ){
     m_pixelPipeline->setGamma( gamma );
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
@@ -843,33 +895,21 @@ void DataSource::_setGamma( double gamma ){
 
 void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
-    std::vector<int> mFrames = _fitFramesToImage( frames );
+	std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
-    std::vector<double> clips = m_quantileCache[ quantileIndex];
-    Carta::Lib::NdArray::Double doubleView( view.get(), false );
-    std::vector<double> newClips = Carta::Core::Algorithms::quantiles2pixels(
-            doubleView, {minClipPercentile, maxClipPercentile });
-    bool clipsChanged = false;
-    int clipSize = newClips.size();
-    if ( clipSize >= 2 ){
-        if ( clips.size() >= 2 ){
-            double ERROR_MARGIN = 0.000001;
-            if ( qAbs( newClips[0] - clips[0]) > ERROR_MARGIN ||
-                qAbs( newClips[1] - clips[1]) > ERROR_MARGIN ){
-                clipsChanged = true;
-            }
-        }
-        else {
-            clipsChanged = true;
-        }
+    std::vector<double> clips = m_quantileCache[ quantileIndex].m_clips;
+    if ( clips.size() < 2  ||
+    		m_quantileCache[quantileIndex].m_minPercentile != minClipPercentile  ||
+			m_quantileCache[quantileIndex].m_maxPercentile != maxClipPercentile ) {
+    	Carta::Lib::NdArray::Double doubleView( view.get(), false );
+    	clips = Carta::Core::Algorithms::quantiles2pixels(
+    			doubleView, { minClipPercentile, maxClipPercentile });
+    	m_quantileCache[quantileIndex].m_clips = clips;
+    	m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
+    	m_quantileCache[quantileIndex].m_maxPercentile = maxClipPercentile;
     }
-
-    if ( clipsChanged ){
-        if ( newClips.size() >= 2 && newClips[0] != newClips[1] ){
-            m_quantileCache[ quantileIndex ] = newClips;
-            m_pixelPipeline-> setMinMax( newClips[0], newClips[1] );
-        }
-    }
+    m_pixelPipeline-> setMinMax( clips[0], clips[1] );
+    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }
 
 std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> DataSource::_updateRenderedView( const std::vector<int>& frames ){

@@ -32,14 +32,6 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         this.m_listWidget = new qx.ui.form.List();
         this.m_listWidget.setSelectionMode( "multi");
 
-        //var rawData = [];
-        //for (var i = 0; i < 3; i++) {
-        //    rawData[i] = "Item No " + i;
-        //}
-        //this.m_model = qx.data.marshal.Json.createModel(rawData);
-        //
-        //this.m_listWidget = new qx.ui.list.List(this.m_model);
-
         for (var i = 0; i < 3; i++) {
             this.m_listWidget.add( new qx.ui.form.ListItem( "item" + i));
         }
@@ -51,15 +43,19 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         this.add( m_row1Widget );
         var addButton = new qx.ui.form.Button( "Add", "icon/16/actions/list-add.png" );
         addButton.set( {toolTipText: "Add new layer", show: "icon", padding: 1} );
+        addButton.addListener( "execute", this._addButtonCB.bind(this));
         m_row1Widget.add( addButton );
         var upButton = new qx.ui.form.Button( "Up", "icon/16/actions/go-up.png" );
         upButton.set( {toolTipText: "Move layer up", show: "icon", padding: 1} );
+        upButton.addListener( "execute", this._upButtonCB.bind(this));
         m_row1Widget.add( upButton );
         var downButton = new qx.ui.form.Button( "Down", "icon/16/actions/go-down.png" );
         downButton.set( {toolTipText: "Move layer down", show: "icon", padding: 1} );
+        downButton.addListener( "execute", this._downButtonCB.bind(this));
         m_row1Widget.add( downButton );
         var deleteButton = new qx.ui.form.Button( "Down", "icon/16/actions/edit-delete.png" );
         deleteButton.set( {toolTipText: "Delete layer", show: "icon", padding: 1} );
+        deleteButton.addListener( "execute", this._deleteButtonCB.bind(this));
         m_row1Widget.add( deleteButton );
 
         // create rename textbox
@@ -106,6 +102,8 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         this._sharedVarCB(this.m_sharedVar.get());
 
         this.m_listWidget.addListener( "changeSelection", this._listSelectionCB.bind(this));
+
+        this.m_selectedLayerIDs = [];
     },
 
     members: {
@@ -113,6 +111,7 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         m_viewName  : null,
         m_listWidget: null,
         m_connector : null,
+        m_selectedLayerIDs : null,
 
         /**
          * Get the overlay widget
@@ -121,6 +120,36 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
         {
             return this.m_viewName;
         },
+
+        /**
+         * Callback for 'add' button
+         * @private
+         */
+        _addButtonCB: function (action) {
+            console.log( "Add");
+        },
+
+        _upButtonCB: function (action) {
+            console.log( "Up");
+
+            this._updateLayerSelection();
+            this._sendCommand( "up", this.m_selectedLayerIDs);
+        },
+
+        _downButtonCB: function (action) {
+            console.log( "Down");
+
+            this._updateLayerSelection();
+            this._sendCommand( "down", this.m_selectedLayerIDs);
+        },
+
+        _deleteButtonCB: function (action) {
+            console.log( "Delete");
+
+            this._updateLayerSelection();
+            this._sendCommand( "delete", this.m_selectedLayerIDs);
+        },
+
 
         _sharedVarCB : function(val)
         {
@@ -145,16 +174,8 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
                 }.bind(this));
                 this.m_listWidget.setSelection( selectedItems);
 
-                //this.m_model = qx.data.marshal.Json.createModel(names);
-                //this.m_listWidget.setModel( this.m_model);
-                //
-                //this.m_listWidget.resetSelection();
-                //var selection = this.m_listWidget.getSelection();
-                //list.forEach( function(entry, id) {
-                //    if( entry.input) selection.push( this.m_model.getItem(id));
-                //}.bind(this));
-                //
-                //this.m_listWidget.setSelection(selection);
+                this._updateLayerSelection();
+
             } catch(e) {
 
             }
@@ -189,20 +210,45 @@ qx.Class.define( "skel.hacks.LayeredViewManager", {
 
         },
 
-        _listSelectionCB : function ( e)
+        _updateLayerSelection : function ()
         {
-            if( this.m_insideSharedVar) return;
-
             console.log( "...", this.m_listWidget.getSelection() );
             var selected = [];
-            this.m_listWidget.getSelection().forEach( function(item){
-                console.log( "Selected:" + item.getUserData("layerID"));
-                selected.push( item.getUserData("layerID"));
-            }.bind(this));
-            console.log( "selected layers:", selected);
+            this.m_listWidget.getSelection().forEach( function( item )
+            {
+                console.log( "Selected:" + item.getUserData( "layerID" ) );
+                selected.push( item.getUserData( "layerID" ) );
+            }.bind( this ) );
+            console.log( "selected layers:", selected );
 
-            this.m_connector.sendCommand( "/hacks/LayeredViewController/" + this.m_viewName + "/setSelection", JSON.stringify( selected));
+            this.m_selectedLayerIDs = selected;
+        },
 
+        _sendCommand: function( cmd, data)
+        {
+            if( ! data ) {
+                data = null;
+            }
+            var data = {
+                command: cmd,
+                data   : data
+            };
+            this.m_connector.sendCommand(
+                "/hacks/LayeredViewController/" + this.m_viewName + "/command",
+                JSON.stringify( data ) );
+        },
+
+        _listSelectionCB : function ( e)
+        {
+            if( this.m_insideSharedVar ) return;
+
+            this._updateLayerSelection();
+
+            //this.m_connector.sendCommand(
+            //    "/hacks/LayeredViewController/" + this.m_viewName + "/setSelection",
+            //    JSON.stringify( this.m_selectedLayerIDs ) );
+
+            this._sendCommand( "setSelection", this.m_selectedLayerIDs);
         }
 
     }

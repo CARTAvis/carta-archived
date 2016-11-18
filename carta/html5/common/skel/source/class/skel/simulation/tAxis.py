@@ -61,6 +61,7 @@ class tAxis(unittest.TestCase):
         animWindow = self._getAnimationWindow( driver )
         Util.verifyAnimationCount( self, animWindow, 1 )
         animatorType = self._getAnimatorType( driver,"TabularAnimatorType" )
+        
     # Take a traditional 4D cube and test that the axes can be permuted.
     def test_permuteAxes(self):
         driver = self.driver
@@ -144,6 +145,41 @@ class tAxis(unittest.TestCase):
         animWindow = self._getAnimationWindow( driver )
         Util.verifyAnimationCount( self, animWindow, 1 )
         animatorType = self._getAnimatorType( driver, "ChannelAnimatorType")
+        
+    #This test was written in  response to issue 184. Loading a 2D image and changing the
+    #coordinate system produced a crash.
+    def test_coordinateChange(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        #Load an image with a tabular axis
+        Util.load_image( self, driver, "aJ.fits")
+        time.sleep( 3 )
+
+        #Open the image settings tab
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep( timeout )
+        
+         #Get the old coordinateSystem
+        systemText = driver.find_element_by_xpath("//div[@id='ImageCoordinateSystem']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", systemText )
+        oldSystem = systemText.get_attribute('value')
+        print "Old system=", oldSystem
+        
+        #Change the coordinate system
+        csCombo = driver.find_element_by_xpath("//div[@id='ImageCoordinateSystem']/div")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", csCombo )
+        ActionChains(driver).click(csCombo).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ARROW_DOWN
+                ).send_keys( Keys.ARROW_DOWN).send_keys( Keys.ENTER).perform()
+        time.sleep( timeout )
+        
+        #Verify the coordinate system is changed
+        systemText = driver.find_element_by_xpath("//div[@id='ImageCoordinateSystem']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", systemText )
+        newSystem = systemText.get_attribute( 'value')
+        print "New system=",newSystem
+        self.assertTrue( newSystem != oldSystem, "Coordinate system did not change")
+        
 
     def tearDown(self):
         #Close the browser

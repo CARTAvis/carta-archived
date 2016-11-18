@@ -54,10 +54,12 @@ qx.Class.define("skel.Command.Data.CommandDataCloses", {
                             }
                         }
                         var closeRegions = activeWins[i].getRegions();
-                        for ( j = 0; j < closeRegions.length; j++ ){
-                            this.m_cmds[k] = new skel.Command.Data.CommandDataClose( closeRegions[i].getLabel(), 
-                                    path.REGION_DATA, path.CLOSE_REGION, closeRegions[i].getId() );
-                            k++;
+                        if ( closeRegions ){
+                            for ( j = 0; j < closeRegions.length; j++ ){
+                                this.m_cmds[k] = new skel.Command.Data.CommandDataClose( closeRegions[j].name, 
+                                        path.REGION_DATA, path.CLOSE_REGION, j );
+                                k++;
+                            }
                         }
                     }
                 }

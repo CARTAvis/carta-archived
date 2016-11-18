@@ -34,6 +34,8 @@ public:
      */
     bool isContextView() const;
 
+
+
     /**
      * Returns true if the infrastructure is in place to support a zoom view;
      * false otherwise.
@@ -85,6 +87,10 @@ private slots:
     void _doneZoom( bool success );
 
 private:
+
+    //Minimizes the size of the queue by indicating if the request is already on the
+    //stack - could be made more sophisticated.
+    bool _isRequested( const std::shared_ptr<RenderRequest>& request ) const;
 
     /**
      * Start the next rendered view of the image.

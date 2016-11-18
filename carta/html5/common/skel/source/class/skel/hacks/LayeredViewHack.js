@@ -15,7 +15,8 @@ qx.Class.define( "skel.hacks.LayeredViewHack", {
 
         this.setLayout( new qx.ui.layout.VBox( 3));
         //this.m_vgview = new skel.boundWidgets.View.View( this.m_viewName);
-        this.m_vgview = new skel.hacks.VGView( this.m_viewName);
+        //this.m_vgview = new skel.hacks.VGView( this.m_viewName);
+        this.m_vgview = new skel.boundWidgets.View.VGView( this.m_viewName);
 
         this.add( this.m_vgview, { flex: 1 });
 

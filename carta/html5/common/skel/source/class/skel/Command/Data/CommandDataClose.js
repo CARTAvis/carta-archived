@@ -22,6 +22,7 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
         this.m_global = false;
         this.m_params = typeStr;
         this.m_paramValue = id;
+      
         this.setToolTipText("Remove the "+typeStr+ ": " + this.getLabel() + ".");
     },
     
@@ -39,6 +40,9 @@ qx.Class.define("skel.Command.Data.CommandDataClose", {
                 for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
                     var windowInfo = skel.Command.Command.m_activeWins[i];
                     var id = windowInfo.getIdentifier();
+                    if ( this.m_params == "region"){
+                    	id = windowInfo.getRegionIdentifier();
+                    }
                     this.sendCommand( id, params, undoCB );
                 }
                 errMan.clearErrors();

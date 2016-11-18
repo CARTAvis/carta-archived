@@ -52,6 +52,12 @@ public:
     void setContours( const std::set<std::shared_ptr<DataContours> > & contours );
 
     /**
+     * Store graphics for drawing regions in the image.
+     * @param regionVGList - graphics for drawing regions.
+     */
+    void setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList );
+
+    /**
      * Start a synchronized rendering.
      * @param contourDraw - true if contours should be rendered; false otherwise.
      * @param gridDraw - true if the grid should be rendered; false otherwise.
@@ -66,7 +72,7 @@ signals:
      * Signal that all the renderers have finished.
      */
     void done( QImage img, Carta::Lib::VectorGraphics::VGList,
-            Carta::Lib::VectorGraphics::VGList, int64_t jobId );
+            Carta::Lib::VectorGraphics::VGList, Carta::Lib::VectorGraphics::VGList, int64_t jobId );
 
 private slots:
     //Callback for the image rendering service.
@@ -93,6 +99,7 @@ private:
 
     Carta::Lib::VectorGraphics::VGList m_grsVGList;
     Carta::Lib::VectorGraphics::VGList m_cecVGList;
+    Carta::Lib::VectorGraphics::VGList m_regionVGList;
 
     std::shared_ptr<Carta::Core::ImageRenderService::Service> m_irs;
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_grs;

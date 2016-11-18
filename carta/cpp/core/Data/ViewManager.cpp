@@ -32,6 +32,7 @@
 #include "Data/Profile/Profiler.h"
 #include "Data/Profile/ProfileStatistics.h"
 #include "Data/Profile/GenerateModes.h"
+#include "Data/Region/RegionTypes.h"
 #include "Data/Snapshot/Snapshots.h"
 #include "Data/Statistics/Statistics.h"
 #include "Data/ViewPlugins.h"
@@ -101,6 +102,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<PlotStyles>();
     Util::findSingletonObject<LineStyles>();
     Util::findSingletonObject<ProfileStatistics>();
+    Util::findSingletonObject<RegionTypes>();
     Util::findSingletonObject<GenerateModes>();
     Util::findSingletonObject<UnitsFrequency>();
     Util::findSingletonObject<UnitsIntensity>();
@@ -473,14 +475,6 @@ void ViewManager::_initCallbacks(){
         return result;
     });
 
-
-    //Callback for updating links after all objects have been created.
-    addCommandCallback( "refreshState", [=] (const QString & /*cmd*/,
-                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                _refreshState();
-                return "";
-            });
-
     addCommandCallback( "setPlugin", [=] (const QString & /*cmd*/,
                             const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = { DEST_PLUGIN, SOURCE_LOCATION_ID };
@@ -812,6 +806,7 @@ QString ViewManager::_makeProfile( int index ){
     //and a single controller display, assume the user wants them linked.
     if ( m_profilers.size() == 1 && m_controllers.size() == 1 ){
         m_profilers[0]->addLink( m_controllers[0] );
+
     }
     return m_profilers[index]->getPath();
 }
@@ -954,6 +949,9 @@ void ViewManager::_refreshState(){
     }
     for ( Colormap* map : m_colormaps ){
         map->refreshState();
+    }
+    for ( Profiler* prof : m_profilers){
+    	prof->refreshState();
     }
 
 }
@@ -1202,7 +1200,6 @@ QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& des
                 }
             }
         }
-
     }
     return msg;
 }
@@ -1283,6 +1280,8 @@ ViewManager::~ViewManager(){
     obj =  Util::findSingletonObject<ProfileStatistics>();
     delete obj;
     obj =  Util::findSingletonObject<GenerateModes>();
+    delete obj;
+    obj = Util::findSingletonObject<RegionTypes>();
     delete obj;
     obj =  Util::findSingletonObject<UnitsFrequency>();
     delete obj;

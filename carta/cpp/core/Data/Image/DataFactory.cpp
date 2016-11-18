@@ -3,6 +3,7 @@
 #include "Data/Image/Controller.h"
 #include "Data/Image/DataSource.h"
 #include "Data/Region/Region.h"
+#include "Data/Region/RegionControls.h"
 #include "Data/Region/RegionFactory.h"
 #include "Data/Util.h"
 #include "CartaLib/Hooks/LoadRegion.h"
@@ -33,7 +34,10 @@ QString DataFactory::addData( Controller* controller, const QString& fileName, b
                 std::vector<std::shared_ptr<Region> > regions =
                         _loadRegions( controller, fileName, success, result );
                 if ( regions.size() > 0 ){
-                    controller->_addDataRegions( regions );
+                	std::shared_ptr<RegionControls> regionController = controller->getRegionControls();
+                	if ( regionController ){
+                		regionController->_addDataRegions( regions );
+                	}
                 }
             }
         }
@@ -102,7 +106,6 @@ std::vector<std::shared_ptr<Region> > DataFactory::_loadRegions( Controller* con
             for ( int i = 0; i < regionCount; i++ ){
                 if ( data[i] ){
                     std::shared_ptr<Region> regionPtr = RegionFactory::makeRegion( data[i] );
-                    regionPtr -> _setUserId( fileName, i );
                     regions.push_back( regionPtr );
                 }
             }

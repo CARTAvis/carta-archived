@@ -20,28 +20,33 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
         this.base( arguments, viewId );
 
         // monitor mouse move
-        this.addListener( "mousemove", this._mouseMoveCB.bind(this));
         this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
-        this.addListener( "dblclick", this._mouseDoubleClickCB.bind(this));
 
         this.m_viewId = viewId;
         this.m_connector = mImport( "connector");
-
-        var path = skel.widgets.Path.getInstance();
-        this.m_prefix = this.m_viewId + path.SEP+ path.VIEW + path.SEP +"pointer-move";
-        this.m_viewSharedVar = this.m_connector.getSharedVar(this.m_prefix);
+        var qualityValue = this.m_connector.supportsRasterViewQuality() ? 90 : 101;
+        this.setQuality( qualityValue );
     },
 
     members: {
-
-        _mouseMoveCB : function (ev) {
-            var box = this.overlayWidget().getContentLocation( "box" );
-            var pt = {
-                x: ev.getDocumentLeft() - box.left,
-                y: ev.getDocumentTop() - box.top
-            };
-            this.m_viewSharedVar.set( "" + pt.x + " " + pt.y);
-
+    	
+        /**
+         * Install an input handler.
+         * @param handlerType {class}
+         *
+         * For example: installHandler( skel.hacks.inputHandlers.Tap)
+         */
+        installHandler: function( handlerType )
+        {
+            if( ! this.m_inputHandlers ) {
+                this.m_inputHandlers = {};
+            }
+            if( this.m_inputHandlers[handlerType] !== undefined ) {
+                console.warn( "Double install of handler" );
+                return;
+            }
+            var handler = new handlerType( this );
+            this.m_inputHandlers[handlerType] = handler;
         },
 
         _mouseWheelCB : function(ev) {
@@ -56,21 +61,39 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             this.m_connector.sendCommand( cmd,
                 "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
         },
-
-        _mouseDoubleClickCB : function(ev) {
-            var box = this.overlayWidget().getContentLocation( "box" );
-            var pt = {
-                x: ev.getDocumentLeft() - box.left,
-                y: ev.getDocumentTop() - box.top
-            };
-            //console.log( "vwid click", pt.x, pt.y, ev.getButton());
+ 
+        /**
+         * Send an input event to the server side.
+         * @param e {object}
+         */
+        sendInputEvent: function( e ){
+            
+            var params = JSON.stringify( e );
+            //console.log( "Sending input event"+params );
             var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_viewId + path.SEP_COMMAND + path.CENTER;
-            this.m_connector.sendCommand( cmd,
-                "" + pt.x + " " + pt.y + " " + ev.getButton(), function(){});
+            var cmd = this.m_viewId + path.SEP_COMMAND + path.INPUT_EVENT;
+            this.m_connector.sendCommand( cmd, params );
+        },
+        
+        /**
+         * Install an input handler.
+         * @param handlerType {class}
+         */
+        uninstallHandler: function( handlerType )
+        {
+            if( ! this.m_inputHandlers ) {
+                this.m_inputHandlers = {};
+            }
+            if( this.m_inputHandlers[handlerType] === undefined ) {
+                console.warn( "Cannot uninstall handler" );
+                return;
+            }
+            this.m_inputHandlers[handlerType].deactivate();
+            delete this.m_inputHandlers[handlerType];
         },
 
-        m_viewId : null
+        m_viewId : null,
+        m_inputHandlers : null
 
     }
 } );

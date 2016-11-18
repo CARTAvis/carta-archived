@@ -11,13 +11,15 @@ CONFIG += plugin
 SOURCES += \
     IImageHistogram.cpp \
     ImageHistogram.cpp \
-    Histogram1.cpp
+    Histogram1.cpp \
+    ImageRegionGenerator.cpp
 
 
 HEADERS += \
     IImageHistogram.h \
     ImageHistogram.h \
-    Histogram1.h
+    Histogram1.h \
+    ImageRegionGenerator.h
 
 
 casacoreLIBS += -L$${CASACOREDIR}/lib

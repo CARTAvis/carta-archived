@@ -155,7 +155,7 @@ LBTAFitter::iterate()
 {
     initOnce();
 
-    auto printHeap = [this] ( QString pf )
+    auto printHeap = [this] ( QString /*pf*/ )
                      {
                          auto q = tHeap;
                          QVector < double > v1, v2;

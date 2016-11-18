@@ -3,8 +3,7 @@
  */
 
 #pragma once
-
-#include "CartaLib/RegionInfo.h"
+#include <QString>
 #include <memory>
 
 namespace Carta {

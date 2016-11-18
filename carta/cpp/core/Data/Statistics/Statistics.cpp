@@ -1,19 +1,19 @@
+
 #include "Statistics.h"
 #include "Data/Settings.h"
 #include "Data/LinkableImpl.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/DataSource.h"
+#include "Data/Region/Region.h"
+#include "Data/Region/RegionControls.h"
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
-
+#include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/Hooks/ImageStatisticsHook.h"
-#include "CartaLib/RegionInfo.h"
-
 #include "State/UtilState.h"
-
+#include "Globals.h"
 #include <QDebug>
 
-#include "Globals.h"
 
 namespace Carta {
 
@@ -438,8 +438,16 @@ void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo
                 controller->getImages();
 
 
-
-        std::vector<Carta::Lib::RegionInfo> regions = controller->getRegions();
+        std::vector<std::shared_ptr<Region> > coreRegions;
+        std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+        if ( regionControls ){
+        	coreRegions = regionControls->getRegions();
+        }
+        int regionCount = coreRegions.size();
+        std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions;
+        for ( int i = 0; i < regionCount; i++ ){
+            regions.push_back( coreRegions[i]->getModel() );
+        }
 
         std::vector<int> frameIndices = controller->getImageSlice();
 
@@ -470,6 +478,7 @@ void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo
                         }
                     }
                 }
+                m_stateData.flushState();
             };
             try {
                 result.forEach( lam );
@@ -483,8 +492,9 @@ void Statistics::_updateStatistics( Controller* controller, Carta::Lib::AxisInfo
         //No statistics
         else {
             m_stateData.resizeArray( STATS, 0 );
+            m_stateData.flushState();
         }
-        m_stateData.flushState();
+
     }
 }
 

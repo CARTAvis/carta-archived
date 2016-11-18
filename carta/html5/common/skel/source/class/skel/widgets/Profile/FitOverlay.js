@@ -14,7 +14,9 @@ qx.Class.define("skel.widgets.Profile.FitOverlay", {
     construct: function () {
         this.base(arguments);
         this.setSyncDimension( true );
-        this.m_connector = mImport("connector");
+        if ( typeof mImport !== "undefined"){
+        	this.m_connector = mImport("connector");
+        }
 
         // setup defered call for updating everything
         this.m_updateDefer = new qx.util.DeferredCall(this.update, this);

@@ -1,5 +1,5 @@
 #include "Histogram.h"
-#include "HistogramRenderService.h"
+#include "Render/HistogramRenderService.h"
 #include "Data/Clips.h"
 #include "Data/Colormap/Colormap.h"
 #include "ChannelUnits.h"
@@ -11,8 +11,11 @@
 #include "Data/Util.h"
 #include "Data/Plotter/Plot2DManager.h"
 #include "Plot2D/Plot2DGenerator.h"
+#include "Data/Histogram/BinData.h"
 #include "Data/Histogram/PlotStyles.h"
 #include "Data/Preferences/PreferencesSave.h"
+#include "Data/Region/RegionControls.h"
+#include "Data/Region/Region.h"
 #include "Globals.h"
 #include "MainConfig.h"
 #include "PluginManager.h"
@@ -20,6 +23,7 @@
 #include "CartaLib/Hooks/Histogram.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
+#include "CartaLib/Regions/IRegion.h"
 #include "State/UtilState.h"
 #include <set>
 #include <QtCore/qmath.h>
@@ -72,6 +76,8 @@ const QString Histogram::RESTRICT_SIZE_MAX = "cubeSizeMax";
 Clips*  Histogram::m_clips = nullptr;
 PlotStyles* Histogram::m_graphStyles = nullptr;
 ChannelUnits* Histogram::m_channelUnits = nullptr;
+QList<QColor> Histogram::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
+        Qt::magenta, Qt::yellow, Qt::gray };
 
 class Histogram::Factory : public Carta::State::CartaObjectFactory {
 public:
@@ -121,7 +127,6 @@ Histogram::Histogram( const QString& path, const QString& id):
     m_controllerLinked = false;
     m_cubeChannel = 0;
 
-
     //Load the available clips.
     if ( m_clips == nullptr ){
         m_clips = Util::findSingletonObject<Clips>();
@@ -138,7 +143,10 @@ QString Histogram::addLink( CartaObject*  target){
         if ( !m_controllerLinked ){
             linkAdded = m_linkImpl->addLink( controller );
             if ( linkAdded ){
-                connect(controller, SIGNAL(dataChanged(Controller*)), this , SLOT(_createHistogram(Controller*)));
+                connect(controller, SIGNAL(dataChanged(Controller*)),
+                		this, SLOT(_createHistogram(Controller*)));
+                connect(controller, SIGNAL(dataChangedRegion(Controller*)),
+                               		this, SLOT(_createHistogram(Controller*)));
                 connect( controller,SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
                         this, SLOT(_updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
                 connect(controller, SIGNAL(clipsChanged(double,double)),
@@ -161,6 +169,38 @@ QString Histogram::addLink( CartaObject*  target){
         result = "Histogram only supports linking to images";
     }
     return result;
+}
+
+void Histogram::_assignColor( std::shared_ptr<BinData> binData ){
+    //First go through list of fixed colors & see if there is one available.
+    int fixedColorCount = m_curveColors.size();
+    int curveCount = m_binDatas.size();
+    bool colorAssigned = false;
+    for ( int i = 0; i < fixedColorCount; i++ ){
+        bool colorAvailable = true;
+        QString fixedColorName = m_curveColors[i].name();
+        for ( int j = 0; j < curveCount; j++ ){
+            if ( m_binDatas[j]->getColor().name() == fixedColorName ){
+                colorAvailable = false;
+                break;
+            }
+        }
+        if ( colorAvailable ){
+            binData->setColor( m_curveColors[i] );
+            colorAssigned = true;
+            break;
+        }
+    }
+
+    //If there is no color in the fixed list, assign a random one.
+    if ( !colorAssigned ){
+        const int MAX_COLOR = 255;
+        int redAmount = qrand() % MAX_COLOR;
+        int greenAmount = qrand() % MAX_COLOR;
+        int blueAmount = qrand() % MAX_COLOR;
+        QColor randomColor( redAmount, greenAmount, blueAmount );
+        binData->setColor( randomColor.name());
+    }
 }
 
 void Histogram::applyClips(){
@@ -318,7 +358,14 @@ double Histogram::_getBufferedIntensity( const QString& clipKey, const QString& 
     return intensity;
 }
 
-bool Histogram::getColored(){
+std::pair<double, double> Histogram::getClipRange() const {
+    double clipMin = m_stateData.getValue<double>(CLIP_MIN);
+    double clipMax = m_stateData.getValue<double>(CLIP_MAX);
+    std::pair<double, double> clipRangeValues(clipMin, clipMax);
+    return clipRangeValues;
+}
+
+bool Histogram::getColored() const {
     bool colored = m_state.getValue<bool>(GRAPH_COLORED);
     return colored;
 }
@@ -350,11 +397,15 @@ std::pair<int,int> Histogram::_getFrameBounds() const {
     return bounds;
 }
 
+QString Histogram::getFootPrint2D() const {
+	return m_state.getValue<QString>( FOOT_PRINT );
+}
+
 QList<QString> Histogram::getLinks() const {
     return m_linkImpl->getLinkIds();
 }
 
-bool Histogram::getLogCount(){
+bool Histogram::getLogCount() const {
     bool logCount = m_state.getValue<bool>(GRAPH_LOG_COUNT);
     return logCount;
 }
@@ -394,25 +445,41 @@ bool Histogram::getUseClipBuffer(){
 }
 
 void Histogram::_histogramRendered(const Carta::Lib::Hooks::HistogramResult& result){
-    QString resultName = result.getName();
-    if ( resultName.startsWith( Util::ERROR)){
-        ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-        hr->registerError( resultName );
-    }
-    else {
-        m_plotManager->addData( &result );
-        m_plotManager->updatePlot();
-        double freqLow = result.getFrequencyMin();
-        double freqHigh = result.getFrequencyMax();
-        setPlaneRange( freqLow, freqHigh);
+	QString resultName = result.getName();
+	if ( resultName.startsWith( Util::ERROR)){
+		ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+		hr->registerError( resultName );
+	}
+	else {
+		//Only create a new one if there is not an existing one that
+		//matches.
+		int targetIndex = -1;
+		int dataCount = m_binDatas.size();
+		for ( int i = 0; i < dataCount; i++ ){
+			if ( m_binDatas[i]->getName() == resultName ){
+				targetIndex = i;
+				break;
+			}
+		}
+		//Add the result to our list of plots.
+		if ( targetIndex == -1 ){
+			Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+			CartaObject* binObj = objMan->createObject<BinData>();
+			std::shared_ptr<BinData> binData(dynamic_cast<BinData*>(binObj));
+			_assignColor( binData );
+			binData->setName( resultName );
+			m_binDatas.append( binData );
+			targetIndex = m_binDatas.size() - 1;
+		}
+		m_binDatas[targetIndex]->setHistogramResult( result );
 
-        //Refresh the view
-        m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
-        m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
-        m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
-        m_plotManager->updatePlot();
-    }
+		double freqLow = result.getFrequencyMin();
+		double freqHigh = result.getFrequencyMax();
+		setPlaneRange( freqLow, freqHigh);
+		_updatePlots();
+	}
 }
+
 
 
 void Histogram::_initializeDefaultState(){
@@ -975,6 +1042,18 @@ void Histogram::_loadData( Controller* controller ){
     std::shared_ptr<DataSource> dataSource = controller->getDataSource();
     if ( dataSource ) {
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image= dataSource->_getImage();
+        std::vector<std::shared_ptr<Region> > regions;
+        QString footPrint = getFootPrint2D();
+        std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+        if ( footPrint == FOOT_PRINT_REGION ){
+        	std::shared_ptr<Region> region = regionControls->getRegion("");
+        	if ( region ){
+        		regions.push_back( region );
+        	}
+        }
+        else if ( footPrint == FOOT_PRINT_REGION_ALL ){
+        	regions = regionControls->getRegions();
+        }
         std::vector<int> imageDims = image->dims();
         int dimCount = imageDims.size();
         int pixelSize = 1;
@@ -1002,13 +1081,51 @@ void Histogram::_loadData( Controller* controller ){
         std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
 
         m_plotManager->setPipeline( pipeline );
-        m_renderService->renderHistogram(image,
-                    binCount, minChannel, maxChannel, minFrequency, maxFrequency,
-                    rangeUnits, minIntensity, maxIntensity, dataSource->_getFileName());
+        int regionCount = regions.size();
+        QString fileName = dataSource->_getFileName();
+        std::vector<HistogramRenderRequest> requests;
+        if ( regionCount == 0 ){
+        	std::shared_ptr<Carta::Lib::Regions::RegionBase> nullRegion( nullptr );
+        	HistogramRenderRequest request( image, binCount, minChannel, maxChannel,
+        				minFrequency, maxFrequency, rangeUnits, minIntensity, maxIntensity,
+        				fileName, nullRegion, "!" );
+        	//Only make a new one if we don't already have this one stored since making a
+        	//histogram is data intensive.
+        	requests.push_back( request );
+        }
+        else {
+        	for ( int i = 0; i < regionCount; i++ ){
+        		std::shared_ptr<Carta::Lib::Regions::RegionBase> regionBase = regions[i]->getModel();
+        		QString idStr = regions[i]->getId();
+        		HistogramRenderRequest request( image, binCount, minChannel, maxChannel,
+        		        				minFrequency, maxFrequency, rangeUnits, minIntensity, maxIntensity,
+        		        				fileName, regionBase, idStr );
+        		requests.push_back( request );
+        	}
+        }
+
+        //Update the list of bin data which should be removed (no longer needed).  Only return
+        //requests that are not already stored.
+        std::vector<HistogramRenderRequest> renderRequests = _updateBinDatas( requests );
+        int renderRequestCount = renderRequests.size();
+        if ( renderRequestCount == 0 ){
+        	//Clear the plot manager and put the existing data into it.
+        	_updatePlots();
+        }
+        else {
+        	for ( int i = 0; i < renderRequestCount; i++ ){
+        		m_renderService->renderHistogram( renderRequests[i] );
+        	}
+        }
     }
     else {
+    	int dataCount = this->m_binDatas.size();
+    	for ( int i = (dataCount - 1); i>= 0; i-- ){
+    		_removeData( i );
+    	}
+
         _resetDefaultStateData();
-        m_plotManager->clearData();
+        _updatePlots();
     }
 }
 
@@ -1088,6 +1205,17 @@ void Histogram::resetStateData( const QString& state ){
     m_stateData.flushState();
 }
 
+
+
+void Histogram::_removeData( int index ){
+	int dataCount = m_binDatas.size();
+	if ( index >= 0 && index < dataCount ){
+		Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+		objMan->removeObject( m_binDatas[index]->getId());
+		m_binDatas.removeAt( index );
+	}
+}
+
 QString Histogram::setClipBuffer( int bufferAmount ){
     QString result;
     if ( bufferAmount >= 0 && bufferAmount < 100 ){
@@ -1121,12 +1249,7 @@ QString Histogram::setClipRange( double clipMin, double clipMax ){
     return result;
 }
 
-std::pair<double, double> Histogram::getClipRange() const {
-    double clipMin = m_stateData.getValue<double>(CLIP_MIN);
-    double clipMax = m_stateData.getValue<double>(CLIP_MAX);
-    std::pair<double, double> clipRangeValues(clipMin, clipMax);
-    return clipRangeValues;
-}
+
 
 QString Histogram::setCubeSizeLimit(  int sizeLimit ){
     QString result;
@@ -1797,6 +1920,7 @@ QString Histogram::_set2DFootPrint( const QString& params ){
         if ( footPrintStr != oldFootPrint){
             m_state.setValue<QString>(FOOT_PRINT, footPrintStr );
             m_state.flushState();
+
             _generateHistogram( nullptr );
         }
     }
@@ -1952,6 +2076,53 @@ int Histogram::_toBinCount( double width ) const {
     return count;
 }
 
+std::vector<HistogramRenderRequest> Histogram::_updateBinDatas( std::vector<HistogramRenderRequest> requests ){
+	std::vector<HistogramRenderRequest> newRequests;
+	//Go through the old histograms and add new requests that we don't already have.
+	int dataCount = m_binDatas.size();
+	int requestCount = requests.size();
+
+	for ( int i = 0; i < requestCount; i++ ){
+		QString requestId = requests[i].getId();
+		bool binFound = false;
+		for ( int j = 0; j < dataCount; j++ ){
+			QString id = m_binDatas[j]->getName();
+			if ( requestId.startsWith( id ) ){
+				binFound = true;
+				break;
+			}
+		}
+		if ( !binFound ){
+			newRequests.push_back( requests[i]);
+		}
+	}
+
+	QList<int> removeIndices;
+	//Now go through the histograms and remove those not being requested.
+	for ( int j = 0; j < dataCount; j++ ){
+		bool requested = false;
+		QString binDataId = m_binDatas[j]->getName();
+		for ( int i = 0; i < requestCount; i++ ){
+			QString requestId = requests[i].getId();
+			if ( requestId.startsWith(binDataId)){
+				requested = true;
+				break;
+			}
+		}
+		if ( !requested ){
+			removeIndices.append( j );
+		}
+	}
+
+	//Remove bin data that we don't need.
+	int removeCount = removeIndices.size();
+	for ( int i = removeCount-1; i>= 0; i-- ){
+		_removeData( removeIndices[i] );
+	}
+	return newRequests;
+}
+
+
 void Histogram::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type ){
     if ( type == Carta::Lib::AxisInfo::KnownType::SPECTRAL ){
         int spectralFrame = controller->getFrame( type );
@@ -2001,6 +2172,21 @@ void Histogram::_updateColorSelection(){
         }
         setRangeColor( minRange, maxRange );
     }
+}
+
+void Histogram::_updatePlots( ){
+	m_plotManager->clearData();
+	int dataCount = m_binDatas.size();
+	for ( int i = 0; i < dataCount; i++ ){
+		Carta::Lib::Hooks::HistogramResult result = m_binDatas[i]->getHistogramResult();
+		m_plotManager->addData( &result );
+		m_plotManager->setColor( m_binDatas[i]->getColor(), result.getName());
+	}
+	//Refresh the view
+	m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
+	m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
+	m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
+	m_plotManager->updatePlot();
 }
 
 QString Histogram::_zoomToSelection(){

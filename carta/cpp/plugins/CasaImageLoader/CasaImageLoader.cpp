@@ -122,34 +122,8 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     //compile, for example.
     //if( ! res) res = tryCast<int64_t>(lat);
 
-    // you don't 'try' static cast, it won't fail, and in any case is not necessary since
-    // we are doing dynamic cast inside the same library, not across boundaries
-
-    // if dynamic casting fails, try static cast since we know what type lat
-//	if(!res) {
-//    	if(lat->dataType() == casa::TpFloat) {
-//    		typedef casa::ImageInterface<casa::Float> CCITF;
-//    		CCITF * ciif = static_cast<CCITF *>(lat);
-//    		if( ciif)
-//       		 	res = CCImage<casa::Float>::create( ciif);
-//		} else if(lat->dataType() == casa::TpDouble) {
-//    		typedef casa::ImageInterface<casa::Double> CCITD;
-//    		CCITD * ciid = static_cast<CCITD *>(lat);
-//    		if( ciid)
-//       		 	res = CCImage<casa::Double>::create( ciid);
-//		} else if(lat->dataType() == casa::TpInt) {
-//    		typedef casa::ImageInterface<casa::Int> CCITI;
-//    		CCITI * ciii = static_cast<CCITI *>(lat);
-//    		if( ciii)
-//       		 	res = CCImage<casa::Int>::create( ciii);
-//		}
-//	}
-
+    // if we were successful, return the result
     if( res) {
-//        qDebug() << "Created image interface with type=" << Carta::Lib::toStr( res->pixelType())
-//                 << res.get();
-
-//        qDebug() << "sanity" << cartaII2casaII_float( res);
         return res;
     }
 

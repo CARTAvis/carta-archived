@@ -5,9 +5,9 @@
 
 #pragma once
 
+#include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
-#include "CartaLib/RegionInfo.h"
 
 namespace Carta
 {
@@ -22,7 +22,7 @@ class LoadRegion : public BaseHook
 
 public:
 
-    typedef std::vector<std::shared_ptr<Carta::Lib::RegionInfo> > ResultType;
+    typedef std::vector<Carta::Lib::Regions::RegionBase* > ResultType;
     struct Params {
         Params( QString p_fileName, std::shared_ptr<Image::ImageInterface> p_imagePtr )
         {

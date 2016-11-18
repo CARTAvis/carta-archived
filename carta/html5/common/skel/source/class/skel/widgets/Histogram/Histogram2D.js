@@ -53,7 +53,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
             this._add( twoDContainer );
             
             this.m_imageRadio = new qx.ui.form.RadioButton( "Image");
-            this.m_imageRadio.setEnabled( false );
+            skel.widgets.TestID.addTestId( this.m_imageRadio, "Histogram2DFootPrintImage");
             this.m_imageRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_imageRadio.getValue() ){
                     this._sendFootPrintCmd( this.m_imageRadio.getLabel());
@@ -61,7 +61,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
             }, this );
             
             this.m_regionRadio = new qx.ui.form.RadioButton( "Selected Region");
-            this.m_regionRadio.setEnabled( false );
+            skel.widgets.TestID.addTestId( this.m_regionRadio, "Histogram2DFootPrintRegion");
             this.m_regionRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_regionRadio.getValue()){
                     this._sendFootPrintCmd( this.m_regionRadio.getLabel());
@@ -69,7 +69,7 @@ qx.Class.define("skel.widgets.Histogram.Histogram2D", {
             }, this );
            
             this.m_regionAllRadio = new qx.ui.form.RadioButton( "All Regions");
-            this.m_regionAllRadio.setEnabled( false );
+            skel.widgets.TestID.addTestId( this.m_regionAllRadio, "Histogram2DFootPrintRegions");
             this.m_regionAllRadio.addListener( skel.widgets.Path.CHANGE_VALUE, function(){
                 if ( this.m_regionAllRadio.getValue()){
                     this._sendFootPrintCmd( this.m_regionAllRadio.getLabel());

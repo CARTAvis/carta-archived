@@ -19,6 +19,7 @@ static void mySigintHandler( int sig)
         oldSigIntAction.sa_handler(sig);
         qWarning() << "Old handler called, are you still there?";
     }
+    qWarning() << "Calling exit(0)";
     exit(0);
 }
 

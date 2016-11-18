@@ -25,7 +25,7 @@ qx.Class.define("skel.Command.Window.CommandWindowMaximize", {
                 this.fireDataEvent( "windowMaximized", "");
                 for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
                     var window = skel.Command.Command.m_activeWins[i];
-                    window.fireDataEvent("maximizeWindow", window);
+                    window.fireDataEvent("windowMaximized", window);
                     window.maximize();
                     //Update the context window so maximize is no longer
                     //present.

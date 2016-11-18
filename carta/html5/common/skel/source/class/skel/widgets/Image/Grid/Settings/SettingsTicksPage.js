@@ -14,7 +14,9 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
      */
     construct : function(  ) {
         this.base(arguments, "Settings", "");
-        this.m_connector = mImport("connector");
+        if ( typeof mImport !== "undefined"){
+        	this.m_connector = mImport("connector");
+        }
         this._init();
     },
 
@@ -82,11 +84,13 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
          * Sends a command to the server to show/hide the ticks.
          */
         _sendShowTicksCmd : function(){
-            var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_id + path.SEP_COMMAND + "setShowTicks";
-            var showTicks = this.m_showTicks.getValue();
-            var params = "showTicks:"+showTicks;
-            this.m_connector.sendCommand( cmd, params, function(){});
+        	if ( this.m_connector !== null ){
+        		var path = skel.widgets.Path.getInstance();
+        		var cmd = this.m_id + path.SEP_COMMAND + "setShowTicks";
+        		var showTicks = this.m_showTicks.getValue();
+        		var params = "showTicks:"+showTicks;
+        		this.m_connector.sendCommand( cmd, params, function(){});
+        	}
         },
 
         /**
@@ -102,6 +106,17 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
                 this._setLength( controls.grid.tickLength );
                 this._setTransparency( controls.grid.tick.alpha );
             }
+        },
+        
+        /**
+         * Set whether or not the tick controls should be enabled
+         * based on whether the ticks are shown.
+         */
+        _setControlsEnabledStatus : function(){
+        	var enabled = this.m_showTicks.getValue();
+        	this.m_thickness.setEnabled( enabled );
+        	this.m_length.setEnabled( enabled );
+        	this.m_transparency.setEnabled( enabled );
         },
         
         /**
@@ -124,6 +139,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsTicksPage", {
                 this.m_showTicks.setValue( showTicks );
                 this.m_showListenerId = this.m_showTicks.addListener( skel.widgets.Path.CHANGE_VALUE, 
                         this._sendShowTicksCmd, this );
+                this._setControlsEnabledStatus();
             }
         },
         

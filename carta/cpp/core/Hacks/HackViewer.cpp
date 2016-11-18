@@ -167,54 +167,10 @@ HackViewer::start()
                           static_cast < int > ( Carta::Lib::KnownSkyCS::Ecliptic ) ) );
     prefixedSetState( "knownSkyCS/count", "5" );
 
-    // layered view stuff
-    /*
-    static Carta::Lib::IRemoteVGView::SharedPtr vgview( m_connector-> makeRemoteVGView( "vgview1" ) );
-    QImage img( 200, 100, QImage::Format_ARGB32_Premultiplied );
-    img.fill( 0xff000000 );
-    {
-        QPainter p( & img );
-        p.setBrush( QColor( "red" ) );
-        p.drawEllipse( 100, 50, 30, 55 );
-    }
-    vgview-> setRaster( img );
-    connect( vgview.get(), & Carta::Lib::IRemoteVGView::sizeChanged, [&] () {
-                 qDebug() << "New size" << vgview-> getRVGViewName() << vgview-> getClientSize();
-             }
-             );
-    Carta::Lib::VectorGraphics::VGComposer comp;
-    comp.append < Carta::Lib::VectorGraphics::Entries::FillRect > ( QRectF( 5, 5, 20,
-                                                                            40 ), QColor( "blue" ) );
-
-//    comp.append< Carta::Lib::VectorGraphics::Entries::SetBrush> ( QColor( "white"));
-//    comp.append< Carta::Lib::VectorGraphics::Entries::DrawRect> ( QRectF( 0, 0, 200, 40));
-    vgview-> setVG( comp.vgList() );
-    vgview-> scheduleRepaint();
-
-    static QTimer * timer = new QTimer( this );
-    static double xxx = 0;
-    connect( timer, & QTimer::timeout, [ = ] () {
-                 Carta::Lib::VectorGraphics::VGComposer comp;
-                 xxx += 0.1;
-                 if ( xxx > 1 ) {
-                     xxx = 0.0;
-                 }
-                 using Carta::Lib::VectorGraphics::Entries::FillRect;
-                 comp.append < FillRect > ( QRectF( xxx * 10 +
-                                                    50, 55, 70,
-                                                    40 ),
-                                            QColor( 0, 0, 255,
-                                                    128 ) );
-                 vgview-> setVG( comp.vgList() );
-                 vgview-> scheduleRepaint();
-             }
-             );
-    timer->setInterval( 200 );
-    timer->start();
-*/
     // managed layer demo
     m_lvDemo.reset( new LayeredViewDemo( this));
 
+#ifdef DONT_COMPILE
     // layered view 2 stuff
     auto ccl = [] ( int x, int y, int r, QColor color ) -> QImage {
         QImage img( 500, 500, QImage::Format_ARGB32_Premultiplied );
@@ -226,8 +182,6 @@ HackViewer::start()
         p.end();
         return img;
     };
-//    static Carta::Lib::LayeredRemoteVGView::SharedPtr vgview2 =
-//        Carta::Lib::LayeredRemoteVGView::create( m_connector, "vgview2", this );
     static Carta::Lib::LayeredRemoteVGView::SharedPtr vgview2(
         new Carta::Lib::LayeredRemoteVGView( m_connector, "vgview2", this ));
 
@@ -336,6 +290,7 @@ HackViewer::start()
         return "OK";
     };
     m_connector-> addCommandCallback( "lvgview-cmd", cmdCB );
+#endif
 
     qDebug() << "HackViewer has been initialized.";
 } // start

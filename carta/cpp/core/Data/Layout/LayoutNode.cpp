@@ -1,5 +1,6 @@
 #include "LayoutNode.h"
 #include "State/UtilState.h"
+#include "Data/Util.h"
 #include <QDebug>
 #include <set>
 
@@ -8,9 +9,6 @@
 namespace Carta {
 
 namespace Data {
-
-const QString LayoutNode::WIDTH = "width";
-const QString LayoutNode::HEIGHT = "height";
 
 LayoutNode::LayoutNode( const QString& className, const QString& path, const QString& id):
     CartaObject( className, path, id ){
@@ -48,7 +46,7 @@ LayoutNode* LayoutNode::getChildSecond() const {
 }
 
 int LayoutNode::getHeight() const {
-    return m_state.getValue<int>( HEIGHT );
+    return m_state.getValue<int>( Util::HEIGHT );
 }
 
 QString LayoutNode::getStateString() const {
@@ -56,29 +54,24 @@ QString LayoutNode::getStateString() const {
 }
 
 int LayoutNode::getWidth() const {
-    return m_state.getValue<int>( WIDTH );
+    return m_state.getValue<int>( Util::WIDTH );
 }
+
 
 void LayoutNode::_initializeCommands(){
     addCommandCallback( "setSize", [=] (const QString & /*cmd*/,
                       const QString & params, const QString & /*sessionId*/) -> QString {
-              std::set<QString> keys = {WIDTH, HEIGHT};
+              std::set<QString> keys = {Util::WIDTH, Util::HEIGHT};
               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-              QString widthStr = dataValues[WIDTH];
-              QString heightStr = dataValues[HEIGHT];
+              QString widthStr = dataValues[Util::WIDTH];
+              QString heightStr = dataValues[Util::HEIGHT];
               bool valid = false;
               int width = widthStr.toInt( &valid );
               QString result;
               if ( valid ){
                   int height = heightStr.toInt( &valid );
                   if ( valid ){
-                      if ( width >= 0 && height >= 0 ){
-                          m_state.setValue<int>(WIDTH, width);
-                          m_state.setValue<int>(HEIGHT, height );
-                      }
-                      else {
-                          result="Width/height of layout cell must be nonnegative: "+params;
-                      }
+                	  result = setSize( width, height );
                   }
                   else {
                       result = "Invalid layout height: "+heightStr;
@@ -93,8 +86,8 @@ void LayoutNode::_initializeCommands(){
 
 
 void LayoutNode::_initializeDefaultState(){
-    m_state.insertValue<int>( WIDTH, 1 );
-    m_state.insertValue<int>( HEIGHT, 1 );
+    m_state.insertValue<int>( Util::WIDTH, 1 );
+    m_state.insertValue<int>( Util::HEIGHT, 1 );
 }
 
 
@@ -114,8 +107,8 @@ bool LayoutNode::removeWindow( const QString& /*nodeId*/ ){
 void LayoutNode::resetState( const QString& stateStr, QMap<QString,int>& /*usedPlugins*/ ){
     Carta::State::StateInterface nodeState( "" );
     nodeState.setState( stateStr );
-    m_state.setValue<int>( HEIGHT, nodeState.getValue<int>( HEIGHT ) );
-    m_state.setValue<int>( WIDTH, nodeState.getValue<int>( WIDTH ) );
+    m_state.setValue<int>( Util::HEIGHT, nodeState.getValue<int>( Util::HEIGHT ) );
+    m_state.setValue<int>( Util::WIDTH, nodeState.getValue<int>( Util::WIDTH ) );
 }
 
 
@@ -130,6 +123,18 @@ void LayoutNode::setChildSecond( LayoutNode* /*node*/ ){
 
 void LayoutNode::setHorizontal( bool /*horizontal*/ ){
 
+}
+
+QString LayoutNode::setSize( int width, int height ){
+	QString result;
+	if ( width >= 0 && height >= 0 ){
+		m_state.setValue<int>(Util::WIDTH, width);
+		m_state.setValue<int>(Util::HEIGHT, height );
+	}
+	else {
+		result="Width/height of layout cell must be nonnegative: ("+QString::number(width)+", "+QString::number(height)+")";
+	}
+	return result;
 }
 
 QString LayoutNode::toString() const {

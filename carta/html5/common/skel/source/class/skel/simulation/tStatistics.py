@@ -16,7 +16,12 @@ class tStatistics(unittest.TestCase):
     def setUp(self):
         browser = selectBrowser._getBrowser()
         Util.setUp(self, browser)
-        
+    
+    def _checkRegionSumValue(self, driver, correctValue):
+        sumValue = Util._getTextValue( self, driver, "SumStat")
+        print "Sum is ", sumValue
+        self.assertEqual( float(sumValue), correctValue, "Region sum not correct")
+            
         
     def show_statistics_window(self, driver):
         histWindow = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='skel.widgets.Window.DisplayWindowHistogram']")))
@@ -47,6 +52,258 @@ class tStatistics(unittest.TestCase):
         imageStatsNameText = imageStatsNameCombo.find_element_by_xpath( ".//div/div")
         mapName = imageStatsNameText.text
         self.assertEqual( "Orion.methanol.cbc.contsub.image.fits", mapName, "Stat image name incorrect")
+    
+    # Test that we can display the correct statistics for a rectangle region.  Then test that the
+    # statistics will update correctly if we change the size of the rectangle.
+    def test_rectangleRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load a rectangular region
+        Util.load_image(self, driver, "OrionMethanolRegion.crtf")
+        time.sleep( timeout )
+
+        # Replace the histogram window with the statistics window.
+        self.show_statistics_window(driver)
+        
+        #Test that we see the region text field labelled "Sum" and that its value is correct.
+        self._checkRegionSumValue( driver, -11.5961 )
+        
+        #Now open the regions tab of the image window
+        #Open the image settings
+        ActionChains(driver).double_click( imageWindow ).perform()
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        
+         #Open the regions tab
+        Util.clickTab( driver, "Regions" )
+        time.sleep( timeout )
+        
+        #Change the width and the height of the region to 10.
+        heightText = driver.find_element_by_xpath("//div[@id='RectangleRegionHeight']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", heightText )
+        Util._changeElementText(self, driver, heightText, 10)
+        widthText = driver.find_element_by_xpath( "//div[@id='RectangleRegionWidth']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", widthText )
+        Util._changeElementText(self, driver, widthText, 10)
+        time.sleep( timeout )
+        
+        #Check that the sum has updated to a new correct value
+        self._checkRegionSumValue( driver, 14.3478)
+        
+    # Test that we can display the correct statistics for a DS9 rectangle region.  Then test that the
+    # statistics will update correctly if we change the size of the rectangle.
+    def test_rectangleRegionDS9(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load a rectangular region
+        Util.load_image(self, driver, "OrionMethanolRegion.reg")
+        time.sleep( timeout )
+
+        # Replace the histogram window with the statistics window.
+        self.show_statistics_window(driver)
+        
+        #Test that we see the region text field labelled "Sum" and that its value is correct.
+        self._checkRegionSumValue( driver, -6.03696 )
+        
+        #Now open the regions tab of the image window
+        #Open the image settings
+        ActionChains(driver).double_click( imageWindow ).perform()
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        
+         #Open the regions tab
+        Util.clickTab( driver, "Regions" )
+        time.sleep( timeout )
+        
+        #Change the width and the height of the region to 10.
+        heightText = driver.find_element_by_xpath("//div[@id='RectangleRegionHeight']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", heightText )
+        Util._changeElementText(self, driver, heightText, 10)
+        widthText = driver.find_element_by_xpath( "//div[@id='RectangleRegionWidth']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", widthText )
+        Util._changeElementText(self, driver, widthText, 10)
+        time.sleep( timeout )
+        
+        #Check that the sum has updated to a new correct value
+        self._checkRegionSumValue( driver, 28.7604)
+        
+    # Test that we can display the correct statistics for an elliptical region.  Then test that the
+    # statistics will update correctly if we change the size of the ellipse.
+    def test_ellipseRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load an elliptical region
+        Util.load_image(self, driver, "OrionMethanolRegionEllipse.crtf")
+        time.sleep( timeout )
+
+        # Replace the histogram window with the statistics window.
+        self.show_statistics_window(driver)
+        
+        #Test that we see the region text field labelled "Sum" and that its value is correct.
+        self._checkRegionSumValue( driver, -11.4258 )
+        
+        #Now open the regions tab of the image window
+        #Open the image settings
+        ActionChains(driver).double_click( imageWindow ).perform()
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        
+         #Open the regions tab
+        Util.clickTab( driver, "Regions" )
+        time.sleep( timeout )
+        
+        #Change the width and the height of the region to 10.
+        minorRadiusText = driver.find_element_by_xpath("//div[@id='EllipseRegionMinorRadius']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", minorRadiusText )
+        Util._changeElementText(self, driver, minorRadiusText, 10)
+        majorRadiusText = driver.find_element_by_xpath( "//div[@id='EllipseRegionMajorRadius']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", majorRadiusText )
+        Util._changeElementText(self, driver, majorRadiusText, 10)
+        time.sleep( timeout )
+        
+        #Check that the sum has updated to a new correct value
+        self._checkRegionSumValue( driver, 28.2493)
+    
+    # Test that we can display the correct statistics for an elliptical region in DS9 format.  Then test that the
+    # statistics will update correctly if we change the size of the ellipse.
+    def test_ellipseRegionDS9(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load an elliptical region
+        Util.load_image(self, driver, "OrionMethanolRegionEllipse.reg")
+        time.sleep( timeout )
+
+        # Replace the histogram window with the statistics window.
+        self.show_statistics_window(driver)
+        
+        #Test that we see the region text field labelled "Sum" and that its value is correct.
+        self._checkRegionSumValue( driver, 25.481 )
+        
+        #Now open the regions tab of the image window
+        #Open the image settings
+        ActionChains(driver).double_click( imageWindow ).perform()
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        
+         #Open the regions tab
+        Util.clickTab( driver, "Regions" )
+        time.sleep( timeout )
+        
+        #Change the width and the height of the region to 10.
+        minorRadiusText = driver.find_element_by_xpath("//div[@id='EllipseRegionMinorRadius']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", minorRadiusText )
+        Util._changeElementText(self, driver, minorRadiusText, 10)
+        majorRadiusText = driver.find_element_by_xpath( "//div[@id='EllipseRegionMajorRadius']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", majorRadiusText )
+        Util._changeElementText(self, driver, majorRadiusText, 10)
+        time.sleep( timeout )
+        
+        #Check that the sum has updated to a new correct value
+        self._checkRegionSumValue( driver, 32.6659)
+     
+    # Test that we can display the correct statistics for a polygonal region.  Then test that the
+    # statistics will update correctly if we change the size of the polygon.
+    def test_polygonRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load a polygonal region
+        Util.load_image(self, driver, "OrionMethanolRegionPolygon.crtf")
+        time.sleep( timeout )
+
+        # Replace the histogram window with the statistics window.
+        self.show_statistics_window(driver)
+        
+        #Test that we see the region text field labelled "Sum" and that its value is correct.
+        self._checkRegionSumValue( driver, 13.8497 )
+        
+        #Now open the regions tab of the image window
+        #Open the image settings
+        ActionChains(driver).double_click( imageWindow ).perform()
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        
+         #Open the regions tab
+        Util.clickTab( driver, "Regions" )
+        time.sleep( timeout )
+        
+        #Change the width and the height of the region to 10.
+        heightText = driver.find_element_by_xpath("//div[@id='RectangleRegionHeight']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", heightText )
+        Util._changeElementText(self, driver, heightText, 10)
+        widthText = driver.find_element_by_xpath( "//div[@id='RectangleRegionWidth']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", widthText )
+        Util._changeElementText(self, driver, widthText, 10)
+        time.sleep( timeout )
+        
+        #Check that the sum has updated to a new correct value
+        self._checkRegionSumValue( driver, 2.19114)
+        
+    # Test that we can display the correct statistics for a polygonal region in DS9 format.  Then test that the
+    # statistics will update correctly if we change the size of the polygon.
+    def test_polygonRegion(self):
+        driver = self.driver
+        timeout = selectBrowser._getSleep()
+
+        # Load a specific image.
+        imageWindow = Util.load_image(self, driver, "Orion.methanol.cbc.contsub.image.fits")
+        time.sleep( timeout )
+        
+        #Load a polygonal region
+        Util.load_image(self, driver, "OrionMethanolRegionPolygon.reg")
+        time.sleep( timeout )
+
+        # Replace the histogram window with the statistics window.
+        self.show_statistics_window(driver)
+        
+        #Test that we see the region text field labelled "Sum" and that its value is correct.
+        self._checkRegionSumValue( driver, -28.4015 )
+        
+        #Now open the regions tab of the image window
+        #Open the image settings
+        ActionChains(driver).double_click( imageWindow ).perform()
+        Util.openSettings( self, driver, "Image", True )
+        time.sleep(4)
+        
+         #Open the regions tab
+        Util.clickTab( driver, "Regions" )
+        time.sleep( timeout )
+        
+        #Change the width and the height of the region to 10.
+        heightText = driver.find_element_by_xpath("//div[@id='RectangleRegionHeight']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", heightText )
+        Util._changeElementText(self, driver, heightText, 10)
+        widthText = driver.find_element_by_xpath( "//div[@id='RectangleRegionWidth']/input")
+        driver.execute_script( "arguments[0].scrollIntoView(true);", widthText )
+        Util._changeElementText(self, driver, widthText, 10)
+        time.sleep( timeout )
+        
+        #Check that the sum has updated to a new correct value
+        self._checkRegionSumValue( driver, -.837169)
     
     #Test that we can show and hide an individual statistic
     def test_show_hide_stat(self):

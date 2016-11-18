@@ -10,6 +10,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/GetImageRenderService.h"
 #include "GrayColormap.h"
+#include "ProfileExtractor.h"
 #include <QPainter>
 #include <QTime>
 #include <functional>
@@ -70,7 +71,6 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
         }
     }
 
-
     // create a new wcs grid renderer (take the first one that plugins provide), and
     // connect it
     {
@@ -100,6 +100,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 
 //                 m_contourEditorController-> startRendering();
                  m_syncSvc-> startContour();
+
 //                 requestImageAndGridUpdate();
              }
              );
@@ -115,7 +116,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
 //    m_igSync.reset( new ImageGridServiceSynchronizer(
 //                        m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
     m_syncSvc.reset( new ServiceSync(
-                        m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
+                         m_renderService, m_wcsGridRenderer, m_contourEditorController, this ) );
 
     // connect its done() slot to our imageAndGridDoneSlot()
 //    connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
@@ -174,7 +175,6 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     connect( m_wcsGridOptionsController.get(), & WcsGridOptionsController::updated,
              this, & Me::requestImageAndGridUpdate );
 
-
     // shared state stuff
     // ------------------
     namespace SS = Carta::Lib::SharedState;
@@ -185,18 +185,18 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     connect( m_frameVar.get(), & SS::DoubleVar::valueChanged, this, & Me::frameVarCB );
 
     // create a shared state var for the grid toggle
-    m_gridToggleVar.reset( new SS::BoolVar( prefix.with( "gridToggle")));
-    connect( m_gridToggleVar.get(), & SS::BoolVar::valueChanged, this, & Me::gridToggleCB);
+    m_gridToggleVar.reset( new SS::BoolVar( prefix.with( "gridToggle" ) ) );
+    connect( m_gridToggleVar.get(), & SS::BoolVar::valueChanged, this, & Me::gridToggleCB );
 
     // create a shared state var for the grid toggle
-    m_playToggle.reset( new SS::BoolVar( prefix.with( "playToggle")));
-    connect( m_playToggle.get(), & SS::BoolVar::valueChanged, this, & Me::playMovieToggleCB);
+    m_playToggle.reset( new SS::BoolVar( prefix.with( "playToggle" ) ) );
+    connect( m_playToggle.get(), & SS::BoolVar::valueChanged, this, & Me::playMovieToggleCB );
 }
 
 void
 ImageViewController::playMovieToggleCB()
 {
-    if( m_playToggle-> get()) {
+    if ( m_playToggle-> get() ) {
         loadNextFrame();
     }
     return;
@@ -370,9 +370,11 @@ ImageViewController::handleResizeRequest( const QSize & size )
     requestImageAndGridUpdate();
 }
 
-void ImageViewController::viewRefreshed(qint64 id) {
+void
+ImageViewController::viewRefreshed( qint64 id )
+{
     qDebug() << "ImageViewController view" << name() << "refreshed" << id;
-    if( m_playToggle-> get()) {
+    if ( m_playToggle-> get() ) {
         loadNextFrame();
     }
 }
@@ -408,6 +410,25 @@ ImageViewController::loadImage( QString fname )
 
     // set the frame to first one
     m_frameVar-> set( 0 );
+
+    // hack for profile extraction, printing a profile to stderr
+    std::vector < int > pos( m_astroImage-> dims().size(), 0 );
+    Carta::Lib::Profiles::PrincipalAxisProfilePath path( m_astroImage-> dims().size()-1, pos );
+    Carta::Lib::NdArray::RawViewInterface * rawView = m_astroImage-> getDataSlice( SliceND() );
+    Carta::Lib::Profiles::ProfileExtractor * extractor = new Carta::Lib::Profiles::ProfileExtractor( rawView );
+    auto profilecb = [ = ] () {
+        auto data = extractor->getDataD();
+        qDebug() << "profilecb"
+                 << data.size()
+                 << extractor-> getRawDataLength()
+                 << extractor-> getTotalProfileLength()
+        ;
+        for(size_t i = 0 ; i < std::min(size_t(10),data.size()) ; i ++ ){
+            qDebug() << "  :" << data[i];
+        }
+    };
+    connect( extractor, & Carta::Lib::Profiles::ProfileExtractor::progress, profilecb );
+    extractor-> start( path );
 } // loadImage
 
 void
@@ -430,13 +451,15 @@ ImageViewController::frameVarCB()
     frame = Carta::Lib::clamp < int > ( frame, 0, nf - 1 );
 
     qDebug() << "current frame" << m_currentFrame << " frame=" << frame;
+
     // load the actual frame
     if ( frame != m_currentFrame ) {
         loadFrame( frame );
     }
-}
+} // frameVarCB
 
-void ImageViewController::gridToggleCB()
+void
+ImageViewController::gridToggleCB()
 {
     m_wcsGridRenderer-> setEmptyGrid( ! m_gridToggleVar-> get() );
     m_syncSvc-> startGrid();
@@ -510,7 +533,7 @@ ImageViewController::loadNextFrame()
     int nextFrame = ( currFrame + 1 ) % nf;
 
     qDebug() << "Setting next frame to" << nextFrame;
-    m_frameVar-> set( (nextFrame+ 0.1) * 1e6 / nf );
+    m_frameVar-> set( ( nextFrame + 0.1 ) * 1e6 / nf );
 } // loadFrame
 
 void
@@ -563,9 +586,10 @@ ImageViewController::imageAndGridDoneSlot(
         double m31 = p1.x() - m11 * 0.5;
         double m32 = p1.y() - m22 * 0.5;
         tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
+
 //        painter.setTransform( tf );
-        composer.append< Carta::Lib::VectorGraphics::Entries::SetTransform >( tf);
-        composer.appendList( contourVG);
+        composer.append < Carta::Lib::VectorGraphics::Entries::SetTransform > ( tf );
+        composer.appendList( contourVG );
         contourVG = composer.vgList();
     }
     if ( ! vgRenderer.render( contourVG, painter ) ) {

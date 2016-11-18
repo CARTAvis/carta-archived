@@ -155,6 +155,10 @@ public:
         return std::move( helper);
     }
 
+    ~PluginManager() {
+        qDebug() << "~PluginManager is getting called";
+    }
+
 protected:
 
     /// return a list of plugins that registered the given hook

@@ -5,6 +5,7 @@
 #include "plugins/CasaImageLoader/CCImage.h"
 #include "CartaLib/Hooks/HistogramResult.h"
 #include "CartaLib/IPlugin.h"
+#include "CartaLib/Regions/IRegion.h"
 #include "ImageHistogram.h"
 #include <QObject>
 #include <vector>
@@ -33,22 +34,19 @@ private:
      * Returns histogram data in the form of (intensity,count) pairs.
      * @returns a vector (intensity,count) pairs.
      */
-    Carta::Lib::Hooks::HistogramResult
-    _computeHistogram( );
+    Carta::Lib::Hooks::HistogramResult _computeHistogram( );
 
     /**
      * Returns channel range for the given frequency bounds.
      */
-    std::pair<int,int>
-    _getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
+    std::pair<int,int> _getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
             double freq1, double freq2,
             const QString& unitStr ) const;
 
     /**
      * Returns frequency bounds corresponding to the given channel range.
      */
-    std::pair<double,double>
-    _getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
+    std::pair<double,double> _getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
             int channelMin, int channelMax, const QString& unitStr ) const;
 
     /// Histogram implementation.

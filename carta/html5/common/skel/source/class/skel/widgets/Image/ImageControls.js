@@ -50,6 +50,8 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
             this.m_pages[2] = new skel.widgets.Image.Stack.StackControls();
             this.m_tabView.add( this.m_pages[2] );
             
+            this.m_pages[3] = new skel.widgets.Image.Region.RegionControls();
+            this.m_tabView.add( this.m_pages[3] );   
         },
         
         /**

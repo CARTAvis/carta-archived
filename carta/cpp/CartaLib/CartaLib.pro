@@ -49,6 +49,15 @@ SOURCES += \
     IRemoteVGView.cpp \
     IPCache.cpp \
     Hooks/GetPersistantCache.cpp
+    Hooks/GetProfileExtractor.cpp \
+    Regions/IRegion.cpp \
+    InputEvents.cpp \
+    Regions/ICoordSystem.cpp \
+    Hooks/CoordSystemHook.cpp \
+    Regions/CoordinateSystemFormatter.cpp \
+    Regions/Ellipse.cpp \
+    Regions/Point.cpp \
+    Regions/Rectangle.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -100,19 +109,29 @@ HEADERS += \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
     IRemoteVGView.h \
+<<<<<<< HEAD
 <<<<<<< e6afff8afb5de86a23ae5b9d31e6e79df4425b8b
     RegionInfo.h \
     IPCache.h
 =======
+=======
+>>>>>>> upstream/develop
     Hooks/GetProfileExtractor.h \
     Regions/IRegion.h \
     InputEvents.h \
     Regions/ICoordSystem.h \
     Hooks/CoordSystemHook.h \
     Regions/CoordinateSystemFormatter.h \
+<<<<<<< HEAD
     IPCache.h \
     Hooks/GetPersistantCache.h
 >>>>>>> Added persistent cache plugin using Qt's sqlite.
+=======
+    Regions/Ellipse.h \
+    Regions/Point.h \
+    Regions/Rectangle.h \
+    IPCache.h
+>>>>>>> upstream/develop
 
 unix {
     target.path = /usr/lib

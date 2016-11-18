@@ -102,18 +102,21 @@ Controller* ImageZoom::_getControllerSelected() const {
 }
 
 QString ImageZoom::getStateString( const QString& sessionId, SnapshotType type ) const{
-    QString result("");
-    if ( type == SNAPSHOT_PREFERENCES ){
-        StateInterface prefState( "");
-        prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
-        prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
-        prefState.insertValue<QString>(Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
-        result = prefState.toString();
-    }
-    else if ( type == SNAPSHOT_DATA ){
-        result = m_stateData.toString();
-    }
-    return result;
+	QString result("");
+	if ( type == SNAPSHOT_PREFERENCES ){
+		StateInterface prefState( "");
+		prefState.setValue<QString>(Carta::State::StateInterface::OBJECT_TYPE, CLASS_NAME );
+		prefState.insertValue<QString>(Util::PREFERENCES, m_state.toString());
+		prefState.insertValue<QString>(Settings::SETTINGS, m_settings->getStateString(sessionId, type) );
+		result = prefState.toString();
+	}
+	else if ( type == SNAPSHOT_DATA ){
+		result = m_stateData.toString();
+	}
+	else if ( type == SNAPSHOT_LAYOUT ){
+		result = m_linkImpl->getStateString(getIndex(), getSnapType( type ));
+	}
+	return result;
 }
 
 
@@ -146,6 +149,7 @@ void ImageZoom::_initializeDefaultState(){
     QString c1Y = Carta::State::UtilState::getLookup( CORNER_1, Util::YCOORD );
     m_stateData.insertValue<double>( c1X, 0 );
     m_stateData.insertValue<double>( c1Y, 0 );
+    m_stateData.setValue<QString>( StateInterface::OBJECT_TYPE, CLASS_NAME + StateInterface::STATE_DATA );
     m_stateData.flushState();
 
     m_state.insertValue<bool>( BOX_VISIBLE, true );
@@ -210,9 +214,9 @@ void ImageZoom::_initializeCallbacks(){
     addCommandCallback( "setLineWidth", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {Util::PEN_WIDTH};
+        std::set<QString> keys = {Util::WIDTH};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString widthStr = dataValues[Util::PEN_WIDTH];
+        QString widthStr = dataValues[Util::WIDTH];
         bool validInt = false;
         int width = widthStr.toInt( &validInt );
         if ( validInt ){
@@ -276,7 +280,7 @@ void ImageZoom::_initializeDefaultPen( const QString& key, int red, int green, i
     QString alphaLookup = Carta::State::UtilState::getLookup( key, Util::ALPHA );
     m_state.insertValue<int>( alphaLookup, alpha );
     if ( width >= 0 ){
-        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::PEN_WIDTH );
+        QString widthLookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
         m_state.insertValue<int>( widthLookup, width );
     }
 }
@@ -344,7 +348,7 @@ QString ImageZoom::setBoxLineWidth( int width ){
                 "]: "+QString::number(width);
     }
     else {
-        QString lookup = Carta::State::UtilState::getLookup( BOX, Util::PEN_WIDTH );
+        QString lookup = Carta::State::UtilState::getLookup( BOX, Util::WIDTH );
         int oldWidth = m_state.getValue<int>(lookup);
         if ( oldWidth != width ){
             m_state.setValue<int>( lookup, width);
