@@ -357,31 +357,43 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     int foundCount = 0;
     for ( int i = 0; i < percentileCount; i++ ){
         
-        // Look for the location first
-        QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
-        QByteArray locationVal;
-        bool locationInCache = m_diskCache.readEntry(locationKey.toUtf8(), locationVal);
-        
-        if (locationInCache) {
-            QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
-            QByteArray intensityVal;
-            bool intensityInCache = m_diskCache.readEntry(intensityKey.toUtf8(), intensityVal);
+        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
+        if ( val.first>= 0 ){
+            qDebug() << "++++++++ found location and intensity in memory cache";
+            intensities[i] = val;
+            foundCount++;
+        } else {
+            // disk cache
+            // Look for the location first
+            QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+            QByteArray locationVal;
+            bool locationInCache = m_diskCache.readEntry(locationKey.toUtf8(), locationVal);
             
-            if (intensityInCache) {
-                intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
-                foundCount++;
+            qDebug() << "++++++++ location key is" << locationKey;
+            
+            if (locationInCache) {
+                QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+                QByteArray intensityVal;
+                bool intensityInCache = m_diskCache.readEntry(intensityKey.toUtf8(), intensityVal);
+                
+                qDebug() << "++++++++ intensity key is" << intensityKey;
+                
+                if (intensityInCache) {
+                    qDebug() << "++++++++ found location and intensity in disk cache";
+                    intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
+                    foundCount++;
+                    // put them in the memory cache
+                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+                }
             }
         }
         
-        //std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
-        //if ( val.first>= 0 ){
-            //intensities[i] = val;
-            //foundCount++;
-        //}
+        qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i].second << "and location is" << intensities[i].first;
     }
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
+        qDebug() << "++++++++ Calculating some values";
 
         std::vector<std::pair<int,double> > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
@@ -439,7 +451,14 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         intensities[i].first += frameLow;
                     }
                     
+                    // put calculated values in both the memory cache and the disk cache
+                    
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+                    
+                    m_diskCache.setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
+                    m_diskCache.setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
+                    
+                    qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i].second << "and location is" << intensities[i].first;
                 }
             }
         }
@@ -937,6 +956,8 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back().c).arg(minClipPercentile);
         QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back().c).arg(maxClipPercentile);
         
+        QDebug() << "++++++++ minClipKey" << minClipKey << "maxClipKey" << maxClipKey;
+        
         QByteArray minClipVal;
         QByteArray maxClipVal;
         
@@ -947,12 +968,16 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
             clips.clear();
             clips.push_back(qb2d(minClipVal));
             clips.push_back(qb2d(maxClipVal));
+            qDebug() << "++++++++ got clips from cache";
         } else {
             Carta::Lib::NdArray::Double doubleView( view.get(), false );
             clips = Carta::Core::Algorithms::quantiles2pixels(doubleView, { minClipPercentile, maxClipPercentile });
             m_diskCache.setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
             m_diskCache.setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+            qDebug() << "++++++++ calculated clips and put in cache";
         }
+        
+        qDebug() << "++++++++ clips are" << clips[0] << "and" << clips[1];
         
         m_quantileCache[quantileIndex].m_clips = clips;
         m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
