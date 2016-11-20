@@ -11,6 +11,7 @@
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "../../ImageRenderService.h"
 #include "../../Algorithms/quantileAlgorithms.h"
+#include "../../Algorithms/cacheUtils.h"
 #include <QDebug>
 #include <sys/time.h>
 #include <numeric>
@@ -55,6 +56,19 @@ DataSource::DataSource() :
         m_pixelPipeline-> setColormap( std::make_shared < Carta::Core::GrayColormap > () );
         m_pixelPipeline-> setMinMax( 0, 1 );
         m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
+        
+        // initialize disk cache
+        auto res = Globals::instance()-> pluginManager()
+                   -> prepare < Carta::Lib::Hooks::GetPersistantCache > ().first();
+        if ( res.isNull() || ! res.val() ) {
+            qWarning( "Could not find a disk cache plugin." );
+            m_diskCache = nullptr;
+            // TODO: convert the existing in-memory cache to a default in-memory cache to use if no plugin is found.
+            // Do we want to have memory *and* disk cache? Check performance.
+        }
+        else {
+            m_diskCache = res.val();
+        }
 }
 
 
@@ -333,7 +347,7 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
-
+// TODO: create another function which only looks for the intensity. Most calling functions don't need the location.
 std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow, int frameHigh,
         const std::vector<double>& percentiles ){
     //See if it is in the cached percentiles first.
@@ -342,11 +356,28 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //Find all the intensities we can in the cache.
     int foundCount = 0;
     for ( int i = 0; i < percentileCount; i++ ){
-        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
-        if ( val.first>= 0 ){
-            intensities[i] = val;
-            foundCount++;
+        
+        // Look for the location first
+        QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+        QByteArray locationVal;
+        bool locationInCache = m_diskCache.readEntry(locationKey.toUtf8(), locationVal);
+        
+        if (locationInCache) {
+            QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+            QByteArray intensityVal;
+            bool intensityInCache = m_diskCache.readEntry(intensityKey.toUtf8(), intensityVal);
+            
+            if (intensityInCache) {
+                intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
+                foundCount++;
+            }
         }
+        
+        //std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
+        //if ( val.first>= 0 ){
+            //intensities[i] = val;
+            //foundCount++;
+        //}
     }
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
@@ -895,18 +926,37 @@ void DataSource::_setGamma( double gamma ){
 
 void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
-	std::vector<int> mFrames = _fitFramesToImage( frames );
+    std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex].m_clips;
     if ( clips.size() < 2  ||
-    		m_quantileCache[quantileIndex].m_minPercentile != minClipPercentile  ||
-			m_quantileCache[quantileIndex].m_maxPercentile != maxClipPercentile ) {
-    	Carta::Lib::NdArray::Double doubleView( view.get(), false );
-    	clips = Carta::Core::Algorithms::quantiles2pixels(
-    			doubleView, { minClipPercentile, maxClipPercentile });
-    	m_quantileCache[quantileIndex].m_clips = clips;
-    	m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
-    	m_quantileCache[quantileIndex].m_maxPercentile = maxClipPercentile;
+            m_quantileCache[quantileIndex].m_minPercentile != minClipPercentile  ||
+            m_quantileCache[quantileIndex].m_maxPercentile != maxClipPercentile ) {
+        
+        // TODO: check if these are the right frame values and percentile values
+        QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back().c).arg(minClipPercentile);
+        QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back().c).arg(maxClipPercentile);
+        
+        QByteArray minClipVal;
+        QByteArray maxClipVal;
+        
+        bool minClipInCache = m_diskCache.readEntry(minClipKey.toUtf8(), minClipVal);
+        bool maxClipInCache = m_diskCache.readEntry(maxClipKey.toUtf8(), maxClipVal);
+        
+        if (minClipInCache && maxClipInCache) {
+            clips.clear();
+            clips.push_back(qb2d(minClipVal));
+            clips.push_back(qb2d(maxClipVal));
+        } else {
+            Carta::Lib::NdArray::Double doubleView( view.get(), false );
+            clips = Carta::Core::Algorithms::quantiles2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+            m_diskCache.setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
+            m_diskCache.setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+        }
+        
+        m_quantileCache[quantileIndex].m_clips = clips;
+        m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
+        m_quantileCache[quantileIndex].m_maxPercentile = maxClipPercentile;
     }
     m_pixelPipeline-> setMinMax( clips[0], clips[1] );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());

@@ -502,7 +502,10 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
-
+    
+    // disk cache
+    std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
+    
     //Indices of the display axes.
     int m_axisIndexX;
     int m_axisIndexY;
