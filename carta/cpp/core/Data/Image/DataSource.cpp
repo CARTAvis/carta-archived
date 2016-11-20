@@ -9,7 +9,7 @@
 #include "Data/Colormap/TransformsData.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
-#include "CartaLib/IPCache.h"
+#include "CartaLib/IPCacheff.h"
 #include "../../ImageRenderService.h"
 #include "../../Algorithms/quantileAlgorithms.h"
 #include "../../Algorithms/cacheUtils.h"
@@ -368,14 +368,14 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             // Look for the location first
             QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
             QByteArray locationVal;
-            bool locationInCache = m_diskCache.readEntry(locationKey.toUtf8(), locationVal);
+            bool locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
             
             qDebug() << "++++++++ location key is" << locationKey;
             
             if (locationInCache) {
                 QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
                 QByteArray intensityVal;
-                bool intensityInCache = m_diskCache.readEntry(intensityKey.toUtf8(), intensityVal);
+                bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
                 
                 qDebug() << "++++++++ intensity key is" << intensityKey;
                 
@@ -456,8 +456,8 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                     
-                    m_diskCache.setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
-                    m_diskCache.setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
+                    m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
+                    m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
                     
                     qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i].second << "and location is" << intensities[i].first;
                 }
@@ -962,8 +962,8 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         QByteArray minClipVal;
         QByteArray maxClipVal;
         
-        bool minClipInCache = m_diskCache.readEntry(minClipKey.toUtf8(), minClipVal);
-        bool maxClipInCache = m_diskCache.readEntry(maxClipKey.toUtf8(), maxClipVal);
+        bool minClipInCache = m_diskCache->readEntry(minClipKey.toUtf8(), minClipVal);
+        bool maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
         
         if (minClipInCache && maxClipInCache) {
             clips.clear();
@@ -973,8 +973,8 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         } else {
             Carta::Lib::NdArray::Double doubleView( view.get(), false );
             clips = Carta::Core::Algorithms::quantiles2pixels(doubleView, { minClipPercentile, maxClipPercentile });
-            m_diskCache.setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
-            m_diskCache.setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+            m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
+            m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
             qDebug() << "++++++++ calculated clips and put in cache";
         }
         
