@@ -457,6 +457,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                     
+                    QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+                    QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+
                     m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
                     m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
                     
