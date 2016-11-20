@@ -26,6 +26,7 @@ class ImageInterface;
 namespace NdArray {
 class RawViewInterface;
 }
+class IPCache;
 }
 
 
