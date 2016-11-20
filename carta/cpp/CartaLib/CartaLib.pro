@@ -48,7 +48,7 @@ SOURCES += \
     IImageRenderService.cpp \
     IRemoteVGView.cpp \
     IPCache.cpp \
-    Hooks/GetPersistantCache.cpp
+    Hooks/GetPersistantCache.cpp \
     Hooks/GetProfileExtractor.cpp \
     Regions/IRegion.cpp \
     InputEvents.cpp \
@@ -116,7 +116,7 @@ HEADERS += \
     Regions/ICoordSystem.h \
     Hooks/CoordSystemHook.h \
     Regions/CoordinateSystemFormatter.h \
-    Hooks/GetPersistantCache.h
+    Hooks/GetPersistantCache.h \
     Regions/Ellipse.h \
     Regions/Point.h \
     Regions/Rectangle.h \
