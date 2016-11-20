@@ -8,6 +8,7 @@
 #include "Data/Util.h"
 #include "Data/Colormap/TransformsData.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
+#include "CartaLib/Hooks/GetPersistantCache.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IPCache.h"
 #include "../../ImageRenderService.h"
