@@ -71,7 +71,7 @@ std::vector<double> qb2vd( const QByteArray & ba) {
 /**
  * Vector of integers --> byte array
  **/ 
-QByteArray vi2qb( const std::vector<int> & vd) {
+QByteArray vi2qb( const std::vector<int> & vi) {
     QByteArray ba;
     for( const int & i : vi) {
         ba.append( (const char *)( & i), sizeof( int));
