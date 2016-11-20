@@ -958,8 +958,8 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
             m_quantileCache[quantileIndex].m_maxPercentile != maxClipPercentile ) {
         
         // TODO: check if these are the right frame values and percentile values
-        QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back().c).arg(minClipPercentile);
-        QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back().c).arg(maxClipPercentile);
+        QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(minClipPercentile);
+        QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(maxClipPercentile);
         
         QDebug() << "++++++++ minClipKey" << minClipKey << "maxClipKey" << maxClipKey;
         
