@@ -371,14 +371,14 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             QByteArray locationVal;
             bool locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
             
-            qDebug() << "++++++++ location key is" << locationKey;
+            qDebug() << "++++++++ location key is" << locationKey.toUtf8();
             
             if (locationInCache) {
                 QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
                 QByteArray intensityVal;
                 bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
                 
-                qDebug() << "++++++++ intensity key is" << intensityKey;
+                qDebug() << "++++++++ intensity key is" << intensityKey.toUtf8();
                 
                 if (intensityInCache) {
                     qDebug() << "++++++++ found location and intensity in disk cache";
@@ -961,7 +961,7 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(minClipPercentile);
         QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(maxClipPercentile);
         
-        QDebug() << "++++++++ minClipKey" << minClipKey << "maxClipKey" << maxClipKey;
+        QDebug() << "++++++++ minClipKey" << minClipKey.toUtf8() << "maxClipKey" << maxClipKey.toUtf8();
         
         QByteArray minClipVal;
         QByteArray maxClipVal;
