@@ -48,7 +48,7 @@ public:
         std::string tmpVal;
         auto status = p_db-> Get( p_readOptions, key.constData(), & tmpVal );
         if ( ! status.ok() ) {
-            qWarning() << "query read failed:" << status.ToString().c_str();
+            //qWarning() << "query read failed:" << status.ToString().c_str();
             return false;
         }
         val = QByteArray( tmpVal.data(), tmpVal.size());
