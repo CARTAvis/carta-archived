@@ -26,6 +26,7 @@ SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 
 SUBDIRS += PCacheSqlite3
+SUBDIRS += PCacheLevelDB
 
 # adrianna's render plugin
 
