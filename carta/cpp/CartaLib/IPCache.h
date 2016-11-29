@@ -1,4 +1,4 @@
-/// IPCache is a set of APIs to access persistant cache.
+/// IPCache is a set of APIs to access persistent cache.
 
 #pragma once
 

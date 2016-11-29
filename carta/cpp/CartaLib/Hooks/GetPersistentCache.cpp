@@ -2,7 +2,7 @@
  *
  **/
 
-#include "GetPersistantCache.h"
+#include "GetPersistentCache.h"
 
 namespace Carta
 {

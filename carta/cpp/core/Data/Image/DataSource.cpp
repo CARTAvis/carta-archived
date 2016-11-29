@@ -8,7 +8,7 @@
 #include "Data/Util.h"
 #include "Data/Colormap/TransformsData.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "CartaLib/Hooks/GetPersistantCache.h"
+#include "CartaLib/Hooks/GetPersistentCache.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IPCache.h"
 #include "../../ImageRenderService.h"
@@ -61,7 +61,7 @@ DataSource::DataSource() :
         
         // initialize disk cache
         auto res = Globals::instance()-> pluginManager()
-                   -> prepare < Carta::Lib::Hooks::GetPersistantCache > ().first();
+                   -> prepare < Carta::Lib::Hooks::GetPersistentCache > ().first();
         if ( res.isNull() || ! res.val() ) {
             qWarning( "Could not find a disk cache plugin." );
             m_diskCache = nullptr;

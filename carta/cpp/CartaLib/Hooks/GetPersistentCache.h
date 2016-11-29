@@ -1,5 +1,5 @@
 /**
- * Defines a hook for obtaining a persistant cache object.
+ * Defines a hook for obtaining a persistent cache object.
  *
  **/
 
@@ -17,9 +17,9 @@ namespace Hooks
 {
 /// \brief Hook for loading a plugin of an unknown type
 ///
-class GetPersistantCache : public BaseHook
+class GetPersistentCache : public BaseHook
 {
-    CARTA_HOOK_BOILER1( GetPersistantCache );
+    CARTA_HOOK_BOILER1( GetPersistentCache );
 
 public:
 
@@ -43,7 +43,7 @@ public:
     };
 
     /// standard constructor (could be probably a macro)
-    GetPersistantCache( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr )
+    GetPersistentCache( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr )
     {
         // force instantiation of templates
         CARTA_ASSERT( is < Me > () );

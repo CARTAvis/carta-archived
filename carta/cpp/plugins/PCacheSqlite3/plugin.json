@@ -3,7 +3,7 @@
     "name"       : "PCacheSqlite3",
     "version"    : "1",
     "type"       : "C++",
-    "description": "Implements persistant cache using QT's sqlite3 driver.",
+    "description": "Implements persistent cache using QT's sqlite3 driver.",
     "about"      : "Part of CARTA. Written by Pavol",
     "depends"    : [ ]
 }

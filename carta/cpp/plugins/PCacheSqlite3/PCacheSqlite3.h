@@ -1,4 +1,4 @@
-/// Implements plugin for persistant cache, using QT's sqlite3 database driver
+/// Implements plugin for persistent cache, using QT's sqlite3 database driver
 
 /// This plugin can read image formats that Qt supports.
 

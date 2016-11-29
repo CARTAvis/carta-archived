@@ -3,7 +3,7 @@
     "name"       : "PCacheLevelDB",
     "version"    : "1",
     "type"       : "C++",
-    "description": "Implements persistant cache using LevelDB.",
+    "description": "Implements persistent cache using LevelDB.",
     "about"      : "Part of CARTA. Written by Pavol and Adrianna.",
     "depends"    : [ ]
 }

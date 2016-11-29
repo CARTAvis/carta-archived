@@ -1,11 +1,11 @@
 #include "PCacheLevelDB.h"
-#include "CartaLib/Hooks/GetPersistantCache.h"
+#include "CartaLib/Hooks/GetPersistentCache.h"
 #include <QDebug>
 #include <QDir>
 #include <QJsonObject>
 #include "leveldb/db.h"
 
-typedef Carta::Lib::Hooks::GetPersistantCache GetPersistantCacheHook;
+typedef Carta::Lib::Hooks::GetPersistentCache GetPersistentCacheHook;
 
 ///
 /// Implementation of IPCache using LevelDB
@@ -75,7 +75,7 @@ public:
     getCacheSingleton( QString dirPath)
     {
         if ( m_cachePtr ) {
-            qCritical() << "PCacheLevelDBPlugin::Calling GetPersistantCacheHook multiple times!!!";
+            qCritical() << "PCacheLevelDBPlugin::Calling GetPersistentCacheHook multiple times!!!";
         }
         else {
             m_cachePtr.reset( new LevelDBPCache( dirPath) );
@@ -128,9 +128,9 @@ bool
 PCacheLevelDBPlugin::handleHook( BaseHook & hookData )
 {
     // we only handle one hook: get the cache object
-    if ( hookData.is < GetPersistantCacheHook > () ) {
+    if ( hookData.is < GetPersistentCacheHook > () ) {
         // decode hook data
-        GetPersistantCacheHook & hook = static_cast < GetPersistantCacheHook & > ( hookData );
+        GetPersistentCacheHook & hook = static_cast < GetPersistentCacheHook & > ( hookData );
 
         // if no dbdir was specified, refuse to work :)
         if( m_dbDir.isNull()) {
@@ -171,6 +171,6 @@ std::vector < HookId >
 PCacheLevelDBPlugin::getInitialHookList()
 {
     return {
-               GetPersistantCacheHook::staticId
+               GetPersistentCacheHook::staticId
     };
 }

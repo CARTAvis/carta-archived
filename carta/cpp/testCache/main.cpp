@@ -1,6 +1,6 @@
 //#include "core/Viewer.h"
 #include "CartaLib/Hooks/Initialize.h"
-#include "CartaLib/Hooks/GetPersistantCache.h"
+#include "CartaLib/Hooks/GetPersistentCache.h"
 #include "core/MyQApp.h"
 #include "core/CmdLine.h"
 #include "core/MainConfig.h"
@@ -260,7 +260,7 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     pm-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
 
     // let's get pcache object
-    auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistantCache >().first();
+    auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistentCache >().first();
     if( pcacheRes.isNull()) {
         qWarning() << "Could not initialize persistent cache.";
         return -1;
