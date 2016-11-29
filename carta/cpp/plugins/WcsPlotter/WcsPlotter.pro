@@ -29,12 +29,12 @@ astlibLIBS += $${ASTLIBDIR}/lib/libast_grf3d.a
 astlibLIBS += $${ASTLIBDIR}/lib/libast_pass2.a
 astlibLIBS += $${ASTLIBDIR}/lib/libast_err.a
 
-#casacoreLIBS += -L$${CASACOREDIR}/lib
-#casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
-#casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
-#casacoreLIBS += -lcasa_casa -llapack -lblas -ldl
+casacoreLIBS += -L$${CASACOREDIR}/lib
+casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
+casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
+casacoreLIBS += -lcasa_casa -llapack -lblas -ldl
 
-#LIBS += $${casacoreLIBS}
+LIBS += $${casacoreLIBS}
 LIBS += $${astlibLIBS}
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
