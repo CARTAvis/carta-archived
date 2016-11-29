@@ -2,6 +2,7 @@
 #include "CartaLib/Hooks/GetPersistantCache.h"
 #include <QDebug>
 #include <QDir>
+#include <QJsonObject>
 #include "leveldb/db.h"
 
 typedef Carta::Lib::Hooks::GetPersistantCache GetPersistantCacheHook;
