@@ -101,11 +101,13 @@ private:
         leveldb::Options options;
 
         options.create_if_missing = true;
+        
+        QString fname = dirPath + "/pcache.leveldb";
 
-        leveldb::Status status = leveldb::DB::Open( options, dirPath.toStdString(), & db );
+        leveldb::Status status = leveldb::DB::Open( options, fname.toStdString(), & db );
 
         if ( false == status.ok() ) {
-            qDebug() << "Unable to open/create database '" << dirPath << "':" << status.ToString().c_str();
+            qDebug() << "Unable to open/create database '" << fname.toStdString().c_str() << "':" << status.ToString().c_str();
             return;
         }
 
