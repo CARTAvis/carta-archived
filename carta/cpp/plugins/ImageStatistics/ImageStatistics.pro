@@ -57,5 +57,3 @@ unix:macx {
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
 }
-
-
