@@ -11,9 +11,9 @@
 
 qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
 
-    
+
     members : {
-        
+
         /**
          * Returns the full path to the file that was selected.
          * @return {String} the full path to the selected file.
@@ -28,7 +28,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             }
             return filePath;
         },
-        
+
         /**
          * Sends a request to the server to update the tree with files/subdirectories
          * in the requested directory.
@@ -47,7 +47,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             var cmd = path.getCommandLoadData();
             this.m_connector.sendCommand(cmd, paramMap, this._loadDataCB( this ));
         },
-        
+
         /**
          * Initialize the UI for the file tree and the directory/file text
          * fields.
@@ -59,7 +59,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             //double click.
             this.m_tree.addListener( "dblclick", function(event){
                 var dirPath = this.m_dirText.getValue();
-                
+
                 //Request for root directory
                 if ( dirPath.length === 0 ){
                     var path = skel.widgets.Path.getInstance();
@@ -78,7 +78,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             }, this );
             this.m_tree.setWidth(300);
             this.m_tree.setHeight(300);
-            
+
             //Initialize the directory
             var dirLabel = new qx.ui.basic.Label( "Directory:");
             this.m_dirText = new qx.ui.form.TextField();
@@ -96,7 +96,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             dirContainer.setLayout( new qx.ui.layout.HBox(2) );
             dirContainer.add( dirLabel );
             dirContainer.add( this.m_dirText, {flex:1});
-            
+
             //Initialize the file.
             var fileNameLabel = new qx.ui.basic.Label( "File Name:");
             this.m_fileText = new qx.ui.form.TextField();
@@ -106,7 +106,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             nameContainer.setLayout( new qx.ui.layout.HBox());
             nameContainer.add( fileNameLabel );
             nameContainer.add( this.m_fileText, {flex:1} );
-            
+
             //Add everything.
             this.m_treeDisplay = new qx.ui.container.Composite();
             this.m_treeDisplay.setLayout( new qx.ui.layout.VBox(2));
@@ -114,11 +114,11 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             this.m_treeDisplay.add( this.m_tree );
             this.m_treeDisplay.add( nameContainer );
         },
-        
+
         /**
          * Returns whether or not the passed in text represents a directory.
          * @param nodeLabel {String} - the display text of a tree node.
-         * @return {boolean} - true if the tree node represents a directory; 
+         * @return {boolean} - true if the tree node represents a directory;
          *      false otherwise.
          */
         _isDirectory : function( nodeLabel ){
@@ -133,7 +133,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             }
             return directory;
         },
-        
+
         /**
          * Update the tree with the new data.
          * @param anObject {skel.widgets.FileBrowser}.
@@ -144,7 +144,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 anObject._updateTree( fileList );
             };
         },
-        
+
         /**
          * A node was selected in the tree; update the directory and file text
          * fields in response.
@@ -172,7 +172,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 this.m_fileText.setValue( nodeLabel );
             }
         },
-        
+
         /**
          * Update the UI with new directory information from the server.
          */
@@ -180,17 +180,25 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             this.m_path = this.m_jsonObj.name;
             this.m_dirText.setValue( this.m_path );
             this.m_jsonObj.name = "..";
-            var jsonModel = qx.data.marshal.Json.createModel( this.m_jsonObj);
-            if ( this.m_controller === null ){
-                this.m_controller = new qx.data.controller.Tree(jsonModel,
-                        this.m_tree, "dir", "name");
+
+            var root = new qx.ui.tree.TreeFolder("..");
+            this.m_tree.setRoot(root);
+
+            var numOfFiles = this.m_jsonObj.dir.length;
+            for (var i=0; i<numOfFiles; i++){
+                var element = this.m_jsonObj.dir[i];
+                var treeElement = null;
+
+                if (typeof element.dir != "undefined"){
+                    treeElement = new qx.ui.tree.TreeFolder(element.name);
+                } else {
+                    treeElement = new qx.ui.tree.TreeFile(element.name);
+                }
+                root.add(treeElement);
             }
-            else {
-                this.m_controller.setModel( jsonModel );
-            }
+
             this.m_tree.getRoot().setOpen(true);
         },
-        
 
         /**
          * Set whether or not the purpose of this file browser is to save files or not.
@@ -199,7 +207,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
         _setSaveFile : function( saveFile ){
             this.m_fileText.setEnabled( saveFile );
         },
-        
+
         /**
          * Updates the file tree based on directory information from the server.
          * @param dataTree {String} representing available data files in a
@@ -211,8 +219,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
         },
-        
-        
+
         m_dirText : null,
         m_fileText : null,
         m_path : null,
