@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <State/StateInterface.h>
-#include <State/ObjectManager.h>
-#include <Data/Image/IPercentIntensityMap.h>
+#include "core/State/StateInterface.h"
+#include "core/State/ObjectManager.h"
+#include "core/Data/Image/IPercentIntensityMap.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/InputEvents.h"

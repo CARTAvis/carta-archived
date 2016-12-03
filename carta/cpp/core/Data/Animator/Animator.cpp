@@ -1,9 +1,9 @@
 #include "Animator.h"
-#include "Data/Selection.h"
-#include "Data/Image/Controller.h"
-#include "Data/Image/Grid/AxisMapper.h"
-#include "Data/Util.h"
-#include "State/UtilState.h"
+#include "core/Data/Selection.h"
+#include "core/Data/Image/Controller.h"
+#include "core/Data/Image/Grid/AxisMapper.h"
+#include "core/Data/Util.h"
+#include "core/State/UtilState.h"
 #include "CartaLib/CartaLib.h"
 
 #include <QDebug>

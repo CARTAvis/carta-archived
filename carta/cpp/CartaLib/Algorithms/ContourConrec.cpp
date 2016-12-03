@@ -2,9 +2,8 @@
  *
  **/
 
-#include <cmath>
 #include "ContourConrec.h"
-#include "IImage.h"
+#include "CartaLib/IImage.h"
 #include "LineCombiner.h"
 
 #include <cmath>

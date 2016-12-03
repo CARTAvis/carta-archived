@@ -139,7 +139,7 @@ HEADERS += \
     Plot2D/Plot2DHolder.h \
     Plot2D/Plot2DProfile.h \
     Plot2D/Plot2DTextMarker.h \
-    ProfileExtractor.h \
+    Hacks/ProfileExtractor.h \
     Shape/ControlPoint.h \
     Shape/ControlPointEditable.h \
     Shape/ShapeBase.h \
@@ -294,7 +294,7 @@ SOURCES += \
     Plot2D/Plot2DProfile.cpp \
     Plot2D/Plot2DSelection.cpp \
     Plot2D/Plot2DTextMarker.cpp \
-    ProfileExtractor.cpp \
+    Hacks/ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     Shape/ControlPoint.cpp \

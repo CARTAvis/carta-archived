@@ -6,11 +6,11 @@
 #pragma once
 
 
-#include <State/StateInterface.h>
-#include <State/ObjectManager.h>
-#include "Data/ILinkable.h"
 #include "AnimatorType.h"
-#include "Data/LinkableImpl.h"
+#include "core/State/StateInterface.h"
+#include "core/State/ObjectManager.h"
+#include "core/Data/ILinkable.h"
+#include "core/Data/LinkableImpl.h"
 #include "CartaLib/AxisInfo.h"
 
 #include <memory>

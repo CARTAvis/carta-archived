@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "State/ObjectManager.h"
-#include "State/StateInterface.h"
+#include "core/State/ObjectManager.h"
+#include "core/State/StateInterface.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/CartaLib.h"
 

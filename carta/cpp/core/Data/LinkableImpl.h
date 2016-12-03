@@ -5,7 +5,7 @@
 #ifndef LINKABLEIMPL_H_
 #define LINKABLEIMPL_H_
 
-#include "State/ObjectManager.h"
+#include "core/State/ObjectManager.h"
 #include <QString>
 
 class StateInterface;
