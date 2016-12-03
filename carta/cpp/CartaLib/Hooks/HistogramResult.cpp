@@ -1,4 +1,4 @@
-#include <CartaLib/Hooks/HistogramResult.h>
+#include "CartaLib/Hooks/HistogramResult.h"
 #include <QDebug>
 
 namespace Carta {

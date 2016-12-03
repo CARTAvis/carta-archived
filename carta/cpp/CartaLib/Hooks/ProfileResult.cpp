@@ -1,4 +1,4 @@
-#include <CartaLib/Hooks/ProfileResult.h>
+#include "CartaLib/Hooks/ProfileResult.h"
 #include <QDebug>
 
 namespace Carta {

@@ -7,8 +7,8 @@
 
 #include <memory>
 #include <QObject>
-#include <State/StateInterface.h>
-#include <State/ObjectManager.h>
+#include "core/State/StateInterface.h"
+#include "core/State/ObjectManager.h"
 
 namespace Carta {
 

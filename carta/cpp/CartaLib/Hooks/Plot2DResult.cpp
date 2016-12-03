@@ -1,4 +1,4 @@
-#include <CartaLib/Hooks/Plot2DResult.h>
+#include "CartaLib/Hooks/Plot2DResult.h"
 namespace Carta {
   namespace Lib {
     namespace Hooks {

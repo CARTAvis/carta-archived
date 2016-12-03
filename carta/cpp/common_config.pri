@@ -5,12 +5,12 @@
 # you can edit these:
 # note: these don't need to be relative paths
 #CASACOREDIR=../../ThirdParty/casacore-2.0.1-shared
-CASACOREDIR=../../ThirdParty/casacore-2.10.2016
-ASTLIBDIR = ../../ThirdParty/ast-8.0.2
+CASACOREDIR=../../ThirdParty/casacore
+ASTLIBDIR = ../../ThirdParty/ast
 WCSLIBDIR=../../ThirdParty/wcslib
-CFITSIODIR=../../ThirdParty/cfitsio-shared
-IMAGEANALYSISDIR=../../ThirdParty/imageanalysis-2.10.2016
-FLEXANDBISONDIR=../../ThirdParty/flexandbison
+CFITSIODIR=../../ThirdParty/cfitsio
+#IMAGEANALYSISDIR=../../ThirdParty/imageanalysis-2.10.2016
+#FLEXANDBISONDIR=../../ThirdParty/flexandbison
 
 # don't edit these:
 # relative links are replaced by absolute paths

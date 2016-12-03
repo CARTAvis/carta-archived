@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <State/ObjectManager.h>
-#include <CartaLib/AxisInfo.h>
+#include "core/State/ObjectManager.h"
+#include "CartaLib/AxisInfo.h"
 #include <QStringList>
 #include <vector>
 

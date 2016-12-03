@@ -2,7 +2,8 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT       += network xml
+#QT       += network xml
+QT       += core gui
 
 TARGET = CartaLib
 TEMPLATE = lib
