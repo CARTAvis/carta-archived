@@ -5,8 +5,9 @@
 #include "core/CmdLine.h"
 #include "core/MainConfig.h"
 #include "core/Globals.h"
-#include "LevelDbIPCache.h"
-#include "SqLitePCache.h"
+#include "CartaLib/IPCache.h"
+//#include "LevelDbIPCache.h"
+//#include "SqLitePCache.h"
 #include <QDebug>
 #include <QTime>
 
@@ -227,9 +228,9 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     auto cmdLineInfo = CmdLine::parse( MyQApp::arguments() );
     globals.setCmdLineInfo( & cmdLineInfo );
 
-    if ( cmdLineInfo.fileList().size() < 2 ) {
-        qFatal( "Need 2 files" );
-    }
+    //if ( cmdLineInfo.fileList().size() < 2 ) {
+        //qFatal( "Need 2 files" );
+    //}
 
     // load the config file
     // ====================
@@ -258,18 +259,29 @@ coreMainCPP( QString platformString, int argc, char * * argv )
 
     // send an initialize hook to all plugins, because some may rely on it
     pm-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
-
-    // let's get pcache object
-    auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistentCache >().first();
-    if( pcacheRes.isNull()) {
-        qWarning() << "Could not initialize persistent cache.";
-        return -1;
+    
+    
+    // make a lambda to set the value of pcache and call the tests
+    auto lam = [=] ( const Carta::Lib::Hooks::GetPersistentCache::ResultType &res ) {
+        pcache = res.val();
+        testCache();
     }
-    else {
-        pcache = pcacheRes.val();
-    }
+    
+    // call the lambda on every pcache plugin
+    auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistentCache >();
+    pcacheRes.forEach(lam);
 
-    testCache();
+    //// let's get pcache object
+    //auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistentCache >().first();
+    //if( pcacheRes.isNull()) {
+        //qWarning() << "Could not initialize persistent cache.";
+        //return -1;
+    //}
+    //else {
+        //pcache = pcacheRes.val();
+    //}
+
+    //testCache();
 
     // give QT control
 //    int res = qapp.exec();
