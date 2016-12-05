@@ -1,4 +1,3 @@
-//#include "core/Viewer.h"
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/GetPersistentCache.h"
 #include "core/MyQApp.h"
@@ -6,18 +5,12 @@
 #include "core/MainConfig.h"
 #include "core/Globals.h"
 #include "CartaLib/IPCache.h"
-//#include "LevelDbIPCache.h"
-//#include "SqLitePCache.h"
 #include <QDebug>
 #include <QTime>
 
 namespace tCache
 {
 std::shared_ptr < Carta::Lib::IPCache > pcache;
-
-//int imWidth = 20;
-//int imHeight = 8000;
-//int imDepth = 16000;
 
 int imWidth = 20;
 int imHeight = 20;
@@ -76,13 +69,6 @@ readProfile( int x, int y )
         return { };
     }
 
-//    std::vector<double> res(imWidth);
-//    const double * dptr = reinterpret_cast<const double*> (val.constData());
-//    for( int z = 0 ; z < imDepth ; z ++ ) {
-//        res[z] = * dptr;
-//        dptr ++;
-//    }
-
     return qb2vd( val );
 } // readProfile
 
@@ -139,23 +125,6 @@ readCache()
                 qCritical() << "Failed to match" << x << y;
             }
 
-            /*
-
-            QByteArray ba = QByteArray::fromRawData(
-                reinterpret_cast < char * > ( & arr[0] ),
-                sizeof( double ) * imDepth );
-
-            QString keyString = QString( "%1/%2" ).arg( x ).arg( y );
-            QByteArray ba2;
-            if( ! pcache-> readEntry( keyString.toUtf8(), ba2)) {
-                qCritical() << "Failed to read" << x << y;
-            }
-            if( ba != ba2) {
-                qCritical() << "Failed to match" << x << y << ba.size() << ba2.size();
-                qDebug() << * (const double *) (ba.constData());
-                qDebug() << * (const double *) (ba2.constData());
-            }
-            */
         }
         qDebug() << "  " << ( x + 1 ) * imHeight * 1000.0 / t.elapsed() << "pix/s";
     }
@@ -164,11 +133,6 @@ readCache()
 static void
 testCache()
 {
-//    pcache.reset(
-//        new LevelDbIPCache() );
-
-//    pcache.reset(
-//        new SqLitePCache() );
 
     {
         pcache-> setEntry( "hello", "world", 0 );
@@ -201,11 +165,6 @@ testCache()
 static int
 coreMainCPP( QString platformString, int argc, char * * argv )
 {
-    //
-    // initialize Qt
-    //
-    // don't require a window manager even though we're a QGuiApplication
-//    qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("minimal"));
 
     MyQApp qapp( argc, argv );
 
@@ -227,10 +186,6 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // ====================================================
     auto cmdLineInfo = CmdLine::parse( MyQApp::arguments() );
     globals.setCmdLineInfo( & cmdLineInfo );
-
-    //if ( cmdLineInfo.fileList().size() < 2 ) {
-        //qFatal( "Need 2 files" );
-    //}
 
     // load the config file
     // ====================
@@ -270,18 +225,6 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // call the lambda on every pcache plugin
     auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistentCache >();
     pcacheRes.forEach(lam);
-
-    //// let's get pcache object
-    //auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistentCache >().first();
-    //if( pcacheRes.isNull()) {
-        //qWarning() << "Could not initialize persistent cache.";
-        //return -1;
-    //}
-    //else {
-        //pcache = pcacheRes.val();
-    //}
-
-    //testCache();
 
     // give QT control
 //    int res = qapp.exec();

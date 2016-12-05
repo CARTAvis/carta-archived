@@ -2,18 +2,12 @@
   error( "Could not find the common.pri file!" )
 }
 
-#QT      +=  webkitwidgets network widgets xml sql
 QT      +=  webkitwidgets network widgets xml
 
-#HEADERS += \
-#    LevelDbIPCache.h \
-#    SqLitePCache.h
+HEADERS +=
 
 SOURCES += \
     main.cpp
-#    main.cpp \
-#    LevelDbIPCache.cpp \
-#    SqLitePCache.cpp
 
 RESOURCES =
 
@@ -35,9 +29,3 @@ else{
     LIBS +=-L$$QWT_ROOT/lib -lqwt
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.so
 }
-
-
-#LEVELDBDIR=/home/pfederl/Downloads/build/leveldb-1.19
-#unix: LIBS += -L$$LEVELDBDIR/out-shared -lleveldb
-#unix: LIBS += -L$$LEVELDBDIR/out-static -lleveldb
-#INCLUDEPATH += $$LEVELDBDIR/include
