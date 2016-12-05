@@ -265,7 +265,7 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     auto lam = [=] ( const Carta::Lib::Hooks::GetPersistentCache::ResultType &res ) {
         pcache = res;
         testCache();
-    }
+    };
     
     // call the lambda on every pcache plugin
     auto pcacheRes = pm-> prepare< Carta::Lib::Hooks::GetPersistentCache >();
