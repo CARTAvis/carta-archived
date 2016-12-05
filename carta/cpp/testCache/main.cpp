@@ -4,6 +4,7 @@
 #include "core/CmdLine.h"
 #include "core/MainConfig.h"
 #include "core/Globals.h"
+#include "core/Algorithms/cacheUtils.h"
 #include "CartaLib/IPCache.h"
 #include <QDebug>
 #include <QTime>
@@ -30,30 +31,6 @@ genProfile( int x, int y )
         arr[z] = generateData( x, y, z );
     }
     return arr;
-}
-
-QByteArray
-vd2qb( const std::vector < double > & vd )
-{
-    QByteArray ba;
-    for ( const double & d : vd ) {
-        ba.append( (const char *) ( & d ), sizeof( double ) );
-    }
-    return ba;
-}
-
-std::vector < double >
-qb2vd( const QByteArray & ba )
-{
-    std::vector < double > vd;
-    if ( ba.size() % sizeof( double ) != 0 ) {
-        return vd;
-    }
-    const char * cptr = ba.constData();
-    for ( int i = 0 ; i < ba.size() ; i += sizeof( double ) ) {
-        vd.push_back( * ( (const double *) ( cptr + i ) ) );
-    }
-    return vd;
 }
 
 static std::vector < double >
