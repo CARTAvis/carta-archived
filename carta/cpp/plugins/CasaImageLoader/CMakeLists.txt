@@ -14,32 +14,40 @@ find_package(Qt5Gui REQUIRED)
 
 ## find cfitio
 message(STATUS "searching cftisio...")
-find_path(CFITSIO_INCLUDE_DIR
-	NAMES fitsio.h
-	PATHS "${PROJECT_SOURCE_DIR}/../../../../ThirdParty/cfitsio/include"
-	"${PROJECT_SOURCE_DIR}/../../../../ThirdParty/cfitsio-shared/include"
+find_path(CFITSIO_RELATIVE_DIR
+	NAMES /include/fitsio.h
+	PATHS "${THIRD_ABS_PATH}"
+	PATH_SUFFIXES cfitsio cfitsio-shared
 )
-message(STATUS "cfitsio include path=" ${CFITSIO_INCLUDE_DIR})
+
+get_filename_component(CFITSIO_ROOT_DIR ${CFITSIO_RELATIVE_DIR} REALPATH CACHE)
+set(CFITSIO_INCLUDE_DIR "${CFITSIO_ROOT_DIR}/include")
 
 find_library(CFITSIO_LIBRARY
 	NAMES cfitsio
-	PATHS "${PROJECT_SOURCE_DIR}/../../../../ThirdParty/cfitsio/lib/"
-#	"${PROJECT_SOURCE_DIR}/../../../../ThirdParty/cfitsio-shared/lib"
+	HINTS "${CFITSIO_ROOT_DIR}"
+	PATH_SUFFIXES lib lib64
 )
+message(STATUS "cfitsio root path=" ${CFITSIO_ROOT_DIR})
+message(STATUS "cfitsio include path=" ${CFITSIO_INCLUDE_DIR})
 message(STATUS "cfitsio library=" ${CFITSIO_LIBRARY})
 
 ## find casacore
 message(STATUS "searching casacore...")
-find_path(CASACORE_ROOT_DIR
+find_path(CASACORE_RELATIVE_DIR
 	NAMES include/casacore/casa/IO.h
-	PATHS "${PROJECT_SOURCE_DIR}/../../../../ThirdParty/casacore/"
+	PATHS "${THIRD_ABS_PATH}"
+	PATH_SUFFIXES casa casacore
 )
-message(STATUS "casacore root path=" ${CASACORE_ROOT_DIR})
+get_filename_component(CASACORE_ROOT_DIR ${CASACORE_RELATIVE_DIR} REALPATH CACHE)
+set(CASACORE_INCLUDE_DIR "${CASACORE_ROOT_DIR}/include")
 
 find_library(CASACORE_LIBRARY
 	NAMES casa_casa casa_coordinates casa_image
-	PATHS "${PROJECT_SOURCE_DIR}/../../../../ThirdParty/casacore/lib"
+	PATHS "${THIRD_ABS_PATH}/casacore/lib"
 )
+message(STATUS "casacore root path=" ${CASACORE_ROOT_DIR})
+message(STATUS "casacore include path=" ${CASACORE_INCLUDE_DIR})
 message(STATUS "casacore library=" ${CASACORE_LIBRARY})
 
 # check -std=c++0x
