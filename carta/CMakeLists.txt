@@ -16,27 +16,36 @@ find_package(Qt5Core REQUIRED)
 #find_package(Qt5WebKitWidgets REQUIRED)
 #find_package(Qt5Xml REQUIRED)
 
+# check third party library path
+get_filename_component(THIRD_ABS_PATH ${PROJECT_SOURCE_DIR}/../ThirdParty REALPATH CACHE)
+
 ## find qwt
 message(STATUS "searching qwt...")
-find_path(QWT_INCLUDE_DIR
-	NAMES qwt.h
-	PATHS "${PROJECT_SOURCE_DIR}/../ThirdParty/qwt/include/"
-  PATH_SUFFIXES qwt-qt4 qwt qwt5 qwt6
+find_path(QWT_RELATIVE_DIR
+	NAMES /include/qwt.h
+	PATHS "${PROJECT_SOURCE_DIR}/../ThirdParty/"
+	PATH_SUFFIXES qwt qwt4 qwt5 qwt6
 )
-message(STATUS "qwt include path=" ${QWT_INCLUDE_DIR})
+get_filename_component(QWT_ROOT_DIR ${QWT_RELATIVE_DIR} REALPATH CACHE)
+set(QWT_INCLUDE_DIR "${QWT_ROOT_DIR}/include")
 
 find_library(QWT_LIBRARY
-	NAMES qwt qwt-qt3 qwt-qt4 qwt-qt5
-	PATHS "${PROJECT_SOURCE_DIR}/../ThirdParty/qwt/lib/"
+	NAMES qwt qwt-qt4 qwt-qt5
+	PATHS "${QWT_ROOT_DIR}/lib/"
 )
+message(STATUS "qwt root path=" ${QWT_ROOT_DIR})
+message(STATUS "qwt include path=" ${QWT_INCLUDE_DIR})
 message(STATUS "qwt library=" ${QWT_LIBRARY})
 
 ## find rapidrson
 message(STATUS "searching rapidjson...")
-find_path(RAPIDJSON_INCLUDE_DIR
-	NAMES rapidjson/rapidjson.h
-	PATHS "${PROJECT_SOURCE_DIR}/../ThirdParty/rapidjson/include/"
+find_path(RAPIDJSON_DIR
+	NAMES /include/rapidjson/rapidjson.h
+	PATHS "${PROJECT_SOURCE_DIR}/../ThirdParty/"
+	PATH_SUFFIXES rapidjson
 )
+get_filename_component(RAPIDJSON_ROOT_DIR ${RAPIDJSON_DIR} REALPATH CACHE)
+set(RAPIDJSON_INCLUDE_DIR "${RAPIDJSON_ROOT_DIR}/include")
 message(STATUS "rapidjson include path=" ${RAPIDJSON_INCLUDE_DIR})
 
 # check -std=c++0x
@@ -75,18 +84,25 @@ endif()
 message(STATUS "install path=" ${CMAKE_INSTALL_PREFIX})
 
 # check third party library path
-get_filename_component(THIRD_ABS_PATH ${PROJECT_SOURCE_DIR}/../ThirdParty REALPATH CACHE)
+#get_filename_component(THIRD_ABS_PATH ${PROJECT_SOURCE_DIR}/../ThirdParty REALPATH CACHE)
+
+# set plugins path
+set(PLUGINS_PATH "${CMAKE_INSTALL_PREFIX}/plugins" CACHE STRING "default path is '${CMAKE_INSTAL_PREFIX}/plugins/'")
+message(STATUS "plugins path=" ${PLUGINS_PATH})
 
 # write useful files
-file(WRITE  ${CMAKE_BINARY_DIR}/carta-vars.sh "ulimit -n 2048\n")
-file(APPEND ${CMAKE_BINARY_DIR}/carta-vars.sh "export LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/lib:\${LD_LIBRARY_PATH}\n")
-file(APPEND ${CMAKE_BINARY_DIR}/carta-vars.sh "export LD_LIBRARY_PATH=${THIRD_ABS_PATH}/casacore/lib:\${LD_LIBRARY_PATH}\n")
-file(APPEND ${CMAKE_BINARY_DIR}/carta-vars.sh "export LD_LIBRARY_PATH=${THIRD_ABS_PATH}/cfitsio/lib:\${LD_LIBRARY_PATH}\n")
-file(APPEND ${CMAKE_BINARY_DIR}/carta-vars.sh "export LD_LIBRARY_PATH=${THIRD_ABS_PATH}/wcslib/lib:\${LD_LIBRARY_PATH}\n")
-file(APPEND ${CMAKE_BINARY_DIR}/carta-vars.sh "export LD_LIBRARY_PATH=${THIRD_ABS_PATH}/qwt/lib:\${LD_LIBRARY_PATH}\n")
+file(WRITE  ${CMAKE_BINARY_DIR}/carta-vars.sh 
+	"ulimit -n 2048\n"
+	"export LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/lib:\${LD_LIBRARY_PATH}\n"
+	"export LD_LIBRARY_PATH=${CASACORE_ROOT_DIR}/lib:\${LD_LIBRARY_PATH}\n"
+	"export LD_LIBRARY_PATH=${CFITSIO_ROOT_DIR}/lib:\${LD_LIBRARY_PATH}\n"
+	"export LD_LIBRARY_PATH=${THIRD_ABS_PATH}/wcslib/lib:\${LD_LIBRARY_PATH}\n"
+	"export LD_LIBRARY_PATH=${QWT_ROOT_DIR}/lib:\${LD_LIBRARY_PATH}\n"
+	"export LD_LIBRARY_PATH=${Qt5Core_DIR}/../../:\${LD_LIBRARY_PATH}\n"
+)
 
 file(WRITE  ${CMAKE_BINARY_DIR}/config.json "{\n")
-file(APPEND ${CMAKE_BINARY_DIR}/config.json " \"pluginDirs\":[\"${CMAKE_INSTALL_PREFIX}/plugins\"], \n")
+file(APPEND ${CMAKE_BINARY_DIR}/config.json " \"pluginDirs\":[\"${PLUGINS_PATH}\"], \n")
 file(APPEND ${CMAKE_BINARY_DIR}/config.json " \"qtDecorations\" : \"true\", \n")
 file(APPEND ${CMAKE_BINARY_DIR}/config.json " \"disabledPlugins\" : [] \n")
 file(APPEND ${CMAKE_BINARY_DIR}/config.json "}\n")
