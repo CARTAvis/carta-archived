@@ -110,14 +110,11 @@ private:
     {
         m_db = QSqlDatabase::addDatabase( "QSQLITE" );
 
-        QString fname = dirPath + "/pcache.sqlite";
-
-        //    m_db.setDatabaseName( "/scratchSD/test.sqlite" );
-        m_db.setDatabaseName( fname );
+        m_db.setDatabaseName( dirPath );
         bool ok = m_db.open();
         if ( ! ok ) {
             qCritical() << "Could not open sqlite database";
-            qCritical() << "  - at location:" + fname;
+            qCritical() << "  - at location:" + dirPath;
         }
 
         QSqlQuery query( m_db );
@@ -153,13 +150,13 @@ PCacheSQlite3Plugin::handleHook( BaseHook & hookData )
         GetPersistentCacheHook & hook = static_cast < GetPersistentCacheHook & > ( hookData );
 
         // if no dbdir was specified, refuse to work :)
-        if( m_dbDir.isNull()) {
+        if( m_dbPath.isNull()) {
             hook.result.reset();
             return false;
         }
 
         // try to create the database
-        hook.result = SqLitePCache::getCacheSingleton( m_dbDir);
+        hook.result = SqLitePCache::getCacheSingleton( m_dbPath);
 
         // return true if result is not null
         return hook.result != nullptr;
@@ -177,13 +174,13 @@ PCacheSQlite3Plugin::initialize( const IPlugin::InitInfo & initInfo )
     qDebug() << doc.toJson();
 
     // extract the location of the database from carta.config
-    m_dbDir = initInfo.json.value( "dbDir").toString();
-    if( m_dbDir.isNull()) {
-        qCritical() << "No dbDir specified for PCacheSqlite3 plugin!!!";
+    m_dbPath = initInfo.json.value( "dbPath").toString();
+    if( m_dbPath.isNull()) {
+        qCritical() << "No dbPath specified for PCacheSqlite3 plugin!!!";
     }
     else {
         // convert this to absolute path just in case
-        m_dbDir = QDir(m_dbDir).absolutePath();
+        m_dbPath = QDir(m_dbPath).absolutePath();
     }
 }
 

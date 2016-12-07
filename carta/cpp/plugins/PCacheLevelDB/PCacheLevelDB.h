@@ -27,5 +27,5 @@ public :
 
 private:
 
-    QString m_dbDir;
+    QString m_dbPath;
 };

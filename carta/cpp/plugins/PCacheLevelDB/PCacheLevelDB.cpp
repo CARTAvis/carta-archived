@@ -102,12 +102,10 @@ private:
 
         options.create_if_missing = true;
         
-        QString fname = dirPath + "/pcache.leveldb";
-
-        leveldb::Status status = leveldb::DB::Open( options, fname.toStdString(), & db );
+        leveldb::Status status = leveldb::DB::Open( options, dirPath.toStdString(), & db );
 
         if ( false == status.ok() ) {
-            qDebug() << "Unable to open/create database '" << fname.toStdString().c_str() << "':" << status.ToString().c_str();
+            qDebug() << "Unable to open/create database '" << dirPath.toStdString().c_str() << "':" << status.ToString().c_str();
             return;
         }
 
@@ -135,13 +133,13 @@ PCacheLevelDBPlugin::handleHook( BaseHook & hookData )
         GetPersistentCacheHook & hook = static_cast < GetPersistentCacheHook & > ( hookData );
 
         // if no dbdir was specified, refuse to work :)
-        if( m_dbDir.isNull()) {
+        if( m_dbPath.isNull()) {
             hook.result.reset();
             return false;
         }
 
         // try to create the database
-        hook.result = LevelDBPCache::getCacheSingleton( m_dbDir);
+        hook.result = LevelDBPCache::getCacheSingleton( m_dbPath);
 
         // return true if result is not null
         return hook.result != nullptr;
@@ -159,13 +157,13 @@ PCacheLevelDBPlugin::initialize( const IPlugin::InitInfo & initInfo )
     qDebug() << doc.toJson();
 
     // extract the location of the database from carta.config
-    m_dbDir = initInfo.json.value( "dbDir").toString();
-    if( m_dbDir.isNull()) {
-        qCritical() << "No dbDir specified for PCacheSqlite3 plugin!!!";
+    m_dbPath = initInfo.json.value( "dbPath").toString();
+    if( m_dbPath.isNull()) {
+        qCritical() << "No dbPath specified for PCacheSqlite3 plugin!!!";
     }
     else {
         // convert this to absolute path just in case
-        m_dbDir = QDir(m_dbDir).absolutePath();
+        m_dbPath = QDir(m_dbPath).absolutePath();
     }
 }
 
