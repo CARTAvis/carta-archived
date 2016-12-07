@@ -1,6 +1,6 @@
-#include "Data/Clips.h"
+#include "core/Data/Clips.h"
 #include "CartaLib/CartaLib.h"
-#include "State/UtilState.h"
+#include "core/State/UtilState.h"
 #include <QDebug>
 #include <cmath>
 

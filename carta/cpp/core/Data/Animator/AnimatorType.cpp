@@ -1,7 +1,7 @@
-#include "Data/Animator/Animator.h"
-#include "Data/Selection.h"
-#include "Data/Util.h"
-#include "State/UtilState.h"
+#include "core/Data/Animator/Animator.h"
+#include "core/Data/Selection.h"
+#include "core/Data/Util.h"
+#include "core/State/UtilState.h"
 
 #include <set>
 

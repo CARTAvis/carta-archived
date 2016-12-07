@@ -36,7 +36,7 @@ astlibLIBS += $${ASTLIBDIR}/lib/libast_err.a
 
 #LIBS += $${casacoreLIBS}
 LIBS += $${astlibLIBS}
-LIBS += -L$$OUT_PWD/../../core/ -lcore
+#LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
 INCLUDEPATH += $${CASACOREDIR}/include
