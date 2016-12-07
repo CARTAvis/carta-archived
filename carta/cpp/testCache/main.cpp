@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QTime>
 #include <QJsonArray>
+#include <cstdio>
 
 namespace tCache
 {
@@ -170,9 +171,20 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     QString configFilePath = cmdLineInfo.configFilePath();
     MainConfig::ParsedInfo mainConfig = MainConfig::parse( configFilePath );
     
-    qDebug() << "++++++++++++++++++ what's the config?" << mainConfig.json();
+    // Re-enable all plugins so that all pcache plugins are tested
     mainConfig.insert("disabledPlugins", QJsonValue(QJsonArray()));
-    qDebug() << "++++++++++++++++++ what's the config?" << mainConfig.json();
+     
+    // Use test database files
+    // Hideous, but apparently the only way to modify nested QJSONObject values.
+     
+    QJsonObject plugins = mainConfig.json()["plugins"].toObject();
+    QJsonObject sqlite3Config = plugins["PCacheSqlite3"].toObject();
+    QJsonObject leveldbConfig = plugins["PCacheLevelDB"].toObject();
+    sqlite3Config.insert("dbPath", "/tmp/pcache.sqlite.test");
+    leveldbConfig.insert("dbPath", "/tmp/pcache.leveldb.test");
+    plugins.insert("PCacheSqlite3", QJsonValue(sqlite3Config));
+    plugins.insert("PCacheLevelDB", QJsonValue(leveldbConfig));
+    mainConfig.insert("plugins", QJsonValue(plugins));
     
     globals.setMainConfig( & mainConfig );
     qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - " );
@@ -212,6 +224,10 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // give QT control
 //    int res = qapp.exec();
     int res = 0;
+    
+    // Delete the test database files afterwards
+    std::remove("/tmp/pcache.sqlite.test");
+    std::remove("/tmp/pcache.leveldb.test");
 
     // if we get here, it means we are quitting...
     qDebug() << "Exiting";
