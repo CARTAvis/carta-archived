@@ -8,6 +8,7 @@
 #include "CartaLib/IPCache.h"
 #include <QDebug>
 #include <QTime>
+#include <QJsonArray>
 
 namespace tCache
 {
