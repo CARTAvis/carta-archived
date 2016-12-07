@@ -213,8 +213,8 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // make a lambda to set the value of pcache and call the tests
     auto lam = [=] ( const Carta::Lib::Hooks::GetPersistentCache::ResultType &res ) {
         pcache = res;
-        testCache();
         pcache->deleteAll();
+        testCache();
     };
     
     // call the lambda on every pcache plugin
