@@ -23,7 +23,7 @@ OTHER_FILES += readme.txt uncrustify.cfg
 # make sure user did not specify debug version...
 # it's probably harmless, but that's probably not what the user wanted
 CONFIG(debug,debug|release) {
-    error( "Please don't specify debug version like this!")
+    message( "Please don't specify debug version like this!")
 }
 
 CONFIG(release,debug|release) {
@@ -57,5 +57,9 @@ dbg( "===---------------------------------------------====")
 #mytarget3.commands = @echo top src/build: $$top_srcdir $$top_builddir
 
 #QMAKE_EXTRA_TARGETS += mytarget mytarget2 mytarget3
+
+mac {
+	QMAKE_INFO_PLIST = Info.plist
+}
 
 
