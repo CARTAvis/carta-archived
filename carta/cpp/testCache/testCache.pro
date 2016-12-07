@@ -13,7 +13,6 @@ RESOURCES =
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
-LIBS += -lleveldb
 DEPENDPATH += $$PROJECT_ROOT/core
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
 

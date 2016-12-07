@@ -34,8 +34,16 @@ public:
     virtual void
     deleteAll() override
     {
-        // not implemented
-    }
+        if ( ! m_db.isOpen() ) {
+            return;
+        }
+        QSqlQuery query( m_db );
+        query.prepare( "DELETE FROM db;" );
+
+        if ( ! query.exec() ) {
+            qWarning() << "query delete failed";
+        }
+    } // deleteAll
 
     virtual bool
     readEntry( const QByteArray & key, QByteArray & val ) override

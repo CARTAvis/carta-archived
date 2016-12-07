@@ -35,8 +35,18 @@ public:
     virtual void
     deleteAll() override
     {
-        // not implemented
-    }
+        if ( ! p_db ) {
+            return;
+        }
+        
+        leveldb::Iterator* it = p_db->NewIterator(p_readOptions);
+        for (it->SeekToFirst(); it->Valid(); it->Next()) {
+            auto status = p_db->Delete(p_writeOptions, it->key());
+            if ( ! status.ok() ) {
+                qWarning() << "query delete failed:" << status.ToString().c_str();
+            }
+        }
+    } // deleteAll
 
     virtual bool
     readEntry( const QByteArray & key, QByteArray & val ) override

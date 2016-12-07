@@ -9,8 +9,6 @@
 #include <QDebug>
 #include <QTime>
 #include <QJsonArray>
-#include <cstdio>
-#include "leveldb/db.h"
 
 namespace tCache
 {
@@ -216,6 +214,7 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     auto lam = [=] ( const Carta::Lib::Hooks::GetPersistentCache::ResultType &res ) {
         pcache = res;
         testCache();
+        pcache->deleteAll();
     };
     
     // call the lambda on every pcache plugin
@@ -225,11 +224,6 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // give QT control
 //    int res = qapp.exec();
     int res = 0;
-    
-    // Delete the test database files afterwards
-    std::remove("/tmp/pcache.sqlite.test");
-    leveldb::DestroyDB("/tmp/pcache.leveldb.test", leveldb::Options());
-    std::remove("/tmp/pcache.leveldb.test");
 
     // if we get here, it means we are quitting...
     qDebug() << "Exiting";
