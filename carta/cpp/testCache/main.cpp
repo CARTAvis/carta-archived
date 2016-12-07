@@ -228,7 +228,7 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     
     // Delete the test database files afterwards
     std::remove("/tmp/pcache.sqlite.test");
-    leveldb::DestroyDB("/tmp/pcache.leveldb.test");
+    leveldb::DestroyDB("/tmp/pcache.leveldb.test", leveldb::Options());
     std::remove("/tmp/pcache.leveldb.test");
 
     // if we get here, it means we are quitting...
