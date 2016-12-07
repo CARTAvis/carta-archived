@@ -83,7 +83,7 @@ public:
     /**
      * Allows modification of the JSON object by tests.
      */
-    iterator insert(const QString &key, const QJsonValue &value);
+    QJsonObject::iterator insert(const QString &key, const QJsonValue &value);
 
 protected:
 
