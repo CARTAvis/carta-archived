@@ -13,6 +13,7 @@ RESOURCES =
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
+LIBS += -lleveldb
 DEPENDPATH += $$PROJECT_ROOT/core
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
 
@@ -26,6 +27,6 @@ unix:macx {
 }
 else{
     QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
-    LIBS +=-L$$QWT_ROOT/lib -lqwt
+    LIBS +=-L$$QWT_ROOT/lib -lqwt 
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.so
 }
