@@ -159,7 +159,7 @@ PCacheLevelDBPlugin::initialize( const IPlugin::InitInfo & initInfo )
     // extract the location of the database from carta.config
     m_dbPath = initInfo.json.value( "dbPath").toString();
     if( m_dbPath.isNull()) {
-        qCritical() << "No dbPath specified for PCacheSqlite3 plugin!!!";
+        qCritical() << "No dbPath specified for PCacheLevelDB plugin!!!";
     }
     else {
         // convert this to absolute path just in case
