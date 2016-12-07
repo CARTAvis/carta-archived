@@ -168,6 +168,11 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // ====================
     QString configFilePath = cmdLineInfo.configFilePath();
     MainConfig::ParsedInfo mainConfig = MainConfig::parse( configFilePath );
+    
+    qDebug() << "++++++++++++++++++ what's the config?" << mainConfig.json();
+    mainConfig.insert("disabledPlugins", QJsonValue(QJsonArray()));
+    qDebug() << "++++++++++++++++++ what's the config?" << mainConfig.json();
+    
     globals.setMainConfig( & mainConfig );
     qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - " );
 

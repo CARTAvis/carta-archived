@@ -78,7 +78,12 @@ public:
      *      error doing the conversion.
      */
     static int toInt( const QJsonValue& jsonValue, QString& errorMsg );
-
+    
+    
+    /**
+     * Allows modification of the JSON object by tests.
+     */
+    iterator insert(const QString &key, const QJsonValue &value);
 
 protected:
 
