@@ -15,20 +15,20 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
         this.setValue( false );
         this.setToolTipText("Specify a layout consisting of a specified number of rows and columns.");
     },
-    
+
     members : {
-        
+
         doAction : function( vals ){
             if ( this.m_active ){
                 qx.event.message.Bus.dispatch(new qx.event.message.Message( "showLayoutPopup", vals));
             }
 
         },
-        
+
         getType : function(){
-            return skel.Command.Command.TYPE_BUTTON;
+            return skel.Command.Command.TYPE_BOOL;
         },
-        
+
         /**
          * Sets whether or not this command's action will be performed.
          * @param active {boolean} true if the action should be performed; false otherwise.
@@ -40,7 +40,7 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
         setActive : function( active ){
             this.m_active = active;
         },
-        
+
         m_active : true
     }
 });
