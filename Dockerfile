@@ -1,7 +1,7 @@
 FROM vsuorant/cartabuild:latest
 
 RUN apt-get update && apt-get install libgsl0ldbl
-RUN apt-get install libgsl0-dev
+RUN apt-get install -y libgsl0-dev libleveldb-dev libsqlite3-dev
 
 COPY . /home/developer/src/CARTAvis
 WORKDIR /home/developer/
