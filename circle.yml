@@ -1,8 +1,7 @@
 general:
   branches:
     ignore:
-      - master
-      - develop
+      - gh-pages
 
 machine:
   services:
@@ -27,8 +26,8 @@ dependencies:
 
     # Restore docker build image and configure Dockerfile
     - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/vsuorant/cartabuild:latest; docker save docker.io/vsuorant/cartabuild:latest > ~/docker/image.tar; fi
-    - cat ~/CARTAvis/Dockerfile | envsubst  > ~/CARTAvis/Dockerfile.new
-    - mv ~/CARTAvis/Dockerfile.new ~/CARTAvis/Dockerfile
+    - cat ~/$CIRCLE_PROJECT_REPONAME/Dockerfile | envsubst  > ~/$CIRCLE_PROJECT_REPONAME//Dockerfile.new
+    - mv ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new ~/$CIRCLE_PROJECT_REPONAME/Dockerfile
 
     # Get Selenium test images if they are not cached yet
     - if [[ ! -e ~/images/SeleniumTestImages.tgz ]]; then curl -L https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz  > ~/images/SeleniumTestImages.tgz; fi
