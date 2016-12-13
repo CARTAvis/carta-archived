@@ -1446,7 +1446,7 @@ class Image(CartaView):
         list
             Error message if an error occurred; nothing otherwise.
         """
-	result = self.con.cmdTagList("setCompositionMode", imageView=self.getId(), imageName=imageName)
+	    result = self.con.cmdTagList("setCompositionMode", imageView=self.getId(), imageName=imageName)
         return result
 
     def isEmpty(self):
