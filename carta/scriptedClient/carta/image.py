@@ -542,7 +542,7 @@ class Image(CartaView):
         else:
             self.centerOnPixel(float(result[0]), float(result[1]))
         return result
-        
+
     def getPixelValue(self, x, y):
         """
         Get the value of a pixel.
@@ -1337,7 +1337,7 @@ class Image(CartaView):
                                      imageView=self.getId(), value=value)
         return result
 
-    def  setContourLevels(self, contourName, levels):
+    def setContourLevels(self, contourName, levels):
         """
         Update the contour levels within the given contour set.
 
@@ -1446,7 +1446,8 @@ class Image(CartaView):
         list
             Error message if an error occurred; nothing otherwise.
         """
-	    result = self.con.cmdTagList("setCompositionMode", imageView=self.getId(), imageName=imageName)
+
+        result = self.con.cmdTagList("setCompositionMode", imageView=self.getId(), imageName=imageName)
         return result
 
     def isEmpty(self):
