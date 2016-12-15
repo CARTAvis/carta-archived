@@ -10,11 +10,12 @@
 qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
     extend : skel.widgets.Window.DisplayWindow,
     include : skel.widgets.Window.PreferencesMixin,
-    
+
     /**
      * Constructor.
      */
     construct : function(index, detached) {
+        console.log("grimmer view DisplayWindowImageZoom");
         var path = skel.widgets.Path.getInstance();
         this.base(arguments, path.IMAGE_ZOOM, index, detached );
         this.m_links = [];
@@ -25,7 +26,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
     },
 
     members : {
-        
+
         /**
          * Add or remove the zoom context settings based on whether the user
          * had configured any of the settings visible.
@@ -35,22 +36,22 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
             this.m_controlsVisible = content;
             this._layoutControls();
         },
-        
+
         /**
          * Clean-up items; this window is going to disappear.
          */
         clean : function(){
-            //Remove the view so we don't get spurious mouse events sent to a 
+            //Remove the view so we don't get spurious mouse events sent to a
             //server-side object that no longer exists.
             if ( this.m_view !== null ){
                 if ( this.m_viewContent.indexOf( this.m_view) >= 0 ){
                     this.m_viewContent.remove( this.m_view);
-                   
+
                 }
             }
         },
-       
-        
+
+
         /**
          * Initialize the list of window specific commands this window supports.
          */
@@ -62,7 +63,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
             this.m_supportedCmds.push( linksCmd.getLabel() );
             arguments.callee.base.apply(this, arguments);
         },
-        
+
         /**
          * Returns whether or not this window can be linked to a window
          * displaying a named plug-in.
@@ -76,8 +77,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
             }
             return linkable;
         },
-        
-        
+
+
         /**
          * Returns whether or not this window supports establishing a two-way
          * link with the given plug-in.
@@ -90,8 +91,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
             }
             return biLink;
         },
-        
-        
+
+
         /**
          * Layout the display.
          */
@@ -110,14 +111,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
                 this.m_content.add( this.m_zoomControls );
             }
         },
-        
+
         /**
          * Callback for updating the visibility of the user settings from the server.
          */
         _preferencesCB : function(){
             if ( this.m_sharedVarPrefs !== null ){
                 var val = this.m_sharedVarPrefs.get();
-               
+
                 if ( val !== null ){
                     try {
                         var setObj = JSON.parse( val );
@@ -130,19 +131,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
                 }
             }
         },
-        
+
         /**
          * Register to receive updates when the data shared variable changes on
          * the server-side.
          */
         registerDataUpdates : function(){
+            console.log("grimmer display");
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +path.DATA );
             this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
             this._sharedVarDataCB();
         },
-        
-        
+
+
         /**
          * Set the appearance of this window based on whether or not it is selected.
          * @param selected {boolean} true if the window is selected; false otherwise.
@@ -152,7 +154,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
             this._initSupportedCommands();
             arguments.callee.base.apply(this, arguments, selected, multiple );
         },
-        
+
         /**
          * Callback for when the data shared variable changes.
          */
@@ -173,7 +175,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
                 }
             }
         },
-        
+
         /**
          * Implemented to initialize the context menu.
          */
@@ -182,17 +184,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.ViewWithInputDivSuffixed(this.m_identifier);
             }
-            
+
             if ( this.m_zoomDraw == null ){
                 this.m_zoomDraw = new skel.widgets.Image.Zoom.ZoomCanvas();
             }
             this._layoutControls();
-            
+
             this.initializePrefs();
             this.m_zoomControls.setId( this.getIdentifier());
             this.registerDataUpdates();
         },
-        
+
         /**
          * Update from the server.
          * @param winObj {Object} - an object containing server side information values.
@@ -204,7 +206,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageZoom", {
             }
             this.m_zoomDraw.setControls( winObj );
         },
-        
+
         m_controlsVisible : null,
         m_sharedVarData : null,
         m_view : null,

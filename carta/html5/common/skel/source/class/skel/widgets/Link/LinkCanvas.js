@@ -30,6 +30,7 @@ qx.Class.define("skel.widgets.Link.LinkCanvas",{
                     if ( this.m_contextMenu.indexOf( this.m_removeLinkButton) >= 0 ){
                         this.m_contextMenu.remove( this.m_removeLinkButton );
                     }
+                    console.log("grimmer menu, context link canvas")
                     this.m_removeLinkButton = new qx.ui.menu.Button("Remove Link");
                     this.m_removeLinkButton.addListener("execute", function(){
                         this._removeLink( lineMatch );

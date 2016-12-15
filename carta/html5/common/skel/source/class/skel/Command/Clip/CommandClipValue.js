@@ -23,9 +23,9 @@ qx.Class.define("skel.Command.Clip.CommandClipValue", {
         this.setValue( false );
         this.setToolTipText("Show " + this.getLabel() + " of the data.");
     },
-    
+
     members : {
-        
+
         /**
          * Return the value displayed by this command as a number between 0 and 1.
          * @return {Number} - the amount to clip as a number between 0 and 1.
@@ -38,7 +38,10 @@ qx.Class.define("skel.Command.Clip.CommandClipValue", {
         },
 
         doAction : function( vals, undoCB ){
+            console.log("grimmer clip do action1");
             if ( this.m_sendToServer ){
+                console.log("grimmer clip do action2- send to server");
+
                 var path = skel.widgets.Path.getInstance();
                 var label = this.getClipPercent();
                 var params = this.m_params + label;
@@ -56,11 +59,11 @@ qx.Class.define("skel.Command.Clip.CommandClipValue", {
                 }
             }
         },
-        
+
         getType : function(){
             return skel.Command.Command.TYPE_BOOL;
         },
-        
+
         /**
          * Set whether or not the action of this command should send the clip to the server.
          * @param serverSend {boolean} - true if the sever should be notified when this clip is activated;
@@ -69,7 +72,7 @@ qx.Class.define("skel.Command.Clip.CommandClipValue", {
         setServerSend : function( serverSend ){
             this.m_sendToServer = serverSend;
         },
-        
+
         // Flag was added to prevent sending a clip command to the server when an image loaded
         // is selected and sets its currently selected clip value.
         m_sendToServer : true,

@@ -205,6 +205,9 @@ public:
             QString id = factory->getGlobalId();
             if ( id.length() == 0 ){
                 m_nextId ++;
+                if (m_nextId == 30 ) {
+                    int k =0;
+                }
                 id = "c"+QString::number( m_nextId);
             }
             QString path (m_sep + m_root + m_sep + id);

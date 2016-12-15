@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 qx.Class.define("skel.widgets.Statistics.Statistics", {
-    extend : qx.ui.core.Widget, 
+    extend : qx.ui.core.Widget,
 
     /**
      * Constructor.
@@ -19,7 +19,7 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
     },
 
     members : {
-        
+
         /**
          * Initializes the UI.
          */
@@ -27,19 +27,19 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             this._setLayout(new qx.ui.layout.Grow());
             this.m_statContainer = new qx.ui.container.Composite();
             this.m_statContainer.setLayout( new qx.ui.layout.VBox(2) );
-            
+
             //Image Statistics
             this.m_statsImage = new skel.widgets.Statistics.StatisticsImage();
-            
+
             //Divider
             this.m_divWidget = new qx.ui.core.Widget();
             this.m_divWidget.setHeight( 2 );
             this.m_divWidget.setBackgroundColor( skel.theme.Color.colors.selection );
-            
+
             //RegionStatistics
             this.m_statsRegions = new skel.widgets.Statistics.StatisticsRegion();
             this._add( this.m_statContainer );
-            
+
             this.m_statsImage.addListener( "imageChanged", function(evt){
                 var data = evt.getData();
                 if ( this.m_selectIndex != data.index ){
@@ -48,8 +48,8 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
                 }
             }, this );
         },
-       
-        
+
+
         /**
          * Show image and region statistics based on what is available.
          */
@@ -66,31 +66,35 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
                 }
             }
         },
-       
+
         /**
          * Register the shared statistics variable in order to receive updates
          * from the server.
          */
         _registerStatistics : function(){
+            console.log("grimmer stats-1");
+
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._statisticsChangedCB.bind(this));
             this._statisticsChangedCB();
         },
-        
+
         /**
          * Register the shared statistics variable in order to receive updates
          * from the server.
          */
         _registerStatisticsData : function(){
+            console.log("grimmer stats-2");
+
             var path = skel.widgets.Path.getInstance();
             var dataPath = this.m_id + path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB(this._statisticsChangedDataCB.bind(this));
             this._statisticsChangedDataCB();
         },
-        
-        
+
+
         /**
          * Set the server side id of statistics.
          * @param controlId {String} the server side id of the object that produced statistics.
@@ -101,7 +105,7 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
             this._registerStatistics();
             this._registerStatisticsData();
         },
-        
+
         /**
          * Update the UI based on new statistics from the server.
          * @param firstInit {boolean} - true if this is the first data update
@@ -126,9 +130,9 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
                 this.m_statsImage.clear();
             }
         },
-        
 
-        
+
+
         /**
          * Callback for a change in statistics on the server.
          */
@@ -149,7 +153,7 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
                 }
             }
         },
-        
+
         /**
          * Callback for a change in statistics on the server.
          */
@@ -172,20 +176,20 @@ qx.Class.define("skel.widgets.Statistics.Statistics", {
                 }
             }
         },
-        
+
         m_connector : null,
         m_sharedVar : null,
         m_sharedVarData : null,
         m_selectIndex : 0,
         m_showRegionStats : false,
-      
+
         m_stats : null,
-        
+
         m_statContainer : null,
         m_statsImage : null,
         m_statsRegions : null,
         m_divWidget : null,
-        
+
         m_id : null
     }
 

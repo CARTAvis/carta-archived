@@ -123,6 +123,7 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 }
 
 QString Controller::addData(const QString& fileName, bool* success) {
+    qDebug()<<"grimmer controller addData";
 	*success = false;
 	QString result = DataFactory::addData( this, fileName, success );
     return result;
@@ -599,6 +600,8 @@ void Controller::_initializeCallbacks(){
     //Listen for updates to the clip and reload the frame.
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
+        qDebug() << "grimmer controller setClipValue";
+
         QString result;
         std::set<QString> keys = {"clipValue"};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
@@ -618,6 +621,9 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
+
+        qDebug() << "grimmer contorller-setautoclip";
+
         std::set<QString> keys = {"autoClip"};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString clipKey = *keys.begin();
@@ -670,6 +676,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "inputEvent", [=] (const QString & /*cmd*/,
     		const QString & params, const QString & /*sessionId*/) ->QString {
 
+			qDebug() << "inputEvent";
     	QJsonDocument doc = QJsonDocument::fromJson( params.toLatin1() );
     	if ( doc.isObject() ) {
     		InputEvent ev( doc.object() );
@@ -898,6 +905,7 @@ void Controller::_initializeCallbacks(){
 
 void Controller::_initializeState(){
 
+    qDebug() << "grimmer Controller::_initializeState-clip";
     //First the preference state.
     m_state.insertValue<bool>( AUTO_CLIP, true );
     m_state.insertValue<bool>(PAN_ZOOM_ALL, true );
@@ -929,6 +937,8 @@ void Controller::_loadViewQueued( ){
 
 void Controller::_loadView(){
     //Load the image.
+    qDebug() << "grimmer controller:loadview";
+
     bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
     double clipValueMin = m_state.getValue<double>(CLIP_VALUE_MIN);
     double clipValueMax = m_state.getValue<double>(CLIP_VALUE_MAX);
@@ -1063,6 +1073,8 @@ void Controller::saveImageResultCB( bool result ){
 
 
 void Controller::setAutoClip( bool autoClip ){
+		qDebug() << "grimmer controller-setAutoClip";
+
     bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
     if ( autoClip != oldAutoClip ){
         m_state.setValue<bool>( AUTO_CLIP, autoClip );

@@ -87,6 +87,14 @@ contains( CARTA_CONFIG, addrSanit) {
 # use gcc 4.8.1
 CONFIG += gcc481
 
+#remove known optimizations and debugger flags
+QMAKE_CXXFLAGS += -O0 -g
+QMAKE_CXXFLAGS_DEBUG += -O0  -g
+QMAKE_CXXFLAGS_RELEASE += -O0 -g
+QMAKE_CFLAGS += -O0-g
+QMAKE_CFLAGS_DEBUG += -O0 -g
+QMAKE_CFLAGS_RELEASE += -O0 -g
+
 gcc481 {
     COMPILER = g++-4.8
 } else {

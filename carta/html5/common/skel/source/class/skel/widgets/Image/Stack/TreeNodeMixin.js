@@ -33,6 +33,7 @@ qx.Mixin.define("skel.widgets.Image.Stack.TreeNodeMixin", {
          * Initialize the context menu.
          */
         _initContextMenu : function(){
+            console.log("grimmer menu treenodemixin")
             var contextMenu = new qx.ui.menu.Menu();
             var path = skel.widgets.Path.getInstance();
             var closeCmd = new skel.Command.Data.CommandDataClose( this.getLabel(), 

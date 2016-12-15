@@ -3,9 +3,9 @@
  */
 
 /*******************************************************************************
- * 
- * 
- * 
+ *
+ *
+ *
  ******************************************************************************/
 
 qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
@@ -32,7 +32,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 this.m_controlsVisible = content;
                 this._layoutControls();
             },
-            
+
             /**
              * Notification that one or more controls have changed on the server-side.
              * @param ev {qx.event.type.Data}.
@@ -42,7 +42,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 var showStat = data.showStats;
                 this._showHideFitStatistics( showStat );
             },
-            
+
             /**
              * Display specific UI initialization.
              */
@@ -62,7 +62,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 }
                 this._layoutControls();
             },
-            
+
             /**
              * Initialize the label for displaying fit statistics.
              */
@@ -74,10 +74,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                         return anObject.fitStatistics;
                     });
                     this.m_fitStatLabel.setRich( true );
-                    
+
                 }
             },
-            
+
             /**
              * Initialize the list of commands this window supports.
              */
@@ -88,15 +88,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 var settingsCmd = skel.Command.Settings.SettingsProfile.getInstance();
                 this.m_supportedCmds.push( settingsCmd.getLabel());
                 arguments.callee.base.apply(this, arguments);
-               
+
             },
-           
-          
-            
+
+
+
             /**
              * Returns whether or not this window can be linked to a window
              * displaying a named plug-in.
-             * 
+             *
              * @param pluginId {String} a name identifying a plug-in.
              * @return {boolean} true if this window supports linking to the plug-in; false,
              *          otherwise.
@@ -105,9 +105,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 var linkable = false;
                 return linkable;
             },
-            
-            
-            
+
+
+
             /**
              * Add/remove content based on user visibility preferences.
              */
@@ -121,7 +121,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                     this.m_content.add( this.m_profileControls );
                 }
             },
-            
+
             /**
              * Callback to show/hide user settings based on updates from the
              * server.
@@ -135,8 +135,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                             if ( setObj.settings !== null ){
                                 this._adjustControlVisibility( setObj.settings );
                             }
-                          
-                           
+
+
                         }
                         catch( err ){
                             console.log( "Profile window could not parse settings: "+val);
@@ -145,7 +145,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                     }
                 }
             },
-            
+
             /**
              * Callback for updates of fit statistics.
              */
@@ -164,18 +164,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                     }
                 }
             },
-            
+
             /**
              * Register to receive updates to server-side fit statistics.
              */
             _registerStatistics : function(){
                 var path = skel.widgets.Path.getInstance();
                 var statPath = this.m_identifier + path.SEP + "fitStatistics";
+                console.log("grimmer DisplayWindowProfile");
+
                 this.m_sharedVarFitStats = this.m_connector.getSharedVar( statPath );
                 this.m_sharedVarFitStats.addCB( this._profileFitStatsCB.bind( this));
                 this._profileFitStatsCB();
             },
-            
+
             /**
              * Called when the profiler is selected.
              * @param selected {boolean} - true if the window is selected; false otherwise.
@@ -185,7 +187,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 this._initSupportedCommands();
                 arguments.callee.base.apply(this, arguments, selected, multiple );
             },
-            
+
             /**
              * Show/hide the cursor statistics control.
              * @param visible {boolean} - true if the cursor statistics widget
@@ -195,8 +197,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 this.m_statisticsVisible = visible;
                 this._layoutControls();
             },
-           
-            
+
+
             /**
              * Implemented to initialize a context menu.
              */
@@ -207,7 +209,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowProfile", {
                 this.m_profileControls.setId( this.getIdentifier());
                 this._registerStatistics();
             },
-            
+
             m_controlsVisible : false,
             m_fitStatLabel : null,
             m_profile : null,

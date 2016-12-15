@@ -66,6 +66,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
          * Initialize a context menu.
          */
         _initContextMenu : function() {
+            console.log("grimmer menu, toolbar")
             var contextMenu = new qx.ui.menu.Menu();
             var customizeButton = new qx.ui.menu.Button("Customize...");
             var showDialog = skel.Command.Customize.CommandShowCustomizeDialog.getInstance();

@@ -23,13 +23,14 @@ qx.Class.define("skel.widgets.DisplayMain",
             var bounds = this.getBounds();
             this.m_height = bounds.height;
             this.m_width = bounds.width;
-            
+            console.log("grimmer display appear");
+            debugger;
             this._resetLayoutCB();
             this.addListener("resize", function() {
                 // this._resizeContent();
                 var bounds = this.getBounds();
                 this.m_height = bounds.height;
-                
+
                 this.m_width = bounds.width;
                 var sizeData = {
                         "offsetX" : bounds.left,
@@ -39,9 +40,10 @@ qx.Class.define("skel.widgets.DisplayMain",
                         "mainOffsetsChanged", sizeData));
             }, this);
         }, this);
-        
+
         qx.event.message.Bus.subscribe("setView", function(
                 message) {
+            console.log("grimmer displaymain-subscribe, setView");
             var data = message.getData();
             this._setView(data.plugin, data.location);
         }, this);
@@ -53,8 +55,8 @@ qx.Class.define("skel.widgets.DisplayMain",
     },
 
     members : {
-        
-        
+
+
         /**
          * Send a command to the server to clear the layout.
          */
@@ -84,13 +86,13 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.m_pane.dataUnloaded(path);
             }
         },
-        
+
         _drawModeChanged : function(ev) {
             if (this.m_pane !== null) {
                 this.m_pane.setDrawMode(ev.getData());
             }
         },
-        
+
         /**
          * Returns the number of columns in the grid.
          * @return {Number} the number of grid columns.
@@ -98,7 +100,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         getColCount : function(){
             return this.m_gridColCount;
         },
-        
+
         /**
          * Returns the number of rows in the grid.
          * @return {Number} the number of grid rows.
@@ -106,7 +108,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         getRowCount : function(){
             return this.m_gridRowCount;
         },
-        
+
         /**
          * Returns a list of information concerning windows that can be linked to
          * the given source window showing the indicated plug-in.
@@ -125,7 +127,7 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
             return linkInfo;
         },
-        
+
         /**
          * Returns a list of information concerning windows that can be replaced by
          * the given source window showing the indicated plug-in.
@@ -148,19 +150,22 @@ qx.Class.define("skel.widgets.DisplayMain",
         _initSharedVariables : function() {
             this.m_connector = mImport("connector");
             //layout details
+            console.log("grimmer displaymain2-initSharedVariables");
+
             var pathDict = skel.widgets.Path.getInstance();
             this.m_layout = this.m_connector.getSharedVar( pathDict.LAYOUT );
-            this.m_layout.addCB( this._resetLayoutCB.bind(this));
+            this.m_layout.addCB( this._resetLayoutCB2.bind(this));
         },
-        
-        
-        
+
+
+
         /**
          * Layout the screen real estate using a root layout cell with nested
          * children.
          * @param id {String} an identifier for the root layout cell.
          */
         layout : function( id ) {
+            console.log("grimmer displaymain");
             if ( this.m_pane !== null ){
                 var area = this.m_pane.getDisplayArea();
                 if ( this.indexOf( area ) >= 0 ){
@@ -173,7 +178,7 @@ qx.Class.define("skel.widgets.DisplayMain",
             //Reinitialize the pane if the id has changed.
             if ( this.m_pane === null || this.m_pane.getId() != id ){
                 this.m_pane = new skel.widgets.Layout.LayoutNodeComposite( id  );
-                
+
                 this.m_pane.addListener("iconifyWindow",
                         function(ev) {
                             this.fireDataEvent("iconifyWindow",ev.getData());
@@ -210,7 +215,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Adds or removes the link from the window identified
          * by the sourceWinId to the window identified by the
          * destWinId.
-         * 
+         *
          * @param sourceWinId
          *                {String} an identifier for the window
          *                representing the source of the link.
@@ -245,12 +250,13 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.removeAll();
             }
         },
-        
-        
+
+
         /**
          * Reset the layout based on changed layout information from the server.
          */
         _resetLayoutCB : function() {
+            console.log("grimmer resetLayoutCB-1");
             var layoutObjJSON = this.m_layout.get();
             if ( layoutObjJSON !== null ){
                 try {
@@ -262,6 +268,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                         windows = this.m_pane.getWindows();
                         skel.widgets.Window.WindowFactory.setExistingWindows( windows );
                     }
+                    console.log("grimmer DisplayMain resetLayoutCB:", layout);
                     this.layout( layout.layoutNode);
                     //Store the available windows in the Popup command of the image
                     //display so that it can decide whether or not it should be enabled
@@ -277,7 +284,36 @@ qx.Class.define("skel.widgets.DisplayMain",
                 }
             }
         },
-        
+
+        _resetLayoutCB2 : function() {
+            console.log("grimmer DisplayMain resetLayoutCB 2!!!!");
+            var layoutObjJSON = this.m_layout.get();
+            if ( layoutObjJSON !== null ){
+                try {
+                    var layout = JSON.parse( layoutObjJSON );
+                    var windows = [];
+                    //Store the existing windows in the factory so they
+                    //can (possibly) be recycled in the new layout.
+                    if ( this.m_pane !== null ){
+                        windows = this.m_pane.getWindows();
+                        skel.widgets.Window.WindowFactory.setExistingWindows( windows );
+                    }
+                    console.log("grimmer DisplayMain resetLayoutCB:", layout);
+                    this.layout( layout.layoutNode);
+                    //Store the available windows in the Popup command of the image
+                    //display so that it can decide whether or not it should be enabled
+                    //based on existing links to other windows.
+                    if ( this.m_pane !== null ){
+                        var newWindows = this.m_pane.getWindows();
+                        var popCmd = skel.Command.Popup.CommandPopup.getInstance();
+                        popCmd.setWindows( newWindows );
+                    }
+                }
+                catch( err ){
+                    console.log( "Could not parse: "+layoutObjJSON );
+                }
+            }
+        },
 
         /**
          * Update the number of columns in the current layout.
@@ -291,8 +327,8 @@ qx.Class.define("skel.widgets.DisplayMain",
             var params = "rows:"+gridRows + ",cols:"+gridCols;
             this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
         },
-        
-        
+
+
         /**
          * Sends a command to the server letting it know that the displayed plug-in
          * has changed.
@@ -302,6 +338,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         _setView : function( plugin, locationId ){
             var path = skel.widgets.Path.getInstance();
             var layoutPath = path.LAYOUT;
+            console.log("grimmer displaymain1-setview");
             var layoutSharedVar = this.m_connector.getSharedVar(layoutPath);
             var val = layoutSharedVar.get();
             if ( val ){
@@ -313,7 +350,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                         win.clean();
                         winPlugin = win.getPlugin();
                     }
-                    
+
                     var cmd = path.getCommandSetPlugin();
                     var params = "destPlugin:"+plugin+",sourceLocateId:"+locationId;
                     this.m_connector.sendCommand( cmd, params, function(){} );
@@ -325,7 +362,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         },
 
         m_PLUGIN_PREFIX : "win",
-        
+
         m_pane : null,
         m_height : 0,
         m_width : 0,

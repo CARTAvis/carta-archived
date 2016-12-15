@@ -18,14 +18,14 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
         this.m_connector = mImport("connector");
         this._init( );
     },
-    
+
     statics : {
         TYPE : "group"
     },
-    
+
 
     members : {
-        
+
         /**
          * Callback for a change in the available composition modes on the server.
          */
@@ -37,7 +37,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
                         var oldName = this.m_compModeCombo.getValue();
                         var modeNames = JSON.parse( val );
                         this.m_compModeCombo.setSelectItems( modeNames.modes );
-                       
+
                         //Try to reset the old selection
                         if ( oldName !== null ){
                             this.m_compModeCombo.setSelectValue( oldName );
@@ -50,7 +50,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
                 }
             }
         },
-        
+
         /**
          * Return an identifier for the type of layer settings.
          * @return {String} - an identifier for the type of layer settings.
@@ -58,8 +58,8 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
         getType : function(){
             return skel.widgets.Image.Stack.LayerSettingsGroup.TYPE;
         },
-        
-        
+
+
         /*
          * Initializes the UI.
          */
@@ -70,7 +70,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
             this._add( this.m_content );
             this._initCompositeModes();
         },
-        
+
         /**
          * Initialize UI as to whether or not to apply a mask.
          */
@@ -78,7 +78,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
             var hContainer = new qx.ui.container.Composite();
             hContainer.setLayout( new qx.ui.layout.HBox(1) );
             var label = new qx.ui.basic.Label( "Composer:" );
-            this.m_compModeCombo = new skel.widgets.CustomUI.SelectBox( 
+            this.m_compModeCombo = new skel.widgets.CustomUI.SelectBox(
                     "setCompositionMode", "mode");
             this.m_compModeCombo.addListener( "selectChanged", this._sendCompModeCmd, this );
             skel.widgets.TestID.addTestId( this.m_compModeCombo, "layerCompositionMode");
@@ -90,7 +90,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
             hContainer.add( new qx.ui.core.Spacer(1), {flex:1} );
             this.m_content.add( hContainer );
         },
-        
+
         /**
          * Send a command to the server to change the group layer composition mode.
          */
@@ -103,8 +103,8 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-        
-        
+
+
 
         /**
          * Update the UI with server information.
@@ -113,7 +113,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
         setControls : function( mode){
             this.m_compModeCombo.setSelectValue( mode );
         },
-        
+
         /**
          * Set the server-side id of the object that handles masking of
          * images.
@@ -122,11 +122,12 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
         setId : function( id ){
             this.m_id = id;
             var path = skel.widgets.Path.getInstance();
+            console.log("grimmer layoutsettinggroup");
             this.m_sharedVarCompModes = this.m_connector.getSharedVar(path.LAYER_COMPOSITION_MODES);
             this.m_sharedVarCompModes.addCB( this._compModesChangedCB.bind( this));
             this._compModesChangedCB();
         },
-        
+
         /**
          * Set an identifier for the layer.
          * @param layerId {String} - an identifier for the layer.
@@ -134,7 +135,7 @@ qx.Class.define("skel.widgets.Image.Stack.LayerSettingsGroup", {
         setLayerId : function( layerId ){
             this.m_layerId = layerId;
         },
-        
+
         m_compModeCombo : null,
         m_connector : null,
         m_content : null,

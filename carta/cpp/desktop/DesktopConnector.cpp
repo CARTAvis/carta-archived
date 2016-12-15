@@ -67,12 +67,18 @@ void DesktopConnector::initialize(const InitializeCallback & cb)
 
 void DesktopConnector::setState(const QString& path, const QString & newValue)
 {
+    qDebug() << "set state:" << path;
+
+    if (path == "/CartaObjects/c1"){
+        qDebug() << "grimmer bingo";
+    }
+
     // find the path
     auto it = m_state.find( path);
 
     // if we cannot find it, insert it, together with the new value, and emit a change
     if( it == m_state.end()) {
-        m_state[path] = newValue;
+        m_state[path] = newValue;       
         emit stateChangedSignal( path, newValue);
         return;
     }
@@ -134,6 +140,8 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
 
 void DesktopConnector::registerView(IView * view)
 {
+    qDebug()<<"grimmer view:registerView";
+
     // let the view know it's registered, and give it access to the connector
     view->registration( this);
 
@@ -166,6 +174,7 @@ void DesktopConnector::unregisterView( const QString& viewName ){
 // schedule a view refresh
 qint64 DesktopConnector::refreshView(IView * view)
 {
+    qDebug()<<"grimmer view:schedule freshview";
     // find the corresponding view info
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
@@ -254,6 +263,7 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 
 void DesktopConnector::refreshViewNow(IView *view)
 {
+    qDebug() << "grimmer view qt refreshViewNow, send QImage pix";
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
@@ -293,6 +303,8 @@ void DesktopConnector::refreshViewNow(IView *view)
     else {
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
+
+        qDebug() << "grimmer view orig Image";
 
         emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
     }

@@ -79,9 +79,9 @@ void ImageView::redrawBuffer() {
             p.drawImage(m_qimage.rect(), m_defaultImage);
         }
 
-        // execute the pre-render hook
-        Globals::instance()->pluginManager()->prepare<PreRender>(m_viewName,
-                &m_qimage).executeAll();
+//        // execute the pre-render hook
+//        Globals::instance()->pluginManager()->prepare<PreRender>(m_viewName,
+//                &m_qimage).executeAll();
     }
 }
 

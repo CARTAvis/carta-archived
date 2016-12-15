@@ -9,7 +9,7 @@
 qx.Class.define("skel.Command.CommandAll", {
     extend : skel.Command.CommandComposite,
     type : "singleton",
-    
+
     /**
      * Constructor
      */
@@ -18,13 +18,13 @@ qx.Class.define("skel.Command.CommandAll", {
         this.m_global = false;
         this.setEnabled( false );
         this.m_cmds = [];
-        
+
         //First the globals
-        
+
         this.m_cmds[0] = skel.Command.Session.CommandSession.getInstance();
         this.m_cmds[1] = skel.Command.Layout.CommandLayout.getInstance();
         this.m_cmds[2] = skel.Command.Preferences.CommandPreferences.getInstance();
-        
+
         //Now the window specific ordered from most popular to least supported.
         this.m_cmds[3] = skel.Command.View.CommandViews.getInstance();
         this.m_cmds[4] = skel.Command.Link.CommandLink.getInstance();
@@ -58,12 +58,12 @@ qx.Class.define("skel.Command.CommandAll", {
         index++;
         this.m_cmds[index] = skel.Command.Popup.CommandPopup.getInstance();
         index++;
-        
+
         //Except that global help always comes last
         this.m_cmds[index] = skel.Command.Help.CommandHelp.getInstance();
         this.setValue( this.m_cmds );
     },
-    
+
     members : {
         _resetEnabled : function( ){
             //Just tell the children to reset their enabled status

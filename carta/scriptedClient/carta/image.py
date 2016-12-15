@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
-from astropy.coordinates import SkyCoord
+# from astropy.coordinates import SkyCoord
 
 from cartaview import CartaView
 from histogram import Histogram
@@ -507,41 +506,41 @@ class Image(CartaView):
         else:
             return float(result[0])
 
-    def centerOnCoordinate(self, skyCoord):
-        """
-        Centers the image on an Astropy SkyCoord object.
+    # def centerOnCoordinate(self, skyCoord):
+    #     """
+    #     Centers the image on an Astropy SkyCoord object.
 
-        Astropy needs to be installed for this command to work. See
-        http://www.astropy.org for more information about Astropy and
-        how to install it.
+    #     Astropy needs to be installed for this command to work. See
+    #     http://www.astropy.org for more information about Astropy and
+    #     how to install it.
 
-        For example, the following sequence of commands will focus the
-        image viewer on the coordinates of M33 (regardless of whether
-        or not M33 is contained within the current image).
+    #     For example, the following sequence of commands will focus the
+    #     image viewer on the coordinates of M33 (regardless of whether
+    #     or not M33 is contained within the current image).
 
-            from astropy.coordinates import SkyCoord
-            i = v.getImageViews()
-            i[0].centerOnCoordinate(SkyCoord.from_name("M33"))
+    #         from astropy.coordinates import SkyCoord
+    #         i = v.getImageViews()
+    #         i[0].centerOnCoordinate(SkyCoord.from_name("M33"))
 
-        Parameters
-        ----------
-        skyCoord: Astropy SkyCoord object
-            The object to center the image on.
+    #     Parameters
+    #     ----------
+    #     skyCoord: Astropy SkyCoord object
+    #         The object to center the image on.
 
-        Returns
-        -------
-        list
-            Error message if an error occurred; empty otherwise.
-        """
-        result = self.con.cmdTagList("getPixelCoordinates",
-                                     imageView=self.getId(),
-                                     ra=skyCoord.ra.radian,
-                                     dec=skyCoord.dec.radian)
-        if (result[0] == "error" or result[0] == ''):
-            result = ["Could not obtain pixel coordinates for " + str(skyCoord)]
-        else:
-            self.centerOnPixel(float(result[0]), float(result[1]))
-        return result
+    #     Returns
+    #     -------
+    #     list
+    #         Error message if an error occurred; empty otherwise.
+    #     """
+    #     result = self.con.cmdTagList("getPixelCoordinates",
+    #                                  imageView=self.getId(),
+    #                                  ra=skyCoord.ra.radian,
+    #                                  dec=skyCoord.dec.radian)
+    #     if (result[0] == "error" or result[0] == ''):
+    #         result = ["Could not obtain pixel coordinates for " + str(skyCoord)]
+    #     else:
+    #         self.centerOnPixel(float(result[0]), float(result[1]))
+    #     return result
         
     def getPixelValue(self, x, y):
         """

@@ -45,7 +45,13 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             }
             var paramMap = "path:"+dirPath;
             var cmd = path.getCommandLoadData();
-            this.m_connector.sendCommand(cmd, paramMap, this._loadDataCB( this ));
+            // /CartaObjects/DataLoader:getData
+
+            console.log("grimmer filetree1 cmd:", cmd )
+            console.log("grimmer filetree2, paramMap", paramMap)
+
+            // get json from c++
+            this.m_connector.sendCommand(cmd, paramMap, this._loadDataCB( this ));        
         },
 
         /**
@@ -140,7 +146,9 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          * @return {Function} callback for updating the UI with available image files.
          */
         _loadDataCB : function( anObject ){
+            console.log("grimmer file list1:", anObject); //not normal json
             return function( fileList ){
+                console.log("grimmer file list2:", fileList);
                 anObject._updateTree( fileList );
             };
         },
@@ -152,6 +160,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          */
         _nodeSelected : function( nodeLabel ){
             var path = skel.widgets.Path.getInstance();
+            console.log("grimmer path:",path);
             if ( nodeLabel == ".."){
                 //Strip off child from path, and make that the new text.
                 var lastSepIndex = this.m_path.lastIndexOf( path.SEP );
@@ -177,6 +186,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          * Update the UI with new directory information from the server.
          */
         _resetModel : function( ){
+            console.log("grimmer reset model")
             this.m_path = this.m_jsonObj.name;
             this.m_dirText.setValue( this.m_path );
             this.m_jsonObj.name = "..";
@@ -189,16 +199,41 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 var element = this.m_jsonObj.dir[i];
                 var treeElement = null;
 
+                if (element.dir === null){
+                    console.log("it is null");
+                }
+
                 if (typeof element.dir != "undefined"){
+                    // is fodler
+                    console.log("tree is folder");
+
                     treeElement = new qx.ui.tree.TreeFolder(element.name);
                 } else {
+                    console.log("tree is file");
                     treeElement = new qx.ui.tree.TreeFile(element.name);
                 }
                 root.add(treeElement);
             }
 
+            // var jsonModel = qx.data.marshal.Json.createModel( this.m_jsonObj);
+            //
+            // if ( this.m_controller === null ){
+            //     console.log("grimmer UI tree:",jsonModel);
+            //     console.log("grimmer UI tree2:",this.m_tree);
+            //
+            //     this.m_controller = new qx.data.controller.Tree(jsonModel,
+            //             this.m_tree, "dir", "name");
+            // }
+            // else {
+            //     this.m_controller.setModel( jsonModel );
+            // }
+
+            // update UI.
             this.m_tree.getRoot().setOpen(true);
         },
+
+
+
 
         /**
          * Set whether or not the purpose of this file browser is to save files or not.
@@ -214,11 +249,14 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          *                hierarchical JSON format
          */
         _updateTree : function(dataTree) {
+            console.log("grimmer updateTree1:", dataTree);
             this.m_jsonObj = qx.lang.Json.parse(dataTree);
+            console.log("grimmer updateTree2:", this.m_jsonObj);
             this._resetModel();
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
         },
+
 
         m_dirText : null,
         m_fileText : null,

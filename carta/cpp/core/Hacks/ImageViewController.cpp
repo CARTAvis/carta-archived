@@ -132,6 +132,7 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_pixelPipeline-> setMinMax( 0, 1 );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
+    qDebug()<<"grimmer register3";
     // register with connector as a view
     m_connector-> registerView( this );
 
@@ -488,6 +489,8 @@ ImageViewController::loadFrame( int frame )
 
     // get a view of the data using the slice description and make a shared pointer out of it
     Carta::Lib::NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
+
+    qDebug() << "grimmer-imageViewController-clip";
 
     // compute 95% clip values, unless we already have them in the cache
     std::vector < double > clips = m_quantileCache[m_currentFrame];

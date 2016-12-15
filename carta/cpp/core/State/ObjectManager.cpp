@@ -136,7 +136,9 @@ int64_t CartaObject::addStateCallback( const QString& statePath, const IConnecto
 }
 
 void CartaObject::registerView( IView * view)
-{
+{    
+    qDebug()<<"grimmer registerView1"<<flush;
+
     conn()-> registerView( view );
 }
 

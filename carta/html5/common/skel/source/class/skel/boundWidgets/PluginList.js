@@ -64,7 +64,7 @@ qx.Class.define("skel.boundWidgets.PluginList", {
 
             this.add(this.m_table);
         },
-        
+
         /**
          * Callback for when the id of the object containing information about the
          * plugins has been received; initialize the shared variable and add a CB to it.
@@ -73,6 +73,8 @@ qx.Class.define("skel.boundWidgets.PluginList", {
          */
         _registrationCallback : function( anObject ){
             return function( id ){
+                console.log("grimmer PluginList");
+
                 anObject.m_sharedVar = anObject.m_connector.getSharedVar( id );
                 anObject.m_sharedVar.addCB( anObject._sharedVarCB.bind( this ));
                 anObject._sharedVarCB( anObject.m_sharedVar.get());

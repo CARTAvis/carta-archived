@@ -4,15 +4,15 @@
  */
 
 /*******************************************************************************
- * 
- * 
- * 
+ *
+ *
+ *
  ******************************************************************************/
 
 qx.Mixin.define("skel.widgets.Window.PreferencesMixin", {
 
         members : {
-            
+
             /**
              * Returns the contents of the user preferences shared variable.
              * @return {String} containing user preferences.
@@ -22,7 +22,7 @@ qx.Mixin.define("skel.widgets.Window.PreferencesMixin", {
                     return this.m_sharedVarPrefs.get();
                 }
             },
-            
+
             /**
              * Returns the server-side id of the user preferences.
              * @return {String} containing the user preferences.
@@ -30,25 +30,26 @@ qx.Mixin.define("skel.widgets.Window.PreferencesMixin", {
             getPreferencesId : function(){
                 return this.m_prefId;
             },
-            
-            
+
+
             /**
              * Initializes the callback for updating preferences for the object.
-             * @param anObject {Object} the parent object for which this manages 
+             * @param anObject {Object} the parent object for which this manages
              *          user preferences.
              */
             _preferencesCallback : function( anObject ){
                 return function( id ){
                     if ( id && id.length > 0 ){
                         anObject.m_prefId = id;
+                        console.log("grimmer PreferencesMixin");
                         anObject.m_sharedVarPrefs = anObject.m_connector.getSharedVar( id );
                         anObject.m_sharedVarPrefs.addCB( anObject._preferencesCB.bind( anObject ));
                         anObject._preferencesCB();
                     }
                 };
             },
-            
-           
+
+
             /**
              * Sends a command to the server to get the id of the preferences.
              */
@@ -59,7 +60,7 @@ qx.Mixin.define("skel.widgets.Window.PreferencesMixin", {
                 var regCmd = this.getIdentifier() + path.SEP_COMMAND + "registerPreferences";
                 this.m_connector.sendCommand( regCmd, paramMap, this._preferencesCallback(this));
             },
-            
+
             m_prefId : null,
             m_sharedVarPrefs : null,
             m_parent : null

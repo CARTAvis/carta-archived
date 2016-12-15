@@ -17,13 +17,13 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
         this.m_connector = mImport("connector");
         this._init();
     },
-    
+
     events : {
         "gridControlsChanged" : "qx.event.type.Data"
     },
 
     members : {
-        
+
         /**
          * Callback for a change in contour preference settings.
          */
@@ -43,7 +43,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
                 }
             }
         },
-        
+
         /**
          * Callback for a change in contour preference settings.
          */
@@ -63,7 +63,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
                 }
             }
         },
-        
+
         /**
          * Initializes the UI.
          */
@@ -73,12 +73,13 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
             this.m_contourTabs = new skel.widgets.Image.Contour.ContourTabs();
             this._add( this.m_contourTabs );
         },
-       
-        
+
+
         /**
          * Register to get updates on contour settings from the server.
          */
         _registerControls : function(){
+          console.log("grimmer controls");
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._controlsChangedCB.bind(this));
             this._controlsChangedCB();
@@ -88,7 +89,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
             this.m_sharedVarData.addCB( this._controlsDataChangedCB.bind(this ));
             this._controlsDataChangedCB();
         },
-        
+
         /**
          * Callback for when the registration is complete and an id is available.
          * @param anObject {skel.widgets.Image.Contour.ContourControls}.
@@ -98,7 +99,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
                 anObject._setContourId( id );
             };
         },
-        
+
         /**
          * Send a command to the server to get the contour control id.
          * @param imageId {String} the server side id of the image object.
@@ -109,7 +110,7 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._registrationCallback( this));
         },
-        
+
         /**
          * Store the contour control id.
          * @param contourId {String} a server-side identifier for the contour controls.
@@ -121,12 +122,12 @@ qx.Class.define("skel.widgets.Image.Contour.ContourControls", {
                 this._registerControls();
             }
         },
-        
+
         m_id : null,
         m_connector : null,
         m_sharedVar : null,
         m_sharedVarData : null,
-        
+
         m_contourTabs : null
     }
 });

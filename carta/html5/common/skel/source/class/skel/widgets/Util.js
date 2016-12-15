@@ -7,7 +7,7 @@
 qx.Class.define("skel.widgets.Util", {
     type : "static",
     statics : {
-        
+
         /**
          * Add a context menu to the widget that allows it to be removed from the menu/toolbar
          * and shows the general customize dialog.
@@ -16,6 +16,7 @@ qx.Class.define("skel.widgets.Util", {
          * @param toolbar {boolean} true if the widget is to appear on the toolbar; false otherwise.
          */
         addContext : function( widget, cmd, toolbar ){
+            console.log("grimmer menu addcontext")
             var contextMenu = new qx.ui.menu.Menu();
             var removeButton = new qx.ui.menu.Button( "Remove");
             removeButton.addListener( "execute", function(){
@@ -35,10 +36,10 @@ qx.Class.define("skel.widgets.Util", {
             contextMenu.add( customizeButton );
             widget.setContextMenu( contextMenu);
         },
-        
+
         /**
          * Returns the 'left' position of the widget.
-         * 
+         *
          * @param widget
          *                {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
@@ -49,7 +50,7 @@ qx.Class.define("skel.widgets.Util", {
 
         /**
          * Returns the 'right' position of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
@@ -60,7 +61,7 @@ qx.Class.define("skel.widgets.Util", {
 
         /**
          * Returns the 'top' position of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
@@ -70,7 +71,7 @@ qx.Class.define("skel.widgets.Util", {
 
         /**
          * Returns the 'bottom' position of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
@@ -82,7 +83,7 @@ qx.Class.define("skel.widgets.Util", {
         /**
          * Returns an array of size 2 representing the point that is located at
          * that center of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose center is to be
          *                determined.
          */
@@ -115,20 +116,20 @@ qx.Class.define("skel.widgets.Util", {
          */
         localPos : function( target, event) {
             var box = target.getContentLocation("box");
-           
+
             var left = event.getDocumentLeft();
             var top = event.getDocumentTop();
             if ( box ){
                 left = left - box.left;
                 top = top - box.top;
             }
-            
+
             return  {
                 x : left,
                 y : top
             };
         },
-        
+
         /**
          * Construct a button for the given command and callback.
          * @param cmd {skel.Command.Command}
@@ -137,6 +138,8 @@ qx.Class.define("skel.widgets.Util", {
          * @param value {Object} the command's value for its action.
          */
         makeButton : function( cmd, cb, tool, value){
+            console.log("grimmer menu util, make button")
+
             var label = cmd.getLabel();
             var button = new qx.ui.menu.Button( label );
             if ( tool ){
@@ -150,8 +153,8 @@ qx.Class.define("skel.widgets.Util", {
             }
             return button;
         },
-        
-        
+
+
         /**
          * Make a checkable menu item for the cmd.
          * @param cmd {skel.Command.Command}
@@ -159,9 +162,13 @@ qx.Class.define("skel.widgets.Util", {
          * @param tool {boolean} true if it should be a tool bar button; false for a menu button.
          */
         makeCheck : function( cmd, cb, tool ){
+            console.log("grimmer menu make checkBox !!!");
             var checkBox = new qx.ui.menu.CheckBox();
             if ( tool ){
+                console.log("grimmer checkboxk - form ");
                 checkBox = new qx.ui.form.CheckBox();
+            } else {
+                console.log("grimmer checkBox - menu");
             }
             checkBox.setCommand( cmd );
             var labelFunction = function( cmd, checkBox){
@@ -171,17 +178,19 @@ qx.Class.define("skel.widgets.Util", {
             };
             checkBox.addListener( "changeValue", labelFunction( cmd,checkBox), checkBox);
             if ( tool ){
-                
+
                 skel.widgets.Util.addContext( checkBox, cmd, tool );
             }
             return checkBox;
         },
-        
+
         /**
          * Return a menu consisting of the children of the command.
          * @param cmds {skel.Command.Command}.
          */
         makeMenu : function( cmds ){
+            console.log("grimmer menu makeMenu")
+
             var cmdMenu = new qx.ui.menu.Menu();
             if ( cmds.getType() === skel.Command.Command.TYPE_GROUP ){
                 var radioItems = skel.widgets.Util.makeRadioGroup( cmds );
@@ -223,13 +232,15 @@ qx.Class.define("skel.widgets.Util", {
             }
             return cmdMenu;
         },
-        
+
         /**
          * Returns a group of radio menu items representing the children of the command.
          * @param cmd {skel.Command.CommandGroup} a command with the property that only one of
          *      its children can be active at a time.
          */
         makeRadioGroup : function( cmd, tool ){
+            console.log("grimmer menu util, make radio group")
+
             var radios = [];
             var radioGroup = new qx.ui.form.RadioGroup();
             radioGroup.setAllowEmptySelection(true);
@@ -241,7 +252,7 @@ qx.Class.define("skel.widgets.Util", {
                     }
                 };
             };
-            
+
             for ( var i = 0; i < values.length; i++ ){
                 var button = null;
                 if ( !tool && values[i].isVisibleMenu() ){
@@ -263,7 +274,7 @@ qx.Class.define("skel.widgets.Util", {
             }
             return radios;
         },
-        
+
         /**
          * Converts a string containing 'true' or 'false' to a boolean.
          * @param valStr {String} the string to translate.

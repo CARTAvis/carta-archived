@@ -6,9 +6,9 @@
  * @ignore( mImport)
  ******************************************************************************/
 
-qx.Class.define("skel.widgets.Image.Grid.GridControls", { 
+qx.Class.define("skel.widgets.Image.Grid.GridControls", {
     extend : qx.ui.tabview.Page,
-    
+
     /**
      * Constructor.
      */
@@ -17,13 +17,13 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
         this.m_connector = mImport("connector");
         this._init();
     },
-    
+
     events : {
         "gridControlsChanged" : "qx.event.type.Data"
     },
 
     members : {
-        
+
         /**
          * Callback for a change in grid control preference settings.
          */
@@ -44,7 +44,7 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
                     if ( this.m_labels !== null ){
                         this.m_labels.setControls( controls );
                     }
-                    
+
                     if ( this.m_ticks !== null ){
                         this.m_ticks.setControls( controls );
                     }
@@ -61,7 +61,7 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
                 }
             }
         },
-        
+
         /**
          * Initializes the UI.
          */
@@ -84,18 +84,19 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
             this.m_tabView.add( this.m_labels );
             this.m_tabView.add( this.m_ticks );
         },
-        
-       
-        
+
+
+
         /**
          * Register to get updates on grid settings from the server.
          */
         _registerControls : function(){
+          console.log("grimmer GridControls");
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._controlsChangedCB.bind(this));
             this._controlsChangedCB();
         },
-        
+
         /**
          * Callback for when the registration is complete and an id is available.
          * @param anObject {skel.widgets.Image.Grid.GridControls}.
@@ -105,7 +106,7 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
                 anObject._setGridId( id );
             };
         },
-        
+
         /**
          * Send a command to the server to get the grid control id.
          * @param imageId {String} the server side id of the image object.
@@ -116,7 +117,7 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._registrationCallback( this));
         },
-        
+
         /**
          * Store the grid control id.
          * @param gridId {String} a server-side identifier for the grid controls.
@@ -132,13 +133,13 @@ qx.Class.define("skel.widgets.Image.Grid.GridControls", {
                 this._registerControls();
             }
         },
-        
+
         m_id : null,
         m_connector : null,
         m_sharedVar : null,
-        
+
         m_tabView : null,
-        
+
         m_canvas : null,
         m_grid : null,
         m_axes : null,

@@ -8,6 +8,7 @@ qx.Class.define( "skel.hacks.LayeredViewHack", {
     extend: qx.ui.container.Composite,
 
     construct: function( viewName) {
+        console.log("grimmer view, LayeredViewHack");
         this.base( arguments);
         this.m_viewName = viewName;
 

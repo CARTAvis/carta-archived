@@ -13,13 +13,13 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
     construct : function( appBase ) {
         this.base(arguments);
         this._init( appBase );
-        
+
         //Initiate connector.
          if ( typeof mImport !== "undefined"){
              this.m_connector = mImport("connector");
          }
     },
-    
+
     statics : {
         CMD_SET_CLIP_MIN : "setClipMin",
         CMD_SET_CLIP_MIN_PERCENT: "setClipMinPercent",
@@ -30,7 +30,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
     },
 
     members : {
-        
+
         /**
          * Callback for showing/clearing errors in a text field.
          * @param textWidget {skel.widgets.CustomUI.ErrorTextField} the text field.
@@ -45,7 +45,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
                 }
             };
         },
-        
+
         /**
          * Callback for a server error when setting the plot minimum clip value.
          * @return {function} which displays/clears the error.
@@ -53,7 +53,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
         _errorClipMinCB : function(  ){
             return this._errorCB( this.m_minClipText );
         },
-        
+
         /**
          * Callback for a server error when setting the plot maximum clip value.
          * @return {function} which displays/clears the error.
@@ -61,7 +61,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
         _errorClipMaxCB : function(){
             return this._errorCB( this.m_maxClipText );
         },
-        
+
         /**
          * Callback for a server error when setting the plot minimum clip percent.
          * @return {function} which displays/clears the error.
@@ -69,7 +69,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
         _errorClipMinPercentCB : function( ){
             return this._errorCB(this.m_percentMinClipText );
         },
-        
+
         /**
          * Callback for a server error when setting the plot maximum clip percent.
          * @return {function} which displays/clears the error.
@@ -77,7 +77,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
         _errorClipMaxPercentCB : function( ){
             return this._errorCB( this.m_percentMaxClipText );
         },
-        
+
         /**
          * Callback for a server error when setting the clip buffer size.
          * @return {function} which displays/clears the error.
@@ -92,12 +92,12 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
         _init : function( appBase ) {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
-            
+
             var overallContainer = new qx.ui.groupbox.GroupBox( "Zoom (graph mouse left drag)", "");
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
             overallContainer.setContentPadding(1,1,1,1);
             this._add( overallContainer );
-            
+
             var rangeContainer = new qx.ui.container.Composite();
             var gridLayout = new qx.ui.layout.Grid();
             gridLayout.setColumnAlign(0, "right","middle");
@@ -106,7 +106,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
             gridLayout.setSpacingY( 1 );
             rangeContainer.setLayout( gridLayout);
             overallContainer.add( rangeContainer);
-            
+
             //Minimum
             var minLabel = new qx.ui.basic.Label( "Min");
             minLabel.setTextAlign( "center");
@@ -114,23 +114,23 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
             this.m_minClipText.setToolTipText( "Smallest value on the horizontal axis.");
             this.m_minClipText.setIntegerOnly( false );
             this.m_minClipText.setTextId( appBase + "ZoomMinValue");
-            this.m_minClipListenerId = this.m_minClipText.addListener( "textChanged", 
+            this.m_minClipListenerId = this.m_minClipText.addListener( "textChanged",
                     this._sendClipMinCmd,  this );
-            
+
             var valueLabel = new qx.ui.basic.Label( "Value:");
             valueLabel.setTextAlign( "right");
             this.m_percentMinClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMinClipText.setToolTipText( "Percentage to zoom from the left on the horizontal axis; 0 is no left zoom.");
             this.m_percentMinClipText.setIntegerOnly( false );
             this.m_percentMinClipText.setTextId( appBase + "ZoomMinPercent");
-            this.m_percentMinClipListenerId = this.m_percentMinClipText.addListener( "textChanged", 
+            this.m_percentMinClipListenerId = this.m_percentMinClipText.addListener( "textChanged",
                     this._sendClipMinPercentCmd, this );
-            
+
             rangeContainer.add( minLabel, {row: 0, column:1});
             rangeContainer.add( this.m_minClipText, {row:1, column:1});
             rangeContainer.add( this.m_percentMinClipText, {row:2, column:1});
             rangeContainer.add( valueLabel, {row:1, column:0});
-           
+
             //Maximum
             var maxLabel = new qx.ui.basic.Label( "Max");
             maxLabel.setTextAlign( "center");
@@ -138,23 +138,23 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
             this.m_maxClipText.setToolTipText( "Largest value on the horizontal axis");
             this.m_maxClipText.setTextId( appBase + "ZoomMaxValue");
             this.m_maxClipText.setIntegerOnly( false );
-            this.m_maxClipListenerId = this.m_maxClipText.addListener( "textChanged", 
+            this.m_maxClipListenerId = this.m_maxClipText.addListener( "textChanged",
                     this._sendClipMaxCmd, this );
-            
+
             var percentLabel = new qx.ui.basic.Label( "Percent:");
             percentLabel.setTextAlign( "right");
             this.m_percentMaxClipText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_percentMaxClipText.setToolTipText( "Percentage to zoom in from the right on the horizontal axis; 100 is no right zoom.");
             this.m_percentMaxClipText.setIntegerOnly( false );
             this.m_percentMaxClipText.setTextId( appBase + "ZoomMaxPercent");
-            this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", 
+            this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged",
                     this._sendClipMaxPercentCmd, this );
-            
+
             rangeContainer.add( maxLabel, {row:0, column:2});
             rangeContainer.add( this.m_maxClipText, {row:1, column:2});
             rangeContainer.add( this.m_percentMaxClipText, {row:2, column:2});
             rangeContainer.add( percentLabel, {row:2, column:0});
-            
+
             //Buffer
             this.m_buffer = new qx.ui.form.CheckBox( "Buffer");
             this.m_buffer.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
@@ -163,11 +163,13 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
                     var path = skel.widgets.Path.getInstance();
                     var cmd = this.m_id + path.SEP_COMMAND + "setUseClipBuffer";
                     var params = "useClipBuffer:"+useBuffer;
+                    console.log("grimmer-his2:",cmd);
+                    console.log("grimmer-his2-2:",params);
                     this.m_connector.sendCommand( cmd, params, function(){});
                 }
                 this.m_bufferText.setEnabled( useBuffer );
             }, this );
-           
+
             this.m_bufferText = new skel.widgets.CustomUI.NumericTextField( 0, 100);
             this.m_bufferText.setIntegerOnly( true );
             this.m_bufferText.setToolTipText( "Provide extra space at each end of the plot; specify as a percentage [0,100).");
@@ -181,7 +183,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
                 }
             }, this );
             var perLabel = new qx.ui.basic.Label( "%");
-            
+
             var bufContainer = new qx.ui.container.Composite();
             bufContainer.setLayout( new qx.ui.layout.HBox(2));
             bufContainer.add( new qx.ui.core.Spacer(1), {flex:1});
@@ -190,7 +192,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
             bufContainer.add( perLabel );
             bufContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             overallContainer.add( bufContainer );
-            
+
             //Zoom and Selected Buttons
             this.m_fullRange = new qx.ui.form.Button( "Full" );
             this.m_fullRange.setToolTipText( "Zoom out to full range.");
@@ -208,7 +210,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
                 var params = "";
                 this.m_connector.sendCommand( cmd, params, function(){});
             }, this );
-            
+
             var butContainer = new qx.ui.container.Composite();
             butContainer.setLayout( new qx.ui.layout.HBox(2));
             butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
@@ -217,7 +219,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
             butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             overallContainer.add( butContainer );
         },
-        
+
         /**
          * Notify the server of the lower clip amount.
          */
@@ -277,7 +279,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
                  }
              }
          },
-         
+
          /**
           * Set whether or not to buffer the clips.
           * @param val {boolean} true if the clip should be buffered; false otherwise.
@@ -288,7 +290,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
                  this.m_buffer.setValue( val );
              }
          },
-         
+
          /**
           * Set the amount of the clip buffer.
           * @param amount {Number} an integer indicating the total amount of buffering.
@@ -341,11 +343,11 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
             this.m_percentMinClipListenerId = this.m_percentMinClipText.addListener( "textChanged", this._sendClipMinPercentCmd, this );
             this.m_percentMaxClipListenerId = this.m_percentMaxClipText.addListener( "textChanged", this._sendClipMaxPercentCmd, this );
         },
-        
 
-        
-       
-        
+
+
+
+
         /**
          * Set the server side id of this plot.
          * @param id {String} the server side id of the object that produced this plot.
@@ -353,12 +355,12 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
         setId : function( id ){
             this.m_id = id;
         },
-        
+
         m_buffer : null,
         m_bufferText : null,
         m_id : null,
         m_connector : null,
-        
+
         m_maxClipText : null,
         m_minClipText : null,
         m_maxClipListenerId : null,
@@ -370,7 +372,7 @@ qx.Class.define("skel.widgets.CustomUI.ZoomControlsWidget", {
         m_fullRange : null,
         m_selectedRange : null
     },
-    
+
     properties : {
         appearance : {
             refine : true,

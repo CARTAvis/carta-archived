@@ -703,7 +703,7 @@ private:
 	std::unique_ptr<Settings> m_settings;
 
 	//Data available to and managed by this controller.
-	std::unique_ptr<Stack> m_stack;
+    std::unique_ptr<Stack> m_stack;
 
 	//Separate state for mouse events since they get updated rapidly and not
 	//everyone wants to listen to them.

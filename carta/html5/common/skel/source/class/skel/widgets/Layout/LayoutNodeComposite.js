@@ -4,11 +4,11 @@
  */
 
 /*******************************************************************************
- * 
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
+ *
  ******************************************************************************/
 
 qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
@@ -38,7 +38,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
     },
 
     members : {
-        
+
         /**
          * Create a child layout cell with the given id and type.
          * @param childId {String} - an identifier for the child layout cell.
@@ -76,15 +76,16 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 this.sendSizeCmd( width, height );
                 this.fireDataEvent("resizeNode", null);
             }, this );
+            console.log("grimmer layout child");
             child.initSharedVar();
             return child;
         },
-        
+
         /**
          * Returns true if the link from the source window to
          * the destination window was successfully added or
          * removed; false otherwise.
-         * 
+         *
          * @param sourceWinId {String} an identifier for the link
          *                source.
          * @param destWinId {String} an identifier for the link
@@ -97,7 +98,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             this.m_areaFirst.changeLink(sourceWinId, destWinId, addLink);
             this.m_areaSecond.changeLink(sourceWinId, destWinId, addLink);
         },
-        
+
 
         /**
          * Notifies children that data has been loaded.
@@ -137,7 +138,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 }
             }
         },
-        
+
         /**
          * Returns the child of the passed in node with the given identifier, if there is one;
          * otherwise, returns null.
@@ -155,7 +156,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                     //remove it from ours.
                     var displayArea= this.m_areaFirst.getDisplayArea();
                     this._removeChild( displayArea );
-                   
+
                 }
             }
             if ( target === null ){
@@ -176,7 +177,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
         },
 
 
-        
+
         /**
          * Returns the row and column location of the second
          * area.
@@ -201,7 +202,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             }
             return overallSize;
         },
-        
+
 
         /**
          * Returns the split pane.
@@ -210,7 +211,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
         getDisplayArea : function() {
             return this.m_pane;
         },
-        
+
 
         /**
          * Returns a list of information concerning windows that can be linked to
@@ -229,11 +230,11 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 this.m_areaSecond.getLinkInfo( pluginId, sourceWinId, linkInfos );
             }
         },
-        
+
         /**
          * Returns a list of information about possible move destinations for
          * the given source window.
-         * @param sourceWinId {String} an identifier for the window 
+         * @param sourceWinId {String} an identifier for the window
          *      that wants information about move locations.
          * @return {String} information about move locations for the source window.
          */
@@ -254,7 +255,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             }
             return moveInfo;
         },
-        
+
         /**
          * Returns whether or not the window with the given id
          * was restored.
@@ -268,7 +269,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             }
             return restored;
         },
-        
+
         /**
          * Remove all windows.
          */
@@ -276,7 +277,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             this.m_areaFirst.removeWindows();
             this.m_areaSecond.removeWindows();
         },
-        
+
         /**
          * Remove the two split pane content areas if they exist.
          */
@@ -298,12 +299,13 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             }
             return clearedAreas;
         },
-        
+
         /**
          * Update the UI based on information from the server.
          * @param obj {Object} - server layout information.
          */
         serverUpdate : function( obj ){
+            console.log("grimmer layout-server:",obj);
             //Reset the orientation
             if ( obj.horizontal ){
                 if ( this.m_pane.getOrientation() != this.m_HORIZONTAL){
@@ -320,7 +322,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             if ( !cleared ){
                 return;
             }
-            
+
             if ( this.m_areaFirst===null || obj.layoutLeft.id !== this.m_areaFirst.getId() ){
                 //See if there happens to be an existing node with this id and make that the first child.
                 var data = {
@@ -330,7 +332,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 };
                 this.fireDataEvent( "findChild", data );
             }
-            
+
             if ( this.m_areaSecond ===null || obj.layoutRight.id !== this.m_areaSecond.getId() ){
                 //See if there happens to be an existing node with this id and make that the second child.
                 var data2 = {
@@ -340,17 +342,20 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
                 };
                 this.fireDataEvent( "findChild", data2 );
             }
-            
+
             //No matching first child so make a new one.
             if ( this.m_areaFirst === null || this.m_areaFirst.getId() != obj.layoutLeft.id ){
+                console.log("grimmer layout-1");
                 this.m_areaFirst = this._initializeChild( obj.layoutLeft.id, obj.layoutLeft.composite );
             }
-            
+
             //No matching second child so make a new one.
             if ( this.m_areaSecond === null || this.m_areaSecond.getId() != obj.layoutRight.id ){
+                console.log("grimmer layout-2");
+
                 this.m_areaSecond = this._initializeChild( obj.layoutRight.id, obj.layoutRight.composite );
             }
-            
+
             //Decide on the flex ratio based on the orientation of the pane
             //and the sizes of the children.
             var flexFirst = 1;
@@ -379,14 +384,14 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             var secondArea = this.m_areaSecond.getDisplayArea();
             this.m_pane.add( secondArea, flexSecond);
         },
-        
-        
+
+
         /**
          * Returns whether or not the identified child is replaced with the
          * new node.
          * @param sourceId {String} - an identifier for a layout cell; replacement is
          *      considered only if the identifier matches this cells identifier.
-         * @param childId {String} - indicates whether a first or second child 
+         * @param childId {String} - indicates whether a first or second child
          *      should be replaced.
          * @param node {skel.widgets.Layout.LayoutNode} the replacement node.
          * @return {boolean} true if the node was replaced; false otherwise.
@@ -413,7 +418,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             return nodeSet;
         },
 
-        
+
         /**
          * Returns a list of windows displayed by this area and its children.
          * @return {Array} a list of windows displayed by the area and its children.
@@ -424,7 +429,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
             var windows = firstWindows.concat( secondWindows );
             return windows;
         },
-        
+
         /**
          * Returns the window at the given location if one exists; otherwise returns null.
          * @param locationId {String} an identifier for a window location..
@@ -455,7 +460,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
 
         /**
          * Notifies children that the given window was selected.
-         * 
+         *
          * @param win {skel.widgets.Window.DisplayWindow} the
          *                selected window.
          */
@@ -474,7 +479,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNodeComposite",{
         m_pane : null,
         m_areaFirst : null,
         m_areaSecond : null
-     
+
     }
 
 });
