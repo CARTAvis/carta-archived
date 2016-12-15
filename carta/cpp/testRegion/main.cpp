@@ -14,6 +14,7 @@
 #include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/Regions/CoordinateSystemFormatter.h"
 #include <QDebug>
+#include <cmath>
 
 namespace tRegion
 {

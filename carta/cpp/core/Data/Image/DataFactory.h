@@ -5,6 +5,7 @@
 #pragma once
 #include <QString>
 #include <memory>
+#include <vector>
 
 namespace Carta {
 
