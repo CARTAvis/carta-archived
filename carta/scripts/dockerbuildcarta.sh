@@ -25,7 +25,7 @@ cd $HOME/src/CARTAvis/carta/html5/common/skel
 ./generate.py source > /dev/null
 ./generate.py  > /dev/null
 
-mkdir $HOME/src/build
-cd $HOME/src/build
+mkdir $HOME/src/CARTAvis/buildindocker
+cd $HOME/src/CARTAvis/buildindocker
 qmake noserver=1 CARTA_BUILD_TYPE=dev $HOME/src/CARTAvis/carta -r
 try make -j 16
