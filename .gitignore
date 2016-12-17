@@ -24,3 +24,5 @@
 *.swp
 
 *createlinks.sh
+buildindocker
+build
