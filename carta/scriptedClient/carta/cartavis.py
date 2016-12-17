@@ -31,13 +31,14 @@ class Cartavis:
         The full path of a compatible image file to load.
     """
 
-    def __init__(self, executable, configFile, port, htmlFile, imageFile):
-        args = [executable, "--scriptPort", 
+    def __init__(self, executable = None, configFile = None, port = 9999, htmlFile = None, imageFile = None):
+        args = [executable, "--scriptPort",
                 str(port), "--html", htmlFile, imageFile]
         print args
-        self.popen = subprocess.Popen(args)
-        print "Started process with pid=", self.popen.pid
-        time.sleep(3)
+        if executable != None and configFile != None and htmlFile != None and imageFile != None:
+            self.popen = subprocess.Popen(args)
+            print "Started process with pid=", self.popen.pid
+            time.sleep(3)
         self.visible = False
         self.con = TagConnector(port)
         return
@@ -116,7 +117,7 @@ class Cartavis:
         application layout, each one can be accessed via its own element
         in the list. For example, if there are 3 colormap views in the
         GUI, the following sequence of commands can be used to load a
-        different colormap in each one: 
+        different colormap in each one:
 
             c = v.getColormapViews()
             c[0].setColormap('coolwarm')
@@ -144,7 +145,7 @@ class Cartavis:
         application layout, each one can be accessed via its own element
         in the list. For example, if there are 3 animator views in the
         GUI, the following sequence of commands can be used to display a
-        different channel in each one: 
+        different channel in each one:
 
             a = v.getAnimatorViews()
             a[0].setChannel(1)
