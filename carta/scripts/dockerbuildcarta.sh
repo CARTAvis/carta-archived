@@ -1,8 +1,5 @@
 #!/bin/bash
 
-apt-get update
-apt-get install -y libgsl0ldbl libgsl0-dev libleveldb-dev libsqlite3-dev
-
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; exit 111; }
 try() { "$@" || die "cannot $*"; }
