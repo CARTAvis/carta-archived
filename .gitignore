@@ -24,5 +24,7 @@
 *.swp
 
 *createlinks.sh
-buildindocker
-build
+build*/
+
+# license
+PureWeb*.lic
