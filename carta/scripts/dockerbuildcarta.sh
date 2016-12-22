@@ -25,4 +25,10 @@ cd $HOME/src/CARTAvis/carta/html5/common/skel
 mkdir $HOME/src/CARTAvis/buildindocker
 cd $HOME/src/CARTAvis/buildindocker
 qmake noserver=1 CARTA_BUILD_TYPE=dev $HOME/src/CARTAvis/carta -r
-try make -j 16
+
+if [ $# -eq 0 ] ; then
+    echo "No make arguments supplied"
+    try make -j
+else
+    try make -j $1
+fi
