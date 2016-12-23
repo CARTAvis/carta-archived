@@ -26,5 +26,7 @@ export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 Xvfb :0.0 -screen 0 1600x1200x24+32 &
 sleep 5
 
+cp /home/developer/src/CARTAvis/PureWeb*.lic /home/developer/src/PureWeb/4.1.1/Server/conf/
+
 cd ${PUREWEB_HOME}/tomcat/bin
 ./catalina.sh run

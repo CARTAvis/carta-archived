@@ -29,4 +29,4 @@ echo $DISPLAYARG
 docker run --rm -u 1000 -p 8080:8080 -p 9999:9999 -ti --name carta \
     -w="/home/developer" -e DISPLAY=$DISPLAYARG \
     -v /tmp/.X11-unix:/tmp/.X11-unix -v $DIR/../../:/home/developer/src/CARTAvis \
-    grimmer0125/cartabuild /bin/bash
+    grimmer0125/cartabuild bash -c "/home/developer/src/CARTAvis/carta/scripts/dockerlaunchDesktop.sh"
