@@ -12,7 +12,8 @@
         function getURLParameter(name) {
             return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
         }
-        var ref = "/Apps/" + getURLParameter("name") + "/html5/";
+        // var ref = "/Apps/" + getURLParameter("name") + "/html5/";
+        var ref = "/Apps/" + "Skeleton3" + "/html5/";
         console.log( "dynamically setting base href to", ref);
         document.write("<base href='" + ref + "' />");
     </script>
