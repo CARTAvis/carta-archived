@@ -17,9 +17,13 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/developer/Qt/5.3/gcc_64/lib
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/calsci/Software/qwt-6.1.2-qt-5.3.2/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/developer/src/CARTAvis-externals/ThirdParty/qwt/lib
 
+# copy from the script to launch desktop version,
 ulimit -n 2048
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/casa/lib/libcasa:/opt/casa/lib/libcode/:/opt/casa/otherlib/:/opt/wcslib-5.13/lib/
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${BASEDIR}/carta/cpp/core:${BASEDIR}/carta/cpp/CartaLib
+
+# alex's , but ville's does not have
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cartabuildfolder/cpp/core \
+# :$cartabuildfolder/cpp/CartaLib
 
 export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 

@@ -24,7 +24,7 @@ dependencies:
   override:
     - docker info
     - mkdir -p ~/docker
-    - mkdir -p ~/images
+    # - mkdir -p ~/images
 
     # Restore docker build image and configure Dockerfile
     - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/grimmer0125/cartabuild:latest; docker save docker.io/grimmer0125/cartabuild:latest > ~/docker/image.tar; fi
@@ -32,17 +32,14 @@ dependencies:
     - mv ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new ~/$CIRCLE_PROJECT_REPONAME/Dockerfile
 
     # Get Selenium test images if they are not cached yet
-    - if [[ ! -e ~/images/SeleniumTestImages.tgz ]]; then curl -L https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz  > ~/images/SeleniumTestImages.tgz; fi
+    # - if [[ ! -e ~/images/SeleniumTestImages.tgz ]]; then curl -L https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz  > ~/images/SeleniumTestImages.tgz; fi
 
     # Try to install geckodriver
-    # - wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz
-    # - tar zxvf geckodriver-v0.11.1-linux64.tar.gz
-    # - export PATH=$PATH:`pwd`
     - wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz
     - tar zxf geckodriver-v0.11.1-linux64.tar.gz
     - chmod 755 geckodriver
     - sudo cp geckodriver /usr/local/bin/
-
+    
     # build CARTAvis
     - docker build -t cartavis/circlecibuild .
 
@@ -52,7 +49,8 @@ test:
     - docker run cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/runScriptedClientTests.sh
 
     # Start CARTAvis server int the docker container
-    - docker run -d -p 8080:8080 cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/startCARTAServer.sh && sleep 60
+    # - docker run -d -p 8080:8080 cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/startCARTAServer.sh && sleep 60
+    - docker run -d -p 8080:8080 cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/dockerlaunchServer.sh && sleep 60
 
     # Run Selenium Tests
     #- cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ./ciSeleniumTests.py
