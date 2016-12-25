@@ -28,7 +28,12 @@ qmake CARTA_BUILD_TYPE=dev $HOME/src/CARTAvis/carta -r
 
 if [ $# -eq 0 ] ; then
     echo "No make arguments supplied"
-    try make -j
+    try make
 else
     try make -j $1
 fi
+
+find . -name "*.o" -exec rm -f {} \;
+find . -name "Makefile" -exec rm -f {} \;
+find . -name "*.h" -exec rm -f {} \;
+find . -name "*.cpp" -exec rm -f {} \;
