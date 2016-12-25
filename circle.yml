@@ -27,7 +27,7 @@ dependencies:
     # - mkdir -p ~/images
 
     # Restore docker build image and configure Dockerfile
-    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/grimmer0125/cartabuild:latest; docker save docker.io/grimmer0125/cartabuild:latest > ~/docker/image.tar; fi
+    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/grimmer0125/cartabuild:20161224; docker save docker.io/grimmer0125/cartabuild:20161224 > ~/docker/image.tar; fi
     - cat ~/$CIRCLE_PROJECT_REPONAME/Dockerfile | envsubst  > ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new
     - mv ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new ~/$CIRCLE_PROJECT_REPONAME/Dockerfile
 
@@ -39,7 +39,7 @@ dependencies:
     - tar zxf geckodriver-v0.11.1-linux64.tar.gz
     - chmod 755 geckodriver
     - sudo cp geckodriver /usr/local/bin/
-    
+
     # build CARTAvis
     - docker build -t cartavis/circlecibuild .
 
