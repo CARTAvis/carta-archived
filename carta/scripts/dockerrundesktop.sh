@@ -31,12 +31,12 @@ if [ $# -eq 0 ] ; then
     -w="/home/developer" -e DISPLAY=$DISPLAYARG \
     -e SHELL="/bin/bash" \
     -v /tmp/.X11-unix:/tmp/.X11-unix -v $DIR/../../:/home/developer/src/CARTAvis \
-    grimmer0125/cartabuild bash -c "/home/developer/src/CARTAvis/carta/scripts/dockerlaunchDesktop.sh"
+    grimmer0125/cartabuild:20161224 bash -c "/home/developer/src/CARTAvis/carta/scripts/dockerlaunchDesktop.sh"
 else
     docker run --rm -u 1000 -p 8080:8080 -p 9999:9999 -ti --name carta \
     -w="/home/developer" -e DISPLAY=$DISPLAYARG \
     -e SHELL="/bin/bash" \
     -v /tmp/.X11-unix:/tmp/.X11-unix -v $DIR/../../:/home/developer/src/CARTAvis \
     -v $1:/home/developer/CARTA/Images \
-    grimmer0125/cartabuild bash -c "/home/developer/src/CARTAvis/carta/scripts/dockerlaunchDesktop.sh"
+    grimmer0125/cartabuild:20161224 bash -c "/home/developer/src/CARTAvis/carta/scripts/dockerlaunchDesktop.sh"
 fi
