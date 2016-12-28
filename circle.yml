@@ -44,8 +44,8 @@ dependencies:
     - sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
     - sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
     # - sudo apt-get install chromium-browser
-    - wget http://chromedriver.storage.googleapis.com/2.27/chromedriver_linux64.zip
-    - unzip chromedriver_linux64.zip
+    - wget http://chromedriver.storage.googleapis.com/2.26/chromedriver_linux32.zip
+    - unzip chromedriver_linux32.zip
     - sudo mv chromedriver /usr/local/bin/
 
     # build CARTAvis
