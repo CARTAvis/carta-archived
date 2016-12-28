@@ -40,6 +40,12 @@ dependencies:
     - chmod 755 geckodriver
     - sudo cp geckodriver /usr/local/bin/
 
+    # Try to install chromedriver
+    - sudo apt-get install chromium-browser
+    - wget http://chromedriver.storage.googleapis.com/2.27/chromedriver_linux64.zip
+    - unzip chromedriver_linux64.zip
+    - sudo mv chromedriver /usr/local/bin/
+
     # build CARTAvis
     - docker build -t cartavis/circlecibuild .
 
