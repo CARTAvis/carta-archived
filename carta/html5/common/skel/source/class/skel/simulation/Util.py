@@ -2,6 +2,7 @@ import unittest
 import time
 import selectBrowser
 from selenium import webdriver
+from pyvirtualdisplay import Display
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
@@ -22,6 +23,8 @@ def setUp(self, browser):
     if browser == 2:
         # Change the path to where chromedriver is located
         # chromedriver = "/usr/local/bin/chromedriver"
+        display = Display(visible=0, size=(1024, 768))
+        display.start()
         self.driver = webdriver.Chrome() # chromedriver)
         self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
 

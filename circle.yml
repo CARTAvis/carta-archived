@@ -15,6 +15,7 @@ dependencies:
     - sudo pip install pytest
     - sudo pip install flaky
     - sudo pip install pytest-timeout
+    - sudo pip install pyvirtualdisplay
 
   cache_directories:
     # automatically cache build docker image between builds
@@ -43,9 +44,13 @@ dependencies:
     # Try to install chromedriver
     - sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
     - sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
+
+    # Now, let’s install xvfb so we can run Chrome headlessly:
+    - sudo apt-get install xvfb
+
     # - sudo apt-get install chromium-browser
-    - wget http://chromedriver.storage.googleapis.com/2.26/chromedriver_linux32.zip
-    - unzip chromedriver_linux32.zip
+    - wget http://chromedriver.storage.googleapis.com/2.26/chromedriver_linux64.zip
+    - unzip chromedriver_linux64.zip
     - sudo mv chromedriver /usr/local/bin/
 
     # build CARTAvis
