@@ -24,7 +24,7 @@ dependencies:
 
   override:
     - python --version
-    - apt-get update
+    - sudo apt-get update
     - sudo apt-get install chromium-browser
     - pip list
     - pip show selenium
