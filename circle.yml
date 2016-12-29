@@ -24,8 +24,9 @@ dependencies:
 
   override:
     # - python --version
-    - sudo apt-get update
-    - sudo apt-get install chromium-browser
+    # - sudo apt-get update
+    # - sudo apt-get install chromium-browser
+    # - chromium-browser -version
     # - pip list
     # - pip show selenium
 
@@ -51,11 +52,11 @@ dependencies:
     - sudo apt-get install xvfb
 
     # Try to install chrome & chromedriver
-    # - sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    # - sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
+    - sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    - sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
 
     # - sudo apt-get install chromium-browser
-    - wget http://chromedriver.storage.googleapis.com/2.27/chromedriver_linux64.zip
+    - wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip
     - unzip chromedriver_linux64.zip
     - sudo mv chromedriver /usr/local/bin/
 
