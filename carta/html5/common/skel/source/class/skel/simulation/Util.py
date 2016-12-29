@@ -32,11 +32,7 @@ def setUp(self, browser):
 
         self.driver = webdriver.Chrome(chrome_options=options) # chromedriver)
 
-# http://stackoverflow.com/questions/40273832/selenium-chromedriver-2-25-timeoutexception-cannot-determine-loading-status
-# http://stackoverflow.com/questions/37886667/chrome-selenium-webdriver-failing-with-timeouts
         self.driver.set_page_load_timeout(60)
-
-        # self.driver.Manage().Timeouts().SetPageLoadTimeout(TimeSpan.FromS‌​econds(60));
 
         self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
 
