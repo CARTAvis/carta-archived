@@ -23,6 +23,7 @@ dependencies:
     # - "~/images"
 
   override:
+    - firefox --version
     # - python --version
     # - sudo apt-get update
     # - sudo apt-get install chromium-browser
@@ -32,49 +33,75 @@ dependencies:
 
     - docker info
     - mkdir -p ~/docker
-    # - mkdir -p ~/images
 
-    # Restore docker build image and configure Dockerfile
-    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/grimmer0125/cartabuild:20161224; docker save docker.io/grimmer0125/cartabuild:20161224 > ~/docker/image.tar; fi
-    # - cat ~/$CIRCLE_PROJECT_REPONAME/Dockerfile | envsubst  > ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new
-    # - mv ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new ~/$CIRCLE_PROJECT_REPONAME/Dockerfile
-
-    # Get Selenium test images if they are not cached yet
-    # - if [[ ! -e ~/images/SeleniumTestImages.tgz ]]; then curl -L https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz  > ~/images/SeleniumTestImages.tgz; fi
-
-    # Try to install geckodriver
+    # # - mkdir -p ~/images
+    #
+    # # Restore docker build image and configure Dockerfile
+    # - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/grimmer0125/cartabuild:20161224; docker save docker.io/grimmer0125/cartabuild:20161224 > ~/docker/image.tar; fi
+    # # - cat ~/$CIRCLE_PROJECT_REPONAME/Dockerfile | envsubst  > ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new
+    # # - mv ~/$CIRCLE_PROJECT_REPONAME/Dockerfile.new ~/$CIRCLE_PROJECT_REPONAME/Dockerfile
+    #
+    # # Get Selenium test images if they are not cached yet
+    # # - if [[ ! -e ~/images/SeleniumTestImages.tgz ]]; then curl -L https://googledrive.com/host/0B6trezaEcQQ9NXN0aGJPRk1XTGM/SeleniumTestImages.tgz  > ~/images/SeleniumTestImages.tgz; fi
+    #
+    # # Try to install geckodriver
     # - wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz
     # - tar zxf geckodriver-v0.11.1-linux64.tar.gz
     # - chmod 755 geckodriver
     # - sudo cp geckodriver /usr/local/bin/
-
-    # Now, let’s install xvfb so we can run Chrome headlessly:
-    - sudo apt-get install xvfb
-
-    # Try to install chrome & chromedriver
-    - sudo apt-get install libxss1 libappindicator1 libindicator7
-    - sudo apt-get install libgconf2-4 libnss3-1d libxss1
-    - sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    - sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
-    - sudo apt-get -f install
-
-    # - sudo apt-get install chromium-browser
-    - wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip
-    - unzip chromedriver_linux64.zip
-    - sudo mv chromedriver /usr/local/bin/
-
-    # build CARTAvis
-    - docker build -t cartavis/circlecibuild .
+    #
+    # # Now, let’s install xvfb so we can run Chrome headlessly:
+    # - sudo apt-get install xvfb
+    #
+    # # Try to install chrome
+    # # - sudo apt-get install libxss1 libappindicator1 libindicator7
+    # # - sudo apt-get install libgconf2-4 libnss3-1d libxss1
+    # # - sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    # # - sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
+    # # - sudo apt-get -f install
+    #
+    # # - sudo apt-get install chromium-browser
+    #
+    # # Try to install chromedriver
+    # # https://chromedriver.storage.googleapis.com/2.26/notes.txt
+    # # chromedrier:
+    # # 2.24 support 52~53, 27:54~56, 26:53~55, 25:53~55
+    # # 2.26 + chrome 55, still happen
+    # # E       TimeoutException: Message: timeout: cannot determine loading status
+    # # 2.26 32 bit+ 55,
+    # # E           WebDriverException: Message: Service chromedriver unexpectedly exited. Status code was: 127
+    # # 2.27 + 55,
+    # # E       TimeoutException: Message: timeout: cannot determine loading status
+    #
+    # # acdc1
+    # # 2.24 + chrome 54 works !!!!! but  not in compatible list
+    # #
+    # # my ubuntu: 2.24 + 55, not work, 3.0.0b3, first try is 2.27/2.26 + 55, 3.0.2
+    #
+    # # we can still try
+    # # x 2. 2.27 + 55 + those extra setting, tried on ubuntu, 3.0.0b3
+    # # x 1. 2.24 + 53 + extra mmmmmmm, now circle
+    # # 4. 2.25 + 53 + ..
+    # # 3. 2.26 + 53 + .. ubuntu
+    # # other versions of chromedriver 32 bit + chrome???
+    # # !!!!! selenium -factors !!!!
+    #
+    # # - wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip
+    # # - unzip chromedriver_linux64.zip
+    # # - sudo mv chromedriver /usr/local/bin/
+    #
+    # # build CARTAvis
+    # - docker build -t cartavis/circlecibuild .
 
 test:
   override:
-    #Run scripted client tests
-    # - docker run cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/runScriptedClientTests.sh
-
-    # Start CARTAvis server int the docker container
-    # - docker run -d -p 8080:8080 cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/startCARTAServer.sh && sleep 60
-    - docker run -d -p 8080:8080 cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/dockerlaunchServer.sh && sleep 60
-
-    # Run Selenium Tests
-    #- cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ./ciSeleniumTests.py
-    - cd ~/$CIRCLE_PROJECT_REPONAME/carta/html5/common/skel/source/class/skel/simulation; ./ciSeleniumTests.sh
+    # # Run scripted client tests
+    # # - docker run cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/runScriptedClientTests.sh
+    #
+    # # Start CARTAvis server int the docker container
+    # # - docker run -d -p 8080:8080 cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/startCARTAServer.sh && sleep 60
+    # - docker run -d -p 8080:8080 cartavis/circlecibuild /home/developer/src/CARTAvis/carta/scripts/dockerlaunchServer.sh && sleep 60
+    #
+    # # Run Selenium Tests
+    # #- cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ./ciSeleniumTests.py
+    # - cd ~/$CIRCLE_PROJECT_REPONAME/carta/html5/common/skel/source/class/skel/simulation; ./ciSeleniumTests.sh
