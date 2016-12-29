@@ -11,7 +11,7 @@ machine:
 
 dependencies:
   pre:
-    - sudo pip install selenium
+    - sudo pip install selenium==3.0.0b3
     - sudo pip install pytest
     - sudo pip install flaky
     - sudo pip install pytest-timeout
@@ -52,8 +52,11 @@ dependencies:
     - sudo apt-get install xvfb
 
     # Try to install chrome & chromedriver
+    - sudo apt-get install libxss1 libappindicator1 libindicator7
+    - sudo apt-get install libgconf2-4 libnss3-1d libxss1
     - sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
     - sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
+    - sudo apt-get -f install
 
     # - sudo apt-get install chromium-browser
     - wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip

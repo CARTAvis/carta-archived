@@ -8,6 +8,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 # Adjust hyperlinks as necessary
 def setUp(self, browser):
@@ -25,7 +26,18 @@ def setUp(self, browser):
         # chromedriver = "/usr/local/bin/chromedriver"
         display = Display(visible=0, size=(1024, 768))
         display.start()
-        self.driver = webdriver.Chrome() # chromedriver)
+
+        options = Options()
+        options.add_argument('--dns-prefetch-disable')
+
+        self.driver = webdriver.Chrome(chrome_options=options) # chromedriver)
+
+# http://stackoverflow.com/questions/40273832/selenium-chromedriver-2-25-timeoutexception-cannot-determine-loading-status
+# http://stackoverflow.com/questions/37886667/chrome-selenium-webdriver-failing-with-timeouts
+        self.driver.set_page_load_timeout(60)
+
+        # self.driver.Manage().Timeouts().SetPageLoadTimeout(TimeSpan.FromS‌​econds(60));
+
         self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
 
         #self.driver.get("http://199.116.235.164:8080/pureweb/app/unix:0.0/4/143/1?client=html5&name=CartaSkeleton3")
