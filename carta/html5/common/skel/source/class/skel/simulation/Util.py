@@ -14,8 +14,8 @@ from selenium.webdriver.chrome.options import Options
 def setUp(self, browser):
     # Running on Ubuntu (Firefox)
     if browser == 1:
-        display = Display(visible=0, size=(1024, 768))
-        display.start()
+        # display = Display(visible=0, size=(1024, 768))
+        # display.start()
 
         self.driver = webdriver.Firefox()
         self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
@@ -27,8 +27,8 @@ def setUp(self, browser):
     if browser == 2:
         # Change the path to where chromedriver is located
         # chromedriver = "/usr/local/bin/chromedriver"
-        display = Display(visible=0, size=(1024, 768))
-        display.start()
+        # display = Display(visible=0, size=(1024, 768))
+        # display.start()
 
         options = Options()
         options.add_argument('--dns-prefetch-disable')
