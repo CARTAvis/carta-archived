@@ -65,7 +65,7 @@ dependencies:
     # Try to install chromedriver
     # https://chromedriver.storage.googleapis.com/2.26/notes.txt
     # chromedrier:
-    # 2.24 support 52~53, 27:54~56, 26:53~55, 25:53~55
+    # 2.24 support 52~54, 27:54~56, 26:53~55, 25:53~55
     # 2.26 + chrome 55, still happen
     # E       TimeoutException: Message: timeout: cannot determine loading status
     # 2.26 32 bit+ 55,
@@ -86,7 +86,7 @@ dependencies:
     # other versions of chromedriver 32 bit + chrome???
     # !!!!! selenium -factors !!!!
 
-    - wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip
+    - wget http://chromedriver.storage.googleapis.com/2.26/chromedriver_linux64.zip
     - unzip chromedriver_linux64.zip
     - sudo mv chromedriver /usr/local/bin/
 
@@ -104,4 +104,4 @@ test:
 
     # Run Selenium Tests
     #- cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ./ciSeleniumTests.py
-    - cd ~/$CIRCLE_PROJECT_REPONAME/carta/html5/common/skel/source/class/skel/simulation; python tLoadImage.py
+    - cd ~/$CIRCLE_PROJECT_REPONAME/carta/html5/common/skel/source/class/skel/simulation; ./ciSeleniumTests.sh
