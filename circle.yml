@@ -25,8 +25,6 @@ dependencies:
   override:
     # - firefox --version
     # - python --version
-    # - sudo apt-get update
-    # - sudo apt-get install chromium-browser
     # - chromium-browser -version
     # - pip list
     # - pip show selenium
@@ -61,6 +59,8 @@ dependencies:
     # - sudo apt-get -f install
 
     # - sudo apt-get install chromium-browser
+    - sudo apt-get update
+    - sudo apt-get install chromium-browser
 
     # Try to install chromedriver
     # https://chromedriver.storage.googleapis.com/2.26/notes.txt
@@ -86,9 +86,9 @@ dependencies:
     # other versions of chromedriver 32 bit + chrome???
     # !!!!! selenium -factors !!!!
 
-    # - wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip
-    # - unzip chromedriver_linux64.zip
-    # - sudo mv chromedriver /usr/local/bin/
+    - wget http://chromedriver.storage.googleapis.com/2.24/chromedriver_linux64.zip
+    - unzip chromedriver_linux64.zip
+    - sudo mv chromedriver /usr/local/bin/
 
     # build CARTAvis
     - docker build -t cartavis/circlecibuild .
@@ -104,4 +104,4 @@ test:
 
     # Run Selenium Tests
     #- cd ~/CARTAvis/carta/html5/common/skel/source/class/skel/simulation; echo -e '1\n1\n' | ./ciSeleniumTests.py
-    - cd ~/$CIRCLE_PROJECT_REPONAME/carta/html5/common/skel/source/class/skel/simulation; ./ciSeleniumTests.sh
+    - cd ~/$CIRCLE_PROJECT_REPONAME/carta/html5/common/skel/source/class/skel/simulation; python tLoadImage.py
