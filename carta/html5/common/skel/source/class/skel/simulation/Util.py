@@ -14,6 +14,9 @@ from selenium.webdriver.chrome.options import Options
 def setUp(self, browser):
     # Running on Ubuntu (Firefox)
     if browser == 1:
+        display = Display(visible=0, size=(1024, 768))
+        display.start()
+
         self.driver = webdriver.Firefox()
         self.driver.get("http://localhost:8080/pureweb/app?client=html5&name=CartaSkeleton3")
         #self.driver.get("http://199.116.235.164:8080/pureweb/app/unix:1.0/2/20801/2?client=html5&name=CartaSkeleton3")
