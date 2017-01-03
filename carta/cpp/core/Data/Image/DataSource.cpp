@@ -595,6 +595,19 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vecto
     std::vector<int> mFrames = _fitFramesToImage( frames );
     if ( m_permuteImage ){
         int imageDim =m_permuteImage->dims().size();
+
+	//Build a vector showing the permute order.
+	std::vector<int> indices( imageDim );
+        indices[0] = m_axisIndexX;
+        indices[1] = m_axisIndexY;
+        int vectorIndex = 2;
+        for ( int i = 0; i < imageDim; i++ ){
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+                indices[vectorIndex] = i;
+                vectorIndex++;
+            }
+        }
+
         SliceND nextSlice = SliceND();
         SliceND& slice = nextSlice;
         for ( int i = 0; i < imageDim; i++ ){
@@ -603,7 +616,8 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vecto
             if ( i != 0 && i != 1 ){
                 //Take a slice at the indicated frame.
                 int frameIndex = 0;
-                AxisInfo::KnownType type = _getAxisType( i );
+		int thisAxis = indices[i];
+                AxisInfo::KnownType type = _getAxisType( thisAxis );
                 if ( AxisInfo::KnownType::OTHER != type ){
                     int axisIndex = static_cast<int>( type );
                     frameIndex = mFrames[axisIndex];
