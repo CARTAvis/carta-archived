@@ -227,13 +227,22 @@ public:
 
     virtual
     ~CCImage() {
+        if(m_casaII != nullptr)
+        {
+            delete m_casaII;
+            m_casaII = nullptr;
+        }
+
         //qDebug() << "~CCImage is getting called";
     }
 
     /// do not use this!
     /// \todo constructor should be protected... but I don't have time to fix the
     /// compiler errors (Pavol)
-    CCImage() { }
+    CCImage()
+    {
+        m_casaII = nullptr;
+    }
 
 protected:
     /// type of the image data
