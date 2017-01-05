@@ -109,6 +109,8 @@ void LayerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxis
         const std::vector<int>& frames ){
     if ( m_dataSource ){
         m_dataSource->_setDisplayAxes( displayAxisTypes, frames );
+        _resetPan();
+
     }
 }
 
