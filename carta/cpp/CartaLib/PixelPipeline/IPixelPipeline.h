@@ -34,7 +34,7 @@ namespace PixelPipeline
 ///   - can have mulitple sub-steps
 ///   - configurable
 /// - stage 5: Drgb -> QRgb
-///   - simple conversion to 8 bit values using rounding
+///   - simple conversion to 8 bit values using auto-rounding
 ///   - not configurable
 ///
 /// Setup for a changed min/max
@@ -258,7 +258,7 @@ public:
         convert( p_val, drgb );
 
         /// stage 5:
-        result = qRgb( round( drgb[0] * 255 ), round( drgb[1] * 255 ), round( drgb[2] * 255 ) );
+        result = qRgb( drgb[0] * 255 , drgb[1] * 255 ,  drgb[2] * 255 );
     } // convert
 
 protected:
@@ -305,7 +305,7 @@ protected:
 inline void
 normRgb2QRgb( const NormRgb & drgb, QRgb & result )
 {
-    result = qRgb( round( drgb[0] * 255 ), round( drgb[1] * 255 ), round( drgb[2] * 255 ) );
+    result = qRgb( drgb[0] * 255, drgb[1] * 255 , drgb[2] * 255 );;
 }
 
 /// algorithm for caching a double->rgb function
