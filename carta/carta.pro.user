@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.2.1, 2016-12-15T21:37:35. -->
+<!-- Written by QtCreator 4.2.0, 2017-01-08T01:07:11. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -40,6 +40,7 @@
    <value type="bool" key="EditorConfiguration.ScrollWheelZooming">true</value>
    <value type="bool" key="EditorConfiguration.ShowMargin">false</value>
    <value type="int" key="EditorConfiguration.SmartBackspaceBehavior">0</value>
+   <value type="bool" key="EditorConfiguration.SmartSelectionChanging">true</value>
    <value type="bool" key="EditorConfiguration.SpacesForTabs">true</value>
    <value type="int" key="EditorConfiguration.TabKeyBehavior">0</value>
    <value type="int" key="EditorConfiguration.TabSize">8</value>
@@ -72,10 +73,11 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">qmake</value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QtProjectManager.QMakeBuildStep</value>
-      <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibrary">false</value>
-      <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibraryAuto">true</value>
-      <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments">NOSERVER=1 CARTA_BUILD_TYPE=dev </value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibrary">true</value>
+      <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments">NOSERVER=1 CARTA_BUILD_TYPE=dev</value>
       <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">false</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.SeparateDebugInfo">false</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.UseQtQuickCompiler">false</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -87,7 +89,7 @@
        <value type="QString">-r</value>
       </valuelist>
       <value type="bool" key="Qt4ProjectManager.MakeStep.Clean">false</value>
-      <value type="QString" key="Qt4ProjectManager.MakeStep.MakeArguments">-j 16</value>
+      <value type="QString" key="Qt4ProjectManager.MakeStep.MakeArguments">-j 4</value>
       <value type="QString" key="Qt4ProjectManager.MakeStep.MakeCommand"></value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.2">
@@ -141,9 +143,10 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QtProjectManager.QMakeBuildStep</value>
       <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibrary">false</value>
-      <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibraryAuto">true</value>
       <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments"></value>
       <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">false</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.SeparateDebugInfo">false</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.UseQtQuickCompiler">false</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -191,7 +194,67 @@
     <value type="int" key="Qt4ProjectManager.Qt4BuildConfiguration.BuildConfiguration">0</value>
     <value type="bool" key="Qt4ProjectManager.Qt4BuildConfiguration.UseShadowBuild">true</value>
    </valuemap>
-   <value type="int" key="ProjectExplorer.Target.BuildConfigurationCount">2</value>
+   <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.2">
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/Users/grimmer/cartabuild/CARTAvis-1411/build-carta-build2-Profile</value>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">qmake</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QtProjectManager.QMakeBuildStep</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibrary">true</value>
+      <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments"></value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">false</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.SeparateDebugInfo">true</value>
+      <value type="bool" key="QtProjectManager.QMakeBuildStep.UseQtQuickCompiler">false</value>
+     </valuemap>
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Make</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.MakeStep</value>
+      <valuelist type="QVariantList" key="Qt4ProjectManager.MakeStep.AutomaticallyAddedMakeArguments">
+       <value type="QString">-w</value>
+       <value type="QString">-r</value>
+      </valuelist>
+      <value type="bool" key="Qt4ProjectManager.MakeStep.Clean">false</value>
+      <value type="QString" key="Qt4ProjectManager.MakeStep.MakeArguments"></value>
+      <value type="QString" key="Qt4ProjectManager.MakeStep.MakeCommand"></value>
+     </valuemap>
+     <value type="int" key="ProjectExplorer.BuildStepList.StepsCount">2</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Build</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Build</value>
+    </valuemap>
+    <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.1">
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Make</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.MakeStep</value>
+      <valuelist type="QVariantList" key="Qt4ProjectManager.MakeStep.AutomaticallyAddedMakeArguments">
+       <value type="QString">-w</value>
+       <value type="QString">-r</value>
+      </valuelist>
+      <value type="bool" key="Qt4ProjectManager.MakeStep.Clean">true</value>
+      <value type="QString" key="Qt4ProjectManager.MakeStep.MakeArguments">clean</value>
+      <value type="QString" key="Qt4ProjectManager.MakeStep.MakeCommand"></value>
+     </valuemap>
+     <value type="int" key="ProjectExplorer.BuildStepList.StepsCount">1</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Clean</value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
+     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Clean</value>
+    </valuemap>
+    <value type="int" key="ProjectExplorer.BuildConfiguration.BuildStepListCount">2</value>
+    <value type="bool" key="ProjectExplorer.BuildConfiguration.ClearSystemEnvironment">false</value>
+    <valuelist type="QVariantList" key="ProjectExplorer.BuildConfiguration.UserEnvironmentChanges"/>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Profile</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4BuildConfiguration</value>
+    <value type="int" key="Qt4ProjectManager.Qt4BuildConfiguration.BuildConfiguration">0</value>
+    <value type="bool" key="Qt4ProjectManager.Qt4BuildConfiguration.UseShadowBuild">true</value>
+   </valuemap>
+   <value type="int" key="ProjectExplorer.Target.BuildConfigurationCount">3</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.DeployConfiguration.0">
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
@@ -216,6 +279,11 @@
    <value type="int" key="ProjectExplorer.Target.DeployConfigurationCount">1</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.PluginSettings"/>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.0">
+    <value type="bool" key="Analyzer.QmlProfiler.AggregateTraces">false</value>
+    <value type="bool" key="Analyzer.QmlProfiler.FlushEnabled">false</value>
+    <value type="uint" key="Analyzer.QmlProfiler.FlushInterval">1000</value>
+    <value type="QString" key="Analyzer.QmlProfiler.LastTraceFile"></value>
+    <value type="bool" key="Analyzer.QmlProfiler.Settings.UseGlobalSettings">true</value>
     <valuelist type="QVariantList" key="Analyzer.Valgrind.AddedSuppressionFiles"/>
     <value type="bool" key="Analyzer.Valgrind.Callgrind.CollectBusEvents">false</value>
     <value type="bool" key="Analyzer.Valgrind.Callgrind.CollectSystime">false</value>
@@ -255,11 +323,12 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">desktop</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/Users/grimmer/cartabuild/CARTAvis-1411/carta/cpp/desktop/desktop.pro</value>
+    <value type="bool" key="QmakeProjectManager.QmakeRunConfiguration.UseLibrarySearchPath">true</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.CommandLineArguments">--html /Users/grimmer/cartabuild/CARTAvis-1411/carta/VFS/DesktopDevel/desktop/desktopIndex.html</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">cpp/desktop/desktop.pro</value>
     <value type="bool" key="Qt4ProjectManager.Qt4RunConfiguration.UseDyldImageSuffix">false</value>
-    <value type="bool" key="Qt4ProjectManager.Qt4RunConfiguration.UseTerminal">false</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.UserWorkingDirectory"></value>
+    <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.UserWorkingDirectory.default">/Users/grimmer/cartabuild/CARTAvis-1411/build/cpp/desktop/desktop.app/Contents/MacOS</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
@@ -276,10 +345,10 @@
  </data>
  <data>
   <variable>ProjectExplorer.Project.Updater.FileVersion</variable>
-  <value type="int">16</value>
+  <value type="int">18</value>
  </data>
  <data>
   <variable>Version</variable>
-  <value type="int">16</value>
+  <value type="int">18</value>
  </data>
 </qtcreator>
