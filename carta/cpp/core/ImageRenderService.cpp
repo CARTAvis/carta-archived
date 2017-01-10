@@ -311,14 +311,9 @@ Service::internalRenderSlot()
     // nan
     // pixel pipeline cache settings
     // Floats are binary-encoded (base64)
-    QString cacheId = QString( "%1/%2/%3x%4/%5,%6/%7/%8" )
+    QString cacheId = QString( "%1/%2//%8" )
                           .arg( m_inputViewCacheId )
                           .arg( m_pixelPipelineCacheId )
-                          .arg( m_outputSize.width() )
-                          .arg( m_outputSize.height() )
-                          .arg( d2hex( m_pan.x() ) )
-                          .arg( d2hex( m_pan.y() ) )
-                          .arg( d2hex( m_zoom ) )
                           .arg( QString::number(nanColor) );
 
 
@@ -339,14 +334,6 @@ Service::internalRenderSlot()
         ~Scope() { /*qDebug() << "internalRenderSlot done";*/ } }
     debugScopeGuard;
 
-    auto cachedImage = m_frameCache.object( cacheId );
-    if ( cachedImage ) {
-        //qDebug() << "frame cache hit";
-        emit done( * cachedImage, m_lastSubmittedJobId );
-        return;
-    }
-    //qDebug() << "frame cache miss";
-
     if ( ! m_inputView ) {
         qCritical() << "input view not set";
         qDebug() << "xyz internal renderslot" << m_inputView.get() << this;
@@ -358,10 +345,12 @@ Service::internalRenderSlot()
         return;
     }
 
-
+    auto cachedRawImage = m_frameCache.object( cacheId
+ );
 
     // render the frame if needed
-    if ( m_frameImage.isNull() ) {
+    if ( !cachedRawImage ) {
+        // cacheRaw miss
 
         if ( pixelPipelineCacheSettings().enabled ) {
             if ( pixelPipelineCacheSettings().interpolated ) {
@@ -384,6 +373,12 @@ Service::internalRenderSlot()
         else {
             ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage, nanColor );
         }
+    }
+    else
+    {
+        // cacheRaw hit
+
+        m_frameImage = *cachedRawImage;
     }
 
     // prepare output
@@ -458,7 +453,7 @@ Service::internalRenderSlot()
 
 
     // insert this image into frame cache
-    m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
+    m_frameCache.insert( cacheId, new QImage( m_frameImage ), img.byteCount() );
 
 } // internalRenderSlot
 
