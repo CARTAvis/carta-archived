@@ -902,8 +902,8 @@ void Controller::_initializeState(){
     m_state.insertValue<bool>( AUTO_CLIP, true );
     m_state.insertValue<bool>(PAN_ZOOM_ALL, true );
     m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
-    m_state.insertValue<double>( CLIP_VALUE_MIN, 0.025 );
-    m_state.insertValue<double>( CLIP_VALUE_MAX, 0.975 );
+    m_state.insertValue<double>( CLIP_VALUE_MIN, 0.0 );
+    m_state.insertValue<double>( CLIP_VALUE_MAX, 1.0 );
 
     //Default Tab
     m_state.insertValue<int>( Util::TAB_INDEX, 0 );

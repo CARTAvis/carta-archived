@@ -18,8 +18,8 @@ RenderRequest::RenderRequest( const std::vector<int>& frames,
     m_requestMain = false;
     m_requestContext = false;
     m_requestZoom = false;
-    m_minClipPercent = 0.025;
-    m_maxClipPercent = 0.975;
+    m_minClipPercent = 0.0;
+    m_maxClipPercent = 1.0;
     m_recomputeClips = true;
     m_pan = QPointF( nan(""), nan(""));
 }
