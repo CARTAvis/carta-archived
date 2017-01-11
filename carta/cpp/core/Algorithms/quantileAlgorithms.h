@@ -63,7 +63,7 @@ quantiles2pixels(
 
     // indicate bad clip if no finite numbers were found
     if ( allValues.size() == 0 ) {
-        return std::vector < Scalar > ( std::numeric_limits < Scalar >::quiet_NaN(), quant.size() );
+        return std::vector < Scalar > ( quant.size(), std::numeric_limits < Scalar >::quiet_NaN());
     }
 
     // for every input quantile, do quickselect and store the result
