@@ -299,6 +299,9 @@ Service::internalRenderSlot()
 
     QRgb nanColor = m_nanColor.rgb();
     if ( m_defaultNan ){
+        // when function quantiles2pixels in quantileAlgorithms.h return {nan, nan}
+        // it may cause CARTA to crash
+        // because of function convert in IPixelPipeline.h
         m_pixelPipelineRaw->convertq( clipMin, nanColor );
     }
 
