@@ -289,11 +289,6 @@ Service::internalRenderSlot()
     //static int renderCount = 0;
     //qDebug() << "Image render" << renderCount++ << "xyz";
 
-    // raw double to base64 converter
-    auto d2hex = [] (double x) -> QString {
-        return QByteArray( (char *) ( & x ), sizeof( x ) ).toBase64();
-    };
-
     double clipMin, clipMax;
     m_pixelPipelineRaw-> getClips( clipMin, clipMax );
 
@@ -305,12 +300,8 @@ Service::internalRenderSlot()
     // cache id will be concatenation of:
     // view id
     // pipeline id
-    // output size
-    // pan
-    // zoom
     // nan
     // pixel pipeline cache settings
-    // Floats are binary-encoded (base64)
     QString cacheId = QString( "%1/%2//%8" )
                           .arg( m_inputViewCacheId )
                           .arg( m_pixelPipelineCacheId )
@@ -416,7 +407,7 @@ Service::internalRenderSlot()
 
         // more debugging - draw pixel grid
         // \todo need to add clipping if we want to expose this as a functionality
-        if ( true && zoom() > 5 ) {
+        if ( CARTA_RUNTIME_CHECKS && zoom() > 5 ) {
             p.setRenderHint( QPainter::Antialiasing, true );
             double alpha = Carta::Lib::linMap( zoom(), 5, 32, 0.01, 0.2 );
             //qDebug() << "alpha="<<alpha;
@@ -439,18 +430,10 @@ Service::internalRenderSlot()
                 p.drawLine( QPointF( 0, pt.y() ), QPointF( outputSize().width(), pt.y() ) );
             }
         }
-        // debuggin: put a yellow stamp on the image, so that next time it's recalled
-        // it'll have 'cached' stamped on it
-        if ( CARTA_RUNTIME_CHECKS ) {
-            p.setPen( QColor( "yellow" ) );
-            p.drawText( img.rect(), Qt::AlignRight | Qt::AlignBottom, "Cached" );
-        }
     }
 
     // report result
     emit done( img, m_lastSubmittedJobId );
-
-
 
     // insert this image into frame cache
     m_frameCache.insert( cacheId, new QImage( m_frameImage ), img.byteCount() );
