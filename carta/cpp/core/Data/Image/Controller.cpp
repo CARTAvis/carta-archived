@@ -899,7 +899,7 @@ void Controller::_initializeCallbacks(){
 void Controller::_initializeState(){
 
     //First the preference state.
-    m_state.insertValue<bool>( AUTO_CLIP, true );
+    m_state.insertValue<bool>( AUTO_CLIP, false );
     m_state.insertValue<bool>(PAN_ZOOM_ALL, true );
     m_state.insertValue<bool>( STACK_SELECT_AUTO, true );
     m_state.insertValue<double>( CLIP_VALUE_MIN, 0.0 );
