@@ -228,10 +228,7 @@ public:
     virtual void
     convert( double p_val, NormRgb & result ) override
     {
-        // this is a workaround solution
-        // we should think carefully about how to deal with
-        // when the upper bound and the lower bound are nan value
-        // CARTA_ASSERT( ! std::isnan( p_val ) );
+        CARTA_ASSERT( ! std::isnan( p_val ) );
         CARTA_ASSERT( m_stage3 );
 
         // stage 0: clamp

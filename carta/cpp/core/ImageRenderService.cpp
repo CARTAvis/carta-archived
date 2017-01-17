@@ -298,11 +298,18 @@ Service::internalRenderSlot()
     m_pixelPipelineRaw-> getClips( clipMin, clipMax );
 
     QRgb nanColor = m_nanColor.rgb();
-    if ( m_defaultNan ){
-        // when function quantiles2pixels in quantileAlgorithms.h return {nan, nan}
-        // it may cause CARTA to crash
-        // because of function convert in IPixelPipeline.h
-        m_pixelPipelineRaw->convertq( clipMin, nanColor );
+    if ( m_defaultNan )
+    {
+        if(std::isnan(clipMin) && std::isnan(clipMax))
+        {
+            // special case: [clipMin, clipMax] = nan
+            nanColor = qRgb( 0,0,0 );
+        }
+        else
+        {
+            // general case
+            m_pixelPipelineRaw->convertq( clipMin, nanColor );
+        }
     }
 
     // cache id will be concatenation of:
@@ -325,7 +332,8 @@ Service::internalRenderSlot()
                           .arg( QString::number(nanColor) );
 
 
-    if ( m_pixelPipelineCacheSettings.enabled ) {
+    // disable pixelPipelineCache in case [clipMin, clipMax] = nan
+    if ( m_pixelPipelineCacheSettings.enabled && !std::isnan(clipMin) && !std::isnan(clipMax)){
         cacheId += QString( "/1/%1/%2" )
                        .arg( int (m_pixelPipelineCacheSettings.interpolated) )
                        .arg( m_pixelPipelineCacheSettings.size );
@@ -366,7 +374,8 @@ Service::internalRenderSlot()
     // render the frame if needed
     if ( m_frameImage.isNull() ) {
 
-        if ( pixelPipelineCacheSettings().enabled ) {
+        // disable pixelPipelineCache in case [clipMin, clipMax] = nan
+        if ( pixelPipelineCacheSettings().enabled && !std::isnan(clipMin) && !std::isnan(clipMax) ) {
             if ( pixelPipelineCacheSettings().interpolated ) {
                 if ( ! m_cachedPPinterp ) {
                     m_cachedPPinterp.reset( new Lib::PixelPipeline::CachedPipeline < true > () );
