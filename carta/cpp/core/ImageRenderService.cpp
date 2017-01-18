@@ -289,11 +289,6 @@ Service::internalRenderSlot()
     //static int renderCount = 0;
     //qDebug() << "Image render" << renderCount++ << "xyz";
 
-    // raw double to base64 converter
-    auto d2hex = [] (double x) -> QString {
-        return QByteArray( (char *) ( & x ), sizeof( x ) ).toBase64();
-    };
-
     double clipMin, clipMax;
     m_pixelPipelineRaw-> getClips( clipMin, clipMax );
 
@@ -305,20 +300,11 @@ Service::internalRenderSlot()
     // cache id will be concatenation of:
     // view id
     // pipeline id
-    // output size
-    // pan
-    // zoom
     // nan
     // pixel pipeline cache settings
-    // Floats are binary-encoded (base64)
-    QString cacheId = QString( "%1/%2/%3x%4/%5,%6/%7/%8" )
+    QString cacheId = QString( "%1/%2//%8" )
                           .arg( m_inputViewCacheId )
                           .arg( m_pixelPipelineCacheId )
-                          .arg( m_outputSize.width() )
-                          .arg( m_outputSize.height() )
-                          .arg( d2hex( m_pan.x() ) )
-                          .arg( d2hex( m_pan.y() ) )
-                          .arg( d2hex( m_zoom ) )
                           .arg( QString::number(nanColor) );
 
 
@@ -339,14 +325,6 @@ Service::internalRenderSlot()
         ~Scope() { /*qDebug() << "internalRenderSlot done";*/ } }
     debugScopeGuard;
 
-    auto cachedImage = m_frameCache.object( cacheId );
-    if ( cachedImage ) {
-        //qDebug() << "frame cache hit";
-        emit done( * cachedImage, m_lastSubmittedJobId );
-        return;
-    }
-    //qDebug() << "frame cache miss";
-
     if ( ! m_inputView ) {
         qCritical() << "input view not set";
         qDebug() << "xyz internal renderslot" << m_inputView.get() << this;
@@ -358,10 +336,12 @@ Service::internalRenderSlot()
         return;
     }
 
-
+    auto cachedRawImage = m_frameCache.object( cacheId
+ );
 
     // render the frame if needed
-    if ( m_frameImage.isNull() ) {
+    if ( !cachedRawImage ) {
+        // cacheRaw miss
 
         if ( pixelPipelineCacheSettings().enabled ) {
             if ( pixelPipelineCacheSettings().interpolated ) {
@@ -384,6 +364,12 @@ Service::internalRenderSlot()
         else {
             ::iView2qImage( m_inputView.get(), * m_pixelPipelineRaw, m_frameImage, nanColor );
         }
+    }
+    else
+    {
+        // cacheRaw hit
+
+        m_frameImage = *cachedRawImage;
     }
 
     // prepare output
@@ -421,7 +407,7 @@ Service::internalRenderSlot()
 
         // more debugging - draw pixel grid
         // \todo need to add clipping if we want to expose this as a functionality
-        if ( true && zoom() > 5 ) {
+        if ( CARTA_RUNTIME_CHECKS && zoom() > 5 ) {
             p.setRenderHint( QPainter::Antialiasing, true );
             double alpha = Carta::Lib::linMap( zoom(), 5, 32, 0.01, 0.2 );
             //qDebug() << "alpha="<<alpha;
@@ -444,21 +430,13 @@ Service::internalRenderSlot()
                 p.drawLine( QPointF( 0, pt.y() ), QPointF( outputSize().width(), pt.y() ) );
             }
         }
-        // debuggin: put a yellow stamp on the image, so that next time it's recalled
-        // it'll have 'cached' stamped on it
-        if ( CARTA_RUNTIME_CHECKS ) {
-            p.setPen( QColor( "yellow" ) );
-            p.drawText( img.rect(), Qt::AlignRight | Qt::AlignBottom, "Cached" );
-        }
     }
 
     // report result
     emit done( img, m_lastSubmittedJobId );
 
-
-
     // insert this image into frame cache
-    m_frameCache.insert( cacheId, new QImage( img ), img.byteCount() );
+    m_frameCache.insert( cacheId, new QImage( m_frameImage ), img.byteCount() );
 
 } // internalRenderSlot
 
