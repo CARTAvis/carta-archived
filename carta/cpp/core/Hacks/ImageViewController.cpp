@@ -489,12 +489,12 @@ ImageViewController::loadFrame( int frame )
     // get a view of the data using the slice description and make a shared pointer out of it
     Carta::Lib::NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
 
-    // compute 95% clip values, unless we already have them in the cache
+    // compute 100% clip values, unless we already have them in the cache
     std::vector < double > clips = m_quantileCache[m_currentFrame];
     if ( clips.size() < 2 ) {
         Carta::Lib::NdArray::Double doubleView( view.get(), false );
         clips = Carta::Core::Algorithms::quantiles2pixels(
-            doubleView, { 0.025, 0.975 }
+            doubleView, { 0.0, 1.0 }
             );
         qDebug() << "recomputed clips" << clips;
         m_quantileCache[m_currentFrame] = clips;
