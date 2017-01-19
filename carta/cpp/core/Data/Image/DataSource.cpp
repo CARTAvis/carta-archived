@@ -960,16 +960,16 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
 		bool minClipInCache(0);
 		bool maxClipInCache(0);
 		
+		// TODO: check if these are the right frame values and percentile values
+		QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(minClipPercentile);
+		QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(maxClipPercentile);
+		
+		qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8() << "maxClipKey" << maxClipKey.toUtf8();
+		
+		QByteArray minClipVal;
+		QByteArray maxClipVal;
+		
 		if (m_diskCache) {
-			// TODO: check if these are the right frame values and percentile values
-			QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(minClipPercentile);
-			QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(maxClipPercentile);
-			
-			qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8() << "maxClipKey" << maxClipKey.toUtf8();
-			
-			QByteArray minClipVal;
-			QByteArray maxClipVal;
-			
 			minClipInCache = m_diskCache->readEntry(minClipKey.toUtf8(), minClipVal);
 			maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
 		}
