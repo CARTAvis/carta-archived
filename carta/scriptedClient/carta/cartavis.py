@@ -31,11 +31,17 @@ class Cartavis:
         The full path of a compatible image file to load.
     """
 
-    def __init__(self, executable = None, configFile = None, port = 9999, htmlFile = None, imageFile = None):
-        args = [executable, "--scriptPort",
-                str(port), "--html", htmlFile, imageFile]
-        print args
-        if executable != None and configFile != None and htmlFile != None and imageFile != None:
+    def __init__(self, executable = None, htmlFile = None, port, configPath = None, imageFile = None):
+        if executable != None and htmlFile != None:
+            args = [executable, "--scriptPort",
+                    str(port), "--html", htmlFile]
+            if configPath != None:
+                args.append("--config")
+                args.append(configPath)
+            if imageFile != None:
+                args.append(imageFile)
+            print args
+
             self.popen = subprocess.Popen(args)
             print "Started process with pid=", self.popen.pid
             time.sleep(3)
