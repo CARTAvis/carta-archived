@@ -333,7 +333,7 @@ public:
     cache( Func & funcToCache, int64_t nSegments, double min, double max )
     {
         CARTA_ASSERT( nSegments > 1 );
-        CARTA_ASSERT( min < max );
+        CARTA_ASSERT( min <= max );
         m_min = min;
         m_max = max;
         m_cache.resize( nSegments );
@@ -346,7 +346,14 @@ public:
         // pre-cache some stuff
         m_n1 = m_cache.size() - 1;
         m_d = ( m_max - m_min ) / m_n1;
-        m_dInvN1 = 1 / m_d;
+        if(m_d == 0)
+        {
+            m_dInvN1 = 1;
+        }
+        else
+        {
+            m_dInvN1 = 1 / m_d;
+        }
     }
 
     void
@@ -388,10 +395,16 @@ inline void CachedPipeline<false>::convert(double x, NormRgb & result) /*overrid
 template <>
 inline void CachedPipeline<true>::convert(double x, NormRgb & result) /*override*/
 {
-    double dind = ( x - m_min ) * m_dInvN1;
+    double dval = ( x - m_min ) * m_dInvN1;
+    double dind = Carta::Lib::clamp<double>( dval, 0, m_n1);
 
     if ( Q_UNLIKELY( dind < 0 ) ) {
         result = m_cache[0];
+        return;
+    }
+
+    if ( Q_UNLIKELY( dind >= m_n1 ) ) {
+        result = m_cache.back();
         return;
     }
 
@@ -400,15 +413,6 @@ inline void CachedPipeline<true>::convert(double x, NormRgb & result) /*override
     int64_t ind = intpart;
 
 //    qDebug() << "intpart = " << intpart << "frac=" << frac << "ind=" << ind;
-
-//    if ( Q_UNLIKELY( ind < 0 ) ) {
-//        result = m_cache[0];
-//        return;
-//    }
-    if ( Q_UNLIKELY( ind >= m_n1 ) ) {
-        result = m_cache.back();
-        return;
-    }
 
     result[0] = m_cache[ind][0] * (1-frac) + m_cache[ind+1][0] * frac;
     result[1] = m_cache[ind][1] * (1-frac) + m_cache[ind+1][1] * frac;
