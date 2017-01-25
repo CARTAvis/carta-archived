@@ -31,7 +31,7 @@ enum class UniqueHookIDs {
     ProfileHook_ID,
     Fit1DHook_ID,
     ImageStatisticsHook_ID,
-
+    GetPersistentCache_ID,
     GetProfileExtractor_ID,
 
     /// region related stuff, still to be considered experimental

@@ -1,0 +1,9 @@
+{
+    "api"        : "1",
+    "name"       : "PCacheSqlite3",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": "Implements persistent cache using QT's sqlite3 driver.",
+    "about"      : "Part of CARTA. Written by Pavol",
+    "depends"    : [ ]
+}

@@ -170,6 +170,11 @@ int ParsedInfo::toInt( const QJsonValue& jsonValue, QString& errorMsg ){
     return val;
 }
 
+QJsonObject::iterator ParsedInfo::insert(const QString &key, const QJsonValue &value) {
+    return m_json.insert(key, value);
+}
+
+
 } // namespace MainConfig
 
 

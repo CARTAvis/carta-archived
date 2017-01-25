@@ -104,6 +104,9 @@ public:
 
     /// called immediately after the plugin was loaded
     /// TODO: should be pure virtual, don't be lazy!
+    ///
+    /// This is different from the Initialize hook, which is delivered after
+    /// all plugins have been loaded and after core is started.
     virtual void
     initialize( const InitInfo & initInfo )
     {

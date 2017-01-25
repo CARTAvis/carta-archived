@@ -1,9 +1,8 @@
-/**
- *
- **/
+/// IPCache is a set of APIs to access persistent cache.
 
 #pragma once
 
+#include "CartaLib/CartaLib.h"
 #include <QJsonObject>
 #include <QByteArray>
 #include <QString>
@@ -15,6 +14,8 @@ namespace Lib
 {
 class IPCache
 {
+    CLASS_BOILERPLATE( IPCache );
+
 public:
 
     /// return maximum storage in bytes
@@ -34,8 +35,8 @@ public:
     deleteAll() = 0;
 
     /// read a value of an entry
-    /// if entry does not exist, val will be null
-    virtual void
+    /// if entry does not exist, false is returned
+    virtual bool
     readEntry( const QByteArray & key,
                QByteArray & val ) = 0;
 

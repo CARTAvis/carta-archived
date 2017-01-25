@@ -47,6 +47,8 @@ SOURCES += \
     Algorithms/LineCombiner.cpp \
     IImageRenderService.cpp \
     IRemoteVGView.cpp \
+    IPCache.cpp \
+    Hooks/GetPersistentCache.cpp \
     Hooks/GetProfileExtractor.cpp \
     Regions/IRegion.cpp \
     InputEvents.cpp \
@@ -55,8 +57,7 @@ SOURCES += \
     Regions/CoordinateSystemFormatter.cpp \
     Regions/Ellipse.cpp \
     Regions/Point.cpp \
-    Regions/Rectangle.cpp \
-    IPCache.cpp
+    Regions/Rectangle.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -108,12 +109,14 @@ HEADERS += \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
     IRemoteVGView.h \
+    RegionInfo.h \
     Hooks/GetProfileExtractor.h \
     Regions/IRegion.h \
     InputEvents.h \
     Regions/ICoordSystem.h \
     Hooks/CoordSystemHook.h \
     Regions/CoordinateSystemFormatter.h \
+    Hooks/GetPersistentCache.h \
     Regions/Ellipse.h \
     Regions/Point.h \
     Regions/Rectangle.h \

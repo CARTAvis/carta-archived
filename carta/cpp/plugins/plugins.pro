@@ -25,6 +25,15 @@ SUBDIRS += ColormapsPy
 SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 
+SUBDIRS += PCacheSqlite3
+
+unix:macx {
+# Disable PCacheLevelDB plugin on Mac, since build carta error with LevelDB enabled. 
+}
+else{
+  SUBDIRS += PCacheLevelDB
+}
+
 # adrianna's render plugin
 
 SUBDIRS += hpcImgRender

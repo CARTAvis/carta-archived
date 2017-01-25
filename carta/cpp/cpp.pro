@@ -9,6 +9,7 @@ SUBDIRS = \
     desktop \
     plugins \
     Tests \
+    testCache \
     testRegion
 
 isEmpty(NOSERVER) {
@@ -21,6 +22,8 @@ desktop.depends = core
 server.depends = core
 testRegion.depends = core
 plugins.depends = core
+testRegion.depends = core
+testCache.depends = core
 isEmpty(NOSERVER) {
         Tests.depends = core desktop server plugins
 }
