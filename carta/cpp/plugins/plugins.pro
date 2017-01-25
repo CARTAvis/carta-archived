@@ -26,7 +26,13 @@ SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 
 SUBDIRS += PCacheSqlite3
-SUBDIRS += PCacheLevelDB
+
+unix:macx {
+# Disable PCacheLevelDB plugin on Mac, since build carta error with LevelDB enabled. 
+}
+else{
+  SUBDIRS += PCacheLevelDB
+}
 
 # adrianna's render plugin
 
