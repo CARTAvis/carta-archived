@@ -46,7 +46,7 @@ QList<std::shared_ptr<Layer> > DrawStackSynchronizer::_getLoadableData( const st
 }
 
 void DrawStackSynchronizer::_repaintFrameNow(){
-    qDebug() << "grimmer drawStack-repaintFrameNow!!";
+    // qDebug() << "grimmer drawStack-repaintFrameNow!!";
     m_view->scheduleRepaint();
 
 }
@@ -57,7 +57,7 @@ void DrawStackSynchronizer::_repaintFrameNow(){
 
 void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& request ){
     // 有一個65只有一次, 直接跳到m_repaintFrameQueued, 有的是兩次, 其中一次會跑到62行
-    qDebug() << "grimmer drawStack-render!!";
+    // qDebug() << "grimmer drawStack-render!!";
     if ( m_repaintFrameQueued ){
         qDebug() << "grimmer drawStack-repaintQueue";
         emit done( false );
@@ -65,7 +65,7 @@ void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& reque
     }
     QSize clientSize = getClientSize();
     if ( clientSize.width() <= 1 || clientSize.height() <= 1 ){
-        qDebug() << "grimmer drawStack-client size error";
+        // qDebug() << "grimmer drawStack-client size error";
         emit done( false );
         return;
     }
@@ -83,7 +83,7 @@ void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& reque
     // always 1
     // qDebug()<<"grimmer render2 :"<<dataCount;
 
-    qDebug() << "grimmer drawStack-render2. index:"<< request->m_frames[2]<<"."<<( request.get() );
+    // qDebug() << "grimmer drawStack-render2. index:"<< request->m_frames[2]<<"."<<( request.get() );
 
     for ( int i = 0; i < dataCount; i++ ){
         if ( datas[i]->_isVisible() ){
@@ -153,9 +153,9 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
 
     m_repaintFrameQueued = false;
 
-    qDebug()<<"grimmer scheduleFrameRepaint1";
+    //qDebug()<<"grimmer scheduleFrameRepaint1";
     emit done( true );
-    qDebug()<<"grimmer scheduleFrameRepaint2";
+    //qDebug()<<"grimmer scheduleFrameRepaint2";
 
     // QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     for ( int i = 0; i < dataCount; i++ ){
@@ -164,7 +164,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
         m_layers[i]->_renderDone();
     }
 
-    qDebug()<<"grimmer schedule-directly invoke repaint to avoid m_view will be changed by the next drawing";
+    //qDebug()<<"grimmer schedule-directly invoke repaint to avoid m_view will be changed by the next drawing";
     m_view->scheduleRepaint();
 
 }
