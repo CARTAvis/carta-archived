@@ -100,6 +100,8 @@ private slots:
 
 private:
 
+    //Generate FITS Header for Ast Library
+    QString _getFitsHeaderforAst(QStringList &fitsHeader);
     //Translate an enumerated type and precision to a string the AST library understands.
     QString _getDisplayFormat( const Carta::Lib::AxisLabelInfo::Formats& baseFormat, int decimals ) const;
     //Translate an enumerated position to a string the AST library understands.

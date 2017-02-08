@@ -488,7 +488,7 @@ AstGridPlotter::plot()
         return false;
     }
 
-    AstFrameSet* newFrame = _make2dFrame( wcsinfo );
+    AstFrameSet* newFrame = wcsinfo; //_make2dFrame( wcsinfo );
     if ( newFrame == nullptr ){
         return false;
     }
