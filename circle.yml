@@ -26,7 +26,7 @@ dependencies:
     - mkdir -p ~/docker
 
     # Restore docker build image and configure Dockerfile
-    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/grimmer0125/cartabuild:20161224; docker save docker.io/grimmer0125/cartabuild:20161224 > ~/docker/image.tar; fi
+    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/carta/cartabuild:base_20170105; docker save docker.io/carta/cartabuild:base_20170105 > ~/docker/image.tar; fi
 
     # 20170103 update: run firefox ok but run chrome failed, also even when running firefox, some tests do not pass, so comment out the tests
     # Now, let’s install xvfb so we can run Chrome/firefox headlessly:
