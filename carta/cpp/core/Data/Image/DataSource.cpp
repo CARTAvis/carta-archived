@@ -383,10 +383,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
         if ( allValues.size() > 0 ){
 
-            int divisor = total_size;
-            if (spectralIndex != -1) {
-                divisor /= dims[spectralIndex];
-            }
+            int divisor = 1;
 
             // only compare the intensity values; ignore the indices
             auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
