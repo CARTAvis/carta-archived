@@ -339,6 +339,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //See if it is in the cached percentiles first.
     int percentileCount = percentiles.size();
     std::vector<std::pair<int,double> > intensities(percentileCount,std::pair<int,double>(-1,0));
+
     //Find all the intensities we can in the cache.
     int foundCount = 0;
     for ( int i = 0; i < percentileCount; i++ ){
@@ -352,7 +353,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
 
-        std::vector<std::pair<int,double> > allValues;
+        std::vector<double > allValues;
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
 
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
@@ -360,55 +361,51 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
             return intensities;
         }
-        
+
         Carta::Lib::NdArray::TypedView<double> view( rawData, false );
 
         // read in all values from the view into an array
         // we need our own copy because we'll do quickselect on it...
-    
-        // Preallocate space to avoid 
+
+        // Preallocate space to avoid
         // running out of memory unnecessarily through dynamic allocation
         std::vector<int> dims = rawData->dims();
         int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
         allValues.reserve(total_size);
-        int index = 0;
 
-        view.forEach( [&allValues, &index] ( const double  val ) {
+        view.forEach( [&allValues] ( const double  val ) {
             if ( std::isfinite( val ) ) {
-                allValues.push_back( std::make_pair(index, val) );
+                allValues.push_back( val );
             }
-            index++;
         }
         );
 
-        if ( allValues.size() > 0 ){
-
-            int divisor = 1;
-
-            // only compare the intensity values; ignore the indices
-            auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
+        if ( allValues.size() > 0 )
+        {
 
             for ( int i = 0; i < percentileCount; i++ ){
                 //Missing intensity
-                if ( intensities[i].first < 0 ){
+                if ( intensities[i].first < 0 )
+                {
                     int locationIndex = allValues.size() * percentiles[i] - 1;
                     if ( locationIndex < 0 ){
                         locationIndex = 0;
                     }
 
-                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
-                    
-                    intensities[i].second = allValues[locationIndex].second;
-                    intensities[i].first = allValues[locationIndex].first / divisor;
+                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end());
+
+                    intensities[i].second = allValues[locationIndex];
+                    intensities[i].first = percentiles[i] * 10000000;
 
                     if ( frameLow >= 0 ){
                         intensities[i].first += frameLow;
                     }
-                    
+
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
             }
         }
+
     }
     return intensities;
 }
