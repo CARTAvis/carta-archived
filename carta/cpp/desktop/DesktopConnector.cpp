@@ -45,7 +45,7 @@ struct DesktopConnector::ViewInfo
         clientSize = QSize(1,1);
         refreshTimer.setSingleShot( true);
         // just long enough that two successive calls will result in only one redraw :)
-        refreshTimer.setInterval( 1); // 1000 / 120
+        refreshTimer.setInterval( 1000 / 120);
     }
 
 };
@@ -156,7 +156,6 @@ void DesktopConnector::registerView(IView * view)
 void DesktopConnector::unregisterView( const QString& viewName ){
     ViewInfo* viewInfo = this->findViewInfo( viewName );
     if ( viewInfo != nullptr ){
-        qDebug()<<"grimmer view:ungisterview";
 
         (& viewInfo->refreshTimer)->disconnect();
         m_views.erase( viewName );
@@ -178,7 +177,6 @@ qint64 DesktopConnector::refreshView(IView * view)
 
     // start the timer for this view if it's not already started
 //    if( ! viewInfo-> refreshTimer.isActive()) {
-//        qDebug()<<"grimmer view:refreshTimer.start";
 //        viewInfo-> refreshTimer.start();
 //    }
 //    else {
@@ -305,8 +303,6 @@ void DesktopConnector::refreshViewNow(IView *view)
 
 void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)
 {
-    qDebug() << "grimmer view: jsUpdateViewSlot";
-
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
         qWarning() << "Received update for unknown view " << viewName;

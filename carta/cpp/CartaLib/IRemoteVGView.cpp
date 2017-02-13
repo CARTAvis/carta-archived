@@ -97,13 +97,10 @@ LayeredRemoteVGView::scheduleRepaint( qint64 id )
     }
     m_repaintId = id;
 
-    // will not enter here
-    qDebug()<<"grimmer timer1";
-    p_timerCB();
+    if ( ! m_timer-> isActive() ) {
+        m_timer-> start();
+    }
 
-//    if ( ! m_timer-> isActive() ) {
-//        m_timer-> start();
-//    }
     return m_repaintId;
 }
 
@@ -288,7 +285,6 @@ LayeredViewArbitrary::scheduleRepaint( qint64 id )
         id = m_repaintId + 1;
     }
     m_repaintId = id;
-    qDebug() << "grimmer timer2, iremotevgview scheduleRepaint";
 
 //    if ( ! m_timer-> isActive() ) {
 //        m_timer-> start();
@@ -396,8 +392,6 @@ LayeredViewArbitrary::p_timerCB()
     m_vgView-> setRaster( buff );
 
     // schedule repaint
-    qDebug() << "grimmer iremotevgview p_timerCB()";
-
     (void) m_vgView-> scheduleRepaint( m_repaintId );
 } // p_timerCB
 
