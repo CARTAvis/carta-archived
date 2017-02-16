@@ -27,6 +27,7 @@ In `your-carta-work folder`, then
 
 ### Either execute prepared script to do
 `./carta/scripts/installqt5.3.sh` which does the following things
+
 1. download `qt-opensource-linux-x64-5.3.2.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
 3. launch it to show installer GUI to install Qt 5.3.2 and its Qt Creator.
@@ -44,6 +45,7 @@ In `your-carta-work folder`, execute
 ## Build Casa libraries on CentOS 7
 In `your-carta-work folder`, execute
 `./carta/scripts/buildcasa.sh`, which does the following things
+
 1. build and install Qt 4.8.5 into `/usr/local/Trolltech/Qt-4.8.5/`. May find some pre-built Qt 4.8.5 package to improve the speed.
 2. Use Qt 4.8.5 to build needed Qwt.
 3. Use Qt 4.8.5 to build CASA libraries.
@@ -55,7 +57,8 @@ The default build flag for CASA is `make`, you can change to use `make -j` in th
 ## choose the location of build folder
 
 Suggested path:
-1. `mkdir -p $CARTAWORKHOME/CARTAvis/build`
+
+`mkdir -p $CARTAWORKHOME/CARTAvis/build`
 
 ## Use command line to build
 
@@ -72,13 +75,15 @@ Open carta.pro, then setup some build and run setting, then build.
 
 # Run Carta
 
-Need to prepare some things needed for running CARTA and also appended parameters  
+Need to prepare some things needed for running CARTA and also appended parameters 
+
 1. setup necessary config.json
 2. (optinal?) setup snapshots folder.  
 3. setup geodetic, ephemerides folders for some kinds of fits file.
 4. prepare fits or casa image format file.
 
 ### Run by command line
+
 1. execute `ulimit -n 2000` before running Carta
 2. run `Carta` binary with parameters, at least should append `html file path`.
 
@@ -89,4 +94,5 @@ Need to prepare some things needed for running CARTA and also appended parameter
 #Build on CI/CD
 
 To do list
+
 1. find a way to install Qt without GUI
