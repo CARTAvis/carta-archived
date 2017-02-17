@@ -581,7 +581,14 @@ SimpleFitsParser::loadFile(
 
         // set the header lines
         for( size_t i = 0 ; i < hdr.lines ().size () ; i ++ )
-            headerInfo_.headerLines.push_back ( hdr.lines ()[i].raw());
+        {
+            QString key = FitsLine(hdr.lines ()[i].raw()).key();
+            QString val = FitsLine(hdr.lines ()[i].raw()).value();
+            if(!key.isEmpty() && QString::compare(key, "ORIGIN", Qt::CaseInsensitive) && QString::compare(key, "HISTORY", Qt::CaseInsensitive) && QString::compare(key, "COMMENT", Qt::CaseInsensitive))
+            {
+                headerInfo_.headerLines.push_back ( hdr.lines ()[i].raw());
+            }
+        }
 
         // figure out whether scaling is actually required
         if( headerInfo_.hasBlank || headerInfo_.bzero != 0 || headerInfo_.bscale != 1.0)
