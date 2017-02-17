@@ -24,10 +24,10 @@ cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 if [ -z ${QT5PATH+x} ]; then 
 	echo "QT5PATH is unset"; 
 	QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/
-	export PATH=QT5PATH:$PATH
+	export PATH=$QT5PATH:$PATH
 else 
 	echo "QT5PATH is already set to '$QT5PATH'"; 
-	export PATH=QT5PATH:$PATH
+	export PATH=$QT5PATH:$PATH
 fi
 
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
