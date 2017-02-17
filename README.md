@@ -26,7 +26,7 @@ Since `CARTAvis` is the old git repo name and used in some testing and building 
 In `your-carta-work folder`, then   
 
 ### Either execute prepared script to install
-`./carta/scripts/installqt5.3.sh` which does the following things
+`./CARTAvis/carta/scripts/installqt5.3.sh` which does the following things
 
 1. download `qt-opensource-linux-x64-5.3.2.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
@@ -46,11 +46,11 @@ This way need to change `QT5PATH` variable manually in the following scripts.
 
 ## Install most Third Party libraries, some are built from source code
 In `your-carta-work folder`, execute
-`./carta/scripts/install3party.sh`
+`./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build Casa libraries on CentOS 7
 In `your-carta-work folder`, execute
-`./carta/scripts/buildcasa.sh`, which does the following things
+`./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
 1. build and install Qt 4.8.5 into `/usr/local/Trolltech/Qt-4.8.5/`. May find some pre-built Qt 4.8.5 package to improve the speed.
 2. Use Qt 4.8.5 to build needed Qwt.
