@@ -126,5 +126,5 @@ ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib lib
 cd ..
 mkdir casacore
 cd casacore
-ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/include/casacore/ include
+ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/include/ include
 ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib lib
