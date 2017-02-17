@@ -20,7 +20,8 @@ sudo yum -y install unzip
 unzip -a qt-everywhere-opensource-src-4.8.5.zip -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
 # ./configure --prefix $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5 -> fail
-./configure # some interactive questioin. "o", "yes" !!
+#./configure # some interactive questioin. "o", "yes" !!
+printf 'o\nyes\n' | ./configure
 gmake
 gmake install # /usr/local/Trolltech/Qt-4.8.5/
 
