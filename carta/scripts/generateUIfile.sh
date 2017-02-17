@@ -7,10 +7,10 @@
 # ./generate.py > /dev/null
 
 ## to build carta, Qt (webkit) needs some .so 
-yum -y install gstreamer-devel
-yum -y install gstreamer-plugins-base
+sudo yum -y install gstreamer-devel
+sudo yum -y install gstreamer-plugins-base
 
-yum -y install python-devel # for Python.h
+sudo yum -y install python-devel # for Python.h
 
 ## setupt geodetic, ephemerides
 

@@ -15,7 +15,7 @@ EOF
 
 ## Build Qt 4.8.5 (slow, need improvement)
 wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
-yum -y install unzip
+sudo yum -y install unzip
 # not test but should work
 unzip -a qt-everywhere-opensource-src-4.8.5.zip -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
@@ -28,7 +28,7 @@ gmake install # /usr/local/Trolltech/Qt-4.8.5/
 # http://askubuntu.com/questions/338857/automatically-enter-input-in-command-line
 # http://stackoverflow.com/questions/14392525/passing-arguments-to-an-interactive-program-non-interactively
 # http://stackoverflow.com/questions/4857702/how-to-provide-password-to-a-command-that-prompts-for-one-in-bash
-# or use yum to insatll ? qt-4.8.6-30.fc20.x86_64
+# or use sudo yum to insatll ? qt-4.8.6-30.fc20.x86_64
 
 export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/bin:$PATH
 
@@ -45,14 +45,14 @@ export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
 export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/lib:$PATH
 cd ..
 
-yum -y install cmake
-yum -y install boost
-yum -y install boost-devel
-yum -y install numpy
+sudo yum -y install cmake
+sudo yum -y install boost
+sudo yum -y install boost-devel
+sudo yum -y install numpy
 
 ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
 # Xerces-C++ is a validating XML parser
-yum -y install casa01-dbus-cpp casa01-dbus-cpp-devel casa01-mpi4py.x86_64 \
+sudo yum -y install casa01-dbus-cpp casa01-dbus-cpp-devel casa01-mpi4py.x86_64 \
 casa01-openmpi.x86_64 casa01-python.x86_64 casa01-python-devel.x86_64 casa01-python-tools.x86_64 \
 libsakura pgplot-devel pgplot-demos pgplot-motif \
 lapack-devel xerces-c-devel
@@ -100,12 +100,12 @@ make
 make install
 
 ### code
-yum -y insall fftw fftw-devel
+sudo yum -y insall fftw fftw-devel
 # -- Looking for GSLCBLAS library gslcblas
-yum -y install gsl gsl-devel # 1.15, duplicate install since we have our own gsl installed, fix later?
-yum -y install java
-yum -y install libxml2-devel libxslt-devel
-yum -y install rpfits readline-devel
+sudo yum -y install gsl gsl-devel # 1.15, duplicate install since we have our own gsl installed, fix later?
+sudo yum -y install java
+sudo yum -y install libxml2-devel libxslt-devel
+sudo yum -y install rpfits readline-devel
 
 cd ../../code
 mkdir build && cd build

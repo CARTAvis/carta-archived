@@ -8,15 +8,15 @@ CARTAWORKHOME=`pwd`
 ##################################
 
 ## devtoolset will get gcc 4.8.5 etc
-yum -y devtoolset*
+sudo yum -y devtoolset*
 
 ## install 'make' tool
-yum -y groupinstall "Development Tools"
+sudo yum -y groupinstall "Development Tools"
 
-yum -y install epel-release
+sudo yum -y install epel-release
 
 ## these are required by Carta, may also be required by casa too
-yum -y install cfitsio-devel wcslib Cython flex-devel bison-devel
+sudo yum -y install cfitsio-devel wcslib Cython flex-devel bison-devel
 
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 
@@ -82,8 +82,8 @@ make && make install
 cd ..
 
 ## sqlite
-yum -y install sqlite-devel
+sudo yum -y install sqlite-devel
 
 ## leveldb
-## seems to need yum -y install epel-release first
-yum -y install leveldb leveldb-devel
+## seems to need sudo yum -y install epel-release first
+sudo yum -y install leveldb leveldb-devel
