@@ -16,7 +16,7 @@ Which means there must be something outside the source code directory, and this 
 ~/cartawork/CARTAvis-externals
 ```
 
-To create this working folder, then cd into it, then
+Create this working folder, then cd into it, then
 `git clone -b toImproveBuild https://github.com/CARTAvis/carta.git`
 
 Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` after downloading.
