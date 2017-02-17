@@ -20,8 +20,16 @@ yum -y install cfitsio-devel wcslib Cython flex-devel bison-devel
 
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 
-## for building qwt for carta
-export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/:$PATH
+## for building qwt by qt5.3 for carta
+if [ -z ${QT5PATH+x} ]; then 
+	echo "QT5PATH is unset"; 
+	QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/
+	export PATH=QT5PATH:$PATH
+else 
+	echo "QT5PATH is already set to '$QT5PATH'"; 
+	export PATH=QT5PATH:$PATH
+fi
+
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
 tar xvfj qwt-6.1.2.tar.bz2 && mv qwt-6.1.2 qwt-6.1.2-src
 cd qwt-6.1.2-src # can use qwt 6.1.3 Pavol uses

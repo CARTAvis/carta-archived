@@ -21,21 +21,27 @@ To create this working folder, then cd into it, then
 
 Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` after downloading.
 
-## Download (latest) Qt Creator and install Qt 5.3.2 library
+## Download and install Qt Creator + Qt 5.3.2 library
 
 In `your-carta-work folder`, then   
 
-### Either execute prepared script to do
+### Either execute prepared script to install
 `./carta/scripts/installqt5.3.sh` which does the following things
 1. download `qt-opensource-linux-x64-5.3.2.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
 3. launch it to show installer GUI to install Qt 5.3.2 and its Qt Creator.
 4. Please choose ../your-carta-work/CARTAvis-externals/ThirdParty/Qt5.3.2/ as the installed position. You can install in other position but you need to change Qt path in the following scripts. (will add more instruction later)
+5. another script, `install3party.sh` uses `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/`
+
+To use Qt5 binary path is for following things:
+
+1. To build carta by command line.
+2. To build Qwt needed by Carta in some scripts.  
 
 ### Or you can download the latest Qt online installer to install the latest Qt Creator and Qt 5.3.2
 Go to Qt official site to download or use this link http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/qt-unified-linux-x64-2.0.5-online.run
 
-This way need to change some Qt path in the following scripts.
+This way need to change `QT5PATH` variable manually in the following scripts.
 
 ## Install most Third Party libraries, some are built from source code
 In `your-carta-work folder`, execute
@@ -59,7 +65,7 @@ Suggested path:
 
 ## Use command line to build
 
-1. Setup Qt path,
+1. Setup Qt5 path,
  `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/:$PATH or `your Qt Path`
 `
 2. `cd $CARTAWORKHOME/CARTAvis/build`
