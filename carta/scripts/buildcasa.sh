@@ -101,7 +101,7 @@ make
 make install
 
 ### code
-sudo yum -y insall fftw fftw-devel
+sudo yum -y install fftw fftw-devel
 # -- Looking for GSLCBLAS library gslcblas
 sudo yum -y install gsl gsl-devel # 1.15, duplicate install since we have our own gsl installed, fix later?
 sudo yum -y install java
