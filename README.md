@@ -114,7 +114,13 @@ In `your-carta-work folder`, execute
 
 Need to prepare some things needed for running CARTA and also appended parameters.
 
-### requirement 1: setup necessary config.json
+### requirement 1: create needed folders
+
+Execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
+
+It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.
+
+### requirement 2: setup necessary config.json
 
 Paste the following data to be the content of `~/.cartavis/config.json/config.json`
 
@@ -134,15 +140,20 @@ Paste the following data to be the content of `~/.cartavis/config.json/config.js
 }
 ```
 
-### requirement 2: create needed folders including dummy ~/.cartavis/config.json
-
-Execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
-
-It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.  
-
 ### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
 
-To be continued.
+Paste the following content to your terminal to install. 
+
+```
+mkdir data ; \
+mkdir data/ephemerides ;\
+mkdir data/geodetic ; \
+svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/ephemerides ;\
+svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/geodetic ; \
+mv data ~/
+```
+
+The default location is under home directory `~/`, and will be improved to better place. 
 
 ### requirement 4: prepare fits or casa image format files.
 
