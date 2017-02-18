@@ -11,7 +11,6 @@ Paste the script part of the following content in your terminal to install. Igno
 ## Our gcc/g++ minial requirement is >=4.8.1
 ## sudo yum -y devtoolset* will install gcc, g++, gfortran etc tools under /opt/rh/devtoolset-3 
 ## cmake is needed by building casa
-## mesa-libGL-devel is needed by qt 5.3.2
 
 sudo yum -y install wget unzip; \
 sudo yum -y devtoolset*;\
@@ -97,7 +96,7 @@ Suggested path:
 
 2. Setup Qt5 path,
  `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/:$PATH` or `your Qt Path`
-`
+
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
 5. `make -j`
