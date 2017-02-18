@@ -91,6 +91,7 @@ export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/lib:$PATH
 # https://github.com/casacore/casacore/wiki/CmakeInstructions
 ###
 
+## it is better to rm -rf * in build folder if rebuild manually
 cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
 -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 -DPYTHON_INCLUDE_DIR=/opt/casa/01/include/python2.7/ \
 -DPYTHON_LIBRARY=/opt/casa/01/lib/libpython2.7.so -DBOOST_ROOT=/usr/lib64/casa/01 -DCMAKE_BUILD_TYPE=Release \
@@ -103,7 +104,6 @@ make
 make install
 
 ### code
-# -- Looking for GSLCBLAS library gslcblas
 sudo yum -y install gsl gsl-devel # 1.15, duplicate install since we have our own gsl installed, fix later?
 sudo yum -y install java
 sudo yum -y install libxml2-devel libxslt-devel
@@ -111,6 +111,8 @@ sudo yum -y install rpfits readline-devel
 
 cd ../../code
 mkdir build && cd build
+
+## it is better to rm -rf * in build folder if rebuild manually
 cmake -DUseCrashReporter=0  -DBoost_NO_BOOST_CMAKE=1 '-DEXTRA_C_FLAGS=-DPG_PPU -I/usr/include/wcslib' \
 -Darch=linux -DBoost_NO_BOOST_CMAKE=1 -DCMAKE_BUILD_TYPE=Release -DCXX11=1 \
 -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/g++ \
