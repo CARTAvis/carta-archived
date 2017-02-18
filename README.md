@@ -54,11 +54,9 @@ Qt 5.3 is for following things:
 1. To build carta by command line.
 2. To build Qwt 6.1.2 needed by Carta in some scripts.  
 
-### Or you can download the the other Qt offline installers to install Qt Creator and Qt 5.3.2
+### Or you can download the the other Qt installers to install Qt Creator and Qt 5.3.2
 
-Such as ## wget http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/`
-
-Go to Qt official site to download or use this link http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/qt-unified-linux-x64-2.0.5-online.run
+Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also, if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/`
 
 ## Install most Third Party libraries, some are built from source code
 In `your-carta-work folder`, execute
@@ -95,7 +93,7 @@ Suggested path:
     ```
 
 2. Setup Qt5 path,
- `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/:$PATH or `your Qt Path`
+ `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/:$PATH or `your Qt Path`
 `
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
