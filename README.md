@@ -66,7 +66,7 @@ cd `your-carta-work`, execute
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
-1. build and install Qt 4.8.5 into `/usr/local/Trolltech/Qt-4.8.5/`. May find some pre-built Qt 4.8.5 package to improve the speed.
+1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`. May find some pre-built Qt 4.8.5 package to improve the speed.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. Use Qt 4.8.5 to build CASA libraries.
 
