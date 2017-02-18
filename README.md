@@ -64,7 +64,7 @@ This way need to change `QT5PATH` variable manually in the following scripts.
 In `your-carta-work folder`, execute
 `./CARTAvis/carta/scripts/install3party.sh`
 
-## Build Casa libraries on CentOS 7
+## Build CASA libraries on CentOS 7
 In `your-carta-work folder`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
@@ -74,9 +74,9 @@ In `your-carta-work folder`, execute
 
 The default build flag for CASA is `make`, you can change to use `make -j` in the script to build parallel but it may build fail due to no official support of building casa.
 
-# Build Carta
+# Build Carta program
 
-## choose the location of build folder
+## Choose the location of build folder
 
 Suggested path:
 
@@ -84,34 +84,87 @@ Suggested path:
 
 ## Use command line to build
 
-1. Setup Qt5 path,
+1. Install required libraries when building CARTA
+
+    ```
+    ## gstreamer libs are needed by Qt (webkit).
+    ## python-devel will install Python.h
+    sudo yum -y install gstreamer-devel \
+    sudo yum -y install gstreamer-plugins-base \
+    sudo yum -y install python-devel
+    ```
+
+2. Setup Qt5 path,
  `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/:$PATH or `your Qt Path`
 `
-2. `cd $CARTAWORKHOME/CARTAvis/build`
-3. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
-4. `make -j`
+3. `cd $CARTAWORKHOME/CARTAvis/build`
+4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
+5. `make -j`
 
-### Use Qt creator to build and debug
+## Use Qt creator to build and debug (will complement debug part later)
 
 Open carta.pro, then setup some build and run setting, then build.
 
+# Build needed JavaScript UI files of CARTA
+
+In `your-carta-work folder`, execute
+`./CARTAvis/carta/scripts/generateUIfile.sh`
+
 # Run Carta
 
-Need to prepare some things needed for running CARTA and also appended parameters
+Need to prepare some things needed for running CARTA and also appended parameters.
 
-1. setup necessary config.json
-2. (optinal?) setup snapshots folder.  
-3. setup geodetic, ephemerides folders for some kinds of fits file.
-4. prepare fits or casa image format file.
+### requirement 1: setup necessary config.json
 
-### Run by command line
+Paste the following data to be the content of `~/.cartavis/config.json/config.json`
 
-1. execute `ulimit -n 2000` before running Carta
-2. run `Carta` binary with parameters, at least should append `html file path`.
+```
+{
+"_comment" : "List of plugin directories",
+"pluginDirs": [
+"$(APPDIR)/../plugins",
+"$(APPDIR)/../../../../plugins",
+"$(HOME)/.cartavis/plugins"
+],
+"disabledPlugins" : ["casaCore-2.0.1"],
+"plugins": {
+    "PCacheSqlite3" : {
+        "dbPath": "/tmp/pcache.sqlite"
+    }
+}
+```
 
-### Run by Qt Creator
+### requirement 2: create needed folders including dummy ~/.cartavis/config.json
 
-## Prepare distributable and packaged installer/zip
+Execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
+
+It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.  
+
+### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
+
+To be continued.
+
+### requirement 4: Prepare fits or casa image format files.
+
+## Run by command line
+
+1. Current Carta needs to execute the following command every time before running Carta. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
+
+    ```
+    #export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
+
+    ```
+
+2. execute `ulimit -n 2000` before running Carta
+3. To run `Carta` binary with parameters, at least should append `html file path`, example:
+
+```
+$CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
+```
+
+## Run by Qt Creator
+
+# Prepare distributable and packaged installer/zip
 
 #Build on CI/CD
 
