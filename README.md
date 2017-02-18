@@ -9,12 +9,13 @@ Paste the script part of the following content in your terminal to install. Igno
 
 ```
 ## Our gcc/g++ minial requirement is >=4.8.1
-## Development Tools  will install gcc, g++, make, git and so on.
+## sudo yum -y devtoolset* will install gcc, g++, gfortran etc tools under /opt/rh/devtoolset-3 
 ## cmake is needed by building casa
 ## mesa-libGL-devel is needed by qt 5.3.2
 
 sudo yum -y install wget unzip; \
-sudo yum -y install groupinstall "Development Tools"; \
+sudo yum -y devtoolset*;\
+sudo yum -y install make git svn ; \
 sudo yum -y install cmake; \
 ```
 
@@ -63,10 +64,13 @@ cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build CASA libraries on CentOS 7
+
+If you have your own gcc/g++/gfortran, please specify the path of them into cmake flag in buildcasa.sh
+
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
-1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`. May find some pre-built Qt 4.8.5 package to improve the speed.
+1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. Use Qt 4.8.5 to build CASA libraries.
 
