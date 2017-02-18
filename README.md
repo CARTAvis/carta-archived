@@ -32,14 +32,14 @@ Which means there must be something outside the source code directory, and this 
 ~/cartawork/CARTAvis-externals
 ```
 
-Create this working folder, then cd into it, then
+Create this working folder, alias `your-carta-work`,  then cd `your-carta-work`, then
 `git clone -b toImproveBuild https://github.com/CARTAvis/carta.git CARTAvis`
 
 p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
 ## Download and install Qt Creator + Qt 5.3.2 library
 
-In `your-carta-work folder`, then   
+cd `your-carta-work`, then   
 
 ### Either execute prepared script to install
 `./CARTAvis/carta/scripts/installqt5.3.sh` which does the following things
@@ -59,11 +59,11 @@ Qt 5.3 is for following things:
 Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also, if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/`
 
 ## Install most Third Party libraries, some are built from source code
-In `your-carta-work folder`, execute
+cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build CASA libraries on CentOS 7
-In `your-carta-work folder`, execute
+cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
 1. build and install Qt 4.8.5 into `/usr/local/Trolltech/Qt-4.8.5/`. May find some pre-built Qt 4.8.5 package to improve the speed.
@@ -105,7 +105,7 @@ Open carta.pro, then setup some build and run setting, then build.
 
 # Build needed JavaScript UI files of CARTA
 
-In `your-carta-work folder`, execute
+cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/generateUIfile.sh`
 
 # Run Carta
