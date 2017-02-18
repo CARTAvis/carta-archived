@@ -43,7 +43,7 @@ p.s. Since `CARTAvis` is the old git repo name and used in some testing and buil
 cd `your-carta-work`, then   
 
 ### Either execute prepared script to install
-`./CARTAvis/carta/scripts/installqt5.3.sh` which does the following things
+`sudo ./CARTAvis/carta/scripts/installqt5.3.sh` which does the following things
 
 1. download Qt online installer `qt-unified-linux-x64-2.0.5-online.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
@@ -60,8 +60,7 @@ Qt 5.3 is for following things:
 Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also, if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/`
 
 ## Install most Third Party libraries, some are built from source code
-cd `your-carta-work`, execute
-`./CARTAvis/carta/scripts/install3party.sh`
+cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build CASA libraries
 
@@ -97,7 +96,7 @@ Suggested path:
     ```
 
 2. Setup Qt5 path,
- `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/:$PATH or `your Qt Path`
+ `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/:$PATH` or `your Qt Path`
 `
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
@@ -109,8 +108,7 @@ Open carta.pro, then setup some build and run setting, then build.
 
 # Build needed JavaScript UI files of CARTA
 
-cd `your-carta-work`, execute
-`./CARTAvis/carta/scripts/generateUIfile.sh`
+cd `your-carta-work`, execute `./CARTAvis/carta/scripts/generateUIfile.sh`
 
 # Run Carta
 
