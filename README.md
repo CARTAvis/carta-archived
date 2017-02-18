@@ -177,6 +177,8 @@ You can also chooose fits file in this git project folder, `carta/carta/scripted
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
 ```
 
+You can browse more detailed instruciton about these parameters from here, http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
+
 ## Run by Qt Creator
 
 # Prepare distributable and packaged installer/zip
