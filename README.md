@@ -1,9 +1,9 @@
 Carta Viewer
 =======
 
-# Steps before building CARTA
+# Steps before building CARTA on CentOS 7
 
-## Install basic build tools on CentOS 7
+## Install basic build tools
 
 Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
 
