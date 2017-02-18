@@ -44,21 +44,21 @@ In `your-carta-work folder`, then
 ### Either execute prepared script to install
 `./CARTAvis/carta/scripts/installqt5.3.sh` which does the following things
 
-1. download `qt-opensource-linux-x64-5.3.2.run` under your ~/download folder
+1. download Qt online installer `qt-unified-linux-x64-2.0.5-online.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
-3. launch it to show installer GUI to install Qt 5.3.2 and its Qt Creator.
-4. Please choose ../your-carta-work/CARTAvis-externals/ThirdParty/Qt5.3.2/ as the installed position. You can install in other position but you need to change Qt path in the following scripts. (will add more instruction later)
-5. another script, `install3party.sh` uses `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/`
+3. Please choose ../your-carta-work/CARTAvis-externals/ThirdParty/Qt/ as the installed position. You can install in other position but you need to change Qt path in the following scripts. (will add more instruction later)
+4. During installing, check 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked. 
 
-To use Qt5 binary path is for following things:
+Qt 5.3 is for following things:
 
 1. To build carta by command line.
 2. To build Qwt 6.1.2 needed by Carta in some scripts.  
 
-### Or you can download the latest Qt online installer to install the latest Qt Creator and Qt 5.3.2
-Go to Qt official site to download or use this link http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/qt-unified-linux-x64-2.0.5-online.run
+### Or you can download the the other Qt offline installers to install Qt Creator and Qt 5.3.2
 
-This way need to change `QT5PATH` variable manually in the following scripts.
+Such as ## wget http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/`
+
+Go to Qt official site to download or use this link http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/qt-unified-linux-x64-2.0.5-online.run
 
 ## Install most Third Party libraries, some are built from source code
 In `your-carta-work folder`, execute
