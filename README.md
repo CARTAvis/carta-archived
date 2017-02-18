@@ -3,7 +3,7 @@ Carta Viewer
 
 # Steps before building CARTA
 
-## Install basic build tools
+## Install basic build tools on CentOS 7
 
 Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
 
@@ -63,7 +63,7 @@ Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-op
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/install3party.sh`
 
-## Build CASA libraries on CentOS 7
+## Build CASA libraries
 
 If you have your own gcc/g++/gfortran, please specify the path of them into cmake flag in buildcasa.sh
 
@@ -76,7 +76,7 @@ cd `your-carta-work`, execute
 
 The default build flag for CASA is `make`, you can change to use `make -j` in the script to build parallel but it may build fail due to no official support of building casa.
 
-# Build Carta program
+# Build Carta program on CentOS 7
 
 ## Choose the location of build folder
 
