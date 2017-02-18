@@ -18,7 +18,7 @@ wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.
 # sudo yum -y install unzip
 # not test but should work
 unzip -a qt-everywhere-opensource-src-4.8.5.zip -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
-cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
+cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/qt-everywhere-opensource-src-4.8.5
 # ./configure --prefix $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5 -> fail
 ./configure # some interactive questioin. "o", "yes" !!
 printf 'o\nyes\n' | ./configure
