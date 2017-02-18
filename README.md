@@ -148,7 +148,7 @@ To be continued.
 
 The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA). 
 
-You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. 
+You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. or download some fits from https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU first. 
 
 ## Run by command line
 
