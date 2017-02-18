@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ## create working folder, $CARTAWORKHOME
 # mkdir ~/src
 # cd ~/src

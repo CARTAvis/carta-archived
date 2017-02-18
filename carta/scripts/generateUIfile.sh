@@ -1,27 +1,31 @@
+#!/bin/bash
+
 ##  modify common_config.pri
 #gcc481 {
         #    COMPILER = g++-4.8
 
 ## build UI files
-# cd $CARTAWORKHOME/CARTAvis/carta/html5/common/skel
-# ./generate.py > /dev/null
+CARTAWORKHOME=`pwd`
 
-## to build carta, Qt (webkit) needs some .so 
-sudo yum -y install gstreamer-devel
-sudo yum -y install gstreamer-plugins-base
+cd $CARTAWORKHOME/CARTAvis/carta/html5/common/skel
+./generate.py > /dev/null
 
-sudo yum -y install python-devel # for Python.h
+## to build carta, Qt (webkit) needs gstreamer libs
+## python-devel will install Python.h needed by building carta.
+# sudo yum -y install gstreamer-devel
+# sudo yum -y install gstreamer-plugins-base
+# sudo yum -y install python-devel
 
 ## setupt geodetic, ephemerides
 
 ##  copy fits file
-# mkdir -p ~/CARTA/Images, 
+# mkdir -p ~/CARTA/Images,
 # mkdir -p /scratch/Images
 # cp aJ.fits /scratch/Images/
 # cp aJ.fits ~/CARTA/Images/
 ##
 
-## setup ~/.cartavis/config.json/config.json
+# setup ~/.cartavis/config.json/config.json
 # {
 # "_comment" : "List of plugin directories",
 # "pluginDirs": [
@@ -38,7 +42,7 @@ sudo yum -y install python-devel # for Python.h
 
 # }
 
-## before running 
+## before running
 #export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
 
 ## when running carta, loading ImageStatistics fail
