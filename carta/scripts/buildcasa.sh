@@ -58,6 +58,8 @@ casa01-openmpi.x86_64 casa01-python.x86_64 casa01-python-devel.x86_64 casa01-pyt
 libsakura pgplot-devel pgplot-demos pgplot-motif \
 lapack-devel xerces-c-devel
 
+sudo yum -y install fftw fftw-devel
+
 ## cascore and code
 # in the other instruction to build carta + casa, usually
 # casa
@@ -101,7 +103,6 @@ make
 make install
 
 ### code
-sudo yum -y install fftw fftw-devel
 # -- Looking for GSLCBLAS library gslcblas
 sudo yum -y install gsl gsl-devel # 1.15, duplicate install since we have our own gsl installed, fix later?
 sudo yum -y install java
