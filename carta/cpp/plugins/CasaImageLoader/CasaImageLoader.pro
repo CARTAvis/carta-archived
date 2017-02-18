@@ -7,19 +7,8 @@ TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
 
-SOURCES += \
-    CasaImageLoader.cpp \
-    CCImage.cpp \
-    CCMetaDataInterface.cpp \
-    CCRawView.cpp \
-    CCCoordinateFormatter.cpp
-
-HEADERS += \
-    CasaImageLoader.h \
-    CCImage.h \
-    CCMetaDataInterface.h \
-    CCRawView.h \
-    CCCoordinateFormatter.h
+SOURCES = $$files(*.cpp, true)
+HEADERS = $$files(*.h  , true)
 
 casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib

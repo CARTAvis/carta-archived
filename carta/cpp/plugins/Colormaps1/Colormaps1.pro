@@ -11,11 +11,8 @@ TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
 
-SOURCES += \
-    Colormaps1.cpp
-
-HEADERS += \
-    Colormaps1.h
+SOURCES = $$files(*.cpp, true)
+HEADERS = $$files(*.h  , true)
 
 OTHER_FILES += \
     plugin.json

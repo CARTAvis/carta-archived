@@ -3,15 +3,9 @@
 }
 
 QT      +=  core
-HEADERS += catch.h
 
-SOURCES += \
-    TopoSortTest.cpp \
-    mainTester.cpp \
-    SliceTester.cpp \
-    StateTester.cpp \
-    pixelPipelineTest.cpp \
-    LineCombinerTest.cpp
+SOURCES = $$files(*.cpp, true)
+HEADERS = $$files(*.h  , true)
 
 #CONFIG += precompile_header
 #PRECOMPILED_HEADER = catch.h

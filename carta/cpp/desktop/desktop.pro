@@ -4,22 +4,8 @@
 
 QT      +=  webkitwidgets network widgets xml
 
-HEADERS += \
-    MainWindow.h \
-    CustomWebPage.h \
-    DesktopPlatform.h \
-    DesktopConnector.h \
-    NetworkReplyFileq.h \
-    NetworkAccessManager.h
-
-SOURCES += \
-    MainWindow.cpp \
-    CustomWebPage.cpp \
-    DesktopPlatform.cpp \
-    desktopMain.cpp \
-    DesktopConnector.cpp \
-    NetworkAccessManager.cpp \
-    NetworkReplyFileq.cpp
+SOURCES = $$files(*.cpp, true)
+HEADERS = $$files(*.h  , true)
 
 RESOURCES = resources.qrc
 
