@@ -31,7 +31,7 @@ gmake install # /usr/local/Trolltech/Qt-4.8.5/
 # http://stackoverflow.com/questions/4857702/how-to-provide-password-to-a-command-that-prompts-for-one-in-bash
 # or use sudo yum to insatll ? qt-4.8.6-30.fc20.x86_64
 
-export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/bin:$PATH
+export PATH=/usr/local/Trolltech/Qt-4.8.5/bin:$PATH
 
 ## for building qwt for casa-submodue-code, by using Qt4.8.5
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
@@ -39,7 +39,7 @@ curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.0/qwt-6.1.0.tar.
 tar xvfj qwt-6.1.0.tar.bz2 && mv qwt-6.1.0 qwt-6.1.0-src
 cd qwt-6.1.0-src # can use qwt 6.1.3 Pavol uses
 # for unix part
-sed -i "23,23c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0" qwtconfig.pri
+sed -i "22,22c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0" qwtconfig.pri
 qmake qwt.pro
 make && make install
 export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
