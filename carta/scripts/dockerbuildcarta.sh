@@ -13,7 +13,7 @@ ln -s $HOME/src/CARTAvis-externals/ThirdParty/cfitsio-shared $HOME/src/CARTAvis-
 ln -s $HOME/src/CARTAvis-externals/ThirdParty/imageanalysis-2.10.2016 $HOME/src/CARTAvis-externals/ThirdParty/imageanalysis
 
 cp $HOME/src/CARTAvis/carta/scripts/runScriptedClientTests.sh $HOME
-cp $HOME/src/CARTAvis/carta/scripts/startCARTAServer.sh $HOME
+# cp $HOME/src/CARTAvis/carta/scripts/startCARTAServer.sh $HOME
 
 cd $HOME/src/CARTAvis
 sudo chmod -R a+w carta
