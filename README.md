@@ -3,6 +3,21 @@ Carta Viewer
 
 # Steps before building CARTA
 
+## Install basic build tools
+
+Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
+
+```
+## Our gcc/g++ minial requirement is >=4.8.1
+## Development Tools  will install gcc, g++, make, git and so on.
+## cmake is needed by building casa
+## mesa-libGL-devel is needed by qt 5.3.2
+
+sudo yum -y install wget unzip; \
+sudo yum -y install groupinstall "Development Tools"; \
+sudo yum -y install cmake; \
+```
+
 ## Choose where you want to build CARTA
 Current `CARTAvis` uses the following folder structure
 
@@ -11,31 +26,16 @@ Current `CARTAvis` uses the following folder structure
 ../CARTAvis-externals (the Qt project setting of CARTAvis will look for this folder which collects Third-Party libs)
 ```
 Which means there must be something outside the source code directory, and this way may not good enough, we will improve later. So the current suggested way is to choose a `root` folder to be your `CARTA working folder`, like this
+
 ```
 ~/cartawork/CARTAvis
 ~/cartawork/CARTAvis-externals
 ```
 
 Create this working folder, then cd into it, then
-`git clone -b toImproveBuild https://github.com/CARTAvis/carta.git`
+`git clone -b toImproveBuild https://github.com/CARTAvis/carta.git CARTAvis`
 
-Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` after downloading.
-
-## Install basic build tools
-
-Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
-
-```
-## devtoolset will install gcc. Our minial requirement is >=4.8.1
-## Development Tools  will install 'make' tool and so on, which is needed by building third party libs,
-## cmake is needed by building casa
-## mesa-libGL-devel is needed by qt 5.3.2
-
-sudo yum -y install wget, unzip \
-sudo yum -y devtoolset* \
-sudo yum -y groupinstall "Development Tools" \
-sudo yum -y install cmake \
-```
+p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
 ## Download and install Qt Creator + Qt 5.3.2 library
 
@@ -114,7 +114,13 @@ In `your-carta-work folder`, execute
 
 Need to prepare some things needed for running CARTA and also appended parameters.
 
-### requirement 1: setup necessary config.json
+### requirement 1: create needed folders
+
+Execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
+
+It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.
+
+### requirement 2: setup necessary config.json
 
 Paste the following data to be the content of `~/.cartavis/config.json/config.json`
 
@@ -134,24 +140,33 @@ Paste the following data to be the content of `~/.cartavis/config.json/config.js
 }
 ```
 
-### requirement 2: create needed folders including dummy ~/.cartavis/config.json
-
-Execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
-
-It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.  
-
 ### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
 
-To be continued.
+Paste the following content to your terminal to install. 
 
-### requirement 4: Prepare fits or casa image format files.
+```
+mkdir data ; \
+mkdir data/ephemerides ;\
+mkdir data/geodetic ; \
+svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/ephemerides ;\
+svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/geodetic ; \
+mv data ~/
+```
+
+The default location is under home directory `~/`, and will be improved to better place. 
+
+### requirement 4: prepare fits or casa image format files.
+
+The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA). 
+
+You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. or download some fits from https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU or https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ first. 
 
 ## Run by command line
 
 1. Current Carta needs to execute the following command every time before running Carta. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
     ```
-    #export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
+    export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
 
     ```
 
@@ -161,6 +176,8 @@ To be continued.
 ```
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
 ```
+
+You can browse more detailed instruciton about these parameters from here, http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
 
 ## Run by Qt Creator
 
