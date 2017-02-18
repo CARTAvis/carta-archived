@@ -3,6 +3,21 @@ Carta Viewer
 
 # Steps before building CARTA
 
+## Install basic build tools
+
+Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
+
+```
+## Our gcc/g++ minial requirement is >=4.8.1
+## Development Tools  will install gcc, g++, make, git and so on.
+## cmake is needed by building casa
+## mesa-libGL-devel is needed by qt 5.3.2
+
+sudo yum -y install wget unzip; \
+sudo yum -y install groupinstall "Development Tools"; \
+sudo yum -y install cmake; \
+```
+
 ## Choose where you want to build CARTA
 Current `CARTAvis` uses the following folder structure
 
@@ -11,31 +26,16 @@ Current `CARTAvis` uses the following folder structure
 ../CARTAvis-externals (the Qt project setting of CARTAvis will look for this folder which collects Third-Party libs)
 ```
 Which means there must be something outside the source code directory, and this way may not good enough, we will improve later. So the current suggested way is to choose a `root` folder to be your `CARTA working folder`, like this
+
 ```
 ~/cartawork/CARTAvis
 ~/cartawork/CARTAvis-externals
 ```
 
 Create this working folder, then cd into it, then
-`git clone -b toImproveBuild https://github.com/CARTAvis/carta.git`
+`git clone -b toImproveBuild https://github.com/CARTAvis/carta.git CARTAvis`
 
-Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` after downloading.
-
-## Install basic build tools
-
-Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
-
-```
-## devtoolset will install gcc. Our minial requirement is >=4.8.1
-## Development Tools  will install 'make' tool and so on, which is needed by building third party libs,
-## cmake is needed by building casa
-## mesa-libGL-devel is needed by qt 5.3.2
-
-sudo yum -y install wget, unzip \
-sudo yum -y devtoolset* \
-sudo yum -y groupinstall "Development Tools" \
-sudo yum -y install cmake \
-```
+p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
 ## Download and install Qt Creator + Qt 5.3.2 library
 
