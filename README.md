@@ -70,7 +70,7 @@ If you have your own gcc/g++/gfortran, please specify the path of them into cmak
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
-1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`.
+1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take 1 hour.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. Use Qt 4.8.5 to build CASA libraries.
 
