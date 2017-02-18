@@ -144,14 +144,16 @@ It is optional. You do not need to setup this and can use CARTA smoothly. But no
 
 To be continued.
 
-### requirement 4: Prepare fits or casa image format files.
+### requirement 4: prepare fits or casa image format files.
+
+The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA)
 
 ## Run by command line
 
 1. Current Carta needs to execute the following command every time before running Carta. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
     ```
-    #export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
+    export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
 
     ```
 
