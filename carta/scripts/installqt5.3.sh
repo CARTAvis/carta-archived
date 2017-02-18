@@ -4,7 +4,7 @@
 
 CARTAWORKHOME=`pwd`
 
-sudo yum -y install wget
+# sudo yum -y install wget
 sudo yum -y install mesa-libGL-devel
 
 ## Later, we can change to use latest qt online installer to install latest creator + qt 5.3.2 choosed

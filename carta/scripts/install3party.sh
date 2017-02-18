@@ -8,12 +8,10 @@ CARTAWORKHOME=`pwd`
 ##################################
 
 ## devtoolset will get gcc 4.8.5 etc
-sudo yum -y devtoolset*
+# sudo yum -y devtoolset*
 
 ## install 'make' tool
-sudo yum -y groupinstall "Development Tools"
-
-sudo yum -y install epel-release
+# sudo yum -y groupinstall "Development Tools"
 
 ## these are required by Carta, may also be required by casa too
 sudo yum -y install cfitsio-devel wcslib Cython flex-devel bison-devel
@@ -21,12 +19,12 @@ sudo yum -y install cfitsio-devel wcslib Cython flex-devel bison-devel
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 
 ## for building qwt by qt5.3 for carta
-if [ -z ${QT5PATH+x} ]; then 
-	echo "QT5PATH is unset"; 
+if [ -z ${QT5PATH+x} ]; then
+	echo "QT5PATH is unset";
 	QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt5.3.2/5.3/gcc_64/bin/
 	export PATH=$QT5PATH:$PATH
-else 
-	echo "QT5PATH is already set to '$QT5PATH'"; 
+else
+	echo "QT5PATH is already set to '$QT5PATH'";
 	export PATH=$QT5PATH:$PATH
 fi
 
@@ -85,5 +83,6 @@ cd ..
 sudo yum -y install sqlite-devel
 
 ## leveldb
-## seems to need sudo yum -y install epel-release first
+# leveldb needs epel-release
+sudo yum -y install epel-release
 sudo yum -y install leveldb leveldb-devel
