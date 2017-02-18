@@ -14,7 +14,7 @@ CARTAWORKHOME=`pwd`
 # sudo yum -y groupinstall "Development Tools"
 
 ## these are required by Carta, may also be required by casa too
-sudo yum -y install cfitsio-devel wcslib Cython flex-devel bison-devel
+sudo yum -y install cfitsio-devel wcslib wcslib-devel Cython flex-devel bison-devel
 
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 
