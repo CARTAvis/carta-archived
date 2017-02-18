@@ -15,7 +15,7 @@ EOF
 
 ## Build Qt 4.8.5 (slow, need improvement)
 wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
-sudo yum -y install unzip
+# sudo yum -y install unzip
 # not test but should work
 unzip -a qt-everywhere-opensource-src-4.8.5.zip -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
@@ -46,7 +46,7 @@ export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
 export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/lib:$PATH
 cd ..
 
-sudo yum -y install cmake
+# sudo yum -y install cmake
 sudo yum -y install boost
 sudo yum -y install boost-devel
 sudo yum -y install numpy

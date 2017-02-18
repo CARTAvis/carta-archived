@@ -21,6 +21,22 @@ Create this working folder, then cd into it, then
 
 Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` after downloading.
 
+## Install basic build tools
+
+Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
+
+```
+## devtoolset will install gcc. Our minial requirement is >=4.8.1
+## Development Tools  will install 'make' tool and so on, which is needed by building third party libs,
+## cmake is needed by building casa
+## mesa-libGL-devel is needed by qt 5.3.2
+
+sudo yum -y install wget, unzip \
+sudo yum -y devtoolset* \
+sudo yum -y groupinstall "Development Tools" \
+sudo yum -y install cmake \
+```
+
 ## Download and install Qt Creator + Qt 5.3.2 library
 
 In `your-carta-work folder`, then   
@@ -37,7 +53,7 @@ In `your-carta-work folder`, then
 To use Qt5 binary path is for following things:
 
 1. To build carta by command line.
-2. To build Qwt needed by Carta in some scripts.  
+2. To build Qwt 6.1.2 needed by Carta in some scripts.  
 
 ### Or you can download the latest Qt online installer to install the latest Qt Creator and Qt 5.3.2
 Go to Qt official site to download or use this link http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/qt-unified-linux-x64-2.0.5-online.run
@@ -53,7 +69,7 @@ In `your-carta-work folder`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
 1. build and install Qt 4.8.5 into `/usr/local/Trolltech/Qt-4.8.5/`. May find some pre-built Qt 4.8.5 package to improve the speed.
-2. Use Qt 4.8.5 to build needed Qwt.
+2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. Use Qt 4.8.5 to build CASA libraries.
 
 The default build flag for CASA is `make`, you can change to use `make -j` in the script to build parallel but it may build fail due to no official support of building casa.
@@ -81,7 +97,7 @@ Open carta.pro, then setup some build and run setting, then build.
 
 # Run Carta
 
-Need to prepare some things needed for running CARTA and also appended parameters 
+Need to prepare some things needed for running CARTA and also appended parameters
 
 1. setup necessary config.json
 2. (optinal?) setup snapshots folder.  
