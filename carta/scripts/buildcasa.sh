@@ -1,9 +1,5 @@
 CARTAWORKHOME=`pwd`
 
-## do not need this key? nrao-carta does not mention but nrao-casa mention
-# curl -O -L  https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
-# mv RPM-GPG-KEY-EPEL-7  /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
-
 ## need to check if we really need this
 ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
 cat > "/etc/yum.repos.d/casa.repo" <<EOF
@@ -13,7 +9,34 @@ baseurl=http://svn.cv.nrao.edu/casa/repo/el7/x86_64
 gpgkey=http://svn.cv.nrao.edu/casa/RPM-GPG-KEY-casa http://www.jpackage.org/jpackage.asc http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-redhat-release http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-EPEL
 EOF
 
-## Build Qt 4.8.5 (slow, need improvement)
+## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
+sudo yum -y install devtoolset*;
+#   devtoolset-3-gcc.x86_64 0:4.9.2-6.2.el7
+#   devtoolset-3-gcc-c++.x86_64 0:4.9.2-6.2.el7
+#   devtoolset-3-gcc-gfortran.x86_64 0:4.9.2-6.2.el7
+## not sure if other libs are needed or not. seems not
+## refernece: https://github.com/casacore/casacore
+
+# Installed:
+#   devtoolset-3-binutils.x86_64 0:2.24-18.el7                          devtoolset-3-dwz.x86_64 0:0.11-1.1.el7                            devtoolset-3-elfutils.x86_64 0:0.161-1.el7
+#   devtoolset-3-elfutils-libelf.x86_64 0:0.161-1.el7                   devtoolset-3-elfutils-libs.x86_64 0:0.161-1.el7                   devtoolset-3-gcc.x86_64 0:4.9.2-6.2.el7
+#   devtoolset-3-gcc-c++.x86_64 0:4.9.2-6.2.el7                         devtoolset-3-gcc-gfortran.x86_64 0:4.9.2-6.2.el7                  devtoolset-3-gdb.x86_64 0:7.8.2-38.el7
+#   devtoolset-3-libquadmath-devel.x86_64 0:4.9.2-6.2.el7               devtoolset-3-libstdc++-devel.x86_64 0:4.9.2-6.2.el7               devtoolset-3-ltrace.x86_64 0:0.7.91-9.el7
+#   devtoolset-3-memstomp.x86_64 0:0.1.5-3.el7                          devtoolset-3-runtime.x86_64 0:3.1-12.el7                          devtoolset-3-strace.x86_64 0:4.8-8.el7
+#   devtoolset-3-toolchain.x86_64 0:3.1-12.el7
+#
+# Dependency Installed:
+#   audit-libs-python.x86_64 0:2.6.5-3.el7          checkpolicy.x86_64 0:2.5-4.el7                    glibc-devel.x86_64 0:2.17-157.el7_3.1          glibc-headers.x86_64 0:2.17-157.el7_3.1
+#   kernel-headers.x86_64 0:3.10.0-514.6.1.el7      libcgroup.x86_64 0:0.41-11.el7                    libgomp.x86_64 0:4.8.5-11.el7                  libmpc.x86_64 0:1.0.1-3.el7
+#   libselinux-python.x86_64 0:2.5-6.el7            libselinux-utils.x86_64 0:2.5-6.el7               libsemanage-python.x86_64 0:2.5-5.1.el7_3      mpfr.x86_64 0:3.1.1-4.el7
+#   policycoreutils.x86_64 0:2.5-11.el7_3           policycoreutils-python.x86_64 0:2.5-11.el7_3      python-IPy.noarch 0:0.75-6.el7                 scl-utils.x86_64 0:20130529-17.el7_1
+#   setools-libs.x86_64 0:3.3.8-1.1.el7
+#
+# Dependency Updated:
+#   libsemanage.x86_64 0:2.5-5.1.el7_3
+####
+
+## Build Qt 4.8.5 (slow)
 wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
 # sudo yum -y install unzip
 # not test but should work
@@ -58,7 +81,7 @@ casa01-openmpi.x86_64 casa01-python.x86_64 casa01-python-devel.x86_64 casa01-pyt
 libsakura pgplot-devel pgplot-demos pgplot-motif \
 lapack-devel xerces-c-devel
 
-sudo yum -y install fftw fftw-devel
+sudo yum -y install fftw fftw-devel gsl gsl-devel
 
 ## cascore and code
 # in the other instruction to build carta + casa, usually
@@ -92,6 +115,7 @@ export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/lib:$PATH
 ###
 
 ## it is better to rm -rf * in build folder if rebuild manually + dependency changes
+## can use your own compiler and gfortan here
 cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
 -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 -DPYTHON_INCLUDE_DIR=/opt/casa/01/include/python2.7/ \
 -DPYTHON_LIBRARY=/opt/casa/01/lib/libpython2.7.so -DBOOST_ROOT=/usr/lib64/casa/01 -DCMAKE_BUILD_TYPE=Release \
@@ -104,7 +128,6 @@ make -j 2
 make install
 
 ### code
-sudo yum -y install gsl gsl-devel # 1.15, duplicate install since we have our own gsl installed, fix later?
 sudo yum -y install java
 sudo yum -y install libxml2-devel libxslt-devel
 sudo yum -y install rpfits readline-devel

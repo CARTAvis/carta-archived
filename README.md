@@ -5,17 +5,24 @@ Carta Viewer
 
 ## Install basic build tools
 
-Paste the script part of the following content in your terminal to install. Ignore this step if you already have compatible version of them.
+Paste the the following script part into your terminal to install. Ignore this step if you already have compatible version of them but you need modify some path by yourself.
 
 ```
-## Our gcc/g++ minial requirement is >=4.8.1
-## sudo yum -y devtoolset* will install gcc, g++, gfortran etc tools under /opt/rh/devtoolset-3 
-## cmake is needed by building casa
+## Our gcc/g++ minimal requirement is >=4.8.1
 
-sudo yum -y install wget unzip; \
-sudo yum -y devtoolset*;\
-sudo yum -y install make git svn ; \
-sudo yum -y install cmake; \
+## "Development Tools" includes the following
+## gcc   4.8.5-11.el7               
+## gcc-c++  4.8.5-11.el7                         
+## gcc-gfortran  4.8.5-11.el7         
+## bison 2.7, needed by carta, casa
+## flex 2.5, needed by carta, casa
+## subversion-libs   1.7.14-10.el7
+## git,
+## unzip, doxygen, less
+## others
+sudo yum -y groupinstall "Development Tools";
+
+sudo yum -y install wget cmake;
 ```
 
 ## Choose where you want to build CARTA
@@ -47,7 +54,7 @@ cd `your-carta-work`, then
 1. download Qt online installer `qt-unified-linux-x64-2.0.5-online.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
 3. Please choose ../your-carta-work/CARTAvis-externals/ThirdParty/Qt/ as the installed position. You can install in other position but you need to change Qt path in the following scripts. (will add more instruction later)
-4. During installing, uncheck 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked. 
+4. During installing, uncheck 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked.
 
 Qt 5.3 is for following things:
 
@@ -63,7 +70,7 @@ cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build CASA libraries
 
-If you have your own gcc/g++/gfortran, please specify the path of them into cmake flag in buildcasa.sh
+The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
 
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
@@ -142,7 +149,7 @@ Paste the following data to be the content of `~/.cartavis/config.json`
 
 ### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
 
-Paste the following content to your terminal to install. 
+Paste the following content to your terminal to install.
 
 ```
 mkdir data ; \
@@ -153,17 +160,17 @@ svn co https://svn.cv.nrao.edu/svn/casa-data/distro/geodetic/ data/geodetic ; \
 mv data ~/
 ```
 
-The default location is under home directory `~/`, and will be improved to better place. 
+The default location is under home directory `~/`, and will be improved to better place.
 
 ### requirement 4: prepare fits or casa image format files.
 
-The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA). 
+The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA).
 
-You can also chooose fits file in this git project folder, `your-carta-work/CARTAvis/carta/scriptedClient/tests/data` when using file browser of CARTA. The other ways to get testing fits files, 
+You can also chooose fits file in this git project folder, `your-carta-work/CARTAvis/carta/scriptedClient/tests/data` when using file browser of CARTA. The other ways to get testing fits files,
 
 1. https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU (zip file)
-2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ (some files here) 
-3. Contact ASIAA members to get some. 
+2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ (some files here)
+3. Contact ASIAA members to get some.
 
 ## Run by command line
 
