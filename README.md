@@ -115,13 +115,13 @@ Need to prepare some things needed for running CARTA and also appended parameter
 
 ### requirement 1: create needed folders
 
-Execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
+cd `your-carta-work`,, execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
 
 It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.
 
 ### requirement 2: setup necessary config.json
 
-Paste the following data to be the content of `~/.cartavis/config.json/config.json`
+Paste the following data to be the content of `~/.cartavis/config.json`
 
 ```
 {
@@ -158,7 +158,11 @@ The default location is under home directory `~/`, and will be improved to bette
 
 The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA). 
 
-You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. or download some fits from https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU or https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ first. 
+You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. The other ways to get testing fits files, 
+
+1. https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU 
+2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ 
+3. Contact ASIAA members to get some. 
 
 ## Run by command line
 
