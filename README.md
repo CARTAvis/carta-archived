@@ -127,15 +127,16 @@ Paste the following data to be the content of `~/.cartavis/config.json`
 {
 "_comment" : "List of plugin directories",
 "pluginDirs": [
-"$(APPDIR)/../plugins",
-"$(APPDIR)/../../../../plugins",
-"$(HOME)/.cartavis/plugins"
+    "$(APPDIR)/../plugins",
+    "$(APPDIR)/../../../../plugins",
+    "$(HOME)/.cartavis/plugins"
 ],
 "disabledPlugins" : ["casaCore-2.0.1"],
 "plugins": {
     "PCacheSqlite3" : {
         "dbPath": "/tmp/pcache.sqlite"
     }
+}
 }
 ```
 
