@@ -47,7 +47,7 @@ cd `your-carta-work`, then
 1. download Qt online installer `qt-unified-linux-x64-2.0.5-online.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
 3. Please choose ../your-carta-work/CARTAvis-externals/ThirdParty/Qt/ as the installed position. You can install in other position but you need to change Qt path in the following scripts. (will add more instruction later)
-4. During installing, check 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked. 
+4. During installing, uncheck 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked. 
 
 Qt 5.3 is for following things:
 
@@ -70,9 +70,9 @@ cd `your-carta-work`, execute
 
 1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take 1 hour.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
-3. Use Qt 4.8.5 to build CASA libraries.
+3. svn checkout casa source code into `$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/`, then use Qt 4.8.5 to build CASA libraries.
 
-The default build flag for CASA is `make`, you can change to use `make -j` in the script to build parallel but it may build fail due to no official support of building casa.
+The default build flag for CASA is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
 
 # Build Carta program on CentOS 7
 
@@ -89,9 +89,9 @@ Suggested path:
     ```
     ## gstreamer libs are needed by Qt (webkit).
     ## python-devel will install Python.h
-    sudo yum -y install gstreamer-devel \
-    sudo yum -y install gstreamer-plugins-base \
-    sudo yum -y install python-devel
+    sudo yum -y install gstreamer-devel; \
+    sudo yum -y install gstreamer-plugins-base; \
+    sudo yum -y install python-devel;
     ```
 
 2. Setup Qt5 path,
@@ -99,9 +99,9 @@ Suggested path:
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
-5. `make -j`
+5. `make -j 2`
 
-## Use Qt creator to build and debug (will complement debug part later)
+## Use Qt creator to build and debug (will complement this part later)
 
 Open carta.pro, then setup some build and run setting, then build.
 
@@ -115,27 +115,28 @@ Need to prepare some things needed for running CARTA and also appended parameter
 
 ### requirement 1: create needed folders
 
-Execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
+cd `your-carta-work`,, execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
 
 It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.
 
 ### requirement 2: setup necessary config.json
 
-Paste the following data to be the content of `~/.cartavis/config.json/config.json`
+Paste the following data to be the content of `~/.cartavis/config.json`
 
 ```
 {
 "_comment" : "List of plugin directories",
 "pluginDirs": [
-"$(APPDIR)/../plugins",
-"$(APPDIR)/../../../../plugins",
-"$(HOME)/.cartavis/plugins"
+    "$(APPDIR)/../plugins",
+    "$(APPDIR)/../../../../plugins",
+    "$(HOME)/.cartavis/plugins"
 ],
 "disabledPlugins" : ["casaCore-2.0.1"],
 "plugins": {
     "PCacheSqlite3" : {
         "dbPath": "/tmp/pcache.sqlite"
     }
+}
 }
 ```
 
@@ -148,7 +149,7 @@ mkdir data ; \
 mkdir data/ephemerides ;\
 mkdir data/geodetic ; \
 svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/ephemerides ;\
-svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/geodetic ; \
+svn co https://svn.cv.nrao.edu/svn/casa-data/distro/geodetic/ data/geodetic ; \
 mv data ~/
 ```
 
@@ -158,7 +159,11 @@ The default location is under home directory `~/`, and will be improved to bette
 
 The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA). 
 
-You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. or download some fits from https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU or https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ first. 
+You can also chooose fits file in this git project folder, `your-carta-work/CARTAvis/carta/scriptedClient/tests/data` when using file browser of CARTA. The other ways to get testing fits files, 
+
+1. https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU (zip file)
+2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ (some files here) 
+3. Contact ASIAA members to get some. 
 
 ## Run by command line
 
