@@ -7,14 +7,39 @@ CARTAWORKHOME=`pwd`
 # Install some required RPM packages
 ##################################
 
-## devtoolset will get gcc 4.8.5 etc
-# sudo yum -y devtoolset*
+## Requirement of carta:
+## g++ >= 4.8.1
+## cfitsio >= 3360
+## wcslib >= 4.23
+## gsl >= 2.1
+## ast >= 8.0.2
 
-## install 'make' tool
-# sudo yum -y groupinstall "Development Tools"
+#####
+# How to solve portable issues for dynamic libs, e.g. move carta binary or even packaing? Use rpath?
+####
 
-## these are required by Carta, may also be required by casa too
-sudo yum -y install cfitsio-devel wcslib wcslib-devel Cython flex-devel bison-devel
+## these are required by Carta (but also duplicate install from source),
+## also are required by casa-submodules (at least casacore)
+## To do: carta switchs to use yum version which are 3370, 5.1.5.
+## carta uses ThirdParty to look for cfitsio, wcslio,
+## so to use yum version, switch to /usr/lib, /usr/include etc? <-on Linux, default search path
+sudo yum -y install cfitsio-devel wcslib wcslib-devel
+
+## required by carta, casa-submodue:code
+# yum:1.15. so carta keeps building it from source code.
+# To do [Done]: fix header/lib/dynamic path in Qt, on Mac, CentOS, for Carta.
+# carta uses /usr/local to look for gsl.
+# Maybe just build from source and install there, let carta and casa use
+# sudo yum -y install gsl gsl-devel -> move to buildcasa.sh
+
+## these are required by carta, also are required by casa-submodules
+sudo yum -y install flex-devel bison-devel
+
+## required by carta, and possible also by casa-submodules
+sudo yum -y Cython
+
+## carta only:
+## ast (static linking)
 
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 
@@ -75,7 +100,7 @@ cd ..
 curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
 tar xvfz gsl-2.1.tar.gz && mv gsl-2.1 gsl-2.1-src
 cd gsl-2.1-src
-./configure --prefix=`pwd`/../gsl/
+./configure
 make && make install
 cd ..
 
@@ -83,6 +108,9 @@ cd ..
 sudo yum -y install sqlite-devel
 
 ## leveldb
-# leveldb needs epel-release
-sudo yum -y install epel-release
+# leveldb needs epel-release, so install it first
+# (nrao-carta does not mention but nrao-casa mention)
+# second way: curl -O -L  https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+# mv RPM-GPG-KEY-EPEL-7  /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+sudo yum -y install epel-release; \
 sudo yum -y install leveldb leveldb-devel
