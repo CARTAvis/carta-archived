@@ -24,7 +24,6 @@ CARTAWORKHOME=`pwd`
 ## carta uses ThirdParty to look for cfitsio, wcslio,
 ## so to use yum version, switch to /usr/lib, /usr/include etc? <-on Linux, default search path
 sudo yum -y install wcslib wcslib-devel
-## Question: why in some old scripts, only setup LD_LIBRARY_PATH for wcslib, no cfitsio??
 sudo yum -y install epel-release ## which has cfitsio, leveldb
 sudo yum -y install cfitsio-devel ## will install cfitsio too
 
