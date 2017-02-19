@@ -47,7 +47,7 @@ cd `your-carta-work`, then
 1. download Qt online installer `qt-unified-linux-x64-2.0.5-online.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
 3. Please choose ../your-carta-work/CARTAvis-externals/ThirdParty/Qt/ as the installed position. You can install in other position but you need to change Qt path in the following scripts. (will add more instruction later)
-4. During installing, check 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked. 
+4. During installing, uncheck 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked. 
 
 Qt 5.3 is for following things:
 
