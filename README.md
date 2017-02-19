@@ -101,7 +101,7 @@ Suggested path:
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
 5. `make -j 2`
 
-## Use Qt creator to build and debug (will complement debug part later)
+## Use Qt creator to build and debug (will complement this part later)
 
 Open carta.pro, then setup some build and run setting, then build.
 
@@ -159,7 +159,7 @@ The default location is under home directory `~/`, and will be improved to bette
 
 The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA). 
 
-You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. The other ways to get testing fits files, 
+You can also chooose fits file in this git project folder, `your-carta-work/CARTAvis/carta/scriptedClient/tests/data` when using file browser of CARTA. The other ways to get testing fits files, 
 
 1. https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU (zip file)
 2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ (some files here) 
