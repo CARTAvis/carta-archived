@@ -148,7 +148,7 @@ mkdir data ; \
 mkdir data/ephemerides ;\
 mkdir data/geodetic ; \
 svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/ephemerides ;\
-svn co https://svn.cv.nrao.edu/svn/casa-data/distro/ephemerides/ data/geodetic ; \
+svn co https://svn.cv.nrao.edu/svn/casa-data/distro/geodetic/ data/geodetic ; \
 mv data ~/
 ```
 
