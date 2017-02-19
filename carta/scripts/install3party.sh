@@ -64,6 +64,7 @@ if [ "$isCentOS" = true ] ; then
 	# mv RPM-GPG-KEY-EPEL-7  /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 	sudo yum -y install epel-release
 	sudo yum -y install leveldb leveldb-devel
+	sudo yum -y install gcc-gfortran # needed by ast
 else
 	##### Ubuntu 16.04
   sudo apt-get -y install libwcs5 wcslib-dev
@@ -73,8 +74,9 @@ else
 	sudo apt-get -y install sqlite sqlite3 libsqlite3-dev
 	sudo apt-get -y install libleveldb-dev
 	sudo apt-get -y install cython ## will install python2.7, gcc
+	sudo apt-get -y install gfortran
 
-	## needed for compiling qwt 
+	## needed for compiling qwt
 	apt-get install mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev
 fi
 
