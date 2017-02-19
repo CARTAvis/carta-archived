@@ -7,8 +7,18 @@
 CARTAWORKHOME=`pwd`
 QTINSTALLER=qt-unified-linux-x64-2.0.5-online.run
 
+isCentOS=true
+if grep -q CentOS /etc/os-release; then
+    echo "isCentOS"
+else
+    echo "should be Ubuntu"
+	isCentOS=false
+fi
+
 # this is needed by installing 5.3.2 from qt-opensource-linux-x64-5.3.2.run, not sure if it is needed by online_installers
-sudo yum -y install mesa-libGL-devel
+if [ "$isCentOS" = true ] ; then
+    sudo yum -y install mesa-libGL-devel
+fi
 
 ## Later, we can change to use latest qt online installer to install latest creator + qt 5.3.2 choosed
 # possible to use sudo yum to install qt 5.3.2 ? ref: qt5-qtbase-5.2.0-4.fc20.x86_64?
