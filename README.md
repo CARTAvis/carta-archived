@@ -72,7 +72,7 @@ cd `your-carta-work`, execute
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. Use Qt 4.8.5 to build CASA libraries.
 
-The default build flag for CASA is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build. Also `make -j` may not be the fatest and it may also hang on your computers. 
+The default build flag for CASA is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build. Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
 
 # Build Carta program on CentOS 7
 
@@ -89,9 +89,9 @@ Suggested path:
     ```
     ## gstreamer libs are needed by Qt (webkit).
     ## python-devel will install Python.h
-    sudo yum -y install gstreamer-devel \
-    sudo yum -y install gstreamer-plugins-base \
-    sudo yum -y install python-devel
+    sudo yum -y install gstreamer-devel; \
+    sudo yum -y install gstreamer-plugins-base; \
+    sudo yum -y install python-devel;
     ```
 
 2. Setup Qt5 path,
@@ -99,7 +99,7 @@ Suggested path:
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
-5. `make -j`
+5. `make -j 2`
 
 ## Use Qt creator to build and debug (will complement debug part later)
 
