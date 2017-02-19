@@ -15,15 +15,18 @@ CARTAWORKHOME=`pwd`
 ## ast >= 8.0.2
 
 #####
-# How to solve portable issues for dynamic libs, e.g. move carta binary or even packaing? Use rpath?
+# How to solve portable issues for dynamic libs, e.g. move carta binary or even packaing? Use rpath??
 ####
 
-## these are required by Carta (but also duplicate install from source),
+## these (wcslib, cfitsio) are required by Carta (but also duplicate install from source),
 ## also are required by casa-submodules (at least casacore)
-## To do: carta switchs to use yum version which are 3370, 5.1.5.
+## To do !!: carta switchs to use yum version which are 3370, 5.1.5.
 ## carta uses ThirdParty to look for cfitsio, wcslio,
 ## so to use yum version, switch to /usr/lib, /usr/include etc? <-on Linux, default search path
-sudo yum -y install cfitsio-devel wcslib wcslib-devel
+sudo yum -y install wcslib wcslib-devel
+## Question: why in some old scripts, only setup LD_LIBRARY_PATH for wcslib, no cfitsio??
+sudo yum -y install epel-release ## which has cfitsio, leveldb
+sudo yum -y install cfitsio-devel ## will install cfitsio too
 
 ## required by carta, casa-submodue:code
 # yum:1.15. so carta keeps building it from source code.
@@ -36,7 +39,7 @@ sudo yum -y install cfitsio-devel wcslib wcslib-devel
 sudo yum -y install flex-devel bison-devel
 
 ## required by carta, and possible also by casa-submodules
-sudo yum -y Cython
+sudo yum -y install Cython
 
 ## carta only:
 ## ast (static linking)
