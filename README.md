@@ -13,9 +13,9 @@ Paste the the following script part into your terminal to install. Ignore this s
 ## "Development Tools" includes the following
 ## gcc   4.8.5-11.el7               
 ## gcc-c++  4.8.5-11.el7                         
-## gcc-gfortran  4.8.5-11.el7         
+## gcc-gfortran  4.8.5-11.el7  
+## flex 2.5, needed by carta, casa       
 ## bison 2.7, needed by carta, casa
-## flex 2.5, needed by carta, casa
 ## subversion-libs   1.7.14-10.el7
 ## git,
 ## unzip, doxygen, less
