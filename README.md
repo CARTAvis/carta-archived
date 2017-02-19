@@ -70,7 +70,7 @@ cd `your-carta-work`, execute
 
 1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take 1 hour.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
-3. Use Qt 4.8.5 to build CASA libraries.
+3. svn checkout casa source code into `$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/`, then use Qt 4.8.5 to build CASA libraries.
 
 The default build flag for CASA is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build. Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
 
