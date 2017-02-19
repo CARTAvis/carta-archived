@@ -1,28 +1,23 @@
-Carta Viewer
+Introduction to build and use Carta Viewer on CentOS 7 (tested) and Ubuntu 16.04 (not completed)
 =======
 
-# Steps before building CARTA on CentOS 7
+# Steps before building CARTA
 
 ## Install basic build tools
 
 Paste the the following script part into your terminal to install. Ignore this step if you already have compatible version of them but you need modify some path by yourself.
 
+CentOS 7:
+
 ```
 ## Our gcc/g++ minimal requirement is >=4.8.1
+sudo yum -y install gcc gcc-c++ make cmake git subversion-libs unzip wget
+```
 
-## "Development Tools" includes the following
-## gcc   4.8.5-11.el7               
-## gcc-c++  4.8.5-11.el7                         
-## gcc-gfortran  4.8.5-11.el7  
-## flex 2.5, needed by carta, casa       
-## bison 2.7, needed by carta, casa
-## subversion-libs   1.7.14-10.el7
-## git,
-## unzip, doxygen, less
-## others
-sudo yum -y groupinstall "Development Tools";
-
-sudo yum -y install wget cmake;
+Ubuntu 16.04:
+```
+sudo apt-get -y install gcc g++;\
+sudo apt-get -y install make cmake git subversion unzip wget curl
 ```
 
 ## Choose where you want to build CARTA
@@ -53,7 +48,7 @@ cd `your-carta-work`, then
 
 1. download Qt online installer `qt-unified-linux-x64-2.0.5-online.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
-3. Please choose ../your-carta-work/CARTAvis-externals/ThirdParty/Qt/ as the installed position. You can install in other position but you need to change Qt path in the following scripts. (will add more instruction later)
+3. Please choose `/opt/Qt` as the installed position. You can install in other position but you need to change Qt path in the following scripts. (This path may not be good enough, will change to use default path later)
 4. During installing, uncheck 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked.
 
 Qt 5.3 is for following things:
@@ -63,14 +58,16 @@ Qt 5.3 is for following things:
 
 ### Or you can download the the other Qt installers to install Qt Creator and Qt 5.3.2
 
-Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also, if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/`
+Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also, if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin/`
 
 ## Install most Third Party libraries, some are built from source code
 cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build CASA libraries
 
-The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
+**CentOS 7:**
+
+The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers (4.9.2) and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
 
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
@@ -81,7 +78,11 @@ cd `your-carta-work`, execute
 
 The default build flag for CASA is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
 
-# Build Carta program on CentOS 7
+**Ubuntu 16.04:**
+
+Same as CentOS, except will not install another specific compilers.
+
+# Build Carta program
 
 ## Choose the location of build folder
 
@@ -93,6 +94,7 @@ Suggested path:
 
 1. Install required libraries when building CARTA
 
+    CentOS 7:
     ```
     ## gstreamer libs are needed by Qt (webkit).
     ## python-devel will install Python.h
@@ -100,9 +102,10 @@ Suggested path:
     sudo yum -y install gstreamer-plugins-base; \
     sudo yum -y install python-devel;
     ```
+    Ubuntu 16.04:
 
 2. Setup Qt5 path,
- `export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt/5.3/gcc_64/bin/:$PATH` or `your Qt Path`
+ `export PATH=/opt/Qt/5.3/gcc_64/bin/:$PATH` or `your Qt Path`
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
