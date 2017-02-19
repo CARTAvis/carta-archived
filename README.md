@@ -160,8 +160,8 @@ The default loading path is `~/CARTA/Images` and you can put there or other plac
 
 You can also chooose fits file in this git project folder, `carta/carta/scriptedClient/tests/data` when using file browser of CARTA. The other ways to get testing fits files, 
 
-1. https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU 
-2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ 
+1. https://drive.google.com/open?id=0B22Opq0T64ObTGJhNTBGeU04elU (zip file)
+2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ (some files here) 
 3. Contact ASIAA members to get some. 
 
 ## Run by command line
