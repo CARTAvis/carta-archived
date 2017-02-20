@@ -7,20 +7,23 @@ Introduction to build and use Desktop ver. of Carta Viewer on CentOS 7 (tested) 
 
 Paste the the following script part into your terminal to install. Ignore this step if you already have compatible version of them but you need modify some path by yourself.
 
+Our gcc/g++ minimal requirement is >=4.8.1
+
 CentOS 7:
 
 ```
-## Our gcc/g++ minimal requirement is >=4.8.1
+sudo yum -y update;\
 sudo yum -y install gcc gcc-c++ make cmake git subversion-libs unzip wget
 ```
 
 Ubuntu 16.04:
 ```
+sudo apt-get -y update;\
 sudo apt-get -y install gcc g++;\
 sudo apt-get -y install make cmake git subversion unzip wget curl
 ```
 
-## Choose where you want to build CARTA
+## Choose your working space (folder) of CARTA
 Current `CARTAvis` uses the following folder structure
 
 ```
@@ -39,7 +42,11 @@ Create this working folder, alias `your-carta-work`,  then cd `your-carta-work`,
 
 p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
-## Download and install Qt Creator + Qt 5.3.2 library
+## Download and install latest Qt Creator (4.2.x) + Qt 5.3.2 library
+
+CARTA uses Qt 5.3.2 and it uses QtWebKit which exists in Qt 5.3, 5.4. Prebuilt Qt 5.5 installer does not QtWebkit but can be built from 5.5 source code. After 5.6, QtWebKit is replaced by QtWebEngine which is based on Chronium. 
+
+It is encouraged to use newest IDE to get more good developement features. 
 
 cd `your-carta-work`, then   
 
@@ -56,9 +63,12 @@ Qt 5.3 is for following things:
 1. To build carta by command line.
 2. To build Qwt 6.1.2 needed by Carta in some scripts.  
 
-### Or you can download the the other Qt installers to install Qt Creator and Qt 5.3.2
+### Or you can download the the other Qt offline installers to install Qt Creator and Qt 5.3.2
 
-Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also, if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin/`
+1. Latest Qt creator (4.2.x): https://download.qt.io/official_releases/qtcreator/4.2/4.2.0/
+2. Qt 5.3.2, bundle with old Qt creator (3.2.x): http://download.qt.io/archive/qt/5.3/5.3.2/
+
+Also, if you choose another path to install (Qt lib part), you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin/`
 
 ## Install most Third Party libraries, some are built from source code
 cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
@@ -72,15 +82,19 @@ The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compil
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
-1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take 1 hour.
+1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. svn checkout casa source code into `$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/`, then use Qt 4.8.5 to build CASA libraries.
 
 The default build flag for CASA I try is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
-
+ 
+To reduce time spending on building Qt 4.8.5, it is possible to install pre-built Qt 4.8.5. `yum install qt-devel.x86_64 qt.x86_64` (Not try yet).
+ 
 **Ubuntu 16.04:**
 
-Same as CentOS, except will not install another specific compilers.
+Same as CentOS, except will not install another specific g++ compilers.
+
+It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`. 
 
 # Build Carta program
 
