@@ -24,6 +24,9 @@ if [ "$isCentOS" = true ] ; then
     # not sure if it is needed by online_installer
     sudo yum -y install mesa-libGL-devel
 else
+    ## needed to launch qt creator installer
+    sudo apt-get -y insatll libx11-xcb-dev libdbus-1-3
+    ## needed to complete installing qt 
     sudo apt-get -y install libgl1-mesa-glx libglib2.0-0
 fi
 

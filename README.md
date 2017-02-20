@@ -1,4 +1,4 @@
-Introduction to build and use Carta Viewer on CentOS 7 (tested) and Ubuntu 16.04 (not completed)
+Introduction to build and use Desktop ver. of Carta Viewer on CentOS 7 (tested) and Ubuntu 16.04 (completed)
 =======
 
 # Steps before building CARTA
@@ -76,7 +76,7 @@ cd `your-carta-work`, execute
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. svn checkout casa source code into `$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/`, then use Qt 4.8.5 to build CASA libraries.
 
-The default build flag for CASA is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
+The default build flag for CASA I try is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
 
 **Ubuntu 16.04:**
 
@@ -97,12 +97,18 @@ Suggested path:
     CentOS 7:
     ```
     ## gstreamer libs are needed by Qt (webkit).
-    ## python-devel will install Python.h
+    ## python-devel will install Python.h (should be 2.7)
     sudo yum -y install gstreamer-devel; \
     sudo yum -y install gstreamer-plugins-base; \
     sudo yum -y install python-devel;
     ```
     Ubuntu 16.04:
+    ```
+    sudo apt-get -y install libgstreamer0.10-dev gstreamer0.10-plugins-base
+
+    ## seems no need to manually install the below
+    ## sudo apt-get -y install libpython2.7-dev; #(or  python-dev?)
+    ```
 
 2. Setup Qt5 path,
  `export PATH=/opt/Qt/5.3/gcc_64/bin/:$PATH` or `your Qt Path`
