@@ -64,7 +64,7 @@ if [ "$isCentOS" = true ] ; then
 	# mv RPM-GPG-KEY-EPEL-7  /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 	sudo yum -y install epel-release
 	sudo yum -y install leveldb leveldb-devel
-	sudo yum -y install gcc-gfortran # needed by ast
+	sudo yum -y install gcc-gfortran # needed by ast, building casa also needes
 else
 	##### Ubuntu 16.04
   sudo apt-get -y install libwcs5 wcslib-dev

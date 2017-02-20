@@ -69,12 +69,13 @@ if [ "$isCentOS" = true ] ; then
     sudo yum -y install rpfits readline-devel
 else
 	##### Ubuntu 16.04
+    ## can use sudo aptitude search to search packages
+
     sudo apt-get -y install gfortran python-numpy libfftw3-dev liblapacke-dev
     sudo apt-get -y install libgsl-dev
     ## libsakura, pgplot ?
     ## blas: mentioned in github casacore
     sudo apt-get -y install libboost-dev
-    sudo apt-get -y install libdbus-1-dev
     sudo apt-get -y install libxerces-c-dev
     sudo apt-get -y install libblas-dev libblas3 \
     liblapack-dev liblapack3 liblapacke liblapacke-dev
@@ -83,9 +84,55 @@ else
     sudo apt-get -y install libboost-python-dev
     sudo apt-get -y install libboost-regex-dev libboost-program-options-dev \
     ibboost-thread-dev libboost-serialization-dev libboost-filesystem-dev libboost-system-dev
+
+    ## needed to be installed before building qt 4.8, not sure all
+    sudo apt-get -y install libdbus-1-dev \
+    libqt4-dbus libqtdbus4 dbus-cpp-dev libdbus-c++-dev libdbus-cpp-dev
     ## openjdk-7-jdk, openjdk-7-jre
+
+    sudo apt-get -y install libreadline-dev libxml2-dev libncurses5-dev
+
+    #-- Looking for RPFITS header RPFITS.h -- NOT FOUND
+    ## https://launchpad.net/~radio-astro/+archive/ubuntu/main
+    # sudo add-apt-repository -s ppa:radio-astro/main # seems to have pgplot
+    sudo add-apt-repository -s ppa:kernsuite/kern-1
+    sudo apt-get update
+    sudo apt-get -y install rpfits
+
+    sudo apt-get install software-properties-common
+    sudo apt-add-repository multiverse
+    sudo apt-get update
+    sudo apt-get -y install pgplot5
+
+    ## not sure if this is in multiverse repo
+    sudo apt-get -y install libpgsbox-dev
+
 fi
 
+## there is no-prebuilt libsakura for ubuntu
+if [ "$isCentOS" = false ] ; then
+    ## http://alma-intweb.mtk.nao.ac.jp/~sakura/api/html/INSTALL.txt
+    apt-get install doxygen
+    # apt-get install gtest
+    apt-get install libeigen3-dev
+    apt-get install liblog4cxx10v5
+
+    #wget ftp://alma-dl.mtk.nao.ac.jp/sakura/releases/latest_src/libsakura-4.0.2065.tar.gz
+    ## tar -xvzf libsakura-4.0.2065.tar.gz
+    ## Use our own modified version,
+    ## since the original source code will not be compiled OK by gcc 5.4
+    git clone https://github.com/grimmer0125/libsakura
+
+    wget -O gtest-1.7.0.zip https://github.com/google/googletest/archive/release-1.7.0.zip
+    unzip gtest-1.7.0.zip -d libsakura
+    cd libsakura
+    ln -s googletest-release-1.7.0 gtest
+    cd build
+    cmake ..
+    make
+    make apidoc
+    make install
+fi
 
 ## Build Qt 4.8.5 (slow)
 wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
