@@ -7,15 +7,18 @@ Introduction to build and use Desktop ver. of Carta Viewer on CentOS 7 (tested) 
 
 Paste the the following script part into your terminal to install. Ignore this step if you already have compatible version of them but you need modify some path by yourself.
 
+Our gcc/g++ minimal requirement is >=4.8.1
+
 CentOS 7:
 
 ```
-## Our gcc/g++ minimal requirement is >=4.8.1
+sudo yum -y update;\
 sudo yum -y install gcc gcc-c++ make cmake git subversion-libs unzip wget
 ```
 
 Ubuntu 16.04:
 ```
+sudo apt-get -y update;\
 sudo apt-get -y install gcc g++;\
 sudo apt-get -y install make cmake git subversion unzip wget curl
 ```
