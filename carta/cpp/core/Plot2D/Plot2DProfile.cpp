@@ -116,7 +116,7 @@ void Plot2DProfile::setData ( std::vector<std::pair<double,double> > datas ){
         for ( int i = 0; i < dataCount; i++ ){
             m_datasX[i] = datas[i].first;
             m_datasY[i] = datas[i].second;
-            if ( !isinf( datas[i].first ) && !isinf( datas[i].second )){
+            if ( !std::isinf( datas[i].first ) && !std::isinf( datas[i].second )){
                 if ( m_datasY[i] > m_maxValueY ){
                     m_maxValueY = m_datasY[i];
                 }
