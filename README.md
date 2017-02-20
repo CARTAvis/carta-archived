@@ -20,7 +20,7 @@ sudo apt-get -y install gcc g++;\
 sudo apt-get -y install make cmake git subversion unzip wget curl
 ```
 
-## Choose where you want to build CARTA
+## Choose your working space (folder) of CARTA
 Current `CARTAvis` uses the following folder structure
 
 ```
@@ -39,7 +39,11 @@ Create this working folder, alias `your-carta-work`,  then cd `your-carta-work`,
 
 p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
-## Download and install Qt Creator + Qt 5.3.2 library
+## Download and install latest Qt Creator (4.2.x) + Qt 5.3.2 library
+
+CARTA uses Qt 5.3.2 and it uses QtWebKit which exists in Qt 5.3, 5.4. Prebuilt Qt 5.5 installer does not QtWebkit but can be built from 5.5 source code. After 5.6, QtWebKit is replaced by QtWebEngine which is based on Chronium. 
+
+It is encouraged to use newest IDE to get more good developement features. 
 
 cd `your-carta-work`, then   
 
@@ -56,9 +60,12 @@ Qt 5.3 is for following things:
 1. To build carta by command line.
 2. To build Qwt 6.1.2 needed by Carta in some scripts.  
 
-### Or you can download the the other Qt installers to install Qt Creator and Qt 5.3.2
+### Or you can download the the other Qt offline installers to install Qt Creator and Qt 5.3.2
 
-Such as this offline installer, http://download.qt.io/archive/qt/5.8/5.8.0/qt-opensource-linux-x64-5.8.0.run. Also, if you choose another path to install, you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin/`
+1. Latest Qt creator (4.2.x): https://download.qt.io/official_releases/qtcreator/4.2/4.2.0/
+2. Qt 5.3.2, bundle with old Qt creator (3.2.x): http://download.qt.io/archive/qt/5.3/5.3.2/
+
+Also, if you choose another path to install (Qt lib part), you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin/`
 
 ## Install most Third Party libraries, some are built from source code
 cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
