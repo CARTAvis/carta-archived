@@ -1,5 +1,4 @@
 Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
-
 =======
 
 Tested OS: CentOS 7, Ubuntu 16.04.
