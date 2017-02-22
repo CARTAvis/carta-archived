@@ -78,7 +78,7 @@ cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build CASA libraries
 
-**CentOS 7:**
+** CentOS 7: **
 
 The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers (4.9.2) and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
 
@@ -93,15 +93,15 @@ The default build flag for CASA I try is `make -j 2`, and this is a compromise w
 
 To reduce time spending on building Qt 4.8.5, it is possible to install pre-built Qt 4.8.5. `yum install qt-devel.x86_64 qt.x86_64` (Not try yet).
 
-**Ubuntu 16.04:**
+** Ubuntu 16.04:**
 
 Same as CentOS, except will not install another specific g++ compilers.
 
 It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`.
 
-**Some things about Casa**
+### Some things about Casa ###
 
-***Carta use two submodule of Casa***
+### Carta use two submodule of Casa ###
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
@@ -113,7 +113,7 @@ There are some main submodule
 
 We only `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
 
-*** Dependency between Carta and Casa***
+### Dependency between Carta and Casa ###
 
 Some of third-party libraries they use are the same,  but may use different version. Here is the list.
 
@@ -125,11 +125,11 @@ Some of third-party libraries they use are the same,  but may use different vers
 6. Cython (?,required by carta, but not sure is required by casa-submodues)
 7. gfortan (carta uses ast library which uses gforan, and casacore uses this, too)
 
-***How to change the revision of casa we use to build***
+### How to change the revision of casa we use to build ###
 
 Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we use a fixed revision around September, 2016.
 
-***Start from August, 2016 to November, 2016, namaspace of casa libs was changing**
+### Start from August, 2016 to November, 2016, namaspace of casa libs was changing ###
 
 It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
 
