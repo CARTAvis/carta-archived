@@ -123,7 +123,7 @@ We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imagean
 Some of third-party libraries they use are the same,  but may use different version. Here is the list.
 
 1. cfitsio
-2. wcslib
+2. wcslib (carta build from source code and its default configure seems to have pgplot. casa: after installing wcslib from apt/yum, casa-code still needs people to install pgplot)
 3. flex
 4. bison
 5. gsl (carta uses 2.1 version of gsl source code to build,  and casa/code seems not require version and we usually install apt/ym version, 1.5 for casa/code)
@@ -246,8 +246,14 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 1. Current Carta needs to execute the following command every time before running Carta. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
     ```
+    ## ok way
     export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
 
+    ```
+
+
+    ```
+    ## or this path, should work but not test. It is the symbolic link of the above path LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
     ```
 
 2. execute `ulimit -n 2000` before running Carta
