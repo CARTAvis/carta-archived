@@ -1,7 +1,9 @@
 Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
 =======
 
-Tested OS: CentOS 7, Ubuntu 16.04.
+Tested OS: CentOS 7.3.1611, Ubuntu 16.04. 
+
+Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well, will fix soon. 
 
 Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ).
 
@@ -108,13 +110,13 @@ It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
-There are some main submodule:
+There are some main submodule 
 
-1. casacore: svn external of the above url. It is in GitHub and also can be cloned by Git (GitHub supplies svn).
+1. casacore: in trunk, svn external of the above url. It is in GitHub and also can be cloned by Git (GitHub supplies svn).
     https://github.com/casacore/casacore
 2. code (reply on casacore)
 3. gcwrap
-4. others...
+4. asap (in trunk, it uses svn external) 
 
 We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
 
@@ -127,10 +129,10 @@ Some of third-party libraries they use are the same,  but may use different vers
 3. flex
 4. bison
 5. gsl (carta uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
-6. Cython ?(required by carta, but not sure is required by casa-submodues)
-7. gfortan (carta uses ast library which uses gfortan, and casacore uses this, too)
-8. Qt. (carta uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
-9. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
+6. gfortan (carta uses ast library which uses gfortan, and casacore uses this, too)
+7. Qt. (carta uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
+8. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
+9. Python and numpy (should be ok. carta:2.7. casa:2.7, exp-3.5)
 
 #### 3.How to change the revision of casa we use to build
 
@@ -201,20 +203,24 @@ Paste the following data to be the content of `~/.cartavis/config.json`
 
 ```
 {
-"_comment" : "List of plugin directories",
-"pluginDirs": [
-    "$(APPDIR)/../plugins",
-    "$(APPDIR)/../../../../plugins",
-    "$(HOME)/.cartavis/plugins"
-],
-"disabledPlugins" : ["casaCore-2.0.1"],
-"plugins": {
-    "PCacheSqlite3" : {
-        "dbPath": "/tmp/pcache.sqlite"
+    "_comment" : "List of plugin directories",
+    "pluginDirs": [
+        "$(APPDIR)/../plugins",
+        "$(APPDIR)/../../../../plugins"
+    ],
+    "disabledPlugins" : ["casaCore-2.0.1"],
+    "plugins": {
+        "PCacheSqlite3" : {
+            "dbPath": "/tmp/pcache.sqlite"
+        }
     }
 }
-}
 ```
+
+`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac. 
+
+You can browse more detailed instruciton about these parameters from here, 
+http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
 
 ### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
 
@@ -260,7 +266,11 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
 ```
 
-You can browse more detailed instruciton about these parameters from here, http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
+Some of optional parameters:
+
+1. `--scriptPort 9999` for python interface 
+2. put `/scratch/some-fits-file.fits` in the end 
+
 
 ## Run and Debug by Qt Creator
 
@@ -269,6 +279,7 @@ You can browse more detailed instruciton about these parameters from here, http:
 The flow is not finalized. Related some library search issues.
 
 To make its size smaller:
+
 1. remove *.o, Makefile, .h and .cpp* in build folder.
 2. use `strip` skill to remove unused part of binary.
 
@@ -296,12 +307,25 @@ Observation about build Size (on Mac), before packaging:
 
 # To do list
 
-1. use **Wl, rpath** to solve dynamic search path issue on Carta instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac) **OR** change **dynamic link** to **static link**.
+1. to check wcslib and cfitsio
+    
+    ```    
+    On 12 Mar 2016,  https://github.com/Astroua/CARTAvis/releases/tag/0.6.0
+    When compiling, one has to be make sure that wcslib and cfitsio libraries are in synch (same version) 
+    between CARTA and CASA builds.
+    ```
 
-2. Bundle multiple dynamic libs to one libs can lower the complexity.
+2. use **-Wl, rpath** to solve dynamic search path issue on Carta instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
 
 3. try to use apt/yum way to install pre-built some third party libs for carta. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
 
 4. try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first.
 
-5. try to install Qt 5.3.2 without GUI, especially for CI/CD
+5. try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
+
+6. May bundle multiple dynamic libs to one libs can lower the complexity, possibily done by cmake in the future. 
+    
+### AppendixA:
+
+Carta third party libs list:
+https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
