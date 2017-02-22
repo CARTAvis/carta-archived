@@ -264,7 +264,7 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
 ```
 
-Some of parameters:
+Some of optional parameters:
 
 1. `--scriptPort 9999` for python interface 
 2. put `/scratch/some-fits-file.fits` in the end 
@@ -316,5 +316,5 @@ Observation about build Size (on Mac), before packaging:
 
 ### AppendixA:
 
-Carta third party libs list
+Carta third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
