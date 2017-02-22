@@ -1,5 +1,8 @@
-Introduction to build and use Desktop ver. of Carta Viewer on CentOS 7 (tested) and Ubuntu 16.04 (completed)
+Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
+
 =======
+
+Tested: CentOS 7, Ubuntu 16.04.
 
 # Steps before building CARTA
 
@@ -42,11 +45,11 @@ Create this working folder, alias `your-carta-work`,  then cd `your-carta-work`,
 
 p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
-## Download and install latest Qt Creator (4.2.x) + Qt 5.3.2 library
+## Download and install + Qt 5.3.2 library + latest Qt Creator (4.2.x)
 
-CARTA uses Qt 5.3.2 and it uses QtWebKit which exists in Qt 5.3, 5.4. Prebuilt Qt 5.5 installer does not QtWebkit but can be built from 5.5 source code. After 5.6, QtWebKit is replaced by QtWebEngine which is based on Chronium. 
+CARTA uses Qt 5.3.2 and it uses QtWebKit which exists in Qt 5.3, 5.4. Prebuilt Qt 5.5 installer does not QtWebkit but can be built from 5.5 source code. After 5.6, QtWebKit is replaced by QtWebEngine which is based on Chronium.
 
-It is encouraged to use newest IDE to get more good developement features. 
+It is encouraged to use newest IDE to get more good development features. You can use only command line without Qt Creator, or use the other IDE, such as **Eclipse** or **IntelliJ IDEA**.
 
 cd `your-carta-work`, then   
 
@@ -82,19 +85,53 @@ The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compil
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
-1. download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours.
+1. Download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours. Keep in mind that you **can not** ignore executing the previous steps of `buildcasa.sh` which install some `dbus` related libraries which are needed by qt-dbus module, which is neeed for **code submodule**.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. svn checkout casa source code into `$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/`, then use Qt 4.8.5 to build CASA libraries.
 
 The default build flag for CASA I try is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
- 
+
 To reduce time spending on building Qt 4.8.5, it is possible to install pre-built Qt 4.8.5. `yum install qt-devel.x86_64 qt.x86_64` (Not try yet).
- 
+
 **Ubuntu 16.04:**
 
 Same as CentOS, except will not install another specific g++ compilers.
 
-It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`. 
+It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`.
+
+**Some things about Casa**
+
+***Carta use two submodule of Casa***
+
+The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
+
+There are some main submodule
+1. casacore: svn external of the above url. It it in GitHub and also can be cloned by Git. (GitHub supplies svn)
+2. code (reply on casacore)
+3. gcwrap
+4. others...
+
+We only `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
+
+*** Dependency between Carta and Casa***
+
+Some of third-party libraries they use are the same,  but may use different version. Here is the list.
+
+1. cfitsio
+2. wcslib
+3. flex
+4. bison
+5. gsl (carta requires 2.1 version of source code to build,  and casa/code seems not require version and we usually install apt/ym version, 1.5 for casa/code)
+6. Cython (?,required by carta, but not sure is required by casa-submodues)
+7. gfortan (carta uses ast library which uses gforan, and casacore uses this, too)
+
+***How to change the revision of casa we use to build***
+
+Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we use a fixed revision around September, 2016.
+
+***Start from August, 2016 to November, 2016, namaspace of casa libs was changing**
+
+It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
 
 # Build Carta program
 
@@ -134,6 +171,8 @@ Suggested path:
 ## Use Qt creator to build and debug (will complement this part later)
 
 Open carta.pro, then setup some build and run setting, then build.
+
+## Use Other IDE to build and debug
 
 # Build needed JavaScript UI files of CARTA
 
@@ -213,7 +252,7 @@ $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis
 
 You can browse more detailed instruciton about these parameters from here, http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
 
-## Run by Qt Creator
+## Run and Debug by Qt Creator
 
 # Prepare distributable and packaged installer/zip
 
@@ -221,4 +260,6 @@ You can browse more detailed instruciton about these parameters from here, http:
 
 To do list
 
-1. find a way to install Qt without GUI
+1. try to install Qt 5.3.2 without GUI
+2. use *rpath* to solve dynamic search path issue on Carta.
+3. try to use apt/yum way to install pre-built some third party libs for carta. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
