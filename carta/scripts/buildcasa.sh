@@ -9,20 +9,21 @@ else
 	isCentOS=false
 fi
 
-## will put into the below condition, now somehow it shows some script wrong if in condition
+if [ "$isCentOS" = true ] ; then
+
 cat > "/etc/yum.repos.d/casa.repo" <<EOF
 [casa]
 name=CASA RPMs for RedHat Enterprise Linux 7 (x86_64)
 baseurl=http://svn.cv.nrao.edu/casa/repo/el7/x86_64
 gpgkey=http://svn.cv.nrao.edu/casa/RPM-GPG-KEY-casa http://www.jpackage.org/jpackage.asc http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-redhat-release http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-EPEL
 EOF
-
-if [ "$isCentOS" = true ] ; then
     ##### CentOS 7
     ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
     ## To do: should spend time to minimalize them,
     ## also tell them which part is for casacore, which is for casa(code)
-    sudo yum -y install devtoolset* ## may only support CentOS 7 ???
+    ## may only support CentOS 7 ???
+    sudo yum -y install devtoolset*
+
     #   devtoolset-3-gcc.x86_64 0:4.9.2-6.2.el7
     #   devtoolset-3-gcc-c++.x86_64 0:4.9.2-6.2.el7
     #   devtoolset-3-gcc-gfortran.x86_64 0:4.9.2-6.2.el7
@@ -47,15 +48,16 @@ if [ "$isCentOS" = true ] ; then
     ####
     # Xerces-C++ is a validating XML parser
 
-    ## need to check if we really need this to install casa01-openmpi etc
+    ## need to check if we really need this to install casa01-mpi4py, casa01-openmpi
     ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
-    sudo yum -y install casa01-dbus-cpp casa01-dbus-cpp-devel casa01-mpi4py.x86_64 \
-    casa01-openmpi.x86_64 casa01-python.x86_64 casa01-python-devel.x86_64 casa01-python-tools.x86_64 \
-    libsakura pgplot-devel pgplot-demos pgplot-motif \
+    sudo yum -y install casa01-mpi4py.x86_64 casa01-openmpi.x86_64 \
+    casa01-python.x86_64 casa01-python-devel.x86_64 \
+    casa01-python-tools.x86_64 \ ## seems to have python-numpy, boost-python
     lapack-devel xerces-c-devel
 
     ## casacore needs. not sure if code needs or not
     ## casacore refernece: https://github.com/casacore/casacore
+    ## the above link shows. (optional) yum -y install ncurses ncurses-devel, but it is default when building on Ubuntu?
     sudo yum -y install gcc-gfortran ## 4.8.5, ast also needs this
     sudo yum -y install boost
     sudo yum -y install boost-devel
@@ -66,32 +68,40 @@ if [ "$isCentOS" = true ] ; then
     sudo yum -y install java
     sudo yum -y install libxml2-devel libxslt-devel
     sudo yum -y install rpfits readline-devel
+    sudo yum -y install casa01-dbus-cpp casa01-dbus-cpp-devel ## for Qt d-bus (QtDbus)
+    sudo yum -y install libsakura pgplot-devel pgplot-demos pgplot-motif \
 else
 	##### Ubuntu 16.04
     ## can use sudo aptitude search to search packages
 
+    ####### casacore part:
     sudo apt-get -y install gfortran python-numpy libfftw3-dev liblapacke-dev
-    sudo apt-get -y install libgsl-dev
-    ## libsakura, pgplot ?
-    ## blas: mentioned in github casacore
     sudo apt-get -y install libboost-dev
-    sudo apt-get -y install libxerces-c-dev
     sudo apt-get -y install libblas-dev libblas3 \
     liblapack-dev liblapack3 liblapacke liblapacke-dev
-    sudo apt-get -y install default-jre
-    sudo apt-get -y install libxslt1-dev
+
+    sudo apt-get -y install libgsl-dev
+    sudo apt-get -y install libxerces-c-dev
+    sudo apt-get -y install libncurses5-dev ## do not know why CentOS 7 does not need to install this
     sudo apt-get -y install libboost-python-dev
+
+    ## forget the below are for casacore or casa-code (<-seems this)
     sudo apt-get -y install libboost-regex-dev libboost-program-options-dev \
     ibboost-thread-dev libboost-serialization-dev libboost-filesystem-dev libboost-system-dev
+    #######
 
-    ## needed to be installed before building qt 4.8, not sure all
+    ####### casa-code part:
+
+    ## needed to be installed before building qt 4.8, otherwise Qt d-bus (QtDbus) moduble will not be built in
+    ## not sure if all are needed or not
     sudo apt-get -y install libdbus-1-dev \
     libqt4-dbus libqtdbus4 dbus-cpp-dev libdbus-c++-dev libdbus-cpp-dev
-    ## openjdk-7-jdk, openjdk-7-jre
 
-    sudo apt-get -y install libreadline-dev libxml2-dev libncurses5-dev
+    sudo apt-get -y install default-jre ## openjdk-7-jdk, openjdk-7-jre
+    sudo apt-get -y install libxslt1-dev
 
-    #-- Looking for RPFITS header RPFITS.h -- NOT FOUND
+    sudo apt-get -y install libreadline-dev libxml2-dev
+
     ## https://launchpad.net/~radio-astro/+archive/ubuntu/main
     # sudo add-apt-repository -s ppa:radio-astro/main # seems this repo having pgplot, too
     sudo add-apt-repository -s ppa:kernsuite/kern-1
@@ -105,10 +115,9 @@ else
 
     ## not sure if this is in multiverse repo
     sudo apt-get -y install libpgsbox-dev
-
 fi
 
-## there is no-prebuilt libsakura for ubuntu
+## there is no-prebuilt libsakura for ubuntu, needed for casa-code
 if [ "$isCentOS" = false ] ; then
     ## http://alma-intweb.mtk.nao.ac.jp/~sakura/api/html/INSTALL.txt
     apt-get install doxygen
