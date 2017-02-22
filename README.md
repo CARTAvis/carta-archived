@@ -246,14 +246,11 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 1. Current Carta needs to execute the following command every time before running Carta. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
     ```
-    ## ok way
+    ## ok way, use this
     export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
 
-    ```
-
-
-    ```
-    ## or this path, should work but not test. It is the symbolic link of the above path LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
+    ## or this path, should work but not test. It is the symbolic link of the above path,
+    ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
     ```
 
 2. execute `ulimit -n 2000` before running Carta
