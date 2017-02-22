@@ -304,17 +304,7 @@ Observation about build Size (on Mac), before packaging:
 
 # To do list
 
-1. use **Wl, rpath** to solve dynamic search path issue on Carta instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac) **OR** change **dynamic link** to **static link**.
-
-2. Bundle multiple dynamic libs to one libs can lower the complexity.
-
-3. try to use apt/yum way to install pre-built some third party libs for carta. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
-
-4. try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first.
-
-5. try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
-
-6. to check wcslib and cfitsio
+1. to check wcslib and cfitsio
     
     ```    
     On 12 Mar 2016,  https://github.com/Astroua/CARTAvis/releases/tag/0.6.0
@@ -322,6 +312,16 @@ Observation about build Size (on Mac), before packaging:
     between CARTA and CASA builds.
     ```
 
+2. use **-Wl, rpath** to solve dynamic search path issue on Carta instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
+
+3. try to use apt/yum way to install pre-built some third party libs for carta. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
+
+4. try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first.
+
+5. try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
+
+6. May bundle multiple dynamic libs to one libs can lower the complexity, possibily done by cmake in the future. 
+    
 ### AppendixA:
 
 Carta third party libs list:
