@@ -1,8 +1,9 @@
 Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
-
 =======
 
-Tested: CentOS 7, Ubuntu 16.04.
+Tested OS: CentOS 7, Ubuntu 16.04.
+
+Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ). 
 
 # Steps before building CARTA
 
@@ -40,8 +41,10 @@ Which means there must be something outside the source code directory, and this 
 ~/cartawork/CARTAvis-externals
 ```
 
-Create this working folder, alias `your-carta-work`,  then cd `your-carta-work`, then
-`git clone -b toImproveBuild https://github.com/CARTAvis/carta.git CARTAvis`
+**Create this working folder**, alias `your-carta-work`(will use variable CARTAWORKHOME to store this path somewhere),  then 
+
+1. cd `your-carta-work`
+2. `git clone -b toImproveBuild https://github.com/CARTAvis/carta.git CARTAvis`
 
 p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
@@ -99,21 +102,23 @@ Same as CentOS, except will not install another specific g++ compilers.
 
 It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`.
 
-**Some things about Casa**
+### Some notes about Casa:
 
-***Carta use two submodule of Casa***
+#### 1.Carta use two submodule of Casa
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
-There are some main submodule
-1. casacore: svn external of the above url. It it in GitHub and also can be cloned by Git. (GitHub supplies svn)
+There are some main submodule:
+
+1. casacore: svn external of the above url. It is in GitHub and also can be cloned by Git (GitHub supplies svn). 
+    https://github.com/casacore/casacore
 2. code (reply on casacore)
 3. gcwrap
 4. others...
 
-We only `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
+We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
 
-*** Dependency between Carta and Casa***
+#### 2. Dependency between Carta and Casa
 
 Some of third-party libraries they use are the same,  but may use different version. Here is the list.
 
@@ -121,15 +126,17 @@ Some of third-party libraries they use are the same,  but may use different vers
 2. wcslib
 3. flex
 4. bison
-5. gsl (carta requires 2.1 version of source code to build,  and casa/code seems not require version and we usually install apt/ym version, 1.5 for casa/code)
-6. Cython (?,required by carta, but not sure is required by casa-submodues)
+5. gsl (carta uses 2.1 version of gsl source code to build,  and casa/code seems not require version and we usually install apt/ym version, 1.5 for casa/code)
+6. Cython ?(required by carta, but not sure is required by casa-submodues)
 7. gfortan (carta uses ast library which uses gforan, and casacore uses this, too)
+8. Qt. (carta uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
+9. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
 
-***How to change the revision of casa we use to build***
+#### 3.How to change the revision of casa we use to build
 
 Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we use a fixed revision around September, 2016.
 
-***Start from August, 2016 to November, 2016, namaspace of casa libs was changing**
+#### 4.Start from August, 2016 to November, 2016, namaspace of casa libs was changing
 
 It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
 
@@ -256,10 +263,11 @@ You can browse more detailed instruciton about these parameters from here, http:
 
 # Prepare distributable and packaged installer/zip
 
-#Build on CI/CD
+# Build on CI/CD
 
-To do list
+# To do list
 
 1. try to install Qt 5.3.2 without GUI
 2. use *rpath* to solve dynamic search path issue on Carta.
 3. try to use apt/yum way to install pre-built some third party libs for carta. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
+4. try to install pre-built Qt 4.8.x to build qwt and casa. 
