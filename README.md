@@ -78,7 +78,7 @@ cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Build CASA libraries
 
-** CentOS 7: **
+**CentOS 7:**
 
 The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers (4.9.2) and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
 
@@ -93,7 +93,7 @@ The default build flag for CASA I try is `make -j 2`, and this is a compromise w
 
 To reduce time spending on building Qt 4.8.5, it is possible to install pre-built Qt 4.8.5. `yum install qt-devel.x86_64 qt.x86_64` (Not try yet).
 
-** Ubuntu 16.04:**
+**Ubuntu 16.04:**
 
 Same as CentOS, except will not install another specific g++ compilers.
 
