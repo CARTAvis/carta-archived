@@ -217,6 +217,9 @@ Paste the following data to be the content of `~/.cartavis/config.json`
 
 `$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac. 
 
+You can browse more detailed instruciton about these parameters from here, 
+http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
+
 ### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
 
 Paste the following content to your terminal to install.
@@ -261,7 +264,11 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
 ```
 
-You can browse more detailed instruciton about these parameters from here, http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
+Some of parameters:
+
+1. `--scriptPort 9999` for python interface 
+2. put `/scratch/some-fits-file.fits` in the end 
+
 
 ## Run and Debug by Qt Creator
 
@@ -305,4 +312,9 @@ Observation about build Size (on Mac), before packaging:
 
 4. try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first.
 
-5. try to install Qt 5.3.2 without GUI, especially for CI/CD
+5. try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
+
+### AppendixA:
+
+Carta third party libs list
+https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
