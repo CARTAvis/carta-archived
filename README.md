@@ -2,7 +2,8 @@ Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ub
 
 =======
 
-Tested: CentOS 7, Ubuntu 16.04.
+Tested OS: CentOS 7, Ubuntu 16.04.
+Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ). 
 
 # Steps before building CARTA
 
@@ -121,7 +122,7 @@ Some of third-party libraries they use are the same,  but may use different vers
 2. wcslib
 3. flex
 4. bison
-5. gsl (carta requires 2.1 version of source code to build,  and casa/code seems not require version and we usually install apt/ym version, 1.5 for casa/code)
+5. gsl (carta uses 2.1 version of gsl source code to build,  and casa/code seems not require version and we usually install apt/ym version, 1.5 for casa/code)
 6. Cython (?,required by carta, but not sure is required by casa-submodues)
 7. gfortan (carta uses ast library which uses gforan, and casacore uses this, too)
 8. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
@@ -264,3 +265,4 @@ You can browse more detailed instruciton about these parameters from here, http:
 1. try to install Qt 5.3.2 without GUI
 2. use *rpath* to solve dynamic search path issue on Carta.
 3. try to use apt/yum way to install pre-built some third party libs for carta. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
+4. try to install pre-built Qt 4.8.x to build qwt and casa. 
