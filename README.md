@@ -268,6 +268,22 @@ You can browse more detailed instruciton about these parameters from here, http:
 
 The flow is not finalized. Related some library search issues.
 
+To make its size smaller:
+1. remove *.o, Makefile, .h and .cpp* in build folder.
+2. use `strip` skill to remove unused part of binary.
+
+Observation about build Size (on Mac), before packaging:
+
+```
+553M    Carta.app   (without default image)
+            qooxdoo (in Resources) ~ 133 MB
+            QT (in Frameworks) with a size of ~ 300M
+            casa libraries (in Frameworks) with ~ 60 M
+            other libraries ~ 20M.  
+744M    build folder (Carta.app +others) + carta source code +  third-party libs(+ possible source code)
+1.5G    prebuilt casacore/casacode + possible source code
+```
+
 # Dynamic/Shared Library search issue
 
 1. Carta is built to **desktop program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
