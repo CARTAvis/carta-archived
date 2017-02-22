@@ -318,7 +318,8 @@ Observation about build Size (on Mac), before packaging:
     
     ```    
     On 12 Mar 2016,  https://github.com/Astroua/CARTAvis/releases/tag/0.6.0
-    When compiling, one has to be make sure that wcslib and cfitsio libraries are in synch (same version) between CARTA and CASA builds.
+    When compiling, one has to be make sure that wcslib and cfitsio libraries are in synch (same version) 
+    between CARTA and CASA builds.
     ```
 
 ### AppendixA:
