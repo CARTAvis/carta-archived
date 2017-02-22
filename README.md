@@ -278,6 +278,7 @@ Some of optional parameters:
 The flow is not finalized. Related some library search issues.
 
 To make its size smaller:
+
 1. remove *.o, Makefile, .h and .cpp* in build folder.
 2. use `strip` skill to remove unused part of binary.
 
