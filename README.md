@@ -201,20 +201,21 @@ Paste the following data to be the content of `~/.cartavis/config.json`
 
 ```
 {
-"_comment" : "List of plugin directories",
-"pluginDirs": [
-    "$(APPDIR)/../plugins",
-    "$(APPDIR)/../../../../plugins",
-    "$(HOME)/.cartavis/plugins"
-],
-"disabledPlugins" : ["casaCore-2.0.1"],
-"plugins": {
-    "PCacheSqlite3" : {
-        "dbPath": "/tmp/pcache.sqlite"
+    "_comment" : "List of plugin directories",
+    "pluginDirs": [
+        "$(APPDIR)/../plugins",
+        "$(APPDIR)/../../../../plugins",
+    ],
+    "disabledPlugins" : ["casaCore-2.0.1"],
+    "plugins": {
+        "PCacheSqlite3" : {
+            "dbPath": "/tmp/pcache.sqlite"
+        }
     }
 }
-}
 ```
+
+`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac. 
 
 ### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
 
