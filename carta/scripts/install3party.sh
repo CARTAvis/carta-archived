@@ -118,7 +118,7 @@ ln -s rapidjson-1.0.2 rapidjson # can become mv
 wget ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
 tar xvfj wcslib-5.15.tar.bz2 && mv wcslib-5.15 wcslib-5.15-src
 cd wcslib-5.15-src
-# ./configure --prefix=${THIRDPARTY_PATH}/wcslib/ --without-pgplot <-pgplot ??
+# ./configure --prefix=${THIRDPARTY_PATH}/wcslib/ --without-pgplot <-pgplot ?? <-add back later
 ./configure --prefix=`pwd`/../wcslib/
 make && make install
 cd ..

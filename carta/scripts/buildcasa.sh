@@ -22,7 +22,7 @@ if [ "$isCentOS" = true ] ; then
     ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
     ## To do: should spend time to minimalize them,
     ## also tell them which part is for casacore, which is for casa(code)
-    sudo yum -y install devtoolset*
+    sudo yum -y install devtoolset* ## may only support CentOS 7 ???
     #   devtoolset-3-gcc.x86_64 0:4.9.2-6.2.el7
     #   devtoolset-3-gcc-c++.x86_64 0:4.9.2-6.2.el7
     #   devtoolset-3-gcc-gfortran.x86_64 0:4.9.2-6.2.el7
@@ -49,7 +49,6 @@ if [ "$isCentOS" = true ] ; then
 
     ## need to check if we really need this to install casa01-openmpi etc
     ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
-
     sudo yum -y install casa01-dbus-cpp casa01-dbus-cpp-devel casa01-mpi4py.x86_64 \
     casa01-openmpi.x86_64 casa01-python.x86_64 casa01-python-devel.x86_64 casa01-python-tools.x86_64 \
     libsakura pgplot-devel pgplot-demos pgplot-motif \
@@ -94,7 +93,7 @@ else
 
     #-- Looking for RPFITS header RPFITS.h -- NOT FOUND
     ## https://launchpad.net/~radio-astro/+archive/ubuntu/main
-    # sudo add-apt-repository -s ppa:radio-astro/main # seems to have pgplot
+    # sudo add-apt-repository -s ppa:radio-astro/main # seems this repo having pgplot, too
     sudo add-apt-repository -s ppa:kernsuite/kern-1
     sudo apt-get update
     sudo apt-get -y install rpfits
@@ -102,7 +101,7 @@ else
     sudo apt-get install software-properties-common
     sudo apt-add-repository multiverse
     sudo apt-get update
-    sudo apt-get -y install pgplot5
+    sudo apt-get -y install pgplot5 ## needed for casa-code
 
     ## not sure if this is in multiverse repo
     sudo apt-get -y install libpgsbox-dev
@@ -120,7 +119,7 @@ if [ "$isCentOS" = false ] ; then
     #wget ftp://alma-dl.mtk.nao.ac.jp/sakura/releases/latest_src/libsakura-4.0.2065.tar.gz
     ## tar -xvzf libsakura-4.0.2065.tar.gz
     ## Use our own modified version,
-    ## since the original source code will not be compiled OK by gcc 5.4, gcc 4.8 seem neither 
+    ## since the original source code will not be compiled OK by gcc 5.4, gcc 4.8 seem neither
     git clone https://github.com/grimmer0125/libsakura
 
     wget -O gtest-1.7.0.zip https://github.com/google/googletest/archive/release-1.7.0.zip
@@ -207,6 +206,7 @@ export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/lib:$PATH
 
 ## it is better to rm -rf * in build folder if rebuild manually + dependency changes
 ## can use your own compiler and gfortan here
+## use $CARTAWORKHOME may be better for -DCMAKE_INSTALL_PREFIX=../../linux
 if [ "$isCentOS" = true ] ; then
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
     -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 \
