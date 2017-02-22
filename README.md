@@ -3,6 +3,7 @@ Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ub
 =======
 
 Tested OS: CentOS 7, Ubuntu 16.04.
+
 Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ). 
 
 # Steps before building CARTA
@@ -106,8 +107,10 @@ It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
-There are some main submodule
-1. casacore: svn external of the above url. It it in GitHub and also can be cloned by Git. (GitHub supplies svn)
+There are some main submodule:
+
+1. casacore: svn external of the above url. It is in GitHub and also can be cloned by Git (GitHub supplies svn). 
+    https://github.com/casacore/casacore
 2. code (reply on casacore)
 3. gcwrap
 4. others...
