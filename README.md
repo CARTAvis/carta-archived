@@ -99,9 +99,9 @@ Same as CentOS, except will not install another specific g++ compilers.
 
 It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`.
 
-### Some things about Casa ###
+### Some notes about Casa: ###
 
-### Carta use two submodule of Casa ###
+#### 1.Carta use two submodule of Casa ####
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
@@ -113,7 +113,7 @@ There are some main submodule
 
 We only `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
 
-### Dependency between Carta and Casa ###
+#### 2. Dependency between Carta and Casa ####
 
 Some of third-party libraries they use are the same,  but may use different version. Here is the list.
 
@@ -125,11 +125,11 @@ Some of third-party libraries they use are the same,  but may use different vers
 6. Cython (?,required by carta, but not sure is required by casa-submodues)
 7. gfortan (carta uses ast library which uses gforan, and casacore uses this, too)
 
-### How to change the revision of casa we use to build ###
+#### 3.How to change the revision of casa we use to build ####
 
 Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we use a fixed revision around September, 2016.
 
-### Start from August, 2016 to November, 2016, namaspace of casa libs was changing ###
+#### 4.Start from August, 2016 to November, 2016, namaspace of casa libs was changing ####
 
 It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
 
