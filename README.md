@@ -115,7 +115,7 @@ There are some main submodule:
 3. gcwrap
 4. others...
 
-We only `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
+We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
 
 #### 2. Dependency between Carta and Casa
 
