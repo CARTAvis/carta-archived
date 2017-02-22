@@ -124,6 +124,7 @@ Some of third-party libraries they use are the same,  but may use different vers
 5. gsl (carta requires 2.1 version of source code to build,  and casa/code seems not require version and we usually install apt/ym version, 1.5 for casa/code)
 6. Cython (?,required by carta, but not sure is required by casa-submodues)
 7. gfortan (carta uses ast library which uses gforan, and casacore uses this, too)
+8. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
 
 #### 3.How to change the revision of casa we use to build
 
