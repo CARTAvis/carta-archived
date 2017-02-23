@@ -1,7 +1,8 @@
 Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
 =======
 
-Tested OS: CentOS 7, Ubuntu 16.04.
+Tested OS: CentOS 7.3.1611, Ubuntu 16.04.
+Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well, will fix soon. 
 
 Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ).
 
