@@ -109,13 +109,13 @@ It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
-There are some main submodule:
+There are some main submodule 
 
-1. casacore: svn external of the above url. It is in GitHub and also can be cloned by Git (GitHub supplies svn).
+1. casacore: in trunk, svn external of the above url. It is in GitHub and also can be cloned by Git (GitHub supplies svn).
     https://github.com/casacore/casacore
 2. code (reply on casacore)
 3. gcwrap
-4. others...
+4. asap (in trunk, it uses svn external) 
 
 We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
 
