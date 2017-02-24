@@ -179,6 +179,11 @@ private:
      */
     int _getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const;
 
+    /**
+     * Get the permutation order of the datacube.
+     * @return - the permutation order of the datacube.
+     */
+    std::vector<int> _getPermOrder() const;
 
     /**
      * Returns the underlying image.
