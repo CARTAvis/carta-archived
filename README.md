@@ -129,11 +129,10 @@ Some of third-party libraries they use are the same,  but may use different vers
 3. flex
 4. bison
 5. gsl (carta uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
-6. Cython ?(required by carta, but not sure is required by casa-submodues)
-7. gfortan (carta uses ast library which uses gfortan, and casacore uses this, too)
-8. Qt. (carta uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
-9. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
-10. Python and numpy (should be ok. carta:2.7. casa:2.7, exp-3.5)
+6. gfortan (carta uses ast library which uses gfortan, and casacore uses this, too)
+7. Qt. (carta uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
+8. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
+9. Python and numpy (should be ok. carta:2.7. casa:2.7, exp-3.5)
 
 #### 3.How to change the revision of casa we use to build
 
