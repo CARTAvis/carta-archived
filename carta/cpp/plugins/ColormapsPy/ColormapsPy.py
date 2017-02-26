@@ -41,14 +41,14 @@ class CMap(object):
 def colormapScalarHook():
     print("colormapScalarHook");
     maps=[m for m in cm.datad if not m.endswith("_r")]
-    print "available colormaps from matplotlib: ",maps
+    print("available colormaps from matplotlib: ", maps)
 
     # filter out unwanted colormaps borrowed from matplotlib
     maps_whiteList = ['Spectral','coolwarm','Set1','gnuplot2',
                       'jet','Reds','gist_stern','Blues',
                       'terrain','gnuplot','hot','Greens',
                       'nipy_spectral']
-    print "including the following colormaps only: ",maps_whiteList
+    print("including the following colormaps only: ", maps_whiteList)
     maps_filtered = []
     for x in maps:
         if x in maps_whiteList:
@@ -56,6 +56,6 @@ def colormapScalarHook():
 
     result = []
     for i, m in enumerate(maps_filtered):
-        result.append( CMap(m))
+        result.append(CMap(m))
     return result
 
