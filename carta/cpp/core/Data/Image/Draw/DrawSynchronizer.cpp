@@ -41,8 +41,12 @@ DrawSynchronizer::DrawSynchronizer( std::shared_ptr<Carta::Core::ImageRenderServ
 }
 
 void DrawSynchronizer::_checkAndEmit(){
+    qDebug()<< "grimmer draw end0";
+
     // emit done only if all three are finished
     if ( m_grsDone && m_irsDone && m_cecDone ) {
+        qDebug()<< "grimmer draw end";
+
         emit done( m_irsImage, m_grsVGList, m_cecVGList, m_regionVGList, m_jobId );
     }
 }
@@ -115,6 +119,7 @@ int64_t DrawSynchronizer::start( bool contourDraw, bool gridDraw, int64_t jobId 
     m_irsDone = false;
     m_grsDone = !gridDraw;
     m_cecDone = !contourDraw;
+    qDebug()<< "grimmer draw start:"<<jobId;
 
     m_irsJobId = m_irs-> render();
     if ( jobId < 0 ) {

@@ -2,6 +2,8 @@
 #include "DrawStackSynchronizer.h"
 
 #include <QDebug>
+#include <QThread>
+#include <QCoreApplication>
 
 namespace Carta {
 
@@ -17,6 +19,7 @@ DrawImageViewsSynchronizer::DrawImageViewsSynchronizer( QObject* parent)
 
 
 void DrawImageViewsSynchronizer::_doneMain( bool /*drawn*/){
+    qDebug()<<"grimmer render-doneMain";
     m_busy = false;
     _startNextDraw();
 }
@@ -61,15 +64,37 @@ bool DrawImageViewsSynchronizer::isZoomView() const {
 
 
 void DrawImageViewsSynchronizer::render( const std::shared_ptr<RenderRequest>& request ){
+    qDebug()<<"grimmer render2, index:"<<request->m_frames[2]<<"."<<( request.get() );
+
 	if ( !_isRequested( request) ){
+
+        qDebug()<<"grimmer render3";
+
+//        const bool isGuiThread =
+//            QThread::currentThread() == QCoreApplication::instance()->thread();
+
+//        if (isGuiThread){
+
+//            qDebug()<<"in the gui thread";
+//        }
+
+//        QString tID = QString::number((long long)QThread::currentThread(), 16);
+//        QString tID2 = QString::number((long long)QCoreApplication::instance()->thread(), 16);
+
 		m_requests.enqueue( request );
 		if ( m_busy ){
+            qDebug()<<"grimmer render-busy";
+            // _doneMain 完才會變成false
 			return;
 		}
 
 		//Store the data & request.
 		_startNextDraw();
-	}
+    } else {
+
+        // 一般同一個index的前一個會進來deque後後一個才會進來
+        qDebug()<<"grimmer render2, already index:"<<request->m_frames[2]<<"."<<( request.get() );
+    }
 }
 
 void DrawImageViewsSynchronizer::setViewDraw( std::shared_ptr<DrawStackSynchronizer> stackDraw ){
@@ -97,6 +122,9 @@ void DrawImageViewsSynchronizer::_startNextDraw(){
     if ( m_requests.size() > 0 ){
         m_busy = true;
         std::shared_ptr<RenderRequest> request = m_requests.dequeue();
+        // 有時候前一個還沒dequeu.
+        qDebug()<<"grimmer render2, dequeu index:"<<request->m_frames[2]<<"."<<( request.get() );
+
         if ( request->isRequestMain() ){
             //Start the main renderer
             request->setOutputSize( m_drawMain->getClientSize() );

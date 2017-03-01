@@ -343,7 +343,7 @@ std::pair<double,double> Plot2DHolder::getRangeColor(bool* valid ) const {
 double Plot2DHolder::_getRelativeError( double minValue, double maxValue) const {
     double range = qAbs( maxValue - minValue );
     double error = 0;
-    if ( ! isnan( range ) ){
+    if ( ! std::isnan( range ) ){
         //Divide by powers of 10 until we get something less than 1.
         if ( range > 1 ){
             int i = 0;

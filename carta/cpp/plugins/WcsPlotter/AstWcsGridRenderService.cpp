@@ -130,6 +130,9 @@ Carta::Lib::IWcsGridRenderService::JobId AstWcsGridRenderService::startRendering
     // call renderNow asap... asynchronously
     if ( ! m_renderTimer.isActive() ) {
         m_renderTimer.start( 1 );
+        qDebug() << "grimmer render, grid try to start";
+    } else {
+        qDebug() << "grimmer render, grid not try to start";
     }
     return m().lastSubmittedJobId;
 }
@@ -137,6 +140,8 @@ Carta::Lib::IWcsGridRenderService::JobId AstWcsGridRenderService::startRendering
 void
 AstWcsGridRenderService::renderNow()
 {
+    qDebug() << "grimmer render, grid timer !!!";
+
     // if the VGList is still valid, we are done
     if ( m_vgValid ) {
         //qDebug() << "vgValid saved us a grid redraw xyz";

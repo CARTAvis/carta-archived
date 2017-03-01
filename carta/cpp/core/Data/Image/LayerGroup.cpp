@@ -825,6 +825,8 @@ void LayerGroup::_removeLayer( Layer* group ){
 
 
 void LayerGroup::_renderStart( ){
+    qDebug() << "grimmer render4-3";
+
     if ( m_renderRequests.size() > 0 ){
         m_renderQueued = true;
         std::shared_ptr<RenderRequest> request = m_renderRequests.pop();

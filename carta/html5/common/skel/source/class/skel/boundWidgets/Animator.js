@@ -30,6 +30,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         this.base(arguments);
         this.m_title = title;
         this.m_winId = winId;
+        this.testCount = 0;
 
         // Create the GUI
         this._initUI();
@@ -277,6 +278,11 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Increase the frame value taking into account end behavior.
          */
         _increaseValue : function() {
+
+            if(this.testCount>98){
+                return;
+            }
+
             var val = this.m_frame + this.getFrameStep();
 
             var upperBound = this.m_highBoundsSpinner.getValue();
@@ -305,6 +311,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     console.log("Unhandled wrap val=" + val);
                 }
             }
+            console.log("grimmer JS send frame:", val);
             this._sendFrame(val);
         },
 
@@ -774,6 +781,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _sendFrame : function(frameIndex) {
             if (this.m_connector !== null && !this.m_noSends) {
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
+
+                    this.testCount++;
                     var paramMap = frameIndex;
                     var path = skel.widgets.Path.getInstance();
                     var setFramePath = this.m_animId  + path.SEP_COMMAND + "setFrame";

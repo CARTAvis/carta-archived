@@ -140,7 +140,7 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
 
 void DesktopConnector::registerView(IView * view)
 {
-    qDebug()<<"grimmer view:registerView";
+    qDebug()<<"grimmer vv view:registerView";
 
     // let the view know it's registered, and give it access to the connector
     view->registration( this);
@@ -208,6 +208,7 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
 
 Carta::Lib::IRemoteVGView * DesktopConnector::makeRemoteVGView(QString viewName)
 {
+    qDebug()<<"grimmer vv makeRemoteVGView";
     return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
 }
 

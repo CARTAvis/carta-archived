@@ -7,7 +7,9 @@ SUBDIRS = \
     CartaLib \
     core \
     desktop \
-    plugins
+    plugins \
+    Tests \
+    testRegion
 
 isEmpty(NOSERVER) {
 	SUBDIRS +=server
@@ -17,14 +19,14 @@ isEmpty(NOSERVER) {
 core.depends = CartaLib
 desktop.depends = core
 server.depends = core
-#testRegion.depends = core
+testRegion.depends = core
 plugins.depends = core
-#isEmpty(NOSERVER) {
-#        Tests.depends = core desktop server plugins
-#}
-#else{
-#        Tests.depends = core desktop plugins
-#}
+isEmpty(NOSERVER) {
+        Tests.depends = core desktop server plugins
+}
+else{
+        Tests.depends = core desktop plugins
+}
 
 # ... or ...
 # build directories in order, or make sure to update dependencies manually, or make -j4 won't work

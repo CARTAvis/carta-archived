@@ -10,7 +10,7 @@ namespace Data {
 
 RenderRequest::RenderRequest( const std::vector<int>& frames,
         const Carta::Lib::KnownSkyCS& cs ){
-    qDebug() << "grimmer-RenderRequest::RenderRequest-clip";
+    qDebug() << "grimmer-RenderRequest::RenderRequest";
 
     m_frames = frames;
     m_cs = cs;

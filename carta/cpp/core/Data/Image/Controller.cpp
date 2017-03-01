@@ -932,6 +932,7 @@ bool Controller::isStackSelectAuto() const {
 
 
 void Controller::_loadViewQueued( ){
+    qDebug() << "grimmer controller:loadviewqueue";
     QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
 }
 

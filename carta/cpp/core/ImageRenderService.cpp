@@ -212,6 +212,9 @@ Service::render( JobId jobId )
     }
     if ( ! m_renderTimer.isActive() ) {
         m_renderTimer.start();
+        qDebug() << "grimmer render, image try to start";
+    } else {
+        qDebug() << "grimmer render, image not try to start";
     }
     return m_lastSubmittedJobId;
 }
@@ -286,6 +289,8 @@ Service::screen2image( const QPointF & p, const QPointF& pan, double zoom,
 void
 Service::internalRenderSlot()
 {
+    qDebug() << "grimmer render, image render timer !!!";
+
     //static int renderCount = 0;
     //qDebug() << "Image render" << renderCount++ << "xyz";
 

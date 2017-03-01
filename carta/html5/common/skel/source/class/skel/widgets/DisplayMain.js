@@ -11,6 +11,20 @@
  * @ignore( mImport)
  ******************************************************************************/
 
+ // grimmer get stateChangedSignal: /CartaObjects/Layout
+ //            {"flush":false,"type":"Layout","index":0,"layoutNode":"/CartaObjects/c1","layoutType":"Analysis"}
+ // this._initSharedVariables();
+ //  this.addListener("appear", function() {
+ // ..
+ //  }
+ // Application.js
+ // this.m_statusBar = new skel.widgets.Menu.StatusBar();
+ // "appear" callback被call到了
+ // _resetLayoutCB : function() 讀 Analysis的相關值, call this.layout( layout.layoutNode);設定layout
+
+
+//this.addListener("appear", function() {
+
 qx.Class.define("skel.widgets.DisplayMain",
 {
     extend : qx.ui.container.Composite,
@@ -256,7 +270,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Reset the layout based on changed layout information from the server.
          */
         _resetLayoutCB : function() {
-            console.log("grimmer resetLayoutCB-1");
+            console.log("grimmer display-resetLayoutCB-1");
             var layoutObjJSON = this.m_layout.get();
             if ( layoutObjJSON !== null ){
                 try {

@@ -284,15 +284,21 @@ QString AnimatorType::setFrameStep( int step ){
 
 QString AnimatorType::setFrame( int frameIndex ){
     QString result;
+    qDebug() << "grimmer setFrame0:"<<frameIndex;
+
     //Set our state to reflect the new image.
     if ( frameIndex >= 0 ){
         int oldIndex = m_select->getIndex();
         if ( frameIndex != oldIndex ){
+            qDebug() << "grimmer setFrame1";
             result = m_select->setIndex( frameIndex );
+        } else {
+            qDebug() << "grimmer setFrame-equal:" << frameIndex;
         }
     }
     else {
         result="Frame index must be nonnegative: "+QString::number(frameIndex);
+        qDebug() << "Frame index must be nonnegative";
     }
     return result;
 }

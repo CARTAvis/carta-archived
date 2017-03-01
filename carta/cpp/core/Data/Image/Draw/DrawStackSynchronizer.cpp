@@ -157,7 +157,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
     emit done( true );
     qDebug()<<"grimmer scheduleFrameRepaint2";
 
-    // QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
+    QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     for ( int i = 0; i < dataCount; i++ ){
 
         // will trigger the same behavior of datas[i]->_render( layerRequest );
@@ -165,7 +165,7 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
     }
 
     qDebug()<<"grimmer schedule-directly invoke repaint to avoid m_view will be changed by the next drawing";
-    m_view->scheduleRepaint();
+//    m_view->scheduleRepaint();
 
 }
 

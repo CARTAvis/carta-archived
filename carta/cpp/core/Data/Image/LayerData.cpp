@@ -731,6 +731,8 @@ void LayerData::_renderingDone(
 
 void LayerData::_renderStart(){
 
+    qDebug() << "grimmer render4";
+
     m_renderQueued = true;
 
     //Get the render parameters from the next request.

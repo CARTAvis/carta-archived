@@ -440,6 +440,8 @@ void Stack::_render( QList<std::shared_ptr<Layer> > datas, int gridIndex,
     request->setData( datas );
     request->setRecomputeClips( recomputeClipsOnNewFrame );
     request->setClipPercents( minClipPercentile, maxClipPercentile );
+    qDebug() << "grimmer Stack::_render";
+
     m_imageDraws->render( request);
 }
 
@@ -653,12 +655,17 @@ void Stack::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
     if ( 0 <= axisIndex && axisIndex < selectCount ){
         int oldIndex = m_selects[axisIndex]->getIndex();
         if ( value != oldIndex ){
+
+            // will trigger re-draw request
+            qDebug() << "grimmer Stack::_setFrameAxis:" << value;
             m_selects[axisIndex]->setIndex(value);
             //We only need to update the cursor if the axis is a hidden axis
             //for the current image.
             int dataIndex = _getIndexCurrent();
             if ( 0 <= dataIndex ){
                 emit frameChanged( axisType );
+
+                // will trigger re-draw request
                 emit viewLoad();
             }
         }

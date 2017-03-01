@@ -7,8 +7,8 @@ TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
 
-FLEXSOURCES = ds9lex.L 
-   
+FLEXSOURCES = ds9lex.L
+
 BISONSOURCES = ds9parse.y
 
 SOURCES += \
@@ -22,7 +22,7 @@ HEADERS += \
     ContextDs9.h \
     ds9FlexLexer.h \
     ds9lex.h
-    
+
 
 casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
@@ -64,7 +64,7 @@ MYFILES += $$BISONSOURCES
 
 flexsource.input = FLEXSOURCES
 flexsource.output = ${QMAKE_FILE_BASE}.cpp
-flexsource.commands = flex -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+flexsource.commands = $${FLEXANDBISONDIR}/bin/flex -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
 flexsource.variable_out = SOURCES
 flexsource.name = Flex Sources ${QMAKE_FILE_IN}
 flexsource.CONFIG = += target_predeps
@@ -72,7 +72,7 @@ QMAKE_EXTRA_COMPILERS += flexsource
 
 bisonsource.input = BISONSOURCES
 bisonsource.output = ${QMAKE_FILE_BASE}.cpp
-bisonsource.commands = bison -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+bisonsource.commands = $${FLEXANDBISONDIR}/bin/bison -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
 bisonsource.variable_out = SOURCES
 bisonsource.name = Bison Sources ${QMAKE_FILE_IN}
 bisonsource.CONFIG += target_predeps
@@ -96,5 +96,3 @@ unix:macx {
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
 }
-
-

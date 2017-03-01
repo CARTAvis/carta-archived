@@ -24,7 +24,8 @@ HEADERS += \
     LMGaussFitter1d.h \
     LevMar.h
 
-GSLROOTDIR=/Users/grimmer/cartabuild/CARTAvis-externals/ThirdParty/gsl
+# GSLROOTDIR=/usr/local
+GSLROOTDIR=/Users/grimmer/Dropbox/CARTAvis-externals/ThirdParty/gsl
 
 INCLUDEPATH += $${GSLROOTDIR}/include
 LIBS += -L$$GSLROOTDIR/lib -lgsl
@@ -49,5 +50,3 @@ unix:macx {
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
 }
-
-
