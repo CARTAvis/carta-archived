@@ -23,7 +23,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         this.add(this.m_menuPart);
         this._initMenu();
         this.addSpacer();
-        
+
         this._initSubscriptions();
         this._initContextMenu();
     },
@@ -47,7 +47,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 this.m_menuPart.add(this.m_windowButtons[i]);
             }
         },
-        
+
         /**
          * Dynamically build the menu based on available commands.
          * @param cmds {Array} a list of available commands.
@@ -57,20 +57,20 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 var vals = cmds.getValue();
                 var emptyFunc = function(){};
                 for ( var i = 0; i < vals.length; i++ ){
-                    //Only add top-level commands to the menu that are supported by 
+                    //Only add top-level commands to the menu that are supported by
                     //the selected window(s).
                     var enabled = vals[i].isEnabled();
                     var menuVisible = vals[i].isVisibleMenu();
                     if ( enabled && menuVisible ){
                         var cmdType = vals[i].getType();
-                        if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  || 
+                        if ( cmdType === skel.Command.Command.TYPE_COMPOSITE  ||
                             cmdType === skel.Command.Command.TYPE_GROUP ){
-                            
+
                             var menu = skel.widgets.Util.makeMenu( vals[i]);
                             var menuButton = new qx.ui.toolbar.MenuButton( vals[i].getLabel() );
                             this.m_menuPart.add( menuButton );
                             menuButton.setMenu( menu);
-                        
+
                         }
                         else if ( cmdType === skel.Command.Command.TYPE_BUTTON ){
                             var button = skel.widgets.Util.makeButton( vals[i], emptyFunc, true, true );
@@ -87,11 +87,12 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
                 }
             }
         },
-        
+
         /**
          * Initialize a context menu.
          */
         _initContextMenu : function() {
+            console.log("grimmer menuBar")
             this.m_contextMenu = new qx.ui.menu.Menu();
             var customizeButton = new qx.ui.menu.Button("Customize...");
             var showDialog = skel.Command.Customize.CommandShowCustomizeDialog.getInstance();
@@ -107,29 +108,37 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             this.m_contextMenu.add( removeButton );
             this.setContextMenu(this.m_contextMenu);
         },
-        
+
         /**
          * Initializes the main menu.
          */
         _initMenu : function() {
+          console.log("grimmer c menubar init");
             var cmds = skel.Command.CommandAll.getInstance();
             this._resetMenu( cmds );
         },
-        
+
+        _initMenu2 : function() {
+          console.log("grimmer c menubar init-s");
+            var cmds = skel.Command.CommandAll.getInstance();
+            this._resetMenu( cmds );
+        },
+
         /**
          * Initialize message subscriptions.
          */
         _initSubscriptions : function(){
+            console.log("grimmer c subscribe");
             qx.event.message.Bus.subscribe( "commandsChanged", function( message ){
-                this._initMenu();
+                this._initMenu2();
              }, this );
-           
+
             qx.event.message.Bus.subscribe( "commandVisibilityMenuChanged", function( message){
-                this._initMenu();
+                this._initMenu2();
             }, this );
         },
 
-        
+
         /**
          * Reset the menu after erasing the old one.
          * @param cmds {Array} a list of available commands.
@@ -140,7 +149,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
         },
 
 
- 
+
         /*
          * Hides or shows the status bar based on the location of the mouse.
          * Mouse close to screen top = show; Otherwise, hide.
@@ -154,7 +163,7 @@ qx.Class.define("skel.widgets.Menu.MenuBar", {
             }
             this.showHide(this, mouseLoc, widgetLoc);*/
         },
-        
+
 
         m_contextMenu : null,
         m_menuPart : null
