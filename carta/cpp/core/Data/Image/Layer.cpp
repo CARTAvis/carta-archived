@@ -178,14 +178,24 @@ void Layer::_render( const std::shared_ptr<RenderRequest>& request ){
     if ( !m_renderQueued ){
         _renderStart();
     }
+    else{
+        qDebug() << "grimmer render5";
+    }
 }
 
 void Layer::_renderDone(){
     // schedule a repaint with the connector
     m_renderQueued = false;
 
+    qDebug() << "grimmer render4-0";
+
     if ( m_renderRequests.size() > 0 ){
+        qDebug() << "grimmer render4-1";
+
+//        void LayerData::_renderStart(){
         _renderStart();
+        qDebug() << "grimmer render4-2";
+
     }
 }
 

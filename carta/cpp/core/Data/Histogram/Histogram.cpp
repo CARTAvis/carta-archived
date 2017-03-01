@@ -726,6 +726,8 @@ void Histogram::_initializeCallbacks(){
 
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
+            qDebug() << "grimmer histogram setClipValue";
+
             QString result;
             std::set<QString> keys = {"clipValue"};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );

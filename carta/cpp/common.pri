@@ -47,8 +47,10 @@ contains( CARTA_CONFIG, gdb) {
     message( "- NO debugger support")
 }
 contains( CARTA_CONFIG, dbgout) {
-    message( "+ extra debug output")
+    message( "grimmer1 + extra debug output")
 } else {
+    message( "grimmer2")
+
     QMAKE_CXXFLAGS += -DQT_NO_DEBUG_OUTPUT -DQT_NO_WARNING_OUTPUT
     QMAKE_CFLAGS += -DQT_NO_DEBUG_OUTPUT -DQT_NO_WARNING_OUTPUT
     CONFIG -= debug
@@ -87,6 +89,14 @@ contains( CARTA_CONFIG, addrSanit) {
 # use gcc 4.8.1
 CONFIG += gcc481
 
+#remove known optimizations and debugger flags
+QMAKE_CXXFLAGS += -O0 -g
+QMAKE_CXXFLAGS_DEBUG += -O0  -g
+QMAKE_CXXFLAGS_RELEASE += -O0 -g
+QMAKE_CFLAGS += -O0-g
+QMAKE_CFLAGS_DEBUG += -O0 -g
+QMAKE_CFLAGS_RELEASE += -O0 -g
+
 gcc481 {
     COMPILER = g++-4.8
 } else {
@@ -122,4 +132,3 @@ PROJECT_ROOT = $$IN_PWD
 # add include/depend path to start from root
 INCLUDEPATH += $$PROJECT_ROOT
 DEPENDPATH += $$PROJECT_ROOT
-

@@ -178,6 +178,8 @@ void Selection::setLowerBound(int newLowerBound) {
 
 
 QString Selection::setIndex(int frameValue) {
+    qDebug() << "grimmer selection - setIndex:" << frameValue;
+
     QString result;
     if ( frameValue >= 0 ){
         int upperBound = getUpperBoundUser();
@@ -191,11 +193,15 @@ QString Selection::setIndex(int frameValue) {
             }
         }
         else {
+            qDebug() << "grimmer Selection index error";
+
             result = "Selection index "+ QString::number(frameValue)+" must be between "+
                     QString::number(lowerBound) + " and " + QString::number(upperBound);
         }
     }
     else {
+        qDebug() << "grimmer Selection index must be nonnegative";
+
         result = "Selection index must be nonnegative: "+ QString::number( frameValue );
     }
     return result;

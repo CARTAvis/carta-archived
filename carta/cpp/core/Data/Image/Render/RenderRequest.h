@@ -20,6 +20,8 @@ class RenderRequest {
 
 public:
 
+    std::vector<int> m_frames;
+
     /**
      * Constructor.
      */
@@ -203,7 +205,6 @@ public:
 
 private:
 
-    std::vector<int> m_frames;
     Carta::Lib::KnownSkyCS m_cs;
     int m_topIndex;
     bool m_stackTop;

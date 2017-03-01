@@ -46,6 +46,8 @@
 #include <QDir>
 #include <QTime>
 #include <QDebug>
+#include <QThread>
+#include <QCoreApplication>
 
 namespace Carta {
 
@@ -393,6 +395,12 @@ int ViewManager::getImageZoomCount() const {
     return zoomCount;
 }
 
+//Allow Qt::HADNLE and void * to be streamed to QDebug for easier threads debugging
+QDebug operator <<(QDebug d, void *p){
+    d.nospace() << QString::number((long long)p, 16);
+    return d.space();
+}
+
 
 void ViewManager::_initCallbacks(){
     addCommandCallback( "clearLayout", [=] (const QString & /*cmd*/,
@@ -439,6 +447,27 @@ void ViewManager::_initCallbacks(){
     //Callback for registering a view.
     addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
+        qDebug()<<"grimmer view registerView in viewManager";
+
+        const bool isGuiThread =
+            QThread::currentThread() == QCoreApplication::instance()->thread();
+
+        if (isGuiThread){
+
+            qDebug()<<"in the gui thread";
+        }
+
+        QString tID = QString::number((long long)QThread::currentThread(), 16);
+        QString tID2 = QString::number((long long)QCoreApplication::instance()->thread(), 16);
+
+//        qDebug()<<"maind thread 0:"<<QObject::thread()->;
+
+        // http://stackoverflow.com/questions/26693143/how-can-i-print-qthandle-on-linux-qt5
+        qDebug()<<"current thread:"<<QThread::currentThreadId();
+//        qDebug()<<"maind thread:"<<QCoreApplication::instance()->thread();
+
+//        std::cout << "This does not appear";
+
         const QString PLUGIN_ID( "pluginId");
         const QString INDEX( "index");
         std::set<QString> keys = {PLUGIN_ID, INDEX};
@@ -452,6 +481,7 @@ void ViewManager::_initCallbacks(){
         else {
             qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
         }
+        qDebug()<<"grimmer view id:"<<viewId;
         return viewId;
     });
 
@@ -1299,4 +1329,3 @@ ViewManager::~ViewManager(){
 }
 }
 }
-

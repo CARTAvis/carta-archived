@@ -435,6 +435,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
 
             for ( int i = 0; i < percentileCount; i++ ){
+                qDebug() <<"grimmer in percentile";
                 //Missing intensity
                 if ( intensities[i].first < 0 ){
                     int locationIndex = allValues.size() * percentiles[i] - 1;
@@ -450,9 +451,11 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     if ( frameLow >= 0 ){
                         intensities[i].first += frameLow;
                     }
-                    
+
                     // put calculated values in both the memory cache and the disk cache
-                    
+
+                    qDebug() <<"grimmer in missing percentile";
+
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                     
                     if (m_diskCache) {

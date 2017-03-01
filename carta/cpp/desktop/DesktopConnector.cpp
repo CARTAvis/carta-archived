@@ -67,6 +67,12 @@ void DesktopConnector::initialize(const InitializeCallback & cb)
 
 void DesktopConnector::setState(const QString& path, const QString & newValue)
 {
+    qDebug() << "set state:" << path;
+
+    if (path == "/CartaObjects/c1"){
+        qDebug() << "grimmer bingo";
+    }
+
     // find the path
     auto it = m_state.find( path);
 
@@ -134,6 +140,8 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
 
 void DesktopConnector::registerView(IView * view)
 {
+    qDebug()<<"grimmer vv view:registerView";
+
     // let the view know it's registered, and give it access to the connector
     view->registration( this);
 
@@ -156,6 +164,7 @@ void DesktopConnector::registerView(IView * view)
 void DesktopConnector::unregisterView( const QString& viewName ){
     ViewInfo* viewInfo = this->findViewInfo( viewName );
     if ( viewInfo != nullptr ){
+        qDebug()<<"grimmer view:ungisterview";
 
         (& viewInfo->refreshTimer)->disconnect();
         m_views.erase( viewName );
@@ -167,6 +176,7 @@ void DesktopConnector::unregisterView( const QString& viewName ){
 // schedule a view refresh
 qint64 DesktopConnector::refreshView(IView * view)
 {
+    qDebug()<<"grimmer view:schedule freshview";
     // find the corresponding view info
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
@@ -197,6 +207,7 @@ void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/
 
 Carta::Lib::IRemoteVGView * DesktopConnector::makeRemoteVGView(QString viewName)
 {
+    qDebug()<<"grimmer vv makeRemoteVGView";
     return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
 }
 
@@ -257,6 +268,7 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 
 void DesktopConnector::refreshViewNow(IView *view)
 {
+    qDebug() << "grimmer view qt refreshViewNow, send QImage pix";
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
@@ -297,12 +309,16 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
+        qDebug() << "grimmer view orig Image";
+
         emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
     }
 }
 
 void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)
 {
+    qDebug() << "grimmer view: jsUpdateViewSlot";
+
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
         qWarning() << "Received update for unknown view " << viewName;

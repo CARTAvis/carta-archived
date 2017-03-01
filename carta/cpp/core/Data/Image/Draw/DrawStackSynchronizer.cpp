@@ -46,17 +46,26 @@ QList<std::shared_ptr<Layer> > DrawStackSynchronizer::_getLoadableData( const st
 }
 
 void DrawStackSynchronizer::_repaintFrameNow(){
+    qDebug() << "grimmer drawStack-repaintFrameNow!!";
     m_view->scheduleRepaint();
 
 }
 
+// 什麼時候 m_repaintFrameQueued =true, 但m_busy  = false 而之後的這個render可以進來??
+// 1, 2, 3
+//
+
 void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& request ){
+    // 有一個65只有一次, 直接跳到m_repaintFrameQueued, 有的是兩次, 其中一次會跑到62行
+    qDebug() << "grimmer drawStack-render!!";
     if ( m_repaintFrameQueued ){
+        qDebug() << "grimmer drawStack-repaintQueue";
         emit done( false );
         return;
     }
     QSize clientSize = getClientSize();
     if ( clientSize.width() <= 1 || clientSize.height() <= 1 ){
+        qDebug() << "grimmer drawStack-client size error";
         emit done( false );
         return;
     }
@@ -71,8 +80,15 @@ void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& reque
     m_renderCount = 0;
     m_redrawCount = dataCount;
 
+    // always 1
+    // qDebug()<<"grimmer render2 :"<<dataCount;
+
+    qDebug() << "grimmer drawStack-render2. index:"<< request->m_frames[2]<<"."<<( request.get() );
+
     for ( int i = 0; i < dataCount; i++ ){
         if ( datas[i]->_isVisible() ){
+            // 畫完才可能把m_repaintFrameQueued = false,
+            // 然後上層的DrawImageViewsSynchronizer的 m_busy 才會變成false
             connect( datas[i].get(), SIGNAL(renderingDone(const std::shared_ptr<RenderResponse>&)),
                     this, SLOT(_scheduleFrameRepaint(const std::shared_ptr<RenderResponse>&)),
                     Qt::UniqueConnection);
@@ -137,15 +153,19 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
 
     m_repaintFrameQueued = false;
 
+    qDebug()<<"grimmer scheduleFrameRepaint1";
     emit done( true );
+    qDebug()<<"grimmer scheduleFrameRepaint2";
 
-    // QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
+    QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     for ( int i = 0; i < dataCount; i++ ){
 
+        // will trigger the same behavior of datas[i]->_render( layerRequest );
         m_layers[i]->_renderDone();
     }
 
-    m_view->scheduleRepaint();
+    qDebug()<<"grimmer schedule-directly invoke repaint to avoid m_view will be changed by the next drawing";
+//    m_view->scheduleRepaint();
 
 }
 
