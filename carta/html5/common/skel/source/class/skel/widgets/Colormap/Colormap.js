@@ -27,7 +27,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
     },
 
     members : {
-        
+
         /**
          * Initialize the GUI.
          */
@@ -38,7 +38,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             this._initSettings( );
             this._layoutContent( false );
         },
-        
+
 
         /**
          * Initialize the colormap settings (controls).
@@ -46,7 +46,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         _initSettings : function(){
             this.m_settings = new skel.widgets.Colormap.Settings();
         },
-        
+
         /**
          * Initialize the view that shows the colormap.
          */
@@ -57,7 +57,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 this.m_view.setAllowGrowY( true );
             }
         },
-        
+
         /**
          * Returns whether or not the color mix settings are currently visible.
          * @return {boolean} true if the color mix settings are visible; false otherwise.
@@ -69,7 +69,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
             }
             return colorMixVisible;
         },
-        
+
         /**
          * Layout the content based on which configuration settings are
          * visible.
@@ -90,7 +90,7 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 this.m_content.add( this.m_mapControl );
             }
         },
-        
+
         /**
          * Callback for when the selected color map changes on the server.
          */
@@ -117,18 +117,19 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 }
             }
         },
-        
+
         /**
          * Register to get updates on the selected color map from the server.
          */
         _registerMapCB : function( ){
+            console.log("grimmer colormap");
             var path = skel.widgets.Path.getInstance();
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id);
             this.m_sharedVar.addCB(this._mapChangedCB.bind(this));
             this._initView();
             this._mapChangedCB();
         },
-        
+
         /**
          * Set the server side is of the colormap.
          * @param id {String} unique identifier for the color map.
@@ -143,8 +144,8 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
                 }
             }
         },
-        
-        
+
+
         /**
          * Show/hide the color mix settings.
          * @param visible {boolean} true if the color mix settings should be visible;
@@ -153,19 +154,19 @@ qx.Class.define("skel.widgets.Colormap.Colormap",
         showHideSettings : function( visible ){
             this._layoutContent( visible );
         },
-       
+
         //Layout for the settings
         m_settings : null,
 
         //Layout for the permanent parts gradient, lines, etc
         m_content : null,
-        
+
         //Colormap gradient
         m_view : null,
-        
+
         //Color map selection
         m_mapControl : null,
-        
+
         m_connector : null,
         m_sharedVar : null,
         m_id : null

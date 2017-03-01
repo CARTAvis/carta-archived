@@ -19,7 +19,7 @@ qx.Class.define("skel.Command.Clip.CommandClipValues", {
         this.setValue( this.m_cmds );
         this.setEnabled( false );
         this.m_global = false;
-        
+
         if ( typeof mImport !== "undefined"){
             this.m_connector = mImport("connector");
             var pathDict = skel.widgets.Path.getInstance();
@@ -28,29 +28,33 @@ qx.Class.define("skel.Command.Clip.CommandClipValues", {
             this._clipPercentsChangedCB();
         }
     },
-    
+
     members : {
-        
+
         /**
          * Set the clip that is selected based on the image loader that is
          * selected.
          * @param val {Number} - the clip amount.
          */
         setClipValue : function ( val ){
+            console.log("grimmer c set clip:",val);
+            console.trace();
             for ( var i = 0; i < this.m_cmds.length; i++ ){
                 var clipValue = this.m_cmds[i].getClipPercent();
                 this.m_cmds[i].setServerSend( false );
                 if ( clipValue == val ){
-                    this.m_cmds[i].setValue( true );
+                    console.log("grimmer set clip to true");
+                    // this.m_cmds[i].setValue( true );
                 }
                 this.m_cmds[i].setServerSend( true );
             }
         },
-        
+
         /**
          * Callback for a change in the available clip percentages.
          */
         _clipPercentsChangedCB : function() {
+            console.log("grimmer c_clipPercentsChangedCB");
             var val = this.m_sharedVarClips.get();
             if ( val ){
                 try {
@@ -65,15 +69,20 @@ qx.Class.define("skel.Command.Clip.CommandClipValues", {
                         this.m_cmds[i] = cmd;
                     }
                     this.setValue( this.m_cmds );
+
+                    // no effect
+                    console.log("grimmer c before dispatch");
                     qx.event.message.Bus.dispatch(new qx.event.message.Message(
                         "commandsChanged", null));
+                    console.log("grimmer c after dispatch");
+
                 }
                 catch( err ){
                     console.log( "Could not parse: "+val );
                 }
             }
         },
-       
+
         m_sharedVarClips : null
     }
 });

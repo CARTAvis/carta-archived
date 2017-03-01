@@ -10,7 +10,7 @@
 qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
     extend : skel.widgets.Window.DisplayWindow,
     include : skel.widgets.Window.PreferencesMixin,
-    
+
     /**
      * Constructor.
      */
@@ -25,7 +25,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
     },
 
     members : {
-        
+
         /**
          * Add or remove the image context settings based on whether the user
          * had configured any of the settings visible.
@@ -35,22 +35,22 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             this.m_controlsVisible = content;
             this._layoutControls();
         },
-        
+
         /**
          * Clean-up items; this window is going to disappear.
          */
         clean : function(){
-            //Remove the view so we don't get spurious mouse events sent to a 
+            //Remove the view so we don't get spurious mouse events sent to a
             //server object that no longer exists.
             if ( this.m_view !== null ){
                 if ( this.m_viewContent.indexOf( this.m_view) >= 0 ){
                     this.m_viewContent.remove( this.m_view);
-                   
+
                 }
             }
         },
-       
-        
+
+
         /**
          * Initialize the list of window specific commands this window supports.
          */
@@ -62,7 +62,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             this.m_supportedCmds.push( linksCmd.getLabel() );
             arguments.callee.base.apply(this, arguments);
         },
-        
+
         /**
          * Returns whether or not this window can be linked to a window
          * displaying a named plug-in.
@@ -76,7 +76,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             }
             return linkable;
         },
-        
+
 
         /**
          * Returns whether or not this window supports establishing a two-way
@@ -90,7 +90,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             }
             return biLink;
         },
-        
+
         /**
          * Layout the display.
          */
@@ -102,19 +102,19 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
                 this.m_viewContent.add(this.m_view, overlayMap );
                 this.m_view.setOverlayWidget( this.m_contextDraw );
             }
-          
+
             if ( this.m_controlsVisible ){
                 this.m_content.add( this.m_contextControls );
             }
         },
-        
+
         /**
          * Callback for updating the visibility of the user settings from the server.
          */
         _preferencesCB : function(){
             if ( this.m_sharedVarPrefs !== null ){
                 var val = this.m_sharedVarPrefs.get();
-               
+
                 if ( val !== null ){
                     try {
                         var setObj = JSON.parse( val );
@@ -127,8 +127,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
                 }
             }
         },
-      
-        
+
+
         /**
          * Set the appearance of this window based on whether or not it is selected.
          * @param selected {boolean} true if the window is selected; false otherwise.
@@ -137,9 +137,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
         setSelected : function(selected, multiple) {
             this._initSupportedCommands();
             arguments.callee.base.apply(this, arguments, selected, multiple );
-           
+
         },
-        
+
         /**
          * Callback for when the data shared variable changes.
          */
@@ -155,7 +155,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
                     var height = contextRect.imageHeight;
                     var rotate = contextRect.rotate;
                     if ( this.m_contextDraw !== null ){
-                        this.m_contextDraw.setImageCorners( corner0.x, corner0.y, corner1.x, corner1.y, 
+                        this.m_contextDraw.setImageCorners( corner0.x, corner0.y, corner1.x, corner1.y,
                                 selected, width, height, rotate );
                     }
                 }
@@ -165,8 +165,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
                 }
             }
         },
-       
-        
+
+
         /**
          * Implemented to add the view.
          */
@@ -180,24 +180,26 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             }
             this._layoutControls();
             this.m_view.setVisibility( "visible" );
-            
+
             this.initializePrefs();
             this.m_contextControls.setId( this.getIdentifier());
             this.registerDataUpdates();
         },
-        
+
         /**
          * Register to receive updates when the data shared variable changes on
          * the server-side.
          */
         registerDataUpdates : function(){
             var path = skel.widgets.Path.getInstance();
+            console.log("grimmer DisplayWindowImageContext");
+
             this.m_sharedVarData = this.m_connector.getSharedVar( this.m_identifier+path.SEP +path.DATA );
             this.m_sharedVarData.addCB( this._sharedVarDataCB.bind( this ));
             this._sharedVarDataCB();
         },
-        
-        
+
+
         /**
          * Update from the server.
          * @param winObj {Object} - an object containing server side information values.
@@ -209,7 +211,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImageContext", {
             }
             this.m_contextDraw.setControls( winObj );
         },
-       
+
         m_view : null,
         m_contextControls : null,
         m_controlsVisible : null,

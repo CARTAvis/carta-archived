@@ -20,7 +20,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
     },
 
     members : {
-        
+
         /**
          * Add or remove the control for combining layers into a group or splitting
          * layers from a group.
@@ -41,7 +41,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 }
             }
         },
-        
+
         /**
          * User has changed the auto-select mode of the list.
          */
@@ -61,7 +61,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                     var controls = JSON.parse( val );
                     this.m_autoSelectCheck.setValue( controls.stackAutoSelect );
                     this.m_panZoomAllCheck.setValue( controls.panZoomAll );
-                   
+
                     var errorMan = skel.widgets.ErrorHandler.getInstance();
                     errorMan.clearErrors();
                 }
@@ -70,7 +70,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 }
             }
         },
-        
+
         /**
          * Callback for a change in stack data settings.
          */
@@ -100,7 +100,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             this._initTree();
             this._initMaskControls();
         },
-        
+
         /**
          * Initialize the available mask controls for each list item.
          */
@@ -108,40 +108,40 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             this.m_maskControls = new skel.widgets.Image.Stack.LayerSettings();
             this.m_splitter.add( this.m_maskControls, 1 );
         },
-        
-        
+
+
         /**
          * Initialize the list of loaded images.
          */
         _initTree : function(){
             var listContainer = new qx.ui.container.Composite();
             listContainer.setLayout( new qx.ui.layout.VBox(1));
-            
-            //Check container 
+
+            //Check container
             this.m_selectContainer = new qx.ui.container.Composite();
             this.m_selectContainer.setLayout( new qx.ui.layout.HBox(1) );
             this.m_selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            
+
             //Auto select check
             this.m_autoSelectCheck = new qx.ui.form.CheckBox( "Auto Select");
-            skel.widgets.TestID.addTestId( this.m_autoSelectCheck, "autoSelectImages" ); 
+            skel.widgets.TestID.addTestId( this.m_autoSelectCheck, "autoSelectImages" );
             this.m_autoSelectCheck.setToolTipText( "Auto selection based on animator or manual selection of layer(s).");
             this.m_autoSelectCheck.addListener( "changeValue", this._autoSelectChanged, this );
             this.m_selectContainer.add( this.m_autoSelectCheck );
             this.m_selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            
+
             //Pan/zoom all check
-            this.m_panZoomAllCheck = new qx.ui.form.CheckBox( "Pan/Zoom All"); 
+            this.m_panZoomAllCheck = new qx.ui.form.CheckBox( "Pan/Zoom All");
             this.m_panZoomAllCheck.setToolTipText( "Pan/Zoom all images in the stack instead of just the top image.");
             this.m_panZoomAllCheck.addListener( "changeValue", this._sendPanZoomAllCmd, this );
             this.m_selectContainer.add( this.m_panZoomAllCheck );
             this.m_selectContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            
-           
-            
+
+
+
             this.m_imageTree = new skel.widgets.Image.Stack.StackTree();
             this.m_imageTree.addListener( "treeSelection", this._treeItemSelected, this );
-            
+
             //Add to main container.
             listContainer.add( this.m_selectContainer );
             this.m_splitter = new qx.ui.splitpane.Pane( "horizontal");
@@ -154,6 +154,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
          * Register to get updates on stack settings from the server.
          */
         _registerControls : function(){
+          console.log("grimmer StackControls");
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id );
             this.m_sharedVar.addCB(this._controlsChangedCB.bind(this));
             this._controlsChangedCB();
@@ -168,7 +169,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._registrationCallback( this));
         },
-        
+
         /**
          * Callback for when the registration is complete and an id is available.
          * @param anObject {skel.widgets.Image.Stack.StackControls}.
@@ -178,8 +179,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 anObject._setStackId( id );
             };
         },
-        
-        
+
+
         /**
          * Send a command to the server indicating whether to pan/zoom all images
          * in the stack or only the top one.
@@ -191,8 +192,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             var cmd = this.m_id + path.SEP_COMMAND + "setPanZoomAll";
             this.m_connector.sendCommand( cmd, params, function(){});
         },
-        
-        
+
+
         /**
          * Send a command to the server to select particular images in the stack.
          */
@@ -211,8 +212,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 }
             }
         },
-        
-        
+
+
         /**
          * Send a command to the server to change auto selection of the images in the stack.
          */
@@ -223,7 +224,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             var cmd = this.m_id + path.SEP_COMMAND + "setStackSelectAuto";
             this.m_connector.sendCommand( cmd, params, function(){});
         },
-        
+
         /**
          * Set the identifier for the server-side object managing the stack.
          * @param id {String} - the server-side id of the object managing the stack.
@@ -245,7 +246,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
             this._registerControls();
             this._registerControlsData();
         },
-        
+
         /**
          * Update the group layers control and the layer settings based on
          * the tree item(s) selected.
@@ -257,8 +258,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 this._sendSelectionCmd();
             }
         },
-        
-        
+
+
         /**
          * Update the layer settings based on the node that is selected.
          */
@@ -284,7 +285,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackControls", {
                 this.m_maskControls.setSettings( settings );
             }
         },
-        
+
 
         m_id : null,
         m_connector : null,

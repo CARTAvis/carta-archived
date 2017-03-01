@@ -18,7 +18,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
             this.setSyncDimension( true);
             this.setAllowGrowX( true );
             this.setAllowGrowY( true );
-            
+
             this.m_connector = mImport("connector");
             this._initLevelCurves();
 
@@ -99,7 +99,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                 ctx.moveTo( Math.round(this._ttx(-1))+0.5, this._tty(0));
                 ctx.lineTo( Math.round(this._ttx(1))+0.5, this._tty(0));
                 ctx.stroke();
-                
+
                 // draw the curves
                 if ( this.m_levelCurves !== null ){
                     for ( var i = 0; i < this.m_levelCurves.length; i++  ){
@@ -144,6 +144,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
              * curve points.
              */
             _initLevelCurves : function(){
+              console.log("grimmer TwoDSlider");
                 //Initialize the shared variable that contains the list of level curves.
                 var pathDict = skel.widgets.Path.getInstance();
                 this.m_sharedVarGamma = this.m_connector.getSharedVar(pathDict.GAMMA);
@@ -172,16 +173,16 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                }
            },
 
-           
 
-           
+
+
 
             _keyDownCB: function (event) {
                 if( event.getKeyCode() == 27) {
                     this.setValue( 0, 0);
                 }
             },
-            
+
             /**
              * returns mouse event's local position (with respect to this widget)
              * @param event {MouseEvent}
@@ -193,7 +194,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                     y: event.getDocumentTop() - box.top
                 };
             },
-            
+
             _mouseDownCB: function (event) {
                 console.log("mouse down in canvas - button ", event.getButton());
 
@@ -222,7 +223,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                 this.fireDataEvent( skel.widgets.Path.CHANGE_VALUE, data);
                 this.update();
             },
-            
+
             _mouseMoveCB: function (event) {
                 var pt = this._localPos(event);
                 this.m_mouse = pt;
@@ -244,7 +245,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
 
                 this.update();
             },
-            
+
             _mouseUpCB: function (event) {
                 this.releaseCapture();
                 var pt = this._localPos(event);
@@ -264,7 +265,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                 this.fireDataEvent( skel.widgets.Path.CHANGE_VALUE, data);
                 this.update();
             },
-            
+
             /**
              * Updates ttya, ttyb, ttxa and ttxb based on width/height
              * @param width {Number}
@@ -276,7 +277,7 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
                 this.m_ttya = this.MARGIN - height / 2;
                 this.m_ttyb = height / 2;
             },
-            
+
             /**
              * Translate x from model coordinates to widget coordinates.
              * @param x {Number}
@@ -310,4 +311,3 @@ qx.Class.define("skel.widgets.Colormap.TwoDSlider",
 
 
     });
-

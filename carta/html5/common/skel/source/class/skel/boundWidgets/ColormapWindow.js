@@ -13,6 +13,8 @@ qx.Class.define( "skel.boundWidgets.ColormapWindow", {
 
     construct: function()
     {
+        console.log("grimmer Colormap");
+
         this.base( arguments, "Colormap" );
         this.m_connector = mImport( "connector" );
 

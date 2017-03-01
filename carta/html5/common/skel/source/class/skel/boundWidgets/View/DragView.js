@@ -18,6 +18,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
     construct: function( viewId )
     {
         this.base( arguments, viewId );
+        console.log("grimmer view-DragView");
 
         // monitor mouse move
         this.addListener( "mousedown", this._mouseDownCB.bind(this));
@@ -31,8 +32,8 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
         var path = skel.widgets.Path.getInstance();
         this.m_prefix = this.m_viewId + path.SEP+ path.VIEW + path.SEP +"pointer-move";
         this.m_viewSharedVar = this.m_connector.getSharedVar(this.m_prefix);
-       
-        
+
+
         this.m_popup = new qx.ui.popup.Popup( new qx.ui.layout.Canvas()).set({
             backgroundColor: "#FFFAD3",
             padding: [4,4],
@@ -41,7 +42,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
         });
         this.m_popupText = new qx.ui.basic.Atom();
         this.m_popup.add(this.m_popupText);
-        
+
         var pathText = this.m_viewId + path.SEP + path.VIEW;
         this.m_sharedVarText = this.m_connector.getSharedVar( pathText );
         this.m_sharedVarText.addCB(this._cursorChangedCB.bind(this));
@@ -51,7 +52,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
     },
 
     members: {
-    
+
         _cursorChangedCB : function(){
             if ( this.m_sharedVarText ){
                 var val = this.m_sharedVarText.get();
@@ -80,7 +81,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                 }
             }
         },
-        
+
         /**
          * Callback for a mouse move event.
          * @param ev {qx.event.type.Mouse}.
@@ -93,7 +94,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                         x: ev.getDocumentLeft() - box.left,
                         y: ev.getDocumentTop() - box.top
                 };
-               
+
                 var width = box.right - box.left;
                 var height = box.bottom - box.top;
                 this.m_viewSharedVar.set( "" + pt.x + " " + pt.y+" "+width+" "+height);
@@ -101,7 +102,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                     left : ev.getViewportLeft(),
                     top : ev.getViewportTop() - 20
                 };
-                
+
                 this.m_popup.placeToPoint(helpLocation);
             }
             //}
@@ -110,7 +111,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
          * Callback for a mouse down event.
          * @param ev {qx.event.type.Mouse}.
          */
-        
+
         _mouseDownCB : function (ev) {
             if ( !ev.isCtrlPressed() ){
                 this.m_drag = true;
@@ -127,7 +128,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                 this.m_connector.sendCommand( cmd, "x:" + x );
             }
         },
-        
+
         /**
          * Callback for a mouse up event.
          * @param ev {qx.event.type.Mouse}.
@@ -150,7 +151,7 @@ qx.Class.define( "skel.boundWidgets.View.DragView", {
                 }
             }
         },
-        
+
         m_viewId : null,
         m_drag : false,
         m_popup : null,

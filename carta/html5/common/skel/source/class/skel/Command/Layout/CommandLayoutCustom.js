@@ -10,6 +10,8 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
      * Constructor.
      */
     construct : function() {
+      console.log("grimmer layout custom");
+
         this.base( arguments, "Custom Layout", null );
         this.m_toolBarVisible = false;
         this.setValue( false );

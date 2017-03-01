@@ -36,7 +36,8 @@ qx.Class.define("skel.widgets.IO.FileBrowser", {
             loadButton.setToolTipText( "Load the selected file.");
             skel.widgets.TestID.addTestId( loadButton, "loadFileButton");
             loadButton.addListener("execute", function() {
-                
+
+                console.log("grimmer load file");
                 var filePath = this.getSelectedPath();
                 if (this.m_target !== null) {
                     this.m_target.dataLoaded(filePath);
@@ -55,8 +56,8 @@ qx.Class.define("skel.widgets.IO.FileBrowser", {
             this._add(this.m_treeDisplay);
             this._add(buttonComposite);
         },
-        
-        
+
+
 
         /**
          * Stores the window that wants to add data.
@@ -65,8 +66,8 @@ qx.Class.define("skel.widgets.IO.FileBrowser", {
         setTarget : function(source) {
             this.m_target = source;
         },
-        
-        
+
+
         m_target : null
 
     },

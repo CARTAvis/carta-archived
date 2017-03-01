@@ -21,7 +21,7 @@
 
     /**
      * Numerical constants representing status of the connection.
-     * 
+     *
      * @type {{}}
      */
     connector.CONNECTION_STATUS = {
@@ -60,6 +60,7 @@
     // the command results always arrive in the same order they were sent
     QtConnector.jsCommandResultsSignal.connect( function( result )
     {
+        console.log("grimmer get jsCommandResultsSignal:", result);
         try {
             if( m_commandCallbacks.length < 1 ) {
                 console.warn( "Received command results but no callbacks for this!!!" );
@@ -85,6 +86,10 @@
     // listen for jsViewUpdatedSignal to render the image
     QtConnector.jsViewUpdatedSignal.connect( function(viewName, buffer, refreshId)
     {
+        console.log("grimmer jsViewUpdatedSignal:", viewName, refreshId);
+        console.log("grimmer get buffer:", buffer);
+        console.log("grimmer test:","1","2",{aa:"name"},{bb:"name"});
+
         try {
             var view = m_views[viewName];
             if( view == null ) {
@@ -93,6 +98,8 @@
             }
             if ( buffer != null ){
                 buffer.assignToHTMLImageElement( view.m_imgTag );
+                console.log("grimmer view jsViewRefreshedSlot, image tag");
+
                 QtConnector.jsViewRefreshedSlot( view.getName(), refreshId );
                 view._callViewCallbacks();
             }
@@ -105,10 +112,12 @@
 
     // convenience function to create & get or just get a state
     function getOrCreateState(path) {
+
         var st = m_states[path];
         if (st !== undefined) {
             return st;
         }
+        console.log("grimmer create new state");
         st = {
             path : path,
             value : null,
@@ -120,12 +129,15 @@
 
     /**
      * The View class
-     * 
+     *
      * @param container
      * @param viewName
      * @constructor
      */
     var View = function(container, viewName) {
+
+        console.log("grimmer view, create");
+
         // QtWebKit does not support drawing to the canvas (they claim they do,
         // but it coredumps). So we'll use <img> tag instead. That works well
         // enough.
@@ -155,10 +167,14 @@
     /**
      * direct callback for mouse moves. We remember the coordinates, and then
      * make sure a timeout is scheduled to actually send the coordinates.
-     * 
+     *
      * @param ev
      */
     View.prototype.mouseMoveCB = function mouseMoveCB(ev) {
+
+        console.log("grimmer mouseMoveCB");
+
+
         var x = ev.pageX - this.m_imgTag.getBoundingClientRect().left;
         var y = ev.pageY - this.m_imgTag.getBoundingClientRect().top;
 
@@ -192,6 +208,9 @@
     };
 
     View.prototype.mouseMoveTimeoutCB = function mouseMoveTimeoutCB() {
+
+        console.log("grimmer mouseMoveTimeoutCB");
+
         this.m_mousePosSlotScheduled = false;
         // console.log( "calling jsMouseMoveSlot", this.m_viewName,
         // this.m_mousePos.x, this.m_mousePos.y );
@@ -200,13 +219,22 @@
     };
 
     View.prototype.setQuality = function setQuality() {
+
+        console.log("grimmer setQuality ");
+
         // desktop only supports quality 101
     };
     View.prototype.getQuality = function setQuality() {
+
+        console.log("grimmer getQuality");
+
         // desktop only supports quality 101
         return 101;
     };
     View.prototype.updateSize = function() {
+
+        console.log("grimmer updateSize");
+
         // this.m_imgTag.width = this.m_container.offsetWidth;
         // this.m_imgTag.height = this.m_container.offsetHeight;
         /*console.log("about to call jsUpdateViewSlot", this.m_viewName,
@@ -230,9 +258,14 @@
         return coordinate;
     };
     View.prototype.addViewCallback = function(callback) {
+
+        console.log("grimmer view addViewCallback");
+
         return this.m_viewCallbacks.add( callback);
     };
     View.prototype._callViewCallbacks = function () {
+        console.log("grimmer view callEveryone");
+
         this.m_viewCallbacks.callEveryone();
     };
 
@@ -243,6 +276,8 @@
 
     connector.registerViewElement = function( divElement, viewName )
     {
+        console.log("grimmer view registerViewElement");
+
         var view = m_views[ viewName];
         if( view !== undefined) {
             throw new Error("Trying to re-register existing view '" + viewName + "'");
@@ -259,17 +294,23 @@
 
     connector.getConnectionStatus = function()
     {
+        console.log("grimmer getConnectionStatus");
+
         return m_connectionStatus;
     };
 
 
     connector.setConnectionCB = function( callback )
     {
+        console.log("grimmer setConnectionCB");
+
         m_connectionCB = callback;
     };
 
     connector.connect = function()
     {
+        console.log("grimmer connect");
+
         if( m_connectionCB == null ) {
             console.warn( "No connection callback specified!!!" );
         }
@@ -281,6 +322,8 @@
         // listen for changes to the state
         QtConnector.stateChangedSignal.connect(function(key, val)
         {
+            console.log("grimmer get stateChangedSignal:", key, val);
+
             try {
                 var st = getOrCreateState( key );
                 // save the value
@@ -311,12 +354,18 @@
     };
 
     connector.shareSession = function( /* callback, username, password, timeout */) {
+
+        console.log("grimmer shareSession");
+
     };
 
     connector.unShareSession = function( /* errorCallback */) {
     };
 
     function SharedVar(path) {
+
+        console.log("grimmer new SharedVar");
+
         // make a copy of this to use in private/priviledged functions
         var m_that = this;
         // save a pointer to the state info associated with path
@@ -329,6 +378,9 @@
             }
             // add callback to the list of all callbacks for this state key
             var cbId = m_statePtr.callbacks.add(callback);
+
+            console.log("grimmer add namecallback:", cbId);
+
             // return the id
             return cbId;
         };
@@ -336,6 +388,8 @@
         // add an anonymous callback
         this.addCB = function(callback) {
             m_that.addNamedCB(callback);
+            console.log("grimmer add callback:");
+
             return m_that;
         };
 
@@ -355,6 +409,8 @@
                 console.error( "value has weird type: ", value, m_statePtr.path );
                 throw "don't know how to set value";
             }
+            console.log("grimmer jsSetStateSlot");
+
             QtConnector.jsSetStateSlot(m_statePtr.path, value);
 
             return m_that;
@@ -385,21 +441,38 @@
 
     // create or get a cached copy of a shared variable for this path
     connector.getSharedVar = function(path) {
+        console.log("grimmer getSharedVar:",path);
+        console.trace();
+
+        if(path == "/CartaObjects/c8"){
+            console.log("grimmer got it");
+        }
+
         var sv = m_sharedVars[path];
         if (sv != null) {
             return sv;
         }
         var newVar = new SharedVar(path);
         m_sharedVars[path] = newVar;
+        console.log("grimmer getSharedVar-end:", path);
+
         return newVar;
     };
 
     connector.sendCommand = function(cmd, params, callback) {
+        console.log("grimmer send command:", cmd)
+        console.log("grimmer send command params:", params)
+
         if (callback != null && typeof callback !== "function") {
 
             throw new Error("callback must be a function, null, or undefined");
         }
         m_commandCallbacks.push( callback);
+
+        // if(cmd == "/CartaObjects/ViewManager:registerView"){
+        //     console.log("grimmer registerView return");
+        //     return;
+        // }
         QtConnector.jsSendCommandSlot( cmd, params);
     };
 

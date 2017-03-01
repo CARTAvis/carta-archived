@@ -19,13 +19,13 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
         this.m_connector = mImport("connector");
         this._init();
     },
-    
+
     events : {
         "gridControlsChanged" : "qx.event.type.Data"
     },
-   
+
     members : {
-        
+
         /**
          * Initializes the UI.
          */
@@ -36,24 +36,24 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
             this.m_tabView.setContentPadding( 2, 2, 2, 2 );
             this.m_tabListenId = this.m_tabView.addListener( "changeSelection", this._sendTabIndex, this );
             this._add( this.m_tabView );
-          
+
             this.m_pages = [];
             this.m_pages[0] = new skel.widgets.Image.Grid.GridControls();
             this.m_pages[0].addListener( "gridControlsChanged", function(ev){
                 this.fireDataEvent( "gridControlsChanged", ev.getData() );
             }, this );
             this.m_tabView.add( this.m_pages[0] );
-            
+
             this.m_pages[1] = new skel.widgets.Image.Contour.ContourControls();
             this.m_tabView.add( this.m_pages[1] );
-            
+
             this.m_pages[2] = new skel.widgets.Image.Stack.StackControls();
             this.m_tabView.add( this.m_pages[2] );
-            
+
             this.m_pages[3] = new skel.widgets.Image.Region.RegionControls();
-            this.m_tabView.add( this.m_pages[3] );   
+            this.m_tabView.add( this.m_pages[3] );
         },
-        
+
         /**
          * Callback for when image preference state changes on the server.
          */
@@ -70,19 +70,19 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
                 }
             }
         },
-        
+
         /**
          * Register to receive preference updates from the server.
          */
         _register : function(){
             var path = skel.widgets.Path.getInstance();
-            
+            console.log("grimmer ImageControls");
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id );
             this.m_sharedVar.addCB( this._prefCB.bind( this));
             this._prefCB();
         },
-        
-        
+
+
         /**
          * Send a command to the server to get the grid control id.
          * @param imageId {String} the server side id of the image object.
@@ -94,8 +94,8 @@ qx.Class.define("skel.widgets.Image.ImageControls", {
            }
            this._register();
         },
-        
-       
+
+
         m_sharedVar : null
     }
 });

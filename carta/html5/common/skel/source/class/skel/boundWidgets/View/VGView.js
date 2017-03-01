@@ -39,6 +39,7 @@ qx.Class.define( "skel.boundWidgets.View.VGView", {
      */
     construct: function( viewName )
     {
+        console.log("grimer view, vgview");
         this.base( arguments );
         this.m_connector = mImport( "connector" );
         this.setLayout( new qx.ui.layout.Canvas() );

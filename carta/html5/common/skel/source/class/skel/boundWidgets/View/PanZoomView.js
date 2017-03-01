@@ -17,6 +17,7 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
      */
     construct: function( viewId )
     {
+        console.log("grimmer view- PanZoomView");
         this.base( arguments, viewId );
 
         // monitor mouse move
@@ -29,7 +30,7 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
     },
 
     members: {
-    	
+
         /**
          * Install an input handler.
          * @param handlerType {class}
@@ -61,20 +62,20 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             this.m_connector.sendCommand( cmd,
                 "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
         },
- 
+
         /**
          * Send an input event to the server side.
          * @param e {object}
          */
         sendInputEvent: function( e ){
-            
+
             var params = JSON.stringify( e );
             //console.log( "Sending input event"+params );
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_viewId + path.SEP_COMMAND + path.INPUT_EVENT;
             this.m_connector.sendCommand( cmd, params );
         },
-        
+
         /**
          * Install an input handler.
          * @param handlerType {class}

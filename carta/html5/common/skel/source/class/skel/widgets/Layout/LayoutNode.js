@@ -11,7 +11,7 @@
 qx.Class.define("skel.widgets.Layout.LayoutNode",{
     extend : qx.core.Object,
 
-    
+
     construct : function(id) {
         this.base(arguments);
         this.m_id = id;
@@ -29,7 +29,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
          * Returns true if the link from the source window to
          * the destination window was successfully added or
          * removed; false otherwise.
-         * 
+         *
          * @param sourceWinId {String} an identifier for the link
          *                source.
          * @param destWinId {String} an identifier for the link
@@ -39,7 +39,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
          *                removed.
          */
         changeLink : function(sourceWinId, destWinId, addLink) {
-           
+
         },
 
         /**
@@ -55,9 +55,9 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
          */
         dataUnloaded : function(path) {
         },
-        
+
         exclude : function(){},
-        
+
         /**
          * Returns the identifier for this layout cell.
          * @return {String} an identifier for the layout cell.
@@ -66,7 +66,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             return this.m_id;
         },
 
-        
+
         /**
          * Returns a location identifier for the second area.
          */
@@ -82,7 +82,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         _getDimensions : function() {
             return [];
         },
-        
+
 
         /**
          * Returns the display area.
@@ -91,7 +91,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         getDisplayArea : function() {
             return null;
         },
-        
+
 
         /**
          * Returns a list of information concerning windows that can be linked to
@@ -104,10 +104,10 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
          */
         getLinkInfo : function(pluginId, sourceWinId, linkInfos) {
         },
-        
-        
+
+
         /**
-         * Returns a list of information concerning windows that can be replaced by 
+         * Returns a list of information concerning windows that can be replaced by
          * the given source window showing the indicated plug-in.
          * @param sourceWinId {String} an identifier for the window displaying the
          *      plug-in that wants information about where it can be moved.
@@ -117,7 +117,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         getMoveInfo : function(sourceWinId) {
             return [];
         },
-        
+
         /**
          * Returns the pixel location of the midpoint of the
          * splitter.
@@ -125,19 +125,19 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         _getSplitterLocation : function() {
             return [];
         },
-        
-        
+
+
         /**
          * Initialize the shared variable that contains layout information
          * from the server.
          */
         initSharedVar : function(){
-           
+           console.log("grimmer layoutnode");
             this.m_sharedVar = this.m_connector.getSharedVar( this.m_id );
             this.m_sharedVar.addCB( this._layoutChangedCB.bind( this ));
             this._layoutChangedCB( this.m_sharedVar.get());
         },
-        
+
         /**
          * Update the view based on new layout information from the server.
          * @param val {String} - layout information from the server.
@@ -145,6 +145,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         _layoutChangedCB : function( val ){
             if ( val ){
                 try {
+                    console.log("grimmer layoutnode layoutchangeCB");
                     var layoutObj = JSON.parse( val );
                     this.serverUpdate( layoutObj );
                 }
@@ -155,7 +156,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             }
         },
 
-        
+
         /**
          * Returns whether or not the window with the given id
          * was restored.
@@ -166,22 +167,22 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         restoreWindow : function(locationId) {
             return false;
         },
-        
+
         /**
          * Remove all windows.
          */
         removeWindows : function() {
         },
-        
-        
+
+
         /**
          * Update the UI based on server information.
          * @param obj {Object} - server layout information.
          */
         serverUpdate : function (obj ){
-            
+
         },
-        
+
         /**
          * Returns this layout cell if it has matching id; otherwise, returns null.
          * @param id {String} - an identifier for a layout cell.
@@ -193,9 +194,9 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
             }
             return target;
         },
-        
-        
-        
+
+
+
         /**
          * Returns a list of windows displayed by this area and its children.
          * @return {Array} a list of windows displayed by the area and its children.
@@ -203,7 +204,7 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
         getWindows : function ( ){
             return [];
         },
-        
+
         /**
          * Returns the window at the given location if one exists; otherwise returns null.
          * @param row {Number} the desired grid row.
@@ -231,13 +232,13 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
 
         setDrawMode : function(drawInfo) {
         },
-        
+
         /**
          * Returns whether or not the identified child is replaced with the
          * new node.
          * @param sourceId {String} - an identifier for a layout cell; replacement is
          *      considered only if the identifier matches this cells identifier.
-         * @param childId {String} - indicates whether a first or second child 
+         * @param childId {String} - indicates whether a first or second child
          *      should be replaced.
          * @param node {skel.widgets.Layout.LayoutNode} the replacement node.
          * @return {boolean} true if the node was replaced; false otherwise.
@@ -248,17 +249,17 @@ qx.Class.define("skel.widgets.Layout.LayoutNode",{
 
         /**
          * Notifies children that the given window was selected.
-         * 
+         *
          * @param win {skel.widgets.Window.DisplayWindow} the
          *                selected window.
          */
         windowSelected : function(win) {
         },
-        
+
         m_connector : null,
         m_id : null,
         m_sharedVar : null
-     
+
     }
 
 });

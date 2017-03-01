@@ -349,7 +349,7 @@ qx.Class.define("skel.widgets.Link.DrawCanvas",{
                 }
                 //Show the context menu if the point is "close to" a line connector.
                 else if (ev.getButton() == "right") {
-                    
+                    console.log("grimmer menu, drawCanvas")
                     if (this.m_contextMenu === null) {
                         this.m_contextMenu = new qx.ui.menu.Menu();
                         this.setContextMenu(this.m_contextMenu);

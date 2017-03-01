@@ -10,6 +10,8 @@ qx.Class.define("skel.Command.Layout.CommandLayoutImage", {
      * Constructor.
      */
     construct : function() {
+        console.log("grimmer layout image");
+
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setImageLayout";
         this.base( arguments, "Image Layout", cmd );
