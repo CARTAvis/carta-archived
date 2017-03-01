@@ -1,9 +1,9 @@
 Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
 =======
 
-Tested OS: CentOS 7.3.1611, Ubuntu 16.04. 
+Tested OS: CentOS 7.3.1611, Ubuntu 16.04.
 
-Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well, will fix soon. 
+Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well, will fix soon.
 
 Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ).
 
@@ -110,13 +110,13 @@ It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
-There are some main submodule 
+There are some main submodule
 
 1. casacore: in trunk, svn external of the above url. It is in GitHub and also can be cloned by Git (GitHub supplies svn).
     https://github.com/casacore/casacore
 2. code (reply on casacore)
 3. gcwrap
-4. asap (in trunk, it uses svn external) 
+4. asap (in trunk, it uses svn external)
 
 We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
 
@@ -158,8 +158,6 @@ Suggested path:
     ```
     ## gstreamer libs are needed by Qt (webkit).
     ## python-devel will install Python.h (should be 2.7)
-    sudo yum -y install gstreamer-devel; \
-    sudo yum -y install gstreamer-plugins-base; \
     sudo yum -y install python-devel;
     ```
     Ubuntu 16.04:
@@ -217,9 +215,9 @@ Paste the following data to be the content of `~/.cartavis/config.json`
 }
 ```
 
-`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac. 
+`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac.
 
-You can browse more detailed instruciton about these parameters from here, 
+You can browse more detailed instruciton about these parameters from here,
 http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
 
 ### requirement 3: install data of geodetic, ephemerides for some kinds of fits file.
@@ -268,8 +266,8 @@ $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis
 
 Some of optional parameters:
 
-1. `--scriptPort 9999` for python interface 
-2. put `/scratch/some-fits-file.fits` in the end 
+1. `--scriptPort 9999` for python interface
+2. put `/scratch/some-fits-file.fits` in the end
 
 
 ## Run and Debug by Qt Creator
@@ -308,10 +306,10 @@ Observation about build Size (on Mac), before packaging:
 # To do list
 
 1. to check wcslib and cfitsio
-    
+
     ```    
     On 12 Mar 2016,  https://github.com/Astroua/CARTAvis/releases/tag/0.6.0
-    When compiling, one has to be make sure that wcslib and cfitsio libraries are in synch (same version) 
+    When compiling, one has to be make sure that wcslib and cfitsio libraries are in synch (same version)
     between CARTA and CASA builds.
     ```
 
@@ -323,8 +321,8 @@ Observation about build Size (on Mac), before packaging:
 
 5. try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
 
-6. May bundle multiple dynamic libs to one libs can lower the complexity, possibily done by cmake in the future. 
-    
+6. May bundle multiple dynamic libs to one libs can lower the complexity, possibily done by cmake in the future.
+
 ### AppendixA:
 
 Carta third party libs list:

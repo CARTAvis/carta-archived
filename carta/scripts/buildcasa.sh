@@ -17,6 +17,13 @@ name=CASA RPMs for RedHat Enterprise Linux 7 (x86_64)
 baseurl=http://svn.cv.nrao.edu/casa/repo/el7/x86_64
 gpgkey=http://svn.cv.nrao.edu/casa/RPM-GPG-KEY-casa http://www.jpackage.org/jpackage.asc http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-redhat-release http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-EPEL
 EOF
+
+    # for building Qt 4.8.5,
+    # On Grimmer's docker -centos 7.3 , only when buidling Carta by Qt-5.3.2, we need gstreamer-devel, gstreamer-plugins-base
+    # But on Chia-Jung Hsu's pc - centos 7.3, building Qt 4.8.5 needs pkgconfig(gstreamer-app-0.10) which install gstreamer-plugins-base-devel , also gstreamer-devel, gstreamer-plugins-base,  gstreamer
+    # Qt's QtWebkit may use gstreamer libs
+    sudo yum -y install 'pkgconfig(gstreamer-app-0.10)'
+
     ##### CentOS 7
     ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
     ## To do: should spend time to minimalize them,
