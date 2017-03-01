@@ -16,6 +16,13 @@ MainWindow::MainWindow( )
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
     m_view = new QWebView(this);
+
+    // QWidget* window = QApplication::desktop()->screen();
+    // const int horizontalDpi = window->logicalDpiX();
+    // m_view->setZoomFactor(2); //72
+    // QWebSettings::ZoomTextOnly;
+    // qDebug() << "Grimmer dpi: " << horizontalDpi;
+
     connect(m_view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
     connect(m_view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
     connect(m_view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
