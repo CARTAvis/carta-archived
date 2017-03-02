@@ -535,7 +535,7 @@ void ViewManager::_initCallbacks(){
 
 
 void ViewManager::_initializeDefaultState(){
-    setAnalysisView();
+    setAnalysisView2();
     //Load the default snapshot if one exists.
     _makeSnapshots();
     m_snapshots->initializeDefaultState();
@@ -1134,6 +1134,29 @@ void ViewManager::setAnalysisView(){
         _clearControllers( 1, m_controllers.size() );
 
         m_layout->setLayoutAnalysis();
+
+        //Add the links to establish reasonable defaults.
+        m_animators[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_controllers[0]);
+        m_histograms[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_histograms[0]);
+        _refreshState();
+    }
+}
+
+void ViewManager::setAnalysisView2(){
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    if ( !m_layout->isLayoutAnalysis()){
+        _clearHistograms( 1, m_histograms.size() );
+        _clearAnimators( 1, m_animators.size() );
+        _clearColormaps( 1, m_colormaps.size() );
+        _clearStatistics( 0, m_statistics.size());
+        _clearProfilers( 0, m_profilers.size() );
+        _clearControllers( 1, m_controllers.size() );
+
+        m_layout->setLayoutAnalysis2();
 
         //Add the links to establish reasonable defaults.
         m_animators[0]->addLink( m_controllers[0]);

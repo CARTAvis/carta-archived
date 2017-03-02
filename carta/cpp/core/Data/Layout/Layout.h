@@ -71,6 +71,8 @@ public:
      */
     void setLayoutAnalysis();
 
+    void setLayoutAnalysis2();
+
     /**
      * Set plugins for each of the views in the layout
      * @param names a list of plugin names.

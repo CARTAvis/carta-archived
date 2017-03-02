@@ -451,6 +451,37 @@ void Layout::setLayoutAnalysis(){
     m_state.flushState();
 }
 
+void Layout::setLayoutAnalysis2(){
+    QStringList oldNames = QStringList();//getPluginList();
+    _makeRoot();
+
+    LayoutNode* rightTop = NodeFactory::makeComposite( false );
+    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
+    rightTop->setChildFirst( histLeaf );
+    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
+    rightTop->setChildSecond( hiddenLeaf );
+    LayoutNode* rightBottom = NodeFactory::makeComposite( false );
+    LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
+    rightBottom->setChildFirst( colorLeaf );
+    LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
+    rightBottom->setChildSecond( animLeaf );
+    LayoutNode* right = NodeFactory::makeComposite( false );
+    right->setChildFirst( rightTop );
+    right->setChildSecond( rightBottom );
+    m_layoutRoot->setHorizontal( true );
+
+    //will let plugins frome 0 ->4, initially
+    m_layoutRoot->setChildSecond( right );
+
+    //will let plugins frome 4 ->5, initially
+    LayoutNode* controlLeaf = NodeFactory::makeLeaf( Controller::PLUGIN_NAME );
+
+    m_layoutRoot->setChildFirst( controlLeaf );
+    m_state.setValue<QString>( TYPE_SELECTED, TYPE_ANALYSIS );
+    QStringList names = getPluginList();
+    emit pluginListChanged( names, oldNames );
+    m_state.flushState();
+}
 
 void Layout::setLayoutDeveloper(){
     _makeRoot();

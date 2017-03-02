@@ -127,6 +127,8 @@ public:
      */
     void setAnalysisView();
 
+    void setAnalysisView2();
+
     /**
      * Reset the layout to a predefined developer layout.
      */
