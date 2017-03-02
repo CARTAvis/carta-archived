@@ -65,6 +65,10 @@ if [ "$isCentOS" = true ] ; then
 	sudo yum -y install epel-release
 	sudo yum -y install leveldb leveldb-devel
 	sudo yum -y install gcc-gfortran # needed by ast, building casa also needes
+
+	## needed by building gsl and casacore,
+	## but seems already exist or no need ?
+	sudo yum -y install blas blas-devel
 else
 	##### Ubuntu 16.04
   sudo apt-get -y install libwcs5 wcslib-dev
@@ -75,6 +79,9 @@ else
 	sudo apt-get -y install libleveldb-dev
 	sudo apt-get -y install cython ## will install python2.7, gcc
 	sudo apt-get -y install gfortran
+
+	## also are needed by casacore
+  sudo apt-get -y install libblas-dev libblas3
 
 	## needed for compiling qwt
 	apt-get install mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev

@@ -84,7 +84,7 @@ else
     ####### casacore part:
     sudo apt-get -y install gfortran python-numpy libfftw3-dev liblapacke-dev
     sudo apt-get -y install libboost-dev
-    sudo apt-get -y install libblas-dev libblas3 \
+    # sudo apt-get -y install libblas-dev libblas3 \ move to install3party since gsl needs too
     liblapack-dev liblapack3 liblapacke liblapacke-dev
 
     sudo apt-get -y install libgsl-dev

@@ -133,6 +133,7 @@ Some of third-party libraries they use are the same,  but may use different vers
 7. Qt. (carta uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
 8. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
 9. Python and numpy (should be ok. carta:2.7. casa:2.7, exp-3.5)
+10. blas lib. (required when building GSL, also when building casacore)
 
 #### 3.How to change the revision of casa we use to build
 
