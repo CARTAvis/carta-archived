@@ -82,7 +82,7 @@ void ShapeRectangle::handleDragDone( const QPointF & pt ){
 	}
 	else {
 		// calculate offset to move the shadow polygon to match the un-edited shape
-		if ( !isEditMode() ){
+		if ( !isEditMode() && m_dragMode ){
 			_moveShadow( pt );
 			_syncShadowToCPs();
 		}
@@ -153,5 +153,3 @@ void ShapeRectangle::_syncShadowToCPs(){
 }
 }
 }
-
-
