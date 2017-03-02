@@ -3,6 +3,7 @@
 #include "Data/Util.h"
 #include "CartaLib/CartaLib.h"
 #include "State/UtilState.h"
+#include <QRegExp>
 #include <QDebug>
 #include <cmath>
 
@@ -13,11 +14,13 @@ namespace Data {
 const QString UnitsIntensity::UNIT_LIST = "units";
 const QString UnitsIntensity::CLASS_NAME = "UnitsIntensity";
 const QString UnitsIntensity::NAME_PEAK = "Fraction of Peak";
+const QString UnitsIntensity::NAME_JYPIXEL = "Jy/pixel";
 const QString UnitsIntensity::NAME_JYBEAM = "Jy/beam";
 const QString UnitsIntensity::NAME_JYSR = "MJy/sr";
 const QString UnitsIntensity::NAME_JYARCSEC = "Jy/arcsec^2";
 const QString UnitsIntensity::NAME_JY = "Jy";
 const QString UnitsIntensity::NAME_KELVIN = "Kelvin";
+const QString UnitsIntensity::NAME_NA = "N/A";
 
 
 class UnitsIntensity::Factory : public Carta::State::CartaObjectFactory {
@@ -73,23 +76,103 @@ void UnitsIntensity::_initUnit( int * index, const QString& name ){
 }
 
 void UnitsIntensity::_initializeDefaultState(){
-	int count = 4;
-	if ( !m_spectralAxisAvailable ){
-		count = 3;
-	}
-    m_state.insertArray( UNIT_LIST, count );
-    int i = 0;
-    _initUnit( &i, NAME_JYBEAM );
-    _initUnit( &i, NAME_JYSR );
-    _initUnit( &i, NAME_JYARCSEC );
-    if ( m_spectralAxisAvailable ){
-    	 _initUnit( &i, NAME_KELVIN );
-    }
 
-    m_defaultUnit = NAME_JYBEAM;
+    m_state.insertArray( UNIT_LIST, 1 );
+    int i = 0;
+    _initUnit( &i, NAME_NA );
+
+    m_defaultUnit = NAME_NA;
     m_state.flushState();
 }
 
+QStringList UnitsIntensity::_transTable(QString headerUnit)
+{
+    headerUnit.replace(" ","");
+    m_defaultUnit = headerUnit;
+    QStringList units;
+    if( headerUnit.contains(QRegExp("[Mkm]?Jy\/pixel")) )
+    {
+        units.append( headerUnit );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_JYSR) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_KELVIN) );
+    }
+    else if ( headerUnit.contains(QRegExp("[Mkm]?Jy\/beam")) )
+    {
+        units.append( headerUnit );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_JYSR) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_KELVIN) );
+    }
+    else if ( headerUnit.contains(QRegExp("[Mkm]?Jy\/arcsec^2")) )
+    {
+        units.append( headerUnit );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_JYSR) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_KELVIN) );
+    }
+    else if ( headerUnit.contains(QRegExp("[Mkm]?Jy\/sr")) )
+    {
+        units.append( headerUnit );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_KELVIN) );
+
+    }
+    else if (headerUnit.contains(QRegExp("[Mkm]?Jy")) )
+    {
+        units.append( headerUnit );
+    }
+    else if(headerUnit.contains(QRegExp("[Mkm]?(K$|Kelvin)")) )
+    {
+        if( headerUnit.contains(QRegExp("[Mkm]?(K$|Kelvin)") ) )
+        {
+            headerUnit.replace(QRegExp("K$"), NAME_KELVIN);
+        }
+        units.append( headerUnit );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYSR) );
+    }
+    else if (headerUnit.size() != 0)
+    {
+        units.append( headerUnit );
+    }
+    else
+    {
+        units.append( NAME_NA );
+        m_defaultUnit = NAME_NA;
+    }
+
+    return units;
+
+}
+
+void UnitsIntensity::setDefaultUnit(QString headerUnit)
+{
+
+    QStringList units = _transTable(headerUnit);
+
+    // add unit in m_state
+    int unitCount = units.size();
+    m_state.resizeArray( UNIT_LIST, unitCount );
+    for ( int i = 0; i < unitCount; i++ ){
+            QString key = Carta::State::UtilState::getLookup( UNIT_LIST, i );
+            m_state.setValue<QString>( key, units[i] );
+    }
+
+    m_state.flushState();
+}
+
+
+/**
+ * This function will be deprecated
+ */
 void UnitsIntensity::setSpectralAxisAvailable( bool available ){
 	if ( available != m_spectralAxisAvailable ){
 		m_spectralAxisAvailable = available;
@@ -97,6 +180,9 @@ void UnitsIntensity::setSpectralAxisAvailable( bool available ){
 	}
 }
 
+/**
+ * This function will be deprecated
+ */
 void UnitsIntensity::resetUnits( Carta::Lib::ProfileInfo::AggregateType stat ){
 
 	QStringList units;
@@ -115,14 +201,10 @@ void UnitsIntensity::resetUnits( Carta::Lib::ProfileInfo::AggregateType stat ){
 		m_defaultUnit = NAME_JY;
 	}
 	else {
-		units.append( NAME_JYBEAM );
-		units.append( NAME_JYSR );
-		units.append( NAME_JYARCSEC );
-		if ( m_spectralAxisAvailable ){
-			units.append( NAME_KELVIN );
-		}
-		m_defaultUnit = NAME_JYBEAM;
+            units = _transTable(m_defaultUnit);
 	}
+
+        // add unit in m_state
 	int unitCount = units.size();
 	m_state.resizeArray( UNIT_LIST, unitCount );
 	for ( int i = 0; i < unitCount; i++ ){
@@ -134,10 +216,8 @@ void UnitsIntensity::resetUnits( Carta::Lib::ProfileInfo::AggregateType stat ){
 }
 
 
-
-
 UnitsIntensity::~UnitsIntensity(){
 
 }
-}
-}
+} // namespace Data
+} // namespace Carta

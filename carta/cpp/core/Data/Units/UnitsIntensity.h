@@ -43,12 +43,19 @@ public:
 
     /**
      * Set whether a spectral axis is available in the current display.
-     * @return - true if a spectral axis is available; false otherwise.
      */
     //Conversion to particular units may only be possible with a spectral axis
     //available.  Thus, the list of available units may need to be expanded or
     //restricted based on the availability of a spectral axis for conversion.
     void setSpectralAxisAvailable( bool available );
+
+    /**
+     * Set default unit
+     * @param headerUnit - Unit from image header.
+     */
+    void setDefaultUnit(QString headerUnit);
+
+    QStringList _transTable(QString headerUnit);
 
     const static QString CLASS_NAME;
     const static QString UNIT_LIST;
@@ -58,11 +65,13 @@ public:
 private:
 
     const static QString NAME_PEAK;
+    const static QString NAME_JYPIXEL;
     const static QString NAME_JYBEAM;
     const static QString NAME_JYSR;
     const static QString NAME_JYARCSEC;
     const static QString NAME_JY;
     const static QString NAME_KELVIN;
+    const static QString NAME_NA;
 
     QString m_defaultUnit;
     Carta::Lib::ProfileInfo::AggregateType m_stat;
