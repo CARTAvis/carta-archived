@@ -187,8 +187,6 @@ QStringList Layout::getPluginList() const {
     return plugins;
 }
 
-
-
 void Layout::_initializeCommands(){
 
     addCommandCallback( "setLayoutSize", [=] (const QString & /*cmd*/,
@@ -420,23 +418,18 @@ void Layout::setLayoutAnalysis(){
     _makeRoot();
 
     LayoutNode* rightTop = NodeFactory::makeComposite( false );
-
     LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
     rightTop->setChildFirst( histLeaf );
-
     LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
     rightTop->setChildSecond( hiddenLeaf );
 
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
-
     LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
     rightBottom->setChildFirst( colorLeaf );
-
     LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
     rightBottom->setChildSecond( animLeaf );
 
     LayoutNode* right = NodeFactory::makeComposite( false );
-
     right->setChildFirst( rightTop );
     right->setChildSecond( rightBottom );
 
@@ -455,19 +448,22 @@ void Layout::setLayoutAnalysis2(){
     QStringList oldNames = QStringList();//getPluginList();
     _makeRoot();
 
-    LayoutNode* rightTop = NodeFactory::makeComposite( false );
-    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
-    rightTop->setChildFirst( histLeaf );
-    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
-    rightTop->setChildSecond( hiddenLeaf );
+//    LayoutNode* rightTop = NodeFactory::makeComposite( false );
+//    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
+//    rightTop->setChildFirst( histLeaf );
+//    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
+//    rightTop->setChildSecond( hiddenLeaf );
+
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
     LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
     rightBottom->setChildFirst( colorLeaf );
     LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
     rightBottom->setChildSecond( animLeaf );
+
     LayoutNode* right = NodeFactory::makeComposite( false );
-    right->setChildFirst( rightTop );
-    right->setChildSecond( rightBottom );
+    right->setChildFirst( rightBottom );
+    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
+    right->setChildSecond( hiddenLeaf );
     m_layoutRoot->setHorizontal( true );
 
     //will let plugins frome 0 ->4, initially
