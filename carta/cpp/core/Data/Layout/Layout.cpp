@@ -419,14 +419,6 @@ void Layout::setLayoutAnalysis(){
     QStringList oldNames = getPluginList();
     _makeRoot();
 
-    LayoutNode* rightTop = NodeFactory::makeComposite( false );
-
-    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
-    rightTop->setChildFirst( histLeaf );
-
-    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
-    rightTop->setChildSecond( hiddenLeaf );
-
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
 
     LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
@@ -437,8 +429,9 @@ void Layout::setLayoutAnalysis(){
 
     LayoutNode* right = NodeFactory::makeComposite( false );
 
-    right->setChildFirst( rightTop );
-    right->setChildSecond( rightBottom );
+    right->setChildFirst( rightBottom );
+    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
+    right->setChildSecond( hiddenLeaf );
 
     m_layoutRoot->setHorizontal( true );
     m_layoutRoot->setChildSecond( right );

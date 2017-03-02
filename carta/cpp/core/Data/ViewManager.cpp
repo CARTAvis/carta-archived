@@ -1108,8 +1108,6 @@ void ViewManager::setAnalysisView(){
         //Add the links to establish reasonable defaults.
         m_animators[0]->addLink( m_controllers[0]);
         m_colormaps[0]->addLink( m_controllers[0]);
-        m_histograms[0]->addLink( m_controllers[0]);
-        m_colormaps[0]->addLink( m_histograms[0]);
         _refreshState();
     }
 }
