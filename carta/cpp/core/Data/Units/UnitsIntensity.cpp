@@ -117,10 +117,10 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
     else if ( headerUnit.contains(QRegExp("[Mkm]?Jy\/sr")) )
     {
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_JYBEAM) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?MJy\/sr"), NAME_KELVIN) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_KELVIN) );
 
     }
     else if (headerUnit.contains(QRegExp("[Mkm]?Jy")) )
