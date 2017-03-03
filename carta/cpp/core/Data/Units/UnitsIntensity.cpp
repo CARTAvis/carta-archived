@@ -90,54 +90,70 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
     headerUnit.replace(" ","");
     m_defaultUnit = headerUnit;
     QStringList units;
-    if( headerUnit.contains(QRegExp("[Mkm]?Jy\/pixel")) )
+    if( headerUnit.contains(QRegExp("[Mmu]?Jy/pixel")) )
     {
+        QRegExp rule("[Mmu]?Jy/pixel");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_JYBEAM) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_JYSR) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/pixel"), NAME_KELVIN) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
+        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
     }
-    else if ( headerUnit.contains(QRegExp("[Mkm]?Jy\/beam")) )
+    else if ( headerUnit.contains(QRegExp("[Mmu]?Jy/beam")) )
     {
+        QRegExp rule("[Mmu]?Jy/beam");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_JYSR) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/beam"), NAME_KELVIN) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
+        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
     }
-    else if ( headerUnit.contains(QRegExp("[Mkm]?Jy\/arcsec^2")) )
+    else if ( headerUnit.contains(QRegExp("[Mmu]?Jy/arcsec^2")) )
     {
+        QRegExp rule("[Mmu]?Jy/arcsec^2");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_JYBEAM) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_JYSR) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/arcsec^2"), NAME_KELVIN) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
+        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
     }
-    else if ( headerUnit.contains(QRegExp("[Mkm]?Jy\/sr")) )
+    else if ( headerUnit.contains(QRegExp("[Mmu]?Jy/sr")) )
     {
+        QRegExp rule("[Mmu]?Jy/sr");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_JYBEAM) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Jy\/sr"), NAME_KELVIN) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
 
     }
-    else if (headerUnit.contains(QRegExp("[Mkm]?Jy")) )
+    else if (headerUnit.contains(QRegExp("[Mmu]?Jy")) )
     {
         units.append( headerUnit );
     }
-    else if(headerUnit.contains(QRegExp("[Mkm]?(K$|Kelvin)")) )
+    else if(headerUnit.contains(QRegExp("[Mmu]?(K$|Kelvin)")) )
     {
-        if( headerUnit.contains(QRegExp("[Mkm]?(K$|Kelvin)") ) )
+        if( headerUnit.contains(QRegExp("[Mmu]?(K$|Kelvin)") ) )
         {
             headerUnit.replace(QRegExp("K$"), NAME_KELVIN);
         }
+
+        QRegExp rule("[Mmu]?Kelvin");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYBEAM) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(QRegExp("[Mkm]?Kelvin"), NAME_JYSR) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
+        units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
+    }
+    else if (headerUnit.contains(QRegExp("km/s")) )
+    {
+        units.append( headerUnit );
+        units.append( QString("m/s") );
+    }
+    else if (headerUnit.contains(QRegExp("m/s")) )
+    {
+        units.append( headerUnit );
+        units.append( QString("km/s") );
     }
     else if (headerUnit.size() != 0)
     {
