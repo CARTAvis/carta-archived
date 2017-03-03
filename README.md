@@ -3,9 +3,13 @@ Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ub
 
 Tested OS: CentOS 7.3.1611, Ubuntu 16.04.
 
-Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well, will fix soon.
+Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well and also need install c++11 compatible compilers, will fix soon.
 
 Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ).
+
+Carta can be built by Qt 5.3, 5.4, 5.5, 5.6 (not tested), 5.7. 
+Start from Qt 5.5, you need to comment out some lines as the following, 
+https://github.com/CARTAvis/carta/commit/e3761e25bf40517d4b86494bb96dc55b12e19c8a
 
 # Steps before building CARTA
 
@@ -13,7 +17,7 @@ Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code
 
 Paste the the following script part into your terminal to install. Ignore this step if you already have compatible version of them but you need modify some path by yourself.
 
-Our gcc/g++ minimal requirement is >=4.8.1
+Carta's gcc/g++ minimal requirement is >=4.8.1, to use c++11 features. 
 
 CentOS 7:
 
