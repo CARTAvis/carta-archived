@@ -216,7 +216,8 @@ Paste the following data to be the content of `~/.cartavis/config.json`
         "PCacheSqlite3" : {
             "dbPath": "/tmp/pcache.sqlite"
         }
-    }
+    },
+    "qtDecorations" : "true"
 }
 ```
 
