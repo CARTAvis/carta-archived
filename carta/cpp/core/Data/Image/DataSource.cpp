@@ -194,8 +194,8 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
 
         QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
-        out << "Pixel value:" << pixelValue << " " << pixelUnits << "at ";
-        out <<"pixel:" << imgX << ", " << imgY << "\n";
+        out << "Pixel value:" << pixelValue << " " << pixelUnits << " at ";
+        out <<"pixel:" << imgX << "," << imgY << "\n";
 
         cf-> setSkyCS( cs );
         out << "[" << m_coords->getName( cs ) << "] ";
