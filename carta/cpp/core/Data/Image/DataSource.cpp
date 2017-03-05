@@ -198,7 +198,7 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
         out <<"pixel:" << imgX << "," << imgY << "\n";
 
         cf-> setSkyCS( cs );
-        out << "[" << m_coords->getName( cs ) << "] ";
+        out << "[ " << m_coords->getName( cs ) << " ] ";
         std::vector <AxisInfo> ais;
         for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
             const AxisInfo & ai = cf-> axisInfo( axis );
