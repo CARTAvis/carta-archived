@@ -466,13 +466,13 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                     CARTA_ASSERT( false );
                 }
             }
-            m_precisions[pixelAxis] = 3;
+            m_precisions[pixelAxis] = 6;
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
             aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
                 .setLongLabel( HtmlString::fromPlain( "Frequency" ) )
                 .setShortLabel( HtmlString( "Freq", "Freq" ) );
-            m_precisions[pixelAxis] = 6;
+            m_precisions[pixelAxis] = 9;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
             aInfo.setKnownType( AxisInfo::KnownType::STOKES )
