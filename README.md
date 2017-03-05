@@ -80,7 +80,7 @@ Qt 5.3 is for following things:
 1. Latest Qt creator (4.2.x): https://download.qt.io/official_releases/qtcreator/4.2/4.2.0/
 2. Qt 5.3.2, bundle with old Qt creator (3.2.x): http://download.qt.io/archive/qt/5.3/5.3.2/
 
-Also, if you choose another path to install (Qt lib part), you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin/`
+Also, if you choose another path to install (Qt lib part), you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin`
 
 ## Install most Third Party libraries, some are built from source code
 cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
@@ -174,7 +174,7 @@ Suggested path:
     ```
 
 2. Setup Qt5 path,
- `export PATH=/opt/Qt/5.3/gcc_64/bin/:$PATH` or `your Qt Path`
+ `export PATH=/opt/Qt/5.3/gcc_64/bin:$PATH` or `your Qt Path`
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
