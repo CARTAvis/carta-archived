@@ -363,8 +363,8 @@ CCCoordinateFormatter::parseCasaCS()
         qDebug() << "all names:" << u.c_str();
     }*/
 
-    // default precision is 3
-    m_precisions.resize( nAxes(), 3 );
+    // default precision is 6
+    m_precisions.resize( nAxes(), 6 );
     m_axisInfos.resize( nAxes() );
 
     for ( int i = 0 ; i < nAxes() ; i++ ) {
