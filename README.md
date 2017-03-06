@@ -178,10 +178,10 @@ Suggested path:
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=bughunter $CARTAWORKHOME/CARTAvis/carta -r`
 5. `make -j 2`
 
-CARTA_BUILD_TYPE can be 
+**CARTA_BUILD_TYPE** can be 
 
 1. release
-2. bughunter (for debugging/debugger, having symbol information, also it is only one which does not use **-O2** optimation)  
+2. bughunter (for debugging/debugger, having symbol information, also it is only one which does not use **-O2** optimization)  
 3. dev (having more logs than release, but no debug symbol for debugging)
 
 ## Use Qt creator to build and debug (will complement this part later)
