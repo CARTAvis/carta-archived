@@ -292,6 +292,11 @@ qx.Class.define("skel.widgets.DisplayMain",
                         var popCmd = skel.Command.Popup.CommandPopup.getInstance();
                         popCmd.setWindows( newWindows );
                     }
+
+                    var layoutType = layout.layoutType;
+                    if(layoutType) {
+                        skel.Command.Layout.CommandLayout.getInstance().setCheckedType(layoutType);
+                    }
                 }
                 catch( err ){
                     console.log( "Could not parse: "+layoutObjJSON );

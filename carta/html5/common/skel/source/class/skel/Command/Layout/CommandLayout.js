@@ -20,15 +20,15 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
         this.m_cmds[1] = skel.Command.Layout.CommandLayoutAnalysis.getInstance();
         this.m_cmds[2] = skel.Command.Layout.CommandLayoutCustom.getInstance();
         this.setValue( this.m_cmds );
-        
+
         //Listen to the layout so if a different one is selected on the server we can update the GUI.
         var pathDict = skel.widgets.Path.getInstance();
         this.m_sharedVar = this.m_connector.getSharedVar( pathDict.LAYOUT );
         this.m_sharedVar.addCB( this._layoutChangedCB.bind(this));
     },
-    
+
     members : {
-        
+
         _layoutChangedCB : function(){
             var layoutObjJSON = this.m_sharedVar.get();
             if ( layoutObjJSON ){
@@ -53,7 +53,7 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
                 }
             }
         },
-        
+
         /**
          * Set the children of this command active/inactive.
          * @param active {boolean} true if the command should be active; false otherwise.
@@ -65,7 +65,7 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
                 this.m_cmds[i].setActive( active );
             }
         },
-        
+
         setValues : function( image, analysis, custom ){
             this.setActive( false );
             var imageCmd = skel.Command.Layout.CommandLayoutImage.getInstance();
@@ -76,7 +76,21 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
             customCmd.setValue( custom );
             this.setActive( true );
         },
-        
+
+        setCheckedType: function(layoutType) {
+          if(layoutType) {
+              var cmdLayout = null;
+              if (layoutType == "Image") {
+                  cmdLayout  = skel.Command.Layout.CommandLayoutImage.getInstance();
+              } else if (layoutType == "Analysis") {
+                  cmdLayout  = skel.Command.Layout.CommandLayoutAnalysis.getInstance();
+              } else if (layoutType == "Custom") {
+                  cmdLayout  = skel.Command.Layout.CommandLayoutCustom.getInstance();
+              }
+              cmdLayout.setValue( true );
+          }
+        },
+
         m_sharedVar : null
     }
 });
