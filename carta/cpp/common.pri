@@ -38,6 +38,7 @@ QMAKE_CFLAGS -= -O -O0 -O1 -O2 -O3 -g
 QMAKE_CFLAGS_DEBUG -= -O -O0 -O1 -O2 -O3 -g
 QMAKE_CFLAGS_RELEASE -= -O -O0 -O1 -O2 -O3 -g
 
+## bughunter
 contains( CARTA_CONFIG, gdb) {
     QMAKE_CXXFLAGS += -g
     QMAKE_CFLAGS += -g
@@ -47,8 +48,11 @@ contains( CARTA_CONFIG, gdb) {
     message( "- NO debugger support")
 }
 contains( CARTA_CONFIG, dbgout) {
+
     message( "grimmer1 + extra debug output")
 } else {
+
+    # carta_config should be obviously release
     message( "grimmer2")
 
     QMAKE_CXXFLAGS += -DQT_NO_DEBUG_OUTPUT -DQT_NO_WARNING_OUTPUT
@@ -56,6 +60,8 @@ contains( CARTA_CONFIG, dbgout) {
     CONFIG -= debug
     message( "- NO extra debug output")
 }
+
+## not release
 contains( CARTA_CONFIG, runtimeChecks) {
     QMAKE_CXXFLAGS += -DCARTA_RUNTIME_CHECKS=1
     QMAKE_CFLAGS += -DCARTA_RUNTIME_CHECKS=1
@@ -67,6 +73,8 @@ contains( CARTA_CONFIG, runtimeChecks) {
     CONFIG -= debug
     message( "- NO extra runtime checks")
 }
+
+## bughunter
 contains( CARTA_CONFIG, noOpt) {
     message( "- NO full optimization")
     QMAKE_CXXFLAGS += -O0
@@ -78,6 +86,7 @@ contains( CARTA_CONFIG, noOpt) {
     QMAKE_CFLAGS += -O2
 }
 contains( CARTA_CONFIG, addrSanit) {
+    ## on one hits here
     QMAKE_CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
     QMAKE_CFLAGS += -fsanitize=address -fno-omit-frame-pointer
     QMAKE_LFLAGS += -fsanitize=address
@@ -89,19 +98,23 @@ contains( CARTA_CONFIG, addrSanit) {
 # use gcc 4.8.1
 CONFIG += gcc481
 
-#remove known optimizations and debugger flags
-QMAKE_CXXFLAGS += -O0 -g
-QMAKE_CXXFLAGS_DEBUG += -O0  -g
-QMAKE_CXXFLAGS_RELEASE += -O0 -g
-QMAKE_CFLAGS += -O0-g
-QMAKE_CFLAGS_DEBUG += -O0 -g
-QMAKE_CFLAGS_RELEASE += -O0 -g
+## -O0: Reduce compilation time and make debugging produce the expected results.
+## This is the default.
+## -g: symbol info.
 
-gcc481 {
-    COMPILER = g++-4.8
-} else {
+# specify optimizations and debugger flags
+# QMAKE_CXXFLAGS_DEBUG += -O0  -g
+# QMAKE_CXXFLAGS_RELEASE += -O0 -g
+# QMAKE_CXXFLAGS += -O0 -g ## default:pipe. same as bughunter
+# QMAKE_CFLAGS += -O0 -g   ## default:pipe.  same as bughunter
+# QMAKE_CFLAGS_DEBUG += -O0 -g
+# QMAKE_CFLAGS_RELEASE += -O0 -g
+
+# gcc481 {
+#     COMPILER = g++-4.8
+# } else {
     COMPILER = g++
-}
+# }
 
 QMAKE_CXX = $${COMPILER}
 QMAKE_LINK = $${COMPILER}
