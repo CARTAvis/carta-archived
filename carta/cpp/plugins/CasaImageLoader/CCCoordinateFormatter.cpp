@@ -94,7 +94,7 @@ protected:
 
     bool m_showPlus = false;
     bool m_sexagesimal = false;
-    int m_precision = 3;
+    int m_precision = 4;
     QString m_separator = ":";
 };
 
@@ -363,8 +363,8 @@ CCCoordinateFormatter::parseCasaCS()
         qDebug() << "all names:" << u.c_str();
     }*/
 
-    // default precision is 6
-    m_precisions.resize( nAxes(), 6 );
+    // default precision is 4
+    m_precisions.resize( nAxes(), 4 );
     m_axisInfos.resize( nAxes() );
 
     for ( int i = 0 ; i < nAxes() ; i++ ) {
@@ -466,7 +466,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                     CARTA_ASSERT( false );
                 }
             }
-            m_precisions[pixelAxis] = 6;
+            m_precisions[pixelAxis] = 4;
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
             aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
