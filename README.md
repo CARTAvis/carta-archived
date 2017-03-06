@@ -179,6 +179,7 @@ Suggested path:
 5. `make -j 2`
 
 CARTA_BUILD_TYPE can be 
+
 1. release
 2. bughunter (for debugging/debugger, having symbol information, also it is only one which does not use **-O2** optimation)  
 3. dev (having more logs than release, but no debug symbol for debugging)
