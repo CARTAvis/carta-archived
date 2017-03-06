@@ -13,7 +13,7 @@ qx.Theme.define( "skel.theme.Color", {
 
     colors: {
         "text"            : "#000000", //black
-        "background"      : "#E6E6CC", //oyster
+        "background"      : "#DBDBDB", //gray
         "border"          : "#CCCC99", //light yellow-green
         "selection"       : "#6699CC", //blue danube
         //"selection"       : "#FF0000",
