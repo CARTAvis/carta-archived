@@ -181,7 +181,7 @@ Suggested path:
 **CARTA_BUILD_TYPE** can be 
 
 1. release
-2. bughunter (for debugging/debugger, having symbol information, also it is only one which does not use **-O2** optimization)  
+2. bughunter (for debugging/debugger, having symbol information, also it is the only one which uses **-O0** (no optimization) instead of using **-O2** optimization.  
 3. dev (having more logs than release, but no debug symbol for debugging)
 
 ## Use Qt creator to build and debug (will complement this part later)
