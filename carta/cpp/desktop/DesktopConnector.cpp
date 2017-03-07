@@ -156,7 +156,6 @@ void DesktopConnector::registerView(IView * view)
 void DesktopConnector::unregisterView( const QString& viewName ){
     ViewInfo* viewInfo = this->findViewInfo( viewName );
     if ( viewInfo != nullptr ){
-
         (& viewInfo->refreshTimer)->disconnect();
         m_views.erase( viewName );
     }
@@ -176,14 +175,12 @@ qint64 DesktopConnector::refreshView(IView * view)
     }
 
     // start the timer for this view if it's not already started
-//    if( ! viewInfo-> refreshTimer.isActive()) {
-//        viewInfo-> refreshTimer.start();
-//    }
-//    else {
+    if( ! viewInfo-> refreshTimer.isActive()) {
+        viewInfo-> refreshTimer.start();
+    }
+    else {
 //        qDebug() << "########### saved refresh for " << view->name();
-//    }
-
-    refreshViewNow(view);
+    }
 
     viewInfo-> refreshId ++;
     return viewInfo-> refreshId;

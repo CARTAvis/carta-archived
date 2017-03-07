@@ -50,6 +50,7 @@ void DrawStackSynchronizer::_repaintFrameNow(){
 
 }
 
+
 void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& request ){
     if ( m_repaintFrameQueued ){
         emit done( false );
@@ -60,7 +61,6 @@ void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& reque
         emit done( false );
         return;
     }
-
     m_repaintFrameQueued = true;
     QList<std::shared_ptr<Layer> > datas = _getLoadableData( request );
     int dataCount = datas.size();
@@ -70,7 +70,6 @@ void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& reque
     m_selectIndex = topIndex;
     m_renderCount = 0;
     m_redrawCount = dataCount;
-
     for ( int i = 0; i < dataCount; i++ ){
         if ( datas[i]->_isVisible() ){
             connect( datas[i].get(), SIGNAL(renderingDone(const std::shared_ptr<RenderResponse>&)),
@@ -134,19 +133,12 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
         }
     }
 
-
-    m_repaintFrameQueued = false;
-
     emit done( true );
-
-    // QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
+    QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     for ( int i = 0; i < dataCount; i++ ){
-
         m_layers[i]->_renderDone();
     }
-
-    m_view->scheduleRepaint();
-
+    m_repaintFrameQueued = false;
 }
 
 
