@@ -16,6 +16,7 @@ StatisticsCASAImage::StatisticsCASAImage() {
 std::vector<QString> StatisticsCASAImage::_beamAsStringVector( const casa::GaussianBeam &beam ){
     std::vector<QString> result;
     if (! beam.isNull()) {
+        char buf[512];
         //determine the precision of beam size dynamically 
         if (beam.getMinor("arcsec") > 0.1 && beam.getMinor("arcsec") < 60.0){
             sprintf( buf,"%.2f\"", beam.getMajor("arcsec") );
