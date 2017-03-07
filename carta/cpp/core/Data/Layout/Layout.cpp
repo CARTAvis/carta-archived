@@ -430,23 +430,6 @@ QString Layout::_removeWindow( const QString& locationId ){
     return result;
 }
 
-//原本
-//Image Layout
-//Analysis Layout (default)
-//Cutsom
-
-// 1. default (全新)
-// histogram -> Statistics
-
-// Analysis -> 2. LineAnalysis
-// 原本是右上是 histogram + hidden.  然後再加上右下(rightBottom):colormap+ animator
-// 現在是右上是 ribhtButton. 右下是hidden
-// 原本的 histogram 換成profiler一大塊(右上角)
-
-//3. HistogramAnalysis
-//4. ImageCompare
-//5. custom
-
 void Layout::setLayoutDefault(){
     QStringList oldNames = getPluginList();
     _makeRoot();
