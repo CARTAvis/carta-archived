@@ -369,6 +369,10 @@ public:
     virtual bool
     hasMask() const = 0;
 
+    /// does the image have the beam information?
+    virtual bool
+    hasBeam() const = 0;
+
     /// does the image have errors attached?
     /// \todo are errors always per pixel? Or could they be per frame, region, etc?
     virtual bool

@@ -53,7 +53,7 @@ public:
      * Set default unit
      * @param headerUnit - Unit from image header.
      */
-    void setDefaultUnit(QString headerUnit);
+    void setDefaultUnit(QString headerUnit, bool hasbeam);
 
     QStringList _transTable(QString headerUnit);
 
@@ -76,6 +76,7 @@ private:
     QString m_defaultUnit;
     Carta::Lib::ProfileInfo::AggregateType m_stat;
     bool m_spectralAxisAvailable;
+    bool m_hasbeam;
 
     void _initializeDefaultState();
     void _initUnit( int * index, const QString& name);

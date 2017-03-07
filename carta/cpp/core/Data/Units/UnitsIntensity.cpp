@@ -94,7 +94,10 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
     {
         QRegExp rule("[Mmu]?Jy/pixel");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        if (m_hasbeam)
+        {
+            units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        }
         units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
         units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
         units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
@@ -113,7 +116,10 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
         QRegExp rule("[Mmu]?Jy/arcsec^2");
         units.append( headerUnit );
         units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        if (m_hasbeam)
+        {
+            units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        }
         units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
         units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
     }
@@ -122,7 +128,10 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
         QRegExp rule("[Mmu]?Jy/sr");
         units.append( headerUnit );
         units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        if (m_hasbeam)
+        {
+            units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        }
         units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
         units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
 
@@ -141,7 +150,10 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
         QRegExp rule("[Mmu]?Kelvin");
         units.append( headerUnit );
         units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        if (m_hasbeam)
+        {
+            units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        }
         units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
         units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
     }
@@ -169,9 +181,9 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
 
 }
 
-void UnitsIntensity::setDefaultUnit(QString headerUnit)
+void UnitsIntensity::setDefaultUnit(QString headerUnit, bool hasbeam)
 {
-
+    m_hasbeam = hasbeam;
     QStringList units = _transTable(headerUnit);
 
     // add unit in m_state

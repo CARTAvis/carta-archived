@@ -128,6 +128,13 @@ public:
     }
 
     virtual bool
+    hasBeam() const override
+    {
+        casa::ImageInfo imagef = m_casaII->imageInfo();
+        return imagef.hasBeam();
+    }
+
+    virtual bool
     hasErrorsInfo() const override
     {
         return false;
