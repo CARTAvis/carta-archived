@@ -14,6 +14,10 @@ qx.Theme.define("skel.theme.Font",
 
   fonts :
   {
+      "default" :
+      {
+        size : 16,
+      },
       "titleFont" :
           {
               include : "default",
