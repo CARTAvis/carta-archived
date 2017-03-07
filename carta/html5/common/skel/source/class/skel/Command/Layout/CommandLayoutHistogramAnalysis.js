@@ -2,7 +2,7 @@
  * Command to change the layout to a preset analysis layout.
  */
 
-qx.Class.define("skel.Command.Layout.CommandLayoutAnalysis", {
+qx.Class.define("skel.Command.Layout.CommandLayoutHistogramAnalysis", {
     extend : skel.Command.Command,
     type : "singleton",
 
@@ -11,11 +11,11 @@ qx.Class.define("skel.Command.Layout.CommandLayoutAnalysis", {
      */
     construct : function() {
         var path = skel.widgets.Path.getInstance();
-        var cmd = path.SEP_COMMAND + "setAnalysisLayout";
-        this.base( arguments, "LineAnalysis Layout", cmd);
+        var cmd = path.SEP_COMMAND + "setHistogramAnalysisLayout";
+        this.base( arguments, "HistogramAnalysis Layout", cmd);
         this.m_toolBarVisible = false;
         this.setValue( false );
-        this.setToolTipText("Set a predefined layout optimized for analyzing an image.");
+        this.setToolTipText("Set a predefined layout optimized for histogram analyzing an image.");
     },
 
     members : {

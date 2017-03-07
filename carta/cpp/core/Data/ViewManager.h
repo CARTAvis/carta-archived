@@ -123,9 +123,19 @@ public:
     void reload();
 
     /**
+     * Reset the layout to a default view.
+     */
+    void setDefaultLayoutView();
+
+    /**
      * Reset the layout to a predefined analysis view.
      */
     void setAnalysisView();
+
+    /**
+     * Reset the layout to a predefined view including a histogram, a colormap and an animator.
+     */
+    void setHistogramAnalysisView();
 
     /**
      * Reset the layout to a predefined developer layout.

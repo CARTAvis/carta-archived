@@ -69,7 +69,7 @@ DesktopPlatform::DesktopPlatform()
 {
     // install a custom message handler
     qInstallMessageHandler( qtMessageHandler);
-    
+
     // figure out which url to use to load the html5 component
     // by default it's the locally compiled filesystem, but we let the developer
     // override it for debugging purposes
@@ -99,7 +99,7 @@ DesktopPlatform::DesktopPlatform()
 
     // create main window
     m_mainWindow = new MainWindow();
-    m_mainWindow-> resize( 1000, 700);
+    m_mainWindow-> resize( 1280, 768);
 
     // add platform and connector to JS exports
     m_mainWindow->addJSExport( "QtPlatform", this);

@@ -23,13 +23,13 @@ qx.Class.define("skel.widgets.DisplayMain",
             var bounds = this.getBounds();
             this.m_height = bounds.height;
             this.m_width = bounds.width;
-            
+
             this._resetLayoutCB();
             this.addListener("resize", function() {
                 // this._resizeContent();
                 var bounds = this.getBounds();
                 this.m_height = bounds.height;
-                
+
                 this.m_width = bounds.width;
                 var sizeData = {
                         "offsetX" : bounds.left,
@@ -39,7 +39,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                         "mainOffsetsChanged", sizeData));
             }, this);
         }, this);
-        
+
         qx.event.message.Bus.subscribe("setView", function(
                 message) {
             var data = message.getData();
@@ -53,8 +53,8 @@ qx.Class.define("skel.widgets.DisplayMain",
     },
 
     members : {
-        
-        
+
+
         /**
          * Send a command to the server to clear the layout.
          */
@@ -84,13 +84,13 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.m_pane.dataUnloaded(path);
             }
         },
-        
+
         _drawModeChanged : function(ev) {
             if (this.m_pane !== null) {
                 this.m_pane.setDrawMode(ev.getData());
             }
         },
-        
+
         /**
          * Returns the number of columns in the grid.
          * @return {Number} the number of grid columns.
@@ -98,7 +98,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         getColCount : function(){
             return this.m_gridColCount;
         },
-        
+
         /**
          * Returns the number of rows in the grid.
          * @return {Number} the number of grid rows.
@@ -106,7 +106,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         getRowCount : function(){
             return this.m_gridRowCount;
         },
-        
+
         /**
          * Returns a list of information concerning windows that can be linked to
          * the given source window showing the indicated plug-in.
@@ -125,7 +125,7 @@ qx.Class.define("skel.widgets.DisplayMain",
             }
             return linkInfo;
         },
-        
+
         /**
          * Returns a list of information concerning windows that can be replaced by
          * the given source window showing the indicated plug-in.
@@ -152,9 +152,9 @@ qx.Class.define("skel.widgets.DisplayMain",
             this.m_layout = this.m_connector.getSharedVar( pathDict.LAYOUT );
             this.m_layout.addCB( this._resetLayoutCB.bind(this));
         },
-        
-        
-        
+
+
+
         /**
          * Layout the screen real estate using a root layout cell with nested
          * children.
@@ -173,7 +173,7 @@ qx.Class.define("skel.widgets.DisplayMain",
             //Reinitialize the pane if the id has changed.
             if ( this.m_pane === null || this.m_pane.getId() != id ){
                 this.m_pane = new skel.widgets.Layout.LayoutNodeComposite( id  );
-                
+
                 this.m_pane.addListener("iconifyWindow",
                         function(ev) {
                             this.fireDataEvent("iconifyWindow",ev.getData());
@@ -210,7 +210,7 @@ qx.Class.define("skel.widgets.DisplayMain",
          * Adds or removes the link from the window identified
          * by the sourceWinId to the window identified by the
          * destWinId.
-         * 
+         *
          * @param sourceWinId
          *                {String} an identifier for the window
          *                representing the source of the link.
@@ -245,8 +245,8 @@ qx.Class.define("skel.widgets.DisplayMain",
                 this.removeAll();
             }
         },
-        
-        
+
+
         /**
          * Reset the layout based on changed layout information from the server.
          */
@@ -271,13 +271,17 @@ qx.Class.define("skel.widgets.DisplayMain",
                         var popCmd = skel.Command.Popup.CommandPopup.getInstance();
                         popCmd.setWindows( newWindows );
                     }
+
+                    var layoutType = layout.layoutType;
+                    if(layoutType) {
+                        skel.Command.Layout.CommandLayout.getInstance().setCheckedType(layoutType);
+                    }
                 }
                 catch( err ){
                     console.log( "Could not parse: "+layoutObjJSON );
                 }
             }
         },
-        
 
         /**
          * Update the number of columns in the current layout.
@@ -291,8 +295,8 @@ qx.Class.define("skel.widgets.DisplayMain",
             var params = "rows:"+gridRows + ",cols:"+gridCols;
             this.m_connector.sendCommand( layoutSizeCmd, params, function(){});
         },
-        
-        
+
+
         /**
          * Sends a command to the server letting it know that the displayed plug-in
          * has changed.
@@ -313,7 +317,7 @@ qx.Class.define("skel.widgets.DisplayMain",
                         win.clean();
                         winPlugin = win.getPlugin();
                     }
-                    
+
                     var cmd = path.getCommandSetPlugin();
                     var params = "destPlugin:"+plugin+",sourceLocateId:"+locationId;
                     this.m_connector.sendCommand( cmd, params, function(){} );
@@ -325,7 +329,7 @@ qx.Class.define("skel.widgets.DisplayMain",
         },
 
         m_PLUGIN_PREFIX : "win",
-        
+
         m_pane : null,
         m_height : 0,
         m_width : 0,
