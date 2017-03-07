@@ -39,6 +39,10 @@ protected slots:
     void finishLoading(bool);
     void showJsConsole();
     void addToJavaScript();
+    void helpUrlGitHubHome();
+    void helpUrlGitHubWiki();
+    void helpUrlGitHubIssues();
+    void helpLicense();
 
 private:
     QWebView * m_view = nullptr;
