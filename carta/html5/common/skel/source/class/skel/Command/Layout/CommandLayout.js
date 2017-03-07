@@ -16,6 +16,7 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
     construct : function() {
         this.base( arguments, "Layout", null );
         this.m_cmds = [];
+        this.m_cmds.push(skel.Command.Layout.CommandLayoutDefault.getInstance());
         this.m_cmds.push(skel.Command.Layout.CommandLayoutAnalysis.getInstance());
         this.m_cmds.push(skel.Command.Layout.CommandLayoutHistogramAnalysis.getInstance());
         this.m_cmds.push(skel.Command.Layout.CommandLayoutImage.getInstance());
@@ -36,19 +37,6 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
                 try {
                     var layout = JSON.parse( layoutObjJSON );
                     var type = layout.layoutType;
-
-                    // if ( type === "Analysis"){
-                    //     this.setValues( true, false, false, false );
-                    // }
-                    // else if ( type === "Custom"){
-                    //     this.setValues( false, false, true );
-                    // }
-                    // else if ( type === "Image"){
-                    //     this.setValues( true, false, false );
-                    // }
-                    // else if ( type === "Custom"){
-                    //     this.setValues( false, false, true );
-                    // }
                     if (this.setCheckedType(type) == false){
                         console.log( "CommandLayout: unrecognized layout type: "+type);
                     }
@@ -64,10 +52,8 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
             for (var i=0; i<length; i++){
                 var storeCmdLayout = this.m_cmds[i];
                 if (storeCmdLayout != cmdLayout) {
-                    console.log("grimmer cmdlayout - false ");
                     storeCmdLayout.setValue( false );
                 } else {
-                    console.log("grimmer cmdlayout - true ");
                     storeCmdLayout.setValue( true );
                 }
             }
@@ -87,7 +73,6 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
 
         // no use, 20170307
         setValues : function( image, analysis, custom ){
-            console.log("grimmer will not hit here");
             this.setActive( false );
             var imageCmd = skel.Command.Layout.CommandLayoutImage.getInstance();
             imageCmd.setValue( image );
@@ -109,6 +94,8 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
                   cmdLayout  = skel.Command.Layout.CommandLayoutHistogramAnalysis.getInstance();
               } else if (layoutType == "Custom") {
                   cmdLayout  = skel.Command.Layout.CommandLayoutCustom.getInstance();
+              } else if (layoutType == "Default") {
+                  cmdLayout  = skel.Command.Layout.CommandLayoutDefault.getInstance();
               }
 
               if (cmdLayout){

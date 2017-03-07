@@ -416,6 +416,12 @@ void ViewManager::_initCallbacks(){
             return "";
     });
 
+    addCommandCallback( "setDefaultLayout", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            setDefaultLayoutView();
+            return "";
+    });
+
     addCommandCallback( "setHistogramAnalysisLayout", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
             setHistogramAnalysisView();
@@ -511,9 +517,10 @@ void ViewManager::_initCallbacks(){
 
 
 void ViewManager::_initializeDefaultState(){
+    setDefaultLayoutView();
     // setAnalysisView();
     // setHistogramAnalysisView();
-    setImageView();
+    // setImageView();
     //Load the default snapshot if one exists.
     _makeSnapshots();
     m_snapshots->initializeDefaultState();
@@ -1099,16 +1106,41 @@ int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex
     return existingCount;
 }
 
+void ViewManager::setDefaultLayoutView(){
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    if ( !m_layout->isLayoutDefault()){
+        _clearHistograms( 0, m_histograms.size() );
+        _clearAnimators( 1, m_animators.size() );
+        _clearColormaps( 1, m_colormaps.size() );
+        _clearStatistics( 1, m_statistics.size());
+        _clearProfilers( 0, m_profilers.size() );
+        _clearControllers( 1, m_controllers.size() );
+
+        m_layout->setLayoutDefault();
+
+        //Add the links to establish reasonable defaults.
+        m_animators[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_controllers[0]);
+        m_statistics[0]->addLink( m_controllers[0]);
+
+        // m_histograms[0]->addLink( m_controllers[0]);
+        // m_colormaps[0]->addLink( m_histograms[0]);
+        _refreshState();
+    }
+}
+
 // before 20170307, this was the layout of original AnalysisView
 void ViewManager::setHistogramAnalysisView(){
     if ( m_layout == nullptr ){
         _makeLayout();
     }
     if ( !m_layout->isLayoutHistogramAnalysis()){
-        _clearHistograms( 1, m_histograms.size() );
+        _clearHistograms( 0, m_histograms.size() );
         _clearAnimators( 1, m_animators.size() );
         _clearColormaps( 1, m_colormaps.size() );
-        _clearStatistics( 0, m_statistics.size());
+        _clearStatistics( 1, m_statistics.size());
         _clearProfilers( 0, m_profilers.size() );
         _clearControllers( 1, m_controllers.size() );
 
@@ -1155,6 +1187,7 @@ void ViewManager::setDeveloperView(){
     _clearStatistics( 0, m_statistics.size());
     _clearProfilers( 1, m_profilers.size() );
     _clearControllers( 1, m_controllers.size() );
+
     _clearImageZooms( 0, m_imageZooms.size());
     _clearImageContexts( 0, m_imageContexts.size());
 

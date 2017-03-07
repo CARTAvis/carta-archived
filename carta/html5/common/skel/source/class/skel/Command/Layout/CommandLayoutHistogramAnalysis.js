@@ -12,7 +12,7 @@ qx.Class.define("skel.Command.Layout.CommandLayoutHistogramAnalysis", {
     construct : function() {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setHistogramAnalysisLayout";
-        this.base( arguments, "Histogram Analysis Layout", cmd);
+        this.base( arguments, "HistogramAnalysis Layout", cmd);
         this.m_toolBarVisible = false;
         this.setValue( false );
         this.setToolTipText("Set a predefined layout optimized for histogram analyzing an image.");

@@ -48,6 +48,8 @@ public:
      */
     QString getStateString() const;
 
+    bool isLayoutDefault() const;
+
     /**
      * Returns true if the layout is the standard analysis layout; false otherwise.
      * @return true if the layout is a standard analysis layout; false otherwise.
@@ -173,6 +175,8 @@ private:
     static const QString TYPE_SELECTED;
 
     static const QString TYPE_IMAGE;
+
+    static const QString TYPE_DEFAULT;
     static const QString TYPE_ANALYSIS;
     static const QString TYPE_HISTOGRAMANALYSIS;
     static const QString TYPE_CUSTOM;
