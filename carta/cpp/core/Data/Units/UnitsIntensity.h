@@ -53,7 +53,7 @@ public:
      * Set default unit
      * @param headerUnit - Unit from image header.
      */
-    void setDefaultUnit(QString headerUnit, bool hasbeam);
+    void setDefaultUnit(QString headerUnit, bool hasbeam, bool spectralAxis);
 
     QStringList _transTable(QString headerUnit);
 

@@ -506,10 +506,11 @@ QString Stack::_resetFrames( int val ){
 		m_selectImage->setUpperBound( visibleCount );
 		m_selectImage->setIndex(val);
                 QString ImageUnit = m_children[val]->_getPixelUnits();
+                bool spectralAxis = m_children[val]->_isSpectralAxis();
                 std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_children[val]->_getImage();
                 bool hasbeam = image->hasBeam();
 		UnitsIntensity* uIntensity = Util::findSingletonObject<UnitsIntensity>();
-                uIntensity->setDefaultUnit(ImageUnit, hasbeam);
+                uIntensity->setDefaultUnit(ImageUnit, hasbeam, spectralAxis);
 		layerId = m_children[val]->_getLayerId();
 		int selectCount = m_selects.size();
 		for ( int i = 0; i < selectCount; i++ ){

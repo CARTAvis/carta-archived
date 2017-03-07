@@ -19,7 +19,7 @@ const QString UnitsIntensity::NAME_JYBEAM = "Jy/beam";
 const QString UnitsIntensity::NAME_JYSR = "MJy/sr";
 const QString UnitsIntensity::NAME_JYARCSEC = "Jy/arcsec^2";
 const QString UnitsIntensity::NAME_JY = "Jy";
-const QString UnitsIntensity::NAME_KELVIN = "Kelvin";
+const QString UnitsIntensity::NAME_KELVIN = "K";
 const QString UnitsIntensity::NAME_NA = "N/A";
 
 
@@ -140,14 +140,9 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
     {
         units.append( headerUnit );
     }
-    else if(headerUnit.contains(QRegExp("[Mmu]?(K$|Kelvin)")) )
+    else if(headerUnit.contains(QRegExp("[Mmu]?K")) )
     {
-        if( headerUnit.contains(QRegExp("[Mmu]?(K$|Kelvin)") ) )
-        {
-            headerUnit.replace(QRegExp("K$"), NAME_KELVIN);
-        }
-
-        QRegExp rule("[Mmu]?Kelvin");
+        QRegExp rule("[Mmu]?K");
         units.append( headerUnit );
         units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
         if (m_hasbeam)
@@ -181,9 +176,10 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
 
 }
 
-void UnitsIntensity::setDefaultUnit(QString headerUnit, bool hasbeam)
+void UnitsIntensity::setDefaultUnit(QString headerUnit, bool hasbeam, bool spectralAxis)
 {
     m_hasbeam = hasbeam;
+    m_spectralAxisAvailable = spectralAxis;
     QStringList units = _transTable(headerUnit);
 
     // add unit in m_state
@@ -195,17 +191,6 @@ void UnitsIntensity::setDefaultUnit(QString headerUnit, bool hasbeam)
     }
 
     m_state.flushState();
-}
-
-
-/**
- * This function will be deprecated
- */
-void UnitsIntensity::setSpectralAxisAvailable( bool available ){
-	if ( available != m_spectralAxisAvailable ){
-		m_spectralAxisAvailable = available;
-		resetUnits( m_stat );
-	}
 }
 
 /**
