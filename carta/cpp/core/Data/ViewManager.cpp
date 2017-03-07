@@ -1131,6 +1131,28 @@ void ViewManager::setDefaultLayoutView(){
     }
 }
 
+void ViewManager::setAnalysisView(){
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    if ( !m_layout->isLayoutAnalysis()){
+        _clearHistograms( 0, m_histograms.size() );
+        _clearAnimators( 1, m_animators.size() );
+        _clearColormaps( 1, m_colormaps.size() );
+        _clearStatistics( 0, m_statistics.size());
+        _clearProfilers( 1, m_profilers.size() );
+        _clearControllers( 1, m_controllers.size() );
+
+        m_layout->setLayoutAnalysis();
+
+        //Add the links to establish reasonable defaults.
+        m_animators[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_controllers[0]);
+        m_profilers[0]->addLink( m_controllers[0]);
+        _refreshState();
+    }
+}
+
 // before 20170307, this was the layout of original AnalysisView
 void ViewManager::setHistogramAnalysisView(){
     if ( m_layout == nullptr ){
@@ -1155,24 +1177,19 @@ void ViewManager::setHistogramAnalysisView(){
     }
 }
 
-void ViewManager::setAnalysisView(){
+void ViewManager::setImageView(){
     if ( m_layout == nullptr ){
         _makeLayout();
     }
-    if ( !m_layout->isLayoutAnalysis()){
-        _clearHistograms( 1, m_histograms.size() );
-        _clearAnimators( 1, m_animators.size() );
-        _clearColormaps( 1, m_colormaps.size() );
+    if ( !m_layout->isLayoutImage() ){
+        _clearHistograms( 0, m_histograms.size() );
+        _clearAnimators( 0, m_animators.size() );
+        _clearColormaps( 0, m_colormaps.size() );
         _clearStatistics( 0, m_statistics.size());
-        _clearProfilers( 0, m_profilers.size() );
+        _clearProfilers( 0, m_profilers.size());
         _clearControllers( 1, m_controllers.size() );
 
-        m_layout->setLayoutAnalysis();
-
-        //Add the links to establish reasonable defaults.
-        m_animators[0]->addLink( m_controllers[0]);
-        m_colormaps[0]->addLink( m_controllers[0]);
-        _refreshState();
+        m_layout->setLayoutImage();
     }
 }
 
@@ -1203,22 +1220,6 @@ void ViewManager::setDeveloperView(){
     m_profilers[0]->addLink( m_controllers[0]);
     //m_colormaps[0]->addLink( m_histograms[0]);
     _refreshState();
-}
-
-void ViewManager::setImageView(){
-    if ( m_layout == nullptr ){
-        _makeLayout();
-    }
-    if ( !m_layout->isLayoutImage() ){
-        _clearHistograms( 0, m_histograms.size() );
-        _clearAnimators( 0, m_animators.size() );
-        _clearColormaps( 0, m_colormaps.size() );
-        _clearStatistics( 0, m_statistics.size());
-        _clearProfilers( 0, m_profilers.size());
-        _clearControllers( 1, m_controllers.size() );
-
-        m_layout->setLayoutImage();
-    }
 }
 
 QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& destPluginType ){

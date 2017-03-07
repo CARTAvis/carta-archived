@@ -484,19 +484,19 @@ void Layout::setLayoutAnalysis(){
     QStringList oldNames = getPluginList();
     _makeRoot();
 
-    LayoutNode* rightBottom = NodeFactory::makeComposite( false );
+    LayoutNode* rightTop = NodeFactory::makeComposite( false );
 
+    LayoutNode* rightBottom = NodeFactory::makeComposite( false );
     LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
     rightBottom->setChildFirst( colorLeaf );
-
     LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
     rightBottom->setChildSecond( animLeaf );
 
     LayoutNode* right = NodeFactory::makeComposite( false );
 
-    right->setChildFirst( rightBottom );
-    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
-    right->setChildSecond( hiddenLeaf );
+    LayoutNode* profLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
+    right->setChildFirst( profLeaf );
+    right->setChildSecond( rightBottom );
 
     m_layoutRoot->setHorizontal( true );
     m_layoutRoot->setChildSecond( right );
