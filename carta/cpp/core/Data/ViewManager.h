@@ -128,6 +128,11 @@ public:
     void setAnalysisView();
 
     /**
+     * Reset the layout to a predefined view including a histogram, a colormap and an animator.
+     */
+    void setHistogramAnalysisView();
+
+    /**
      * Reset the layout to a predefined developer layout.
      */
     void setDeveloperView();

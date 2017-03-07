@@ -40,9 +40,12 @@ const QString Layout::LAYOUT_COLS = "cols";
 const QString Layout::LAYOUT_PLUGINS = "plugins";
 const QString Layout::POSITION = "position";
 const QString Layout::CLASS_NAME = "Layout";
+
 const QString Layout::TYPE_IMAGE = "Image";
 const QString Layout::TYPE_ANALYSIS = "Analysis";
+const QString Layout::TYPE_HISTOGRAMANALYSIS = "HistogramAnalysis";
 const QString Layout::TYPE_CUSTOM = "Custom";
+
 const QString Layout::TYPE_SELECTED = "layoutType";
 
 
@@ -317,7 +320,6 @@ void Layout::_initLayout( LayoutNode* root, int rowCount, int colCount ){
    }
 }
 
-
 bool Layout::isLayoutAnalysis() const {
     bool layoutAnalysis = false;
     if ( m_state.getValue<QString>(TYPE_SELECTED) == TYPE_ANALYSIS ){
@@ -325,6 +327,15 @@ bool Layout::isLayoutAnalysis() const {
     }
     return layoutAnalysis;
 }
+
+bool Layout::isLayoutHistogramAnalysis() const {
+    bool layoutAnalysis = false;
+    if ( m_state.getValue<QString>(TYPE_SELECTED) == TYPE_HISTOGRAMANALYSIS ){
+        layoutAnalysis = true;
+    }
+    return layoutAnalysis;
+}
+
 
 
 bool Layout::isLayoutImage() const {
@@ -414,6 +425,84 @@ QString Layout::_removeWindow( const QString& locationId ){
     return result;
 }
 
+//原本
+//Image Layout
+//Analysis Layout (default)
+//Cutsom
+
+// 1. default (全新)
+// histogram -> Statistics
+
+// Analysis -> 2. LineAnalysis
+// 原本是右上是 histogram + hidden.  然後再加上右下(rightBottom):colormap+ animator
+// 現在是右上是 ribhtButton. 右下是hidden
+// 原本的 histogram 換成profiler一大塊(右上角)
+
+//3. HistogramAnalysis
+//4. ImageCompare
+//5. custom
+
+void Layout::setLayoutDefault(){
+
+    // QStringList oldNames = getPluginList();
+    // _makeRoot();
+    //
+    // LayoutNode* rightBottom = NodeFactory::makeComposite( false );
+    //
+    // LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
+    // rightBottom->setChildFirst( colorLeaf );
+    //
+    // LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
+    // rightBottom->setChildSecond( animLeaf );
+    //
+    // LayoutNode* right = NodeFactory::makeComposite( false );
+    //
+    // right->setChildFirst( rightBottom );
+    // LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
+    // right->setChildSecond( hiddenLeaf );
+    //
+    // m_layoutRoot->setHorizontal( true );
+    // m_layoutRoot->setChildSecond( right );
+    //
+    // LayoutNode* controlLeaf = NodeFactory::makeLeaf( Controller::PLUGIN_NAME );
+    // m_layoutRoot->setChildFirst( controlLeaf );
+    // m_state.setValue<QString>( TYPE_SELECTED, TYPE_ANALYSIS );
+    // QStringList names = getPluginList();
+    // emit pluginListChanged( names, oldNames );
+    // m_state.flushState();
+}
+
+void Layout::setLayoutHistogramAnalysis(){
+    QStringList oldNames = getPluginList();
+    _makeRoot();
+
+    LayoutNode* rightTop = NodeFactory::makeComposite( false );
+    LayoutNode* histLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME );
+    rightTop->setChildFirst( histLeaf );
+    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
+    rightTop->setChildSecond( hiddenLeaf );
+
+    LayoutNode* rightBottom = NodeFactory::makeComposite( false );
+    LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
+    rightBottom->setChildFirst( colorLeaf );
+    LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
+    rightBottom->setChildSecond( animLeaf );
+
+    LayoutNode* right = NodeFactory::makeComposite( false );
+
+    right->setChildFirst( rightTop );
+    right->setChildSecond( rightBottom );
+
+    m_layoutRoot->setHorizontal( true );
+    m_layoutRoot->setChildSecond( right );
+
+    LayoutNode* controlLeaf = NodeFactory::makeLeaf( Controller::PLUGIN_NAME );
+    m_layoutRoot->setChildFirst( controlLeaf );
+    m_state.setValue<QString>( TYPE_SELECTED, TYPE_HISTOGRAMANALYSIS );
+    QStringList names = getPluginList();
+    emit pluginListChanged( names, oldNames );
+    m_state.flushState();
+}
 
 void Layout::setLayoutAnalysis(){
     QStringList oldNames = getPluginList();
@@ -443,7 +532,6 @@ void Layout::setLayoutAnalysis(){
     emit pluginListChanged( names, oldNames );
     m_state.flushState();
 }
-
 
 void Layout::setLayoutDeveloper(){
     _makeRoot();

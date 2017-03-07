@@ -262,7 +262,6 @@ qx.Class.define("skel.widgets.DisplayMain",
                         windows = this.m_pane.getWindows();
                         skel.widgets.Window.WindowFactory.setExistingWindows( windows );
                     }
-                    console.log("grimmer DisplayMain resetLayoutCB:", layout);
                     this.layout( layout.layoutNode);
                     //Store the available windows in the Popup command of the image
                     //display so that it can decide whether or not it should be enabled

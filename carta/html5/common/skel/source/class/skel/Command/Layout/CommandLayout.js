@@ -16,9 +16,10 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
     construct : function() {
         this.base( arguments, "Layout", null );
         this.m_cmds = [];
-        this.m_cmds[0] = skel.Command.Layout.CommandLayoutImage.getInstance();
-        this.m_cmds[1] = skel.Command.Layout.CommandLayoutAnalysis.getInstance();
-        this.m_cmds[2] = skel.Command.Layout.CommandLayoutCustom.getInstance();
+        this.m_cmds.push(skel.Command.Layout.CommandLayoutAnalysis.getInstance());
+        this.m_cmds.push(skel.Command.Layout.CommandLayoutHistogramAnalysis.getInstance());
+        this.m_cmds.push(skel.Command.Layout.CommandLayoutImage.getInstance());
+        this.m_cmds.push(skel.Command.Layout.CommandLayoutCustom.getInstance());
         this.setValue( this.m_cmds );
 
         //Listen to the layout so if a different one is selected on the server we can update the GUI.
@@ -35,21 +36,39 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
                 try {
                     var layout = JSON.parse( layoutObjJSON );
                     var type = layout.layoutType;
-                    if ( type === "Image"){
-                        this.setValues( true, false, false );
-                    }
-                    else if ( type === "Analysis"){
-                        this.setValues( false, true, false );
-                    }
-                    else if ( type === "Custom"){
-                        this.setValues( false, false, true );
-                    }
-                    else {
+
+                    // if ( type === "Analysis"){
+                    //     this.setValues( true, false, false, false );
+                    // }
+                    // else if ( type === "Custom"){
+                    //     this.setValues( false, false, true );
+                    // }
+                    // else if ( type === "Image"){
+                    //     this.setValues( true, false, false );
+                    // }
+                    // else if ( type === "Custom"){
+                    //     this.setValues( false, false, true );
+                    // }
+                    if (this.setCheckedType(type) == false){
                         console.log( "CommandLayout: unrecognized layout type: "+type);
                     }
                 }
                 catch( err ){
                     console.log( "CommandLayout, could not parse: "+layoutObjJSON );
+                }
+            }
+        },
+
+        setupAllCheckStatus: function(cmdLayout){
+            var length = this.m_cmds.length;
+            for (var i=0; i<length; i++){
+                var storeCmdLayout = this.m_cmds[i];
+                if (storeCmdLayout != cmdLayout) {
+                    console.log("grimmer cmdlayout - false ");
+                    storeCmdLayout.setValue( false );
+                } else {
+                    console.log("grimmer cmdlayout - true ");
+                    storeCmdLayout.setValue( true );
                 }
             }
         },
@@ -66,7 +85,9 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
             }
         },
 
+        // no use, 20170307
         setValues : function( image, analysis, custom ){
+            console.log("grimmer will not hit here");
             this.setActive( false );
             var imageCmd = skel.Command.Layout.CommandLayoutImage.getInstance();
             imageCmd.setValue( image );
@@ -84,11 +105,27 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
                   cmdLayout  = skel.Command.Layout.CommandLayoutImage.getInstance();
               } else if (layoutType == "Analysis") {
                   cmdLayout  = skel.Command.Layout.CommandLayoutAnalysis.getInstance();
+              } else if (layoutType == "HistogramAnalysis") {
+                  cmdLayout  = skel.Command.Layout.CommandLayoutHistogramAnalysis.getInstance();
               } else if (layoutType == "Custom") {
                   cmdLayout  = skel.Command.Layout.CommandLayoutCustom.getInstance();
               }
-              cmdLayout.setValue( true );
+
+              if (cmdLayout){
+                  // important, should use setActive(false) & setActive(true),
+                  // otherwise will trigger loop layout-reset
+                  this.setActive( false );
+                  this.setupAllCheckStatus(cmdLayout);
+                //   cmdLayout.setValue( true );
+                  this.setActive( true );
+
+                  return true;
+              }
+              return false;
           }
+
+          return false;
+
         },
 
         m_sharedVar : null

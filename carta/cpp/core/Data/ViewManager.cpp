@@ -414,13 +414,19 @@ void ViewManager::_initCallbacks(){
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
             setAnalysisView();
             return "";
-        });
+    });
+
+    addCommandCallback( "setHistogramAnalysisLayout", [=] (const QString & /*cmd*/,
+                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+            setHistogramAnalysisView();
+            return "";
+    });
 
     addCommandCallback( "setImageLayout", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
             setImageView();
             return "";
-        });
+    });
 
     //Callback for adding a data source to a Controller.
     addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
@@ -505,7 +511,9 @@ void ViewManager::_initCallbacks(){
 
 
 void ViewManager::_initializeDefaultState(){
-    setAnalysisView();
+    // setAnalysisView();
+    // setHistogramAnalysisView();
+    setImageView();
     //Load the default snapshot if one exists.
     _makeSnapshots();
     m_snapshots->initializeDefaultState();
@@ -1091,6 +1099,30 @@ int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex
     return existingCount;
 }
 
+// before 20170307, this was the layout of original AnalysisView
+void ViewManager::setHistogramAnalysisView(){
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    if ( !m_layout->isLayoutHistogramAnalysis()){
+        _clearHistograms( 1, m_histograms.size() );
+        _clearAnimators( 1, m_animators.size() );
+        _clearColormaps( 1, m_colormaps.size() );
+        _clearStatistics( 0, m_statistics.size());
+        _clearProfilers( 0, m_profilers.size() );
+        _clearControllers( 1, m_controllers.size() );
+
+        m_layout->setLayoutHistogramAnalysis();
+
+        //Add the links to establish reasonable defaults.
+        m_animators[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_controllers[0]);
+        m_histograms[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_histograms[0]);
+        _refreshState();
+    }
+}
+
 void ViewManager::setAnalysisView(){
     if ( m_layout == nullptr ){
         _makeLayout();
@@ -1297,4 +1329,3 @@ ViewManager::~ViewManager(){
 }
 }
 }
-
