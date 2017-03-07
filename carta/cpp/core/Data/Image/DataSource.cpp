@@ -212,11 +212,11 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
 
         QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
-        out << pixelValue << " " << pixelUnits;
-        out <<"Pixel:" << imgX << "," << imgY << "\n";
+        out << "Pixel value:" << pixelValue << " " << pixelUnits << " at ";
+        out <<"pixel:" << imgX << "," << imgY << "\n";
 
         cf-> setSkyCS( cs );
-        out << m_coords->getName( cs ) << ": ";
+        out << "[ " << m_coords->getName( cs ) << " ] ";
         std::vector <AxisInfo> ais;
         for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
             const AxisInfo & ai = cf-> axisInfo( axis );
