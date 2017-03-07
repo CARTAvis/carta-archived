@@ -17,12 +17,47 @@ std::vector<QString> StatisticsCASAImage::_beamAsStringVector( const casa::Gauss
     std::vector<QString> result;
     if (! beam.isNull()) {
         char buf[512];
-        sprintf( buf,"%.2f\"", beam.getMajor("arcsec"));
-        result.push_back(QString(buf));
-        sprintf( buf,"%.2f\"", beam.getMinor("arcsec") );
-        result.push_back(QString(buf));
-        sprintf( buf,"%.2f%c", beam.getPA("deg", casa::True), 0x00B0 );
-        result.push_back(QString(buf));
+        //determine the precision of beam size dynamically 
+        if (beam.getMinor("arcsec") > 0.1 && beam.getMinor("arcsec") < 60.0){
+            sprintf( buf,"%.2f\"", beam.getMajor("arcsec") );
+            result.push_back(QString(buf));
+            sprintf( buf,"%.2f\"", beam.getMinor("arcsec") );
+            result.push_back(QString(buf));
+            //sprintf( buf,"%.2f%s", beam.getPA("deg", casa::True), "\u00B0" );
+            //temporary solution to correctly display 'degree' char
+            sprintf( buf,"%.2fdeg", beam.getPA("deg", casa::True) );
+            result.push_back(QString(buf));
+        }
+        if (beam.getMinor("arcsec") <= 0.1){
+            sprintf( buf,"%.3f\"", beam.getMajor("arcsec") );
+            result.push_back(QString(buf));
+            sprintf( buf,"%.3f\"", beam.getMinor("arcsec") );
+            result.push_back(QString(buf));
+            //sprintf( buf,"%.2f%s", beam.getPA("deg", casa::True), "\u00B0" );
+            //temporary solution to correctly display 'degree' char
+            sprintf( buf,"%.2fdeg", beam.getPA("deg", casa::True) );
+            result.push_back(QString(buf));
+        }
+        if (beam.getMinor("arcsec") <= 0.01){
+            sprintf( buf,"%.4f\"", beam.getMajor("arcsec") );
+            result.push_back(QString(buf));
+            sprintf( buf,"%.4f\"", beam.getMinor("arcsec") );
+            result.push_back(QString(buf));
+            //sprintf( buf,"%.2f%s", beam.getPA("deg", casa::True), "\u00B0" );
+            //temporary solution to correctly display 'degree' char
+            sprintf( buf,"%.2fdeg", beam.getPA("deg", casa::True) );
+            result.push_back(QString(buf));
+        }
+        if (beam.getMinor("arcsec") >= 60.0){
+            sprintf( buf,"%.2f\'", beam.getMajor("arcmin") );
+            result.push_back(QString(buf));
+            sprintf( buf,"%.2f\'", beam.getMinor("arcmin") );
+            result.push_back(QString(buf));
+            //sprintf( buf,"%.2f%s", beam.getPA("deg", casa::True), "\u00B0" );
+            //temporary solution to correctly display 'degree' char
+            sprintf( buf,"%.2fdeg", beam.getPA("deg", casa::True) );
+            result.push_back(QString(buf));
+        }
     }
     return result;
 }
