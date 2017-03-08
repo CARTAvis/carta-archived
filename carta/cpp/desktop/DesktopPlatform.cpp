@@ -99,7 +99,7 @@ DesktopPlatform::DesktopPlatform()
 
     // create main window
     m_mainWindow = new MainWindow();
-    m_mainWindow-> resize( 1280, 768);
+    m_mainWindow-> resize( 1280, 800);
 
     // add platform and connector to JS exports
     m_mainWindow->addJSExport( "QtPlatform", this);
