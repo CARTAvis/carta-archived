@@ -347,11 +347,11 @@ Service::internalRenderSlot()
         return;
     }
 
-    auto cachedRawImage = m_frameCache.object( cacheId
- );
+    // seems it is copying, so no need to copy again for more safe usage
+    auto cachedRawImage = m_frameCache.object(cacheId);
 
     // render the frame if needed
-    if ( !cachedRawImage ) {
+    if (!cachedRawImage) {
         // cacheRaw miss
 
         // disable pixelPipelineCache in case [clipMin, clipMax] = nan
@@ -380,7 +380,6 @@ Service::internalRenderSlot()
     else
     {
         // cacheRaw hit
-
         m_frameImage = *cachedRawImage;
     }
 
@@ -444,11 +443,17 @@ Service::internalRenderSlot()
         }
     }
 
+    if (!cachedRawImage) {
+        // insert this image into frame cache, they may be alterd by emit done, so change to insert first.
+        if (m_frameImage.byteCount() >0 && img.byteCount()>0) {
+            m_frameCache.insert( cacheId, new QImage( m_frameImage ), img.byteCount() );
+        } else {
+            qDebug() << "m_frameCache is empty, will not be inserted";
+        }
+    }
+
     // report result
     emit done( img, m_lastSubmittedJobId );
-
-    // insert this image into frame cache
-    m_frameCache.insert( cacheId, new QImage( m_frameImage ), img.byteCount() );
 
 } // internalRenderSlot
 
