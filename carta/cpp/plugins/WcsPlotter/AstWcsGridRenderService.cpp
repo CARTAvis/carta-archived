@@ -377,7 +377,7 @@ AstWcsGridRenderService::renderNow()
     if ( ! system.isEmpty() ){
        //System only makes sense if the display axes are RA and DEC.
        if ( Carta::Lib::AxisDisplayInfo::isCelestialPlane( m_axisDisplayInfos) ){
-           sgp.setPlotOption( "System=" + system );
+           sgp.setPlotOption( "system );
        }
    }
 
@@ -569,7 +569,7 @@ AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, c
 
     // if the list is valid, just change the entry directly
     if ( m_vgValid ) {
-    	int penIndex=m().penEntries[si(e)];
+        int penIndex=m().penEntries[si(e)];
         m_vgc.set < VGE::StoreIndexedPen > ( penIndex, si( e ), pi( e ) );
         int brushIndex = m().dimBrushIndex;
         if ( e == Element::MarginDim && brushIndex >= 0 ) {
@@ -712,19 +712,19 @@ AstWcsGridRenderService::_getSystem( ){
    switch ( m().knownSkyCS )
    {
    case KS::J2000 :
-       system = "J2000";
+       system = "System=FK5, Equinox=J2000";
        break;
    case KS::B1950 :
-       system = "FK4";
+       system = "System=FK4, Equinox=B1950";
        break;
    case KS::ICRS :
-       system = "ICRS";
+       system = "System=FICRS";
        break;
    case KS::Galactic :
-       system = "GALACTIC";
+       system = "System=FGALACTIC";
        break;
    case KS::Ecliptic :
-       system = "ECLIPTIC";
+       system = "System=FECLIPTIC";
        break;
    default :
        system = "";
