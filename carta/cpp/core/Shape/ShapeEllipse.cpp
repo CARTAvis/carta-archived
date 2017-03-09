@@ -111,7 +111,16 @@ bool ShapeEllipse::isCorner( const QPointF& pt ) const {
 
 bool ShapeEllipse::isPointInside( const QPointF & pt ) const {
 	bool pointInside = m_ellipseRegion-> isPointInside( {pt} );
-	return pointInside;
+	int cornerCount = m_controlPoints.size();
+	bool onControlPoint = false;
+	for ( int i = 0; i < cornerCount; i++ ){
+	  onControlPoint = m_controlPoints[i]->isPointInside( {pt} );
+	  if (onControlPoint){
+	    break;
+	  }
+	}
+	return (pointInside|onControlPoint);
+
 }
 
 void ShapeEllipse::_moveShadow( const QPointF& pt ){

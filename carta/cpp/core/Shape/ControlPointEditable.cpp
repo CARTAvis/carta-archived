@@ -27,9 +27,6 @@ QSizeF ControlPointEditable::getSize() const {
 }
 
 Carta::Lib::VectorGraphics::VGList ControlPointEditable::getVGList() const {
-	if ( ! isActive() ) {
-		return Carta::Lib::VectorGraphics::VGList();
-	}
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QRectF rect( m_pos.x() - m_size / 2, m_pos.y() - m_size / 2, m_size, m_size );
 	QColor color = m_fillColor;

@@ -268,10 +268,7 @@ bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev
 				m_regions[i]->handleTouch( imagePt);
 			}
 			if ( regionCount > 0 ){
-				//If it was a tap outside all of the regions, it may have unselected
-				//all of them, but the current region should be selected.
-				m_regions[selectedIndex]->setSelected( true );
-				emit regionsChanged();
+			        emit regionsChanged();
 			}
 		}
 	}

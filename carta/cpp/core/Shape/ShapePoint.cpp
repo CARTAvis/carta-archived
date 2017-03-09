@@ -57,7 +57,15 @@ void ShapePoint::handleDragDone( const QPointF & pt ){
 
 bool ShapePoint::isPointInside( const QPointF & pt ) const {
 	bool pointInside = m_pointRegion->isPointInside( {pt} );
-	return pointInside;
+	int cornerCount = m_controlPoints.size();
+	bool onControlPoint = false;
+	for ( int i = 0; i < cornerCount; i++ ){
+	  onControlPoint = m_controlPoints[i]->isPointInside( {pt} );
+	  if (onControlPoint){
+	    break;
+	  }
+	}
+	return (pointInside|onControlPoint);
 }
 
 void ShapePoint::_moveShadow( const QPointF& pt ){
@@ -81,5 +89,3 @@ void ShapePoint::_syncShadowToCPs(){
 }
 }
 }
-
-
