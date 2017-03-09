@@ -96,9 +96,11 @@ LayeredRemoteVGView::scheduleRepaint( qint64 id )
         id = m_repaintId + 1;
     }
     m_repaintId = id;
+
     if ( ! m_timer-> isActive() ) {
         m_timer-> start();
     }
+
     return m_repaintId;
 }
 
@@ -283,9 +285,12 @@ LayeredViewArbitrary::scheduleRepaint( qint64 id )
         id = m_repaintId + 1;
     }
     m_repaintId = id;
-    if ( ! m_timer-> isActive() ) {
-        m_timer-> start();
-    }
+
+//    if ( ! m_timer-> isActive() ) {
+//        m_timer-> start();
+//    }
+    p_timerCB();
+
     return m_repaintId;
 }
 
