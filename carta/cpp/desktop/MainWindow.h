@@ -42,7 +42,7 @@ protected slots:
     void helpUrlGitHubHome();
     void helpUrlGitHubWiki();
     void helpUrlGitHubIssues();
-    void helpLicense();
+    void cartaLicense();
 
 private:
     QWebView * m_view = nullptr;

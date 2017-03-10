@@ -8,6 +8,7 @@
 #include <QtWebKitWidgets>
 #include <iostream>
 #include <QWebInspector>
+#include <qglobal.h>
 
 MainWindow::MainWindow( )
 {
@@ -36,6 +37,12 @@ MainWindow::MainWindow( )
     m_inspector-> setPage( m_view-> page());
     m_inspector-> resize( 800, 600);
 
+#ifdef Q_OS_LINUX
+    // add Carta option
+    QMenu *cartaMenu = menuBar()->addMenu(tr("&Carta"));
+    cartaMenu->addAction(tr("Copyright and License"), this, SLOT(cartaLicense()));
+    cartaMenu->addAction(tr("Version 0.9"));
+
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
     toolsMenu->addAction(tr("Show JS Console"), this, SLOT(showJsConsole()));
 
@@ -44,7 +51,21 @@ MainWindow::MainWindow( )
     helpMenu->addAction(tr("GitHub Home"), this, SLOT(helpUrlGitHubHome()));
     helpMenu->addAction(tr("GitHub Wiki"), this, SLOT(helpUrlGitHubWiki()));
     helpMenu->addAction(tr("GitHub Issues"), this, SLOT(helpUrlGitHubIssues()));
-    helpMenu->addAction(tr("Copy Right and License"), this, SLOT(helpLicense()));
+#else
+    QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    toolsMenu->addAction(tr("Show JS Console"), this, SLOT(showJsConsole()));
+
+    // add Help option
+    QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu->addAction(tr("GitHub Home"), this, SLOT(helpUrlGitHubHome()));
+    helpMenu->addAction(tr("GitHub Wiki"), this, SLOT(helpUrlGitHubWiki()));
+    helpMenu->addAction(tr("GitHub Issues"), this, SLOT(helpUrlGitHubIssues()));
+
+    // add About option
+    QMenu *cartaMenu = menuBar()->addMenu(tr("&About"));
+    cartaMenu->addAction(tr("Copyright and License"), this, SLOT(cartaLicense()));
+    cartaMenu->addAction(tr("Version 0.9"));
+#endif
 
     setCentralWidget(m_view);
     setUnifiedTitleAndToolBarOnMac(true);
@@ -145,9 +166,9 @@ void MainWindow::helpUrlGitHubIssues()
     QDesktopServices::openUrl(QUrl("https://github.com/CARTAvis/carta/issues", QUrl::TolerantMode));
 }
 
-void MainWindow::helpLicense()
+void MainWindow::cartaLicense()
 {
-    QMessageBox::about(this, tr("Copy Right and License"),
+    QMessageBox::about(this, tr("Copyright and License"),
                  tr("<p>This program is free software: you can redistribute it and/or modify \
                     it under the terms of the GNU General Public License as published by \
                     the Free Software Foundation, either version 3 of the License, or \
