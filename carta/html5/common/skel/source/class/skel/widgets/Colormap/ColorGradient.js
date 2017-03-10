@@ -118,7 +118,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          * @return {Function} the callback for updating the gradient color stops.
          */
         setStops : function( colorStops ){
-            if ( colorStops !==null  ){
+            if ( colorStops === null  ){
                 this.m_stops = colorStops.split(",");
                 this.update();
             }
