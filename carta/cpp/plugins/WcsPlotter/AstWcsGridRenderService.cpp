@@ -377,7 +377,7 @@ AstWcsGridRenderService::renderNow()
     if ( ! system.isEmpty() ){
        //System only makes sense if the display axes are RA and DEC.
        if ( Carta::Lib::AxisDisplayInfo::isCelestialPlane( m_axisDisplayInfos) ){
-           sgp.setPlotOption( "system );
+           sgp.setPlotOption( system );
        }
    }
 
@@ -718,13 +718,13 @@ AstWcsGridRenderService::_getSystem( ){
        system = "System=FK4, Equinox=B1950";
        break;
    case KS::ICRS :
-       system = "System=FICRS";
+       system = "System=ICRS";
        break;
    case KS::Galactic :
-       system = "System=FGALACTIC";
+       system = "System=GALACTIC";
        break;
    case KS::Ecliptic :
-       system = "System=FECLIPTIC";
+       system = "System=ECLIPTIC";
        break;
    default :
        system = "";
