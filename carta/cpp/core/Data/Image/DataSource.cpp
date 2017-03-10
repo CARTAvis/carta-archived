@@ -71,6 +71,24 @@ DataSource::DataSource() :
         }
 }
 
+std::vector<int> DataSource::_getPermOrder() const
+{
+    //Build a vector showing the permute order.
+    int imageDim = m_image->dims().size();
+    std::vector<int> indices( imageDim );
+    indices[0] = m_axisIndexX;
+    indices[1] = m_axisIndexY;
+    int vectorIndex = 2;
+    for ( int i = 0; i < imageDim; i++ ){
+        if ( i != m_axisIndexX && i != m_axisIndexY ){
+            indices[vectorIndex] = i;
+            vectorIndex++;
+        }
+    }
+
+    return indices;
+}
+
 
 int DataSource::_getFrameIndex( int sourceFrameIndex, const std::vector<int>& sourceFrames ) const {
     int frameIndex = 0;
@@ -194,11 +212,11 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
 
         QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
-        out << pixelValue << " " << pixelUnits;
-        out <<"Pixel:" << imgX << "," << imgY << "\n";
+        out << "Pixel value:" << pixelValue << " " << pixelUnits << " at ";
+        out <<"pixel:" << imgX << "," << imgY << "\n";
 
         cf-> setSkyCS( cs );
-        out << m_coords->getName( cs ) << ": ";
+        out << "[ " << m_coords->getName( cs ) << " ] ";
         std::vector <AxisInfo> ais;
         for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
             const AxisInfo & ai = cf-> axisInfo( axis );
@@ -629,17 +647,7 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getPermutedImage
     std::shared_ptr<Carta::Lib::Image::ImageInterface> permuteImage(nullptr);
     if ( m_image ){
         //Build a vector showing the permute order.
-        int imageDim = m_image->dims().size();
-        std::vector<int> indices( imageDim );
-        indices[0] = m_axisIndexX;
-        indices[1] = m_axisIndexY;
-        int vectorIndex = 2;
-        for ( int i = 0; i < imageDim; i++ ){
-            if ( i != m_axisIndexX && i != m_axisIndexY ){
-                indices[vectorIndex] = i;
-                vectorIndex++;
-            }
-        }
+        std::vector<int> indices = _getPermOrder();
         permuteImage = m_image->getPermuted( indices );
     }
     return permuteImage;
@@ -651,17 +659,8 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vecto
     if ( m_permuteImage ){
         int imageDim =m_permuteImage->dims().size();
 
-	//Build a vector showing the permute order.
-	std::vector<int> indices( imageDim );
-        indices[0] = m_axisIndexX;
-        indices[1] = m_axisIndexY;
-        int vectorIndex = 2;
-        for ( int i = 0; i < imageDim; i++ ){
-            if ( i != m_axisIndexX && i != m_axisIndexY ){
-                indices[vectorIndex] = i;
-                vectorIndex++;
-            }
-        }
+        //Build a vector showing the permute order.
+        std::vector<int> indices = _getPermOrder();
 
         SliceND nextSlice = SliceND();
         SliceND& slice = nextSlice;
@@ -730,14 +729,14 @@ void DataSource::_initializeSingletons( ){
 
 
 bool DataSource::_isLoadable( std::vector<int> frames ) const {
-	int imageDim =m_image->dims().size();
+        int imageDim =m_image->dims().size();
 	bool loadable = true;
 	for ( int i = 0; i < imageDim; i++ ){
 		AxisInfo::KnownType type = _getAxisType( i );
 		if ( AxisInfo::KnownType::OTHER != type ){
 			int axisIndex = static_cast<int>( type );
 			int frameIndex = frames[axisIndex];
-			int frameCount = m_image->dims()[axisIndex];
+                        int frameCount = m_image->dims()[i];
 			if ( frameIndex >= frameCount ){
 				loadable = false;
 				break;

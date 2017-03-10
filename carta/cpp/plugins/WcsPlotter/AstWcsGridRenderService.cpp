@@ -5,6 +5,7 @@
 #include "AstGridPlotter.h"
 #include "AstWcsGridRenderService.h"
 #include "FitsHeaderExtractor.h"
+#include "SimpleFitsParser.h"
 #include "CartaLib/LinearMap.h"
 #include <QPainter>
 #include <QTime>
@@ -68,6 +69,119 @@ AstWcsGridRenderService::AstWcsGridRenderService()
 AstWcsGridRenderService::~AstWcsGridRenderService()
 { }
 
+QString AstWcsGridRenderService::_getFitsHeaderforAst(QStringList &fitsHeader)
+{
+    QStringList AstFitsHeader = fitsHeader;
+
+    // get NumAxis
+    int NumAxis = m_axisDisplayInfos.size();
+
+    // get PermOrder
+    int fperm[NumAxis];
+    int iperm[NumAxis];
+    for(int ii = 0; ii < NumAxis;ii=ii+1)
+    {
+        auto thisAxis = m_axisDisplayInfos[ii].getPermuteIndex();
+        fperm[thisAxis] = ii;
+        iperm[ii] = thisAxis;
+
+    }
+
+    int IndexSearchBegin = 0;
+
+    // def search function
+    auto lambdaSearch = [& fitsHeader](const int &IndexStart, const QString &key)
+    {
+        int result = -1;
+        for( int i = IndexStart ; i < fitsHeader.length() ; i ++ )
+        {
+            QString HeaderKey = FitsLine(fitsHeader[i]).key();
+            if( HeaderKey == key)
+            {
+                result = i;
+                break;
+            }
+        }
+        return result;
+    };
+
+    // def replace 1D function
+    auto lambdareplace1D = [& AstFitsHeader, &iperm, &IndexSearchBegin, NumAxis, &lambdaSearch](const QString &express)
+    {
+        for( int i = 0 ; i < NumAxis ; i ++ )
+        {
+            QString Key = QString(express).arg(i+1);
+            int IndexSearchKey   = -1;
+            IndexSearchKey = lambdaSearch(IndexSearchBegin, Key);
+
+            if(IndexSearchKey != -1)
+            {
+                QString HeaderKey = FitsLine(AstFitsHeader[IndexSearchKey]).key();
+                QString HeaderVal = FitsLine(AstFitsHeader[IndexSearchKey]).value();
+                QString NewKeyStr = QString(express).arg(iperm[i]+1).append(QString(8 - HeaderKey.length(),' '));
+                QString NewHeader = QString("%1= %2 /").arg(NewKeyStr).arg(HeaderVal);
+                AstFitsHeader[IndexSearchKey] = NewHeader.append(QString(80 - NewHeader.length(),' '));
+
+                IndexSearchBegin = IndexSearchKey;
+            }
+        }
+    };
+
+    // def replace 2D function
+    auto lambdareplace2D = [& AstFitsHeader, &iperm, &IndexSearchBegin, NumAxis, &lambdaSearch](const QString &express)
+    {
+        for( int i = 0 ; i < NumAxis ; i ++ )
+        {
+            for( int j = 0 ; j < NumAxis ; j ++ )
+            {
+                QString Key = QString(express).arg(i+1).arg(j+1);
+                int IndexSearchKey   = -1;
+                IndexSearchKey = lambdaSearch(IndexSearchBegin, Key);
+
+                if(IndexSearchKey != -1)
+                {
+                    QString HeaderKey = FitsLine(AstFitsHeader[IndexSearchKey]).key();
+                    QString HeaderVal = FitsLine(AstFitsHeader[IndexSearchKey]).value();
+                    QString NewKeyStr = QString(express).arg(iperm[i]+1).arg(iperm[j]+1).append(QString(8 - HeaderKey.length(),' '));
+                    QString NewHeader = QString("%1= %2 /").arg(NewKeyStr).arg(HeaderVal);
+                    AstFitsHeader[IndexSearchKey] = NewHeader.append(QString(80 - NewHeader.length(),' '));
+
+                    IndexSearchBegin = IndexSearchKey;
+                }
+            }
+        }
+    };
+
+    // KeyWords must be sorted by alphabetical order
+    lambdareplace2D("CD%1_%2");
+    lambdareplace1D("CDELT%1");
+    lambdareplace1D("CROTA%1");
+    lambdareplace1D("CRPIX%1");
+    lambdareplace1D("CRVAL%1");
+    lambdareplace1D("CTYPE%1");
+    lambdareplace1D("CUNIT%1");
+    lambdareplace1D("NAXIS%1");
+    lambdareplace2D("PC%1_%2");
+    lambdareplace1D("PS%1_1" );
+    lambdareplace1D("PS%1_2" );
+    lambdareplace1D("PS%1_3" );
+    lambdareplace1D("PS%1_4" );
+    lambdareplace1D("PV%1_1" );
+    lambdareplace1D("PV%1_2" );
+    lambdareplace1D("PV%1_3" );
+    lambdareplace1D("PV%1_4" );
+
+#if CARTA_RUNTIME_CHECKS > 0
+    for(int ii = 0; ii < AstFitsHeader.length(); ii = ii + 1)
+    {
+        std::cout << AstFitsHeader[ii] << "\n";
+
+    }
+#endif
+
+    return AstFitsHeader.join( "" );
+}
+
 void
 AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::SharedPtr image )
 {
@@ -88,6 +202,8 @@ AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::Share
 
         if ( header != m().fitsHeader ) {
             m_vgValid = false;
+            auto len = header.length();
+            std::sort(&header[0],&header[len-2]);
             m().fitsHeader = header;
         }
     }
@@ -220,7 +336,7 @@ AstWcsGridRenderService::renderNow()
 
     sgp.setInputRect( m_imgRect );
     sgp.setOutputRect( m_outRect );
-    sgp.setFitsHeader( m().fitsHeader.join( "" ) );
+    sgp.setFitsHeader( _getFitsHeaderforAst(m().fitsHeader) );
     sgp.setAxisDisplayInfo( m_axisDisplayInfos );
     sgp.setOutputVGComposer( & m_vgc );
 

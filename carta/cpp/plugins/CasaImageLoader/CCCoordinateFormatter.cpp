@@ -94,7 +94,7 @@ protected:
 
     bool m_showPlus = false;
     bool m_sexagesimal = false;
-    int m_precision = 3;
+    int m_precision = 4;
     QString m_separator = ":";
 };
 
@@ -363,8 +363,8 @@ CCCoordinateFormatter::parseCasaCS()
         qDebug() << "all names:" << u.c_str();
     }*/
 
-    // default precision is 3
-    m_precisions.resize( nAxes(), 3 );
+    // default precision is 4
+    m_precisions.resize( nAxes(), 4 );
     m_axisInfos.resize( nAxes() );
 
     for ( int i = 0 ; i < nAxes() ; i++ ) {
@@ -466,13 +466,13 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                     CARTA_ASSERT( false );
                 }
             }
-            m_precisions[pixelAxis] = 3;
+            m_precisions[pixelAxis] = 4;
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
             aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
                 .setLongLabel( HtmlString::fromPlain( "Frequency" ) )
                 .setShortLabel( HtmlString( "Freq", "Freq" ) );
-            m_precisions[pixelAxis] = 6;
+            m_precisions[pixelAxis] = 9;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
             aInfo.setKnownType( AxisInfo::KnownType::STOKES )
