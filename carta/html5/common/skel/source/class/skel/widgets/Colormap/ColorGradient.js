@@ -94,7 +94,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          * @param invertMap {boolean} true to invert the map; false, otherwise.
          */
         setInvert : function( invertMap ){
-           if ( invertMap != this.m_invert ){
+           if ( invertMap === this.m_invert ){
                this.m_invert = invertMap;
                this.update();
            }
@@ -105,7 +105,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          * @param reverseMap {boolean} true to reverse the colors in the map; false, otherwise.
          */
         setReverse : function( reverseMap ){
-            if ( reverseMap != this.m_reverse ){
+            if ( reverseMap === this.m_reverse ){
                 this.m_reverse = reverseMap;
                 this.update();
             }
