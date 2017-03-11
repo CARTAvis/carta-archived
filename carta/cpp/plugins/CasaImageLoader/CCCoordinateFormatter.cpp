@@ -94,7 +94,7 @@ protected:
 
     bool m_showPlus = false;
     bool m_sexagesimal = false;
-    int m_precision = 4;
+    int m_precision = 3;
     QString m_separator = ":";
 };
 
@@ -363,8 +363,8 @@ CCCoordinateFormatter::parseCasaCS()
         qDebug() << "all names:" << u.c_str();
     }*/
 
-    // default precision is 4
-    m_precisions.resize( nAxes(), 4 );
+    // default precision is 3
+    m_precisions.resize( nAxes(), 3 );
     m_axisInfos.resize( nAxes() );
 
     for ( int i = 0 ; i < nAxes() ; i++ ) {
@@ -426,16 +426,22 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                      skycs == KnownSkyCS::ICRS ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Right ascension" ) )
                         .setShortLabel( HtmlString( "RA", "&alpha;" ) );
+                    //precision to 0.001 arcsec
+                    m_precisions[pixelAxis] = 5;
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic longitude" ) )
                         //.setShortLabel( HtmlString( "ELon", "l" ) );
                         .setShortLabel( HtmlString( "ELon", "&lambda;"));
+                    //precision to 0.001 arcsec
+                    m_precisions[pixelAxis] = 7;
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Galactic longitude" ) )
                         //.setShortLabel( HtmlString( "GLon", "&lambda;" ) );
                         .setShortLabel( HtmlString( "GLon", "l"));
+                    //precision to 0.001 arcsec
+                    m_precisions[pixelAxis] = 7;
                 }
                 else {
                     CARTA_ASSERT( false );
@@ -451,22 +457,27 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                      skycs == KnownSkyCS::ICRS ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Declination" ) )
                         .setShortLabel( HtmlString( "Dec", "&delta;" ) );
+                    //precision to 0.001 arcsec
+                    m_precisions[pixelAxis] = 4;
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic latitude" ) )
                         //.setShortLabel( HtmlString( "ELat", "b" ) );
                         .setShortLabel( HtmlString( "Elat", "&beta;"));
+                    //precision to 0.001 arcsec
+                    m_precisions[pixelAxis] = 7;
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
                     aInfo.setLongLabel( HtmlString::fromPlain( "Galactic latitude" ) )
                         //.setShortLabel( HtmlString( "GLat", "&beta;" ) );
                         .setShortLabel( HtmlString( "GLat", "b"));
+                    //precision to 0.001 arcsec
+                    m_precisions[pixelAxis] = 7;
                 }
                 else {
                     CARTA_ASSERT( false );
                 }
             }
-            m_precisions[pixelAxis] = 4;
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
             aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
