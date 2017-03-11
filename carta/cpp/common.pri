@@ -87,11 +87,11 @@ contains( CARTA_CONFIG, addrSanit) {
 # use gcc 4.8.1
 CONFIG += gcc481
 
-gcc481 {
-    COMPILER = g++-4.8
-} else {
+#gcc481 {
+#    COMPILER = g++-4.8
+#} else {
     COMPILER = g++
-}
+#}
 
 QMAKE_CXX = $${COMPILER}
 QMAKE_LINK = $${COMPILER}
