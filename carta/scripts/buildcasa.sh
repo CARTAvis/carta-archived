@@ -80,6 +80,7 @@ EOF
 else
 	##### Ubuntu 16.04
     ## can use sudo aptitude search to search packages
+    ## another ref: https://github.com/casacore/casacore/blob/master/.travis.yml
 
     ####### casacore part:
     sudo apt-get -y install gfortran python-numpy libfftw3-dev liblapacke-dev
@@ -212,8 +213,8 @@ mkdir build && cd build
 
 # https://sites.google.com/a/asiaa.sinica.edu.tw/acdc/bui/centos7-2,
 # maybe this is due to the above reason, required by latest versoin of casacore
-export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/include:$PATH
-export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/lib:$PATH
+# export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/include:$PATH
+# export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/lib:$PATH
 
 ###  two more official build refernece
 # https://github.com/casacore/casacore
@@ -223,6 +224,7 @@ export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/lib:$PATH
 ## it is better to rm -rf * in build folder if rebuild manually + dependency changes
 ## can use your own compiler and gfortan here
 ## use $CARTAWORKHOME may be better for -DCMAKE_INSTALL_PREFIX=../../linux
+## After checking, /usr/lib64/casa/01 does not exist but build OK
 if [ "$isCentOS" = true ] ; then
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
     -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 \
@@ -234,14 +236,26 @@ if [ "$isCentOS" = true ] ; then
     -DCMAKE_C_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gcc \
     -DCMAKE_Fortran_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gfortran ..
 else
+    # https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForUbuntu
+    # -DCMAKE_PREFIX_PATH=/media/workdrive/CARTA/CARTAvis-externals/ThirdParty/wcslib
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
     -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 \
     -DCMAKE_BUILD_TYPE=Release -DCXX11=1 ..
 fi
 
+### Mac part:
+# -DCMAKE_Fortran_COMPILER=/opt/casa/02/bin/gfortran-mp-5 \ ?
+# -DPYTHON_LIBRARY=/opt/casa/02/lib/libpython2.7.dylib \ ?
+## DUseCrashReporter seems to be not used by casacore
+# cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 \
+# -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+# -DCMAKE_C_COMPILER=/usr/bin/clang \
+# -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
+# -DCMAKE_INSTALL_PREFIX=../../darwin -DBUILD_PYTHON=1 -DCXX11=1 ..
+###
 
 # it may build fail due to no official parallel build support of casa
-make -j 2
+make -j2
 make install
 
 #### casa-submodule: code/imageanalysis
@@ -260,19 +274,35 @@ if [ "$isCentOS" = true ] ; then
     -DCMAKE_C_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gcc \
     -DCMAKE_Fortran_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gfortran ..
 else
-    ## -DWCSLIB_ROOT_DIR
+    # -DWCSLIB_ROOT_DIR=/media/workdrive/CARTA/CARTAvis-externals/ThirdParty/wcslib
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 '-DEXTRA_C_FLAGS=-DPG_PPU -I/usr/include/wcslib' \
     -Darch=linux -DCMAKE_BUILD_TYPE=Release \
     -DCXX11=1 ..
 fi
 
+# -DCMAKE_Fortran_COMPILER=/opt/casa/02/bin/gfortran-mp-5 \
+### Mac part
+# cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 \
+# -Darch=darwin -DCMAKE_BUILD_TYPE=Release -DCXX11=1 \
+# -DWCSLIB_ROOT_DIR=/usr/local/Cellar/wcslib/5.16_1 \
+# -DREADLINE_ROOT_DIR=/usr/local/opt/readline \
+# -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+# -DCMAKE_C_COMPILER=/usr/bin/clang \
+# -DLLVMCOMPILER=1 \
+# -DINTERACTIVE_ITERATION=1 -Dpgplot_ext=_nox ..
+# # -DCMAKE_INSTALL_PREFIX=../../darwin
+###
+
+# https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForUbuntu
 # cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 '-DEXTRA_C_FLAGS=-DPG_PPU' \
 # -Darch=linux -DCMAKE_BUILD_TYPE=Release \
 # -DCXX11=1 -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib ..
 
 # it may build fail due to no official parallel build support of casa
-make -j 2
-make install
+make -j2
+
+# Ville said code does not need make install, why?
+# make install
 
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 mkdir imageanalysis
