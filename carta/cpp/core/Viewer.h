@@ -41,6 +41,10 @@ signals:
 
 public slots:
 
+    /// Closing the database of cache before quit
+    /// It had better be executed by other object (such as any unloaded plugin when exitting)
+    void DBClose();
+
 protected slots:
 
 protected:

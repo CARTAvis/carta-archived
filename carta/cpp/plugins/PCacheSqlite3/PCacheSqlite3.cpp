@@ -104,12 +104,14 @@ public:
         return m_cachePtr;
     }
 
+    virtual void Release() override
+    {
+        m_cachePtr = nullptr;
+    }
+
     ~SqLitePCache()
     {
-        qDebug() << "Destroying SqLitePCache";
-        qDebug() << "Possible segmentation fault below, it's a bug and we'll try to fix it.";
         m_db.close();
-        qDebug() << "Ok, no segmentation fault occurred, whew :)";
     }
 
 private:
