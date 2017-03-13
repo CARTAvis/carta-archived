@@ -35,7 +35,7 @@ LIBS += -L$${CFITSIODIR}/lib -lcfitsio
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 unix:macx{
-    # use homebrew version, flex:2.6.3, bison:3.0.4  
+    # use homebrew version, flex:2.6.3, bison:3.0.4
     LIBS += -L/usr/local/opt/flex/lib -lfl -ly
     INCLUDEPATH += /usr/local/opt/flex/include
 } else {
@@ -96,13 +96,17 @@ bisonheader.name = Bison Headers ${QMAKE_FILE_IN}
 bisonheader.CONFIG += target_predeps no_link
 QMAKE_EXTRA_COMPILERS += bisonheader
 
-
-
-
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
     QMAKE_LFLAGS += -undefined dynamic_lookup
 }
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
+}
+
+unix:!macx {
+  QMAKE_RPATHDIR=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
+}
+else {
+
 }
