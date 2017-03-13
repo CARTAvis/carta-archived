@@ -22,11 +22,11 @@ fi
 if [ "$isCentOS" = true ] ; then
     # this is needed by installing 5.3.2 from qt-opensource-linux-x64-5.3.2.run,
     # not sure if it is needed by online_installer
-    sudo yum -y install mesa-libGL-devel
+    sudo yum -y install mesa-libGL-devel ## may need for launching carta
 else
     ## needed to launch qt creator installer
     sudo apt-get -y insatll libx11-xcb-dev libdbus-1-3
-    ## needed to complete installing qt 
+    ## needed to complete installing qt
     sudo apt-get -y install libgl1-mesa-glx libglib2.0-0
 fi
 

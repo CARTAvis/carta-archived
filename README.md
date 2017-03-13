@@ -1,3 +1,19 @@
+Carta Viewer
+=======
+
+#### Branching model
+`master`:  
+mainstream branch, no development.
+
+`develop`:  
+development branch, usually will merge feature branch to it and include hot fix for those feature. After each phase release, merge `develop` to `master`.  
+
+`each feature branch`:  
+people develop each feature in its branch whose name can be `peter/drawImage` or `issue-131` if we use tickets. When it is finished, use `pull request` to proceed code review and then merge to develop. After merging, evaluate those added features on `develop`.
+
+`Fix Bug`:
+Except some special cases, such as modifying documents, changing build scripts, low/no-risk fixes, otherwise you need to commit your bug fixes in Hotfix branch or the original feature branch, then make a pull request to do code review.
+
 Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
 =======
 
@@ -161,7 +177,7 @@ Suggested path:
     ```
     ## gstreamer libs are needed by Qt (webkit).
     ## python-devel will install Python.h (should be 2.7)
-    sudo yum -y install python-devel;
+    ## sudo yum -y install python-devel; (will be installed when building casa)
     ```
     Ubuntu 16.04:
     ```
@@ -178,7 +194,7 @@ Suggested path:
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=bughunter $CARTAWORKHOME/CARTAvis/carta -r`
 5. `make -j 2`
 
-**CARTA_BUILD_TYPE** can be 
+**CARTA_BUILD_TYPE** can be
 
 1. release
 2. bughunter (for debugging/debugger, having symbol information, also it is the only one which uses **-O0** (no optimization) instead of using **-O2** optimization.  
@@ -192,7 +208,7 @@ Open carta.pro, then setup some build and run setting, then build.
 
 # Build needed JavaScript UI files of CARTA
 
-cd `your-carta-work`, execute `./CARTAvis/carta/scripts/generateUIfile.sh`
+cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`
 
 # Run Carta
 
@@ -284,7 +300,7 @@ Some of optional parameters:
 
 # Prepare distributable and packaged installer/zip
 
-Start from Qt 5.5, the **rpath** of dependent Qt library will use **@rpath** instead of using absolute path, on Mac. 
+Start from Qt 5.5, the **rpath** of dependent Qt library will use **@rpath** instead of using absolute path, on Mac.
 
 The flow is not finalized. Related some library search issues.
 

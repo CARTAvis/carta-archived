@@ -31,16 +31,24 @@ if [ "$isCentOS" = true ] ; then
 
 	## these (wcslib, cfitsio) are required by Carta (but also duplicate install from source),
 	## also are required by casa-submodules (at least casacore)
-	## To do !!: carta switchs to use yum version which are 3370, 5.1.5.
+	## Todo [Giveup] !!: carta switchs to use yum version which are 3370, 5.15.
 	## carta uses ThirdParty to look for cfitsio, wcslio,
 	## so to use yum version, switch to /usr/lib, /usr/include etc? <-on Linux, default search path
-	sudo yum -y install wcslib wcslib-devel
-	sudo yum -y install epel-release ## which has cfitsio, leveldb
-	sudo yum -y install cfitsio cfitsio-devel
+	sudo yum -y install epel-release ## which has cfitsio, leveldb, old wcslib
+	## to get the same version, so that cfitsio, wcslib are built for carta, casa
+
+	## move to buildcasa
+	# sudo yum -y install wcslib wcslib-devel
+
+	# sudo yum -y install cfitsio cfitsio-devel
+	# -> change to all use build from code, since yum/apt/mac ports have different version
+
+	## Default wcslib on CentOS 7 is 4.x. But it seems that, after using casa.repo.
+	## wcslib.x86_64 5.15-2.el7.1 @casa
 
 	## required by carta, casa-submodue:code
 	# yum:1.15. so carta keeps building it from source code.
-	# To do [Done]: fix header/lib/dynamic path in Qt, on Mac, CentOS, for Carta.
+	# Todo [Done]: fix header/lib/dynamic path in Qt, on Mac, CentOS, for Carta.
 	# carta uses /usr/local to look for gsl.
 	# Maybe just build from source and install there, let carta and casa use
 	# sudo yum -y install gsl gsl-devel -> move to buildcasa.sh
@@ -48,7 +56,7 @@ if [ "$isCentOS" = true ] ; then
 	## these are required by carta, also are required by casa-submodules
 	sudo yum -y install flex flex-devel bison bison-devel
 
-	## required by carta, and possible also by casa-submodules
+	## required by carta
 	sudo yum -y install Cython
 
 	## carta only:
@@ -62,7 +70,6 @@ if [ "$isCentOS" = true ] ; then
 	# (nrao-carta does not mention but nrao-casa mention)
 	# second way: curl -O -L  https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
 	# mv RPM-GPG-KEY-EPEL-7  /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
-	sudo yum -y install epel-release
 	sudo yum -y install leveldb leveldb-devel
 	sudo yum -y install gcc-gfortran # needed by ast, building casa also needes
 
@@ -71,8 +78,7 @@ if [ "$isCentOS" = true ] ; then
 	sudo yum -y install blas blas-devel
 else
 	##### Ubuntu 16.04
-  sudo apt-get -y install libwcs5 wcslib-dev
-	sudo apt-get -y install libcfitsio3-dev
+	# sudo apt-get -y install libcfitsio3-dev
 	sudo apt-get -y install flex
 	sudo apt-get -y install bison libbison-dev
 	sudo apt-get -y install sqlite sqlite3 libsqlite3-dev
@@ -126,12 +132,13 @@ wget ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
 tar xvfj wcslib-5.15.tar.bz2 && mv wcslib-5.15 wcslib-5.15-src
 cd wcslib-5.15-src
 # ./configure --prefix=${THIRDPARTY_PATH}/wcslib/ --without-pgplot <-pgplot ?? <-add back later
-./configure --prefix=`pwd`/../wcslib/
+./configure --prefix=`pwd`/../wcslib/  ##--without-pgplot which is needed by casa
 make && make install
 cd ..
 
-curl -O -L http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3380.tar.gz
-tar xvfz cfitsio3380.tar.gz && mv cfitsio cfitsio-src
+## cfitsio3390
+curl -O -L http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3390.tar.gz
+tar xvfz cfitsio3390.tar.gz && mv cfitsio cfitsio-src
 cd cfitsio-src
 ./configure --prefix=`pwd`/../cfitsio/
 make && make install

@@ -18,9 +18,11 @@ baseurl=http://svn.cv.nrao.edu/casa/repo/el7/x86_64
 gpgkey=http://svn.cv.nrao.edu/casa/RPM-GPG-KEY-casa http://www.jpackage.org/jpackage.asc http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-redhat-release http://svn.cv.nrao.edu/casa/repo/el7/RPM-GPG-KEY-EPEL
 EOF
 
+
     # for building Qt 4.8.5,
     # On Grimmer's docker -centos 7.3 , only when buidling Carta by Qt-5.3.2, we need gstreamer-devel, gstreamer-plugins-base
-    # But on Chia-Jung Hsu's pc - centos 7.3, building Qt 4.8.5 needs pkgconfig(gstreamer-app-0.10) which install gstreamer-plugins-base-devel , also gstreamer-devel, gstreamer-plugins-base,  gstreamer
+    # But on Chia-Jung Hsu's pc - centos 7.3, building Qt 4.8.5 needs pkgconfig(gstreamer-app-0.10) which install gstreamer-plugins-base-devel ,
+    #    also gstreamer-devel, gstreamer-plugins-base,  gstreamer
     # Qt's QtWebkit may use gstreamer libs
     sudo yum -y install 'pkgconfig(gstreamer-app-0.10)'
 
@@ -28,8 +30,8 @@ EOF
     ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
     ## To do: should spend time to minimalize them,
     ## also tell them which part is for casacore, which is for casa(code)
-    ## may only support CentOS 7 ???
-    sudo yum -y install devtoolset*
+    ## only support CentOS 7 ??
+    # sudo yum -y install devtoolset*
 
     #   devtoolset-3-gcc.x86_64 0:4.9.2-6.2.el7
     #   devtoolset-3-gcc-c++.x86_64 0:4.9.2-6.2.el7
@@ -57,32 +59,42 @@ EOF
 
     ## need to check if we really need this to install casa01-mpi4py, casa01-openmpi
     ## https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForEL7
-    sudo yum -y install casa01-mpi4py.x86_64 casa01-openmpi.x86_64 \
-    casa01-python.x86_64 casa01-python-devel.x86_64 \
-    casa01-python-tools.x86_64 \ ## seems to have python-numpy, boost-python
+
+    ##  casa01-python-tools seems to have python-numpy, boost-python
+
+    sudo yum -y install \
+    python-devel boost-python \
+    # casa01-mpi4py.x86_64 casa01-openmpi.x86_64 \
+    # casa01-python.x86_64 casa01-python-devel.x86_64, casa01-python-tools.x86_64 \ (2.7.5)
     lapack-devel xerces-c-devel
+
+    # sudo yum -y install wcslib wcslib-devel
 
     ## casacore needs. not sure if code needs or not
     ## casacore refernece: https://github.com/casacore/casacore
     ## the above link shows. (optional) yum -y install ncurses ncurses-devel, but it is default when building on Ubuntu?
-    sudo yum -y install gcc-gfortran ## 4.8.5, ast also needs this
+    # sudo yum -y install gcc-gfortran ## 4.8.5, ast also needs this
     sudo yum -y install boost
     sudo yum -y install boost-devel
     sudo yum -y install numpy
     sudo yum -y install fftw fftw-devel gsl gsl-devel
 
     ### (casa)code needs
+    ## when config casa-code: -- casa_packages=/usr/lib64/casapy (second), but not exist now
     sudo yum -y install java
     sudo yum -y install libxml2-devel libxslt-devel
     sudo yum -y install rpfits readline-devel
-    sudo yum -y install casa01-dbus-cpp casa01-dbus-cpp-devel ## for Qt d-bus (QtDbus)
-    sudo yum -y install libsakura pgplot-devel pgplot-demos pgplot-motif \
+    # sudo yum -y install casa01-dbus-cpp casa01-dbus-cpp-devel ## for Qt d-bus (QtDbus)
+    sudo yum -y install dbus dbus-c++ dbus-c++-devel
+    sudo yum -y install libsakura # /opt/casa/01/
+    sudo yum -y install pgplot-devel pgplot-demos pgplot-motif # , 5.3.1
 else
 	##### Ubuntu 16.04
     ## can use sudo aptitude search to search packages
     ## another ref: https://github.com/casacore/casacore/blob/master/.travis.yml
 
     ####### casacore part:
+    # sudo apt-get -y install libwcs5 wcslib-dev
     sudo apt-get -y install gfortran python-numpy libfftw3-dev liblapacke-dev
     sudo apt-get -y install libboost-dev
     # sudo apt-get -y install libblas-dev libblas3 \ move to install3party since gsl needs too
@@ -119,7 +131,7 @@ else
     sudo apt-get install software-properties-common
     sudo apt-add-repository multiverse
     sudo apt-get update
-    sudo apt-get -y install pgplot5 ## needed for casa-code
+    sudo apt-get -y install pgplot5 ## needed for casa-code, ubuntu 15.04 does not find it
 
     ## not sure if this is in multiverse repo
     sudo apt-get -y install libpgsbox-dev
@@ -150,23 +162,24 @@ if [ "$isCentOS" = false ] ; then
     make install ## default: /usr/local
 fi
 
-## Build Qt 4.8.5 (slow)
-wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
-unzip -a qt-everywhere-opensource-src-4.8.5.zip # -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
-# cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/qt-everywhere-opensource-src-4.8.5
-cd qt-everywhere-opensource-src-4.8.5
-# ./configure --prefix $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5 -> fail
-#./configure # some interactive questioin. "o", "yes" !!
-
-
+## Install Qt 4.8.5
 if [ "$isCentOS" = true ] ; then
-    printf 'o\nyes\n' | ./configure
-    gmake
-    gmake install # /usr/local/Trolltech/Qt-4.8.5/
+    sudo yum -y install qt-devel.x86_64
+    alias qmake='qmake-qt4'
 else
+    ## Todo: use apt-get to install, not try
+    ## Build Qt 4.8.5 (slow)
+    wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
+    unzip -a qt-everywhere-opensource-src-4.8.5.zip # -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
+    # cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/qt-everywhere-opensource-src-4.8.5
+    cd qt-everywhere-opensource-src-4.8.5
+    # ./configure --prefix $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5 -> fail
+    #./configure # some interactive questioin. "o", "yes" !!
+
     printf 'yes\n' | ./configure -v -opensource -dbus-linked
     make
     make install
+    export PATH=/usr/local/Trolltech/Qt-4.8.5/bin:$PATH
 fi
 
 # can try to use tools to answer stdin questions automatically
@@ -174,8 +187,6 @@ fi
 # http://stackoverflow.com/questions/14392525/passing-arguments-to-an-interactive-program-non-interactively
 # http://stackoverflow.com/questions/4857702/how-to-provide-password-to-a-command-that-prompts-for-one-in-bash
 # or use sudo yum to insatll ? qt-4.8.6-30.fc20.x86_64
-
-export PATH=/usr/local/Trolltech/Qt-4.8.5/bin:$PATH
 
 ## for building qwt for casa-submodue-code, by using Qt4.8.5
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
@@ -186,8 +197,8 @@ cd qwt-6.1.0-src # can use qwt 6.1.3 Pavol uses
 sed -i "22,22c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0" qwtconfig.pri
 qmake qwt.pro
 make && make install
-export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
-export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/lib:$PATH
+# export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
+# export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/lib:$PATH
 cd ..
 
 ## cascore and code
@@ -208,12 +219,14 @@ cd trunk
 svn co -r 105507 https://github.com/casacore/casacore/trunk
 mv trunk casacore
 
+############################ casacore
+
 cd casacore
 mkdir build && cd build
 
 # https://sites.google.com/a/asiaa.sinica.edu.tw/acdc/bui/centos7-2,
 # maybe this is due to the above reason, required by latest versoin of casacore
-# export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/include:$PATH
+# export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/include:$PATH \
 # export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio/lib:$PATH
 
 ###  two more official build refernece
@@ -226,19 +239,23 @@ mkdir build && cd build
 ## use $CARTAWORKHOME may be better for -DCMAKE_INSTALL_PREFIX=../../linux
 ## After checking, /usr/lib64/casa/01 does not exist but build OK
 if [ "$isCentOS" = true ] ; then
-    cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
+    cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
     -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 \
-    -DPYTHON_INCLUDE_DIR=/opt/casa/01/include/python2.7/ \
-    -DPYTHON_LIBRARY=/opt/casa/01/lib/libpython2.7.so \
-    -DBOOST_ROOT=/usr/lib64/casa/01 -DCMAKE_BUILD_TYPE=Release \
-    -DCXX11=1
-    -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/g++ \
-    -DCMAKE_C_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gcc \
-    -DCMAKE_Fortran_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gfortran ..
+    -DPYTHON_INCLUDE_DIR=/usr/include/python2.7 \
+    -DPYTHON_LIBRARY=/usr/lib64/libpython2.7.so \
+    -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
+    -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCXX11=1 ..
+    # -DPYTHON_LIBRARY=/opt/casa/01/lib/libpython2.7.so \ ??
+    # -DPYTHON_INCLUDE_DIR=/opt/casa/01/include/python2.7/ \
+    # -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/g++ \
+    # -DCMAKE_C_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gcc \
+    # -DCMAKE_Fortran_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gfortran ..
 else
     # https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForUbuntu
     # -DCMAKE_PREFIX_PATH=/media/workdrive/CARTA/CARTAvis-externals/ThirdParty/wcslib
-    cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
+    cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
     -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 \
     -DCMAKE_BUILD_TYPE=Release -DCXX11=1 ..
 fi
@@ -258,26 +275,39 @@ fi
 make -j2
 make install
 
-#### casa-submodule: code/imageanalysis
+############################ casa-submodule: code/imageanalysis
 cd ../../code
+
+# Apply https://safe.nrao.edu/wiki/pub/Software/CASA/CartaBuildInstructionsForUbuntu/imageanalysisonubuntu.diff
+# to Code to build imageanalysis only. Reduce build time a lot !!!!!
+curl -O http://www.asiaa.sinica.edu.tw/~tckang/casa/casacodereduce1.diff
+svn patch casacodereduce1.diff
+
 mkdir build && cd build
 
-## To do: try this later
-# Apply https://safe.nrao.edu/wiki/pub/Software/CASA/CartaBuildInstructionsForUbuntu/imageanalysisonubuntu.diff
-# to Code to build imageanalysis only
+# -DEXTRA_C_FLAGS=-DPG_PPU -I/opt/casa/02/include/wcslib
 
 ## it is better to rm -rf * in build folder if rebuild manually + dependency changes
+## DSKIP_PGPLOT is used by display, qtviewer/guitools?, or some imageanalysis/test
 if [ "$isCentOS" = true ] ; then
-    cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 '-DEXTRA_C_FLAGS=-DPG_PPU -I/usr/include/wcslib' \
-    -Darch=linux -DCMAKE_BUILD_TYPE=Release -DCXX11=1 \
-    -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/g++ \
-    -DCMAKE_C_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gcc \
-    -DCMAKE_Fortran_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gfortran ..
+    cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DEXTRA_C_FLAGS=-DPG_PPU \
+    -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
+    -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
+    -DQWT_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0 \
+    -DLIBSAKURA_ROOT_DIR=/opt/casa/01/lib/libsakura/default/ \
+    -Darch=linux -DCMAKE_BUILD_TYPE=Release ..
+    ## -DCXX11=1
+    # -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/g++ \
+    # -DCMAKE_C_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gcc \
+    # -DCMAKE_Fortran_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gfortran ..
 else
     # -DWCSLIB_ROOT_DIR=/media/workdrive/CARTA/CARTAvis-externals/ThirdParty/wcslib
-    cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 '-DEXTRA_C_FLAGS=-DPG_PPU -I/usr/include/wcslib' \
-    -Darch=linux -DCMAKE_BUILD_TYPE=Release \
-    -DCXX11=1 ..
+    cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 '-DEXTRA_C_FLAGS=-DPG_PPU' \
+    -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
+    -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
+    -DQWT_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0 \
+    -DLIBSAKURA_ROOT_DIR=/opt/casa/01/lib/libsakura/default/ \
+    -Darch=linux -DCMAKE_BUILD_TYPE=Release ..
 fi
 
 # -DCMAKE_Fortran_COMPILER=/opt/casa/02/bin/gfortran-mp-5 \
@@ -301,7 +331,7 @@ fi
 # it may build fail due to no official parallel build support of casa
 make -j2
 
-# Ville said code does not need make install, why?
+# Ville said code does not need make install
 # make install
 
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
@@ -315,3 +345,7 @@ mkdir casacore
 cd casacore
 ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/include/ include
 ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib lib
+
+if [ "$isCentOS" = true ] ; then
+    unalias qmake
+}

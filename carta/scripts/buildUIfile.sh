@@ -8,7 +8,7 @@
 CARTAWORKHOME=`pwd`
 
 cd $CARTAWORKHOME/CARTAvis/carta/html5/common/skel
-./generate.py > /dev/null
+./generate.py
 
 ## to build carta, Qt (webkit) needs gstreamer libs
 ## python-devel will install Python.h needed by building carta.
