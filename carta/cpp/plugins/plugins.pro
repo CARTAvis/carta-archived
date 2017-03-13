@@ -1,8 +1,7 @@
 TEMPLATE = subdirs
 #CONFIG += ordered
 
-SUBDIRS += casaCore-2.10.2016
-#SUBDIRS += casaCore-2.0.1
+SUBDIRS += casaCore
 SUBDIRS += CasaImageLoader
 SUBDIRS += Colormaps1
 SUBDIRS += Fitter1D
@@ -10,7 +9,7 @@ SUBDIRS += Histogram
 SUBDIRS += WcsPlotter
 SUBDIRS += ConversionSpectral
 SUBDIRS += ConversionIntensity
-SUBDIRS += ImageAnalysis-2.10.2016
+SUBDIRS += ImageAnalysis
 SUBDIRS += ImageStatistics
 SUBDIRS += RegionCASA
 SUBDIRS += RegionDs9
@@ -28,7 +27,7 @@ SUBDIRS += DevIntegration
 SUBDIRS += PCacheSqlite3
 
 unix:macx {
-# Disable PCacheLevelDB plugin on Mac, since build carta error with LevelDB enabled. 
+# Disable PCacheLevelDB plugin on Mac, since build carta error with LevelDB enabled.
 }
 else{
   SUBDIRS += PCacheLevelDB
@@ -43,5 +42,3 @@ SUBDIRS += hpcImgRender
 SUBDIRS += tester1
 SUBDIRS += clock1
 SUBDIRS += blurpy
-
-

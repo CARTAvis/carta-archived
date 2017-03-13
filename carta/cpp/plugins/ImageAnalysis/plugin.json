@@ -1,0 +1,11 @@
+{
+
+    "name"       : "ImageAnalysis",
+    "version"    : "1",
+    "type"       : "lib",
+    "description": [
+        "Basic tools for analyzing images"
+    ],
+    "about"      : "NRAO's CASA image analysis tools. Use its ver around 9.19.2016",
+    "depends"    : [ "casaCore"]
+}

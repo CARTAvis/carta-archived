@@ -7,5 +7,5 @@
         "Provides conversion of intensity units."
     ],
     "about"      : "Converts between intensity units",
-    "depends"    : [ "casaCore-2.10.2016", "CasaImageLoader"]
+    "depends"    : [ "casaCore", "CasaImageLoader"]
 }

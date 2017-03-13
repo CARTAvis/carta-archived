@@ -7,5 +7,5 @@
         "Plots WCS grids using starlink AST lib"
     ],
     "about"      : "Written by Pavol Federl",
-    "depends"    : [ "casaCore-2.10.2016", "CasaImageLoader"]
+    "depends"    : [ "casaCore", "CasaImageLoader"]
 }

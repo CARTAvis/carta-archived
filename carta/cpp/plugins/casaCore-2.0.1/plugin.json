@@ -1,8 +1,0 @@
-{
-    "name"       : "casaCore-2.0.1",
-    "version"    : "2.1.0",
-    "type"       : "lib",
-    "description": "adds casacore shared libraries",
-    "about"      : "Written by Pavol Federl",
-    "depends"    : []
-}

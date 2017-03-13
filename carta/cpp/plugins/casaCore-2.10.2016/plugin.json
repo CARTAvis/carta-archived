@@ -1,8 +1,0 @@
-{
-    "name"       : "casaCore-2.10.2016",
-    "version"    : "2.3",
-    "type"       : "lib",
-    "description": "adds casa casacore shared libraries",
-    "about"      : "NRAO CASA's version of the casacore libraries",
-    "depends"    : []
-}
