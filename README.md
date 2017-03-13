@@ -108,17 +108,15 @@ The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compil
 cd `your-carta-work`, execute
 `./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
-1. Download Qt 4.8.5 source code (269MB), build and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours. Keep in mind that you **can not** ignore executing the previous steps of `buildcasa.sh` which install some `dbus` related libraries which are needed by QtDbus module, which is neeed for **code submodule**.
+1. Use **yum install qt-devel.x86_64 qt.x86_64** to get Qt 4.8.5.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
 3. svn checkout casa source code into `$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/`, then use Qt 4.8.5 to build CASA libraries.
 
-The default build flag for CASA I try is `make -j 2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
-
-To reduce time spending on building Qt 4.8.5, it is possible to install pre-built Qt 4.8.5. `yum install qt-devel.x86_64 qt.x86_64` (Not try yet).
+The default build flag for CASA I try is `make -j2`, and this is a compromise way. Only `make` is very slow but setting more than 2 let the possibility of building fail become higher, since to no official support of building casa. You can try other flags to build (e.g. `make` to guarantee success or more than `2`). Also `make -j` may not be the fatest (and it may also hang on your computers). The faster `n` in `make -j(n)` is according your environment and may be different.
 
 **Ubuntu 16.04:**
 
-Same as CentOS, except will not install another specific g++ compilers.
+Same as CentOS, except **it downloads the source code of Qt 4.8.5 (269MB) to build** and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours. Keep in mind that you **can not** ignore executing the previous steps of `buildcasa.sh` which install some `dbus` related libraries which are needed by QtDbus module, which is neeed for **code submodule**.
 
 It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`.
 
@@ -192,7 +190,7 @@ Suggested path:
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=bughunter $CARTAWORKHOME/CARTAvis/carta -r`
-5. `make -j 2`
+5. `make -j2`
 
 **CARTA_BUILD_TYPE** can be
 
