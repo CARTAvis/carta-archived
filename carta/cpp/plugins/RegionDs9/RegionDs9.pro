@@ -7,8 +7,8 @@ TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
 
-FLEXSOURCES = ds9lex.L 
-   
+FLEXSOURCES = ds9lex.L
+
 BISONSOURCES = ds9parse.y
 
 SOURCES += \
@@ -22,7 +22,7 @@ HEADERS += \
     ContextDs9.h \
     ds9FlexLexer.h \
     ds9lex.h
-    
+
 
 casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
@@ -35,8 +35,9 @@ LIBS += -L$${CFITSIODIR}/lib -lcfitsio
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 unix:macx{
-    LIBS += -L$${FLEXANDBISONDIR}/lib -lfl -ly
-    INCLUDEPATH += $${FLEXANDBISONDIR}/include
+    # use homebrew version, flex:2.6.3, bison:3.0.4
+    LIBS += -L/usr/local/opt/flex/lib -lfl -ly
+    INCLUDEPATH += /usr/local/opt/flex/include
 } else {
     LIBS += -lfl -ly
 }
@@ -64,7 +65,12 @@ MYFILES += $$BISONSOURCES
 
 flexsource.input = FLEXSOURCES
 flexsource.output = ${QMAKE_FILE_BASE}.cpp
-flexsource.commands = flex -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+unix:macx{
+  # seems that sometimes it will use Xcode's flex whatever you already setup PATH, so specify the path
+  flexsource.commands = /usr/local/Cellar/flex/2.6.3/bin/flex -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+} else {
+  flexsource.commands = flex -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+}
 flexsource.variable_out = SOURCES
 flexsource.name = Flex Sources ${QMAKE_FILE_IN}
 flexsource.CONFIG = += target_predeps
@@ -72,7 +78,11 @@ QMAKE_EXTRA_COMPILERS += flexsource
 
 bisonsource.input = BISONSOURCES
 bisonsource.output = ${QMAKE_FILE_BASE}.cpp
-bisonsource.commands = bison -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+unix:macx{
+  bisonsource.commands = /usr/local/bin/bison -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+} else {
+  bisonsource.commands = bison -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+}
 bisonsource.variable_out = SOURCES
 bisonsource.name = Bison Sources ${QMAKE_FILE_IN}
 bisonsource.CONFIG += target_predeps
@@ -86,9 +96,6 @@ bisonheader.name = Bison Headers ${QMAKE_FILE_IN}
 bisonheader.CONFIG += target_predeps no_link
 QMAKE_EXTRA_COMPILERS += bisonheader
 
-
-
-
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
     QMAKE_LFLAGS += -undefined dynamic_lookup
@@ -97,4 +104,9 @@ else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
 }
 
+unix:!macx {
+  QMAKE_RPATHDIR=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
+}
+else {
 
+}

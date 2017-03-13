@@ -7,5 +7,5 @@
         "Support for conversion of spectral units."
     ],
     "about"      : "Based on casacore functionality",
-    "depends"    : [ "casaCore-2.10.2016", "CasaImageLoader"]
+    "depends"    : [ "casaCore", "CasaImageLoader"]
 }

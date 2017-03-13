@@ -8,5 +8,5 @@
         "instances of the CARTA RegionInfo class."
     ],
     "about"      : "Parses region files based on the ds9 region format.",
-    "depends"    : [ "casaCore-2.10.2016", "CasaImageLoader"]
+    "depends"    : [ "casaCore", "CasaImageLoader"]
 }

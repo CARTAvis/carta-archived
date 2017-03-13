@@ -54,4 +54,10 @@ else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
 }
 
+## will improve mac later
+unix:!macx {
+  QMAKE_RPATHDIR=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
+}
+else {
 
+}

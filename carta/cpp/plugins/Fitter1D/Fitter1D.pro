@@ -27,7 +27,7 @@ HEADERS += \
 GSLROOTDIR=/usr/local
 
 INCLUDEPATH += $${GSLROOTDIR}/include
-LIBS += -L$$GSLROOTDIR/lib -lgsl
+LIBS += $$GSLROOTDIR/lib/libgsl.a
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
@@ -49,5 +49,3 @@ unix:macx {
 else{
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.so
 }
-
-

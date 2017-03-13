@@ -7,5 +7,5 @@
         "Generates the data for profiles of images."
     ],
     "about"      : "Generates the data for profiles of images based on CASA's image analysis algorithm.",
-    "depends"    : [ "casaCore-2.10.2016", "CasaImageLoader", "ImageAnalysis-2.10.2016"]
+    "depends"    : [ "casaCore", "CasaImageLoader", "ImageAnalysis"]
 }
