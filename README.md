@@ -1,4 +1,4 @@
-Carta Viewer
+CARTA Viewer
 =======
 
 #### Branching model
@@ -14,16 +14,16 @@ people develop each feature in its branch whose name can be `peter/drawImage` or
 `Fix Bug`:
 Except some special cases, such as modifying documents, changing build scripts, low/no-risk fixes, otherwise you need to commit your bug fixes in Hotfix branch or the original feature branch, then make a pull request to do code review.
 
-Introduction to build and use Desktop ver. of Carta Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
+Introduction to build and use Desktop ver. of CARTA Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
 =======
 
 Tested OS: CentOS 7.3.1611, Ubuntu 16.04.
 
 Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well and also need install c++11 compatible compilers, will fix soon.
 
-Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change Carta code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ).
+Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change CARTA code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ).
 
-Carta can be built by Qt 5.3, 5.4, 5.5, 5.6 (not tested), 5.7.
+CARTA can be built by Qt 5.3, 5.4, 5.5, 5.6 (not tested), 5.7.
 
 # Steps before building CARTA
 
@@ -31,7 +31,7 @@ Carta can be built by Qt 5.3, 5.4, 5.5, 5.6 (not tested), 5.7.
 
 Paste the the following script part into your terminal to install. Ignore this step if you already have compatible version of them but you need modify some path by yourself.
 
-Carta's gcc/g++ minimal requirement is >=4.8.1, to use c++11 features.
+CARTA's gcc/g++ minimal requirement is >=4.8.1, to use c++11 full features.
 
 CentOS 7:
 
@@ -86,8 +86,8 @@ cd `your-carta-work`, then
 
 Qt 5.3 is for following things:
 
-1. To build carta by command line.
-2. To build Qwt 6.1.2 needed by Carta in some scripts.  
+1. To build CARTA by command line.
+2. To build Qwt 6.1.2 needed by CARTA in some scripts.  
 
 ### Or you can download the the other Qt offline installers to install Qt Creator and Qt 5.3.2
 
@@ -122,7 +122,7 @@ It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-
 
 ### Some notes about Casa:
 
-#### 1.Carta use two submodule of Casa
+#### 1.CARTA use two submodule of Casa
 
 The main code repo of Casa is https://svn.cv.nrao.edu/svn/casa/trunk/
 
@@ -141,14 +141,14 @@ We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imagean
 Some of third-party libraries they use are the same,  but may use different version. Here is the list.
 
 1. cfitsio
-2. wcslib (carta build from source code and its default configure seems to have pgplot. casa: after installing wcslib from apt/yum, casa-code still needs people to install pgplot)
+2. wcslib (CARTA build from source code and its default configure seems to have pgplot. casa: after installing wcslib from apt/yum, casa-code still needs people to install pgplot)
 3. flex
 4. bison
-5. gsl (carta uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
-6. gfortan (carta uses ast library which uses gfortan, and casacore uses this, too)
-7. Qt. (carta uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
-8. qwt (carta uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
-9. Python and numpy (should be ok. carta:2.7. casa:2.7, exp-3.5)
+5. gsl (CARTA uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
+6. gfortan (CARTA uses ast library which uses gfortan, and casacore uses this, too)
+7. Qt. (CARTA uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
+8. qwt (CARTA uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
+9. Python and numpy (should be ok. CARTA:2.7. casa:2.7)
 10. blas lib. (required when building GSL, also when building casacore)
 
 #### 3.How to change the revision of casa we use to build
@@ -159,7 +159,7 @@ Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we
 
 It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
 
-# Build Carta program
+# Build CARTA program
 
 ## Choose the location of build folder
 
@@ -208,7 +208,7 @@ Open carta.pro, then setup some build and run setting, then build.
 
 cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`
 
-# Run Carta
+# Run CARTA
 
 Need to prepare some things needed for running CARTA and also appended parameters.
 
@@ -271,7 +271,7 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 
 ## Run by command line
 
-1. Current Carta needs to execute the following command every time before running Carta. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
+1. [no need anymore, use QMAKE_RPATHDIR now !!] Current CARTA needs to execute the following command every time before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
     ```
     ## ok way, use this
@@ -282,7 +282,7 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
     ```
 
 2. execute `ulimit -n 2000` before running Carta
-3. To run `Carta` binary with parameters, at least should append `html file path`, example:
+3. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
 ```
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
@@ -315,17 +315,17 @@ Observation about build Size (on Mac), before packaging:
             QT (in Frameworks) with a size of ~ 300M
             casa libraries (in Frameworks) with ~ 60 M
             other libraries ~ 20M.  
-744M    build folder (Carta.app +others) + carta source code +  third-party libs(+ possible source code)
+744M    build folder (Carta.app +others) + CARTA source code +  third-party libs(+ possible source code)
 1.5G    prebuilt casacore/casacode + possible source code
 ```
 
 # Dynamic/Shared Library search issue
 
-1. Carta is built to **desktop program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
+1. CARTA is built to **desktop program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
 
 2. It seems that Qt-built dynamic libs do not have **Search issue**, at least before moving desktop program (for packaging).
 
-3. When using Qt On mac, we use **install_name_tool** to forcely specify dynamic linking path of each lib for main program, executable file **desktop**. On mac, **desktop** is located in **desktop.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so that Mac having more trouble.
+3. We use **install_name_tool** (Mac) and **chrpath** or **PatchELF** (Linux) to specify dynamic linking path of each lib. On mac, **desktop** is located in **desktop.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so we need to have different handles.
 
 # Build on CI/CD
 
@@ -339,17 +339,17 @@ Observation about build Size (on Mac), before packaging:
     between CARTA and CASA builds.
     ```
 
-2. use **-Wl, rpath** to solve dynamic search path issue on Carta instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
+2. use **-Wl, rpath** to solve dynamic search path issue on CARTA instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
 
-3. try to use apt/yum way to install pre-built some third party libs for carta. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
+3. try to use apt/yum way to install pre-built some third party libs for CARTA. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
 
 4. try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first.
 
 5. try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
 
-6. May bundle multiple dynamic libs to one libs can lower the complexity, possibily done by cmake in the future.
+6. May bundle multiple dynamic libs to one libs can lower the complexity, and it is possible done by cmake in the future.
 
 ### AppendixA:
 
-Carta third party libs list:
+CARTA third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
