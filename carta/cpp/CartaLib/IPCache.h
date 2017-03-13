@@ -45,6 +45,10 @@ public:
     setEntry( const QByteArray & key,
               const QByteArray & val,
               int64_t priority ) = 0;
+
+    virtual
+    ~IPCache() = 0;
 };
+inline IPCache::~IPCache() {}
 }
 }
