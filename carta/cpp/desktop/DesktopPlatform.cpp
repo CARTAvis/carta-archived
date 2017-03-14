@@ -99,7 +99,7 @@ DesktopPlatform::DesktopPlatform()
 
     // create main window
     m_mainWindow = new MainWindow();
-    m_mainWindow-> resize( 1000, 700);
+    m_mainWindow-> resize( 1280, 800);
 
     // center the main window on the screen
     QDesktopWidget wid;
