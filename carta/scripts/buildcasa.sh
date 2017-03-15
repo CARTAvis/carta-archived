@@ -283,6 +283,11 @@ cd ../../code
 curl -O http://www.asiaa.sinica.edu.tw/~tckang/casa/casacodereduce1.diff
 svn patch casacodereduce1.diff
 
+## if no insert NO_LINK, casa will try to use the libraries to run and will not find out their shared libraries, 
+# since no more yum/apt version which is easily searchable without using rpath or LD_LIBRARY_PATH. 
+perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( WCSLIB/' CMakeLists.txt
+perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
+
 mkdir build && cd build
 
 # -DEXTRA_C_FLAGS=-DPG_PPU -I/opt/casa/02/include/wcslib
