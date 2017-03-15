@@ -116,9 +116,12 @@ The default build flag for CASA I try is `make -j2`, and this is a compromise wa
 
 **Ubuntu 16.04:**
 
-Same as CentOS, except **it downloads the source code of Qt 4.8.5 (269MB) to build** and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours. Keep in mind that you **can not** ignore executing the previous steps of `buildcasa.sh` which install some `dbus` related libraries which are needed by QtDbus module, which is neeed for **code submodule**.
+Same as CentOS, use `apt-get install libqt4-dev` to install **Qt 4.8.7** (the build script has changed to use this but not test yet). More installable modules: `apt-get install libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig libqt4-debug? libqt4-gui?`.
 
-It is possible to install built 4.8.7 by `apt-get install libqt4-dev libqt4-dev-bin` (Not test yet). More modules: `apt-get install libqt4-debug libqt4-gui libqt4-sql libqt4-dev-tools qt4-doc qt4-designer qt4-qtconfig`.
+Old way (approved), previous version of `buildcasa` script, downloads the source code of Qt 4.8.5 (269MB) to build** and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours. Keep in mind that you **can not** ignore executing the previous steps of `buildcasa.sh` which install some `dbus` related libraries which are needed by QtDbus module, which is neeed for **code submodule**.
+
+**TODO**: 
+Now we switch to use `apt/yum` to install built Qt 4.8.x to build casa submodue, code. Need to investigate do they supply statlic version Qt lib? It may let final casa and needed Qt libs bigger. Ubuntu: check /usr/lib/x86_64-linux-gnu, seems not having static version, lick libQtGui.a.   
 
 ### Some notes about Casa:
 
