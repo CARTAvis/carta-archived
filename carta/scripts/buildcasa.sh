@@ -162,24 +162,32 @@ if [ "$isCentOS" = false ] ; then
     make install ## default: /usr/local
 fi
 
-## Install Qt 4.8.5
+## Install Qt 4.8
 if [ "$isCentOS" = true ] ; then
+    ## 4.8.5 
     sudo yum -y install qt-devel.x86_64
     alias qmake='qmake-qt4'
 else
     ## Todo: use apt-get to install, not try
     ## Build Qt 4.8.5 (slow)
-    wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
-    unzip -a qt-everywhere-opensource-src-4.8.5.zip # -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
-    # cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/qt-everywhere-opensource-src-4.8.5
-    cd qt-everywhere-opensource-src-4.8.5
+    
+    ##### way1 
+    #wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
+    #unzip -a qt-everywhere-opensource-src-4.8.5.zip # -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
+    ## cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/qt-everywhere-opensource-src-4.8.5
+    #cd qt-everywhere-opensource-src-4.8.5
+    #printf 'yes\n' | ./configure -v -opensource -dbus-linked
+    #make
+    #make install
+    #export PATH=/usr/local/Trolltech/Qt-4.8.5/bin:$PATH
+    #######
+    
     # ./configure --prefix $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5 -> fail
     #./configure # some interactive questioin. "o", "yes" !!
+    
+    ##### TODO: way2, to install Qt 4.8.7, use qmake or qmake-qt4. Not use this way to test all. 
+    sudo apt-get install libqt4-dev
 
-    printf 'yes\n' | ./configure -v -opensource -dbus-linked
-    make
-    make install
-    export PATH=/usr/local/Trolltech/Qt-4.8.5/bin:$PATH
 fi
 
 # can try to use tools to answer stdin questions automatically
