@@ -64,7 +64,7 @@ Which means there must be something outside the source code directory, and this 
 **Create this working folder**, alias `your-carta-work`(will use variable CARTAWORKHOME to store this path somewhere),  then
 
 1. cd `your-carta-work`
-2. `git clone -b toImproveBuild https://github.com/CARTAvis/carta.git CARTAvis`
+2. `git clone https://github.com/CARTAvis/carta.git CARTAvis`
 
 p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
