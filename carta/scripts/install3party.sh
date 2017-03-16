@@ -26,7 +26,11 @@ else
 		isCentOS=false
 fi
 
-if [ "$isCentOS" = true ] ; then
+if [ "$(uname)" == "Darwin" ]; then
+	sudo easy_install cython
+	sudo easy_install pip
+	pip install matplotlib --user -U
+elif [ "$isCentOS" = true ] ; then
 	##### CentOS 7
 
 	## these (wcslib, cfitsio) are required by Carta (but also duplicate install from source),
@@ -58,6 +62,7 @@ if [ "$isCentOS" = true ] ; then
 
 	## required by carta
 	sudo yum -y install Cython
+	sudo yum install python-matplotlib
 
 	## carta only:
 	## ast (static linking)
@@ -84,6 +89,8 @@ else
 	sudo apt-get -y install sqlite sqlite3 libsqlite3-dev
 	sudo apt-get -y install libleveldb-dev
 	sudo apt-get -y install cython ## will install python2.7, gcc
+
+	sudo apt-get install python-matplotlib
 	sudo apt-get -y install gfortran
 
 	## also are needed by casacore
@@ -93,6 +100,7 @@ else
 	apt-get install mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev
 fi
 
+
 #####
 
 mkdir -p $CARTAWORKHOME/CARTAvis-externals/ThirdParty
@@ -101,7 +109,12 @@ cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 ## for building qwt by qt5.3 for carta
 if [ -z ${QT5PATH+x} ]; then
 	echo "QT5PATH is unset";
-	QT5PATH=/opt/Qt/5.3/gcc_64/bin/
+	QT5PATH=/
+	if [ "$(uname)" == "Darwin" ]; then
+		QT5PATH=$HOME/Qt/5.3/clang_64/bin
+	else
+		QT5PATH=/opt/Qt/5.3/gcc_64/bin
+	fi
 	export PATH=$QT5PATH:$PATH
 else
 	echo "QT5PATH is already set to '$QT5PATH'";
@@ -111,12 +124,21 @@ fi
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
 tar xvfj qwt-6.1.2.tar.bz2 && mv qwt-6.1.2 qwt-6.1.2-src
 cd qwt-6.1.2-src # can use qwt 6.1.3 Pavol uses
-# for unix part
-sed -i "22,22c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.2" qwtconfig.pri
+if [ "$(uname)" == "Darwin" ]; then
+  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{CARTAWORKHOME}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2\/ / if $.==22' qwtconfig.pri
+else
+	# for unix part, not work on Mac
+	sed -i "22,22c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.2" qwtconfig.pri
+fi
 qmake qwt.pro
 make && make install
 cd ..
 ln -s qwt-6.1.2 qwt
+if [ "$(uname)" == "Darwin" ]; then
+	cd qwt
+	ln -s ../qwt-6.1.2/lib/qwt.framework/Versions/6/Headers include
+	cd ..
+fi
 
 ## Install qooxdoo for CARTA
 wget 'http://downloads.sourceforge.net/project/qooxdoo/qooxdoo-current/3.5/qooxdoo-3.5-sdk.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fqooxdoo%2Ffiles%2Fqooxdoo-current%2F3.5%2F&ts=1479095500&use_mirror=excellmedia' -O qooxdoo-3.5-sdk.zip

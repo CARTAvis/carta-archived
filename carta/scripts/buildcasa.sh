@@ -9,7 +9,18 @@ else
 	isCentOS=false
 fi
 
-if [ "$isCentOS" = true ] ; then
+TARGETOS=linux
+
+if [ "$(uname)" == "Darwin" ]; then
+    ## should do https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac first
+    ## its qmake (homebrew) is in /usr/local/Cellar/qt/4.8.7_3/bin
+
+    TARGETOS=darwin
+
+    ## in this path, in include "dbuspp-xml2cpp" which will affect code's cmake:DBUS_FLAVOR_dbuspp-xml2cpp_EXECUTABLE
+    export PATH=/opt/casa/02/bin:$PATH
+
+elif [ "$isCentOS" = true ] ; then
 
 cat > "/etc/yum.repos.d/casa.repo" <<EOF
 [casa]
@@ -88,6 +99,10 @@ EOF
     sudo yum -y install dbus dbus-c++ dbus-c++-devel
     sudo yum -y install libsakura # /opt/casa/01/
     sudo yum -y install pgplot-devel pgplot-demos pgplot-motif # , 5.3.1
+
+    #### install Qt 4.8.5
+    sudo yum -y install qt-devel.x86_64
+    alias qmake='qmake-qt4'
 else
 	##### Ubuntu 16.04
     ## can use sudo aptitude search to search packages
@@ -111,7 +126,6 @@ else
     #######
 
     ####### casa-code part:
-
     ## needed to be installed before building qt 4.8, otherwise Qt d-bus (QtDbus) moduble will not be built in
     ## not sure if all are needed or not
     sudo apt-get -y install libdbus-1-dev \
@@ -135,10 +149,8 @@ else
 
     ## not sure if this is in multiverse repo
     sudo apt-get -y install libpgsbox-dev
-fi
 
-## there is no-prebuilt libsakura for ubuntu, needed for casa-code
-if [ "$isCentOS" = false ] ; then
+    ####### there is no-prebuilt libsakura for ubuntu, needed for casa-code
     ## http://alma-intweb.mtk.nao.ac.jp/~sakura/api/html/INSTALL.txt
     apt-get install doxygen
     # apt-get install gtest
@@ -155,23 +167,15 @@ if [ "$isCentOS" = false ] ; then
     unzip gtest-1.7.0.zip -d libsakura
     cd libsakura
     ln -s googletest-release-1.7.0 gtest
+    mkdir build 
     cd build
     cmake ..
     make
     make apidoc
     make install ## default: /usr/local
-fi
+    ####### casa-code part
 
-## Install Qt 4.8
-if [ "$isCentOS" = true ] ; then
-    ## 4.8.5 
-    sudo yum -y install qt-devel.x86_64
-    alias qmake='qmake-qt4'
-else
-    ## Todo: use apt-get to install, not try
-    ## Build Qt 4.8.5 (slow)
-    
-    ##### way1 
+    ##### Qt 4.8.5 way1:  Build (slow)
     #wget https://download.qt.io/archive/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.zip
     #unzip -a qt-everywhere-opensource-src-4.8.5.zip # -d $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5
     ## cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5/qt-everywhere-opensource-src-4.8.5
@@ -181,13 +185,12 @@ else
     #make install
     #export PATH=/usr/local/Trolltech/Qt-4.8.5/bin:$PATH
     #######
-    
+
     # ./configure --prefix $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt4.8.5 -> fail
     #./configure # some interactive questioin. "o", "yes" !!
-    
-    ##### TODO: way2, to install Qt 4.8.7, use qmake or qmake-qt4. Not use this way to test all. 
-    sudo apt-get install libqt4-dev
 
+    ##### TODO: way2, to install Qt 4.8.7, use qmake or qmake-qt4. Not use this way to test all.
+    sudo apt-get install libqt4-dev
 fi
 
 # can try to use tools to answer stdin questions automatically
@@ -202,7 +205,11 @@ curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.0/qwt-6.1.0.tar.
 tar xvfj qwt-6.1.0.tar.bz2 && mv qwt-6.1.0 qwt-6.1.0-src
 cd qwt-6.1.0-src # can use qwt 6.1.3 Pavol uses
 # for unix part
-sed -i "22,22c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0" qwtconfig.pri
+if [ "$(uname)" == "Darwin" ]; then
+    perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{CARTAWORKHOME}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.0\/ / if $.==22' qwtconfig.pri
+else
+    sed -i "22,22c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0" qwtconfig.pri
+fi
 qmake qwt.pro
 make && make install
 # export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
@@ -246,9 +253,21 @@ mkdir build && cd build
 ## can use your own compiler and gfortan here
 ## use $CARTAWORKHOME may be better for -DCMAKE_INSTALL_PREFIX=../../linux
 ## After checking, /usr/lib64/casa/01 does not exist but build OK
-if [ "$isCentOS" = true ] ; then
+
+if [ "$(uname)" == "Darwin" ]; then
+    cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 \
+    -DCMAKE_Fortran_COMPILER=/usr/local/Cellar/gcc/6.3.0_1/bin/gfortran-6 \
+    -DPYTHON_LIBRARY=/System/Library/Frameworks/Python.framework/Versions/2.7/Python \
+    -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
+    -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
+    -DBOOST_ROOT=/usr/local/Cellar/boost/1.63.0 \
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+    -DCMAKE_C_COMPILER=/usr/bin/clang \
+    -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
+    -DCMAKE_INSTALL_PREFIX=../../$TARGETOS -DBUILD_PYTHON=1 -DCXX11=1 ..
+elif [ "$isCentOS" = true ] ; then
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
-    -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 \
+    -DCMAKE_INSTALL_PREFIX=../../$TARGETOS -DBUILD_PYTHON=1 \
     -DPYTHON_INCLUDE_DIR=/usr/include/python2.7 \
     -DPYTHON_LIBRARY=/usr/lib64/libpython2.7.so \
     -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
@@ -264,7 +283,7 @@ else
     # https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForUbuntu
     # -DCMAKE_PREFIX_PATH=/media/workdrive/CARTA/CARTAvis-externals/ThirdParty/wcslib
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
-    -DCMAKE_INSTALL_PREFIX=../../linux -DBUILD_PYTHON=1 \
+    -DCMAKE_INSTALL_PREFIX=../../$TARGETOS -DBUILD_PYTHON=1 \
     -DCMAKE_BUILD_TYPE=Release -DCXX11=1 ..
 fi
 
@@ -291,8 +310,8 @@ cd ../../code
 curl -O http://www.asiaa.sinica.edu.tw/~tckang/casa/casacodereduce1.diff
 svn patch casacodereduce1.diff
 
-## if no insert NO_LINK, casa will try to use the libraries to run and will not find out their shared libraries, 
-# since no more yum/apt version which is easily searchable without using rpath or LD_LIBRARY_PATH. 
+## if no insert NO_LINK, casa will try to use the libraries to run and will not find out their shared libraries,
+# since no more yum/apt version which is easily searchable without using rpath or LD_LIBRARY_PATH.
 perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( WCSLIB/' CMakeLists.txt
 perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
 
@@ -302,13 +321,31 @@ mkdir build && cd build
 
 ## it is better to rm -rf * in build folder if rebuild manually + dependency changes
 ## DSKIP_PGPLOT is used by display, qtviewer/guitools?, or some imageanalysis/test
-if [ "$isCentOS" = true ] ; then
+if [ "$(uname)" == "Darwin" ]; then
+    cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 \
+    -Darch=$TARGETOS -DCMAKE_BUILD_TYPE=Release -DCXX11=1 \
+    -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
+    -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
+    -DREADLINE_ROOT_DIR=/usr/local/opt/readline \
+    -DPGPLOT_ROOT_DIR=/usr/local/opt/pgplot \
+    -DPGPLOT_INCLUDE_DIRS=/usr/local/opt/pgplot/include \
+    -DPGPLOT_LIBRARIES=/usr/local/opt/pgplot/lib \
+    -DSKIP_PGPLOT=1 \
+    -DLIBXML2_ROOT_DIR=/usr/local/opt/libxml2 \
+    -DQWT_ROOT_DIR=/usr/local/opt/qwt-qt4 \
+    -DXERCES_ROOT_DIR=/usr/local/opt/xerces-c \
+    -DRPFITS_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/rpfits \
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+    -DCMAKE_C_COMPILER=/usr/bin/clang \
+    -DLLVMCOMPILER=1 \
+    -DINTERACTIVE_ITERATION=1  ..
+elif [ "$isCentOS" = true ] ; then
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DEXTRA_C_FLAGS=-DPG_PPU \
     -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
     -DQWT_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0 \
     -DLIBSAKURA_ROOT_DIR=/opt/casa/01/lib/libsakura/default/ \
-    -Darch=linux -DCMAKE_BUILD_TYPE=Release ..
+    -Darch=$TARGETOS -DCMAKE_BUILD_TYPE=Release ..
     ## -DCXX11=1
     # -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/g++ \
     # -DCMAKE_C_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/gcc \
@@ -320,7 +357,7 @@ else
     -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
     -DQWT_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0 \
     -DLIBSAKURA_ROOT_DIR=/opt/casa/01/lib/libsakura/default/ \
-    -Darch=linux -DCMAKE_BUILD_TYPE=Release ..
+    -Darch=$TARGETOS -DCMAKE_BUILD_TYPE=Release ..
 fi
 
 # -DCMAKE_Fortran_COMPILER=/opt/casa/02/bin/gfortran-mp-5 \
@@ -350,14 +387,14 @@ make -j2
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 mkdir imageanalysis
 cd imageanalysis
-ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/include/casacode/ include
-ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib lib
+ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/include/casacode/ include
+ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/lib lib
 
 cd ..
 mkdir casacore
 cd casacore
-ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/include/ include
-ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib lib
+ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/include/ include
+ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/lib lib
 
 if [ "$isCentOS" = true ] ; then
     unalias qmake
