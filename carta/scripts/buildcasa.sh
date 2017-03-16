@@ -167,7 +167,7 @@ else
     unzip gtest-1.7.0.zip -d libsakura
     cd libsakura
     ln -s googletest-release-1.7.0 gtest
-    mkdir build 
+    mkdir build
     cd build
     cmake ..
     make
@@ -314,6 +314,12 @@ svn patch casacodereduce1.diff
 # since no more yum/apt version which is easily searchable without using rpath or LD_LIBRARY_PATH.
 perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( WCSLIB/' CMakeLists.txt
 perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
+
+perl -pi.bak -e 's/QtGui QtDBus QtXml/QtGui QtXml/g' CMakeLists.txt
+sed 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
+sed 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
+sed 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
+sed 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
 
 mkdir build && cd build
 
