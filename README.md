@@ -110,6 +110,8 @@ Qt 5.3 is for following things:
 
 Download Latest Qt creator (4.2.x) + (optional) Qt : http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/qt-unified-mac-x64-2.0.5-online.dmg
 
+Please use **~/Qt** as your installation location.
+
 ### If you choose your preferred position to install Qt 5.3.2
 
 Setup QT5PATH variable, like `QT5PATH=/opt/Qt/5.3/gcc_64/bin`, this is to build Qwt in the following step.
@@ -225,6 +227,7 @@ cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`. This st
 2. Setup Qt5 path
 
     Linux: `export PATH=/opt/Qt/5.3/gcc_64/bin:$PATH` or `your Qt Path`.
+
     Mac: `export PATH=$HOME/Qt/5.x/clang_64/bin:$PATH`
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
