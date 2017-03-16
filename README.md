@@ -14,20 +14,27 @@ people develop each feature in its branch whose name can be `peter/drawImage` or
 `Fix Bug`:
 Except some special cases, such as modifying documents, changing build scripts, low/no-risk fixes, otherwise you need to commit your bug fixes in Hotfix branch or the original feature branch, then make a pull request to do code review.
 
-Introduction to build and use Desktop ver. of CARTA Viewer on CentOS 6, 7 and Ubuntu 14.04~16.04
+Introduction to build, run and deploy Desktop ver. of CARTA Viewer on Mac and Linux
 =======
 
-Tested OS: CentOS 7.3.1611, Ubuntu 16.04.
+Development platform:
+1. CentOS 7 (7.3.1611 tested)
+2. Ubuntu 14.04 (not tested yet with this guide)
+3. Ubuntu 16.04
+4. Mac 10.11, 10.12
 
-Will fail: CentOS 6.x, since some scripts do not detect CentOS 6 well and also need install c++11 compatible compilers, will fix soon.
+Supported deployment platform:
+1. CentOS 6, 7
+2. Ubuntu (not official)
+3. Mac: OS X El Capitan (10.11), macOS Sierra (10.12)
 
-Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04 but need change CARTA code to be compatiable with, already done in this commit,  https://github.com/CARTAvis/carta/commit/c6ed6c9f0d5a97433c98415a878323eb770dcfe3 ).
+Tested g++ compiler: 4.8.5, 5.4 (used by Ubuntu 16.04).
 
 CARTA can be built by Qt 5.3, 5.4, 5.5, 5.6 (not tested), 5.7.
 
 # Steps before building CARTA
 
-## Install basic build tools
+## Step1 - Install basic build tools
 
 Paste the the following script part into your terminal to install. Ignore this step if you already have compatible version of them but you need modify some path by yourself.
 
@@ -47,7 +54,17 @@ sudo apt-get -y install gcc g++;\
 sudo apt-get -y install make cmake git subversion unzip wget curl
 ```
 
-## Choose your working space (folder) of CARTA
+Mac 10.11, 10.12:
+
+**Install Xcode and get its g++ compiler**
+
+On Mac, its g++ compiler is called clang and its standard c++ lib is **libc++**. Command **g++** is linking to clang. Do the following to install.
+
+- Install Xcode 8 from **App Store**.
+- Launch Xcode 8 or type `xcodebuild -license` to accept the license
+- Type `xcode-select --install` to install xcode command line tools.
+
+## Step2 - Choose your working space (folder) of CARTA and clone source code of CARTA
 Current `CARTAvis` uses the following folder structure
 
 ```
@@ -68,38 +85,51 @@ Which means there must be something outside the source code directory, and this 
 
 p.s. Since `CARTAvis` is the old git repo name and used in some testing and building scripts, use new name `carta` may be OK when developing but may happen issues at other time, so just rename `carta` to `CARTAvis` when git cloning.
 
-## Download and install + Qt 5.3.2 library + latest Qt Creator (4.2.x)
+## Step3 - Download and install + Qt 5.3.2 library + latest Qt Creator (4.2.x)
 
-CARTA uses Qt 5.3.2 and it uses QtWebKit which exists in Qt 5.3, 5.4. Prebuilt Qt 5.5 installer does not QtWebkit but can be built from 5.5 source code. After 5.6, QtWebKit is replaced by QtWebEngine which is based on Chronium.
+CARTA uses Qt 5.3.2 and it uses QtWebKit which exists in Qt 5.3, 5.4, 5.5. Start from Qt 5.6, its installer does not include QtWebkit but people can be build it from Qt source code. QtWebKit is replaced by QtWebEngine framework which is based on Chromium.
 
-It is encouraged to use newest IDE to get more good development features. You can use only command line without Qt Creator, or use the other IDE, such as **Eclipse** or **IntelliJ IDEA**.
+It is encouraged to use newest IDE to get more good development features. You can use only command line without Qt Creator, or use the other IDE, such as **Xcode**, **Eclipse** or **IntelliJ IDEA**.
 
 cd `your-carta-work`, then   
 
-### Either execute prepared script to install
+### On Linux, execute prepared script to install, or you can use the below Mac's way on Linux
 `sudo ./CARTAvis/carta/scripts/installqt5.3.sh` which does the following things
 
 1. download Qt online installer `qt-unified-linux-x64-2.0.5-online.run` under your ~/download folder
 2. install needed package before launching Qt 5.3.2 installer
-3. Please choose `/opt/Qt` as the installed position. You can install in other position but you need to change Qt path in the following scripts. (This path may not be good enough, will change to use default path later)
+3. Please choose **/opt/Qt** as the installed position. You can install in other position but you need to change Qt path in the following scripts. (This path may not be good enough, will change to use default path later)
 4. During installing, uncheck 5.8 and check Qt 5.3 and keep Qt Creator 4.2.x checked.
 
 Qt 5.3 is for following things:
 
-1. To build CARTA by command line.
+1. To build CARTA.
 2. To build Qwt 6.1.2 needed by CARTA in some scripts.  
 
-### Or you can download the the other Qt offline installers to install Qt Creator and Qt 5.3.2
+### On Mac, download Qt installers to install Qt Creator and Qt 5.3.2
 
-1. Latest Qt creator (4.2.x): https://download.qt.io/official_releases/qtcreator/4.2/4.2.0/
-2. Qt 5.3.2, bundle with old Qt creator (3.2.x): http://download.qt.io/archive/qt/5.3/5.3.2/
+Download Latest Qt creator (4.2.x) + (optional) Qt : http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/qt-unified-mac-x64-2.0.5-online.dmg
 
-Also, if you choose another path to install (Qt lib part), you need to setup QT5PATH variable manually, such as `QT5PATH=/opt/Qt/5.3/gcc_64/bin`
+### If you choose your preferred position to install Qt 5.3.2
 
-## Install most Third Party libraries, some are built from source code
+Setup QT5PATH variable, like `QT5PATH=/opt/Qt/5.3/gcc_64/bin`, this is to build Qwt in the following step.
+
+### [Experiment] Use Qt 5.7 + Community QtWebKit package on Mac
+
+1. Get Webkit from https://github.com/annulen/webkit/releases/, use its version >= QtWebKit Technology Preview 4.
+2. [Fix] Workaround for users of Xcode withi this package http://qt5blogger.blogspot.tw/
+
+## Step4 - Install most Third Party libraries, some are built from source code
 cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
-## Build CASA libraries
+## Step5 - Build CASA libraries
+
+**Mac 10.12:**
+
+1. Use Homebrew and Macports to install needed libraries first, follow this guide,
+https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac
+
+2. cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildcasa.sh`.
 
 **CentOS 7:**
 
@@ -120,8 +150,8 @@ Same as CentOS, use `apt-get install libqt4-dev` to install **Qt 4.8.7** (the bu
 
 Old way (approved), previous version of `buildcasa` script, downloads the source code of Qt 4.8.5 (269MB) to build** and install it into `/usr/local/Trolltech/Qt-4.8.5/`, take hours. Keep in mind that you **can not** ignore executing the previous steps of `buildcasa.sh` which install some `dbus` related libraries which are needed by QtDbus module, which is neeed for **code submodule**.
 
-**TODO**: 
-Now we switch to use `apt/yum` to install built Qt 4.8.x to build casa submodue, code. Need to investigate do they supply statlic version Qt lib? It may let final casa and needed Qt libs bigger. Ubuntu: check /usr/lib/x86_64-linux-gnu, seems not having static version, lick libQtGui.a.   
+**TODO**:
+Now we switch to use `apt/yum` to install built Qt 4.8.x to build casa submodue, code. Need to investigate do they supply static version Qt lib? It may let final casa and needed Qt libs bigger. Ubuntu: check /usr/lib/x86_64-linux-gnu, seems not having static version, like libQtGui.a.   
 
 ### Some notes about Casa:
 
@@ -137,7 +167,7 @@ There are some main submodule
 3. gcwrap
 4. asap (in trunk, it uses svn external)
 
-We only use `casacore` and `code`. Regarding `code`, we mainly use `code/imageanalysis`.
+We only use `casacore` and `code`. Regarding `code`, we mainly use **code/imageanalysis** and its dependency is **code/stdcasa and code/components**.
 
 #### 2. Dependency between Carta and Casa
 
@@ -148,11 +178,11 @@ Some of third-party libraries they use are the same,  but may use different vers
 3. flex
 4. bison
 5. gsl (CARTA uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
-6. gfortan (CARTA uses ast library which uses gfortan, and casacore uses this, too)
-7. Qt. (CARTA uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
-8. qwt (CARTA uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
+6. blas lib. (required when building GSL, also when building casacore)
+7. gfortan (CARTA uses ast library which uses gfortan, and casacore uses this, too)
+8. Qt. (CARTA uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
+9. qwt (CARTA uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
 9. Python and numpy (should be ok. CARTA:2.7. casa:2.7)
-10. blas lib. (required when building GSL, also when building casacore)
 
 #### 3.How to change the revision of casa we use to build
 
@@ -164,13 +194,17 @@ It transited from **CASA::** to **CASACORE::**. So do not use the combination of
 
 # Build CARTA program
 
-## Choose the location of build folder
+## Step1 - Choose the location of build folder
 
 Suggested path:
 
 `mkdir -p $CARTAWORKHOME/CARTAvis/build`
 
-## Use command line to build
+## Step2 - Build needed Qooxdoo JavaScript UI files of CARTA
+
+cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`. This step is not necessary to be executed before buliding CARTA (Qt-c++ program). Without this, you will see blank UI when you launching CARTA. Also, if you just modify JavaScript UI file but do not add new JavaScript class, you do not need to build again.   
+
+## Step3 - use command line to build
 
 1. Install required libraries when building CARTA
 
@@ -188,8 +222,10 @@ Suggested path:
     ## sudo apt-get -y install libpython2.7-dev; #(or  python-dev?)
     ```
 
-2. Setup Qt5 path,
- `export PATH=/opt/Qt/5.3/gcc_64/bin:$PATH` or `your Qt Path`
+2. Setup Qt5 path
+
+    Linux: `export PATH=/opt/Qt/5.3/gcc_64/bin:$PATH` or `your Qt Path`.
+    Mac: `export PATH=$HOME/Qt/5.x/clang_64/bin:$PATH`
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
 4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=bughunter $CARTAWORKHOME/CARTAvis/carta -r`
@@ -206,10 +242,6 @@ Suggested path:
 Open carta.pro, then setup some build and run setting, then build.
 
 ## Use Other IDE to build and debug
-
-# Build needed JavaScript UI files of CARTA
-
-cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`
 
 # Run CARTA
 
@@ -262,7 +294,7 @@ mv data ~/
 
 The default location is under home directory `~/`, and will be improved to better place.
 
-### requirement 4: prepare fits or casa image format files.
+### requirement 4: prepare fits, casa image format, or miriad files.
 
 The default loading path is `~/CARTA/Images` and you can put there or other places (you need to switch the folder in the file browser of CARTA).
 
@@ -274,18 +306,8 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 
 ## Run by command line
 
-1. [no need anymore, use QMAKE_RPATHDIR now !!] Current CARTA needs to execute the following command every time before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
-
-    ```
-    ## ok way, use this
-    export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
-
-    ## or this path, should work but not test. It is the symbolic link of the above path,
-    ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
-    ```
-
-2. execute `ulimit -n 2000` before running Carta
-3. To run `CARTA` binary with parameters, at least should append `html file path`, example:
+1. execute `ulimit -n 2000` before running Carta
+2. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
 ```
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
@@ -296,10 +318,19 @@ Some of optional parameters:
 1. `--scriptPort 9999` for python interface
 2. put `/scratch/some-fits-file.fits` in the end
 
+[for old version, depreciated, **no need anymore**, now we use QMAKE_RPATHDIR when compiling !! ]  Current CARTA needs to execute the following command every time before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
+
+```
+## ok way, use this
+export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
+
+## or this path, should work but not test. It is the symbolic link of the above path,
+## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
+```
 
 ## Run and Debug by Qt Creator
 
-# Prepare distributable and packaged installer/zip
+# Deployment: Prepare distributable and packaged installer/zip
 
 Start from Qt 5.5, the **rpath** of dependent Qt library will use **@rpath** instead of using absolute path, on Mac.
 
@@ -356,3 +387,9 @@ Observation about build Size (on Mac), before packaging:
 
 CARTA third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
+
+## Library and Plugin Issue
+1. ImageStatistics plugin does not work on every developer's Mac/PC.
+2. Fitter1d sometimes does not work.
+3. regionDS9 does not work does not work on every developer's Mac/Ubuntu. Already know why.
+4. ProfileCASA does not work on every developer's Mac.
