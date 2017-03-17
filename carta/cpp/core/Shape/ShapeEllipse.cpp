@@ -58,13 +58,15 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 	//Draw the basic polygon
 	comp.append < vge::SetPen > ( pen );
 	comp.append < vge::SetBrush > ( brush );
-	comp.append < vge::DrawRect > ( m_shadowRect );
 	comp.append < vge::DrawEllipse > ( m_shadowRect );
 
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
-		//Draw the control points
+		//Draw the control points and show the outline if hovered or selected
 		if ( isHovered() || isSelected()){
+			comp.append < vge::SetPen > ( outlinePen );
+			comp.append < vge::DrawRect > ( m_shadowRect );
+			comp.append < vge::SetPen > ( pen );
 			int cornerCount = m_controlPoints.size();
 			for ( int i = 0; i < cornerCount; i++ ){
 				comp.appendList( m_controlPoints[i]->getVGList() );

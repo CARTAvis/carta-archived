@@ -59,14 +59,11 @@ Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
 		//Draw the outline box; use a different style if it is selected.
-		if ( isSelected() ){
+	        if ( isSelected() || isHovered() ){
 			comp.append < vge::SetPen > ( outlinePen );
 			QRectF shadowRect = m_shadowPolygon.boundingRect();
 			comp.append < vge::DrawRect > ( shadowRect );
 			comp.append < vge::SetPen > ( pen );
-		}
-		else if ( isHovered() || isActive() ){
-			comp.append <vge::DrawRect >( m_shadowPolygon.boundingRect() );
 		}
 
 		//Draw the control points
