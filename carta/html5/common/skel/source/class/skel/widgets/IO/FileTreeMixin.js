@@ -59,11 +59,17 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             //double click.
             this.m_tree.addListener( "dblclick", function(event){
                 var dirPath = this.m_dirText.getValue();
+                var fileName = this.m_fileText.getValue();
+                var path = skel.widgets.Path.getInstance();
 
                 //Request for root directory
                 if ( dirPath.length === 0 ){
-                    var path = skel.widgets.Path.getInstance();
+                    // var path = skel.widgets.Path.getInstance();
                     dirPath = path.SEP;
+                }
+                else if ( this._isDirectory( fileName )){
+                    //If the node is a directory, add the directory to the base path.
+                    dirPath = dirPath + path.SEP + fileName;
                 }
                 this._initData( dirPath );
             }, this );
@@ -160,11 +166,15 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                     this.m_dirText.setValue( parentPath );
                 }
             }
-            else if ( this._isDirectory( nodeLabel )){
-                //If the node is a directory, add the directory to the base path.
-                var childDir = this.m_path + path.SEP + nodeLabel;
-                this.m_dirText.setValue( childDir );
-            }
+            // won't distinguish the file and folder when change selection.
+            // the judge is postponed until the event of double click.
+            // else if ( this._isDirectory( nodeLabel )){
+            //     //If the node is a directory, add the directory to the base path.
+            //     //var childDir = this.m_path + path.SEP + nodeLabel;
+            //     //this.m_dirText.setValue( childDir );
+            //     this.m_dirText.setValue( this.m_path );
+            //     this.m_fileText.setValue( nodeLabel );
+            // }
             else {
                 //If the node is not a directory, reset the base path and put the
                 //name in the file text.
