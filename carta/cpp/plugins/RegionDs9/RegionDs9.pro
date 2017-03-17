@@ -34,10 +34,21 @@ LIBS += -L$${WCSLIBDIR}/lib -lwcs
 LIBS += -L$${CFITSIODIR}/lib -lcfitsio
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
+
+
+FLEXBIN= /opt/casa/02/bin/flex
+# /usr/local/opt/bison/bin/bison
+BISONBIN= /opt/casa/02/bin/bison
+
+# /usr/local/opt/flex/include
+FLEXINCLUDE = /opt/casa/02/include
+FLEXLIB= /opt/casa/02/lib
+
 unix:macx{
     # use homebrew version, flex:2.6.3, bison:3.0.4
-    LIBS += -L/usr/local/opt/flex/lib -lfl -ly
-    INCLUDEPATH += /usr/local/opt/flex/include
+    LIBS += -L$${FLEXLIB} -lfl -ly
+    INCLUDEPATH += $${FLEXINCLUDE}
+    # INCLUDEPATH += /usr/local/opt/bison/include
 } else {
     LIBS += -lfl -ly
 }
@@ -59,6 +70,7 @@ MYFILES = plugin.json
 MYFILES += $$FLEXSOURCES
 MYFILES += $$BISONSOURCES
 
+
 ! include($$top_srcdir/cpp/copy_files.pri) {
   error( "Could not include $$top_srcdir/cpp/copy_files.pri file!" )
 }
@@ -67,7 +79,7 @@ flexsource.input = FLEXSOURCES
 flexsource.output = ${QMAKE_FILE_BASE}.cpp
 unix:macx{
   # seems that sometimes it will use Xcode's flex whatever you already setup PATH, so specify the path
-  flexsource.commands = /usr/local/Cellar/flex/2.6.3/bin/flex -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+  flexsource.commands = $${FLEXBIN} -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
 } else {
   flexsource.commands = flex -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
 }
@@ -79,7 +91,7 @@ QMAKE_EXTRA_COMPILERS += flexsource
 bisonsource.input = BISONSOURCES
 bisonsource.output = ${QMAKE_FILE_BASE}.cpp
 unix:macx{
-  bisonsource.commands = /usr/local/bin/bison -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
+  bisonsource.commands = $${BISONBIN} -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
 } else {
   bisonsource.commands = bison -d --defines=${QMAKE_FILE_BASE}.hpp -o ${QMAKE_FILE_BASE}.cpp ${QMAKE_FILE_IN}
 }
