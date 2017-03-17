@@ -53,6 +53,9 @@ QSizeF ShapeEllipse::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+	pen.setCosmetic(true);
+	QPen rectPen = outlinePen;
+	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon
@@ -64,7 +67,7 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 	if ( !isEditMode() ){
 		//Draw the control points and show the outline if hovered or selected
 		if ( isHovered() || isSelected()){
-			comp.append < vge::SetPen > ( outlinePen );
+			comp.append < vge::SetPen > ( rectPen );
 			comp.append < vge::DrawRect > ( m_shadowRect );
 			comp.append < vge::SetPen > ( pen );
 			int cornerCount = m_controlPoints.size();

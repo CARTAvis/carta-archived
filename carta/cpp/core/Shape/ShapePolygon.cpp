@@ -40,6 +40,9 @@ QSizeF ShapePolygon::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+	pen.setCosmetic(true);
+	QPen rectPen = outlinePen;
+	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon
@@ -60,7 +63,7 @@ Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
 	if ( !isEditMode() ){
 		//Draw the outline box; use a different style if it is selected.
 	        if ( isSelected() || isHovered() ){
-			comp.append < vge::SetPen > ( outlinePen );
+			comp.append < vge::SetPen > ( rectPen );
 			QRectF shadowRect = m_shadowPolygon.boundingRect();
 			comp.append < vge::DrawRect > ( shadowRect );
 			comp.append < vge::SetPen > ( pen );

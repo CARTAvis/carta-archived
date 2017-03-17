@@ -26,6 +26,7 @@ QSizeF ShapePoint::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+	pen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon

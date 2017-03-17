@@ -48,6 +48,7 @@ QSizeF ShapeRectangle::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapeRectangle::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+	pen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon
