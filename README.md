@@ -133,7 +133,7 @@ https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac
 
 2. cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildcasa.sh`.
 
-3. After building CASA libraries, **brew unlink qt** to remove Qt 4.8 from `PATH`. Otherise it will find out Qt 4.8 headers and libs when building CARTA which only need Qt 5.3.2 or higher Qt. 
+3. After building CASA libraries, **brew unlink qt** to remove Qt 4.8 from `PATH`. Otherise it will find out Qt 4.8 headers and libs when building CARTA which only need Qt 5.3.2 or higher Qt.
 
 **CentOS 7:**
 
@@ -311,6 +311,16 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 
 ## Run by command line
 
+1. Current CARTA needs to execute the following command every time before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
+
+    ```
+    ## ok way, use this
+    export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
+
+    ## or this path, should work but not test. It is the symbolic link of the above path,
+    ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
+    ```
+
 1. execute `ulimit -n 2000` before running Carta
 2. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
@@ -323,15 +333,7 @@ Some of optional parameters:
 1. `--scriptPort 9999` for python interface
 2. put `/scratch/some-fits-file.fits` in the end
 
-[for old version, depreciated, **no need anymore**, now we use QMAKE_RPATHDIR when compiling !! ]  Current CARTA needs to execute the following command every time before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
-```
-## ok way, use this
-export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
-
-## or this path, should work but not test. It is the symbolic link of the above path,
-## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
-```
 
 ## Run and Debug by Qt Creator
 
@@ -378,15 +380,15 @@ Observation about build Size (on Mac), before packaging:
     between CARTA and CASA builds.
     ```
 
--[] use **-Wl, rpath** to solve dynamic search path issue on CARTA instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
+- [ ] use **-Wl, rpath** to solve dynamic search path issue on CARTA instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
 
--[] try to use apt/yum way to install pre-built some third party libs for CARTA. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
+- [ ] try to use apt/yum way to install pre-built some third party libs for CARTA. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
 
--[x] try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first (Homebrew's bottle does not include and need rebuilt. CentOS's yum version has).
+- [x] try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first (Homebrew's bottle does not include and need rebuilt. CentOS's yum version has).
 
--[] try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
+- [ ] try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
 
--[] May bundle multiple dynamic libs to one libs can lower the complexity, and it is possible done by cmake in the future.
+- [ ] May bundle multiple dynamic libs to one libs can lower the complexity, and it is possible done by cmake in the future.
 
 ### AppendixA:
 
