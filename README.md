@@ -133,6 +133,8 @@ https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac
 
 2. cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildcasa.sh`.
 
+3. After building CASA libraries, **brew unlink qt** to remove Qt 4.8 from `PATH`. Otherise it will find out Qt 4.8 headers and libs when building CARTA which only need Qt 5.3.2 or higher Qt. 
+
 **CentOS 7:**
 
 The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers (4.9.2) and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
@@ -228,10 +230,10 @@ cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`. This st
 
     Linux: `export PATH=/opt/Qt/5.3/gcc_64/bin:$PATH` or `your Qt Path`.
 
-    Mac: `export PATH=$HOME/Qt/5.x/clang_64/bin:$PATH`
+    Mac: `export PATH=$HOME/Qt/5.x/clang_64/bin:$PATH`. You can type `qmake --versoion` to check the current Qt version.  
 
 3. `cd $CARTAWORKHOME/CARTAvis/build`
-4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=bughunter $CARTAWORKHOME/CARTAvis/carta -r`
+4. `qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $CARTAWORKHOME/CARTAvis/carta -r`
 5. `make -j2`
 
 **CARTA_BUILD_TYPE** can be
@@ -368,7 +370,7 @@ Observation about build Size (on Mac), before packaging:
 
 # To do list
 
-1. to check wcslib and cfitsio
+-[] [Done] to check wcslib and cfitsio
 
     ```    
     On 12 Mar 2016,  https://github.com/Astroua/CARTAvis/releases/tag/0.6.0
@@ -376,15 +378,15 @@ Observation about build Size (on Mac), before packaging:
     between CARTA and CASA builds.
     ```
 
-2. use **-Wl, rpath** to solve dynamic search path issue on CARTA instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
+-[] use **-Wl, rpath** to solve dynamic search path issue on CARTA instead of setting LD_LIBRARY_PATH/DYLD_LIBRARY_PATH(on Mac)/QMAKE_RPATHDIR **OR** change **dynamic link** to **static link**.
 
-3. try to use apt/yum way to install pre-built some third party libs for CARTA. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
+-[] try to use apt/yum way to install pre-built some third party libs for CARTA. (cfitsio, wcslib, even gsl but need to change default installation path of gsl)
 
-4. try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first.
+-[x] try to install pre-built Qt 4.8.x to build qwt and casa. But should check if it includes QtDbus or not first (Homebrew's bottle does not include and need rebuilt. CentOS's yum version has).
 
-5. try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
+-[] try to install Qt 5.3.2 without GUI, especially for CI/CD. e.g. `apt-get install qtbase5-dev` (not try)
 
-6. May bundle multiple dynamic libs to one libs can lower the complexity, and it is possible done by cmake in the future.
+-[] May bundle multiple dynamic libs to one libs can lower the complexity, and it is possible done by cmake in the future.
 
 ### AppendixA:
 
@@ -392,7 +394,7 @@ CARTA third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
 
 ## Library and Plugin Issue
-1. ImageStatistics plugin does not work on every developer's Mac/PC.
-2. Fitter1d sometimes does not work.
-3. regionDS9 does not work does not work on every developer's Mac/Ubuntu. Already know why.
-4. ProfileCASA does not work on every developer's Mac.
+1. ImageStatistics plugin sometimes does not work on developer's Mac/Linux.
+2. Fitter1d sometimes does not work (Ubuntu).
+3. RegionDS9 does not work on every developer's Mac/Ubuntu and in some CentOS. Already know why.
+4. ProfileCASA does not work on every developer's Mac. [Having clues]
