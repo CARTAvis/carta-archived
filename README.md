@@ -64,7 +64,7 @@ On Mac, its g++ compiler is called clang and its standard c++ lib is **libc++**.
 - Launch Xcode 8 or type `xcodebuild -license` to accept the license
 - Type `xcode-select --install` to install xcode command line tools.
 
-** Install Homebrew and wget
+**Install Homebrew and wget**
 
 1. get Homebrew from https://brew.sh/. 
 2. brew install wget
