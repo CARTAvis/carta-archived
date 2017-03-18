@@ -112,6 +112,14 @@ Download Latest Qt creator (4.2.x) + (optional) Qt : http://ftp.jaist.ac.jp/pub/
 
 Please use **~/Qt** as your installation location.
 
+You need to do the following patch for Qt on Mac. 
+
+1. One issue about Xcode + Qt 5.3 (5.5, 5.6 do not need). In $HOME/Qt/5.x/clang_64/mkspecs/qdevice.pri, Change `!host_build:QMAKE_MAC_SDK = macosx10.8` to `!host_build:QMAKE_MAC_SDK = macosx`. Ref: http://stackoverflow.com/questions/26320677/error-could-not-resolve-sdk-path-for-macosx10-8 
+
+2. one issue about Xcode 8 + Qt. In Qt/5.x/clang_64/mkspecs/macx-clang/qmake.conf, chanage `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7` to `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10`. Ref: http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake.
+
+3. (Not always happen, fix when it happen). When this error, **Qt Creator - Project ERROR: Xcode not set up properly. You may need to confirm the license agreement by running /usr/bin/xcodebuild** happens, open Qt_install_folder/5.7/clang_64/mkspecs/features/mac/default_pre.prf, replace `isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null")))` with `isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null")))`. Ref: http://stackoverflow.com/questions/33728905/qt-creator-project-error-xcode-not-set-up-properly-you-may-need-to-confirm-t. 
+
 ### If you choose your preferred position to install Qt 5.3.2
 
 Setup QT5PATH variable, like `QT5PATH=/opt/Qt/5.3/gcc_64/bin`, this is to build Qwt in the following step.
@@ -319,10 +327,12 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 
     ## or this path, should work but not test. It is the symbolic link of the above path,
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
+    
+    ## If you use Qt creator to build, there is a default enable setting, add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH (Mac, work), add build library search path to LD_LIBRARY_PATH (Linux, not work).
     ```
-
-1. execute `ulimit -n 2000` before running Carta
-2. To run `CARTA` binary with parameters, at least should append `html file path`, example:
+    
+2. execute `ulimit -n 2000` before running Carta
+3. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
 ```
 $CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
