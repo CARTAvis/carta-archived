@@ -64,6 +64,11 @@ On Mac, its g++ compiler is called clang and its standard c++ lib is **libc++**.
 - Launch Xcode 8 or type `xcodebuild -license` to accept the license
 - Type `xcode-select --install` to install xcode command line tools.
 
+** Install Homebrew and wget
+
+1. get Homebrew from https://brew.sh/. 
+2. brew install wget
+
 ## Step2 - Choose your working space (folder) of CARTA and clone source code of CARTA
 Current `CARTAvis` uses the following folder structure
 
@@ -130,6 +135,7 @@ Setup QT5PATH variable, like `QT5PATH=/opt/Qt/5.3/gcc_64/bin`, this is to build 
 2. [Fix] Workaround for users of Xcode withi this package http://qt5blogger.blogspot.tw/
 
 ## Step4 - Install most Third Party libraries, some are built from source code
+
 cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Step5 - Build CASA libraries
