@@ -322,15 +322,12 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 1. Current CARTA needs to execute the following command every time to find correct **dynamic/shared Library** before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
     1. setup LD_LIBRARY_PATH on Mac/Linux
+    
+    ```
     ## ok way, use this
-
-    ```
     export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
-    ```
     ## or this path, should work but not test. It is the symbolic link of the above path,
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
-
-    ```
     ## no need to setup the path wcslib, we already use QMAKE_RPATHDIR 
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib/lib:${LD_LIBRARY_PATH}
     ```
