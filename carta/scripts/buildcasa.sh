@@ -316,10 +316,12 @@ perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( WCSLIB/' CMakeLists.txt
 perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
 
 perl -pi.bak -e 's/QtGui QtDBus QtXml/QtGui QtXml/g' CMakeLists.txt
-sed 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
-sed 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
-sed 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
-sed 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
+
+
+sed -i "" 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
+sed -i "" 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
+sed -i "" 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
+sed -i "" 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
 
 mkdir build && cd build
 
