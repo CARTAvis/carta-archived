@@ -258,7 +258,10 @@ cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`. This st
 
 ## Use Qt creator to build and debug (will complement this part later)
 
-Open carta.pro, then setup some build and run setting, then build.
+On Mac: follow this guide to setup. https://www.evernote.com/l/AAZdslIM_Z5IH7gfaWdQ6v6XLgEJ-CWxVcE
+
+On Linux: Work in progress. 
+
 
 ## Use Other IDE to build and debug
 
@@ -383,7 +386,8 @@ Some of optional parameters:
 
 ## Run and Debug by Qt Creator
 
-On Mac: https://www.evernote.com/l/AAZdslIM_Z5IH7gfaWdQ6v6XLgEJ-CWxVcE
+On Mac: Work In Progress. (The needed setting is done in https://github.com/cartavis/carta#use-qt-creator-to-build-and-debug-will-complement-this-part-later. 
+
 On Linux: Work In Progress. 
 
 # Deployment: Prepare distributable and packaged installer/zip
