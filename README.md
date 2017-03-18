@@ -112,13 +112,13 @@ Download Latest Qt creator (4.2.x) + (optional) Qt : http://ftp.jaist.ac.jp/pub/
 
 Please use **~/Qt** as your installation location.
 
-You need to do the following patch for Qt on Mac. 
+You need to do the following patch for Qt on Mac.
 
-1. One issue about Xcode + Qt 5.3 (5.5, 5.6 do not need). In $HOME/Qt/5.x/clang_64/mkspecs/qdevice.pri, Change `!host_build:QMAKE_MAC_SDK = macosx10.8` to `!host_build:QMAKE_MAC_SDK = macosx`. Ref: http://stackoverflow.com/questions/26320677/error-could-not-resolve-sdk-path-for-macosx10-8 
+1. One issue about Xcode + Qt 5.3 (5.5, 5.6 do not need). In $HOME/Qt/5.x/clang_64/mkspecs/qdevice.pri, Change `!host_build:QMAKE_MAC_SDK = macosx10.8` to `!host_build:QMAKE_MAC_SDK = macosx`. Ref: http://stackoverflow.com/questions/26320677/error-could-not-resolve-sdk-path-for-macosx10-8
 
 2. one issue about Xcode 8 + Qt. In Qt/5.x/clang_64/mkspecs/macx-clang/qmake.conf, chanage `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7` to `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10`. Ref: http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake.
 
-3. (Not always happen, fix when it happen). When this error, **Qt Creator - Project ERROR: Xcode not set up properly. You may need to confirm the license agreement by running /usr/bin/xcodebuild** happens, open Qt_install_folder/5.7/clang_64/mkspecs/features/mac/default_pre.prf, replace `isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null")))` with `isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null")))`. Ref: http://stackoverflow.com/questions/33728905/qt-creator-project-error-xcode-not-set-up-properly-you-may-need-to-confirm-t. 
+3. (Not always happen, fix when it happen). When this error, **Qt Creator - Project ERROR: Xcode not set up properly. You may need to confirm the license agreement by running /usr/bin/xcodebuild** happens, open Qt_install_folder/5.7/clang_64/mkspecs/features/mac/default_pre.prf, replace `isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null")))` with `isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null")))`. Ref: http://stackoverflow.com/questions/33728905/qt-creator-project-error-xcode-not-set-up-properly-you-may-need-to-confirm-t.
 
 ### If you choose your preferred position to install Qt 5.3.2
 
@@ -319,18 +319,53 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 
 ## Run by command line
 
-1. Current CARTA needs to execute the following command every time before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
+1. Current CARTA needs to execute the following command every time to find correct **dynamic/shared Library** before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
+
+    1. setup LD_LIBRARY_PATH on Mac/Linux
+    ## ok way, use this
 
     ```
-    ## ok way, use this
     export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
-
+    ```
     ## or this path, should work but not test. It is the symbolic link of the above path,
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
-    
-    ## If you use Qt creator to build, there is a default enable setting, add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH (Mac, work), add build library search path to LD_LIBRARY_PATH (Linux, not work).
+
     ```
-    
+    ## no need to setup the path wcslib, we already use QMAKE_RPATHDIR 
+    ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib/lib:${LD_LIBRARY_PATH}
+    ```
+
+    2. On Mac, you can use Qt Creator build **without setting 1st thing (LD_LIBRARY_PATH)**. In Qt Creator, there is a default enabled setting which will automatically add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH (Mac, work), add build library search path to LD_LIBRARY_PATH (Linux, not work, don't know why).
+
+    3. On Mac, you need to setup below thing (will improve later), you can copy them as `Custom Process Setup` in Qt Creator's or a shell script
+    ```
+    cd $CARTAWORKHOME/CARTAvis
+    export CARTABUILDHOME=`pwd`
+
+    mkdir -p $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
+    cp $CARTABUILDHOME/build/cpp/core/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
+
+    # need to rm for qt creator 4.2, otherwise when build+run together will result in core/libcore.1.dylib not able find out qwt
+    rm $CARTABUILDHOME/build/cpp/core/libcore.1.dylib
+    cp $CARTABUILDHOME/build/cpp/CartaLib/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
+
+    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
+    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib
+
+    # not sure the effect of the below line, try comment
+    # install_name_tool -change libplugin.dylib $CARTABUILDHOME/build/cpp/plugins/CasaImageLoader/libplugin.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
+    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
+
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
+    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib
+
+    for f in `find . -name libplugin.dylib`; do install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $f; done
+    for f in `find . -name libplugin.dylib`; do install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $f; done
+    for f in `find . -name "*.dylib"`; do install_name_tool -change libwcs.5.15.dylib  $CARTABUILDHOME/ThirdParty/wcslib/lib/libwcs.5.15.dylib $f; echo $f; done
+    ```
+
 2. execute `ulimit -n 2000` before running Carta
 3. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
@@ -342,8 +377,6 @@ Some of optional parameters:
 
 1. `--scriptPort 9999` for python interface
 2. put `/scratch/some-fits-file.fits` in the end
-
-
 
 ## Run and Debug by Qt Creator
 
