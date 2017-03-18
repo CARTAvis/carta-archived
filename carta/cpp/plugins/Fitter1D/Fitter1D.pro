@@ -28,6 +28,7 @@ GSLROOTDIR=/usr/local
 
 INCLUDEPATH += $${GSLROOTDIR}/include
 LIBS += $$GSLROOTDIR/lib/libgsl.a
+LIBS += $$GSLROOTDIR/lib/libgslcblas.a
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
