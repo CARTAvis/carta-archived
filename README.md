@@ -377,6 +377,9 @@ Some of optional parameters:
 
 ## Run and Debug by Qt Creator
 
+On Mac: https://www.evernote.com/l/AAZdslIM_Z5IH7gfaWdQ6v6XLgEJ-CWxVcE
+On Linux: Work In Progress. 
+
 # Deployment: Prepare distributable and packaged installer/zip
 
 Start from Qt 5.5, the **rpath** of dependent Qt library will use **@rpath** instead of using absolute path, on Mac.
