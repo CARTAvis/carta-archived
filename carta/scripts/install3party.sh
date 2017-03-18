@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## working folder, $CARTAWORKHOME
-CARTAWORKHOME=`pwd`
+export CARTAWORKHOME=`pwd`
 
 ##################################
 # Install some required packages

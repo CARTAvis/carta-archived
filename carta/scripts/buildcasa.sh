@@ -1,5 +1,5 @@
 #!/bin/bash
-CARTAWORKHOME=`pwd`
+export CARTAWORKHOME=`pwd`
 
 isCentOS=true
 if grep -q CentOS /etc/os-release; then

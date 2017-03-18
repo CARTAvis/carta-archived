@@ -4,7 +4,7 @@
 # mkdir ~/src
 # cd ~/src
 
-CARTAWORKHOME=`pwd`
+export CARTAWORKHOME=`pwd`
 QTINSTALLER=qt-unified-linux-x64-2.0.5-online.run
 QTURL=http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/$QTINSTALLER
 
