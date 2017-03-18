@@ -18,6 +18,7 @@ if [ "$(uname)" == "Darwin" ]; then
     TARGETOS=darwin
 
     ## in this path, in include "dbuspp-xml2cpp" which will affect code's cmake:DBUS_FLAVOR_dbuspp-xml2cpp_EXECUTABLE
+    ## without this, casa-code's CMakeLists' requirement becomes dbus-c++ from dbus-cpp
     export PATH=/opt/casa/02/bin:$PATH
 
 elif [ "$isCentOS" = true ] ; then
@@ -317,7 +318,6 @@ perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
 
 perl -pi.bak -e 's/QtGui QtDBus QtXml/QtGui QtXml/g' CMakeLists.txt
 
-
 sed -i "" 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
 sed -i "" 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
 sed -i "" 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
@@ -336,6 +336,7 @@ if [ "$(uname)" == "Darwin" ]; then
     -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
     -DREADLINE_ROOT_DIR=/usr/local/opt/readline \
     -DPGPLOT_ROOT_DIR=/usr/local/opt/pgplot \
+    -DBOOST_ROOT=/usr/local/Cellar/boost/1.63.0 \
     -DPGPLOT_INCLUDE_DIRS=/usr/local/opt/pgplot/include \
     -DPGPLOT_LIBRARIES=/usr/local/opt/pgplot/lib \
     -DSKIP_PGPLOT=1 \
