@@ -318,10 +318,17 @@ perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
 
 perl -pi.bak -e 's/QtGui QtDBus QtXml/QtGui QtXml/g' CMakeLists.txt
 
-sed -i "" 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
-sed -i "" 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
-sed -i "" 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
-sed -i "" 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
+if [ "$(uname)" == "Darwin" ]; then
+  sed -i "" 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
+  sed -i "" 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
+  sed -i "" 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
+  sed -i "" 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
+else
+  sed -i 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
+  sed -i 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
+  sed -i 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
+  sed -i 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
+fi
 
 mkdir build && cd build
 
