@@ -44,36 +44,26 @@ public:
     /// feed the plotter the raw FITS header (concatenated 80-char strings)
     /// returns whether the header has enough information about
     /// about sky coordinates
-    bool
-    setFitsHeader( const QString & hdr );
+    bool setFitsHeader( const QString & hdr );
 
     /// set whether to use the old CAR interpretation (i.e. CAR is linear)
-    void
-    setCarLin( bool flag );
-
-    /// set which system to plot
-    /*void
-    setSystem( const QString & system = QString() );*/
+    void setCarLin( bool flag );
 
     /// sets the output VGComposer
-    void
-    setOutputVGComposer( VGComposer * vgc);
+    void setOutputVGComposer( VGComposer * vgc);
 
     /// sets the output rectangle in screen coordinates for the grid
     /// the annotation text will be rendered outside of this rectangle, so
     /// leave some space for it...
-    void
-    setOutputRect( const QRectF & rect );
+    void setOutputRect( const QRectF & rect );
 
     /// sets which part of the image to draw coordinates for,
     /// specified in CASA coordinates (i.e. center of left-bottom pixel is 0,0)
-    void
-    setInputRect( const QRectF & rect );
+    void setInputRect( const QRectF & rect );
 
     ///Sets information about how the axes should be displayed in cases where
     ///they are permuted.
-    void
-    setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo>& perm );
+    void setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo>& perm );
 
     /// read/write access to indexed fonts
     std::vector<QFont> & fonts() { return m_qfonts; }

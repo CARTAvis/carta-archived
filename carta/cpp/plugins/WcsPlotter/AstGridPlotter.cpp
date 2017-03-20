@@ -295,8 +295,7 @@ AstFrameSet* AstGridPlotter::_make2dFrameCelestialExclude( AstFrameSet* wcsinfo 
     return newFrame;
 }
 
-bool
-AstGridPlotter::plot()
+bool AstGridPlotter::plot()
 {
 
     // setup the graphics driver globals
@@ -423,21 +422,6 @@ AstGridPlotter::plot()
         }
     }
 
-    // set system options
-    /*if ( ! m_system.isEmpty() ) {
-        qDebug() << "System="<<m_system;
-        std::string sys = QString( "System=%1" ).arg( m_system ).toStdString();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
-        astSet( plot, sys.c_str() );
-#pragma GCC diagnostic pop
-        astClear( plot, "Epoch,Equinox" );
-    }
-    if ( !astOK ){
-        qWarning() << "AST error setting system"<<astStatus;
-        astClearStatus;
-    }*/
-
     if ( false ) {
         const char * labelling = astGetC( plot, "Labelling" );
         qDebug() << "labelling= " << labelling << ( ! ! labelling );
@@ -481,46 +465,34 @@ void AstGridPlotter::setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo
 }
 
 
-bool
-AstGridPlotter::setFitsHeader( const QString & hdr )
+bool AstGridPlotter::setFitsHeader( const QString & hdr )
 {
     m_fitsHeader = hdr;
 
     return true;
 }
 
-void
-AstGridPlotter::setCarLin( bool flag )
+void AstGridPlotter::setCarLin( bool flag )
 {
     m_carLin = flag;
 }
 
-/*void
-AstGridPlotter::setSystem( const QString & system )
-{
-    m_system = system;
-}*/
-
-void
-AstGridPlotter::setOutputVGComposer( AstGridPlotter::VGComposer * vgc )
+void AstGridPlotter::setOutputVGComposer( AstGridPlotter::VGComposer * vgc )
 {
     m_vgc = vgc;
 }
 
-void
-AstGridPlotter::setOutputRect( const QRectF & rect )
+void AstGridPlotter::setOutputRect( const QRectF & rect )
 {
     m_orect = rect;
 }
 
-void
-AstGridPlotter::setInputRect( const QRectF & rect )
+void AstGridPlotter::setInputRect( const QRectF & rect )
 {
     m_irect = rect;
 }
 
-void
-AstGridPlotter::setPlotOption( const QString & option )
+void AstGridPlotter::setPlotOption( const QString & option )
 {
     m_plotOptions.append( option );
 }
