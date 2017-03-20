@@ -38,6 +38,6 @@ else
         -w="/home/developer" -e DISPLAY=$DISPLAYARG \
         -e SHELL="/bin/bash" \
         -v /tmp/.X11-unix:/tmp/.X11-unix -v $DIR/../../:/home/developer/src/CARTAvis \
-        -v $1:/scratch/Images
+        -v $1:/scratch/Images \
         carta/cartabuild:base_20170105 /home/developer/src/CARTAvis/carta/scripts/dockerlaunchServer.sh
 fi
