@@ -67,6 +67,14 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                     // var path = skel.widgets.Path.getInstance();
                     dirPath = path.SEP;
                 }
+                else if ( fileName == ".."){
+                    //Strip off child from path, and make that the new text.
+                    var lastSepIndex = this.m_path.lastIndexOf( path.SEP );
+                    if ( lastSepIndex >= 0 ){
+                        var parentPath = this.m_path.substr(0, lastSepIndex );
+                        dirPath = parentPath;
+                    }
+                }
                 else if ( this._isDirectory( fileName )){
                     //If the node is a directory, add the directory to the base path.
                     dirPath = dirPath + path.SEP + fileName;
@@ -158,29 +166,8 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          */
         _nodeSelected : function( nodeLabel ){
             var path = skel.widgets.Path.getInstance();
-            if ( nodeLabel == ".."){
-                //Strip off child from path, and make that the new text.
-                var lastSepIndex = this.m_path.lastIndexOf( path.SEP );
-                if ( lastSepIndex >= 0 ){
-                    var parentPath = this.m_path.substr(0, lastSepIndex );
-                    this.m_dirText.setValue( parentPath );
-                }
-            }
-            // won't distinguish the file and folder when change selection.
-            // the judge is postponed until the event of double click.
-            // else if ( this._isDirectory( nodeLabel )){
-            //     //If the node is a directory, add the directory to the base path.
-            //     //var childDir = this.m_path + path.SEP + nodeLabel;
-            //     //this.m_dirText.setValue( childDir );
-            //     this.m_dirText.setValue( this.m_path );
-            //     this.m_fileText.setValue( nodeLabel );
-            // }
-            else {
-                //If the node is not a directory, reset the base path and put the
-                //name in the file text.
-                this.m_dirText.setValue( this.m_path );
-                this.m_fileText.setValue( nodeLabel );
-            }
+			this.m_dirText.setValue( this.m_path );
+			this.m_fileText.setValue( nodeLabel );
         },
 
         /**
