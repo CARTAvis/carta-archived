@@ -53,9 +53,8 @@ public:
     Release() = 0;
 
     virtual
-    ~IPCache() = 0;
+    ~IPCache();
 
 };
-inline IPCache::~IPCache() {}
 }
 }

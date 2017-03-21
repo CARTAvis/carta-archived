@@ -137,10 +137,8 @@ void Viewer::DBClose() {
     }
     else {
         m_diskCache = res.val();
-        qDebug() << "Check the number of owners:" << m_diskCache.use_count();
+        m_diskCache->Release();
     }
-
-    m_diskCache->Release();
 }
 
 void Viewer::setDeveloperView( ){
