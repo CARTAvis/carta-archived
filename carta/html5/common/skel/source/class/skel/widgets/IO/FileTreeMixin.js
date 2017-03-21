@@ -59,11 +59,25 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             //double click.
             this.m_tree.addListener( "dblclick", function(event){
                 var dirPath = this.m_dirText.getValue();
+                var fileName = this.m_fileText.getValue();
+                var path = skel.widgets.Path.getInstance();
 
                 //Request for root directory
                 if ( dirPath.length === 0 ){
-                    var path = skel.widgets.Path.getInstance();
+                    // var path = skel.widgets.Path.getInstance();
                     dirPath = path.SEP;
+                }
+                else if ( fileName == ".."){
+                    //Strip off child from path, and make that the new text.
+                    var lastSepIndex = this.m_path.lastIndexOf( path.SEP );
+                    if ( lastSepIndex >= 0 ){
+                        var parentPath = this.m_path.substr(0, lastSepIndex );
+                        dirPath = parentPath;
+                    }
+                }
+                else if ( this._isDirectory( fileName )){
+                    //If the node is a directory, add the directory to the base path.
+                    dirPath = dirPath + path.SEP + fileName;
                 }
                 this._initData( dirPath );
             }, this );
@@ -152,25 +166,8 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          */
         _nodeSelected : function( nodeLabel ){
             var path = skel.widgets.Path.getInstance();
-            if ( nodeLabel == ".."){
-                //Strip off child from path, and make that the new text.
-                var lastSepIndex = this.m_path.lastIndexOf( path.SEP );
-                if ( lastSepIndex >= 0 ){
-                    var parentPath = this.m_path.substr(0, lastSepIndex );
-                    this.m_dirText.setValue( parentPath );
-                }
-            }
-            else if ( this._isDirectory( nodeLabel )){
-                //If the node is a directory, add the directory to the base path.
-                var childDir = this.m_path + path.SEP + nodeLabel;
-                this.m_dirText.setValue( childDir );
-            }
-            else {
-                //If the node is not a directory, reset the base path and put the
-                //name in the file text.
-                this.m_dirText.setValue( this.m_path );
-                this.m_fileText.setValue( nodeLabel );
-            }
+			this.m_dirText.setValue( this.m_path );
+			this.m_fileText.setValue( nodeLabel );
         },
 
         /**

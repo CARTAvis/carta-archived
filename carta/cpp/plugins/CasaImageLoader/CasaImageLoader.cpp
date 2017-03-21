@@ -77,31 +77,37 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
 {
     qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
-    //
-    // first we open the image as a lattice
-    //
+    // get the image type
+    casa::ImageOpener::ImageTypes filetype = casacore::ImageOpener::imageType(fname.toStdString());
+
+    // load image
     casa::LatticeBase * lat = nullptr;
-    // first try as paged array
-    try {
+    if(filetype == casa::ImageOpener::ImageTypes::AIPSPP)
+    {
         lat = casa::ImageOpener::openPagedImage ( fname.toStdString());
-    qDebug() << "\t-opened as paged image";
-    } catch ( casa::AipsError & e) {
-        qWarning() << "\t-paged image open failed: " << e.what();
+        qDebug() << "\t-opened as paged image";
     }
-    // if paged didn't work, try as unpaged
-    if( ! lat ) {
-        try {
-            lat = casa::ImageOpener::openImage ( fname.toStdString());
-        qDebug() << "\t-opened as unpaged image";
-        } catch ( casa::AipsError & e) {
-        qWarning() << "\t-unpaged image open failed: " << e.what();
+    else if(filetype != casa::ImageOpener::ImageTypes::UNKNOWN)
+    {
+        lat = casa::ImageOpener::openImage ( fname.toStdString());
+        if(filetype == casa::ImageOpener::ImageTypes::FITS)
+        {
+            qDebug() << "\t-opened as FITS image";
+        }
+        else if(filetype == casa::ImageOpener::ImageTypes::MIRIAD )
+        {
+            qDebug() << "\t-opened as MIRIAD image";
+        }
+        else
+        {
+            qDebug() << "\t-opened as unpaged image";
         }
     }
-    // if we failed to open the lattice, we are done :(
-    if( lat == 0 ) {
-        qDebug() << "\t-out of ideas, bailing out";
-        return nullptr;
+    else
+    {
+        qDebug() << "unknow format \t-out of ideas, bailing out";
     }
+
     lat->reopen();
     qDebug() << "lat=" << lat;
     auto shape = lat->shape();
@@ -112,6 +118,10 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
 
     CCImageBase::SharedPtr res;
     res = tryCast<float>(lat);
+    // Please note that the following code will not be reached
+    // even if the FITS file is defined in 64 bit
+    // and FitsHeaderExtractor::_CasaFitsConverter assumes that
+    // image is load in casa::ImageInterface < casa::Float > format
     if( ! res) res = tryCast<double>(lat);
     if( ! res) res = tryCast<u_int8_t>(lat);
     if( ! res) res = tryCast<int16_t>(lat);
