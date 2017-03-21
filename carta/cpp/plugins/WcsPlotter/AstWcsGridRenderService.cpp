@@ -382,6 +382,7 @@ AstWcsGridRenderService::renderNow()
    }
 
     //Turn axis  labelling off if we are not drawing the axes.
+    /// This part of code should be cleaned ///
     if (m_axes){
         int labelCount = m_labels.size();
         for ( int i = 0; i < labelCount; i++ ){
@@ -399,10 +400,6 @@ AstWcsGridRenderService::renderNow()
                         QString format = QString( "Format(%1)=%2").arg(axisIndex).arg( completeFormat );
                         sgp.setPlotOption( format );
 
-                        //Label with format added - seems to be added automatically for J2000.
-                        if ( system != "J2000" ){
-                            baseLabel = baseLabel +"(" + completeFormat+")";
-                        }
                     }
                     else {
                         QString digits = QString( "Digits(%1)=%2").arg(axisIndex).arg(precision);
