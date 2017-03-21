@@ -118,6 +118,8 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // initialize connector
     connector-> initialize( initCB );
 
+    QObject::connect( &qapp, SIGNAL(aboutToQuit()), &viewer, SLOT(DBClose()));
+
     // give QT control
     int res = qapp.exec();
 

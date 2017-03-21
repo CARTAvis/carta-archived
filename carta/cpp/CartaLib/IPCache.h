@@ -45,6 +45,16 @@ public:
     setEntry( const QByteArray & key,
               const QByteArray & val,
               int64_t priority ) = 0;
+
+    /// Release the shared_ptr before the program quits.
+    /// There may be a better way to prevent the segementation fault
+    /// comes from the ~SqLitePCache when CARTA shuts down.
+    virtual void
+    Release() = 0;
+
+    virtual
+    ~IPCache();
+
 };
 }
 }

@@ -14,6 +14,7 @@
 #include "CmdLine.h"
 #include "ScriptedClient/Listener.h"
 #include "ScriptedClient/ScriptedCommandInterpreter.h"
+#include "CartaLib/Hooks/GetPersistentCache.h"
 
 #include <QImage>
 #include <QColor>
@@ -123,7 +124,22 @@ Viewer::start()
     qDebug() << "Viewer has been initialized.";
 }
 
+void Viewer::DBClose() {
 
+    std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
+
+    // find the unique shared_ptr of cache and release it by force
+    auto res = Globals::instance()-> pluginManager()
+               -> prepare < Carta::Lib::Hooks::GetPersistentCache > ().first();
+    if ( res.isNull() || ! res.val() ) {
+        qWarning( "Could not find a disk cache plugin." );
+        m_diskCache = nullptr;
+    }
+    else {
+        m_diskCache = res.val();
+        m_diskCache->Release();
+    }
+}
 
 void Viewer::setDeveloperView( ){
     m_devView = true;

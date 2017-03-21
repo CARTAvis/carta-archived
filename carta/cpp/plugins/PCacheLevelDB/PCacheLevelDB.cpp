@@ -93,6 +93,8 @@ public:
         return m_cachePtr;
     }
 
+    virtual void Release() override {}
+
     //~LevelDBPCache()
     //{
         // I don't think a destructor is required; leaving this as a placeholder for now
