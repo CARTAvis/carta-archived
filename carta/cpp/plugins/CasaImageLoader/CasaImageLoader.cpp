@@ -108,6 +108,14 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
         qDebug() << "unknow format \t-out of ideas, bailing out";
     }
 
+
+    if(lat == 0)
+    {
+        qDebug() << "unknow format \t-out of ideas, bailing out";
+        return nullptr;
+
+    }
+
     lat->reopen();
     qDebug() << "lat=" << lat;
     auto shape = lat->shape();
