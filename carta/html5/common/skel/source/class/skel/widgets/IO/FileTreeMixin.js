@@ -1,6 +1,7 @@
 /**
  * Manage a tree displaying directories/files and display areas for the selected
  * directory and file.
+ * @asset(skel/file_icons/*)
  */
 
 /*global mImport */
@@ -166,8 +167,8 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          */
         _nodeSelected : function( nodeLabel ){
             var path = skel.widgets.Path.getInstance();
-			this.m_dirText.setValue( this.m_path );
-			this.m_fileText.setValue( nodeLabel );
+            this.m_dirText.setValue( this.m_path );
+            this.m_fileText.setValue( nodeLabel );
         },
 
         /**
@@ -191,6 +192,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 } else {
                     treeElement = new qx.ui.tree.TreeFile(element.name);
                 }
+                this._setTreeIcons(treeElement);
                 root.add(treeElement);
             }
 
@@ -210,11 +212,51 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          * @param dataTree {String} representing available data files in a
          *                hierarchical JSON format
          */
-        _updateTree : function(dataTree) {
+        _updateTree : function( dataTree ) {
             this.m_jsonObj = qx.lang.Json.parse(dataTree);
             this._resetModel();
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
+        },
+
+        _setTreeIcons : function( treeElement ) {
+            var format = this._getFileFormat( treeElement );
+            treeElement.setIcon("skel/file_icons/" + format +  ".png");
+            treeElement.getChildControl("icon").set({
+                width:24,
+                height:24,
+                scale:true
+            });
+        },
+
+        _getFileFormat : function( treeElement ) {
+            // var formatMap = new Maps([
+            //     [ 'fits', 'fits' ],
+            //     [ 'image', 'casa' ],
+            //     [ 'miriad', 'miriad' ],
+            //     [ 'crtf', 'region_casa' ],
+            //     [ 'reg', 'region_ds9' ]
+            // ]);
+            var label = treeElement.getLabel();
+            if ( !this._isDirectory( label )) {
+                var extension = label.split(".")[label.split(".").length-1];
+                //return formatMap.get(extension);
+                switch ( extension ) {
+                    case 'fits'   : return 'fits';
+                    case 'image'  : return 'casa';
+                    case 'miriad' : return 'miriad';
+                    case 'crtf'   : return 'region_casa';
+                    case 'reg'    : return 'region_ds9';
+
+                    default:
+                        return 'undefined';
+                }
+            }
+            else {
+                var childrenList = treeElement.getChildren();
+                console.log("childrenList:", childrenList);
+                return 'fits';
+            }
         },
 
         m_dirText : null,
