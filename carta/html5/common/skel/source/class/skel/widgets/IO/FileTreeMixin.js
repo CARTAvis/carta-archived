@@ -253,11 +253,33 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 }
             }
             else {
-                var childrenList = treeElement.getChildren();
-                console.log("childrenList:", childrenList);
+                var path = skel.widgets.Path.getInstance();
+                var dirPath = this.m_dirText.getValue() + path.SEP + label;
+                var listOfSubDir = null;
+                this.m_connector.sendCommand( path.getCommandLoadData(), "path:"+dirPath,
+                function( fileList ) { listOfSubDir = qx.lang.Json.parse(fileList); });
+
+                console.log("listOfSubDir:", listOfSubDir);
+
+                // var childrenList = treeElement.getChildren();
+                // console.log("childrenList:", childrenList);
                 return 'fits';
             }
         },
+
+        // _initData : function( dirPath ){
+        //     if ( this.m_connector === null ){
+        //         this.m_connector = mImport("connector");
+        //     }
+        //     var path = skel.widgets.Path.getInstance();
+        //     if ( typeof dirPath == "undefined"){
+        //         dirPath = "";
+        //     }
+        //     var paramMap = "path:"+dirPath;
+        //     var cmd = path.getCommandLoadData();
+        //     this.m_connector.sendCommand(cmd, paramMap, this._loadDataCB( this ));
+        // },
+
 
         m_dirText : null,
         m_fileText : null,
