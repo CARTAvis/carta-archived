@@ -66,7 +66,7 @@ On Mac, its g++ compiler is called clang and its standard c++ lib is **libc++**.
 
 **Install Homebrew and wget**
 
-1. get Homebrew from https://brew.sh/. 
+1. get Homebrew from https://brew.sh/.
 2. brew install wget
 
 ## Step2 - Choose your working space (folder) of CARTA and clone source code of CARTA
@@ -145,16 +145,18 @@ cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 1. Use Homebrew and Macports to install needed libraries first, follow this guide,
 https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac
 
-2. cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildcasa.sh`.
+2. `export PATH=/usr/local/Cellar/qt/4.8.7_3/bin:$PATH` to build qwt 6.1.0 in `buildscript.sh`
 
-3. After building CASA libraries, **brew unlink qt** to remove Qt 4.8 from `PATH`. Otherise it will find out Qt 4.8 headers and libs when building CARTA which only need Qt 5.3.2 or higher Qt.
+3. cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/buildcasa.sh`.
+
+4. After building CASA libraries, **brew unlink qt** to remove symbolic link of Qt 4.8 from `PATH`. Otherwise, it will find out Qt 4.8 headers and libs when building CARTA which only need Qt 5.3.2 or higher Qt.
 
 **CentOS 7:**
 
 The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers (4.9.2) and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
 
 cd `your-carta-work`, execute
-`./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
+`sudo ./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
 
 1. Use **yum install qt-devel.x86_64 qt.x86_64** to get Qt 4.8.5.
 2. Use Qt 4.8.5 to build needed Qwt 6.1.0.
@@ -260,7 +262,7 @@ cd `your-carta-work`, execute `./CARTAvis/carta/scripts/buildUIfile.sh`. This st
 
 On Mac: follow this guide to setup. https://www.evernote.com/l/AAZdslIM_Z5IH7gfaWdQ6v6XLgEJ-CWxVcE
 
-On Linux: Work in progress. 
+On Linux: Work in progress.
 
 
 ## Use Other IDE to build and debug
@@ -331,13 +333,13 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 1. Current CARTA needs to execute the following command every time to find correct **dynamic/shared Library** before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
 
     1. setup LD_LIBRARY_PATH on Mac/Linux
-    
+
     ```
     ## ok way, use this
     export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
     ## or this path, should work but not test. It is the symbolic link of the above path,
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
-    ## no need to setup the path wcslib, we already use QMAKE_RPATHDIR 
+    ## no need to setup the path wcslib, we already use QMAKE_RPATHDIR
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib/lib:${LD_LIBRARY_PATH}
     ```
 
@@ -386,9 +388,9 @@ Some of optional parameters:
 
 ## Run and Debug by Qt Creator
 
-On Mac: Work In Progress. (The needed setting is done in https://github.com/cartavis/carta#use-qt-creator-to-build-and-debug-will-complement-this-part-later. 
+On Mac: Work In Progress. (The needed setting is done in https://github.com/cartavis/carta#use-qt-creator-to-build-and-debug-will-complement-this-part-later.
 
-On Linux: Work In Progress. 
+On Linux: Work In Progress.
 
 # Deployment: Prepare distributable and packaged installer/zip
 
