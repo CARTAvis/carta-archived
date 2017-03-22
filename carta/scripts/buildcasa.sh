@@ -200,8 +200,9 @@ fi
 # http://stackoverflow.com/questions/4857702/how-to-provide-password-to-a-command-that-prompts-for-one-in-bash
 # or use sudo yum to insatll ? qt-4.8.6-30.fc20.x86_64
 
-## for building qwt for casa-submodue-code, by using Qt4.8.5
 cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
+
+## for building qwt for casa-submodue-code, by using Qt4.8.5
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.0/qwt-6.1.0.tar.bz2
 tar xvfj qwt-6.1.0.tar.bz2 && mv qwt-6.1.0 qwt-6.1.0-src
 cd qwt-6.1.0-src # can use qwt 6.1.3 Pavol uses
@@ -216,6 +217,13 @@ make && make install
 # export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
 # export PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0/lib:$PATH
 cd ..
+if [ "$(uname)" == "Darwin" ]; then
+	cd qwt-6.1.0
+    mkdir include
+	ln -s ../lib/qwt.framework/Versions/6/Headers include/qwt
+    ln -s ../lib/qwt.framework/Versions/6/qwt ./lib/qwt
+	cd ..
+fi
 
 ## cascore and code
 # in the other instruction to build carta + casa, usually
@@ -315,6 +323,7 @@ svn patch casacodereduce1.diff
 # since no more yum/apt version which is easily searchable without using rpath or LD_LIBRARY_PATH.
 perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( WCSLIB/' CMakeLists.txt
 perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
+perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( QWT/' CMakeLists.txt
 
 perl -pi.bak -e 's/QtGui QtDBus QtXml/QtGui QtXml/g' CMakeLists.txt
 
@@ -348,7 +357,7 @@ if [ "$(uname)" == "Darwin" ]; then
     -DPGPLOT_LIBRARIES=/usr/local/opt/pgplot/lib \
     -DSKIP_PGPLOT=1 \
     -DLIBXML2_ROOT_DIR=/usr/local/opt/libxml2 \
-    -DQWT_ROOT_DIR=/usr/local/opt/qwt-qt4 \
+    -DQWT_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0 \
     -DXERCES_ROOT_DIR=/usr/local/opt/xerces-c \
     -DRPFITS_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/rpfits \
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
@@ -400,18 +409,17 @@ make -j2
 # Ville said code does not need make install
 # make install
 
-cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
-mkdir imageanalysis
-cd imageanalysis
+mkdir -p $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore
+mkdir -p $CARTAWORKHOME/CARTAvis-externals/ThirdParty/imageanalysis
+
+cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty/imageanalysis
 ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/include/casacode/ include
 ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/lib lib
 
-cd ..
-mkdir casacore
-cd casacore
+cd ../casacore
 ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/include/ include
 ln -s $CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/lib lib
 
 if [ "$isCentOS" = true ] ; then
     unalias qmake
-}
+fi
