@@ -663,7 +663,8 @@ void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         if ( m_dataGrid ){
             if ( m_dataGrid->_isGridVisible() ){
                 std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-                gridService->setInputImage( m_dataSource->_getImage() );
+                //gridService->setInputImage( m_dataSource->_getImage() );
+                gridService->setInputImage( m_dataSource->_getPermImage() );
             }
         }
         if ( m_drawSync ){

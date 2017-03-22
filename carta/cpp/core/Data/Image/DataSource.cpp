@@ -337,7 +337,9 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getImage(){
     return m_image;
 }
 
-
+std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getPermImage(){
+    return m_permuteImage;
+}
 
 std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> DataSource::_getPipeline() const {
     return m_pixelPipeline;
