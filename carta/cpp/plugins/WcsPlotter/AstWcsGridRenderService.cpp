@@ -399,7 +399,7 @@ QString AstWcsGridRenderService::_setDisplayLabelOptionforAst()
                 Carta::Lib::AxisInfo::KnownType axisType = m_axisDisplayInfos[thisAxis].getAxisType();
                 if( axisType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON)
                 {
-                    // TODO: check system == B1950/J2000/ICRS[default:hms] or Galactic/Ecliptic[default:d] or OTHER
+                    // TODO: check system == B1950/J2000/ICRS[default:hms, d] or Galactic/Ecliptic[default:d] or OTHER
                     // set format
                     if (labelFormat == Carta::Lib::AxisLabelInfo::Formats::HR_MIN_SEC)
                     {
@@ -417,7 +417,7 @@ QString AstWcsGridRenderService::_setDisplayLabelOptionforAst()
                 }
                 else if( axisType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT)
                 {
-                    // TODO: check system == B1950/J2000/ICRS[default:dms] or Galactic/Ecliptic[default:d] or OTHER
+                    // TODO: check system == B1950/J2000/ICRS[default:dms, d] or Galactic/Ecliptic[default:d] or OTHER
                     // set format
                     if (labelFormat == Carta::Lib::AxisLabelInfo::Formats::DEG_MIN_SEC)
                     {
@@ -675,10 +675,5 @@ AstWcsGridRenderService::_turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp){
     sgp->setPlotOption("MajTickLen(2)=0");
     sgp->setPlotOption("MinTickLen(1)=0");
     sgp->setPlotOption("MinTickLen(2)=0");
-}
-
-void AstWcsGridRenderService::_turnOffLabels( WcsPlotterPluginNS::AstGridPlotter* sgp, int index ){
-    sgp->setPlotOption( QString("TextLab(%1)=0").arg(index));
-    sgp->setPlotOption( QString("NumLab(%1)=0").arg(index));
 }
 }

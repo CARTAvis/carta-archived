@@ -438,24 +438,37 @@ AstGridPlotter::plot()
         astClearStatus;
     }*/
 
-    if ( false ) {
-        const char * labelling = astGetC( plot, "Labelling" );
-        qDebug() << "labelling= " << labelling << ( ! ! labelling );
-        if( ! labelling) {
-            qDebug() << "Dave1!";
+    // set Label
+    for(int ii = 0; ii < 2; ii = ii + 1)
+    {
+        QString target = QString("System(%1)").arg(ii+1);
+        const char* CAxisSystem = astGetC( plot, target.toStdString().c_str() );
+        QString SAxisSystem(CAxisSystem);
+        bool isequatorial = 0;
+        if(SAxisSystem == "FK5" || SAxisSystem == "FK4" || SAxisSystem == "ICRS")
+        {
+            target = QString("Label(%1)").arg(ii+1);
+            const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
+            QString newLabel = QString("%1=%2 %3").arg(target).arg(SAxisSystem).arg(QString(oldLabel).toLower());
+            astSet( plot, newLabel.toStdString().c_str() );
+        }
+
+        if(!isequatorial && SAxisSystem == "Cartesian")
+        {
+            target = QString("Label(%1)").arg(ii+1);
+            const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
+
+            // Capitalization
+            QString CapLabel = QString(oldLabel).toLower();
+            CapLabel.replace(0, 1, QString(oldLabel[0]).toUpper() );
+            QString newLabel = QString("%1=%3").arg(target).arg(CapLabel);
+            astSet( plot, newLabel.toStdString().c_str() );
         }
     }
+
 
     // call the actual plotting
     astGrid( plot );
-
-    if ( false ) {
-        const char * labelling = astGetC( plot, "Labelling" );
-        qDebug() << "labelling== " << labelling << ( ! ! labelling );
-        if( ! labelling) {
-            qDebug() << "Dave2!";
-        }
-    }
 
     if ( ! astOK ) {
         qWarning() << "AST error occurred probably in astGrid()" << astStatus;
