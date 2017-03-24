@@ -445,7 +445,27 @@ AstGridPlotter::plot()
         const char* CAxisSystem = astGetC( plot, target.toStdString().c_str() );
         QString SAxisSystem(CAxisSystem);
         bool isequatorial = 0;
-        if(SAxisSystem == "FK5" || SAxisSystem == "FK4" || SAxisSystem == "ICRS")
+        if(SAxisSystem == "FK5")
+        {
+            isequatorial = 1;
+            SAxisSystem = ("J2000");
+        }
+        else if(SAxisSystem == "FK4")
+        {
+            isequatorial = 1;
+            SAxisSystem = ("B1950");
+        }
+        else if(SAxisSystem == "ICRS")
+        {
+            isequatorial = 1;
+            SAxisSystem = ("ICRS");
+        }
+        else
+        {
+            isequatorial = 0;
+        }
+
+        if(isequatorial)
         {
             target = QString("Label(%1)").arg(ii+1);
             const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
@@ -464,6 +484,7 @@ AstGridPlotter::plot()
             QString newLabel = QString("%1=%3").arg(target).arg(CapLabel);
             astSet( plot, newLabel.toStdString().c_str() );
         }
+
     }
 
 
