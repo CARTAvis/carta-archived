@@ -94,8 +94,10 @@ private:
     //Look for eligible data files in a specific directory (recursive).
     void _processDirectory(const QDir& rootDir, QJsonObject& rootArray) const;
 
+    QString _checkSubDir( QString& subDirPath) const;
+
     //Add a file to the list of those available in a given directory.
-    void _makeFileNode(QJsonArray& parentArray, const QString& fileName) const;
+    void _makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const;
     //Add a subdirectory to the list of available files.
     void _makeFolderNode( QJsonArray& parentArray, const QString& fileName ) const;
     DataLoader( const QString& path, const QString& id);

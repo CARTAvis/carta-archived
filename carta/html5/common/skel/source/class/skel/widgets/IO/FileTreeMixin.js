@@ -192,7 +192,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 } else {
                     treeElement = new qx.ui.tree.TreeFile(element.name);
                 }
-                this._setTreeIcons(treeElement);
+                this._setTreeIcons(treeElement, element.type);
                 root.add(treeElement);
             }
 
@@ -219,8 +219,8 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             errorMan.clearErrors();
         },
 
-        _setTreeIcons : function( treeElement ) {
-            var format = this._getFileFormat( treeElement );
+        _setTreeIcons : function( treeElement, type ) {
+            var format = this._getFileFormat( type );
             treeElement.setIcon("skel/file_icons/" + format +  ".png");
             treeElement.getChildControl("icon").set({
                 width:24,
@@ -229,6 +229,21 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             });
         },
 
+
+        _getFileFormat : function( fileType ) {
+			switch ( fileType ) {
+				case 'fits'   : return 'fits';
+				case 'image'  : return 'casa';
+				case 'miriad' : return 'miriad';
+				case 'crtf'   : return 'region_casa';
+				case 'reg'    : return 'region_ds9';
+
+				default:
+					return 'fits';
+			}
+        },
+
+/*/////////////////////////////////////////////////////////////////////////////////
         _getFileFormat : function( treeElement ) {
             // var formatMap = new Maps([
             //     [ 'fits', 'fits' ],
@@ -266,6 +281,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 return 'fits';
             }
         },
+*//////////////////////////////////////////////////////////////////////////////////////
 
         // _initData : function( dirPath ){
         //     if ( this.m_connector === null ){

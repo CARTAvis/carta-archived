@@ -182,15 +182,32 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
         QString fileName = dit.fileInfo().fileName();
         if (dit.fileInfo().isDir()) {
             if (fileName.endsWith(".image")) {
-                _makeFileNode(dirArray, fileName);
+                _makeFileNode(dirArray, fileName, "image");
             }
             else {
-                _makeFolderNode( dirArray, fileName );
+                QString rootDirPath = rootDir.absolutePath();
+                QString subDirPath = rootDirPath.append("/").append(fileName);
+                // QDir subDir(subdirPath);
+
+                if ( _checkSubDir(subDirPath) != NULL ) {
+                    _makeFileNode( dirArray, fileName, _checkSubDir(subDirPath));
+                }
+                else {
+                // QDirIterator subdit(dirPath, QDir::NoFilter);
+                // while (subdit.hasNext()) {
+                //     subdit.next();
+                //     if (subdit.fileName() == "." || subdit.fileName() == "..") continue;
+                //     QString subFileName = subdit.fileInfo().fileName();
+                //
+                // }
+                    _makeFolderNode( dirArray, fileName );
+                }
             }
         }
         else if (dit.fileInfo().isFile()) {
             if (fileName.endsWith(".fits") || fileName.endsWith( CRTF ) || fileName.endsWith( REG )) {
-                _makeFileNode(dirArray, fileName);
+                QString fileType = fileName.split(".").last();
+                _makeFileNode(dirArray, fileName, fileType);
             }
         }
     }
@@ -198,10 +215,47 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
     rootObj.insert( DIR, dirArray);
 }
 
-void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName) const {
+QString DataLoader::_checkSubDir( QString& subDirPath) const {
+
+    QDir subDir(subDirPath);
+    if (!subDir.exists()) {
+        QString errorMsg = "Please check that "+subDir.absolutePath()+" is a valid directory.";
+        Util::commandPostProcess( errorMsg );
+        exit(0);
+    }
+
+    QMap< QString, QStringList> filterMap;
+
+    QStringList momFilters, miriadFilters;
+    momFilters << "table.f0_TSM0" << "table.info";
+    miriadFilters << "header" << "image";
+
+    filterMap.insert( "image", momFilters);
+    filterMap.insert( "miriad", miriadFilters);
+
+    foreach ( const QString &filter, filterMap.keys()){
+        subDir.setNameFilters(filterMap.value(filter));
+        if ( subDir.entryList().length() == filterMap.value(filter).length() ) {
+            return filter;
+        }
+    }
+    return "Unknown";
+
+    // QDirIterator subdit( subDir.absolutePath(), QDir::NoFilter);
+    // while (subdit.hasNext()) {
+    //     subdit.next();
+    //     if (subdit.fileName() == "." || subdit.fileName() == "..") continue;
+    //
+    //     QString subFileName = subdit.fileInfo().fileName();
+    //
+    // }
+}
+
+void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
     obj.insert( Util::NAME, fileValue);
+    obj.insert( Util::TYPE, QJsonValue(fileType));
     parentArray.append(obj);
 }
 
