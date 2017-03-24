@@ -226,12 +226,14 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          */
         _setTreeIcons : function( treeElement, type ) {
             var format = this._getFileFormat( type );
-            treeElement.setIcon("skel/file_icons/" + format +  ".png");
-            treeElement.getChildControl("icon").set({
-                width:24,
-                height:24,
-                scale:true
-            });
+            if (format != "undefined"){
+                treeElement.setIcon("skel/file_icons/" + format +  ".png");
+                treeElement.getChildControl("icon").set({
+                    width:24,
+                    height:24,
+                    scale:true
+                });
+            }
         },
 
         /**
