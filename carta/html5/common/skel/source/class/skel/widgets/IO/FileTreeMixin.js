@@ -191,8 +191,8 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                     treeElement = new qx.ui.tree.TreeFolder(element.name);
                 } else {
                     treeElement = new qx.ui.tree.TreeFile(element.name);
+                    this._setTreeIcons(treeElement, element.type);
                 }
-                this._setTreeIcons(treeElement, element.type);
                 root.add(treeElement);
             }
 
@@ -219,6 +219,11 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             errorMan.clearErrors();
         },
 
+        /**
+         * Set the icon of each treeElement
+         * @param treeElement
+         * @param type {String} get from m_jsonObj to distinguish format
+         */
         _setTreeIcons : function( treeElement, type ) {
             var format = this._getFileFormat( type );
             treeElement.setIcon("skel/file_icons/" + format +  ".png");
@@ -229,73 +234,22 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
             });
         },
 
-
+        /**
+         * Distinguish the formats of files based on the information from the server
+         * @param fileType {String} get from m_jsonObj to distinguish format
+         */
         _getFileFormat : function( fileType ) {
-			switch ( fileType ) {
-				case 'fits'   : return 'fits';
-				case 'image'  : return 'casa';
-				case 'miriad' : return 'miriad';
-				case 'crtf'   : return 'region_casa';
-				case 'reg'    : return 'region_ds9';
+            switch ( fileType ) {
+                case 'fits'   : return 'fits';
+                case 'image'  : return 'casa';
+                case 'miriad' : return 'miriad';
+                case 'crtf'   : return 'region_casa';
+                case 'reg'    : return 'region_ds9';
 
-				default:
-					return 'fits';
-			}
-        },
-
-/*/////////////////////////////////////////////////////////////////////////////////
-        _getFileFormat : function( treeElement ) {
-            // var formatMap = new Maps([
-            //     [ 'fits', 'fits' ],
-            //     [ 'image', 'casa' ],
-            //     [ 'miriad', 'miriad' ],
-            //     [ 'crtf', 'region_casa' ],
-            //     [ 'reg', 'region_ds9' ]
-            // ]);
-            var label = treeElement.getLabel();
-            if ( !this._isDirectory( label )) {
-                var extension = label.split(".")[label.split(".").length-1];
-                //return formatMap.get(extension);
-                switch ( extension ) {
-                    case 'fits'   : return 'fits';
-                    case 'image'  : return 'casa';
-                    case 'miriad' : return 'miriad';
-                    case 'crtf'   : return 'region_casa';
-                    case 'reg'    : return 'region_ds9';
-
-                    default:
-                        return 'undefined';
-                }
-            }
-            else {
-                var path = skel.widgets.Path.getInstance();
-                var dirPath = this.m_dirText.getValue() + path.SEP + label;
-                var listOfSubDir = null;
-                this.m_connector.sendCommand( path.getCommandLoadData(), "path:"+dirPath,
-                function( fileList ) { listOfSubDir = qx.lang.Json.parse(fileList); });
-
-                console.log("listOfSubDir:", listOfSubDir);
-
-                // var childrenList = treeElement.getChildren();
-                // console.log("childrenList:", childrenList);
-                return 'fits';
+                default:
+                    return 'undefined';
             }
         },
-*//////////////////////////////////////////////////////////////////////////////////////
-
-        // _initData : function( dirPath ){
-        //     if ( this.m_connector === null ){
-        //         this.m_connector = mImport("connector");
-        //     }
-        //     var path = skel.widgets.Path.getInstance();
-        //     if ( typeof dirPath == "undefined"){
-        //         dirPath = "";
-        //     }
-        //     var paramMap = "path:"+dirPath;
-        //     var cmd = path.getCommandLoadData();
-        //     this.m_connector.sendCommand(cmd, paramMap, this._loadDataCB( this ));
-        // },
-
 
         m_dirText : null,
         m_fileText : null,

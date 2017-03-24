@@ -181,27 +181,14 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
 
         QString fileName = dit.fileInfo().fileName();
         if (dit.fileInfo().isDir()) {
-            if (fileName.endsWith(".image")) {
-                _makeFileNode(dirArray, fileName, "image");
+            QString rootDirPath = rootDir.absolutePath();
+            QString subDirPath = rootDirPath.append("/").append(fileName);
+
+            if ( !_checkSubDir(subDirPath).isNull() ) {
+                _makeFileNode( dirArray, fileName, _checkSubDir(subDirPath));
             }
             else {
-                QString rootDirPath = rootDir.absolutePath();
-                QString subDirPath = rootDirPath.append("/").append(fileName);
-                // QDir subDir(subdirPath);
-
-                if ( _checkSubDir(subDirPath) != NULL ) {
-                    _makeFileNode( dirArray, fileName, _checkSubDir(subDirPath));
-                }
-                else {
-                // QDirIterator subdit(dirPath, QDir::NoFilter);
-                // while (subdit.hasNext()) {
-                //     subdit.next();
-                //     if (subdit.fileName() == "." || subdit.fileName() == "..") continue;
-                //     QString subFileName = subdit.fileInfo().fileName();
-                //
-                // }
-                    _makeFolderNode( dirArray, fileName );
-                }
+                _makeFolderNode( dirArray, fileName );
             }
         }
         else if (dit.fileInfo().isFile()) {
@@ -226,35 +213,30 @@ QString DataLoader::_checkSubDir( QString& subDirPath) const {
 
     QMap< QString, QStringList> filterMap;
 
-    QStringList momFilters, miriadFilters;
-    momFilters << "table.f0_TSM0" << "table.info";
+    QStringList imageFilters, miriadFilters;
+    imageFilters << "table.f0_TSM0" << "table.info";
     miriadFilters << "header" << "image";
 
-    filterMap.insert( "image", momFilters);
+    filterMap.insert( "image", imageFilters);
     filterMap.insert( "miriad", miriadFilters);
 
+    //look for the subfiles satisfying a special format
     foreach ( const QString &filter, filterMap.keys()){
         subDir.setNameFilters(filterMap.value(filter));
         if ( subDir.entryList().length() == filterMap.value(filter).length() ) {
             return filter;
         }
     }
-    return "Unknown";
-
-    // QDirIterator subdit( subDir.absolutePath(), QDir::NoFilter);
-    // while (subdit.hasNext()) {
-    //     subdit.next();
-    //     if (subdit.fileName() == "." || subdit.fileName() == "..") continue;
-    //
-    //     QString subFileName = subdit.fileInfo().fileName();
-    //
-    // }
+    return NULL;
 }
 
 void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
     obj.insert( Util::NAME, fileValue);
+    //use type to represent the format of files
+    //the meaning of "type" may differ with other codes
+    //can change the string when feeling confused
     obj.insert( Util::TYPE, QJsonValue(fileType));
     parentArray.append(obj);
 }
