@@ -192,9 +192,21 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
             }
         }
         else if (dit.fileInfo().isFile()) {
-            if (fileName.endsWith(".fits") || fileName.endsWith( CRTF ) || fileName.endsWith( REG )) {
-                QString fileType = fileName.split(".").last();
-                _makeFileNode(dirArray, fileName, fileType);
+            QFile file(lastPart+QDir::separator()+fileName);
+            if (file.open(QFile::ReadOnly)) {
+                QString dataInfo = file.read(80);
+                if (dataInfo.contains("Region", Qt::CaseInsensitive)) {
+                    if (dataInfo.contains("DS9", Qt::CaseInsensitive)) {
+                        _makeFileNode(dirArray, fileName, "reg");
+                    }
+                    else if (dataInfo.contains("CRTF", Qt::CaseInsensitive)) {
+                        _makeFileNode(dirArray, fileName, "crtf");
+                    }
+                }
+                else if (dataInfo.contains("FITS", Qt::CaseInsensitive)) {
+                    _makeFileNode(dirArray, fileName, "fits");
+                }
+                file.close();
             }
         }
     }
