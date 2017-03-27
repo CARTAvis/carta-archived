@@ -27,12 +27,25 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
 	pen.setCosmetic(true);
+        QPen rectPen = outlinePen;
+	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
-	//Draw the basic polygon
+	//Draw the basic polygon (exterior manipulation region of point)
 	comp.append < vge::SetPen > ( pen );
 	comp.append < vge::SetBrush > ( brush );
-	comp.append < vge::DrawRect > ( m_shadowRect );
+	comp.append < vge::DrawEllipse > ( m_shadowRect );
+
+        //Draw inner region of point
+        QRectF innerRect;
+        double width = m_shadowRect.width()/4;
+        double x = m_shadowRect.center().x() - (width/2);
+        double y = m_shadowRect.center().y() - (width/2);
+        innerRect.setRect(x,y,width,width);
+        comp.append < vge::SetPen > ( rectPen );
+	comp.append < vge::SetBrush > ( brush );
+        comp.append < vge::DrawEllipse > ( innerRect );
+
 	return comp.vgList();
 }
 
