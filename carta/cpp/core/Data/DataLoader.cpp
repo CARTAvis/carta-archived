@@ -4,6 +4,7 @@
 #include <QDirIterator>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegExp>
 
 #include "DataLoader.h"
 #include "Util.h"
@@ -203,7 +204,7 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
                         _makeFileNode(dirArray, fileName, "crtf");
                     }
                 }
-                else if (dataInfo.contains("FITS", Qt::CaseInsensitive)) {
+                else if (dataInfo.contains(QRegExp("^SIMPLE *= *T.*"))) {
                     _makeFileNode(dirArray, fileName, "fits");
                 }
                 file.close();
