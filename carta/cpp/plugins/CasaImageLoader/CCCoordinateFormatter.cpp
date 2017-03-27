@@ -173,7 +173,7 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
         if(NumberofSpectralAxis == i &&
            NumberofSpectralAxis != -1)
         {
-            val += ", ";
+            val += ", VRAD";
             val +=  QString::number(casa::Double(velocity.getValue()));
             val +=  velocity.getUnit().c_str();
         }
