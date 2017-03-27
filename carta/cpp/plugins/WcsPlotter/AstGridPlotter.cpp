@@ -438,6 +438,7 @@ AstGridPlotter::plot()
         astClearStatus;
     }*/
 
+    // TODO: This part of code will move to '_setDisplayLabelOptionforAst()' in AstWcsGridRendeerService.cpp
     // set Label
     for(int ii = 0; ii < 2; ii = ii + 1)
     {
@@ -469,7 +470,52 @@ AstGridPlotter::plot()
         {
             target = QString("Label(%1)").arg(ii+1);
             const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
-            QString newLabel = QString("%1=%2 %3").arg(target).arg(SAxisSystem).arg(QString(oldLabel).toLower());
+            QString CapLabel = QString(oldLabel);
+            if(CapLabel == "Right ascension")
+            {
+                CapLabel = "Right Ascension";
+            }
+
+            if(CapLabel == "Ecliptic longitude")
+            {
+                CapLabel = "Ecliptic Longitude";
+            }
+
+            if(CapLabel == "Ecliptic latitude")
+            {
+                CapLabel = "Ecliptic Latitude";
+            }
+
+            QString newLabel = QString("%1=%2 %3").arg(target).arg(SAxisSystem).arg(CapLabel);
+            astSet( plot, newLabel.toStdString().c_str() );
+        }
+        else
+        {
+            target = QString("Label(%1)").arg(ii+1);
+            const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
+            QString CapLabel = QString(oldLabel);
+
+            if(CapLabel == "Galactic longitude")
+            {
+                CapLabel = "Galactic Longitude";
+            }
+
+            if(CapLabel == "Galactic latitude")
+            {
+                CapLabel = "Galactic Latitude";
+            }
+
+            if(CapLabel == "Ecliptic longitude")
+            {
+                CapLabel = "Ecliptic Longitude";
+            }
+
+            if(CapLabel == "Ecliptic latitude")
+            {
+                CapLabel = "Ecliptic Latitude";
+            }
+
+            QString newLabel = QString("%1=%3").arg(target).arg(CapLabel);
             astSet( plot, newLabel.toStdString().c_str() );
         }
 
