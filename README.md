@@ -288,7 +288,7 @@ Paste the following data to be the content of `~/.cartavis/config.json`
         "$(APPDIR)/../plugins",
         "$(APPDIR)/../../../../plugins"
     ],
-    "disabledPlugins" : ["casaCore-2.0.1"],
+    "disabledPlugins" : ["tester1", "clock1", "blurpy"],
     "plugins": {
         "PCacheSqlite3" : {
             "dbPath": "/tmp/pcache.sqlite"
