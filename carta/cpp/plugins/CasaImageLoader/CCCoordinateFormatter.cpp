@@ -146,6 +146,18 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
     casa::Vector < casa::Double > pixel = pix;
     m_casaCS->toWorld( world, pix );
 
+    // for spectral axis
+    // convert freq to radio velocity
+    int NumberofSpectralAxis = -1;
+    casa::Quantum<casa::Double> velocity;
+    if(m_casaCS->hasSpectralAxis())
+    {
+        NumberofSpectralAxis = m_casaCS->spectralAxisNumber();
+        casa::SpectralCoordinate casaSpeSystem = m_casaCS->spectralCoordinate();
+        casaSpeSystem.pixelToVelocity(velocity,pixel(NumberofSpectralAxis));
+    }
+
+
     // format each axis
 //    QStringList list;
 //    for (unsigned int i = 0; i < m_casaCS->nCoordinates(); i++) {
@@ -157,7 +169,15 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
 
     QStringList list;
     for ( int i = 0 ; i < nAxes() ; i++ ) {
-        list.append( formatWorldValue( i, world[i] ) );
+        QString val = formatWorldValue( i, world[i] );
+        if(NumberofSpectralAxis == i &&
+           NumberofSpectralAxis != -1)
+        {
+            val += ", ";
+            val +=  QString::number(casa::Double(velocity.getValue()));
+            val +=  velocity.getUnit().c_str();
+        }
+        list.append( val );
     }
     return list;
 } // formatFromPixelCoordinate
