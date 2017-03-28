@@ -7,6 +7,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/InputEvents.h"
 #include "CartaLib/VectorGraphics/VGList.h"
+#include <QtCore/qmath.h>
 #include <QObject>
 
 namespace Carta {

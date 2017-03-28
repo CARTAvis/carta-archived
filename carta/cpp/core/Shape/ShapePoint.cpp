@@ -32,19 +32,26 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon (exterior manipulation region of point)
-	comp.append < vge::SetPen > ( pen );
+	comp.append < vge::SetPen > ( rectPen );
 	comp.append < vge::SetBrush > ( brush );
 	comp.append < vge::DrawEllipse > ( m_shadowRect );
 
-        //Draw inner region of point
-        QRectF innerRect;
-        double width = m_shadowRect.width()/4;
-        double x = m_shadowRect.center().x() - (width/2);
-        double y = m_shadowRect.center().y() - (width/2);
-        innerRect.setRect(x,y,width,width);
-        comp.append < vge::SetPen > ( rectPen );
+        //Draw crosshairs by calculating distance from center (Pythagorean theorem)
+        QPointF center = m_shadowRect.center();
+        double radius = m_shadowRect.width()/2;
+        double diffXY = radius/qSqrt(2);
+        QPointF bottomLeft = QPointF( center.x()-diffXY, center.y()-diffXY );
+        QPointF topLeft = QPointF( center.x()-diffXY, center.y()+diffXY );
+        QPointF topRight = QPointF( center.x()+diffXY, center.y()+diffXY );
+        QPointF bottomRight = QPointF( center.x()+diffXY, center.y()-diffXY );
+        double innerRadius = 0.5;
+
+        comp.append < vge::SetPen > ( pen );
 	comp.append < vge::SetBrush > ( brush );
-        comp.append < vge::DrawEllipse > ( innerRect );
+        comp.append < vge::DrawLine > ( bottomLeft, QPointF( center.x()-innerRadius, center.y()-innerRadius ) );
+        comp.append < vge::DrawLine > ( topLeft, QPointF( center.x()-innerRadius, center.y()+innerRadius ) );
+        comp.append < vge::DrawLine > ( topRight, QPointF( center.x()+innerRadius, center.y()+innerRadius ) );
+        comp.append < vge::DrawLine > ( bottomRight, QPointF( center.x()+innerRadius, center.y()-innerRadius ) );
 
 	return comp.vgList();
 }
