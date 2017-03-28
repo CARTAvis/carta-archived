@@ -137,12 +137,15 @@ void DrawStackSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderR
 
     m_repaintFrameQueued = false;
 
+    // create a copy, since "emit done" will invoke "DrawStackSynchronizer::_render"
+    // which will call "m_layers = datas;"
+    QList< std::shared_ptr<Layer> > m_layers_copy = m_layers;
+
     emit done( true );
 
     // QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
     for ( int i = 0; i < dataCount; i++ ){
-
-        m_layers[i]->_renderDone();
+        m_layers_copy[i]->_renderDone();
     }
 
     m_view->scheduleRepaint();
