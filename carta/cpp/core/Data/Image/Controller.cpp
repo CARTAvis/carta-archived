@@ -704,6 +704,20 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+    addCommandCallback( "setZoomLevel", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        bool error = false;
+        auto vals = Util::string2VectorDouble( params, &error );
+        if ( vals.size() > 0 ) {
+            // double centerX = vals[0];
+            // double centerY = vals[1];
+            double z = vals[0];
+            // updateZoom( centerX, centerY, z );
+						setZoomLevelJS(z);
+        }
+        return "";
+    });
+
     addCommandCallback( "registerContourControls", [=] (const QString & /*cmd*/,
                             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         QString result;
@@ -754,6 +768,7 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "resetZoom", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        qDebug() << "grimmer resetZoom !!";
         QString result;
         resetZoom();
         return result;
@@ -1285,6 +1300,10 @@ void Controller::setZoomLevel( double zoomFactor ){
     m_stack->_setZoomLevel( zoomFactor, zoomPanAll );
 }
 
+void Controller::setZoomLevelJS( double zoomFactor ){
+//    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+    m_stack->_setZoomLevel( zoomFactor, false );
+}
 
 void Controller::_updateCursor( int mouseX, int mouseY ){
     if ( m_stack->_getStackSize() == 0 ){

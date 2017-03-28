@@ -10,7 +10,7 @@
 qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
     extend : skel.widgets.Window.DisplayWindow,
     include : skel.widgets.Window.PreferencesMixin,
-    
+
     /**
      * Constructor.
      */
@@ -19,15 +19,93 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_links = [];
         this.m_viewContent = new qx.ui.container.Composite();
         this.m_viewContent.setLayout(new qx.ui.layout.Canvas());
-        
+
         this.m_content.add( this.m_viewContent, {flex:1} );
         this.m_imageControls = new skel.widgets.Image.ImageControls();
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
         this.m_content.add( this.m_imageControls );
+
+        this.m_scheduleZoomFit = false;
+        this.m_viewContent.addListener( "resize", function( /*e*/ ) {
+            console.log("grimmer aspect display window, setupt m_scheduleZoomFit !!!");
+            //先這個(還沒選檔前就會被call一次). 再layoutlead , 再來才是view.js 那邊
+            // 之後主動改視窗大小就靠這個
+            //TODO:
+            //0. 手動zoom , pan後, 再改視窗. 也要維持那個view區塊?
+            //1. resetZoom 要改
+            //2. 切換檔案, 沒有zoom all
+            //3. 切換檔案, 有zoom all
+            //4. 轉置
+
+            //x 測 image layout. x
+
+            this.m_scheduleZoomFit = true;
+        }, this);
     },
 
     members : {
-        
+
+        _adjustZoomToFitWindow : function(view_width, view_height){
+            console.log("grimmer displaywindow, adjustZoomToFitWindow:"+view_width+";"+view_height);
+            console.log("grimmer aspec datas:", this.m_datas);
+            if (!view_width || !view_height) {
+                console.log("invalid width or height");
+                return;
+            }
+
+            //638, 666
+
+            if (this.m_scheduleZoomFit && this.m_datas) {
+                console.log("grimmer aspec datas2");
+                this.m_scheduleZoomFit = false;
+
+                var dataLen = this.m_datas.length;
+                for (var i = 0; i < dataLen; i++) {
+                    console.log("grimmer aspec datas loop:", i);
+
+                    var data = this.m_datas[i];
+
+                    //TODO: if zoomALL.
+                    if (true || data.selected) {
+
+                        if (!data.pixelX || !data.pixelY){
+                            console.log("not invalid layerdata.pixelXorY");
+                            continue;
+                        }
+
+                        var zoomX = view_width / data.pixelX;
+                        var zoomY = view_height / data.pixelY;
+                        var zoom = -1;
+
+                        if (zoomX < 1 || zoomY < 1) {
+                            if (zoomX > zoomY){
+                                zoom = zoomY; //aj.fits, 512x1024, slim
+                            } else {
+                                zoom = zoomX; //502nmos.fits, 1600x1600, fat
+                            }
+
+                        }  else {
+                            if (zoomX > zoomY){
+                                zoom = zoomY; // M100_alma.fits,52x62 slim
+                            } else {
+                                zoom = zoomX; // cube_x220_z100_17MB,220x220 fat
+                            }
+                        }
+
+                        console.log("try to send zoom level:", zoom);
+                        this.m_view.sendZoomLevel(zoom);
+
+                        //Adjust Zoom level
+                        // If zoomAll = false
+                        if (false){
+                            break;
+                        }
+                    }
+                }
+            }
+        },
+
+
         /**
          * Add or remove the grid control settings based on whether the user
          * had configured any of the settings visible.
@@ -37,18 +115,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_controlsVisible = content;
             this._layoutControls();
         },
-        
-        
+
+
         /**
          * Clean-up items; this window is going to disappear.
          */
         clean : function(){
-            //Remove the view so we don't get spurious mouse events sent to a 
+            //Remove the view so we don't get spurious mouse events sent to a
             //controller that no longer exists.
             if ( this.m_view !== null ){
                 if ( this.m_viewContent.indexOf( this.m_view) >= 0 ){
                     this.m_viewContent.remove( this.m_view);
-                   
+
                 }
             }
         },
@@ -57,20 +135,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Call back that initializes the View when data is loaded.
          */
         _dataLoadedCB : function(){
+            console.log("grimmer aspect displayWindow dataloadedCB !!!");
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
                 this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
+
+                this.m_view.m_updateViewCallback = this._adjustZoomToFitWindow.bind(this);
             }
-            
+
             if (this.m_viewContent.indexOf(this.m_view) < 0) {
                 var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
+                console.log("grimmer aspect dataloadedCB m_viewContent");
                 this.m_viewContent.add(this.m_view, overlayMap );
-                
+
             }
-           
+
             this.m_view.setVisibility( "visible" );
         },
-        
+
         /**
          * Notify the server that data has been loaded.
          * @param path {String} an identifier for locating the data.
@@ -96,7 +178,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         getDatas : function(){
             return this.m_datas;
         },
-        
+
         /**
          * Return the identifier for the region controller.
          * @return {String} - the identifier of the region controller.
@@ -104,7 +186,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         getRegionIdentifier : function(){
         	return this.m_regionId;
         },
-        
+
         /**
          * Return a list of regions in the image.
          * @return {Array} - a list of regions in the image.
@@ -112,7 +194,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         getRegions : function(){
             return this.m_regions;
         },
-        
+
         /**
          * Notification that the grid controls have changed on the server-side.
          * @param ev {qx.event.type.Data}.
@@ -127,6 +209,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Initializes the region drawing context menu.
          */
         _initMenuRegion : function() {
+            console.log("grimmer menu region")
             var regionMenu = new qx.ui.menu.Menu();
             this._initShapeButtons(regionMenu, false);
 
@@ -147,6 +230,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * 		back when the shape is finished.
          */
         _initShapeButtons : function(menu, keepMode) {
+            console.log("grimmer menu shape")
             var drawFunction = function(ev) {
                 var buttonText = this.getLabel();
                 var data = {
@@ -162,7 +246,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 menu.add(shapeButton);
             }
         },
-        
+
         /**
          * Initialize the label for displaying cursor statistics.
          */
@@ -176,13 +260,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 this.m_statLabel.setRich( true );
             }
         },
-        
+
         /**
          * Initialize the list of window specific commands this window supports.
          */
         _initSupportedCommands : function(){
             this.m_supportedCmds = [];
-            
+
             var clipCmd = skel.Command.Clip.CommandClip.getInstance();
             this.m_supportedCmds.push( clipCmd.getLabel() );
             var dataCmd = skel.Command.Data.CommandData.getInstance();
@@ -203,7 +287,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_supportedCmds.push( panResetCmd.getLabel() );
             arguments.callee.base.apply(this, arguments);
         },
-        
+
         /**
          * Returns whether or not this window can be linked to a window
          * displaying a named plug-in.
@@ -212,15 +296,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         isLinkable : function(pluginId) {
             var linkable = false;
             var path = skel.widgets.Path.getInstance();
-            if (pluginId == path.ANIMATOR || 
-                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN || 
+            if (pluginId == path.ANIMATOR ||
+                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN ||
                     pluginId == path.STATISTICS || pluginId == path.PROFILE ||
                     pluginId == path.IMAGE_CONTEXT || pluginId == path.IMAGE_ZOOM ) {
                 linkable = true;
             }
             return linkable;
         },
-               
+
 
         /**
          * Returns whether or not this window supports establishing a two-way
@@ -234,7 +318,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
             return biLink;
         },
-        
+
         /**
          * Add/remove content based on user visibility preferences.
          */
@@ -267,7 +351,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-        
+
         /**
          * Register to get updates on stack data settings from the server.
          */
@@ -287,18 +371,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._registrationStackCallback( this));
         },
-        
-        
+
+
         /**
          * Callback for when the registration is complete and an id is available.
          * @param anObject {skel.widgets.Image.Region.RegionControls}.
          */
         _registrationRegionCallback : function( anObject ){
-            return function( id ){           	
+            return function( id ){
                 anObject._setRegionId( id );
             };
         },
-        
+
         /**
          * Callback for when the registration is complete and an id is available.
          * @param anObject {skel.widgets.Image.Stack.StackControls}.
@@ -308,7 +392,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 anObject._setStackId( id );
             };
         },
-        
+
         /**
          * Show/hide the cursor statistics control.
          * @param visible {boolean} - true if the cursor statistics widget
@@ -318,14 +402,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_statisticsVisible = visible;
             this._layoutControls();
         },
-        
+
 
         setDrawMode : function(drawInfo) {
             if (this.m_drawCanvas !== null) {
                 this.m_drawCanvas.setDrawMode(drawInfo);
             }
         },
-        
+
         /**
          * Set the appearance of this window based on whether or not it is selected.
          * @param selected {boolean} true if the window is selected; false otherwise.
@@ -336,7 +420,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.updateCmds();
             arguments.callee.base.apply(this, arguments, selected, multiple );
         },
-        
+
         /**
          * Update region specific elements from the shared variable.
          */
@@ -346,7 +430,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 try {
                     var winObj = JSON.parse( val );
                     var regionShape = winObj.createType;
-                  
+
                     var regionDrawCmds = skel.Command.Region.CommandRegions.getInstance();
                     regionDrawCmds.setDrawType( regionShape );
                 }
@@ -356,7 +440,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-        
+
         /**
          * Update region data specific elements from the shared variable.
          */
@@ -371,7 +455,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     }
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
-                    this._initContextMenu();       
+                    this._initContextMenu();
                 }
                 catch( err ){
                     console.log( "DisplayWindowImage could not parse region data update: "+val );
@@ -379,7 +463,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-        
+
         /**
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
@@ -388,7 +472,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var val = this.m_sharedVarStack.get();
             if ( val ){
                 try {
+                    console.log("grimmer aspect: sharedStack1:", val);
                     var winObj = JSON.parse( val );
+                    console.log("grimmer aspect: sharedStack2:", val);
                     this.m_datas = [];
                     //Add close menu buttons for all the images that are loaded.
                     var dataObjs = winObj.layers;
@@ -401,14 +487,28 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             }
                         }
                     }
+                    console.log("grimmer aspect: sharedStack3:", val);
+
                     if ( dataObjs && dataObjs.length > 0 ){
                         for ( var i = 0; i < dataObjs.length; i++ ){
+                            // 存起來
                             this.m_datas[i] = dataObjs[i];
+                            console.log("grimmer aspect data1");
                         }
                         if ( visibleData ){
                             this._dataLoadedCB();
                         }
                     }
+
+                    if (this.m_datas && this.m_datas.length > 0){
+                        console.log("grimmer aspect data2, setup m_scheduleZoomFit");
+                        // this.m_scheduleZoomFit =true;
+                    }
+
+                    console.log("grimmer aspect: sharedStack4:", val);
+
+                    //TODO
+
                     if ( !visibleData ){
                         //No images to show so set the view hidden.
                         if ( this.m_view !== null ){
@@ -418,6 +518,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
                     this._initContextMenu();
+
+                    console.log("grimmer aspect: sharedStack, after dataLoadedCB");
+
                 }
                 catch( err ){
                     console.log( "DisplayWindowImage could not parse: "+val );
@@ -425,37 +528,41 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-               
-     
+
+
         /**
          * Set the identifier for the server-side object that manages the stack.
          * @param id {String} - the server-side id of the object that manages the stack.
          */
         _setRegionId : function( id ){
+          console.log("grimmer DisplayWindowImage");
+
             this.m_regionId = id;
             this.m_sharedVarRegions = this.m_connector.getSharedVar( id );
             this.m_sharedVarRegions.addCB(this._sharedVarRegionsCB.bind(this));
             this._sharedVarRegionsCB();
-            
+
             var path = skel.widgets.Path.getInstance();
         	var regionDataId = id + path.SEP + path.DATA;
         	this.m_sharedVarRegionsData = this.m_connector.getSharedVar( regionDataId );
         	this.m_sharedVarRegionsData.addCB( this._sharedVarRegionsDataCB.bind(this));
         	this._sharedVarRegionsDataCB();
         },
-        
+
         /**
          * Set the identifier for the server-side object that manages the stack.
          * @param id {String} - the server-side id of the object that manages the stack.
          */
         _setStackId : function( id ){
+            console.log("grimmer DisplayWindowImage-stack");
+
             this.m_stackId = id;
             this.m_sharedVarStack = this.m_connector.getSharedVar( id );
             this.m_sharedVarStack.addCB(this._sharedVarStackCB.bind(this));
             this._sharedVarStackCB();
         },
-        
-        
+
+
         /**
          * Update the commands about clip settings.
          */
@@ -465,24 +572,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var clipValsCmd = skel.Command.Clip.CommandClipValues.getInstance();
             clipValsCmd.setClipValue( this.m_clipPercent );
         },
-        
-        
+
+
         /**
          * Implemented to initialize the context menu.
          */
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
-           
+
             this._registerControlsStack();
             this._registerControlsRegion();
             this._initStatistics();
             this._dataLoadedCB();
-            
+
             //Get the shared variable for preferences
             this.initializePrefs();
             this.m_imageControls.setId( this.getIdentifier());
         },
-        
+
         /**
          * Update from the server.
          * @param winObj {Object} - an object containing server side information values.
@@ -491,12 +598,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             if ( winObj !== null ){
                 this.m_autoClip = winObj.autoClip;
                 this.m_clipPercent = winObj.clipValueMax - winObj.clipValueMin;
+                console.log("grimmer clip,max:",winObj.clipValueMax,";min:",winObj.clipValueMin);
+                //grimmer clip,max: 0.975 ;min: 0.025
             }
         },
-        
+
+        m_scheduleZoomFit : false,
         m_autoClip : false,
         m_clipPercent : 0,
-        
+
         m_regionButton : null,
         m_renderButton : null,
         m_drawCanvas : null,
@@ -507,7 +617,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_sharedVarRegionsData : null,
         m_stackId : null,
         m_regionId : null,
-       
+
         m_view : null,
         m_viewContent : null,
         m_imageControls : null,

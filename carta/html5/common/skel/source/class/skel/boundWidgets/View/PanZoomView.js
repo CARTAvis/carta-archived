@@ -17,7 +17,10 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
      */
     construct: function( viewId )
     {
+        console.log("grimmer view- PanZoomView");
         this.base( arguments, viewId );
+
+        this.m_viewWidget.m_updateViewCallback = this.viewSizeHandler.bind(this);
 
         // monitor mouse move
         this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
@@ -29,7 +32,20 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
     },
 
     members: {
-    	
+
+        viewSizeHandler: function(width, height) {
+            console.log("grimmer test size:", width, ";h:", height);
+            if (this.m_updateViewCallback) {
+                this.m_updateViewCallback(width, height);
+            }
+        },
+
+        // callback for iView refresh
+        // _iviewRefreshCB : function() {
+        //     console.log("grimmer aspect _iviewRefreshCB_parent2");
+        //     this.fireDataEvent( "viewRefreshed");
+        // },
+
         /**
          * Install an input handler.
          * @param handlerType {class}
@@ -49,6 +65,13 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             this.m_inputHandlers[handlerType] = handler;
         },
 
+        sendZoomLevel: function(level) {
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_viewId + path.SEP_COMMAND + "setZoomLevel";
+            console.log("grimmer aspect, set zoom level:",cmd,":", level);
+            this.m_connector.sendCommand( cmd, level);
+        },
+
         _mouseWheelCB : function(ev) {
             var box = this.overlayWidget().getContentLocation( "box" );
             var pt = {
@@ -58,23 +81,25 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
+            console.log("grimmer aspect, zoom:",cmd,";",pt,";", ev);
             this.m_connector.sendCommand( cmd,
                 "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
         },
- 
+
         /**
          * Send an input event to the server side.
          * @param e {object}
          */
         sendInputEvent: function( e ){
-            
+
             var params = JSON.stringify( e );
             //console.log( "Sending input event"+params );
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_viewId + path.SEP_COMMAND + path.INPUT_EVENT;
+            console.log("grimmer aspect:",cmd,";",params);
             this.m_connector.sendCommand( cmd, params );
         },
-        
+
         /**
          * Install an input handler.
          * @param handlerType {class}
@@ -93,7 +118,8 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
         },
 
         m_viewId : null,
-        m_inputHandlers : null
+        m_inputHandlers : null,
+        m_updateViewCallback: null
 
     }
 } );

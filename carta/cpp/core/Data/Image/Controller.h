@@ -422,6 +422,8 @@ public:
      */
     void setFrameRegion( int regionIndex );
 
+    void setZoomLevelJS(double zoomFactor);
+
     /**
      * Set the zoom level
      * @param zoomLevel either positive or negative depending on the desired zoom direction.
