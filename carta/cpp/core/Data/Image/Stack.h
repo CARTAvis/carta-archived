@@ -180,9 +180,9 @@ private:
     void _updatePan( double centerX , double centerY,
             std::shared_ptr<Layer> data);
 
-    void _updateZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll);
-    void _updateZoom( double centerX, double centerY, double zoomFactor,
-            std::shared_ptr<Layer> data );
+    void _updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel);
+    void _updatePanZoom( double centerX, double centerY, double zoomFactor,
+            std::shared_ptr<Layer> data, double zoomLevel );
 
 
     /**

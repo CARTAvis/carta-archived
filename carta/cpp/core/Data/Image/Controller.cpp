@@ -704,6 +704,20 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+    addCommandCallback( "setPanAndZoomLevel", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        bool error = false;
+        auto vals = Util::string2VectorDouble( params, &error );
+        if ( vals.size() > 2 ) {
+            double centerX = vals[0];
+            double centerY = vals[1];
+            double z = vals[2];
+            //updateZoom( centerX, centerY, z );
+            updatePanZoomLevel( centerX, centerY, z );
+        }
+        return "";
+    });
+
     addCommandCallback( "setZoomLevel", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
         bool error = false;
@@ -713,7 +727,7 @@ void Controller::_initializeCallbacks(){
             // double centerY = vals[1];
             double z = vals[0];
             // updateZoom( centerX, centerY, z );
-						setZoomLevelJS(z);
+            setZoomLevelJS(z);
         }
         return "";
     });
@@ -1295,6 +1309,7 @@ void Controller::_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZo
     m_stack->_setViewDrawZoom( drawZoom );
 }
 
+// for Python
 void Controller::setZoomLevel( double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_setZoomLevel( zoomFactor, zoomPanAll );
@@ -1351,9 +1366,17 @@ void Controller::_updateDisplayAxes(){
 }
 
 
+
+void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel ){
+    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+    m_stack->_updatePanZoom( centerX, centerY, -1, zoomPanAll, zoomLevel);
+    emit contextChanged();
+    emit zoomChanged();
+}
+
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
-    m_stack->_updateZoom( centerX, centerY, zoomFactor, zoomPanAll);
+    m_stack->_updatePanZoom( centerX, centerY, zoomFactor, zoomPanAll, -1);
     emit contextChanged();
     emit zoomChanged();
 }

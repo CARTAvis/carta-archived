@@ -17,7 +17,7 @@ qx.Class.define("skel.Command.Data.CommandZoomReset", {
         this.m_global = false;
         this.setToolTipText( "Reset the zoom level to its original value.");
     },
-    
+
     members : {
         doAction : function( vals, undoCB ){
             var activeWins = skel.Command.Command.m_activeWins;
@@ -26,8 +26,12 @@ qx.Class.define("skel.Command.Data.CommandZoomReset", {
                 for ( var i = 0; i < activeWins.length; i++ ){
                     if ( activeWins[i].isCmdSupported( this ) ){
                         var id = activeWins[i].getIdentifier();
-                        var params = "";
-                        this.sendCommand( id, params, emptyFunc);
+
+                        if (activeWins[i].resetZoomToFitWindow) {
+                            activeWins[i].resetZoomToFitWindow();
+                        }
+                        // var params = "";
+                        // this.sendCommand( id, params, emptyFunc);
                     }
                 }
             }

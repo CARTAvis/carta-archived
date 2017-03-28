@@ -528,6 +528,13 @@ public:
      */
     void updatePan( double imgX , double imgY);
 
+    /**
+     * Update the pan and zoom level settings.
+     * @param centerX the screen x-coordinate where the zoom was centered.
+     * @param centerY the screen y-coordinate where the zoom was centered.
+     * @param z either positive or negative depending on the desired zoom direction.
+     */
+    void updatePanZoomLevel( double centerX, double centerY, double zoomLevel );
 
     /**
      * Update the zoom settings.

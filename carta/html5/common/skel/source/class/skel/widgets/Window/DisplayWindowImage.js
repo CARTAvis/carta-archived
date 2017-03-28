@@ -25,12 +25,12 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
         this.m_content.add( this.m_imageControls );
 
-        this.m_scheduleZoomFit = false;
+        // this.m_scheduleZoomFit = false;
         this.m_viewContent.addListener( "resize", function( /*e*/ ) {
             console.log("grimmer aspect display window, setupt m_scheduleZoomFit !!!");
             //先這個(還沒選檔前就會被call一次). 再layoutlead , 再來才是view.js 那邊
             // 之後主動改視窗大小就靠這個
-            //TODO:
+            //TODO: grimmer.
             //0. 手動zoom , pan後, 再改視窗. 也要維持那個view區塊?
             //1. resetZoom 要改
             //2. 切換檔案, 沒有zoom all
@@ -41,9 +41,137 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             this.m_scheduleZoomFit = true;
         }, this);
+
+        // this._handleWheelEvent = this._handleWheelEvent.bind(this);
     },
 
     members : {
+
+        //zoom all mode 很怪???
+
+        resetZoomToFitWindow: function(){
+
+            if(!this.m_datas || !this.m_datas.length) {
+                console.log("grimmer aspect somehow this.m_data is something wrong");
+            }
+
+            // save as a loop function
+            var dataLen = this.m_datas.length;
+            for (var i = 0; i < dataLen; i++) {
+
+                var data = this.m_datas[i];
+                if (!this.m_zoomAllmode && !data.selected) {
+                    continue;
+                }
+                
+                //TODO, m_zoomAllmode
+                if (this.m_zoomAllmode) {
+
+                } else {
+                    this.m_view.sendZoomLevel(data.m_minimalZoomLevel);
+                }
+            }
+
+        },
+
+        _handleWheelEvent: function(pt, zoomFactor,  data) {
+            console.log("grimmer aspect mouseWheel2");
+
+            // move the logic from Stack.cpp to here. Here is more suitable place.
+            //TODO: grimmer. default m_currentZoomLevel =1 needed to be synced with cpp
+            if ( zoomFactor < 0 ) {
+                newZoom = data.m_currentZoomLevel / 0.9; //??
+            } else {
+                newZoom = data.m_currentZoomLevel * 0.9; //??
+            }
+
+            //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
+            // var path = skel.widgets.Path.getInstance();
+            // var cmd = this.m_viewId + path.SEP_COMMAND + "setPanAndZoomLevel";//path.ZOOM;
+            //
+            // this.m_connector.sendCommand( cmd,
+            //     "" + pt.x + " " + pt.y + " " + newZoom);
+            //找有沒有大於最低的, 有就送)
+            if (newZoom> data.m_minimalZoomLevel) {
+
+                //TODO, m_zoomAllmode
+                if(this.m_zoomAllmode) {
+
+                } else {
+                    console.log("this.m_view:", this.m_view);
+                    //this.m_view undefined
+                    this.m_view.sendPanZoomLevel(pt, newZoom);
+
+                    console.log("grimmer aspect, wheel zoom:"+newZoom,";",pt);
+
+                    data.m_currentZoomLevel = newZoom;
+                }
+            }
+        },
+
+        //TODO: grimmer. save previous mousewheel and prevent wheel delta 1, -1, 1 happen
+        _mouseWheelCB : function(ev) {
+
+            console.log("grimmer aspect mouseWheel");
+            var box = this.m_view.overlayWidget().getContentLocation( "box" );
+            var pt = {
+                x: ev.getDocumentLeft() - box.left,
+                y: ev.getDocumentTop() - box.top
+            };
+
+            // 找出現在的zoom level, 所以要用現在的size嗎?
+
+            var zoomFactor = ev.getWheelDelta();
+
+            // this._loopLayerData(this._handleWheelEvent);
+
+            if(!this.m_datas || !this.m_datas.length) {
+                console.log("grimmer aspect somehow this.m_data is something wrong");
+            }
+
+            // save as a loop function
+            var dataLen = this.m_datas.length;
+            for (var i = 0; i < dataLen; i++) {
+                console.log("grimmer aspec datas loop:", i);
+
+                var data = this.m_datas[i];
+                if (!this.m_zoomAllmode && !data.selected) {
+                    continue;
+                }
+
+                //TODO: grimmer. if zoomALL.
+                // if (this.m_zoomAllmode || data.selected) {
+
+                if (!data.pixelX || !data.pixelY){
+                    console.log("not invalid layerdata.pixelXorY");
+                    continue;
+                }
+
+                this._handleWheelEvent(pt, zoomFactor, data);
+                // handler(data);
+
+                // If zoomAll = false
+                if (!this.m_zoomAllmode){
+                    break;
+                }
+                // }
+            }
+        },
+
+        _setupDefaultLayerData: function(data) {
+
+            data.m_minimalZoomLevel = 1;
+            data.m_currentZoomLevel = 1;
+
+            data.m_effectZoomLevel = 1;
+            // m_currentZoomLevel: 1, //fitToWindow時要存. 手動放大放小時也存
+            // m_effectZoomLevel:  1, //???
+        },
+
+        // _loopLayerData: function(handler){
+        //
+        //
+        // },
 
         _adjustZoomToFitWindow : function(view_width, view_height){
             console.log("grimmer displaywindow, adjustZoomToFitWindow:"+view_width+";"+view_height);
@@ -53,56 +181,79 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 return;
             }
 
-            //638, 666
+            if (!this.m_scheduleZoomFit) {
+                return;
+            }
 
-            if (this.m_scheduleZoomFit && this.m_datas) {
-                console.log("grimmer aspec datas2");
-                this.m_scheduleZoomFit = false;
+            //now the default window size is 638, 666
+            // if (this.m_scheduleZoomFit) {
+            console.log("grimmer aspec datas2");
+            this.m_scheduleZoomFit = false;
 
-                var dataLen = this.m_datas.length;
-                for (var i = 0; i < dataLen; i++) {
-                    console.log("grimmer aspec datas loop:", i);
+            if(!this.m_datas || !this.m_datas.length) {
+                console.log("grimmer aspect somehow this.m_data is something wrong");
+            }
 
-                    var data = this.m_datas[i];
+            // save as a loop function
+            var dataLen = this.m_datas.length;
+            for (var i = 0; i < dataLen; i++) {
+                console.log("grimmer aspec datas loop:", i);
 
-                    //TODO: if zoomALL.
-                    if (true || data.selected) {
+                var data = this.m_datas[i];
 
-                        if (!data.pixelX || !data.pixelY){
-                            console.log("not invalid layerdata.pixelXorY");
-                            continue;
-                        }
+                if (!this.m_zoomAllmode && !data.selected) {
+                    continue;
+                }
 
-                        var zoomX = view_width / data.pixelX;
-                        var zoomY = view_height / data.pixelY;
-                        var zoom = -1;
+                //TODO: grimmer. if zoomALL.
+                // if (this.m_zoomAllmode || data.selected) {
 
-                        if (zoomX < 1 || zoomY < 1) {
-                            if (zoomX > zoomY){
-                                zoom = zoomY; //aj.fits, 512x1024, slim
-                            } else {
-                                zoom = zoomX; //502nmos.fits, 1600x1600, fat
-                            }
+                if (!data.pixelX || !data.pixelY){
+                    console.log("not invalid layerdata.pixelXorY");
+                    continue;
+                }
 
-                        }  else {
-                            if (zoomX > zoomY){
-                                zoom = zoomY; // M100_alma.fits,52x62 slim
-                            } else {
-                                zoom = zoomX; // cube_x220_z100_17MB,220x220 fat
-                            }
-                        }
+                var zoomX = view_width / data.pixelX;
+                var zoomY = view_height / data.pixelY;
+                var zoom = -1;
 
-                        console.log("try to send zoom level:", zoom);
-                        this.m_view.sendZoomLevel(zoom);
+                if (zoomX < 1 || zoomY < 1) {
 
-                        //Adjust Zoom level
-                        // If zoomAll = false
-                        if (false){
-                            break;
-                        }
+                    if (zoomX > zoomY){
+                        zoom = zoomY; //aj.fits, 512x1024, slim
+                    } else {
+                        zoom = zoomX; //502nmos.fits, 1600x1600, fat
+                    }
+
+                }  else { //equual or smaller than window size
+                    if (zoomX > zoomY){
+                        zoom = zoomY; // M100_alma.fits,52x62 slim
+                    } else {
+                        zoom = zoomX; // cube_x220_z100_17MB,220x220 fat
                     }
                 }
+
+                // If zoomAll = false
+                if (!this.m_zoomAllmode){
+
+                    data.m_minimalZoomLevel = zoom;
+
+                    //zoom level 一定會有個下限, 每次新的stack都要重算.
+                    console.log("try to send zoom level:", zoom);
+                    if (zoom != 1) {
+                        this.m_view.sendZoomLevel(zoom);
+
+                        //TODO: grimmer. need to passive-sync m_currentZoomLevel with cpp
+                        data.m_currentZoomLevel = zoom;
+                    }
+
+                    break;
+                } else {
+                    //TODO, zoomAll mode part
+                }
+                // }
             }
+            // }
         },
 
 
@@ -140,7 +291,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
                 this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
 
+                // grimmer
                 this.m_view.m_updateViewCallback = this._adjustZoomToFitWindow.bind(this);
+                // move the code from PanZoomView to here.
+                this.m_view.addListener( "mousewheel", this._mouseWheelCB.bind(this));
+
             }
 
             if (this.m_viewContent.indexOf(this.m_view) < 0) {
@@ -472,7 +627,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var val = this.m_sharedVarStack.get();
             if ( val ){
                 try {
-                    console.log("grimmer aspect: sharedStack1:", val);
+                    // console.log("grimmer aspect: sharedStack1:", val);
                     var winObj = JSON.parse( val );
                     console.log("grimmer aspect: sharedStack2:", val);
                     this.m_datas = [];
@@ -487,12 +642,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             }
                         }
                     }
-                    console.log("grimmer aspect: sharedStack3:", val);
+                    // console.log("grimmer aspect: sharedStack3:", val);
 
                     if ( dataObjs && dataObjs.length > 0 ){
                         for ( var i = 0; i < dataObjs.length; i++ ){
                             // 存起來
                             this.m_datas[i] = dataObjs[i];
+                            this._setupDefaultLayerData(this.m_datas[i]);
                             console.log("grimmer aspect data1");
                         }
                         if ( visibleData ){
@@ -500,14 +656,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
 
-                    if (this.m_datas && this.m_datas.length > 0){
-                        console.log("grimmer aspect data2, setup m_scheduleZoomFit");
-                        // this.m_scheduleZoomFit =true;
-                    }
+                    // if (this.m_datas && this.m_datas.length > 0){
+                    //     console.log("grimmer aspect data2, setup m_scheduleZoomFit");
+                    //     // this.m_scheduleZoomFit =true;
+                    // }
+                    //
+                    // console.log("grimmer aspect: sharedStack4:", val);
 
-                    console.log("grimmer aspect: sharedStack4:", val);
-
-                    //TODO
 
                     if ( !visibleData ){
                         //No images to show so set the view hidden.
@@ -519,7 +674,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     dataCmd.datasChanged();
                     this._initContextMenu();
 
-                    console.log("grimmer aspect: sharedStack, after dataLoadedCB");
+                    // console.log("grimmer aspect: sharedStack, after dataLoadedCB");
 
                 }
                 catch( err ){
@@ -603,6 +758,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
         },
 
+        m_zoomAllmode : false,
         m_scheduleZoomFit : false,
         m_autoClip : false,
         m_clipPercent : 0,

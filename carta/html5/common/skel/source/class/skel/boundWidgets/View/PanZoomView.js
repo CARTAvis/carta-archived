@@ -23,7 +23,7 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
         this.m_viewWidget.m_updateViewCallback = this.viewSizeHandler.bind(this);
 
         // monitor mouse move
-        this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
+        // this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
 
         this.m_viewId = viewId;
         this.m_connector = mImport( "connector");
@@ -46,6 +46,8 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
         //     this.fireDataEvent( "viewRefreshed");
         // },
 
+
+
         /**
          * Install an input handler.
          * @param handlerType {class}
@@ -65,25 +67,26 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             this.m_inputHandlers[handlerType] = handler;
         },
 
+        sendPanZoomLevel : function(pt, level) {
+            // var box = this.overlayWidget().getContentLocation( "box" );
+            // var pt = {
+            //     x: ev.getDocumentLeft() - box.left,
+            //     y: ev.getDocumentTop() - box.top
+            // };
+            //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_viewId + path.SEP_COMMAND + "setPanAndZoomLevel";//path.ZOOM;
+
+            // this.m_connector.sendCommand( cmd,  newZoom);
+            this.m_connector.sendCommand( cmd,
+                "" + pt.x + " " + pt.y + " " + level);
+        },
+
         sendZoomLevel: function(level) {
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_viewId + path.SEP_COMMAND + "setZoomLevel";
             console.log("grimmer aspect, set zoom level:",cmd,":", level);
             this.m_connector.sendCommand( cmd, level);
-        },
-
-        _mouseWheelCB : function(ev) {
-            var box = this.overlayWidget().getContentLocation( "box" );
-            var pt = {
-                x: ev.getDocumentLeft() - box.left,
-                y: ev.getDocumentTop() - box.top
-            };
-            //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
-            var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
-            console.log("grimmer aspect, zoom:",cmd,";",pt,";", ev);
-            this.m_connector.sendCommand( cmd,
-                "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
         },
 
         /**
@@ -117,6 +120,8 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             delete this.m_inputHandlers[handlerType];
         },
 
+        // m_currentZoomLevel: 1, //fitToWindow時要存. 手動放大放小時也存
+        // m_effectZoomLevel:  1, //???
         m_viewId : null,
         m_inputHandlers : null,
         m_updateViewCallback: null

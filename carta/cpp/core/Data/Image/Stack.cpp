@@ -266,7 +266,7 @@ int Stack::_getIndex( const QString& layerId) const {
 int Stack::_getIndexCurrent( ) const {
     int dataIndex = -1;
     if ( m_selectImage ){
-        int index = m_selectImage->getIndex();
+        int index = m_selectImage->getIndex(); //visible裡的第幾個
         int visibleIndex = -1;
         int dataCount = m_children.size();
         for ( int i = 0; i < dataCount; i++ ){
@@ -449,6 +449,12 @@ void Stack::_renderAll(bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile){
     int gridIndex = 0;
     QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
+    int len = datas.length();
+    if (len >1 ) {
+        qDebug()<<"grimmer animator crash 2";
+    } else {
+        qDebug()<<"grimmer animator crash 1";
+    }
     _render( datas, gridIndex, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
 }
 
@@ -577,16 +583,18 @@ void Stack::_resetZoom( bool panZoomAll ){
     emit viewLoad( );
 }
 
-
+// _saveState
 void Stack::_saveChildren( Carta::State::StateInterface& state, bool truncate ) const {
     int dataCount = m_children.size();
     int oldDataCount = state.getArraySize( LAYERS );
     if ( oldDataCount != dataCount ){
         state.resizeArray(LAYERS, dataCount, Carta::State::StateInterface::PreserveNone );
     }
+    qDebug() <<"grimmer aspec count:" << dataCount;
     for (int i = 0; i < dataCount; i++) {
         QString layerString = m_children[i]->_getStateString( truncate );
         QString dataKey = Carta::State::UtilState::getLookup( LAYERS, i);
+        qDebug() <<"grimmer aspec dataKey:" <<dataKey <<";layerString:"<<layerString;
         state.setObject( dataKey, layerString);
     }
 }
@@ -824,38 +832,46 @@ void Stack::_updatePan( double centerX , double centerY,
     }
 }
 
-void Stack::_updateZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll ){
+void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel){
     if ( zoomPanAll ){
         for (std::shared_ptr<Layer> data : m_children ){
-            _updateZoom( centerX, centerY, zoomFactor, data );
+            _updatePanZoom( centerX, centerY, zoomFactor, data, zoomLevel );
         }
     }
     else {
         int dataIndex = _getIndexCurrent();
         if ( dataIndex >= 0 ){
-            _updateZoom( centerX, centerY, zoomFactor, m_children[dataIndex] );
+            _updatePanZoom( centerX, centerY, zoomFactor, m_children[dataIndex], zoomLevel );
         }
     }
     emit viewLoad();
 }
 
-void Stack::_updateZoom( double centerX, double centerY, double zoomFactor,
-         std::shared_ptr<Layer> data ){
+void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor,
+         std::shared_ptr<Layer> data, double zoomLevel){
     //Remember where the user clicked
     QPointF clickPtScreen( centerX, centerY);
     bool validImage = false;
     QSize outputSize = m_stackDraw->getClientSize();
     QPointF clickPtImageOld = data->_getImagePt( clickPtScreen, outputSize, &validImage );
     if ( validImage ){
+
         //Set the zoom
         double newZoom = 1;
-        double oldZoom = data->_getZoom();
-        if ( zoomFactor < 0 ) {
-            newZoom = oldZoom / 0.9;
+
+        // Grimmer: to be compatible with the original logic and function, keep old way, zoomFactor
+        if (zoomLevel >=0) {
+            newZoom = zoomLevel;
+        } else {
+            double oldZoom = data->_getZoom();
+            if ( zoomFactor < 0 ) {
+                newZoom = oldZoom / 0.9;
+            }
+            else {
+                newZoom = oldZoom * 0.9;
+            }
         }
-        else {
-            newZoom = oldZoom * 0.9;
-        }
+
         data->_setZoom( newZoom );
 
         // what is the new image pixel under the mouse cursor?
