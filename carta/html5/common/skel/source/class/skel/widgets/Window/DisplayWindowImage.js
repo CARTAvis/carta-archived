@@ -63,12 +63,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 if (!this.m_zoomAllmode && !data.selected) {
                     continue;
                 }
-                
+
                 //TODO, m_zoomAllmode
                 if (this.m_zoomAllmode) {
 
                 } else {
                     this.m_view.sendZoomLevel(data.m_minimalZoomLevel);
+                    data.m_currentZoomLevel = data.m_minimalZoomLevel;
+                    data.m_effectZoomLevel = 1;
                 }
             }
 
@@ -105,6 +107,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     console.log("grimmer aspect, wheel zoom:"+newZoom,";",pt);
 
                     data.m_currentZoomLevel = newZoom;
+                    data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
                 }
             }
         },
@@ -161,8 +164,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         _setupDefaultLayerData: function(data) {
 
             data.m_minimalZoomLevel = 1;
-            data.m_currentZoomLevel = 1;
 
+            data.m_currentZoomLevel = 1;
             data.m_effectZoomLevel = 1;
             // m_currentZoomLevel: 1, //fitToWindow時要存. 手動放大放小時也存
             // m_effectZoomLevel:  1, //???
@@ -240,11 +243,12 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
                     //zoom level 一定會有個下限, 每次新的stack都要重算.
                     console.log("try to send zoom level:", zoom);
-                    if (zoom != 1) {
-                        this.m_view.sendZoomLevel(zoom);
+                    var finalZoom = zoom*data.m_effectZoomLevel;
+                    if (finalZoom != data.m_currentZoomLevel) {
+                        this.m_view.sendZoomLevel(finalZoom);
 
                         //TODO: grimmer. need to passive-sync m_currentZoomLevel with cpp
-                        data.m_currentZoomLevel = zoom;
+                        data.m_currentZoomLevel = finalZoom;
                     }
 
                     break;
