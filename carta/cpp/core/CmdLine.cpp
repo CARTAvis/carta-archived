@@ -5,7 +5,7 @@
 #include "CmdLine.h"
 #include <QDebug>
 #include <QCommandLineParser>
-#include <QDir>
+#include <QCoreApplication>
 #include <qglobal.h>
 
 static QString cartaGetEnv( const QString & name)
@@ -48,9 +48,9 @@ ParsedInfo parse(const QStringList & argv)
     // assign a default value
     if( info.m_configFilePath.isEmpty()) {
 #ifdef Q_OS_LINUX
-        info.m_configFilePath = QDir::currentPath() + "/../../../carta/config.json";
+        info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../../../carta/config.json";
 #else
-        info.m_configFilePath = QDir::currentPath() + "/../../../../../../carta/config.json";
+        info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../../../../../../carta/config.json";
 #endif
     }
 
