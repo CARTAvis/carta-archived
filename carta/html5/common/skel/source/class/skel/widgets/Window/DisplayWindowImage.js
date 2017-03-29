@@ -149,9 +149,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     continue;
                 }
 
-                //TODO: grimmer. if zoomALL.
-                // if (this.m_zoomAllmode || data.selected) {
-
                 if (!data.pixelX || !data.pixelY){
                     console.log("not invalid layerdata.pixelXorY");
                     continue;
@@ -168,14 +165,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
         },
 
-        _setupDefaultLayerData: function(data) {
+        _setupDefaultLayerData: function(data, oldDatas) {
 
             data.m_minimalZoomLevel = 1;
+            data.m_currentZoomLevel = 1; //只剩下用來判斷有無大於minimal zoom level
 
-            data.m_currentZoomLevel = 1;
-            data.m_effectZoomLevel = 1;
+            data.m_effectZoomLevel = 1; // not use now
             // m_currentZoomLevel: 1, //fitToWindow時要存. 手動放大放小時也存
             // m_effectZoomLevel:  1, //???
+
+            var len = oldDatas.length;
+            for (var i = 0; i < len; i++) {
+                var oldData = oldDatas[i];
+                if (oldData.name == data.name) {
+                    data.m_currentZoomLevel = oldData.m_currentZoomLevel;
+                    console.log("grimmer aspect, inherit old zoomLevel");
+                    break;
+                }
+            }
         },
 
         // _loopLayerData: function(handler){
@@ -186,6 +193,36 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         // 可能使用時機:
         // 一開始時
         // 使用者手動改視窗時 <- 拿掉了
+        // 開兩個檔案, 切換過去時, 會有兩個callback !!! 兩個 render 事件
+
+        _calculateFitZoomLevel: function(view_width, view_height, data){
+            var zoomX = view_width / data.pixelX;
+            var zoomY = view_height / data.pixelY;
+            var zoom = 1;
+
+            if (zoomX < 1 || zoomY < 1) {
+
+                if (zoomX > zoomY){
+                    zoom = zoomY; //aj.fits, 512x1024, slim
+                } else {
+                    zoom = zoomX; //502nmos.fits, 1600x1600, fat
+                }
+
+            }  else { //equual or smaller than window size
+                if (zoomX > zoomY){
+                    zoom = zoomY; // M100_alma.fits,52x62 slim
+                } else {
+                    zoom = zoomX; // cube_x220_z100_17MB,220x220 fat
+                }
+            }
+
+            return zoom;
+        },
+
+        // 使用時機:
+        // 1. load file時
+        // 2. 調整視窗大小時, 現在不會send zoom, 因為_scheduleZoomFit
+        // 可能也會被call多, 同一個動作. 開檔案前, 638x649 兩次, 0x0, 選檔, 638x664x3
         _adjustZoomToFitWindow : function(view_width, view_height){
             console.log("grimmer displaywindow, adjustZoomToFitWindow:"+view_width+";"+view_height);
             console.log("grimmer aspec datas:", this.m_datas);
@@ -225,25 +262,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     continue;
                 }
 
-                var zoomX = view_width / data.pixelX;
-                var zoomY = view_height / data.pixelY;
-                var zoom = -1;
-
-                if (zoomX < 1 || zoomY < 1) {
-
-                    if (zoomX > zoomY){
-                        zoom = zoomY; //aj.fits, 512x1024, slim
-                    } else {
-                        zoom = zoomX; //502nmos.fits, 1600x1600, fat
-                    }
-
-                }  else { //equual or smaller than window size
-                    if (zoomX > zoomY){
-                        zoom = zoomY; // M100_alma.fits,52x62 slim
-                    } else {
-                        zoom = zoomX; // cube_x220_z100_17MB,220x220 fat
-                    }
-                }
+                var zoom = this._calculateFitZoomLevel(view_width, view_height, data);
 
                 // If zoomAll = false
                 if (!this.m_zoomAllmode){
@@ -259,9 +278,12 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     this.m_scheduleZoomFit = false;
 
                     //zoom level 一定會有個下限, 每次新的stack都要重算.
-                    console.log("try to send zoom level:", zoom);
+                    console.log("try to send zoom level:", zoom,";",data.m_currentZoomLevel);
                     var finalZoom = zoom; //*data.m_effectZoomLevel
-                    if (finalZoom != data.m_currentZoomLevel) {
+
+                    // m_curentZoomLevel == 1 means, this dataset is initially loaded
+                    if (data.m_currentZoomLevel == 1 && finalZoom != data.m_currentZoomLevel) {
+                        console.log("try to send zoom level2");
                         this.m_view.sendZoomLevel(finalZoom);
 
                         //TODO: grimmer. need to passive-sync m_currentZoomLevel with cpp
@@ -644,13 +666,22 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
+
+         // 切換dataset, 新增, 打開都會收到新的
+         // TODO 1. A->B, 再->A, A會reset成fit mode 要改
+         // TODO 2. 加入處理 zoomALL mode.
         _sharedVarStackCB : function(){
             var val = this.m_sharedVarStack.get();
             if ( val ){
                 try {
                     // console.log("grimmer aspect: sharedStack1:", val);
                     var winObj = JSON.parse( val );
-                    console.log("grimmer aspect: sharedStack2:", val);
+
+                    //剛開始時就算只有一個檔案,  也會有重複的相臨兩次, 只是第二次的selected會是正確的
+                    //新增檔案都會有重複的兩個
+
+                    // 切換檔案只會有一個
+                    var oldDatas = this.m_datas;
                     this.m_datas = [];
                     //Add close menu buttons for all the images that are loaded.
                     var dataObjs = winObj.layers;
@@ -664,22 +695,35 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
                     // console.log("grimmer aspect: sharedStack3:", val);
+                    if ( dataObjs) {
+                        var len = dataObjs.length;
+                        for ( var i = 0; i < len; i++ ){
+                            var newDataObj = dataObjs[i];
+                            this._setupDefaultLayerData(newDataObj, oldDatas);
 
-                    if ( dataObjs && dataObjs.length > 0 ){
-                        for ( var i = 0; i < dataObjs.length; i++ ){
+                            //TODO cpp bug
+                            //開兩個, 在第二個時候把第二個關掉, 只會收到一個, 但卻是selected=false !!! bug
+                            if (len == 1) {
+                                newDataObj.selected = true;
+                            }
+
                             // 存起來
-                            this.m_datas[i] = dataObjs[i];
-                            this._setupDefaultLayerData(this.m_datas[i]);
+                            this.m_datas.push(newDataObj);
+
                             console.log("grimmer aspect data1");
                         }
-                        if ( visibleData ){
+                        if (len > 0 && visibleData) {
                             this._dataLoadedCB();
                         }
                     }
 
                     if (this.m_datas && this.m_datas.length > 0){
                         console.log("grimmer aspect data2, setup m_scheduleZoomFit");
-                        this.m_scheduleZoomFit =true;
+
+                        //開A, A調過zoom -> ->B ->A時, 不讓A reset成fitToWindow 改法有2
+                        //1. m_scheduleZoomFit不重設成true, 看是global或是分object
+                        //2. 檢查m_curentZoomLevel是不是等於1, 這兩個都是要比對新舊stack info
+                        this.m_scheduleZoomFit = true;
                     }
                     //
                     // console.log("grimmer aspect: sharedStack4:", val);
