@@ -2,11 +2,11 @@
  *
  **/
 
-
 #include "CmdLine.h"
 #include <QDebug>
 #include <QCommandLineParser>
 #include <QDir>
+#include <qglobal.h>
 
 static QString cartaGetEnv( const QString & name)
 {
@@ -47,7 +47,11 @@ ParsedInfo parse(const QStringList & argv)
     // if the config file was not specified neither through command line or environment
     // assign a default value
     if( info.m_configFilePath.isEmpty()) {
-        info.m_configFilePath = QDir::homePath() + "/.cartavis/config.json";
+#ifdef Q_OS_LINUX
+        info.m_configFilePath = QDir::currentPath() + "/../../../carta/config.json";
+#else
+        info.m_configFilePath = QDir::currentPath() + "/../../../../../../carta/config.json";
+#endif
     }
 
 
