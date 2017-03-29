@@ -25,7 +25,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
         this.m_content.add( this.m_imageControls );
 
-        // this.m_scheduleZoomFit = false;
+        // trigger時機:
+        // 0. init時, 1. 選檔案時. 2. 手動改視窗大小時
+        // 但真正改後的精確view大小要靠 this.m_view.m_updateViewCallback. 大小有差一點
+        // 因為 m_updateViewCallback 可能會重複trigger for 同一pan/zoom, cpp那邊的機制,
+        // 所以無法用它來當做判定視窗有被改過的flag, 只能用來得知大小
         this.m_viewContent.addListener( "resize", function( /*e*/ ) {
             console.log("grimmer aspect display window, setupt m_scheduleZoomFit !!!");
             //先這個(還沒選檔前就會被call一次). 再layoutlead , 再來才是view.js 那邊
@@ -36,11 +40,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             //2. 切換檔案, 沒有zoom all
             //3. 切換檔案, 有zoom all
             //4. 轉置
-
             //x 測 image layout. x
 
-            this.m_scheduleZoomFit = true;
+            // this.m_scheduleZoomFit = true;
         }, this);
+
+        //改成只有第一次才去調? yes
+        // or 手動zoom in 時就不要自動調
 
         // this._handleWheelEvent = this._handleWheelEvent.bind(this);
     },
@@ -68,6 +74,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 if (this.m_zoomAllmode) {
 
                 } else {
+                    console.log("grimmet reset to:"+ data.m_minimalZoomLevel);
                     this.m_view.sendZoomLevel(data.m_minimalZoomLevel);
                     data.m_currentZoomLevel = data.m_minimalZoomLevel;
                     data.m_effectZoomLevel = 1;
@@ -107,7 +114,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     console.log("grimmer aspect, wheel zoom:"+newZoom,";",pt);
 
                     data.m_currentZoomLevel = newZoom;
-                    data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
+                    // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
                 }
             }
         },
@@ -176,6 +183,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         //
         // },
 
+        // 可能使用時機:
+        // 一開始時
+        // 使用者手動改視窗時 <- 拿掉了
         _adjustZoomToFitWindow : function(view_width, view_height){
             console.log("grimmer displaywindow, adjustZoomToFitWindow:"+view_width+";"+view_height);
             console.log("grimmer aspec datas:", this.m_datas);
@@ -184,14 +194,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 return;
             }
 
-            if (!this.m_scheduleZoomFit) {
-                return;
-            }
+            // now the default window size is 638, 666
 
-            //now the default window size is 638, 666
-            // if (this.m_scheduleZoomFit) {
-            console.log("grimmer aspec datas2");
-            this.m_scheduleZoomFit = false;
+            //TODO, grimmer, just for debugging
+            if (!this.m_scheduleZoomFit) {
+                console.log("grimmer aspect users actively adjust the window size ");
+                // return;
+            }
 
             if(!this.m_datas || !this.m_datas.length) {
                 console.log("grimmer aspect somehow this.m_data is something wrong");
@@ -241,9 +250,17 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
                     data.m_minimalZoomLevel = zoom;
 
+                    //TODO, grimmer, just for debugging
+                    if (!this.m_scheduleZoomFit) {
+                        console.log("grimmer aspect users actively adjust the window size, not initial status:"+zoom);
+                        return;
+                    }
+
+                    this.m_scheduleZoomFit = false;
+
                     //zoom level 一定會有個下限, 每次新的stack都要重算.
                     console.log("try to send zoom level:", zoom);
-                    var finalZoom = zoom*data.m_effectZoomLevel;
+                    var finalZoom = zoom; //*data.m_effectZoomLevel
                     if (finalZoom != data.m_currentZoomLevel) {
                         this.m_view.sendZoomLevel(finalZoom);
 
@@ -660,10 +677,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
 
-                    // if (this.m_datas && this.m_datas.length > 0){
-                    //     console.log("grimmer aspect data2, setup m_scheduleZoomFit");
-                    //     // this.m_scheduleZoomFit =true;
-                    // }
+                    if (this.m_datas && this.m_datas.length > 0){
+                        console.log("grimmer aspect data2, setup m_scheduleZoomFit");
+                        this.m_scheduleZoomFit =true;
+                    }
                     //
                     // console.log("grimmer aspect: sharedStack4:", val);
 
