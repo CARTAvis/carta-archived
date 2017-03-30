@@ -1,0 +1,15 @@
+{
+    "_comment" : "List of plugin directories",
+    "pluginDirs": [
+        "$(APPDIR)/../plugins",
+        "$(APPDIR)/../../../../plugins"
+    ],
+    "disabledPlugins" : ["casaCore-2.0.1"],
+    "plugins": {
+        "PCacheSqlite3" : {
+            "dbPath": "/tmp/pcache.sqlite"
+        }
+    },
+    "qtDecorations" : "true",
+    "defaultGridLines" : "false"
+}

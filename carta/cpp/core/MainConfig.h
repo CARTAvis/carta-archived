@@ -56,6 +56,12 @@ public:
      */
     bool isDeveloperDecorations() const;
 
+    /**
+     * Returns whether CARTA should come up with grid lines.
+     * @return true - show grid lines in the image viewer as the default; false otherwise.
+     */
+    bool isDefaultGridLines() const;
+
     /// the whole config file as json
     const QJsonObject & json() const;
 
@@ -90,6 +96,7 @@ protected:
     QStringList m_pluginDirectories;
     bool m_hacksEnabled = false;
     bool m_developerDecorations = false;
+    bool m_defaultGridLines = false;
     bool m_developerLayout = false;
     int m_histogramBinCountMax = -1;
     int m_contourLevelCountMax = -1;
