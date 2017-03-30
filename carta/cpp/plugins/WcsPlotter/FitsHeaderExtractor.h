@@ -33,7 +33,7 @@ public:
 private:
 
     QString _FITSKeyWordParser(QString _raw);
-    QStringList _CasaFitsConverter( casa::LatticeBase * lbase);
+    QStringList _CasaFitsConverter();
 
     Carta::Lib::Image::ImageInterface::SharedPtr m_cartaImage = nullptr;
     QStringList m_errors;
