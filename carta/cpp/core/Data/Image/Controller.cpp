@@ -712,8 +712,9 @@ void Controller::_initializeCallbacks(){
             double centerX = vals[0];
             double centerY = vals[1];
             double z = vals[2];
+            double layerId = vals[3];
             //updateZoom( centerX, centerY, z );
-            updatePanZoomLevel( centerX, centerY, z );
+            updatePanZoomLevel( centerX, centerY, z, layerId );
         }
         return "";
     });
@@ -726,8 +727,10 @@ void Controller::_initializeCallbacks(){
             // double centerX = vals[0];
             // double centerY = vals[1];
             double z = vals[0];
+            double layerId = vals[1];
+
             // updateZoom( centerX, centerY, z );
-            setZoomLevelJS(z);
+            setZoomLevelJS(z, layerId);
         }
         return "";
     });
@@ -1315,9 +1318,9 @@ void Controller::setZoomLevel( double zoomFactor ){
     m_stack->_setZoomLevel( zoomFactor, zoomPanAll );
 }
 
-void Controller::setZoomLevelJS( double zoomFactor ){
+void Controller::setZoomLevelJS( double zoomFactor, double layerId ){
 //    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
-    m_stack->_setZoomLevel( zoomFactor, false );
+    m_stack->_setZoomLevelForLayerId( zoomFactor, layerId );
 }
 
 void Controller::_updateCursor( int mouseX, int mouseY ){
@@ -1367,16 +1370,16 @@ void Controller::_updateDisplayAxes(){
 
 
 
-void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel ){
-    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
-    m_stack->_updatePanZoom( centerX, centerY, -1, zoomPanAll, zoomLevel);
+void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){
+//    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+    m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
     emit contextChanged();
     emit zoomChanged();
 }
 
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
-    m_stack->_updatePanZoom( centerX, centerY, zoomFactor, zoomPanAll, -1);
+    m_stack->_updatePanZoom( centerX, centerY, zoomFactor, zoomPanAll, -1, -1);
     emit contextChanged();
     emit zoomChanged();
 }

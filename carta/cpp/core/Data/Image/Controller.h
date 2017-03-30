@@ -422,7 +422,7 @@ public:
      */
     void setFrameRegion( int regionIndex );
 
-    void setZoomLevelJS(double zoomFactor);
+    void setZoomLevelJS(double zoomFactor, double layerId);
 
     /**
      * Set the zoom level
@@ -534,7 +534,7 @@ public:
      * @param centerY the screen y-coordinate where the zoom was centered.
      * @param z either positive or negative depending on the desired zoom direction.
      */
-    void updatePanZoomLevel( double centerX, double centerY, double zoomLevel );
+    void updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId );
 
     /**
      * Update the zoom settings.

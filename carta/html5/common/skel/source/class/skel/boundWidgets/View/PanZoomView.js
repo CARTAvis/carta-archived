@@ -67,7 +67,7 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             this.m_inputHandlers[handlerType] = handler;
         },
 
-        sendPanZoomLevel : function(pt, level) {
+        sendPanZoom : function(pt, wheelFactor) {
             // var box = this.overlayWidget().getContentLocation( "box" );
             // var pt = {
             //     x: ev.getDocumentLeft() - box.left,
@@ -75,18 +75,27 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             // };
             //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
             var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_viewId + path.SEP_COMMAND + "setPanAndZoomLevel";//path.ZOOM;
+            var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
 
             // this.m_connector.sendCommand( cmd,  newZoom);
             this.m_connector.sendCommand( cmd,
-                "" + pt.x + " " + pt.y + " " + level);
+                "" + pt.x + " " + pt.y + " " + wheelFactor);
         },
 
-        sendZoomLevel: function(level) {
+        sendPanZoomLevel : function(pt, level, id) {
+
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_viewId + path.SEP_COMMAND + "setPanAndZoomLevel";
+            this.m_connector.sendCommand( cmd,
+                "" + pt.x + " " + pt.y + " " + level+" "+ id);
+        },
+
+        // zoom
+        sendZoomLevel: function(level, id) {
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_viewId + path.SEP_COMMAND + "setZoomLevel";
             console.log("grimmer aspect, set zoom level:",cmd,":", level);
-            this.m_connector.sendCommand( cmd, level);
+            this.m_connector.sendCommand( cmd, ""+level+" "+ id);
         },
 
         /**

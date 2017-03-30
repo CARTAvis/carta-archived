@@ -173,6 +173,7 @@ private:
     void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> drawStack );
     void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
 
+    void _setZoomLevelForLayerId( double zoomFactor, double layerId );
     void _setZoomLevel( double zoomFactor, bool zoomPanAll );
 
 
@@ -180,7 +181,7 @@ private:
     void _updatePan( double centerX , double centerY,
             std::shared_ptr<Layer> data);
 
-    void _updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel);
+    void _updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId);
     void _updatePanZoom( double centerX, double centerY, double zoomFactor,
             std::shared_ptr<Layer> data, double zoomLevel );
 

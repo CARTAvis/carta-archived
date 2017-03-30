@@ -262,7 +262,6 @@ int Stack::_getIndex( const QString& layerId) const {
     return index;
 }
 
-
 int Stack::_getIndexCurrent( ) const {
     int dataIndex = -1;
     if ( m_selectImage ){
@@ -789,6 +788,22 @@ bool Stack::_setVisible( const QString& id, bool visible ){
     return layerFound;
 }
 
+// m_stack->_setZoomLevelForLayerId( zoomFactor, false );
+
+void Stack::_setZoomLevelForLayerId(double zoomFactor, double layerId) {
+    int dataCount = m_children.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        // QString id1 = m_children[i]->getId();
+        // QString id2 = m_children[i]->_getLayerId();
+        if (m_children[i]->_getLayerId() == QString::number(layerId)){
+            qDebug() << "grimmer aspect match layerID";
+            m_children[i]->_setZoom( zoomFactor );
+            break;
+        }
+    }
+    emit viewLoad();
+}
+
 void Stack::_setZoomLevel( double zoomFactor, bool zoomPanAll ){
     if ( zoomPanAll ){
         int dataCount = m_children.size();
@@ -832,17 +847,31 @@ void Stack::_updatePan( double centerX , double centerY,
     }
 }
 
-void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel){
+void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId){
     if ( zoomPanAll ){
         for (std::shared_ptr<Layer> data : m_children ){
             _updatePanZoom( centerX, centerY, zoomFactor, data, zoomLevel );
         }
     }
     else {
-        int dataIndex = _getIndexCurrent();
-        if ( dataIndex >= 0 ){
-            _updatePanZoom( centerX, centerY, zoomFactor, m_children[dataIndex], zoomLevel );
+
+        int dataCount = m_children.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            //QString id1 = m_children[i]->getId(); //cxx
+            //QString id2 = m_children[i]->_getLayerId(); //xx
+            if (m_children[i]->_getLayerId() == QString::number(layerId)){
+                qDebug() << "grimmer aspect match layerID for panzoom";
+                _updatePanZoom( centerX, centerY, zoomFactor, m_children[i], zoomLevel );
+
+                // m_children[i]->_setZoom( zoomFactor );
+                break;
+            }
         }
+
+        // int dataIndex = _getIndexCurrent();
+        // if ( dataIndex >= 0 ){
+        //     _updatePanZoom( centerX, centerY, zoomFactor, m_children[dataIndex], zoomLevel );
+        // }
     }
     emit viewLoad();
 }
