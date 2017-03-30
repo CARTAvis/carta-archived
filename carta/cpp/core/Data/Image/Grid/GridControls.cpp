@@ -46,7 +46,7 @@ GridControls::GridControls( const QString& path, const QString& id):
 
 
 void GridControls::_initializeDefaultState(){
-    m_state.insertValue<bool>( ALL, true  );
+    m_state.insertValue<bool>( ALL, false  );
     m_state.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString());
     m_state.flushState();
 }
