@@ -184,11 +184,5 @@ private:
      */
     AstFrameSet* _make2dFrameCelestialExclude( AstFrameSet* frameSet );
 
-    /**
-     * Creates a display frameset by permuting the celestial axis order.
-     * @param wcsinfo - the base frameset created from the image.
-     * @return - a pointer to the 2-d display frameset, or NULL if an error occurs.
-     */
-    AstFrameSet* _make2dFrameCelestial( AstFrameSet* wcsinfo );
 };
 }
