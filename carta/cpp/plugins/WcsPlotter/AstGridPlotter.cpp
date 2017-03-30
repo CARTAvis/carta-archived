@@ -34,6 +34,8 @@ AstGridPlotter::getError()
     return m_errorString;
 }
 
+/// This part of code will be removed in the future
+/*
 AstFrameSet * AstGridPlotter::_make2dFrame( AstFrameSet* wcsinfo ){
     AstFrameSet * result = nullptr;
     bool celestialPlane = Carta::Lib::AxisDisplayInfo::isCelestialPlane( m_axisDisplayInfos );
@@ -126,7 +128,7 @@ AstFrameSet * AstGridPlotter::_make2dFrameSet( AstFrameSet *fs,
                     double* work2 = static_cast<double*>( astMalloc( axisCount*nsamp*sizeof( double ) ) );
                     if( work2 ) {
 
-                        // Transform the pixel positions into world coordinates. */
+                        // Transform the pixel positions into world coordinates.
                         //astSetI( fs, "Report", 1 );
                         astTranN( fs, nsamp, axisCount, nsamp, work1, 1, axisCount, nsamp, work2 );
                         //astSetI( fs, "Report", 0 );
@@ -294,6 +296,7 @@ AstFrameSet* AstGridPlotter::_make2dFrameCelestialExclude( AstFrameSet* wcsinfo 
     }
     return newFrame;
 }
+*/
 
 bool
 AstGridPlotter::plot()
@@ -552,14 +555,6 @@ AstGridPlotter::plot()
 
     return true;
 } // plot
-
-
-
-
-void AstGridPlotter::setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo>& infos ){
-    m_axisDisplayInfos = infos;
-}
-
 
 bool
 AstGridPlotter::setFitsHeader( const QString & hdr )

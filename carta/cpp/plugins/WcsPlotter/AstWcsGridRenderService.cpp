@@ -237,7 +237,6 @@ AstWcsGridRenderService::renderNow()
     sgp.setInputRect( m_imgRect );
     sgp.setOutputRect( m_outRect );
     sgp.setFitsHeader( _getFitsHeaderforAst(m().fitsHeader) );
-    sgp.setAxisDisplayInfo( m_axisDisplayInfos );
     sgp.setOutputVGComposer( & m_vgc );
 
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
