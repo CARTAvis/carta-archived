@@ -28,6 +28,9 @@ struct AstWcsGridRenderService::Pimpl
     // fits header from the input image
     QStringList fitsHeader;
 
+    // fits file name
+    QString fitsName;
+
     // current sky CS
     Carta::Lib::KnownSkyCS knownSkyCS = Carta::Lib::KnownSkyCS::J2000;
 
@@ -93,6 +96,7 @@ AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::Share
         FitsHeaderExtractor fhExtractor;
         fhExtractor.setInput( m_iimage );
         QStringList header = fhExtractor.getHeader();
+        QString fileName = fhExtractor.getFileName();
 
         // sanity check
         if ( header.size() < 1 ) {
@@ -106,6 +110,12 @@ AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::Share
             std::sort(&header[0],&header[len-2]);
             m().fitsHeader = header;
         }
+
+        if(fileName != m().fitsName)
+        {
+            m().fitsName = fileName;
+        }
+
     }
 } // setInputImage
 
@@ -240,7 +250,10 @@ AstWcsGridRenderService::renderNow()
     sgp.setOutputVGComposer( & m_vgc );
 
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
+    // draw title
     sgp.setPlotOption( "DrawTitle=0" );
+    //sgp.setPlotOption( "TitleGap=0.0" );
+    //sgp.setPlotOption(QString("Title=%1").arg( m().fitsName ));
 
     if ( !m_gridLines ){
         sgp.setPlotOption( "Grid=0");

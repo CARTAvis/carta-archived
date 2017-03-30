@@ -114,6 +114,30 @@ FitsHeaderExtractor::setInput( Carta::Lib::Image::ImageInterface::SharedPtr imag
     m_cartaImage = image;
 }
 
+QString FitsHeaderExtractor::getFileName()
+{
+    m_errors.clear();
+    if ( ! m_cartaImage ) {
+        m_errors << "Input is NULL";
+        return QString();
+    }
+
+    // can we get float image interface ?
+    casa::ImageInterface < casa::Float > * fii = InterfaceConverter(m_errors, m_cartaImage);
+
+    if ( ! fii )
+    {
+        return QString();
+    }
+
+    // alias image to be reference to the image, since the original code used a reference
+    // rather than a pointer and I'm too lazy to convert everything to pointers :)
+    casa::ImageInterface < casa::Float > & image = *fii;
+
+    QString result = image.name(1).c_str();
+    return result;
+}
+
 QStringList
 FitsHeaderExtractor::getHeader()
 {
@@ -150,7 +174,7 @@ FitsHeaderExtractor::_CasaFitsConverter()
 
     // alias image to be reference to the image, since the original code used a reference
     // rather than a pointer and I'm too lazy to convert everything to pointers :)
-    casa::ImageInterface < casa::Float > & image = *InterfaceConverter(m_errors, m_cartaImage);
+    casa::ImageInterface < casa::Float > & image = *fii;
 
 
     using namespace casa;

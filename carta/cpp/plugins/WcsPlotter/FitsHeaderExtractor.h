@@ -27,6 +27,8 @@ public:
     /// \note all entries are padded/truncated to 80 chars
     QStringList getHeader();
 
+    QString getFileName();
+
     /// \return list of errors (if any)
     QStringList getErrors();
 
