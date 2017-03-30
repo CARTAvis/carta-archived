@@ -17,7 +17,6 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
      */
     construct: function( viewId )
     {
-        console.log("grimmer view- PanZoomView");
         this.base( arguments, viewId );
 
         this.m_viewWidget.m_updateViewCallback = this.viewSizeHandler.bind(this);

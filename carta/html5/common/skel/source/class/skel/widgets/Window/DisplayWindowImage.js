@@ -325,7 +325,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Initializes the region drawing context menu.
          */
         _initMenuRegion : function() {
-            console.log("grimmer menu region")
             var regionMenu = new qx.ui.menu.Menu();
             this._initShapeButtons(regionMenu, false);
 
@@ -346,7 +345,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * 		back when the shape is finished.
          */
         _initShapeButtons : function(menu, keepMode) {
-            console.log("grimmer menu shape")
             var drawFunction = function(ev) {
                 var buttonText = this.getLabel();
                 var data = {
