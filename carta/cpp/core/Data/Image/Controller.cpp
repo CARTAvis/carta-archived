@@ -711,10 +711,9 @@ void Controller::_initializeCallbacks(){
         if ( vals.size() > 2 ) {
             double centerX = vals[0];
             double centerY = vals[1];
-            double z = vals[2];
+            double level = vals[2];
             double layerId = vals[3];
-            //updateZoom( centerX, centerY, z );
-            updatePanZoomLevel( centerX, centerY, z, layerId );
+            updatePanZoomLevel( centerX, centerY, level, layerId );
         }
         return "";
     });
@@ -724,12 +723,8 @@ void Controller::_initializeCallbacks(){
         bool error = false;
         auto vals = Util::string2VectorDouble( params, &error );
         if ( vals.size() > 0 ) {
-            // double centerX = vals[0];
-            // double centerY = vals[1];
             double z = vals[0];
             double layerId = vals[1];
-
-            // updateZoom( centerX, centerY, z );
             setZoomLevelJS(z, layerId);
         }
         return "";
@@ -785,7 +780,6 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "resetZoom", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        qDebug() << "grimmer resetZoom !!";
         QString result;
         resetZoom();
         return result;
@@ -1312,14 +1306,13 @@ void Controller::_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZo
     m_stack->_setViewDrawZoom( drawZoom );
 }
 
-// for Python
+// used by Python Client
 void Controller::setZoomLevel( double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_setZoomLevel( zoomFactor, zoomPanAll );
 }
 
 void Controller::setZoomLevelJS( double zoomFactor, double layerId ){
-//    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_setZoomLevelForLayerId( zoomFactor, layerId );
 }
 
@@ -1371,7 +1364,6 @@ void Controller::_updateDisplayAxes(){
 
 
 void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){
-//    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
     emit contextChanged();
     emit zoomChanged();

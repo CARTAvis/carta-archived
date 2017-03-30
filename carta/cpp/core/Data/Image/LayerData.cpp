@@ -109,7 +109,7 @@ void LayerData::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxis
         const std::vector<int>& frames ){
     if ( m_dataSource ){
         m_dataSource->_setDisplayAxes( displayAxisTypes, frames );
-        // _resetPan();
+        _resetPan();
 
     }
 }
@@ -541,65 +541,13 @@ QSize LayerData::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode asp
     return saveSize;
 }
 
-QString LayerData::_getImageString( ) const {
-    std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
-    if ( m_dataSource ){
-        image = m_dataSource->_getImage();
-    }
-
-
-    qDebug() <<"grimmer aspect getImages";
-
-//    std::pair<int,int> DataSource::_getDisplayDims() const {
-//        displayDims.first = m_image->dims()[m_axisIndexX];
-//  //    image->dims()
-
-    //QPointF result = _getPixelCoordinates()?
-
-    // 成對的:
-    //QPointF LayerData::_getPixelCoordinates( double ra, double dec, bool* valid ) const{
-//    QPointF LayerData::_getWorldCoordinates( double pixelX, double pixelY,
-//            Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
-
-    // 2, aj.fits
-    int dimes = _getDimension();
-    //    int LayerData::_getDimension() const {
-
-    // 512, 1024
-    std::vector<int> result2 = _getImageDimensions();
-//    std::vector<int> LayerData::_getImageDimensions( ) const {
-
-    // 512,1024, may be image or possible others: Frequency x DEC plot
-    QSize imageSize = _getDisplaySize(); //<-這較好
-//    QSize LayerData::_getDisplaySize() const {
-
-    std::vector<AxisInfo::KnownType> axisTypes= _getAxisTypes(); // if Ztype, 0
-    // DIRECTION_LON, DIRECTION_LAT
-
-    Carta::Lib::KnownSkyCS cs = _getCoordinateSystem(); //J2000
-
-    QString aa = "";
-    return aa;
-}
-
 QString LayerData::_getStateString( bool truncatePaths ) const{
 
-    qDebug()<<"grimmer layerdata-1";
-
-    // 一般stack會直接取layerdata的m_state, 但統計那邊需要 此layerdata的
-    // m_dataSource的 image (Carta::Lib::Image::ImageInterface)
     Carta::State::StateInterface copyState( m_state );
 
-    qDebug() <<"grimmer getStateString0:"<<copyState.toString();
     if ( !truncatePaths ){
-        qDebug() <<"grimmer getStateString1:"<<copyState.toString();
-
         copyState.setValue<QString>(Util::NAME, m_dataSource->_getFileName());
-        qDebug() <<"grimmer getStateString2:"<<copyState.toString();
-
         copyState.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
-        qDebug() <<"grimmer getStateString3:"<<copyState.toString();
-
         int contourCount = m_dataContours.size();
         copyState.insertArray( DataContours::CONTOURS, contourCount );
         int i = 0;
@@ -607,7 +555,6 @@ QString LayerData::_getStateString( bool truncatePaths ) const{
             iter != m_dataContours.end(); iter++ ){
             QString lookup = Carta::State::UtilState::getLookup( DataContours::CONTOURS, i );
             copyState.setObject( lookup, (*iter)->_getState().toString() );
-            qDebug()<<"grimmer try to set layer-countour key:"<<lookup;
             i++;
         }
         QString colorState( "");
@@ -617,14 +564,11 @@ QString LayerData::_getStateString( bool truncatePaths ) const{
         copyState.insertObject( ColorState::CLASS_NAME, colorState );
     }
 
-    qDebug()<<"grimmer layerdata-2";
-
-    // _getImageString();
     std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
     if ( m_dataSource ){
         image = m_dataSource->_getImage();
     }
-    QSize imageSize = _getDisplaySize(); //<-這較好
+    QSize imageSize = _getDisplaySize();
     int pixelX = imageSize.width();
     int pixelY = imageSize.height();
 
@@ -632,7 +576,6 @@ QString LayerData::_getStateString( bool truncatePaths ) const{
     copyState.insertObject( "pixelY", QString::number(pixelY) );
 
     QString stateStr = copyState.toString();
-    qDebug() <<"grimmer getStateString";
 
     return stateStr;
 }

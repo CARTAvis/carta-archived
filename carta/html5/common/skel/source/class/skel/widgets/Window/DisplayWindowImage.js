@@ -24,49 +24,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_imageControls = new skel.widgets.Image.ImageControls();
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
         this.m_content.add( this.m_imageControls );
-
-        // trigger時機:
-        // 0. init時, 1. 選檔案時. 2. 手動改視窗大小時
-        // 但真正改後的精確view大小要靠 this.m_view.m_updateViewCallback. 大小有差一點
-        // 因為 m_updateViewCallback 可能會重複trigger for 同一pan/zoom, cpp那邊的機制,
-        // 所以無法用它來當做判定視窗有被改過的flag, 只能用來得知大小
-        this.m_viewContent.addListener( "resize", function( /*e*/ ) {
-            console.log("grimmer aspect display window, setupt m_scheduleZoomFit !!!");
-            //先這個(還沒選檔前就會被call一次). 再layoutlead , 再來才是view.js 那邊
-            // 之後主動改視窗大小就靠這個
-            //TODO: grimmer.
-            //0. 手動zoom , pan後, 再改視窗. 也要維持那個view區塊?
-            //1. resetZoom 要改
-            //2. 切換檔案, 沒有zoom all
-            //3. 切換檔案, 有zoom all
-            //4. 轉置
-            //x 測 image layout. x
-
-            // this.m_scheduleZoomFit = true;
-        }, this);
-
-        //改成只有第一次才去調? yes
-        // or 手動zoom in 時就不要自動調
-
-        // this._handleWheelEvent = this._handleWheelEvent.bind(this);
     },
 
     members : {
 
-        // 1. 無法用 sendZoomLevel !!! 因為這雖然是指定level, 但是沒有applyAll(c++), 所以是for 最上層的!!
-        // 所以在aj.fits畫面按這reset button, 第二個reset zoom for 17mb 會apply到aj.fits上面 !!!!!
-        // "setZoomLevel"
-
-        // sendZoomLevel: a. zommAll mode時, 畫面變化時當前的第一次要塞滿畫面 (works)
-        // b. 滾輪+zommAll mode時, 要compensate的resetZoomToFitWindowForData.
-        //    就算有id, compensate也不行, 因為沒有pt部份. 所以滾輪時要只用一個全新的command, 有pt部份
-        // b.2. resetZoomToFitWindowForData裡, 就上面的按reset button
-
-        //2. sendPanZoomLevel也是. 所以還是改一個for id的好了, 但這個剛好是non zoom all mode, 剛好應該有效.
-        // "setPanAndZoomLevel"
-
         resetZoomToFitWindowForData: function(data) {
-            console.log("grimmet reset to:"+ data.m_minimalZoomLevel);
             this.m_view.sendZoomLevel(data.m_minimalZoomLevel, data.id);
             data.m_currentZoomLevel = data.m_minimalZoomLevel;
             data.m_effectZoomLevel = 1;
@@ -75,11 +37,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         resetZoomToFitWindow: function(){
 
             if(!this.m_datas || !this.m_datas.length) {
-                console.log("grimmer aspect somehow this.m_data is something wrong");
                 return;
             }
-
-            console.log("grimmer resetZoom:", this.m_datas);
 
             var zoomAll = this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue();
 
@@ -96,27 +55,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 } else {
                     continue;
                 }
-
-                // if (!this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue() && !data.selected) {
-                //     continue;
-                // }
-
-                // if (this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue()) {
-                //
-                // } else {
-                //     console.log("grimmet reset to:"+ data.m_minimalZoomLevel);
-                //     this.m_view.sendZoomLevel(data.m_minimalZoomLevel);
-                //     data.m_currentZoomLevel = data.m_minimalZoomLevel;
-                //     data.m_effectZoomLevel = 1;
-                // }
             }
-
         },
-
-        // _handleWheelEventZoomAll: function(pt, zoomFactor,  data) {
-        //     console.log("grimmer aspect mouseWheel-zoomAll");
-        //
-        // },
 
         _handleWheelEvent: function(pt, wheelFactor,  data, zoomAll) {
 
@@ -125,64 +65,30 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 return;
             }
 
-            // var zoomAll = this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue();
-            // if (zoomAll) {
-            //     console.log("grimmer zoomAll");
-            // } else {
-            //     console.log("grimmer zoomAll-not");
-            // }
-
-            // x move the logic from Stack.cpp to here. Here is more suitable place.
+            // move the logic (->0.9) from Stack.cpp to here. Here is more suitable place.
             //TODO: grimmer. default m_currentZoomLevel =1 needed to be synced with cpp
             if ( wheelFactor < 0 ) {
-                newZoom = data.m_currentZoomLevel / 0.9; //??
+                newZoom = data.m_currentZoomLevel / 0.9;
             } else {
-                newZoom = data.m_currentZoomLevel * 0.9; //??
+                newZoom = data.m_currentZoomLevel * 0.9;
             }
 
-            console.log("grimmer aspect mouseWheel:", newZoom,";min:", data.m_minimalZoomLevel);
+            // console.log("aspect Wheel-newZoom:", newZoom,";min:", data.m_minimalZoomLevel);
 
-            //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
-            // var path = skel.widgets.Path.getInstance();
-            // var cmd = this.m_viewId + path.SEP_COMMAND + "setPanAndZoomLevel";//path.ZOOM;
-            //
-            // this.m_connector.sendCommand( cmd,
-            //     "" + pt.x + " " + pt.y + " " + newZoom);
-            if (newZoom>= data.m_minimalZoomLevel) {
-
-                //x TODO, m_zoomAllmode
-                // if(this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue()) {
-                //
-                // } else {
-                // console.log("this.m_view:", this.m_view);
-                //this.m_view undefined
-                // 因為每個人的zoom level都不一樣. 所以for zoomAll 作法有2
-                // 1. 新增command, 然候送給cpp是for每個特定id的zoom
-                // 2. js紀錄zoom level, 但送時是用舊的方法 (delta)
+            if (newZoom >= data.m_minimalZoomLevel) {
 
                 data.m_currentZoomLevel = newZoom;
 
-                // 外面用原本的command 不會送, 所以這裡要送
-                // if (!zoomAll) {
                 this.m_view.sendPanZoomLevel(pt, newZoom, data.id);
-                console.log("grimmer aspect, send wheel zoom:"+newZoom,";",pt+";id:", data.id);
-                // }
+                // console.log("Aspect debug: send wheel zoom:"+newZoom,";",pt+";id:", data.id);
 
-                    // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
-                // }
+                // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
             }
-
-            // else if (zoomAll) {
-            //     console.log("grimmer try to compensate to minimal level, zoomAll mode");
-            //     this.resetZoomToFitWindowForData(data);
-            //     //zoomAll case, need compensate
-            // }
         },
 
         //TODO: grimmer. save previous mousewheel and prevent wheel delta 1, -1, 1 happen
         _mouseWheelCB : function(ev) {
 
-            console.log("grimmer aspect mouseWheel");
             var box = this.m_view.overlayWidget().getContentLocation( "box" );
             var pt = {
                 x: ev.getDocumentLeft() - box.left,
@@ -192,19 +98,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var wheelFactor = ev.getWheelDelta();
 
             if(!this.m_datas || !this.m_datas.length) {
-                console.log("grimmer aspect somehow this.m_data is something wrong");
+                console.log("Aspect debug: somehow storing layerDatas (m_data) is something wrong");
                 return;
             }
 
             var zoomAll = this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue();
-            // if (zoomAll) {
-            //     this.m_view.sendPanZoom(pt, wheelFactor);
-            // }
 
-            // save as a loop function
             var dataLen = this.m_datas.length;
             for (var i = 0; i < dataLen; i++) {
-                console.log("grimmer aspec datas loop:", i);
 
                 var data = this.m_datas[i];
 
@@ -216,54 +117,27 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 } else {
                     continue;
                 }
-
-                // if (!this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue() && !data.selected) {
-                //     continue;
-                // }
-
-                // if (!data.pixelX || !data.pixelY){
-                //     console.log("not invalid layerdata.pixelXorY");
-                //     continue;
-                // }
-                // handler(data);
-
-                // If zoomAll = false
-                // if (!this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue()){
-                //     break;
-                // }
-                // }
             }
         },
 
         _setupDefaultLayerData: function(data, oldDatas) {
 
             data.m_minimalZoomLevel = 1;
-            data.m_currentZoomLevel = 1; //只剩下用來判斷有無大於minimal zoom level
+            data.m_currentZoomLevel = 1;
 
-            data.m_effectZoomLevel = 1; // not use now
-            // m_currentZoomLevel: 1, //fitToWindow時要存. 手動放大放小時也存
-            // m_effectZoomLevel:  1, //???
+            data.m_effectZoomLevel = 1; // not use this anymore, will remove later
 
             var len = oldDatas.length;
             for (var i = 0; i < len; i++) {
                 var oldData = oldDatas[i];
-                if (oldData.id == data.id) { //because now Carta can open duplicate dataset
+                //because now Carta can open duplicate dataset, so not use data.name
+                if (oldData.id == data.id) {
                     data.m_currentZoomLevel = oldData.m_currentZoomLevel;
-                    console.log("grimmer aspect, inherit old zoomLevel");
+                    // console.log("Aspect debug: inherit old zoomLevel");
                     break;
                 }
             }
         },
-
-        // _loopLayerData: function(handler){
-        //
-        //
-        // },
-
-        // 可能使用時機:
-        // 一開始時
-        // 使用者手動改視窗時 <- 拿掉了
-        // 開兩個檔案, 切換過去時, 會有兩個callback !!! 兩個 render 事件
 
         _calculateFitZoomLevel: function(view_width, view_height, data){
             var zoomX = view_width / data.pixelX;
@@ -289,38 +163,29 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             return zoom;
         },
 
-        // 時機:
-        // 1. load file時
-        // 2. 調整視窗大小時, 現在不會send zoom, 因為_scheduleZoomFit
-        // 3. 任何畫面更新時
-        // p.s. 可能也會被call多次, 同一個動作. 開檔案前, 638x649 兩次, 0x0, 選檔, 638x664x3
-        _adjustZoomToFitWindow : function(view_width, view_height){
-            console.log("grimmer displaywindow, adjustZoomToFitWindow:"+view_width+";"+view_height);
-            console.log("grimmer aspec datas:", this.m_datas);
+        // Trigger timing:
+        // 0. init UI, 638x649: 2 times, 0x0: 1 time
+        // 1. after load file時,  638x664: 3 times
+        // 2. When users adjsut the window size, the view will be updated
+        // 3. any view updated. e.g. open two files, switch to another, get 2 times callback here
+
+        // now the default window size is 638, 666
+        useViewUpdateInfoToTryFitWindowSize : function(view_width, view_height){
+            // console.log("Aspect debug, view updateded, size:"+view_width+";"+view_height);
             if (!view_width || !view_height) {
-                console.log("invalid width or height");
+                console.log("Aspect debug: invalid width or height");
                 return;
             }
 
-            // now the default window size is 638, 666
-
-            //grimmer, just for debugging
-            if (!this.m_scheduleZoomFit) {
-                console.log("grimmer aspect users actively adjust the window size ");
-            }
-
             if(!this.m_datas || !this.m_datas.length) {
-                console.log("grimmer aspect somehow this.m_data is something wrong");
+                console.log("Aspect debug: somehow storing layerDatas (m_data) is something wrong");
                 return;
             }
 
             var dataLen = this.m_datas.length;
             for (var i = 0; i < dataLen; i++) {
-                console.log("grimmer aspec datas loop:", i);
 
                 var data = this.m_datas[i];
-
-                // if (this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue() || data.selected) {
 
                 if (!data.pixelX || !data.pixelY){
                     console.log("not invalid layerdata.pixelXorY");
@@ -329,46 +194,32 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
                 var zoom = this._calculateFitZoomLevel(view_width, view_height, data);
 
-                // If zoomAll = false
-                // if (!this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue()){
-
                 //TODO maybe move to after !data.selecte
-                console.log("grimmer set minimal:", data.name,";", zoom );
+                // console.log("Aspect debug. set minimal for file:", data.name,";", zoom );
                 data.m_minimalZoomLevel = zoom;
 
-                //TODO:grimmer. to check what autoSelect is ?
                 if (!data.selected) {
                     continue;
                 }
-                //grimmer, just for debugging
+
                 if (!this.m_scheduleZoomFit) {
-                    console.log("grimmer aspect users actively adjust the window size, not initial status:"+zoom);
                     continue;
                 }
+
                 this.m_scheduleZoomFit = false;
 
-                //zoom level 一定會有個下限, 每次新的stack都要重算.
-                console.log("grimmer try to send zoom level:", zoom,";",data.m_currentZoomLevel);
                 var finalZoom = zoom; //*data.m_effectZoomLevel
 
                 // m_curentZoomLevel == 1 means, this dataset is initially loaded
-                // A->B->A
+                // if not equual to 1, means like A->B->A, does not fit to Window Size automatically
                 if (data.m_currentZoomLevel == 1 && finalZoom != data.m_currentZoomLevel) {
-                    console.log("grimmer try to send zoom level2");
+                    // console.log("Aspect debug: try to send zoom level");
                     this.m_view.sendZoomLevel(finalZoom, data.id);
 
                     //TODO: grimmer. need to passive-sync m_currentZoomLevel with cpp
                     data.m_currentZoomLevel = finalZoom;
                 }
-
-                // break;
-
-                // } else {
-                //     //xTODO, zoomAll mode part
-                // }
-                // }
             }
-            // }
         },
 
 
@@ -401,23 +252,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Call back that initializes the View when data is loaded.
          */
         _dataLoadedCB : function(){
-            console.log("grimmer aspect displayWindow dataloadedCB !!!");
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
                 this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
 
-                // grimmer
-                this.m_view.m_updateViewCallback = this._adjustZoomToFitWindow.bind(this);
-                // move the code from PanZoomView to here.
+                // for fitToWinowSize and setup minimal zoom level functions.
+                this.m_view.m_updateViewCallback = this.useViewUpdateInfoToTryFitWindowSize.bind(this);
                 this.m_view.addListener( "mousewheel", this._mouseWheelCB.bind(this));
-
             }
 
             if (this.m_viewContent.indexOf(this.m_view) < 0) {
                 var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
-                console.log("grimmer aspect dataloadedCB m_viewContent");
                 this.m_viewContent.add(this.m_view, overlayMap );
-
             }
 
             this.m_view.setVisibility( "visible" );
@@ -738,21 +584,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
-
-         // 切換dataset, 新增, 打開都會收到新的
-         // x TODO 1. A->B, 再->A, A會reset成fit mode 要改
-         // TODO 2. 加入處理 zoomALL mode.
         _sharedVarStackCB : function(){
+
+            // Trigger timing:
+            // 1. open any new file (two times callback, but the later one has correct selected info)
+            // 2. switch a opened data (1 callback)
             var val = this.m_sharedVarStack.get();
             if ( val ){
                 try {
-                    // console.log("grimmer aspect: sharedStack1:", val);
                     var winObj = JSON.parse( val );
 
-                    //剛開始時就算只有一個檔案,  也會有重複的相臨兩次, 只是第二次的selected會是正確的
-                    //新增檔案都會有重複的兩個
-
-                    // 切換檔案只會有一個
                     var oldDatas = this.m_datas;
                     this.m_datas = [];
                     //Add close menu buttons for all the images that are loaded.
@@ -766,23 +607,21 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             }
                         }
                     }
-                    // console.log("grimmer aspect: sharedStack3:", val);
+
                     if ( dataObjs) {
                         var len = dataObjs.length;
                         for ( var i = 0; i < len; i++ ){
                             var newDataObj = dataObjs[i];
                             this._setupDefaultLayerData(newDataObj, oldDatas);
 
-                            //xTODO cpp bug
-                            //開兩個, 在第二個時候把第二個關掉, 只會收到一個, 但卻是selected=false !!! bug
+                            // there is a cpp bug
+                            // open two files, close 2nd file, only get 1 changed stack but the info of 1 layer is
+                            // selected=false !!!
                             if (len == 1) {
                                 newDataObj.selected = true;
                             }
 
-                            // 存起來
                             this.m_datas.push(newDataObj);
-
-                            console.log("grimmer aspect data1");
                         }
                         if (len > 0 && visibleData) {
                             this._dataLoadedCB();
@@ -790,17 +629,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     }
 
                     if (this.m_datas && this.m_datas.length > 0){
-                        console.log("grimmer aspect data2, setup m_scheduleZoomFit");
 
-                        //開A, A調過zoom -> ->B ->A時, 不讓A reset成fitToWindow 改法有2
-                        //  1. m_scheduleZoomFit不重設成true, 看是global或是分object
-                        //v 2. 檢查m_curentZoomLevel是不是等於1, 這兩個都是要比對新舊stack info
-                        // 切回舊檔案時應該不需要才對?
+                        //TODO 1. It is possible that we do not set this to true when switching back to the opened file
+                        //     2. It is possible that storing m_scheduleZoomFit as data.m_scheduleZoomFit but no effect now
                         this.m_scheduleZoomFit = true;
                     }
-                    //
-                    // console.log("grimmer aspect: sharedStack4:", val);
-
 
                     if ( !visibleData ){
                         //No images to show so set the view hidden.
@@ -811,8 +644,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
                     this._initContextMenu();
-
-                    // console.log("grimmer aspect: sharedStack, after dataLoadedCB");
 
                 }
                 catch( err ){
@@ -828,8 +659,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param id {String} - the server-side id of the object that manages the stack.
          */
         _setRegionId : function( id ){
-          console.log("grimmer DisplayWindowImage");
-
             this.m_regionId = id;
             this.m_sharedVarRegions = this.m_connector.getSharedVar( id );
             this.m_sharedVarRegions.addCB(this._sharedVarRegionsCB.bind(this));
@@ -847,8 +676,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param id {String} - the server-side id of the object that manages the stack.
          */
         _setStackId : function( id ){
-            console.log("grimmer DisplayWindowImage-stack");
-
             this.m_stackId = id;
             this.m_sharedVarStack = this.m_connector.getSharedVar( id );
             this.m_sharedVarStack.addCB(this._sharedVarStackCB.bind(this));
@@ -891,8 +718,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             if ( winObj !== null ){
                 this.m_autoClip = winObj.autoClip;
                 this.m_clipPercent = winObj.clipValueMax - winObj.clipValueMin;
-                console.log("grimmer clip,max:",winObj.clipValueMax,";min:",winObj.clipValueMin);
-                //grimmer clip,max: 0.975 ;min: 0.025
+                // console.log("Clip debug, max:",winObj.clipValueMax,";min:",winObj.clipValueMin);
             }
         },
 

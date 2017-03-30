@@ -266,7 +266,7 @@ int Stack::_getIndex( const QString& layerId) const {
 int Stack::_getIndexCurrent( ) const {
     int dataIndex = -1;
     if ( m_selectImage ){
-        int index = m_selectImage->getIndex(); //visible裡的第幾個
+        int index = m_selectImage->getIndex();
         int visibleIndex = -1;
         int dataCount = m_children.size();
         for ( int i = 0; i < dataCount; i++ ){
@@ -449,12 +449,6 @@ void Stack::_renderAll(bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile){
     int gridIndex = 0;
     QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
-    int len = datas.length();
-    if (len >1 ) {
-        qDebug()<<"grimmer animator crash 2";
-    } else {
-        qDebug()<<"grimmer animator crash 1";
-    }
     _render( datas, gridIndex, recomputeClipsOnNewFrame, minClipPercentile, maxClipPercentile );
 }
 
@@ -583,18 +577,16 @@ void Stack::_resetZoom( bool panZoomAll ){
     emit viewLoad( );
 }
 
-// _saveState
+
 void Stack::_saveChildren( Carta::State::StateInterface& state, bool truncate ) const {
     int dataCount = m_children.size();
     int oldDataCount = state.getArraySize( LAYERS );
     if ( oldDataCount != dataCount ){
         state.resizeArray(LAYERS, dataCount, Carta::State::StateInterface::PreserveNone );
     }
-    qDebug() <<"grimmer aspec count:" << dataCount;
     for (int i = 0; i < dataCount; i++) {
         QString layerString = m_children[i]->_getStateString( truncate );
         QString dataKey = Carta::State::UtilState::getLookup( LAYERS, i);
-        qDebug() <<"grimmer aspec dataKey:" <<dataKey <<";layerString:"<<layerString;
         state.setObject( dataKey, layerString);
     }
 }
@@ -789,15 +781,10 @@ bool Stack::_setVisible( const QString& id, bool visible ){
     return layerFound;
 }
 
-// m_stack->_setZoomLevelForLayerId( zoomFactor, false );
-
 void Stack::_setZoomLevelForLayerId(double zoomFactor, double layerId) {
     int dataCount = m_children.size();
     for ( int i = 0; i < dataCount; i++ ){
-        // QString id1 = m_children[i]->getId();
-        // QString id2 = m_children[i]->_getLayerId();
         if (m_children[i]->_getLayerId() == QString::number(layerId)){
-            qDebug() << "grimmer aspect match layerID";
             m_children[i]->_setZoom( zoomFactor );
             break;
         }
@@ -858,21 +845,11 @@ void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor, b
 
         int dataCount = m_children.size();
         for ( int i = 0; i < dataCount; i++ ){
-            //QString id1 = m_children[i]->getId(); //cxx
-            //QString id2 = m_children[i]->_getLayerId(); //xx
             if (m_children[i]->_getLayerId() == QString::number(layerId)){
-                qDebug() << "grimmer aspect match layerID for panzoom";
                 _updatePanZoom( centerX, centerY, zoomFactor, m_children[i], zoomLevel );
-
-                // m_children[i]->_setZoom( zoomFactor );
                 break;
             }
         }
-
-        // int dataIndex = _getIndexCurrent();
-        // if ( dataIndex >= 0 ){
-        //     _updatePanZoom( centerX, centerY, zoomFactor, m_children[dataIndex], zoomLevel );
-        // }
     }
     emit viewLoad();
 }

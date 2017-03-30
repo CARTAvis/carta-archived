@@ -31,7 +31,6 @@ qx.Class.define( "skel.boundWidgets.View.View", {
      */
     construct: function( viewName )
     {
-        console.log("grimmer view construct");
         this.m_connector = mImport( "connector" );
 
         this.base( arguments );
@@ -46,10 +45,6 @@ qx.Class.define( "skel.boundWidgets.View.View", {
             if (null === this.getContentElement().getDomElement()) {
                 return;
             }
-
-
-            var dom = this.getContentElement().getDomElement();
-            console.log("grimmer aspect, before send, width:", dom.offsetWidth);
 
             // defer calling update size by a little bit, because qooxdoo sent us the
             // resize probably before the actual html has been updated
@@ -84,10 +79,8 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         // callback for appear event
         _appearCB: function()
         {
-            console.log("grimmere view appearCB");
             this.m_iview = this.m_connector.registerViewElement(
             this.getContentElement().getDomElement(), this.m_viewName );
-            // console.log("grimmer aspect image tag size:", this.m_iview.m_imgTag.width,";",this.m_iview.m_imgTag.height);
 
             this.m_iview.updateSize();
             this.m_iview.addViewCallback( this._iviewRefreshCB.bind( this ) );
@@ -96,12 +89,10 @@ qx.Class.define( "skel.boundWidgets.View.View", {
 
         // callback for iView refresh
         _iviewRefreshCB : function() {
-            console.log("grimmer aspect _iviewRefreshCB_parent");
             this.fireDataEvent( "viewRefreshed");
 
             var dom = this.getContentElement().getDomElement();
-            console.log("grimmer aspect, _iviewRefreshCB:", dom.offsetWidth);
-            if (this.m_updateViewCallback){
+            if (this.m_updateViewCallback) {
                 this.m_updateViewCallback(dom.offsetWidth, dom.offsetHeight);
             }
         },
