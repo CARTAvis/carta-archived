@@ -264,16 +264,10 @@ void LabelFormats::_initializeDefaultState(){
     }
     int supportedAxisCount = 2;
     m_state.insertArray( AXES_FORMATS, supportedAxisCount );
-    for ( int i = 0; i < supportedAxisCount; i++ ){
-        QString lookup = Carta::State::UtilState::getLookup( AXES_FORMATS, i );
-        std::vector<int> formatIndices = _getFormatIndices( static_cast<Carta::Lib::AxisInfo::KnownType>(i) );
-        int formatCount = formatIndices.size();
-        m_state.setArray( lookup, formatCount );
-        for ( int j = 0; j < formatCount; j++ ){
-            QString formatLookup = Carta::State::UtilState::getLookup( lookup, j );
-            m_state.setValue<int>( formatLookup, formatIndices[j] );
-        }
-    }
+    Carta::Lib::AxisInfo::KnownType defaultType[] = {static_cast<Carta::Lib::AxisInfo::KnownType>(0),
+                                                     static_cast<Carta::Lib::AxisInfo::KnownType>(1)};
+    setAxisformat(defaultType);
+
     m_state.flushState();
 }
 
