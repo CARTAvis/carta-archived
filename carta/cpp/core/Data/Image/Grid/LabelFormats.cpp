@@ -277,6 +277,21 @@ void LabelFormats::_initializeDefaultState(){
     m_state.flushState();
 }
 
+void LabelFormats::setAxisformat(Carta::Lib::AxisInfo::KnownType *type)
+{
+    for ( int i = 0; i < 2; i++ ){
+        QString lookup = Carta::State::UtilState::getLookup( AXES_FORMATS, i );
+        std::vector<int> formatIndices = _getFormatIndices( type[i] );
+        int formatCount = formatIndices.size();
+        m_state.setArray( lookup, formatCount );
+        for ( int j = 0; j < formatCount; j++ ){
+            QString formatLookup = Carta::State::UtilState::getLookup( lookup, j );
+            m_state.setValue<int>( formatLookup, formatIndices[j] );
+        }
+    }
+    m_state.flushState();
+}
+
 bool LabelFormats::isVisible( const QString& format ) const {
     bool visibleFormat = true;
     QString actualFormat = getFormat( format );
