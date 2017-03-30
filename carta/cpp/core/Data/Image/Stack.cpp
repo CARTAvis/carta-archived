@@ -129,6 +129,7 @@ void Stack::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisType
             }
         }
     }
+     _saveState();
     emit viewLoad( );
 }
 
