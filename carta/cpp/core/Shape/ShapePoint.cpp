@@ -29,6 +29,7 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
         // Set pen width 0 for precise presentation of point
         // Width of zero indicates a cosmetic (i.e. zoom-independent) pen drawn 1px wide
         pen.setWidth(0);
+        pen.setColor(m_color);
         QPen rectPen = outlinePen;
 	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;

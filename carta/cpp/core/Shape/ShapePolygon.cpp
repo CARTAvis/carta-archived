@@ -41,6 +41,7 @@ Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
 	pen.setCosmetic(true);
+        pen.setColor(m_color);
 	QPen rectPen = outlinePen;
 	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;

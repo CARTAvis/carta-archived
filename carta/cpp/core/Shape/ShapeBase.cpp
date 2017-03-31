@@ -12,6 +12,7 @@ ShapeBase::ShapeBase( QObject* parent ):
 		QObject( parent ),
 		m_dragStart(QPointF(0,0)){
 		m_dragMode = false;
+                m_color = shadowPen.color();;
 		m_dragControlIndex = -1;
 }
 
@@ -27,6 +28,10 @@ void ShapeBase::editModeChanged(){
 
 QString ShapeBase::getCursor() const {
 	return m_cursor;
+}
+
+QColor ShapeBase::getColor() const {
+       return m_color;
 }
 
 
@@ -149,6 +154,10 @@ void ShapeBase::setSelected( bool value ){
 	for ( int i = 0; i < controlCount; i++ ){
 		m_controlPoints[i]->setSelected( value );
 	}
+}
+
+void ShapeBase::setColor( QColor value ){
+	m_color = value;
 }
 
 void ShapeBase::setUserData( void * value ){

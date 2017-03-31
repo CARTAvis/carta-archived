@@ -30,11 +30,23 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsShared", {
     		return "";
     	},
         
+        /**
+         * Returns the parameters to send to the server when the color has changed.
+         * @return {String} - the new color values.
+         */
+        _getColorParams : function(){
+            var red = this.m_colorPicker.getRed();
+            var green = this.m_colorPicker.getGreen();
+            var blue = this.m_colorPicker.getBlue();
+            var params = "red:"+red+",green:"+green+",blue:"+blue;
+            return params;
+        },
+
         /*
          * Initializes the UI.
          */
         _initShared : function( ) {
-            this._setLayout( new qx.ui.layout.VBox() );
+            this._setLayout( new qx.ui.layout.HBox() );
             this.m_content = new qx.ui.groupbox.GroupBox( "");
             var grid=new qx.ui.layout.Grid();
             grid.setRowAlign( 0, "center", "middle")
@@ -63,6 +75,9 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsShared", {
             this.m_centerYListenId = this.m_centerYText.addListener( "textChanged", this._sendCenterCmd, this );
             this.m_content.add( yLabel, {row:2, column:3});
             this.m_content.add( this.m_centerYText, {row:2, column:4});
+            this.m_colorPicker = new skel.widgets.CustomUI.ColorSelector();
+            this.m_colorListenerId = this.m_colorPicker.addListener( "changeValue", this._sendColorCmd, this );
+            this._add( this.m_colorPicker);
         },
         
         /**
@@ -78,7 +93,17 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsShared", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-       
+        
+        /**
+         * Notify the server that the region color has changed.
+         */
+        _sendColorCmd : function(){
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_id + path.SEP_COMMAND + "setColor";
+            var params = this._getColorParams();
+            this.m_connector.sendCommand( cmd, params, function(){});
+        },
+
         /**
          * Set the server-side id for the object that manages regions.
          * @param id {String} - the server-side id of the region manager object.
@@ -109,6 +134,10 @@ qx.Class.define("skel.widgets.Image.Region.RegionSettingsShared", {
         m_centerYListenId : null,
         m_connector : null,
         m_content : null,
-        m_id : null
+        m_id : null,
+        m_red : null,
+        m_green : null,
+        m_blue : null,
+        m_colorPicker : null
     }
 });

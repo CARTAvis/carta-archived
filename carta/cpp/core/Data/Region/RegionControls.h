@@ -139,6 +139,15 @@ public:
 	 */
 	virtual QString setRegionWidth( double width );
 
+        /**
+         * Set the color of all selected regions.
+         * @param redAmount - an integer in [0, 255] indicating the amount of red.
+         * @param greenAmount  an integer in [0,255] indicating the amount of green.
+         * @param blueAmount - an integer in [0,255] indicating the amount of blue.
+         * @return a list of errors or an empty list if the color was successfully set.
+	 */
+	virtual QStringList setRegionColor( int redAmount, int greenAmount, int blueAmount );
+
 	/**
 	 * Return the vector graphics for all the managed regions.
 	 * @return - the vector graphics for all the managed regions.
@@ -167,6 +176,9 @@ private slots:
 	void _regionSelectionChanged( const QString& id );
 
 	void _regionShapeChanged();
+
+        QStringList _parseColorParams( const QString& params, const QString& label,
+                                       int* red, int* green, int* blue ) const;
 
 private:
 

@@ -49,6 +49,7 @@ Carta::Lib::VectorGraphics::VGList ShapeRectangle::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
 	pen.setCosmetic(true);
+        pen.setColor(m_color);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon
