@@ -293,7 +293,6 @@ QString Region::setRegionName( const QString& name ){
 bool Region::setColor( QColor color){
         bool colorChanged = false;
         colorChanged = true;
-        m_state.setValue<QString>( Util::COLOR, color.name() );
         m_shape->setColor( color );
         return colorChanged;
 }
