@@ -158,6 +158,11 @@ void ShapeBase::setSelected( bool value ){
 
 void ShapeBase::setColor( QColor value ){
 	m_color = value;
+        int controlCount = m_controlPoints.size();
+        for ( int i = 0; i < controlCount; i++ ){
+          m_controlPoints[i]->setFillColor( m_color );
+	}
+
 }
 
 void ShapeBase::setUserData( void * value ){
