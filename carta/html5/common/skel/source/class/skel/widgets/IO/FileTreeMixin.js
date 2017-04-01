@@ -226,7 +226,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          */
         _setTreeIcons : function( treeElement, type ) {
             var format = this._getFileFormat( type );
-            if (format != "undefined"){
+            if (format !== "undefined"){
                 treeElement.setIcon("skel/file_icons/" + format +  ".png");
                 treeElement.getChildControl("icon").set({
                     width:24,
