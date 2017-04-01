@@ -55,12 +55,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             var grd = ctx.createLinearGradient( 0, 0, width, 0);
             if ( this.m_stops !== null ){
                 for ( var i = 0; i < this.m_stops.length; i++ ){
-                    if ( ! this.m_reverse ){
-                        this._addStop( grd, i, i );
-                    }
-                    else {
-                        this._addStop( grd, this.m_stops.length -i - 1, i );
-                    }
+                    this._addStop( grd, i, i );
                 }
             }
             ctx.fillStyle = grd;
@@ -94,7 +89,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          * @param invertMap {boolean} true to invert the map; false, otherwise.
          */
         setInvert : function( invertMap ){
-           if ( invertMap === this.m_invert ){
+           if ( invertMap != this.m_invert ){
                this.m_invert = invertMap;
                this.update();
            }
@@ -105,7 +100,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          * @param reverseMap {boolean} true to reverse the colors in the map; false, otherwise.
          */
         setReverse : function( reverseMap ){
-            if ( reverseMap === this.m_reverse ){
+            if ( reverseMap != this.m_reverse ){
                 this.m_reverse = reverseMap;
                 this.update();
             }
@@ -118,7 +113,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          * @return {Function} the callback for updating the gradient color stops.
          */
         setStops : function( colorStops ){
-            if ( colorStops === null  ){
+            if ( colorStops !== null  ){
                 this.m_stops = colorStops.split(",");
                 this.update();
             }
