@@ -41,7 +41,7 @@ public:
         query.prepare( "DELETE FROM db;" );
 
         if ( ! query.exec() ) {
-            qWarning() << "query delete failed";
+            qWarning() << "Delete query failed.";
         }
     } // deleteAll
 
@@ -55,9 +55,8 @@ public:
         query.prepare( "SELECT val FROM db WHERE key = :key" );
         query.bindValue( ":key", key );
 
-        //    qDebug() << "select query" << query.lastQuery();
         if ( ! query.exec() ) {
-            qWarning() << "query read failed";
+            qWarning() << "Select query failed.";
             return false;
         }
         if ( query.next() ) {
@@ -78,14 +77,11 @@ public:
         QSqlQuery query( m_db );
         query.prepare( "INSERT OR REPLACE INTO db (key, val) VALUES ( :key, :val)" );
 
-        //    query.prepare( "INSERT  INTO db (key, val) VALUES ( :key, :val)" );
         query.bindValue( ":key", key );
         query.bindValue( ":val", val );
 
-        //    qDebug() << "insert query" << query.lastQuery();
         if ( ! query.exec() ) {
-            qWarning() << "query insert failed"
-                       << query.lastError().text();
+            qWarning() << "Insert query failed:" << query.lastError().text();
         }
     } // setEntry
 
@@ -97,8 +93,6 @@ public:
             qCritical() << "PCacheSQlite3Plugin::Calling GetPersistentCacheHook multiple times!!!";
         }
         else {
-            // stupid c++ won't allow this
-            // m_cachePtr = std::make_shared < SqLitePCache > ();
             m_cachePtr.reset( new SqLitePCache( dirPath) );
         }
         return m_cachePtr;
@@ -123,19 +117,15 @@ private:
         m_db.setDatabaseName( dirPath );
         bool ok = m_db.open();
         if ( ! ok ) {
-            qCritical() << "Could not open sqlite database";
-            qCritical() << "  - at location:" + dirPath;
+            qCritical() << "Could not open sqlite database at location" << dirPath;
         }
 
         QSqlQuery query( m_db );
 
-        query.prepare( "create table db (key text primary key, "
-                       "val blob)" );
+        query.prepare( "CREATE TABLE IF NOT EXISTS db (key TEXT PRIMARY KEY, val BLOB)" );
 
-        //    qDebug() << "create query" << query.lastQuery();
         if ( ! query.exec() ) {
-            qCritical() << "query create table failed"
-                        << query.lastError().text();
+            qCritical() << "Create table query failed:" << query.lastError().text();
         }
     }
 
@@ -172,14 +162,14 @@ PCacheSQlite3Plugin::handleHook( BaseHook & hookData )
         return hook.result != nullptr;
     }
 
-    qWarning() << "PCacheSQlite3Plugin: Sorrry, dont' know how to handle this hook";
+    qWarning() << "PCacheSQlite3Plugin: Sorry, don't know how to handle this hook.";
     return false;
 } // handleHook
 
 void
 PCacheSQlite3Plugin::initialize( const IPlugin::InitInfo & initInfo )
 {
-    qDebug() << "PCacheSQlite3Plugin::initialized";
+    qDebug() << "PCacheSQlite3Plugin initializing...";
     QJsonDocument doc( initInfo.json );
     qDebug() << doc.toJson();
 
