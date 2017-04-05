@@ -330,9 +330,9 @@ AstWcsGridRenderService::renderNow()
 
     // draw title
     sgp.setPlotOption( "DrawTitle=0" );
-    //sgp.setPlotOption( QString( "Font(title)=%1" ).arg( Please set the font );
-    //sgp.setPlotOption( QString( "Size(title)=%1" ).arg( Please set the size );
-    //sgp.setPlotOption( QString( "Colour(title)=%1" ).arg( Please set the color);
+    //sgp.setPlotOption( QString( "Font(title)=%1" ).arg( Please set the font ));
+    //sgp.setPlotOption( QString( "Size(title)=%1" ).arg( Please set the size ));
+    //sgp.setPlotOption( QString( "Colour(title)=%1" ).arg( Please set the color));
     //sgp.setPlotOption( "TitleGap=0.0" );
     //sgp.setPlotOption(QString("Title=%1").arg( m().fitsName ));
 
