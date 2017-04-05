@@ -334,7 +334,7 @@ AstWcsGridRenderService::renderNow()
     //sgp.setPlotOption( QString( "Size(title)=%1" ).arg( Please set the size ));
     //sgp.setPlotOption( QString( "Colour(title)=%1" ).arg( Please set the color));
     //sgp.setPlotOption( "TitleGap=0.0" );
-    //sgp.setPlotOption(QString("Title=%1").arg( m().fitsName ));
+    //sgp.setPlotOption(QString("Title(1)=%1").arg( m().fitsName ));
 
     sgp.setShadowPenIndex( si( Element::Shadow ) );
     sgp.setDensityModifier( m_gridDensity );
