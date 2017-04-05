@@ -74,11 +74,10 @@ EOF
 
     ##  casa01-python-tools seems to have python-numpy, boost-python
 
-    sudo yum -y install \
-    python-devel boost-python \
+    sudo yum -y install python-devel boost-python
     # casa01-mpi4py.x86_64 casa01-openmpi.x86_64 \
     # casa01-python.x86_64 casa01-python-devel.x86_64, casa01-python-tools.x86_64 \ (2.7.5)
-    lapack-devel xerces-c-devel
+    sudo yum -y install lapack-devel xerces-c-devel
 
     # sudo yum -y install wcslib wcslib-devel
 
@@ -89,10 +88,11 @@ EOF
     sudo yum -y install boost
     sudo yum -y install boost-devel
     sudo yum -y install numpy
-    sudo yum -y install fftw fftw-devel gsl gsl-devel
+    sudo yum -y install fftw fftw-devel
 
     ### (casa)code needs
     ## when config casa-code: -- casa_packages=/usr/lib64/casapy (second), but not exist now
+    sudo yum -y install gsl gsl-devel
     sudo yum -y install java
     sudo yum -y install libxml2-devel libxslt-devel
     sudo yum -y install rpfits readline-devel
@@ -112,25 +112,24 @@ else
     ####### casacore part:
     # sudo apt-get -y install libwcs5 wcslib-dev
     sudo apt-get -y install gfortran python-numpy libfftw3-dev liblapacke-dev
-    sudo apt-get -y install libboost-dev
-    # sudo apt-get -y install libblas-dev libblas3 \ move to install3party since gsl needs too
-    liblapack-dev liblapack3 liblapacke liblapacke-dev
+    sudo apt-get -y install libboost-dev liblapack-dev liblapack3 liblapacke liblapacke-dev
 
-    sudo apt-get -y install libgsl-dev
+    # sudo apt-get -y install libblas-dev libblas3 \ move to install3party since gsl needs too
+
     sudo apt-get -y install libxerces-c-dev
     sudo apt-get -y install libncurses5-dev ## do not know why CentOS 7 does not need to install this
     sudo apt-get -y install libboost-python-dev
 
     ## forget the below are for casacore or casa-code (<-seems this)
-    sudo apt-get -y install libboost-regex-dev libboost-program-options-dev \
-    ibboost-thread-dev libboost-serialization-dev libboost-filesystem-dev libboost-system-dev
+    sudo apt-get -y install libboost-regex-dev libboost-program-options-dev
+    sudo apt-get -y install ibboost-thread-dev libboost-serialization-dev libboost-filesystem-dev libboost-system-dev
     #######
 
     ####### casa-code part:
+    sudo apt-get -y install libgsl-dev
     ## needed to be installed before building qt 4.8, otherwise Qt d-bus (QtDbus) moduble will not be built in
     ## not sure if all are needed or not
-    sudo apt-get -y install libdbus-1-dev \
-    libqt4-dbus libqtdbus4 dbus-cpp-dev libdbus-c++-dev libdbus-cpp-dev
+    sudo apt-get -y install libdbus-1-dev libqt4-dbus libqtdbus4 dbus-cpp-dev libdbus-c++-dev libdbus-cpp-dev
 
     sudo apt-get -y install default-jre ## openjdk-7-jdk, openjdk-7-jre
     sudo apt-get -y install libxslt1-dev
