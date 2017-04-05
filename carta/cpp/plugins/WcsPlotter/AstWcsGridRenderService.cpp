@@ -250,10 +250,6 @@ AstWcsGridRenderService::renderNow()
     sgp.setOutputVGComposer( & m_vgc );
 
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
-    // draw title
-    sgp.setPlotOption( "DrawTitle=0" );
-    //sgp.setPlotOption( "TitleGap=0.0" );
-    //sgp.setPlotOption(QString("Title=%1").arg( m().fitsName ));
 
     if ( !m_gridLines ){
         sgp.setPlotOption( "Grid=0");
@@ -332,13 +328,15 @@ AstWcsGridRenderService::renderNow()
     sgp.setPlotOption( QString( "Colour(TextLab1)=%1" ).arg( si( Element::LabelText1 ) ) );
     sgp.setPlotOption( QString( "Colour(TextLab2)=%1" ).arg( si( Element::LabelText2 ) ) );
 
+    // draw title
+    sgp.setPlotOption( "DrawTitle=0" );
+    //sgp.setPlotOption( QString( "Font(title)=%1" ).arg( Please set the font );
+    //sgp.setPlotOption( QString( "Size(title)=%1" ).arg( Please set the size );
+    //sgp.setPlotOption( QString( "Colour(title)=%1" ).arg( Please set the color);
+    //sgp.setPlotOption( "TitleGap=0.0" );
+    //sgp.setPlotOption(QString("Title=%1").arg( m().fitsName ));
+
     sgp.setShadowPenIndex( si( Element::Shadow ) );
-
-
-
-//    sgp.setPlotOption( "Format(1)=\"+tms.10\"");
-//            sgp.setPlotOption( "Format(1)=\"gtms\"");
-    // grid density
     sgp.setDensityModifier( m_gridDensity );
 
 
