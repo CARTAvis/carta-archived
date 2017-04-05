@@ -87,6 +87,7 @@ ParsedInfo parse(const QString & filePath)
     _storeBool( json["hacksEnabled"], &info.m_hacksEnabled, "hacks enabled");
     _storeBool( json["developerLayout"], &info.m_developerLayout, "developer layout");
     _storeBool( json["qtDecorations"], &info.m_developerDecorations, "developer decorations");
+    _storeBool( json["defaultGridLines"], &info.m_defaultGridLines, "set default grid lines");
 
     _storePositiveInt( json["histogramBinCountMax"], &info.m_histogramBinCountMax, "histogram bin count max");
     _storePositiveInt( json["contourLevelCountMax"], &info.m_contourLevelCountMax, "contour level count max");
@@ -109,6 +110,9 @@ bool ParsedInfo::isDeveloperDecorations() const {
     return m_developerDecorations;
 }
 
+bool ParsedInfo::isDefaultGridLines() const {
+    return m_defaultGridLines;
+}
 
 bool ParsedInfo::isDeveloperLayout() const {
     return m_developerLayout;

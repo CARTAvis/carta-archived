@@ -4,6 +4,7 @@
 #include "Fonts.h"
 #include "Themes.h"
 #include "Globals.h"
+#include "MainConfig.h"
 #include "DummyGridRenderer.h"
 #include "CartaLib/AxisInfo.h"
 #include "Data/Image/CoordinateSystems.h"
@@ -260,7 +261,11 @@ void DataGrid::_initializeDefaultState(){
     //Spacing goes from 0.250 to 3
 
     m_state.insertValue<bool>( SHOW_AXIS, true );
-    m_state.insertValue<bool>( SHOW_GRID_LINES, true );
+
+    // load the default setting of grid lines (true/false --> on/off) from the file "config.json"
+    bool setDefaultGridLines = Globals::instance()->mainConfig()->isDefaultGridLines();
+    m_state.insertValue<bool>( SHOW_GRID_LINES, setDefaultGridLines );
+
     m_state.insertValue<bool>( SHOW_TICKS, true );
     m_state.insertValue<bool>( SHOW_INTERNAL_LABELS, false );
     m_state.insertValue<bool>( SHOW_COORDS, true );
