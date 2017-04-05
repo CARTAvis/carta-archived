@@ -195,7 +195,7 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
         else if (dit.fileInfo().isFile()) {
             QFile file(lastPart+QDir::separator()+fileName);
             if (file.open(QFile::ReadOnly)) {
-                QString dataInfo = file.read(80);
+                QString dataInfo = file.read(160);
                 if (dataInfo.contains("Region", Qt::CaseInsensitive)) {
                     if (dataInfo.contains("DS9", Qt::CaseInsensitive)) {
                         _makeFileNode(dirArray, fileName, "reg");
@@ -204,7 +204,7 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
                         _makeFileNode(dirArray, fileName, "crtf");
                     }
                 }
-                else if (dataInfo.contains(QRegExp("^SIMPLE *= *T.*"))) {
+                else if (dataInfo.contains(QRegExp("^SIMPLE *= *T.* BITPIX*")) && !dataInfo.contains(QRegExp("\n"))) {
                     _makeFileNode(dirArray, fileName, "fits");
                 }
                 file.close();
