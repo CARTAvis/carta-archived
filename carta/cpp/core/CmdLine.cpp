@@ -7,6 +7,8 @@
 #include <QDebug>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QCoreApplication>
+#include <qglobal.h>
 
 static QString cartaGetEnv( const QString & name)
 {
@@ -45,11 +47,20 @@ ParsedInfo parse(const QStringList & argv)
         info.m_configFilePath = cartaGetEnv( "CONFIG");
     }
     // if the config file was not specified neither through command line or environment
-    // assign a default value
+    // assign a default value (search the config file under the home directory first)
     if( info.m_configFilePath.isEmpty()) {
         info.m_configFilePath = QDir::homePath() + "/.cartavis/config.json";
     }
 
+    // if the config file was not specified neither through command line or environment
+    // assign a default value (search the config file under the carta build directory second)
+    if( info.m_configFilePath.isEmpty()) {
+#ifdef Q_OS_LINUX
+        info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../../config/config.json";
+#else
+        info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../../../../../config/config.json";
+#endif
+    }
 
     // get html path
     if( parser.isSet( htmlPathOption)) {
