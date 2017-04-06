@@ -96,6 +96,10 @@ AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::Share
         FitsHeaderExtractor fhExtractor;
         fhExtractor.setInput( m_iimage );
         QStringList header = fhExtractor.getHeader();
+        // Maybe, We can get the file name from "DataSource::_getFileName()"
+        // add a new menber fuction "AstWcsGridRenderService::setFileName"
+        // and remove "FitsHeaderExtractor::getFileName()"
+        // I think it will work when image is permuted
         QString fileName = fhExtractor.getFileName();
 
         // sanity check
@@ -334,7 +338,8 @@ AstWcsGridRenderService::renderNow()
     //sgp.setPlotOption( QString( "Size(title)=%1" ).arg( Please set the size ));
     //sgp.setPlotOption( QString( "Colour(title)=%1" ).arg( Please set the color));
     //sgp.setPlotOption( "TitleGap=0.0" );
-    //sgp.setPlotOption(QString("Title(1)=%1").arg( m().fitsName ));
+    //sgp.setPlotOption(QString("Title(1)=%1").arg( m().fitsName )); // for SKY-SPECTRUM image
+    //sgp.setPlotOption(QString("Title=%1").arg( m().fitsName ));    // for SKY , LINEAR image
 
     sgp.setShadowPenIndex( si( Element::Shadow ) );
     sgp.setDensityModifier( m_gridDensity );
