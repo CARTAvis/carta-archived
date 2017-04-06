@@ -7,7 +7,7 @@
 qx.Class.define("skel.widgets.Util", {
     type : "static",
     statics : {
-        
+
         /**
          * Add a context menu to the widget that allows it to be removed from the menu/toolbar
          * and shows the general customize dialog.
@@ -35,10 +35,10 @@ qx.Class.define("skel.widgets.Util", {
             contextMenu.add( customizeButton );
             widget.setContextMenu( contextMenu);
         },
-        
+
         /**
          * Returns the 'left' position of the widget.
-         * 
+         *
          * @param widget
          *                {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
@@ -49,7 +49,7 @@ qx.Class.define("skel.widgets.Util", {
 
         /**
          * Returns the 'right' position of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
@@ -60,7 +60,7 @@ qx.Class.define("skel.widgets.Util", {
 
         /**
          * Returns the 'top' position of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
@@ -70,7 +70,7 @@ qx.Class.define("skel.widgets.Util", {
 
         /**
          * Returns the 'bottom' position of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose position is to be
          *                determined.
          */
@@ -82,7 +82,7 @@ qx.Class.define("skel.widgets.Util", {
         /**
          * Returns an array of size 2 representing the point that is located at
          * that center of the widget.
-         * 
+         *
          * @param widget {qx.ui.core.Widget} the widget whose center is to be
          *                determined.
          */
@@ -115,20 +115,20 @@ qx.Class.define("skel.widgets.Util", {
          */
         localPos : function( target, event) {
             var box = target.getContentLocation("box");
-           
+
             var left = event.getDocumentLeft();
             var top = event.getDocumentTop();
             if ( box ){
                 left = left - box.left;
                 top = top - box.top;
             }
-            
+
             return  {
                 x : left,
                 y : top
             };
         },
-        
+
         /**
          * Construct a button for the given command and callback.
          * @param cmd {skel.Command.Command}
@@ -150,8 +150,8 @@ qx.Class.define("skel.widgets.Util", {
             }
             return button;
         },
-        
-        
+
+
         /**
          * Make a checkable menu item for the cmd.
          * @param cmd {skel.Command.Command}
@@ -171,12 +171,12 @@ qx.Class.define("skel.widgets.Util", {
             };
             checkBox.addListener( "changeValue", labelFunction( cmd,checkBox), checkBox);
             if ( tool ){
-                
+
                 skel.widgets.Util.addContext( checkBox, cmd, tool );
             }
             return checkBox;
         },
-        
+
         /**
          * Return a menu consisting of the children of the command.
          * @param cmds {skel.Command.Command}.
@@ -223,7 +223,7 @@ qx.Class.define("skel.widgets.Util", {
             }
             return cmdMenu;
         },
-        
+
         /**
          * Returns a group of radio menu items representing the children of the command.
          * @param cmd {skel.Command.CommandGroup} a command with the property that only one of
@@ -233,6 +233,9 @@ qx.Class.define("skel.widgets.Util", {
             var radios = [];
             var radioGroup = new qx.ui.form.RadioGroup();
             radioGroup.setAllowEmptySelection(true);
+            if (cmd.getLabel() === "Layout"){
+                radioGroup.setAllowEmptySelection(false);
+            }
             var values = cmd.getValue();
             var labelFunction = function( cmd, button){
                 return function(){
@@ -241,7 +244,7 @@ qx.Class.define("skel.widgets.Util", {
                     }
                 };
             };
-            
+
             for ( var i = 0; i < values.length; i++ ){
                 var button = null;
                 if ( !tool && values[i].isVisibleMenu() ){
@@ -263,7 +266,7 @@ qx.Class.define("skel.widgets.Util", {
             }
             return radios;
         },
-        
+
         /**
          * Converts a string containing 'true' or 'false' to a boolean.
          * @param valStr {String} the string to translate.
