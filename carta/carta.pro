@@ -14,11 +14,18 @@ dbg( "===---------------------------------------------====")
 
 TEMPLATE = subdirs
 SUBDIRS += cpp
-SUBDIRS += scriptedClient
-SUBDIRS += scripts
+# SUBDIRS += scriptedClient
+# SUBDIRS += scripts
 
 OTHER_FILES += readme.txt uncrustify.cfg
 
+#
+# Apply make install option to copy the config folder and its file to the build directory
+#
+install_config.path = $${OUT_PWD}
+install_config.files += config/
+
+INSTALLS += install_config
 
 # make sure user did not specify debug version...
 # it's probably harmless, but that's probably not what the user wanted
