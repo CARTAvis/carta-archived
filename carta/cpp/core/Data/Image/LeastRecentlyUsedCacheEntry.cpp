@@ -38,8 +38,7 @@ bool LeastRecentlyUsedCacheEntry::operator==( const LeastRecentlyUsedCacheEntry&
     if (m_frameLow == other.m_frameLow &&
         m_frameHigh == other.m_frameHigh &&
         m_location == other.m_location &&
-        m_percentile == other.m_percentile &&
-        m_intensity == other.m_intensity ){
+        m_percentile == other.m_percentile ){
         equalEntries = true;
     }
     return equalEntries;
