@@ -55,12 +55,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
             var grd = ctx.createLinearGradient( 0, 0, width, 0);
             if ( this.m_stops !== null ){
                 for ( var i = 0; i < this.m_stops.length; i++ ){
-                    if ( ! this.m_reverse ){
-                        this._addStop( grd, i, i );
-                    }
-                    else {
-                        this._addStop( grd, this.m_stops.length -i - 1, i );
-                    }
+                    this._addStop( grd, i, i );
                 }
             }
             ctx.fillStyle = grd;
@@ -118,7 +113,7 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
          * @return {Function} the callback for updating the gradient color stops.
          */
         setStops : function( colorStops ){
-            if ( colorStops !==null  ){
+            if ( colorStops !== null  ){
                 this.m_stops = colorStops.split(",");
                 this.update();
             }
