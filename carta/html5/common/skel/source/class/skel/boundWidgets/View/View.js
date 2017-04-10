@@ -32,10 +32,10 @@ qx.Class.define( "skel.boundWidgets.View.View", {
     construct: function( viewName )
     {
         this.m_connector = mImport( "connector" );
-        
+
         this.base( arguments );
         this.m_viewName = viewName;
-        
+
         var setZeroTimeout = mImport( "setZeroTimeout" );
 
         this.addListenerOnce( "appear", this._appearCB.bind(this));
@@ -81,7 +81,7 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         {
             this.m_iview = this.m_connector.registerViewElement(
             this.getContentElement().getDomElement(), this.m_viewName );
-    
+
             this.m_iview.updateSize();
             this.m_iview.addViewCallback( this._iviewRefreshCB.bind( this ) );
             this.setQuality( this.m_quality);
@@ -90,6 +90,11 @@ qx.Class.define( "skel.boundWidgets.View.View", {
         // callback for iView refresh
         _iviewRefreshCB : function() {
             this.fireDataEvent( "viewRefreshed");
+
+            var dom = this.getContentElement().getDomElement();
+            if (this.m_updateViewCallback) {
+                this.m_updateViewCallback(dom.offsetWidth, dom.offsetHeight);
+            }
         },
 
         // overridden
@@ -129,8 +134,10 @@ qx.Class.define( "skel.boundWidgets.View.View", {
          * @type {Connector} cached instance of the connector
          */
         m_connector: null,
-        
-        m_quality: null
+
+        m_quality: null,
+
+        m_updateViewCallback: null
     },
 
     destruct: function()

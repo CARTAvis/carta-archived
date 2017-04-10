@@ -704,6 +704,32 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+    addCommandCallback( "setPanAndZoomLevel", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        bool error = false;
+        auto vals = Util::string2VectorDouble( params, &error );
+        if ( vals.size() > 2 ) {
+            double centerX = vals[0];
+            double centerY = vals[1];
+            double level = vals[2];
+            double layerId = vals[3];
+            updatePanZoomLevel( centerX, centerY, level, layerId );
+        }
+        return "";
+    });
+
+    addCommandCallback( "setZoomLevel", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        bool error = false;
+        auto vals = Util::string2VectorDouble( params, &error );
+        if ( vals.size() > 0 ) {
+            double z = vals[0];
+            double layerId = vals[1];
+            setZoomLevelJS(z, layerId);
+        }
+        return "";
+    });
+
     addCommandCallback( "registerContourControls", [=] (const QString & /*cmd*/,
                             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         QString result;
@@ -1280,11 +1306,15 @@ void Controller::_setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZo
     m_stack->_setViewDrawZoom( drawZoom );
 }
 
+// used by Python Client
 void Controller::setZoomLevel( double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_setZoomLevel( zoomFactor, zoomPanAll );
 }
 
+void Controller::setZoomLevelJS( double zoomFactor, double layerId ){
+    m_stack->_setZoomLevelForLayerId( zoomFactor, layerId );
+}
 
 void Controller::_updateCursor( int mouseX, int mouseY ){
     if ( m_stack->_getStackSize() == 0 ){
@@ -1332,9 +1362,16 @@ void Controller::_updateDisplayAxes(){
 }
 
 
+
+void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){
+    m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
+    emit contextChanged();
+    emit zoomChanged();
+}
+
 void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
-    m_stack->_updateZoom( centerX, centerY, zoomFactor, zoomPanAll);
+    m_stack->_updatePanZoom( centerX, centerY, zoomFactor, zoomPanAll, -1, -1);
     emit contextChanged();
     emit zoomChanged();
 }

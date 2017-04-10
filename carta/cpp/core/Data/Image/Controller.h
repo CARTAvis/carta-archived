@@ -59,7 +59,7 @@ class Controller: public QObject, public Carta::State::CartaObject,
     Q_OBJECT
 
 public:
-    
+
     /**
      * Clear the view.
      */
@@ -422,6 +422,8 @@ public:
      */
     void setFrameRegion( int regionIndex );
 
+    void setZoomLevelJS(double zoomFactor, double layerId);
+
     /**
      * Set the zoom level
      * @param zoomLevel either positive or negative depending on the desired zoom direction.
@@ -526,6 +528,14 @@ public:
      */
     void updatePan( double imgX , double imgY);
 
+    /**
+     * Update the pan and zoom level settings.
+     * @param centerX the screen x-coordinate where the zoom was centered.
+     * @param centerY the screen y-coordinate where the zoom was centered.
+     * @param zoomLevel zoom level 
+     * @param layerId specify the id of a layerData to update its Pan and Zoom level
+     */
+    void updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId );
 
     /**
      * Update the zoom settings.

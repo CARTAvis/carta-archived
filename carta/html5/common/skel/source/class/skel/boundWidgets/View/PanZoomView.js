@@ -19,8 +19,10 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
     {
         this.base( arguments, viewId );
 
-        // monitor mouse move
-        this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
+        this.m_viewWidget.m_updateViewCallback = this.viewSizeHandler.bind(this);
+
+        // monitor mouse move, move to DisplayWindowImage.
+        // this.addListener( "mousewheel", this._mouseWheelCB.bind(this));
 
         this.m_viewId = viewId;
         this.m_connector = mImport( "connector");
@@ -29,7 +31,13 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
     },
 
     members: {
-    	
+
+        viewSizeHandler: function(width, height) {
+            if (this.m_updateViewCallback) {
+                this.m_updateViewCallback(width, height);
+            }
+        },
+
         /**
          * Install an input handler.
          * @param handlerType {class}
@@ -49,32 +57,42 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             this.m_inputHandlers[handlerType] = handler;
         },
 
-        _mouseWheelCB : function(ev) {
-            var box = this.overlayWidget().getContentLocation( "box" );
-            var pt = {
-                x: ev.getDocumentLeft() - box.left,
-                y: ev.getDocumentTop() - box.top
-            };
-            //console.log( "vwid wheel", pt.x, pt.y, ev.getWheelDelta());
+        // sendPanZoom : function(pt, wheelFactor) {
+        //     var path = skel.widgets.Path.getInstance();
+        //     var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
+        //
+        //     this.m_connector.sendCommand( cmd,
+        //         "" + pt.x + " " + pt.y + " " + wheelFactor);
+        // },
+
+        // new command for fitToWinowSize and setup minimal zoom level functions.
+        sendPanZoomLevel : function(pt, level, id) {
+
             var path = skel.widgets.Path.getInstance();
-            var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
+            var cmd = this.m_viewId + path.SEP_COMMAND + "setPanAndZoomLevel";
             this.m_connector.sendCommand( cmd,
-                "" + pt.x + " " + pt.y + " " + ev.getWheelDelta());
+                "" + pt.x + " " + pt.y + " " + level+" "+ id);
         },
- 
+
+        // new command for fitToWinowSize and setup minimal zoom level functions.
+        sendZoomLevel: function(level, id) {
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_viewId + path.SEP_COMMAND + "setZoomLevel";
+            this.m_connector.sendCommand( cmd, ""+level+" "+ id);
+        },
+
         /**
-         * Send an input event to the server side.
+         * Send an input event to the server side. E.g. mouse hover action
          * @param e {object}
          */
         sendInputEvent: function( e ){
-            
+
             var params = JSON.stringify( e );
-            //console.log( "Sending input event"+params );
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_viewId + path.SEP_COMMAND + path.INPUT_EVENT;
             this.m_connector.sendCommand( cmd, params );
         },
-        
+
         /**
          * Install an input handler.
          * @param handlerType {class}
@@ -93,7 +111,8 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
         },
 
         m_viewId : null,
-        m_inputHandlers : null
+        m_inputHandlers : null,
+        m_updateViewCallback: null
 
     }
 } );

@@ -541,9 +541,10 @@ QSize LayerData::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode asp
     return saveSize;
 }
 
-
 QString LayerData::_getStateString( bool truncatePaths ) const{
+
     Carta::State::StateInterface copyState( m_state );
+
     if ( !truncatePaths ){
         copyState.setValue<QString>(Util::NAME, m_dataSource->_getFileName());
         copyState.insertObject( DataGrid::GRID, m_dataGrid->_getState().toString() );
@@ -562,7 +563,20 @@ QString LayerData::_getStateString( bool truncatePaths ) const{
         }
         copyState.insertObject( ColorState::CLASS_NAME, colorState );
     }
+
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
+    if ( m_dataSource ){
+        image = m_dataSource->_getImage();
+    }
+    QSize imageSize = _getDisplaySize();
+    int pixelX = imageSize.width();
+    int pixelY = imageSize.height();
+
+    copyState.insertObject( "pixelX", QString::number(pixelX) );
+    copyState.insertObject( "pixelY", QString::number(pixelY) );
+
     QString stateStr = copyState.toString();
+
     return stateStr;
 }
 

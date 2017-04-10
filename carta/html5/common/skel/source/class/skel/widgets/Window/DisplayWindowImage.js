@@ -10,7 +10,7 @@
 qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
     extend : skel.widgets.Window.DisplayWindow,
     include : skel.widgets.Window.PreferencesMixin,
-    
+
     /**
      * Constructor.
      */
@@ -19,7 +19,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_links = [];
         this.m_viewContent = new qx.ui.container.Composite();
         this.m_viewContent.setLayout(new qx.ui.layout.Canvas());
-        
+
         this.m_content.add( this.m_viewContent, {flex:1} );
         this.m_imageControls = new skel.widgets.Image.ImageControls();
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
@@ -27,7 +27,202 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
     },
 
     members : {
-        
+
+        resetZoomToFitWindowForData: function(data) {
+            this.m_view.sendZoomLevel(data.m_minimalZoomLevel, data.id);
+            data.m_currentZoomLevel = data.m_minimalZoomLevel;
+            data.m_effectZoomLevel = 1;
+        },
+
+        resetZoomToFitWindow: function(){
+
+            if(!this.m_datas || !this.m_datas.length) {
+                return;
+            }
+
+            var zoomAll = this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue();
+
+            var dataLen = this.m_datas.length;
+            for (var i = 0; i < dataLen; i++) {
+
+                var data = this.m_datas[i];
+
+                if (zoomAll) {
+                    this.resetZoomToFitWindowForData(data);
+                } else if (data.selected) {
+                    this.resetZoomToFitWindowForData(data);
+                    break;
+                } else {
+                    continue;
+                }
+            }
+        },
+
+        _handleWheelEvent: function(pt, wheelFactor,  data, zoomAll) {
+
+            if (!data.pixelX || !data.pixelY){
+                console.log("not invalid layerdata.pixelXorY");
+                return;
+            }
+
+            // move the logic (->0.9) from Stack.cpp to here. Here is more suitable place.
+            //TODO: grimmer. default m_currentZoomLevel =1 needed to be synced with cpp
+            if ( wheelFactor < 0 ) {
+                newZoom = data.m_currentZoomLevel / 0.9;
+            } else {
+                newZoom = data.m_currentZoomLevel * 0.9;
+            }
+
+            // console.log("aspect Wheel-newZoom:", newZoom,";min:", data.m_minimalZoomLevel);
+
+            if (newZoom >= data.m_minimalZoomLevel) {
+
+                data.m_currentZoomLevel = newZoom;
+
+                this.m_view.sendPanZoomLevel(pt, newZoom, data.id);
+                // console.log("Aspect debug: send wheel zoom:"+newZoom,";",pt+";id:", data.id);
+
+                // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
+            }
+        },
+
+        //TODO: grimmer. save previous mousewheel and prevent wheel delta 1, -1, 1 happen
+        _mouseWheelCB : function(ev) {
+
+            var box = this.m_view.overlayWidget().getContentLocation( "box" );
+            var pt = {
+                x: ev.getDocumentLeft() - box.left,
+                y: ev.getDocumentTop() - box.top
+            };
+
+            var wheelFactor = ev.getWheelDelta();
+
+            if(!this.m_datas || !this.m_datas.length) {
+                console.log("Aspect debug: somehow storing layerDatas (m_data) is something wrong");
+                return;
+            }
+
+            var zoomAll = this.m_imageControls.m_pages[2].m_panZoomAllCheck.getValue();
+
+            var dataLen = this.m_datas.length;
+            for (var i = 0; i < dataLen; i++) {
+
+                var data = this.m_datas[i];
+
+                if (zoomAll) {
+                    this._handleWheelEvent(pt, wheelFactor, data, zoomAll);
+                } else if (data.selected) {
+                    this._handleWheelEvent(pt, wheelFactor, data, zoomAll);
+                    break;
+                } else {
+                    continue;
+                }
+            }
+        },
+
+        _setupDefaultLayerData: function(data, oldDatas) {
+
+            data.m_minimalZoomLevel = 1;
+            data.m_currentZoomLevel = 1;
+
+            data.m_effectZoomLevel = 1; // not use this anymore, will remove later
+
+            var len = oldDatas.length;
+            for (var i = 0; i < len; i++) {
+                var oldData = oldDatas[i];
+                //because now Carta can open duplicate dataset, so not use data.name
+                if (oldData.id == data.id) {
+                    data.m_currentZoomLevel = oldData.m_currentZoomLevel;
+                    // console.log("Aspect debug: inherit old zoomLevel");
+                    break;
+                }
+            }
+        },
+
+        _calculateFitZoomLevel: function(view_width, view_height, data){
+            var zoomX = view_width / data.pixelX;
+            var zoomY = view_height / data.pixelY;
+            var zoom = 1;
+
+            if (zoomX < 1 || zoomY < 1) {
+
+                if (zoomX > zoomY){
+                    zoom = zoomY; //aj.fits, 512x1024, slim
+                } else {
+                    zoom = zoomX; //502nmos.fits, 1600x1600, fat
+                }
+
+            }  else { //equual or smaller than window size
+                if (zoomX > zoomY){
+                    zoom = zoomY; // M100_alma.fits,52x62 slim
+                } else {
+                    zoom = zoomX; // cube_x220_z100_17MB,220x220 fat
+                }
+            }
+
+            return zoom;
+        },
+
+        // Trigger timing:
+        // 0. init UI, 638x649: 2 times, 0x0: 1 time
+        // 1. after load file時,  638x664: 3 times
+        // 2. When users adjsut the window size, the view will be updated
+        // 3. any view updated. e.g. open two files, switch to another, get 2 times callback here
+
+        // now the default window size is 638, 666
+        useViewUpdateInfoToTryFitWindowSize : function(view_width, view_height){
+            // console.log("Aspect debug, view updateded, size:"+view_width+";"+view_height);
+            if (!view_width || !view_height) {
+                console.log("Aspect debug: invalid width or height");
+                return;
+            }
+
+            if(!this.m_datas || !this.m_datas.length) {
+                console.log("Aspect debug: somehow storing layerDatas (m_data) is something wrong");
+                return;
+            }
+
+            var dataLen = this.m_datas.length;
+            for (var i = 0; i < dataLen; i++) {
+
+                var data = this.m_datas[i];
+
+                if (!data.pixelX || !data.pixelY){
+                    console.log("not invalid layerdata.pixelXorY");
+                    break;
+                }
+
+                var zoom = this._calculateFitZoomLevel(view_width, view_height, data);
+
+                //TODO maybe move to after !data.selecte
+                // console.log("Aspect debug. set minimal for file:", data.name,";", zoom );
+                data.m_minimalZoomLevel = zoom;
+
+                if (!data.selected) {
+                    continue;
+                }
+
+                if (!this.m_scheduleZoomFit) {
+                    continue;
+                }
+
+                this.m_scheduleZoomFit = false;
+
+                var finalZoom = zoom; //*data.m_effectZoomLevel
+
+                // m_curentZoomLevel == 1 means, this dataset is initially loaded
+                // if not equual to 1, means like A->B->A, does not fit to Window Size automatically
+                if (data.m_currentZoomLevel == 1 && finalZoom != data.m_currentZoomLevel) {
+                    // console.log("Aspect debug: try to send zoom level");
+                    this.m_view.sendZoomLevel(finalZoom, data.id);
+
+                    //TODO: grimmer. need to passive-sync m_currentZoomLevel with cpp
+                    data.m_currentZoomLevel = finalZoom;
+                }
+            }
+        },
+
+
         /**
          * Add or remove the grid control settings based on whether the user
          * had configured any of the settings visible.
@@ -37,18 +232,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_controlsVisible = content;
             this._layoutControls();
         },
-        
-        
+
+
         /**
          * Clean-up items; this window is going to disappear.
          */
         clean : function(){
-            //Remove the view so we don't get spurious mouse events sent to a 
+            //Remove the view so we don't get spurious mouse events sent to a
             //controller that no longer exists.
             if ( this.m_view !== null ){
                 if ( this.m_viewContent.indexOf( this.m_view) >= 0 ){
                     this.m_viewContent.remove( this.m_view);
-                   
+
                 }
             }
         },
@@ -60,17 +255,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
                 this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
+
+                // for fitToWinowSize and setup minimal zoom level functions.
+                this.m_view.m_updateViewCallback = this.useViewUpdateInfoToTryFitWindowSize.bind(this);
+                this.m_view.addListener( "mousewheel", this._mouseWheelCB.bind(this));
             }
-            
+
             if (this.m_viewContent.indexOf(this.m_view) < 0) {
                 var overlayMap = {left:"0%",right:"0%",top:"0%",bottom: "0%"};
                 this.m_viewContent.add(this.m_view, overlayMap );
-                
             }
-           
+
             this.m_view.setVisibility( "visible" );
         },
-        
+
         /**
          * Notify the server that data has been loaded.
          * @param path {String} an identifier for locating the data.
@@ -96,7 +294,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         getDatas : function(){
             return this.m_datas;
         },
-        
+
         /**
          * Return the identifier for the region controller.
          * @return {String} - the identifier of the region controller.
@@ -104,7 +302,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         getRegionIdentifier : function(){
         	return this.m_regionId;
         },
-        
+
         /**
          * Return a list of regions in the image.
          * @return {Array} - a list of regions in the image.
@@ -112,7 +310,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         getRegions : function(){
             return this.m_regions;
         },
-        
+
         /**
          * Notification that the grid controls have changed on the server-side.
          * @param ev {qx.event.type.Data}.
@@ -162,7 +360,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 menu.add(shapeButton);
             }
         },
-        
+
         /**
          * Initialize the label for displaying cursor statistics.
          */
@@ -176,13 +374,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 this.m_statLabel.setRich( true );
             }
         },
-        
+
         /**
          * Initialize the list of window specific commands this window supports.
          */
         _initSupportedCommands : function(){
             this.m_supportedCmds = [];
-            
+
             var clipCmd = skel.Command.Clip.CommandClip.getInstance();
             this.m_supportedCmds.push( clipCmd.getLabel() );
             var dataCmd = skel.Command.Data.CommandData.getInstance();
@@ -203,7 +401,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_supportedCmds.push( panResetCmd.getLabel() );
             arguments.callee.base.apply(this, arguments);
         },
-        
+
         /**
          * Returns whether or not this window can be linked to a window
          * displaying a named plug-in.
@@ -212,15 +410,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         isLinkable : function(pluginId) {
             var linkable = false;
             var path = skel.widgets.Path.getInstance();
-            if (pluginId == path.ANIMATOR || 
-                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN || 
+            if (pluginId == path.ANIMATOR ||
+                    pluginId == path.COLORMAP_PLUGIN ||pluginId == path.HISTOGRAM_PLUGIN ||
                     pluginId == path.STATISTICS || pluginId == path.PROFILE ||
                     pluginId == path.IMAGE_CONTEXT || pluginId == path.IMAGE_ZOOM ) {
                 linkable = true;
             }
             return linkable;
         },
-               
+
 
         /**
          * Returns whether or not this window supports establishing a two-way
@@ -234,7 +432,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
             return biLink;
         },
-        
+
         /**
          * Add/remove content based on user visibility preferences.
          */
@@ -267,7 +465,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-        
+
         /**
          * Register to get updates on stack data settings from the server.
          */
@@ -287,18 +485,18 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._registrationStackCallback( this));
         },
-        
-        
+
+
         /**
          * Callback for when the registration is complete and an id is available.
          * @param anObject {skel.widgets.Image.Region.RegionControls}.
          */
         _registrationRegionCallback : function( anObject ){
-            return function( id ){           	
+            return function( id ){
                 anObject._setRegionId( id );
             };
         },
-        
+
         /**
          * Callback for when the registration is complete and an id is available.
          * @param anObject {skel.widgets.Image.Stack.StackControls}.
@@ -308,7 +506,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 anObject._setStackId( id );
             };
         },
-        
+
         /**
          * Show/hide the cursor statistics control.
          * @param visible {boolean} - true if the cursor statistics widget
@@ -318,14 +516,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_statisticsVisible = visible;
             this._layoutControls();
         },
-        
+
 
         setDrawMode : function(drawInfo) {
             if (this.m_drawCanvas !== null) {
                 this.m_drawCanvas.setDrawMode(drawInfo);
             }
         },
-        
+
         /**
          * Set the appearance of this window based on whether or not it is selected.
          * @param selected {boolean} true if the window is selected; false otherwise.
@@ -336,7 +534,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.updateCmds();
             arguments.callee.base.apply(this, arguments, selected, multiple );
         },
-        
+
         /**
          * Update region specific elements from the shared variable.
          */
@@ -346,7 +544,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 try {
                     var winObj = JSON.parse( val );
                     var regionShape = winObj.createType;
-                  
+
                     var regionDrawCmds = skel.Command.Region.CommandRegions.getInstance();
                     regionDrawCmds.setDrawType( regionShape );
                 }
@@ -356,7 +554,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-        
+
         /**
          * Update region data specific elements from the shared variable.
          */
@@ -371,7 +569,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     }
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
-                    this._initContextMenu();       
+                    this._initContextMenu();
                 }
                 catch( err ){
                     console.log( "DisplayWindowImage could not parse region data update: "+val );
@@ -379,16 +577,22 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-        
+
         /**
          * Update window specific elements from the shared variable.
          * @param winObj {String} represents the server state of this window.
          */
         _sharedVarStackCB : function(){
+
+            // Trigger timing:
+            // 1. open any new file (two times callback, but the later one has correct selected info)
+            // 2. switch a opened data (1 callback)
             var val = this.m_sharedVarStack.get();
             if ( val ){
                 try {
                     var winObj = JSON.parse( val );
+
+                    var oldDatas = this.m_datas;
                     this.m_datas = [];
                     //Add close menu buttons for all the images that are loaded.
                     var dataObjs = winObj.layers;
@@ -401,14 +605,34 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                             }
                         }
                     }
-                    if ( dataObjs && dataObjs.length > 0 ){
-                        for ( var i = 0; i < dataObjs.length; i++ ){
-                            this.m_datas[i] = dataObjs[i];
+
+                    if ( dataObjs) {
+                        var len = dataObjs.length;
+                        for ( var i = 0; i < len; i++ ){
+                            var newDataObj = dataObjs[i];
+                            this._setupDefaultLayerData(newDataObj, oldDatas);
+
+                            // there is a cpp bug
+                            // open two files, close 2nd file, only get 1 changed stack but the info of 1 layer is
+                            // selected=false !!!
+                            if (len == 1) {
+                                newDataObj.selected = true;
+                            }
+
+                            this.m_datas.push(newDataObj);
                         }
-                        if ( visibleData ){
+                        if (len > 0 && visibleData) {
                             this._dataLoadedCB();
                         }
                     }
+
+                    if (this.m_datas && this.m_datas.length > 0){
+
+                        //TODO 1. It is possible that we do not set this to true when switching back to the opened file
+                        //     2. It is possible that storing m_scheduleZoomFit as data.m_scheduleZoomFit but no effect now
+                        this.m_scheduleZoomFit = true;
+                    }
+
                     if ( !visibleData ){
                         //No images to show so set the view hidden.
                         if ( this.m_view !== null ){
@@ -418,6 +642,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     var dataCmd = skel.Command.Data.CommandData.getInstance();
                     dataCmd.datasChanged();
                     this._initContextMenu();
+
                 }
                 catch( err ){
                     console.log( "DisplayWindowImage could not parse: "+val );
@@ -425,8 +650,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 }
             }
         },
-               
-     
+
+
         /**
          * Set the identifier for the server-side object that manages the stack.
          * @param id {String} - the server-side id of the object that manages the stack.
@@ -436,14 +661,14 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_sharedVarRegions = this.m_connector.getSharedVar( id );
             this.m_sharedVarRegions.addCB(this._sharedVarRegionsCB.bind(this));
             this._sharedVarRegionsCB();
-            
+
             var path = skel.widgets.Path.getInstance();
         	var regionDataId = id + path.SEP + path.DATA;
         	this.m_sharedVarRegionsData = this.m_connector.getSharedVar( regionDataId );
         	this.m_sharedVarRegionsData.addCB( this._sharedVarRegionsDataCB.bind(this));
         	this._sharedVarRegionsDataCB();
         },
-        
+
         /**
          * Set the identifier for the server-side object that manages the stack.
          * @param id {String} - the server-side id of the object that manages the stack.
@@ -454,8 +679,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_sharedVarStack.addCB(this._sharedVarStackCB.bind(this));
             this._sharedVarStackCB();
         },
-        
-        
+
+
         /**
          * Update the commands about clip settings.
          */
@@ -465,24 +690,24 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             var clipValsCmd = skel.Command.Clip.CommandClipValues.getInstance();
             clipValsCmd.setClipValue( this.m_clipPercent );
         },
-        
-        
+
+
         /**
          * Implemented to initialize the context menu.
          */
         windowIdInitialized : function() {
             arguments.callee.base.apply(this, arguments);
-           
+
             this._registerControlsStack();
             this._registerControlsRegion();
             this._initStatistics();
             this._dataLoadedCB();
-            
+
             //Get the shared variable for preferences
             this.initializePrefs();
             this.m_imageControls.setId( this.getIdentifier());
         },
-        
+
         /**
          * Update from the server.
          * @param winObj {Object} - an object containing server side information values.
@@ -491,12 +716,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             if ( winObj !== null ){
                 this.m_autoClip = winObj.autoClip;
                 this.m_clipPercent = winObj.clipValueMax - winObj.clipValueMin;
+                // console.log("Clip debug, max:",winObj.clipValueMax,";min:",winObj.clipValueMin);
             }
         },
-        
+
+        m_zoomAllmode : false,
+        m_scheduleZoomFit : false,
         m_autoClip : false,
         m_clipPercent : 0,
-        
+
         m_regionButton : null,
         m_renderButton : null,
         m_drawCanvas : null,
@@ -507,7 +735,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_sharedVarRegionsData : null,
         m_stackId : null,
         m_regionId : null,
-       
+
         m_view : null,
         m_viewContent : null,
         m_imageControls : null,
