@@ -35,12 +35,11 @@ double LeastRecentlyUsedCacheEntry::getIntensity() const {
 
 bool LeastRecentlyUsedCacheEntry::operator==( const LeastRecentlyUsedCacheEntry& other ) const {
     bool equalEntries = false;
-    if ( m_frameLow == other.m_frameLow ){
-        if ( m_frameHigh == other.m_frameHigh ){
-            if ( m_location == other.m_location ){
-                equalEntries = true;
-            }
-        }
+    if (m_frameLow == other.m_frameLow &&
+        m_frameHigh == other.m_frameHigh &&
+        m_location == other.m_location &&
+        m_percentile == other.m_percentile ){
+        equalEntries = true;
     }
     return equalEntries;
 }
