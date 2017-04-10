@@ -415,6 +415,11 @@ class QImageII
 {
 public:
 
+    virtual bool hasBeam() const override
+    {
+        return false;
+    }
+
     static std::shared_ptr < QImageII >
     load( QString fname )
     {
