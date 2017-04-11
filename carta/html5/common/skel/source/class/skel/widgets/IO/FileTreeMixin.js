@@ -1,6 +1,7 @@
 /**
  * Manage a tree displaying directories/files and display areas for the selected
  * directory and file.
+ * @asset(skel/file_icons/*)
  */
 
 /*global mImport */
@@ -166,8 +167,8 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          */
         _nodeSelected : function( nodeLabel ){
             var path = skel.widgets.Path.getInstance();
-			this.m_dirText.setValue( this.m_path );
-			this.m_fileText.setValue( nodeLabel );
+            this.m_dirText.setValue( this.m_path );
+            this.m_fileText.setValue( nodeLabel );
         },
 
         /**
@@ -190,6 +191,7 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                     treeElement = new qx.ui.tree.TreeFolder(element.name);
                 } else {
                     treeElement = new qx.ui.tree.TreeFile(element.name);
+                    this._setTreeIcons(treeElement, element.type);
                 }
                 root.add(treeElement);
             }
@@ -210,11 +212,45 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
          * @param dataTree {String} representing available data files in a
          *                hierarchical JSON format
          */
-        _updateTree : function(dataTree) {
+        _updateTree : function( dataTree ) {
             this.m_jsonObj = qx.lang.Json.parse(dataTree);
             this._resetModel();
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
+        },
+
+        /**
+         * Set the icon of each treeElement
+         * @param treeElement
+         * @param type {String} get from m_jsonObj to distinguish format
+         */
+        _setTreeIcons : function( treeElement, type ) {
+            var format = this._getFileFormat( type );
+            if (format !== "undefined"){
+                treeElement.setIcon("skel/file_icons/" + format +  ".png");
+                treeElement.getChildControl("icon").set({
+                    width:24,
+                    height:24,
+                    scale:true
+                });
+            }
+        },
+
+        /**
+         * Distinguish the formats of files based on the information from the server
+         * @param fileType {String} get from m_jsonObj to distinguish format
+         */
+        _getFileFormat : function( fileType ) {
+            switch ( fileType ) {
+                case 'fits'   : return 'fits';
+                case 'image'  : return 'casa';
+                case 'miriad' : return 'miriad';
+                case 'crtf'   : return 'region_casa';
+                case 'reg'    : return 'region_ds9';
+
+                default:
+                    return 'undefined';
+            }
         },
 
         m_dirText : null,

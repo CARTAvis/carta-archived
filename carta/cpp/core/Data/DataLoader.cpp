@@ -4,6 +4,7 @@
 #include <QDirIterator>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegExp>
 
 #include "DataLoader.h"
 #include "Util.h"
@@ -181,16 +182,32 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
 
         QString fileName = dit.fileInfo().fileName();
         if (dit.fileInfo().isDir()) {
-            if (fileName.endsWith(".image")) {
-                _makeFileNode(dirArray, fileName);
+            QString rootDirPath = rootDir.absolutePath();
+            QString subDirPath = rootDirPath.append("/").append(fileName);
+
+            if ( !_checkSubDir(subDirPath).isNull() ) {
+                _makeFileNode( dirArray, fileName, _checkSubDir(subDirPath));
             }
             else {
                 _makeFolderNode( dirArray, fileName );
             }
         }
         else if (dit.fileInfo().isFile()) {
-            if (fileName.endsWith(".fits") || fileName.endsWith( CRTF ) || fileName.endsWith( REG )) {
-                _makeFileNode(dirArray, fileName);
+            QFile file(lastPart+QDir::separator()+fileName);
+            if (file.open(QFile::ReadOnly)) {
+                QString dataInfo = file.read(160);
+                if (dataInfo.contains("Region", Qt::CaseInsensitive)) {
+                    if (dataInfo.contains("DS9", Qt::CaseInsensitive)) {
+                        _makeFileNode(dirArray, fileName, "reg");
+                    }
+                    else if (dataInfo.contains("CRTF", Qt::CaseInsensitive)) {
+                        _makeFileNode(dirArray, fileName, "crtf");
+                    }
+                }
+                else if (dataInfo.contains(QRegExp("^SIMPLE *= *T.* BITPIX*")) && !dataInfo.contains(QRegExp("\n"))) {
+                    _makeFileNode(dirArray, fileName, "fits");
+                }
+                file.close();
             }
         }
     }
@@ -198,10 +215,42 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
     rootObj.insert( DIR, dirArray);
 }
 
-void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName) const {
+QString DataLoader::_checkSubDir( QString& subDirPath) const {
+
+    QDir subDir(subDirPath);
+    if (!subDir.exists()) {
+        QString errorMsg = "Please check that "+subDir.absolutePath()+" is a valid directory.";
+        Util::commandPostProcess( errorMsg );
+        exit(0);
+    }
+
+    QMap< QString, QStringList> filterMap;
+
+    QStringList imageFilters, miriadFilters;
+    imageFilters << "table.f0_TSM0" << "table.info";
+    miriadFilters << "header" << "image";
+
+    filterMap.insert( "image", imageFilters);
+    filterMap.insert( "miriad", miriadFilters);
+
+    //look for the subfiles satisfying a special format
+    foreach ( const QString &filter, filterMap.keys()){
+        subDir.setNameFilters(filterMap.value(filter));
+        if ( subDir.entryList().length() == filterMap.value(filter).length() ) {
+            return filter;
+        }
+    }
+    return NULL;
+}
+
+void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
     obj.insert( Util::NAME, fileValue);
+    //use type to represent the format of files
+    //the meaning of "type" may differ with other codes
+    //can change the string when feeling confused
+    obj.insert( Util::TYPE, QJsonValue(fileType));
     parentArray.append(obj);
 }
 

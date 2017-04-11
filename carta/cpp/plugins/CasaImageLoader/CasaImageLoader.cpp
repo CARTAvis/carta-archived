@@ -68,7 +68,7 @@ static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
 
 ///
 /// \brief Attempts to load an image using casacore library, namely the very first
-/// frame of it. Then converts the frame to a QImage using 95% histogram clip values.
+/// frame of it. Then converts the frame to a QImage using 100% histogram clip values.
 /// \param fname file name with the image
 /// \param result where to store the result
 /// \return true if successful, false otherwise
