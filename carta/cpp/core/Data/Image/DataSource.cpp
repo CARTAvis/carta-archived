@@ -239,6 +239,11 @@ QPointF DataSource::_getCenter() const{
     if ( m_permuteImage != nullptr ){
          double xCenter =  m_permuteImage-> dims()[0] / 2.0;
          double yCenter = m_permuteImage-> dims()[1] / 2.0;
+         // This is due to casa uses [0,0] as the center of the first pixel,
+         // so there is 0.5 (image pixel coordinate, not screen pixel coordinate)
+         // shift for the center of the whole image
+         xCenter -= 0.5;
+         yCenter -= 0.5;
          center.setX( xCenter );
          center.setY( yCenter );
      }
