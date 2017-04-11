@@ -153,7 +153,7 @@ https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac
 
 **CentOS 7:**
 
-The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers (4.9.2) and gfortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
+The `buildcasa.sh` will use `yum` to install specific version of gcc, g++ compilers (4.9.2) and GFortran from casa yum repo. But of course you can use any installed build tools. Just specify the path of them into cmake flag of building casa part in `buildcasa.sh`.
 
 cd `your-carta-work`, execute
 `sudo ./CARTAvis/carta/scripts/buildcasa.sh`, which does the following things
@@ -199,7 +199,7 @@ Some of third-party libraries they use are the same,  but may use different vers
 4. bison
 5. gsl (CARTA uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
 6. blas lib. (required when building GSL, also when building casacore)
-7. gfortan (CARTA uses ast library which uses gfortan, and casacore uses this, too)
+7. GFortran (CARTA uses ast library which uses GFortran, and casacore uses this, too)
 8. Qt. (CARTA uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
 9. qwt (CARTA uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
 9. Python and numpy (should be ok. CARTA:2.7. casa:2.7)
@@ -350,15 +350,22 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
     1. setup LD_LIBRARY_PATH on Mac/Linux
 
     ```
-    ## ok way, use this
+    ## 1-1 for casa libs
+    ## on Linux, use this
     export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
+    ## on Mac, use this
+    export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casa/trunk/darwin/lib:${LD_LIBRARY_PATH}
     ## or this path, should work but not test. It is the symbolic link of the above path,
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
-    ## no need to setup the path wcslib, we already use QMAKE_RPATHDIR
+
+    ## 1-2 for wcslib, only Mac. no need to setup the path wcslib on Linux, we already use QMAKE_RPATHDIR which seems not work on Mac.
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib/lib:${LD_LIBRARY_PATH}
+
+    ## 1-3 for /usr/local/lib/libgsl.dylib which is needed by Fitter1D plugin
+    export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
     ```
 
-    2. On Mac, you can use Qt Creator build **without setting 1st thing (LD_LIBRARY_PATH)**. In Qt Creator, there is a default enabled setting which will automatically add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH (Mac, work), add build library search path to LD_LIBRARY_PATH (Linux, not work, don't know why).
+    2. On Mac, you can use Qt Creator build **without setting 1-1, 1-3 thing by (LD_LIBRARY_PATH)**. In Qt Creator, there is a default enabled setting which will automatically add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH (Mac, work), add build library search path to LD_LIBRARY_PATH (Linux, not work, don't know why).
 
     3. On Mac, you need to setup below thing (will improve later), you can copy them as `Custom Process Setup` in Qt Creator's or a shell script
     ```
