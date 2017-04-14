@@ -14,8 +14,9 @@ dbg( "===---------------------------------------------====")
 
 TEMPLATE = subdirs
 SUBDIRS += cpp
-SUBDIRS += scriptedClient
-SUBDIRS += scripts
+SUBDIRS += config
+# SUBDIRS += scriptedClient
+# SUBDIRS += scripts
 
 OTHER_FILES += readme.txt uncrustify.cfg
 
