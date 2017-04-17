@@ -173,7 +173,7 @@ FitsHeaderExtractor::_CasaFitsConverter( casa::LatticeBase * lbase )
 
     if(!isok)
     {
-        m_errors << originStr.c_str();
+        m_errors << errorString.c_str();
         return QStringList();
     }
 
@@ -236,5 +236,3 @@ QString FitsHeaderExtractor::_FITSKeyWordParser(QString _raw)
 
     return lineStr;
 }
-
-
