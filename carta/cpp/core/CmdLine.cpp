@@ -63,7 +63,7 @@ ParsedInfo parse(const QStringList & argv)
         }
 #else
         info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../../../../../config/config.json";
-if (!QFile::exists(info.m_configFilePath)) {
+        if (!QFile::exists(info.m_configFilePath)) {
             info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../Resources/config/config.json";
         }
 #endif
