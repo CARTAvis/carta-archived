@@ -58,8 +58,14 @@ ParsedInfo parse(const QStringList & argv)
     if (!QFile::exists(info.m_configFilePath)) {
 #ifdef Q_OS_LINUX
         info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../../config/config.json";
+        if (!QFile::exists(info.m_configFilePath)) {
+            info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../etc/config/config.json";
+        }
 #else
         info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../../../../../config/config.json";
+if (!QFile::exists(info.m_configFilePath)) {
+            info.m_configFilePath = QCoreApplication::applicationDirPath() + "/../Resources/config/config.json";
+        }
 #endif
     }
 
