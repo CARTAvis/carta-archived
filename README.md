@@ -222,19 +222,19 @@ Suggested path:
 
 ## Step2 - Build needed Qooxdoo JavaScript UI files of CARTA
 
-cd `your-carta-work`, execute one of the following:
+cd `your-carta-work/CARTAvis/carta/html5/common/skel`, execute one of the following:
 
 Build everything: debug version + build API Doc (~12MB) + others
 ```
-./CARTAvis/carta/html5/common/skel/generate.py
+./generate.py
 ```
 Or build debug version of UI
 ```
-./CARTAvis/carta/html5/common/skel/generate.py source-all
+./generate.py source-all
 ```
 Or build release version of UI
 ```
-./CARTAvis/carta/html5/common/skel/generate.py build
+./generate.py build
 ```
 
 This step is not necessary to be executed before buliding CARTA (Qt-c++ program). Without this, you will see blank UI when you launching CARTA. Also, if you just modify JavaScript UI file but do not add new JavaScript class, you do not need to build again.   

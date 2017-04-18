@@ -14,35 +14,35 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
      */
     construct : function( ) {
         this.base(arguments);
-        
+
         //Initiate the shared variable containing a list of all available color maps.
         this.m_connector = mImport("connector");
         this._init( );
-        
+
         //Initialize the shared variable that manages the list of color maps.
         var pathDict = skel.widgets.Path.getInstance();
         this.m_sharedVarMaps = this.m_connector.getSharedVar(pathDict.COLORMAPS);
         this.m_sharedVarMaps.addCB(this._mapsChangedCB.bind(this));
         this._mapsChangedCB();
-        
+
         //Initialize the shared variable that manages the list of data transforms
         var pathDict = skel.widgets.Path.getInstance();
         this.m_sharedVarTransform = this.m_connector.getSharedVar(pathDict.TRANSFORMS_DATA);
         this.m_sharedVarTransform.addCB(this._transformChangedCB.bind(this));
         this._transformChangedCB();
-        
+
         //Initialize the shared variable that manages the units.
         this.m_sharedVarUnits = this.m_connector.getSharedVar(pathDict.INTENSITY_UNITS);
         this.m_sharedVarUnits.addCB(this._unitsChangedCB.bind(this));
         this._unitsChangedCB();
     },
-    
+
     statics : {
         CMD_SET_MAP : "setColormap"
     },
 
     members : {
-        
+
         /**
          * Callback for when the intensity bounds change for the color map.
          */
@@ -58,8 +58,8 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 }
             }
         },
-        
-        
+
+
         /**
          * Callback for a server error when setting the map index.
          * @param anObject {skel.widgets.ColorMap.ColorScale}.
@@ -71,28 +71,28 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 }
             };
         },
-        
+
         /**
          * Initializes the UI.
          */
         _init : function(  ) {
             var widgetLayout = new qx.ui.layout.HBox(2);
             this._setLayout(widgetLayout);
-            
+
             this.m_intensityLowText = new skel.widgets.CustomUI.NumericTextField( null, null);
-            skel.widgets.TestID.addTestId( this.m_intensityLowText, "clipMinIntensity" ); 
+            skel.widgets.TestID.addTestId( this.m_intensityLowText, "clipMinIntensity" );
             this.m_intensityLowListenId = this.m_intensityLowText.addListener( "textChanged",
                     this._intensityChanged, this );
             this.m_intensityLowText.setToolTipText( "Set the lower intensity bound.");
             this.m_intensityLowText.setIntegerOnly( false );
             this._add( this.m_intensityLowText );
             this._add( new qx.ui.core.Spacer(), {flex:1});
-            
+
             this.m_mapCombo = new skel.widgets.CustomUI.SelectBox( skel.widgets.Colormap.ColorMapsWidget.CMD_SET_MAP, "name");
-            skel.widgets.TestID.addTestId( this.m_mapCombo, "colorMapName" ); 
+            skel.widgets.TestID.addTestId( this.m_mapCombo, "colorMapName" );
             this.m_mapCombo.setToolTipText( "Select a color map.");
             this._add( this.m_mapCombo );
-            
+
             this.m_dataCombo = new qx.ui.form.ComboBox();
             this.m_dataCombo.setToolTipText( "Select a data transformation.");
             this.m_dataCombo.addListener( skel.widgets.Path.CHANGE_VALUE, function(e){
@@ -106,22 +106,22 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 }
             },this);
             this._add( this.m_dataCombo );
-            
+
             this.m_imageUnitsCombo = new skel.widgets.CustomUI.SelectBox( "setImageUnits", "imageUnits");
-            skel.widgets.TestID.addTestId( this.m_imageUnitsCombo, "colorImageUnits" ); 
+            skel.widgets.TestID.addTestId( this.m_imageUnitsCombo, "colorImageUnits" );
             this.m_imageUnitsCombo.setToolTipText( "Select units for the intensity bounds.");
             this._add( this.m_imageUnitsCombo );
-            
+
             this._add( new qx.ui.core.Spacer(), {flex:1});
             this.m_intensityHighText = new skel.widgets.CustomUI.NumericTextField(null, null);
-            skel.widgets.TestID.addTestId( this.m_intensityHighText, "clipMinIntensity" ); 
+            skel.widgets.TestID.addTestId( this.m_intensityHighText, "clipMinIntensity" );
             this.m_intensityHighText.setToolTipText( "Set the upper intensity bound.");
             this.m_intensityHighListenId = this.m_intensityHighText.addListener( "textChanged",
                     this._intensityChanged, this );
             this.m_intensityHighText.setIntegerOnly( false );
             this._add( this.m_intensityHighText );
         },
-        
+
         /**
          * The user has changed either the lower or upper colormap intensity
          * bound.
@@ -130,14 +130,14 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             if ( this.m_id !== null ){
                 var minInt = this.m_intensityLowText.getValue();
                 var maxInt = this.m_intensityHighText.getValue();
-                  
+
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setIntensityRange";
                 var params = "intensityMin:"+minInt+",intensityMax:"+maxInt;
                 this.m_connector.sendCommand( cmd, params, null);
             }
         },
-        
+
         /**
          * Callback for a change in the available color maps on the server.
          */
@@ -149,7 +149,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                         var oldName = this.m_mapCombo.getValue();
                         var colorMaps = JSON.parse( val );
                         this.m_mapCombo.setSelectItems( colorMaps.maps );
-                       
+
                         //Try to reset the old selection
                         if ( oldName !== null ){
                             this.m_mapCombo.setSelectValue( oldName );
@@ -162,7 +162,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 }
             }
         },
-        
+
         /**
          * Set the minimum and maximum intensity values.
          * @param minValue {Number} - the minimum intensity for the color map.
@@ -188,7 +188,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                         this._intensityChanged, this );
             }
         },
-        
+
         /**
          * Set the type of data transform based on server side values.
          * @param transform {String} - the data transform.
@@ -202,7 +202,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 }
             }
         },
-        
+
         /**
          * Set the selected color map.
          * @param mapName {String} the name of the selected color map.
@@ -210,7 +210,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
         setMapName : function( mapName ){
             var selectables = this.m_mapCombo.setSelectValue( mapName );
         },
-        
+
         /**
          * Set the server side id of the color map.
          * @param id {String} the unique server side id of this color map.
@@ -219,14 +219,14 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
             this.m_id = id;
             this.m_mapCombo.setId( id );
             this.m_imageUnitsCombo.setId( id );
-            
+
             var path = skel.widgets.Path.getInstance();
             var dataPath = this.m_id + path.SEP + path.DATA;
             this.m_sharedVarData = this.m_connector.getSharedVar( dataPath );
             this.m_sharedVarData.addCB( this._colormapDataCB.bind( this));
             this._colormapDataCB();
         },
-        
+
         /**
          * The list of available data transforms has changed on the server.
          */
@@ -262,7 +262,7 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 }
             }
         },
-        
+
         /**
          * The list of available image units has changed on the server.
          */
@@ -272,7 +272,8 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 if ( val ){
                     try {
                         var imageUnits = JSON.parse( val );
-                        this.m_imageUnitsCombo.setSelectItems(imageUnits.units);
+
+                        this.m_imageUnitsCombo.setSelectItemsShowFirstSelected(imageUnits.units);
                     }
                     catch( err ){
                         console.log( "Could not parse image units: "+val );
@@ -280,16 +281,16 @@ qx.Class.define("skel.widgets.Colormap.ColorMapsWidget", {
                 }
             }
         },
-        
+
         m_intensityLowText : null,
         m_intensityHighText : null,
         m_intensityLowListenId : null,
         m_intensityHighListenId : null,
-       
+
         m_mapCombo : null,
         m_dataCombo : null,
         m_imageUnitsCombo : null,
-        
+
         m_id : null,
         m_connector : null,
         m_sharedVarData : null,
