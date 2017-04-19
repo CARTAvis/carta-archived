@@ -10,7 +10,6 @@ CONFIG += plugin
 SOURCES += \
     grfdriver.cpp \
     FitsHeaderExtractor.cpp \
-    SimpleFitsParser.cpp \
     WcsPlotterPlugin.cpp \
     AstGridPlotter.cpp \
     AstWcsGridRenderService.cpp
@@ -18,7 +17,6 @@ SOURCES += \
 HEADERS += \
     grfdriver.h \
     FitsHeaderExtractor.h \
-    SimpleFitsParser.h \
     WcsPlotterPlugin.h \
     AstGridPlotter.h \
     AstWcsGridRenderService.h

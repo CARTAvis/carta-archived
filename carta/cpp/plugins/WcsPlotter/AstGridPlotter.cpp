@@ -34,6 +34,8 @@ AstGridPlotter::getError()
     return m_errorString;
 }
 
+/// This part of code will be removed in the future
+/*
 AstFrameSet * AstGridPlotter::_make2dFrame( AstFrameSet* wcsinfo ){
     AstFrameSet * result = nullptr;
     bool celestialPlane = Carta::Lib::AxisDisplayInfo::isCelestialPlane( m_axisDisplayInfos );
@@ -126,7 +128,7 @@ AstFrameSet * AstGridPlotter::_make2dFrameSet( AstFrameSet *fs,
                     double* work2 = static_cast<double*>( astMalloc( axisCount*nsamp*sizeof( double ) ) );
                     if( work2 ) {
 
-                        // Transform the pixel positions into world coordinates. */
+                        // Transform the pixel positions into world coordinates.
                         //astSetI( fs, "Report", 1 );
                         astTranN( fs, nsamp, axisCount, nsamp, work1, 1, axisCount, nsamp, work2 );
                         //astSetI( fs, "Report", 0 );
@@ -294,6 +296,7 @@ AstFrameSet* AstGridPlotter::_make2dFrameCelestialExclude( AstFrameSet* wcsinfo 
     }
     return newFrame;
 }
+*/
 
 bool
 AstGridPlotter::plot()
@@ -328,10 +331,7 @@ AstGridPlotter::plot()
     AstGuard astGuard;
 
     // ask AST to read in the FITS header
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-zero-length"
-    AstFitsChan * fitschan = astFitsChan( NULL, NULL, "" );
-#pragma GCC diagnostic pop
+    AstFitsChan * fitschan = astFitsChan( NULL, NULL, "%s", "" );
     if ( ! fitschan ) {
         m_errorString = "astFitsChan returned null :(";
         return false;
@@ -402,10 +402,7 @@ AstGridPlotter::plot()
     //Set the plot options
     for ( int i = 0 ; i < m_plotOptions.length() ; i++ ) {
         std::string stdstr = m_plotOptions[i].toStdString();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
-        astSet( plot, stdstr.c_str() );
-#pragma GCC diagnostic pop
+        astSet( plot, "%s", stdstr.c_str() );
     }
     if ( !astOK ){
         qWarning() << "AST error setting plot options"<<astStatus;
@@ -438,24 +435,104 @@ AstGridPlotter::plot()
         astClearStatus;
     }*/
 
-    if ( false ) {
-        const char * labelling = astGetC( plot, "Labelling" );
-        qDebug() << "labelling= " << labelling << ( ! ! labelling );
-        if( ! labelling) {
-            qDebug() << "Dave1!";
+    // TODO: This part of code will move to '_setDisplayLabelOptionforAst()' in AstWcsGridRendeerService.cpp
+    // set Label
+    for(int ii = 0; ii < 2; ii = ii + 1)
+    {
+        QString target = QString("System(%1)").arg(ii+1);
+        const char* CAxisSystem = astGetC( plot, target.toStdString().c_str() );
+        QString SAxisSystem(CAxisSystem);
+        bool isequatorial = 0;
+        if(SAxisSystem == "FK5")
+        {
+            isequatorial = 1;
+            SAxisSystem = ("J2000");
         }
+        else if(SAxisSystem == "FK4")
+        {
+            isequatorial = 1;
+            SAxisSystem = ("B1950");
+        }
+        else if(SAxisSystem == "ICRS")
+        {
+            isequatorial = 1;
+            SAxisSystem = ("ICRS");
+        }
+        else
+        {
+            isequatorial = 0;
+        }
+
+        if(isequatorial)
+        {
+            target = QString("Label(%1)").arg(ii+1);
+            const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
+            QString CapLabel = QString(oldLabel);
+            if(CapLabel == "Right ascension")
+            {
+                CapLabel = "Right Ascension";
+            }
+
+            if(CapLabel == "Ecliptic longitude")
+            {
+                CapLabel = "Ecliptic Longitude";
+            }
+
+            if(CapLabel == "Ecliptic latitude")
+            {
+                CapLabel = "Ecliptic Latitude";
+            }
+
+            QString newLabel = QString("%1=%2 %3").arg(target).arg(SAxisSystem).arg(CapLabel);
+            astSet( plot, "%s", newLabel.toStdString().c_str() );
+        }
+        else
+        {
+            target = QString("Label(%1)").arg(ii+1);
+            const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
+            QString CapLabel = QString(oldLabel);
+
+            if(CapLabel == "Galactic longitude")
+            {
+                CapLabel = "Galactic Longitude";
+            }
+
+            if(CapLabel == "Galactic latitude")
+            {
+                CapLabel = "Galactic Latitude";
+            }
+
+            if(CapLabel == "Ecliptic longitude")
+            {
+                CapLabel = "Ecliptic Longitude";
+            }
+
+            if(CapLabel == "Ecliptic latitude")
+            {
+                CapLabel = "Ecliptic Latitude";
+            }
+
+            QString newLabel = QString("%1=%3").arg(target).arg(CapLabel);
+            astSet( plot, "%s", newLabel.toStdString().c_str() );
+        }
+
+        if(!isequatorial && SAxisSystem == "Cartesian")
+        {
+            target = QString("Label(%1)").arg(ii+1);
+            const char* oldLabel = astGetC( plot, target.toStdString().c_str() );
+
+            // Capitalization
+            QString CapLabel = QString(oldLabel).toLower();
+            CapLabel.replace(0, 1, QString(oldLabel[0]).toUpper() );
+            QString newLabel = QString("%1=%3").arg(target).arg(CapLabel);
+            astSet( plot, "%s", newLabel.toStdString().c_str() );
+        }
+
     }
+
 
     // call the actual plotting
     astGrid( plot );
-
-    if ( false ) {
-        const char * labelling = astGetC( plot, "Labelling" );
-        qDebug() << "labelling== " << labelling << ( ! ! labelling );
-        if( ! labelling) {
-            qDebug() << "Dave2!";
-        }
-    }
 
     if ( ! astOK ) {
         qWarning() << "AST error occurred probably in astGrid()" << astStatus;
@@ -472,14 +549,6 @@ AstGridPlotter::plot()
 
     return true;
 } // plot
-
-
-
-
-void AstGridPlotter::setAxisDisplayInfo( std::vector<Carta::Lib::AxisDisplayInfo>& infos ){
-    m_axisDisplayInfos = infos;
-}
-
 
 bool
 AstGridPlotter::setFitsHeader( const QString & hdr )

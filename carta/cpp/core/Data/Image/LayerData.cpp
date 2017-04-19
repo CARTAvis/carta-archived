@@ -677,7 +677,8 @@ void LayerData::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         if ( m_dataGrid ){
             if ( m_dataGrid->_isGridVisible() ){
                 std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-                gridService->setInputImage( m_dataSource->_getImage() );
+                //gridService->setInputImage( m_dataSource->_getImage() );
+                gridService->setInputImage( m_dataSource->_getPermImage() );
             }
         }
         if ( m_drawSync ){
@@ -810,13 +811,8 @@ void LayerData::_renderStart(){
         m_drawSync->setContours( m_dataContours );
     }
 
-    //Which display axes will be drawn.
-    AxisInfo::KnownType xType = m_dataSource->_getAxisXType();
-    AxisInfo::KnownType yType = m_dataSource->_getAxisYType();
-    QString displayLabelX = AxisMapper::getPurpose( xType, cs );
-    QString displayLabelY = AxisMapper::getPurpose( yType, cs );
-    gridService->setAxisLabel( 0, displayLabelX );
-    gridService->setAxisLabel( 1, displayLabelY );
+    // Label is set automatically and it is from the CTYPE which is defined in FITS header
+    // We need to set the spactral systm and unit
 
     AxisInfo::KnownType horAxisType = m_dataSource->_getAxisXType();
     Carta::Lib::AxisLabelInfo horAxisInfo = m_dataGrid->_getAxisLabelInfo( 0, horAxisType, cs );
