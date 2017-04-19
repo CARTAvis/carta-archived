@@ -101,6 +101,8 @@ public:
      */
     bool isVisible( const QString& format ) const;
 
+    void setAxisformat(Carta::Lib::AxisInfo::KnownType *type);
+
     virtual ~LabelFormats();
 
 
