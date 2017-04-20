@@ -60,8 +60,8 @@ Mac 10.11, 10.12:
 
 On Mac, its g++ compiler is called clang and its standard c++ lib is **libc++**. Command **g++** is linking to clang. Do the following to install.
 
-- Install Xcode 8 from **App Store**.
-- Launch Xcode 8 or type `xcodebuild -license` to accept the license
+- Install Xcode 7/8 from **App Store**.
+- Launch Xcode 7/8 or type `xcodebuild -license` to accept the license
 - Type `xcode-select --install` to install xcode command line tools.
 
 **Install Homebrew and wget**
