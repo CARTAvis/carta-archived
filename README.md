@@ -123,7 +123,7 @@ You need to do the following patch for Qt on Mac.
 
 2. one issue about Xcode 8 + Qt. In Qt/5.x/clang_64/mkspecs/macx-clang/qmake.conf, chanage `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7` to `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10`. Ref: http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake.
 
-3. Xcode 8 + Qt (Not always happen, fix when it happen). When this error, **Qt Creator - Project ERROR: Xcode not set up properly. You may need to confirm the license agreement by running /usr/bin/xcodebuild** happens, open Qt_install_folder/5.7/clang_64/mkspecs/features/mac/default_pre.prf, replace `isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null")))` with `isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null")))`. Ref: http://stackoverflow.com/questions/33728905/qt-creator-project-error-xcode-not-set-up-properly-you-may-need-to-confirm-t.
+3. Xcode 8 + Qt (Not always happen, fix when it happen). When this error, **Qt Creator - Project ERROR: Xcode not set up properly. You may need to confirm the license agreement by running /usr/bin/xcodebuild** happens, open Qt_install_folder/5.x/clang_64/mkspecs/features/mac/default_pre.prf, replace `isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null")))` with `isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null")))`. Ref: http://stackoverflow.com/questions/33728905/qt-creator-project-error-xcode-not-set-up-properly-you-may-need-to-confirm-t.
 
 ### If you choose your preferred position to install Qt 5.3.2
 
