@@ -171,6 +171,10 @@ QString AstWcsGridRenderService::_getFitsHeaderforAst(QStringList &fitsHeader)
     lambdareplace1D("PV%1_3" );
     lambdareplace1D("PV%1_4" );
 
+    // Known issue: CASAImage does not follow FIT-WCS standard
+    IndexSearchBegin = 0;
+    lambdareplace2D("PC0%1_0%2");
+
 #if CARTA_RUNTIME_CHECKS > 0
     for(int ii = 0; ii < AstFitsHeader.length(); ii = ii + 1)
     {
