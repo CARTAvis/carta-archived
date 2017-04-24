@@ -798,7 +798,7 @@ void LayerData::_renderStart(){
     }
 
     // Label is set automatically and it is from the CTYPE which is defined in FITS header
-    // We need to set the spactral systm and unit
+    // We need to set the spactral system and unit
 
     AxisInfo::KnownType horAxisType = m_dataSource->_getAxisXType();
     Carta::Lib::AxisLabelInfo horAxisInfo = m_dataGrid->_getAxisLabelInfo( 0, horAxisType, cs );
