@@ -65,6 +65,8 @@ public:
      */
     QString setIndex( int val);
 
+    QString setIndex( int val, QStringList fileList );
+
     /**
      * Sets the lower bound of the selection.
      * @param newLowerBound a nonnegative integer representing the new selection lower bound.

@@ -549,7 +549,10 @@ void Animator::_resetAnimationParameters( int selectedImage ){
             m_animators[Selection::IMAGE]->setUpperBound(maxImages);
         }
         if ( selectedImage >= 0 ){
-            m_animators[Selection::IMAGE]->setFrame( selectedImage );
+            QStringList fileList;
+//            m_animators[Selection::IMAGE]->setFrame( selectedImage );
+            m_animators[Selection::IMAGE]->setFrameAddFileListInfo( selectedImage, fileList);
+
         }
         else {
             int index = m_animators[Selection::IMAGE]->getFrame();

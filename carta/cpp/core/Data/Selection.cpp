@@ -175,7 +175,32 @@ void Selection::setLowerBound(int newLowerBound) {
 }
 
 
+QString Selection::setIndex(int frameValue, QStringList fileList) {
+    QString result;
+    if ( frameValue >= 0 ){
+        int upperBound = getUpperBoundUser();
+        int lowerBound = getLowerBoundUser();
+        if ( lowerBound <= frameValue && frameValue <= upperBound ){
+            int oldValue = m_state.getValue<int>(INDEX_KEY );
+            if ( oldValue != frameValue ){
+                m_state.setValue<int>(INDEX_KEY, frameValue);
 
+                // Append fileList info
+
+                m_state.flushState();
+                emit indexChanged( );
+            }
+        }
+        else {
+            result = "Selection index "+ QString::number(frameValue)+" must be between "+
+                    QString::number(lowerBound) + " and " + QString::number(upperBound);
+        }
+    }
+    else {
+        result = "Selection index must be nonnegative: "+ QString::number( frameValue );
+    }
+    return result;
+}
 
 QString Selection::setIndex(int frameValue) {
     QString result;

@@ -72,6 +72,12 @@ public:
     QString setFrame( int frameIndex );
 
     /**
+     * Same as setFrame but add FileListInfo to let animators show file list
+     */
+    QString setFrame( int frameIndex, QStringList fileList );
+
+
+    /**
      * Set the animation speed.
      * @param rate a positive rate indicator.
      */
