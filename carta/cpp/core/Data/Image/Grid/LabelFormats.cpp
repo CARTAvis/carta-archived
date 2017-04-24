@@ -69,7 +69,7 @@ QString LabelFormats::getDefaultFormat( const QString& direction ) const {
 
 QString LabelFormats::getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis,
         const Carta::Lib::KnownSkyCS& cs ) const {
-    QString defaultFormat = FORMAT_DECIMAL_DEG;
+    QString defaultFormat = FORMAT_DECIMAL;
     if ( cs != Carta::Lib::KnownSkyCS::Galactic && cs != Carta::Lib::KnownSkyCS::Ecliptic ){
         if ( axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON ){
             defaultFormat = FORMAT_HR_MIN_SEC;
