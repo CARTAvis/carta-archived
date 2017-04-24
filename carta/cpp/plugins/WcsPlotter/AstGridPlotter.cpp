@@ -402,7 +402,10 @@ AstGridPlotter::plot()
     //Set the plot options
     for ( int i = 0 ; i < m_plotOptions.length() ; i++ ) {
         std::string stdstr = m_plotOptions[i].toStdString();
-        astSet( plot, "%s", stdstr.c_str() );
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+        astSet( plot, stdstr.c_str() );
+#pragma GCC diagnostic pop
     }
     if ( !astOK ){
         qWarning() << "AST error setting plot options"<<astStatus;
@@ -484,7 +487,7 @@ AstGridPlotter::plot()
             }
 
             QString newLabel = QString("%1=%2 %3").arg(target).arg(SAxisSystem).arg(CapLabel);
-            astSet( plot, "%s", newLabel.toStdString().c_str() );
+            astSet( plot, newLabel.toStdString().c_str() );
         }
         else
         {
@@ -513,7 +516,7 @@ AstGridPlotter::plot()
             }
 
             QString newLabel = QString("%1=%3").arg(target).arg(CapLabel);
-            astSet( plot, "%s", newLabel.toStdString().c_str() );
+            astSet( plot, newLabel.toStdString().c_str() );
         }
 
         if(!isequatorial && SAxisSystem == "Cartesian")
@@ -525,7 +528,7 @@ AstGridPlotter::plot()
             QString CapLabel = QString(oldLabel).toLower();
             CapLabel.replace(0, 1, QString(oldLabel[0]).toUpper() );
             QString newLabel = QString("%1=%3").arg(target).arg(CapLabel);
-            astSet( plot, "%s", newLabel.toStdString().c_str() );
+            astSet( plot, newLabel.toStdString().c_str() );
         }
 
     }
