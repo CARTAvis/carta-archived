@@ -488,7 +488,7 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
                 m_state.flushState();
 
                 // update Label format
-                std::vector<AxisInfo::KnownType> AxisTypeArray = DataGrid::_getDisplayAxes();
+                std::vector<AxisInfo::KnownType> AxisTypeArray = _getDisplayAxes();
                 m_formats->setAxisformat(&AxisTypeArray[0]);
             }
         }
