@@ -189,6 +189,7 @@ private:
      * Returns the underlying image.
      */
     std::shared_ptr<Carta::Lib::Image::ImageInterface> _getImage();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> _getPermImage();
 
     /**
      * Returns the location on the image corresponding to a screen point in

@@ -69,7 +69,7 @@ QString LabelFormats::getDefaultFormat( const QString& direction ) const {
 
 QString LabelFormats::getDefaultFormatForAxis( Carta::Lib::AxisInfo::KnownType axis,
         const Carta::Lib::KnownSkyCS& cs ) const {
-    QString defaultFormat = FORMAT_DECIMAL_DEG;
+    QString defaultFormat = FORMAT_DECIMAL;
     if ( cs != Carta::Lib::KnownSkyCS::Galactic && cs != Carta::Lib::KnownSkyCS::Ecliptic ){
         if ( axis == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON ){
             defaultFormat = FORMAT_HR_MIN_SEC;
@@ -264,9 +264,18 @@ void LabelFormats::_initializeDefaultState(){
     }
     int supportedAxisCount = 2;
     m_state.insertArray( AXES_FORMATS, supportedAxisCount );
-    for ( int i = 0; i < supportedAxisCount; i++ ){
+    Carta::Lib::AxisInfo::KnownType defaultType[] = {static_cast<Carta::Lib::AxisInfo::KnownType>(0),
+                                                     static_cast<Carta::Lib::AxisInfo::KnownType>(1)};
+    setAxisformat(defaultType);
+
+    m_state.flushState();
+}
+
+void LabelFormats::setAxisformat(Carta::Lib::AxisInfo::KnownType *type)
+{
+    for ( int i = 0; i < 2; i++ ){
         QString lookup = Carta::State::UtilState::getLookup( AXES_FORMATS, i );
-        std::vector<int> formatIndices = _getFormatIndices( static_cast<Carta::Lib::AxisInfo::KnownType>(i) );
+        std::vector<int> formatIndices = _getFormatIndices( type[i] );
         int formatCount = formatIndices.size();
         m_state.setArray( lookup, formatCount );
         for ( int j = 0; j < formatCount; j++ ){
