@@ -4,7 +4,7 @@
         "$(APPDIR)/../plugins",
         "$(APPDIR)/../../../../plugins"
     ],
-    "disabledPlugins" : ["casaCore-2.0.1"],
+    "disabledPlugins" : ["tester1", "clock1", "blurpy"],
     "plugins": {
         "PCacheSqlite3" : {
             "dbPath": "/tmp/pcache.sqlite"
