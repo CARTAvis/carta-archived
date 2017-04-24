@@ -40,12 +40,12 @@ MainWindow::MainWindow( )
 
 #ifdef Q_OS_LINUX
     // add Carta option
-    QMenu *cartaMenu = menuBar()->addMenu(tr("&Carta"));
+    QMenu *cartaMenu = menuBar()->addMenu(tr("&CARTA"));
     cartaMenu->addAction(tr("Copyright and License"), this, SLOT(cartaLicense()));
     cartaMenu->addAction(tr("Version 0.9"));
 #else
     // add Carta option
-    QMenu *cartaMenu = menuBar()->addMenu(tr("&Carta"));
+    QMenu *cartaMenu = menuBar()->addMenu(tr("&CARTA"));
     //cartaMenu->addAction(tr("&About"), this, SLOT(cartaLicense()));
 
     QAction *aboutCopyright = new QAction(tr("Copyright and License"), this);
