@@ -331,7 +331,10 @@ AstGridPlotter::plot()
     AstGuard astGuard;
 
     // ask AST to read in the FITS header
-    AstFitsChan * fitschan = astFitsChan( NULL, NULL, "%s", "" );
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-zero-length"
+    AstFitsChan * fitschan = astFitsChan( NULL, NULL, "" );
+#pragma GCC diagnostic pop
     if ( ! fitschan ) {
         m_errorString = "astFitsChan returned null :(";
         return false;
