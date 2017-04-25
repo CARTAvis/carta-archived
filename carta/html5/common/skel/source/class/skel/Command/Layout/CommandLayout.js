@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 qx.Class.define("skel.Command.Layout.CommandLayout", {
-    extend : skel.Command.CommandGroup,
+    extend : skel.Command.CommandComposite,
     type : "singleton",
 
     /**
