@@ -61,6 +61,12 @@ class Controller: public QObject, public Carta::State::CartaObject,
 public:
 
     /**
+     * let Anmiator get file List
+     */
+    QStringList getFileList();
+
+
+    /**
      * Clear the view.
      */
     void clear();

@@ -81,6 +81,8 @@ private slots:
 
 private:
 
+    QStringList _getFileList();
+
     QString _addDataImage(const QString& fileName, bool* success );
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll );
