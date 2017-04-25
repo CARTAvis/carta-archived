@@ -1351,13 +1351,13 @@ void Controller::_updateDisplayAxes(){
     if ( m_gridControls ){
         std::vector<AxisInfo::KnownType> supportedAxes = m_stack->_getAxisTypes();
         m_gridControls->_setAxisTypes( supportedAxes );
-        AxisInfo::KnownType xType = m_stack->_getAxisXType();
-        AxisInfo::KnownType yType = m_stack->_getAxisYType();
-        const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-        QString xPurpose = AxisMapper::getPurpose( xType, cs );
-        QString yPurpose = AxisMapper::getPurpose( yType, cs );
-        m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
-        m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
+        //AxisInfo::KnownType xType = m_stack->_getAxisXType();
+        //AxisInfo::KnownType yType = m_stack->_getAxisYType();
+        //const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+        //QString xPurpose = AxisMapper::getPurpose( xType, cs );
+        //QString yPurpose = AxisMapper::getPurpose( yType, cs );
+        //m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
+        //m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
     }
 }
 

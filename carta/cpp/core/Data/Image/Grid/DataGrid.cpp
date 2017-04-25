@@ -562,6 +562,12 @@ bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
         if ( name != oldName ){
             axisTypesChanged = true;
             m_state.setValue<QString>( lookup, name );
+            if(i==0) {
+                _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
+            }
+            else if(i==1){
+                _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
+            }
         }
     }
     if ( axisTypesChanged ){
