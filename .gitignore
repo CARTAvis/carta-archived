@@ -30,3 +30,4 @@ build*/
 PureWeb*.lic
 
 carta.pro.user
+node_modules
