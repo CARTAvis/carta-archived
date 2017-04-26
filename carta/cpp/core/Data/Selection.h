@@ -67,6 +67,9 @@ public:
 
     QString setIndex( int val, QStringList fileList );
 
+    void setFileList(QStringList fileList);
+
+
     /**
      * Sets the lower bound of the selection.
      * @param newLowerBound a nonnegative integer representing the new selection lower bound.
@@ -112,6 +115,7 @@ public:
     const static QString REGION;
     //Identifier for a channel.
     static const QString CHANNEL;
+    static const QString FILELIST;
 
     static bool m_registered;
 

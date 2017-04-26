@@ -282,7 +282,7 @@ QString AnimatorType::setFrameStep( int step ){
     return result;
 }
 
-QString setFrame( int frameIndex, QStringList fileList ) {
+QString AnimatorType::setFrame( int frameIndex, QStringList fileList ) {
     QString result;
     //Set our state to reflect the new image.
     if ( frameIndex >= 0 ){

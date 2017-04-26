@@ -149,12 +149,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
 
 
 QStringList Controller::getFileList(){
-
-    //QString& fileName
-    QStringList result;
-    //result.append;
-    return result;
-
+  return m_stack->_getFileList();
 }
 
 
