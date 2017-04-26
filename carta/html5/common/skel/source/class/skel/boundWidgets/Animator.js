@@ -4,7 +4,7 @@
 
 /*******************************************************************************
  * @ignore( mImport)
- * 
+ *
  * @asset(skel/icons/movie-next-frame16.png)
  * @asset(skel/icons/movie-pause16.png)
  * @asset(skel/icons/movie-play-reverse16.png)
@@ -22,7 +22,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
     /**
      * Constructor.
-     * 
+     *
      * @param title {String} descriptor for what will be animated (Channel,Region, Image, etc).
      * @param winId {String} the unique server id.
      */
@@ -30,14 +30,17 @@ qx.Class.define("skel.boundWidgets.Animator", {
         this.base(arguments);
         this.m_title = title;
         this.m_winId = winId;
+        this.testCount = 0;
+
+        console.log("grimmer animator create");
 
         // Create the GUI
         this._initUI();
-        
+
         // Create the shared variable for the settings
         this._initSharedVars();
     },
-    
+
     events : {
         "movieStart" : "qx.event.type.Data",
         "movieStop" : "qx.event.type.Data"
@@ -63,7 +66,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
 
         /**
          * Decrease the frame value.
@@ -83,7 +86,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if (this.m_endJumpRadio.getValue()) {
                 if (this.m_frame > lowerBound) {
                     val = lowerBound;
-                } 
+                }
                 else {
                     val = this.m_highBoundsSpinner.getValue();
                 }
@@ -131,7 +134,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * Updates the user set lower and upper bounds based on server values.
          * @param start {Number} - the user settable lower bound.
@@ -156,10 +159,101 @@ qx.Class.define("skel.boundWidgets.Animator", {
            if ( this.m_slider.getValue() != this.m_frame ){
                 this.m_slider.setValue( this.m_frame );
            }
-           var valStr = this.m_frame + "";
-           if ( this.m_indexText.getValue() !== valStr ){
-                this.m_indexText.setValue( valStr );
-           }
+
+           this._fileSelectorUIChange()
+        },
+
+        _getFileIndex : function(file) {
+            //1.aj.fits ->aj.fits.
+            // file.replace(/^[0-9]*\./,"");
+            var info  = file.match(/[0-9]*/);
+            if (info) {
+                return info[0];
+            }
+            return null;
+        }
+
+        _addFileIndex : function(fileList) {
+
+            //aj.fits-> 1.aj.fits
+            var len = fileList.length;
+            var newFileList = fileList.map( function(file, i) {
+                return i+"."+file;
+            });
+
+            return newFileList;
+        }
+
+        _fileSelectorUIInit: function() {
+
+            // this.m_fileCombo = new qx.ui.form.SelectBox();
+            this.m_fileCombo = new qx.ui.form.ComboBox();
+
+            this.m_fileCombo = new skel.boundWidgets.ComboBox();
+
+            this.m_fileCombo.setToolTipText( "Select the file");
+
+            //changeValue
+            // this.m_selectListener = this.addListener( "changeSelection", this._sendCmd, this );
+            this.m_fileCombo.addListener( "comboChanged", function(){
+
+                var data = this.m_fileCombo.getValue();
+                var index = this._getFileIndex(data);
+                if (index) {
+                    this._sendFrame(index);
+                }
+
+                // var selections = this.getSelection();
+                // if ( selections.length > 0 ){
+                //
+                // }
+
+                // var selectIndex = this.m_imageCombo.getIndex();
+                // var data = {
+                //     index: selectIndex
+                // }
+
+            }, this );
+
+
+            // this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
+            // this.m_indexText.setIntegerOnly( true );
+            // this.m_indexText.setToolTipText( "Set the current value.");
+            // this.m_indexText.setTextId( this.m_title +"IndexText"); //for testing
+            // this.m_indexText.setValue( "0");
+            // this.m_indexText.addListener("textChanged", function(e) {
+            //     var value = this.m_indexText.getValue();
+            //     var valueInt = parseInt(value);
+            //     if (!isNaN(valueInt)) {
+            //         if (valueInt <= this.m_slider.getMaximum() && valueInt >= this.m_slider.getMinimum()) {
+            //             if ( valueInt != this.m_frame ){
+            //                 this._sendFrame(valueInt);
+            //             }
+            //         }
+            //     }
+            // }, this);
+        },
+
+        // fileList and possible sendFrame
+        _fileSelectorUIChange: function() {
+
+            // var indexStr = this.m_frame + "";
+
+            // if ( this.m_indexText.getValue() !== indexStr ){
+            //      this.m_indexText.setValue( indexStr );
+            // }
+
+            // 2. 現在是 同時得到fileList, 沒有的話要set
+            // 1. 原本是得到變化後的 index,改text
+            var newFileList = this._addFileIndex(this.m_fileList);
+            this.m_fileCombo.setComboItems(newFileList);
+            if (this.m_frame < newFileList.length) {
+                this.m_fileCombo.setComboValue(newFileList[this.m_frame]);
+            }
+
+            // default:
+            // this.m_indexText.setValue( "0");
+
         },
 
         /**
@@ -179,6 +273,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var valStr = limit + "";
             if ( this.m_endLabel.getValue() !== valStr ){
                 this.m_endLabel.setValue( valStr);
+                console.log("grimmer animator1 setVAlue:", valStr);
             }
         },
 
@@ -221,7 +316,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this.m_slider.setMinimum( this.m_frameLow );
             }
         },
-        
+
         /**
          * Return the type of the animator.
          * @return {String} - the type of animator.
@@ -251,7 +346,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this._sendFrame( highBound );
             }
         },
-        
+
         /**
          * Notify the server if the user set high bound changes.
          */
@@ -277,6 +372,10 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Increase the frame value taking into account end behavior.
          */
         _increaseValue : function() {
+            if(this.testCount>98){
+                return;
+            }
+
             var val = this.m_frame + this.getFrameStep();
 
             var upperBound = this.m_highBoundsSpinner.getValue();
@@ -292,7 +391,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if (val > upperBound) {
                 if (this.m_endWrapRadio.getValue()) {
                     val = this.m_lowBoundsSpinner.getValue();
-                } 
+                }
                 else if (this.m_endReverseRadio.getValue()) {
                     // If we are playing, reverse play. otherwise decrease the
                     // value
@@ -305,6 +404,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     console.log("Unhandled wrap val=" + val);
                 }
             }
+
+            console.log("grimmer JS send frame:", val);
             this._sendFrame(val);
         },
 
@@ -316,12 +417,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var buttonComposite = this._initToolBar();
             var sliderComposite = this._initSliderControls();
             this._initSettings();
-            
+
             this.m_content = new qx.ui.container.Composite();
             this.m_content.setLayout( new qx.ui.layout.VBox(2));
             this._setLayout(new qx.ui.layout.VBox(0));
             this._add( this.m_content );
-            
+
             this.m_content.add(locationComposite);
             this.m_content.add(sliderComposite);
             this.m_content.add(buttonComposite);
@@ -335,24 +436,11 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * @return {qx.ui.container.Composite} a container containing the location UI.
          */
         _initLocation : function() {
+
             var titleLabel = new qx.ui.basic.Label(this.m_title);
             skel.widgets.TestID.addTestId( titleLabel, this.m_title+"AnimatorType");
-            this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
-            this.m_indexText.setIntegerOnly( true );
-            this.m_indexText.setToolTipText( "Set the current value.");
-            this.m_indexText.setTextId( this.m_title +"IndexText");
-            this.m_indexText.setValue( "0");
-            this.m_indexText.addListener("textChanged", function(e) {
-                var value = this.m_indexText.getValue();
-                var valueInt = parseInt(value);
-                if (!isNaN(valueInt)) {
-                    if (valueInt <= this.m_slider.getMaximum() && valueInt >= this.m_slider.getMinimum()) {
-                        if ( valueInt != this.m_frame ){
-                            this._sendFrame(valueInt);
-                        }
-                    }
-                }
-            }, this);
+
+            this._fileSelectorUIInit();
 
             var endLabel = new qx.ui.basic.Label("<= ");
             this.m_endLabel = new qx.ui.basic.Label("");
@@ -360,9 +448,13 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var locationComposite = new qx.ui.container.Composite();
             locationComposite.setLayout(new qx.ui.layout.HBox(5));
             locationComposite.add(titleLabel);
-            locationComposite.add(this.m_indexText);
+
+            locationComposite.add(this.m_fileCombo)
+            // locationComposite.add(this.m_indexText);
+
             locationComposite.add(endLabel);
             locationComposite.add(this.m_endLabel);
+            console.log("grimmer animator1 init:", this.m_endLabel);
             locationComposite.add(new qx.ui.core.Spacer(10, 10), {
                 flex : 1
             });
@@ -373,8 +465,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
             locationComposite.add(this.m_settingsCheck);
             return locationComposite;
         },
-        
-        
+
+
 
         /**
          * Initialize the additional less-used settings in the UI.
@@ -388,7 +480,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     this._sendEndBehavior(this.m_endWrapRadio.getLabel());
                 }
             }, this);
-            
+
             this.m_endReverseRadio = new qx.ui.form.RadioButton("Reverse");
             skel.widgets.TestID.addTestId( this.m_endReverseRadio, this.m_title+"ReverseRadioButton");
             this.m_endReverseRadio.setToolTipText( "Change direction when reaching an end value.");
@@ -397,7 +489,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     this._sendEndBehavior(this.m_endReverseRadio.getLabel());
                 }
             }, this);
-            
+
             this.m_endJumpRadio = new qx.ui.form.RadioButton("Jump");
             skel.widgets.TestID.addTestId( this.m_endJumpRadio, this.m_title+"JumpRadioButton");
             this.m_endJumpRadio.setToolTipText( "Move from one end to the other end.");
@@ -406,7 +498,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     this._sendEndBehavior(this.m_endJumpRadio.getLabel());
                 }
             }, this);
-           
+
             var endRadioGroup = new qx.ui.form.RadioGroup();
             endRadioGroup.add(this.m_endWrapRadio, this.m_endReverseRadio, this.m_endJumpRadio);
 
@@ -450,9 +542,9 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 flex : 1
             });
         },
-        
- 
-        
+
+
+
 
         /**
          * Initialize the shared variable for the settings.
@@ -466,8 +558,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var regCmd = this.m_winId + pathDict.SEP_COMMAND + "registerAnimator";
             this.m_connector.sendCommand( regCmd, paramMap, this._registrationCB(this));
         },
-        
-        
+
+
         /**
          * Initialize the shared variable for the selection.
          */
@@ -477,7 +569,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var regCmd = this.m_animId +pathDict.SEP_COMMAND + "getSelection";
             this.m_connector.sendCommand( regCmd, "", this._selectionCB(this));
         },
-        
+
 
         /**
          * Initialize the slider controls.
@@ -504,7 +596,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     this._sendFrame( sliderValue );
                 }
             }, this);
-           
+
             //Added because of issue #154.  If you click somewhere in the slider
             //it should move to that position.
             this.m_slider.addListener( "click", function(ev){
@@ -522,7 +614,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }, this );
 
             this.m_highBoundsSpinner = new qx.ui.form.Spinner(0, 100, 100);
-            this.m_highBoundsSpinner.addListener("changeValue", this._highChanged, this); 
+            this.m_highBoundsSpinner.addListener("changeValue", this._highChanged, this);
             skel.widgets.TestID.addTestId( this.m_highBoundsSpinner, this.m_title+"UpperBoundSpin");
             this.m_highBoundsSpinner.setToolTipText( "Set an upper bound for valid values");
             var sliderComposite = new qx.ui.container.Composite();
@@ -564,7 +656,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             skel.widgets.TestID.addTestId( this.m_revStepButton, this.m_title+"TapeDeckDecrement");
             this.m_revStepButton.setToolTipText( "Decrease by one step value.");
             this.m_revStepButton.addListener("execute", this._decrementValue, this);
-            
+
             this.m_stopButton = new qx.ui.toolbar.Button("",
                     "skel/icons/movie-stop16.png");
             skel.widgets.TestID.addTestId( this.m_stopButton, this.m_title+"TapeDeckStopAnimation");
@@ -622,7 +714,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         /**
          * Show or hide the less-used additional animator settings.
-         * 
+         *
          * @param maximize {Boolean} true if all the additional settings should
          *                be shown; false otherwise.
          */
@@ -638,7 +730,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * One of the animators has started playing a movie; set movie widgets disabled
          * if it is not us.
@@ -649,7 +741,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this._setWidgetsEnabled( false );
             }
         },
-        
+
         /**
          * One of the animators has stopped playing a movie; set movie widgets disabled
          * if it is not us.
@@ -687,7 +779,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this.m_timer.start();
             }
         },
-        
+
         /**
          * Initialize the shared variable that controls the settings.
          * @param anObject {skel.boundWidgets.Animator}.
@@ -703,8 +795,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 anObject._initSharedVarsSelection();
             };
         },
-        
-        
+
+
         /**
          * Initialization of the shared variable that controls the selection.
          * @param anObject {skel.boundWidgets.Animator}.
@@ -717,7 +809,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 anObject._selectionResetCB();
             };
         },
-        
+
         /**
          * Callback for a change in the selection.
          * @param val {String} the JSON representing the animation selection.
@@ -729,6 +821,12 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     if ( this._frameCB ){
                         try {
                             var frameObj = JSON.parse( val );
+
+                            if (frameObj.fileList) {
+                                console.log("grimmer animatorjs:", frameObj);
+                                //fileList: ["aJ.fits", "502nmos.fits"]
+                                this.m_fileList = frameObj.fileList;
+                            }
                             this.m_noSends = true;
                             this.m_frame = frameObj.frame;
                             this.m_frameLow = frameObj.frameStart;
@@ -770,6 +868,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _sendFrame : function(frameIndex) {
             if (this.m_connector !== null && !this.m_noSends) {
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
+
+                    this.testCount++;
                     var paramMap = frameIndex;
                     var path = skel.widgets.Path.getInstance();
                     var setFramePath = this.m_animId  + path.SEP_COMMAND + "setFrame";
@@ -777,7 +877,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * Send a command to the server indicating the new frame rate.
          */
@@ -791,7 +891,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * Send a command to the server indicating the new frame step size.
          */
@@ -805,7 +905,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * Send a command to the server to change the visibility of the
          * animator settings.
@@ -820,7 +920,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * Send the user set lower bound to the server.
          */
@@ -834,7 +934,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * Send the user set upper bound to the server.
          */
@@ -848,7 +948,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
         },
-        
+
         /**
          * Set the animator available/unavailable for display to the user.
          * @param available {boolean} - true if the animator is available for display to
@@ -876,7 +976,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this.m_timer.setInterval(interval);
             }
         },
-        
+
         /**
          * Callback from the server to update the visibility of animator
          * settings.
@@ -889,14 +989,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this._minMaxSettings( visible );
             this.m_settingsListener = this.m_settingsCheck.addListener(skel.widgets.Path.CHANGE_VALUE, this._sendSettingsCmd, this);
         },
-        
+
         /**
          * Change the enabled status of the movie widgets.
          * @param enable {boolean} - true if the widgets should be enabled; false otherwise.
          */
         _setWidgetsEnabled : function( enable ){
             this.m_slider.setEnabled( enable );
-            this.m_indexText.setEnabled( enable );
+            //this.m_indexText.setEnabled( enable );
+            this.m_fileCombo.setEnabled(enable);
             this.m_playButton.setEnabled( enable );
             this.m_revPlayButton.setEnabled( enable );
             this.m_startButton.setEnabled( enable );
@@ -939,6 +1040,8 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_slider : null,
         m_timerListener : null,
         m_indexText : null,
+        m_fileCombo: null,
+        m_fileList: null,
         m_endWrapRadio : null,
         m_stepSpin : null,
         m_endReverseRadio : null,
@@ -959,7 +1062,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
         m_sharedVar : null,
         m_sharedVarSelection : null,
         m_identifier : null,
-        
+
         m_available : true,
         m_frame : null,
         m_frameLow : null,
