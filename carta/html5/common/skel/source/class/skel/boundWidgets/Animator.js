@@ -175,7 +175,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
         _addFileIndex : function(fileList) {
 
-            //aj.fits-> 1.aj.fits
             var len = fileList.length;
             var newFileList = fileList.map( function(file, i) {
                 return i+"."+file;
@@ -184,76 +183,68 @@ qx.Class.define("skel.boundWidgets.Animator", {
             return newFileList;
         },
 
+
         _fileSelectorUIInit: function() {
 
-            // this.m_fileCombo = new qx.ui.form.SelectBox();
-            this.m_fileCombo = new qx.ui.form.ComboBox();
+            if (this.m_title == "Image") {
+                this.m_fileCombo = new qx.ui.form.ComboBox();
+                this.m_fileCombo = new skel.boundWidgets.ComboBox();
+                this.m_fileCombo.setToolTipText( "Select the file");
+                this.m_fileCombo.addListener( "comboChanged", function(){
 
-            this.m_fileCombo = new skel.boundWidgets.ComboBox();
+                    var data = this.m_fileCombo.getValue();
+                    var index = this._getFileIndex(data);
+                    if (index) {
+                        this._sendFrame(index);
+                    }
 
-            this.m_fileCombo.setToolTipText( "Select the file");
-
-            //changeValue
-            // this.m_selectListener = this.addListener( "changeSelection", this._sendCmd, this );
-            this.m_fileCombo.addListener( "comboChanged", function(){
-
-                var data = this.m_fileCombo.getValue();
-                var index = this._getFileIndex(data);
-                if (index) {
-                    this._sendFrame(index);
-                }
-
-                // var selections = this.getSelection();
-                // if ( selections.length > 0 ){
-                //
-                // }
-
-                // var selectIndex = this.m_imageCombo.getIndex();
-                // var data = {
-                //     index: selectIndex
-                // }
-
-            }, this );
-
-
-            // this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
-            // this.m_indexText.setIntegerOnly( true );
-            // this.m_indexText.setToolTipText( "Set the current value.");
-            // this.m_indexText.setTextId( this.m_title +"IndexText"); //for testing
-            // this.m_indexText.setValue( "0");
-            // this.m_indexText.addListener("textChanged", function(e) {
-            //     var value = this.m_indexText.getValue();
-            //     var valueInt = parseInt(value);
-            //     if (!isNaN(valueInt)) {
-            //         if (valueInt <= this.m_slider.getMaximum() && valueInt >= this.m_slider.getMinimum()) {
-            //             if ( valueInt != this.m_frame ){
-            //                 this._sendFrame(valueInt);
-            //             }
-            //         }
-            //     }
-            // }, this);
+                }, this );
+            } else {
+                this.m_indexText = new skel.widgets.CustomUI.NumericTextField(0,null);
+                this.m_indexText.setIntegerOnly( true );
+                this.m_indexText.setToolTipText( "Set the current value.");
+                this.m_indexText.setTextId( this.m_title +"IndexText"); //for testing
+                this.m_indexText.setValue( "0");
+                this.m_indexText.addListener("textChanged", function(e) {
+                    var value = this.m_indexText.getValue();
+                    var valueInt = parseInt(value);
+                    if (!isNaN(valueInt)) {
+                        if (valueInt <= this.m_slider.getMaximum() && valueInt >= this.m_slider.getMinimum()) {
+                            if ( valueInt != this.m_frame ){
+                                this._sendFrame(valueInt);
+                            }
+                        }
+                    }
+                }, this);
+            }
         },
+
+        _addFileSelectionUItoComposite: function(locationComposite) {
+            if (this.m_title == "Image") {
+                locationComposite.add(this.m_fileCombo);
+            } else {
+                locationComposite.add(this.m_indexText);
+            }
+        },
+
 
         // fileList and possible sendFrame
         _fileSelectorUIChange: function() {
 
-            // var indexStr = this.m_frame + "";
-
-            // if ( this.m_indexText.getValue() !== indexStr ){
-            //      this.m_indexText.setValue( indexStr );
-            // }
-
-            // 2. 現在是 同時得到fileList, 沒有的話要set
-            // 1. 原本是得到變化後的 index,改text
-            var newFileList = this._addFileIndex(this.m_fileList);
-            this.m_fileCombo.setComboItems(newFileList);
-            if (this.m_frame < newFileList.length) {
-                this.m_fileCombo.setComboValue(newFileList[this.m_frame]);
+            if (this.m_title == "Image") {
+                // 2. 現在是 同時得到fileList, 沒有的話要set
+                // 1. 原本是得到變化後的 index,改text
+                var newFileList = this._addFileIndex(this.m_fileList);
+                this.m_fileCombo.setComboItems(newFileList);
+                if (this.m_frame < newFileList.length) {
+                    this.m_fileCombo.setComboValue(newFileList[this.m_frame]);
+                }
+            } else {
+                var indexStr = this.m_frame + "";
+                if ( this.m_indexText.getValue() !== indexStr ){
+                     this.m_indexText.setValue( indexStr );
+                }
             }
-
-            // default:
-            // this.m_indexText.setValue( "0");
-
         },
 
         /**
@@ -449,8 +440,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             locationComposite.setLayout(new qx.ui.layout.HBox(5));
             locationComposite.add(titleLabel);
 
-            locationComposite.add(this.m_fileCombo)
-            // locationComposite.add(this.m_indexText);
+            this._addFileSelectionUItoComposite(locationComposite);
 
             locationComposite.add(endLabel);
             locationComposite.add(this.m_endLabel);
@@ -465,8 +455,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             locationComposite.add(this.m_settingsCheck);
             return locationComposite;
         },
-
-
 
         /**
          * Initialize the additional less-used settings in the UI.
@@ -823,8 +811,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
                             var frameObj = JSON.parse( val );
 
                             if (frameObj.fileList) {
-                                console.log("grimmer animatorjs:", frameObj);
-                                //fileList: ["aJ.fits", "502nmos.fits"]
                                 this.m_fileList = frameObj.fileList;
                             }
                             this.m_noSends = true;
@@ -996,8 +982,15 @@ qx.Class.define("skel.boundWidgets.Animator", {
          */
         _setWidgetsEnabled : function( enable ){
             this.m_slider.setEnabled( enable );
-            //this.m_indexText.setEnabled( enable );
-            this.m_fileCombo.setEnabled(enable);
+
+            if (this.m_indexText) {
+                this.m_indexText.setEnabled( enable );
+            }
+
+            if (this.m_fileCombo) {
+                this.m_fileCombo.setEnabled(enable);
+            }
+            
             this.m_playButton.setEnabled( enable );
             this.m_revPlayButton.setEnabled( enable );
             this.m_startButton.setEnabled( enable );
