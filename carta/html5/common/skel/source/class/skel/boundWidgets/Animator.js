@@ -171,7 +171,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 return info[0];
             }
             return null;
-        }
+        },
 
         _addFileIndex : function(fileList) {
 
@@ -182,7 +182,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             });
 
             return newFileList;
-        }
+        },
 
         _fileSelectorUIInit: function() {
 
