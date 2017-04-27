@@ -115,20 +115,15 @@ Controller::Controller( const QString& path, const QString& id ) :
 	m_regionControls.reset( regionObj );
 }
 
-
-
-
 void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 	m_stack->_addContourSet( contourSet );
 }
-
 
 QString Controller::addData(const QString& fileName, bool* success) {
 	*success = false;
 	QString result = DataFactory::addData( this, fileName, success );
     return result;
 }
-
 
 QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     QString result = m_stack->_addDataImage( fileName, success );
@@ -145,13 +140,9 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-//void Controller::setFrameImage( int val) {
-
-
 QStringList Controller::getFileList(){
   return m_stack->_getFileList();
 }
-
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;

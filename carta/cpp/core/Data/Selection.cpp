@@ -39,7 +39,7 @@ void Selection::_initializeStates(){
     m_state.insertValue<int>( HIGH_KEY, 1);
     m_state.insertValue<int>( HIGH_KEY_USER, 0 );
     m_state.insertValue<int>( INDEX_KEY, 0);
-    m_state.insertArray( FILELIST, 0 );
+    m_state.insertArray(FILELIST, 0);
     m_state.flushState();
 }
 
@@ -182,8 +182,6 @@ void Selection::setLowerBound(int newLowerBound) {
 
 void Selection::setFileList(QStringList fileList) {
 
-    // 有絕對path !!!
-
     int dataCount = fileList.count();
 
     int oldDataCount = m_state.getArraySize( FILELIST );
@@ -192,22 +190,14 @@ void Selection::setFileList(QStringList fileList) {
       m_state.resizeArray(FILELIST, dataCount, Carta::State::StateInterface::PreserveNone );
     }
 
-    //     m_state.insertArray( LayerGroup::LAYERS, 0 );
-//    m_state.insertArray( SUPPORTED_AXES, 0);
-    // layers, stats, shape!!
-
     for (int i = 0; i < dataCount; i++) {
        QString absFileName = fileList[i];
-//      QString fileName = "test";
-//      QString dataKey = Carta::State::UtilState::getLookup( FILELIST, i);
-      //m_state.setObject(FILELIST, fileName);
-
-       QString lookup = Carta::State::UtilState::getLookup( FILELIST, i );
-
        QFileInfo fileInfo(absFileName);
        QString fileName(fileInfo.fileName());
 
-       m_state.setValue<QString>(lookup, fileName );
+       QString lookup = Carta::State::UtilState::getLookup( FILELIST, i );
+
+       m_state.setValue<QString>(lookup, fileName);
 
     }
 
@@ -223,8 +213,8 @@ QString Selection::setIndex(int frameValue, QStringList fileList) {
             if ( oldValue != frameValue ){
                 m_state.setValue<int>(INDEX_KEY, frameValue);
 
-                setFileList(fileList);
                 // Append fileList info
+                setFileList(fileList);
 
                 m_state.flushState();
                 emit indexChanged( );

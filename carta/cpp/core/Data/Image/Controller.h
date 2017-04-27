@@ -65,7 +65,6 @@ public:
      */
     QStringList getFileList();
 
-
     /**
      * Clear the view.
      */
@@ -538,7 +537,7 @@ public:
      * Update the pan and zoom level settings.
      * @param centerX the screen x-coordinate where the zoom was centered.
      * @param centerY the screen y-coordinate where the zoom was centered.
-     * @param zoomLevel zoom level 
+     * @param zoomLevel zoom level
      * @param layerId specify the id of a layerData to update its Pan and Zoom level
      */
     void updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId );

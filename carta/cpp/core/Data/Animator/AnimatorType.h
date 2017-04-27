@@ -76,7 +76,6 @@ public:
      */
     QString setFrame( int frameIndex, QStringList fileList );
 
-
     /**
      * Set the animation speed.
      * @param rate a positive rate indicator.
