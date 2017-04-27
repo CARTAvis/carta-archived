@@ -32,8 +32,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
         this.m_winId = winId;
         this.testCount = 0;
 
-        console.log("grimmer animator create");
-
         // Create the GUI
         this._initUI();
 
@@ -163,9 +161,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
            this._fileSelectorUIChange()
         },
 
-        _getFileIndex : function(file) {
-            //1.aj.fits ->aj.fits.
-            // file.replace(/^[0-9]*\./,"");
+        _getFileIndex: function(file) {
             var info  = file.match(/[0-9]*/);
             if (info) {
                 return info[0];
@@ -173,7 +169,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             return null;
         },
 
-        _addFileIndex : function(fileList) {
+        _addFileIndex: function(fileList) {
 
             var len = fileList.length;
             var newFileList = fileList.map( function(file, i) {
@@ -183,7 +179,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             return newFileList;
         },
 
-
         _fileSelectorUIInit: function() {
 
             if (this.m_title == "Image") {
@@ -191,7 +186,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 this.m_fileCombo = new skel.boundWidgets.ComboBox();
                 this.m_fileCombo.setToolTipText( "Select the file");
                 this.m_fileCombo.addListener( "comboChanged", function(){
-
                     var data = this.m_fileCombo.getValue();
                     var index = this._getFileIndex(data);
                     if (index) {
@@ -227,13 +221,10 @@ qx.Class.define("skel.boundWidgets.Animator", {
             }
         },
 
-
         // fileList and possible sendFrame
         _fileSelectorUIChange: function() {
 
             if (this.m_title == "Image") {
-                // 2. 現在是 同時得到fileList, 沒有的話要set
-                // 1. 原本是得到變化後的 index,改text
                 var newFileList = this._addFileIndex(this.m_fileList);
                 this.m_fileCombo.setComboItems(newFileList);
                 if (this.m_frame < newFileList.length) {
@@ -264,7 +255,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             var valStr = limit + "";
             if ( this.m_endLabel.getValue() !== valStr ){
                 this.m_endLabel.setValue( valStr);
-                console.log("grimmer animator1 setVAlue:", valStr);
             }
         },
 
@@ -396,7 +386,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
                 }
             }
 
-            console.log("grimmer JS send frame:", val);
             this._sendFrame(val);
         },
 
@@ -444,7 +433,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             locationComposite.add(endLabel);
             locationComposite.add(this.m_endLabel);
-            console.log("grimmer animator1 init:", this.m_endLabel);
             locationComposite.add(new qx.ui.core.Spacer(10, 10), {
                 flex : 1
             });
@@ -990,7 +978,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if (this.m_fileCombo) {
                 this.m_fileCombo.setEnabled(enable);
             }
-            
+
             this.m_playButton.setEnabled( enable );
             this.m_revPlayButton.setEnabled( enable );
             this.m_startButton.setEnabled( enable );
