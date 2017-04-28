@@ -53,7 +53,7 @@ const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
-const QString Controller::PLUGIN_NAME = "CasaImageLoader";
+const QString Controller::PLUGIN_NAME = "ImageViewer";
 const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
 
 

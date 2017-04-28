@@ -15,6 +15,7 @@ MainWindow::MainWindow( )
     m_progress = 0;
 
     QNetworkProxyFactory::setUseSystemConfiguration(true);
+    setUnifiedTitleAndToolBarOnMac(true);
 
     m_view = new QWebView(this);
     connect(m_view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
@@ -39,19 +40,25 @@ MainWindow::MainWindow( )
 
 #ifdef Q_OS_LINUX
     // add Carta option
-    QMenu *cartaMenu = menuBar()->addMenu(tr("&Carta"));
+    QMenu *cartaMenu = menuBar()->addMenu(tr("&CARTA"));
     cartaMenu->addAction(tr("Copyright and License"), this, SLOT(cartaLicense()));
     cartaMenu->addAction(tr("Version 0.9"));
-
-    QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
-    toolsMenu->addAction(tr("Show JS Console"), this, SLOT(showJsConsole()));
-
-    // add Help option
-    QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
-    helpMenu->addAction(tr("GitHub Home"), this, SLOT(helpUrlGitHubHome()));
-    helpMenu->addAction(tr("GitHub Wiki"), this, SLOT(helpUrlGitHubWiki()));
-    helpMenu->addAction(tr("GitHub Issues"), this, SLOT(helpUrlGitHubIssues()));
 #else
+    // add Carta option
+    QMenu *cartaMenu = menuBar()->addMenu(tr("&CARTA"));
+    //cartaMenu->addAction(tr("&About"), this, SLOT(cartaLicense()));
+
+    QAction *aboutCopyright = new QAction(tr("Copyright and License"), this);
+    connect(aboutCopyright, SIGNAL(triggered()), this, SLOT(cartaLicense()));
+    aboutCopyright->setMenuRole(QAction::ApplicationSpecificRole);
+    cartaMenu->addAction(aboutCopyright);
+
+    QAction *aboutVersion = new QAction(tr("Version 0.9"), this);
+    aboutVersion->setMenuRole(QAction::ApplicationSpecificRole);
+    cartaMenu->addAction(aboutVersion);
+#endif
+
+    // add Tool option
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
     toolsMenu->addAction(tr("Show JS Console"), this, SLOT(showJsConsole()));
 
@@ -60,12 +67,6 @@ MainWindow::MainWindow( )
     helpMenu->addAction(tr("GitHub Home"), this, SLOT(helpUrlGitHubHome()));
     helpMenu->addAction(tr("GitHub Wiki"), this, SLOT(helpUrlGitHubWiki()));
     helpMenu->addAction(tr("GitHub Issues"), this, SLOT(helpUrlGitHubIssues()));
-
-    // add About option
-    QMenu *cartaMenu = menuBar()->addMenu(tr("&About"));
-    cartaMenu->addAction(tr("Copyright and License"), this, SLOT(cartaLicense()));
-    cartaMenu->addAction(tr("Version 0.9"));
-#endif
 
     setCentralWidget(m_view);
     setUnifiedTitleAndToolBarOnMac(true);
