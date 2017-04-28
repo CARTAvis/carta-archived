@@ -11,7 +11,7 @@ PN=`basename "$0"`
 unset DYLD_LIBRARY_PATH
 unset DYLD_FALLBACK_LIBRARY_PATH
 
-appname=desktop
+appname=CARTA
 dirname=`dirname $0`
 
 tmp="${dirname#?}"

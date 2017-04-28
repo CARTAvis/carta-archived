@@ -279,7 +279,7 @@ Running CARTAvis viewer after successful build
 
 After *CARTA* viewer has been successfully compiled its binary can be found in
 :file:`build/cpp/desktop` directory on CentOS and Ubuntu platforms and in
-:file:`build/cpp/desktop/desktop.app/Contents/MacOS` on Mac OSX, screenshot below shows
+:file:`build/cpp/desktop/CARTA.app/Contents/MacOS` on Mac OSX, screenshot below shows
 location of CARTAvis binary on Mac OS X.
 
 .. image:: images/image03.png
