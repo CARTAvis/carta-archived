@@ -513,7 +513,8 @@ protected:
      */
     virtual QString _setFileName( const QString& fileName, bool* success );
 
-
+    virtual QString _getFileName();
+    
     /**
      * Give the layer (a more user-friendly) name.
      * @param id - an identifier for the layer to rename.

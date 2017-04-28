@@ -323,6 +323,8 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
+    virtual QString _getFileName();
+
     /**
      * Attempts to load an image file.
      * @param fileName - an identifier for the location of the image file.
