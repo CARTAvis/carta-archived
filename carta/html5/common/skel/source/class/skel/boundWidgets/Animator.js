@@ -202,7 +202,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
                     var valueInt = parseInt(value);
                     if (!isNaN(valueInt)) {
                         if (valueInt <= this.m_slider.getMaximum() && valueInt >= this.m_slider.getMinimum()) {
-                            if ( valueInt != this.m_frame ){
+                            if ( valueInt !== this.m_frame ){
                                 this._sendFrame(valueInt);
                             }
                         }
