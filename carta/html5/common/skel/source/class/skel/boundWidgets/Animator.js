@@ -30,7 +30,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
         this.base(arguments);
         this.m_title = title;
         this.m_winId = winId;
-        this.testCount = 0;
 
         // Create the GUI
         this._initUI();
@@ -182,7 +181,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
         _fileSelectorUIInit: function() {
 
             if (this.m_title == "Image") {
-                this.m_fileCombo = new qx.ui.form.ComboBox();
                 this.m_fileCombo = new skel.boundWidgets.ComboBox();
                 this.m_fileCombo.setToolTipText( "Select the file");
                 this.m_fileCombo.addListener( "comboChanged", function(){
@@ -353,9 +351,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
          * Increase the frame value taking into account end behavior.
          */
         _increaseValue : function() {
-            if(this.testCount>98){
-                return;
-            }
 
             var val = this.m_frame + this.getFrameStep();
 
@@ -843,7 +838,6 @@ qx.Class.define("skel.boundWidgets.Animator", {
             if (this.m_connector !== null && !this.m_noSends) {
                 if ( this.m_animId !== null && this.m_animId.length > 0 ){
 
-                    this.testCount++;
                     var paramMap = frameIndex;
                     var path = skel.widgets.Path.getInstance();
                     var setFramePath = this.m_animId  + path.SEP_COMMAND + "setFrame";
