@@ -372,27 +372,27 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
     cd $CARTAWORKHOME/CARTAvis
     export CARTABUILDHOME=`pwd`
 
-    mkdir -p $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
-    cp $CARTABUILDHOME/build/cpp/core/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
+    mkdir -p $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/
+    cp $CARTABUILDHOME/build/cpp/core/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/
 
     # need to rm for qt creator 4.2, otherwise when build+run together will result in core/libcore.1.dylib not able find out qwt
     rm $CARTABUILDHOME/build/cpp/core/libcore.1.dylib
-    cp $CARTABUILDHOME/build/cpp/CartaLib/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
+    cp $CARTABUILDHOME/build/cpp/CartaLib/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/
 
-    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
-    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib
+    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/MacOS/CARTA
+    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib
 
     # not sure the effect of the below line, try comment
     # install_name_tool -change libplugin.dylib $CARTABUILDHOME/build/cpp/plugins/CasaImageLoader/libplugin.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
-    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
+    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
 
-    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
-    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
-    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
-    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
+    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/MacOS/CARTA
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/MacOS/CARTA
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib
 
-    for f in `find . -name libplugin.dylib`; do install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $f; done
-    for f in `find . -name libplugin.dylib`; do install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $f; done
+    for f in `find . -name libplugin.dylib`; do install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib $f; done
+    for f in `find . -name libplugin.dylib`; do install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $f; done
     for f in `find . -name "*.dylib"`; do install_name_tool -change libwcs.5.15.dylib  $CARTABUILDHOME/ThirdParty/wcslib/lib/libwcs.5.15.dylib $f; echo $f; done
     ```
 
@@ -400,7 +400,7 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 3. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
 ```
-$CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
+$CARTAWORKHOME/CARTAvis/build/cpp/desktop/CARTA --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
 ```
 
 Some of optional parameters:
@@ -439,11 +439,11 @@ Observation about build Size (on Mac), before packaging:
 
 # Dynamic/Shared Library search issue
 
-1. CARTA is built to **desktop program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
+1. CARTA dekstop version is built to **CARTA program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
 
-2. It seems that Qt-built dynamic libs do not have **Search issue**, at least before moving desktop program (for packaging).
+2. It seems that Qt-built dynamic libs do not have **Search issue**, at least before moving CARTA program (for packaging).
 
-3. We use **install_name_tool** (Mac) and **chrpath** or **PatchELF** (Linux) to specify dynamic linking path of each lib. On mac, **desktop** is located in **desktop.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so we need to have different handles.
+3. We use **install_name_tool** (Mac) and **chrpath** or **PatchELF** (Linux) to specify dynamic linking path of each lib. On mac, **CARTA** is located in **CARTA.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so we need to have different handles.
 
 # Build on CI/CD
 
