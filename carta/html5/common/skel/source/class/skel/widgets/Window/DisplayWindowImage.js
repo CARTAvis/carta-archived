@@ -75,7 +75,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             // console.log("aspect Wheel-newZoom:", newZoom,";min:", data.m_minimalZoomLevel);
 
-            if (newZoom >= data.m_minimalZoomLevel) {
+            // Due to this limitation will have some behaviors which are expeceted by users, so just git rid of it
+            // if (newZoom >= data.m_minimalZoomLevel) {
 
                 data.m_currentZoomLevel = newZoom;
 
@@ -83,7 +84,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 // console.log("Aspect debug: send wheel zoom:"+newZoom,";",pt+";id:", data.id);
 
                 // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
-            }
+            // }
         },
 
         //TODO: grimmer. save previous mousewheel and prevent wheel delta 1, -1, 1 happen
