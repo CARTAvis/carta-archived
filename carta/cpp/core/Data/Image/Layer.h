@@ -113,6 +113,7 @@ protected:
     virtual Carta::Lib::AxisInfo::KnownType _getAxisYType() const = 0;
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const = 0;
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const = 0;
+    virtual std::vector<Carta::Lib::AxisInfo> _getAxisInfos() const = 0;
 
     virtual QPointF _getCenterPixel() const = 0;
 

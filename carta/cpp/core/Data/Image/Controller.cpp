@@ -1349,8 +1349,10 @@ void Controller::_updateCursorText(bool notifyClients ){
 
 void Controller::_updateDisplayAxes(){
     if ( m_gridControls ){
-        std::vector<AxisInfo::KnownType> supportedAxes = m_stack->_getAxisTypes();
-        m_gridControls->_setAxisTypes( supportedAxes );
+        //std::vector<AxisInfo::KnownType> supportedAxes = m_stack->_getAxisTypes();
+        std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
+        //m_gridControls->_setAxisTypes( supportedAxes );
+        m_gridControls->_setAxisInfos( supportedAxes );
         AxisInfo::KnownType xType = m_stack->_getAxisXType();
         AxisInfo::KnownType yType = m_stack->_getAxisYType();
         const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();

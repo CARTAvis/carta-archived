@@ -533,6 +533,11 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         }
         CARTA_ASSERT( cc.worldAxisNames().size() > 0 );
 
+        // Directly save the label from casa
+        QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
+        QString shortLabel = rawAxisLabel;
+        aInfo.setLongLabel( HtmlString::fromPlain( rawAxisLabel ) );
+        aInfo.setShortLabel( HtmlString::fromPlain( shortLabel ) );
         // we always take the unit from casa
         aInfo.setUnit( cc.worldAxisUnits() ( coord2 ).c_str() );
     }

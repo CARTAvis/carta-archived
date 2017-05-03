@@ -83,6 +83,9 @@ private:
      */
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
+
+    std::vector<Carta::Lib::AxisInfo> _getAxisInfos() const;
+
     /**
      * Returns the type of the axis with the given index in the image.
      * @param index - the index of the axis in the coordinate system.

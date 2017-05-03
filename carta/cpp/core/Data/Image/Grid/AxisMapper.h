@@ -69,6 +69,9 @@ public:
      */
     static QStringList getDisplayNames();
 
+
+    static std::map<QString, Carta::Lib::AxisInfo::KnownType> axisMap;
+
     virtual ~AxisMapper();
 
     const static QString AXIS_X;

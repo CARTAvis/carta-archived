@@ -266,6 +266,7 @@ private:
             int* red, int* green, int* blue ) const;
     void _resetState( const Carta::State::StateInterface& otherState );
     void _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );
+    void _setAxisInfos( std::vector<Carta::Lib::AxisInfo> supportedAxes );
     void _updateGrid();
 
     const static QString ALL;
