@@ -75,7 +75,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             // console.log("aspect Wheel-newZoom:", newZoom,";min:", data.m_minimalZoomLevel);
 
-            if (newZoom >= data.m_minimalZoomLevel) {
+            // Due to this limitation will have some behaviors which are expeceted by users, so just git rid of it
+            // if (newZoom >= data.m_minimalZoomLevel) {
 
                 data.m_currentZoomLevel = newZoom;
 
@@ -83,7 +84,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 // console.log("Aspect debug: send wheel zoom:"+newZoom,";",pt+";id:", data.id);
 
                 // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
-            }
+            // }
         },
 
         //TODO: grimmer. save previous mousewheel and prevent wheel delta 1, -1, 1 happen
@@ -127,6 +128,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             data.m_effectZoomLevel = 1; // not use this anymore, will remove later
 
+            data.m_scheduleZoomFit = true;
+
             var len = oldDatas.length;
             for (var i = 0; i < len; i++) {
                 var oldData = oldDatas[i];
@@ -134,6 +137,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 if (oldData.id == data.id) {
                     data.m_currentZoomLevel = oldData.m_currentZoomLevel;
                     // console.log("Aspect debug: inherit old zoomLevel");
+                    data.m_scheduleZoomFit = oldData.m_scheduleZoomFit;
                     break;
                 }
             }
@@ -165,7 +169,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
         // Trigger timing:
         // 0. init UI, 638x649: 2 times, 0x0: 1 time
-        // 1. after load file時,  638x664: 3 times
+        // 1. after load file,  638x664: 3 times
         // 2. When users adjsut the window size, the view will be updated
         // 3. any view updated. e.g. open two files, switch to another, get 2 times callback here
 
@@ -198,20 +202,21 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 // console.log("Aspect debug. set minimal for file:", data.name,";", zoom );
                 data.m_minimalZoomLevel = zoom;
 
-                if (!data.selected) {
+                // if (!data.selected) {
+                //     continue;
+                // }
+
+                if (!data.m_scheduleZoomFit) {
                     continue;
                 }
 
-                if (!this.m_scheduleZoomFit) {
-                    continue;
-                }
-
-                this.m_scheduleZoomFit = false;
+                data.m_scheduleZoomFit = false;
 
                 var finalZoom = zoom; //*data.m_effectZoomLevel
 
                 // m_curentZoomLevel == 1 means, this dataset is initially loaded
                 // if not equual to 1, means like A->B->A, does not fit to Window Size automatically
+                // 20170502 update: after add data.m_scheduleZoomFit, the check == 1 may not be needed
                 if (data.m_currentZoomLevel == 1 && finalZoom != data.m_currentZoomLevel) {
                     // console.log("Aspect debug: try to send zoom level");
                     this.m_view.sendZoomLevel(finalZoom, data.id);
@@ -626,13 +631,6 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
 
-                    if (this.m_datas && this.m_datas.length > 0){
-
-                        //TODO 1. It is possible that we do not set this to true when switching back to the opened file
-                        //     2. It is possible that storing m_scheduleZoomFit as data.m_scheduleZoomFit but no effect now
-                        this.m_scheduleZoomFit = true;
-                    }
-
                     if ( !visibleData ){
                         //No images to show so set the view hidden.
                         if ( this.m_view !== null ){
@@ -721,7 +719,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
 
         m_zoomAllmode : false,
-        m_scheduleZoomFit : false,
+        // m_scheduleZoomFit : false,
         m_autoClip : false,
         m_clipPercent : 0,
 
