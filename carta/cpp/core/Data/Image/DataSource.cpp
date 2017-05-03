@@ -375,38 +375,49 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 // TODO: create another function which only looks for the intensity. Most calling functions don't need the location.
 std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow, int frameHigh,
         const std::vector<double>& percentiles ){
+
     //See if it is in the cached percentiles first.
     int percentileCount = percentiles.size();
     std::vector<std::pair<int,double> > intensities(percentileCount,std::pair<int,double>(-1,0));
+
     //Find all the intensities we can in the cache.
     int foundCount = 0;
     for ( int i = 0; i < percentileCount; i++ ){
 
         std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
+
         if ( val.first>= 0 ){
+
             qDebug() << "++++++++ found location and intensity in memory cache";
             intensities[i] = val;
             foundCount++;
+
         } else if (m_diskCache) {
+
             // disk cache
             // Look for the location first
             QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
             QByteArray locationVal;
+
             bool locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
 
             qDebug() << "++++++++ location key is" << locationKey.toUtf8();
 
             if (locationInCache) {
+
                 QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
                 QByteArray intensityVal;
+
                 bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
 
                 qDebug() << "++++++++ intensity key is" << intensityKey.toUtf8();
 
                 if (intensityInCache) {
+
                     qDebug() << "++++++++ found location and intensity in disk cache";
                     intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
                     foundCount++;
+
                     // put them in the memory cache
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
                 }
@@ -418,12 +429,20 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
+
         qDebug() << "++++++++ Calculating some values";
 
         std::vector<std::pair<int,double> > allValues;
+
+        // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
 
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+        // get raw data (for all stokes if any) in order to sort the raw data set
+        // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+
+        // get raw data (only for the stoke I) in order to sort the raw data set
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForIntensity( frameLow, frameHigh, spectralIndex );
+
         if ( rawData == nullptr ){
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
             return intensities;
@@ -441,6 +460,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         allValues.reserve(total_size);
         int index = 0;
 
+        // filter the raw data and save in a pair array {key, value} if the value is finite
         view.forEach( [&allValues, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( std::make_pair(index, val) );
@@ -453,23 +473,39 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             int divisor = total_size;
             if (spectralIndex != -1) {
+                // "total_size" is the total number of data set including channels and stokes.
+                // The dimension of SPECTRAL index, dims[spectralIndex], is the total number of channel.
+                // So the divisor is the total number of data set for each channel (not for each stoke),
+                // and each channel may contains multiple stokes.
                 divisor /= dims[spectralIndex];
             }
 
-            // only compare the intensity values; ignore the indices
+            // Following code line sort the entire raw data set (only for array values and not for array keys).
+            // I am not sure is it correct or is it the best way to sort the raw data array.
+            // (only compare the intensity values; ignore the indices)
             auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
 
             for ( int i = 0; i < percentileCount; i++ ){
-                //Missing intensity
+
+                //Missing intensity key value, which means we do not find it in the memory cache and the disk cache
                 if ( intensities[i].first < 0 ){
+
+                    // The definition of percentile (e.q. 99%) in the following code lines is to get elements from data array that
+                    // are in the range (e.q. 0.5%-th ~ 99.5%-th of elements), note the data array has to be sorted first.
+                    // Note this is not getting elements in the Gaussian distribution range (e.q. 0.5% ~ 99.5%).
                     int locationIndex = allValues.size() * percentiles[i] - 1;
+
                     if ( locationIndex < 0 ){
                         locationIndex = 0;
                     }
 
+                    // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
 
+                    // get the intensity value
                     intensities[i].second = allValues[locationIndex].second;
+
+                    // get the channel index corresponding to the above intensity value
                     intensities[i].first = allValues[locationIndex].first / divisor;
 
                     if ( frameLow >= 0 ){
@@ -477,10 +513,10 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     }
 
                     // put calculated values in both the memory cache and the disk cache
-
                     m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
 
                     if (m_diskCache) {
+
 						QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
 						QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
 
@@ -593,12 +629,25 @@ QString DataSource::_getPixelUnits() const {
 Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
+
+        // get the image dimension:
+        // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
+        // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
         int imageDim =m_image->dims().size();
+
         SliceND frameSlice = SliceND().next();
+
         for ( int i = 0; i < imageDim; i++ ){
+
+            // only deal with the extra dimensions other than x-axis and y-axis
             if ( i != m_axisIndexX && i != m_axisIndexY ){
+
+                // declare and set the variable "sliceSize" as the total number of channel or stoke
                 int sliceSize = m_image->dims()[i];
+                qDebug() << "++++++++ For the image dimension: dim[" << i << "], the total number of slices is " << sliceSize;
+
                 SliceND& slice = frameSlice.next();
+
                 //If it is the target axis,
                 if ( i == axisIndex ){
                    //Use the passed in frame range
@@ -625,6 +674,62 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
     return rawData;
 }
 
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForIntensity( int frameStart, int frameEnd, int axisIndex ) const {
+    Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
+    if ( m_image ){
+
+        // get the image dimension:
+        // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
+        // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
+        int imageDim =m_image->dims().size();
+
+        SliceND frameSlice = SliceND().next();
+
+        for ( int i = 0; i < imageDim; i++ ){
+
+            // only deal with the extra dimensions other than x-axis and y-axis
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+
+                // declare the variable "sliceSize" as the total number of channel or stoke
+                int sliceSize;
+
+                // If the image dimension=4, the stoke-axis is in dim[2],
+                // we only consider the stoke I in the first element of stoke-axis.
+                if ( imageDim==4 && i==2) {
+                    sliceSize = 1;
+                    qDebug() << "++++++++ we only consider the stoke I in the first element of stoke-axis" ;
+                } else {
+                    sliceSize = m_image->dims()[i];
+                    qDebug() << "++++++++ the total number of channel is " << sliceSize;
+                }
+
+                SliceND& slice = frameSlice.next();
+
+                //If it is the target axis,
+                if ( i == axisIndex ){
+                   //Use the passed in frame range
+                   if (0 <= frameStart && frameStart < sliceSize &&
+                        0 <= frameEnd && frameEnd < sliceSize ){
+                        slice.start( frameStart );
+                        slice.end( frameEnd + 1);
+                   }
+                   else {
+                       slice.start(0);
+                       slice.end( sliceSize);
+                   }
+                }
+                //Or the entire range
+                else {
+                   slice.start( 0 );
+                   slice.end( sliceSize );
+                }
+                slice.step( 1 );
+            }
+        }
+        rawData = m_image->getDataSlice( frameSlice );
+    }
+    return rawData;
+}
 
 int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     int cacheIndex = 0;
