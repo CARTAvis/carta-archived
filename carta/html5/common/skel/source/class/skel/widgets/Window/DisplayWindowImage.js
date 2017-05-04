@@ -23,7 +23,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_content.add( this.m_viewContent, {flex:1} );
         this.m_imageControls = new skel.widgets.Image.ImageControls();
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
-        this.m_content.add( this.m_imageControls );
+        // this.m_content.add( this.m_imageControls );
     },
 
     members : {
