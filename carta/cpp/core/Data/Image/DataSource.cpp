@@ -436,12 +436,14 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
         // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+        qDebug() << "++++++++ Spectral Index No. is " << spectralIndex << "; Stoke Index No. is " << stokeIndex;
 
         // get raw data (for all stokes if any) in order to sort the raw data set
         // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
 
         // get raw data (only for the stoke I) in order to sort the raw data set
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForIntensity( frameLow, frameHigh, spectralIndex );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForIntensity( frameLow, frameHigh, spectralIndex, stokeIndex);
 
         if ( rawData == nullptr ){
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
@@ -480,9 +482,8 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                 divisor /= dims[spectralIndex];
             }
 
-            // Following code line sort the entire raw data set (only for array values and not for array keys).
-            // I am not sure is it correct or is it the best way to sort the raw data array.
-            // (only compare the intensity values; ignore the indices)
+            // return bool value: ture or false
+            // following code line is to only compare the intensity values and ignore the indices
             auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
 
             for ( int i = 0; i < percentileCount; i++ ){
@@ -499,6 +500,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         locationIndex = 0;
                     }
 
+                    // Following code line sort the entire raw data set (only for array values and not for array keys).
                     // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
 
@@ -632,7 +634,8 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
 
         // get the image dimension:
         // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
-        // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
+        // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis,   and dim[3]: channel-axis
+        //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
         int imageDim =m_image->dims().size();
 
         SliceND frameSlice = SliceND().next();
@@ -674,13 +677,14 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
     return rawData;
 }
 
-Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForIntensity( int frameStart, int frameEnd, int axisIndex ) const {
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForIntensity( int frameStart, int frameEnd, int axisIndex, int axisStokeIndex ) const {
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
 
         // get the image dimension:
         // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
         // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
+        //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
         int imageDim =m_image->dims().size();
 
         SliceND frameSlice = SliceND().next();
@@ -693,9 +697,9 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForIntensity( int 
                 // declare the variable "sliceSize" as the total number of channel or stoke
                 int sliceSize;
 
-                // If the image dimension=4, the stoke-axis is in dim[2],
+                // If the stoke-axis is exist (axisStokeIndex != -1),
                 // we only consider the stoke I in the first element of stoke-axis.
-                if ( imageDim==4 && i==2) {
+                if ( i == axisStokeIndex) {
                     sliceSize = 1;
                     qDebug() << "++++++++ we only consider the stoke I in the first element of stoke-axis" ;
                 } else {
