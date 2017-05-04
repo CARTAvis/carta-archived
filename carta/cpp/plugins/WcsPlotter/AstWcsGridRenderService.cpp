@@ -436,6 +436,7 @@ QString AstWcsGridRenderService::_setDisplayLabelOptionforAst()
                 {
                     // check system for spectral
                     setPlotOption << QString("system(%1)=%2").arg(ii+1).arg( "VRAD" );
+                    //setPlotOption << QString("system(%1)=%2").arg(ii+1).arg( "Freq" );
                     setPlotOption << QString("Digits(%1)=%2").arg(ii+1).arg(precision);
 
                     // set unit

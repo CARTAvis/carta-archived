@@ -240,7 +240,12 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
 
         QStringList coordList = _getCoordinates( imgX, imgY, cs, frames);
         for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-            out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
+            if(ais[i].knownType() == Carta::Lib::AxisInfo::KnownType::SPECTRAL){
+                out << coordList[i] << " ";
+            }
+            else{
+                out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
+            }
         }
         out << "\n";
 

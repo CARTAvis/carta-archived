@@ -173,7 +173,7 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
         if(NumberofSpectralAxis == i &&
            NumberofSpectralAxis != -1)
         {
-            val += " VRAD:";
+            val = " VRAD:";
             val +=  QString::number(casa::Double(velocity.getValue()));
             val +=  " ";
             val +=  velocity.getUnit().c_str();
@@ -509,7 +509,10 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
             aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
-                .setShortLabel( HtmlString( "Freq", "Freq" ) );
+                .setLongLabel( HtmlString::fromPlain("Radio Velocity") )
+                //.setShortLabel( HtmlString::fromPlain( longLabel ));
+                .setShortLabel( HtmlString( "Vrad", "Vrad") );
+                //.setShortLabel( HtmlString( "Freq", "Freq" ) );
             m_precisions[pixelAxis] = 9;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {
