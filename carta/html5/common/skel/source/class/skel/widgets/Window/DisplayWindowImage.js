@@ -741,7 +741,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this._registerControlsRegion();
             this._initStatistics();
             this._initFileLabel();
-            this._dataLoadedCB();
+
+            // commnet this to avoild splash black empty image when launching CARTA, use lazy loading
+            // this._dataLoadedCB();
 
             //Get the shared variable for preferences
             this.initializePrefs();
