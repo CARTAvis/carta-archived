@@ -402,7 +402,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             for (var i = 0; i < len; i++) {
                 var layerData = this.m_datas[i];
-                if (layerData.selected == true) {
+                if (layerData.selected == true && layerData.name) {
                     return layerData.name;
                 }
             }
