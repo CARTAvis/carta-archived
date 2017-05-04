@@ -1369,8 +1369,8 @@ void Controller::_updateDisplayAxes(){
         AxisInfo::KnownType xType = m_stack->_getAxisXType();
         AxisInfo::KnownType yType = m_stack->_getAxisYType();
         const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-        QString xPurpose = AxisMapper::getPurpose( xType, cs );
-        QString yPurpose = AxisMapper::getPurpose( yType, cs );
+        QString xPurpose = AxisMapper::getPurpose( xType );
+        QString yPurpose = AxisMapper::getPurpose( yType );
         m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
         m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
     }

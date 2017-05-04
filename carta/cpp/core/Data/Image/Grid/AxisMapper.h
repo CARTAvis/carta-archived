@@ -33,8 +33,7 @@ public:
      * @param cs - an enumerated coordinate system type.
      * @return a string based purpose for the axis passed in.
      */
-    static QString getPurpose( Carta::Lib::AxisInfo::KnownType type,
-            const Carta::Lib::KnownSkyCS& cs);
+    static QString getPurpose( Carta::Lib::AxisInfo::KnownType type );
 
     /**
      * Returns the default purpose for the standard x-, y-, and z- display axes.
@@ -91,8 +90,6 @@ private:
     static QString _getAxisDECPurpose( const Carta::Lib::KnownSkyCS& cs );
     AxisMapper( );
 
-
-    const static QList<QString> m_purposes;
 	AxisMapper( const AxisMapper& other);
 	AxisMapper& operator=( const AxisMapper& other );
 };

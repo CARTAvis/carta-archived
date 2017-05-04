@@ -183,7 +183,7 @@ void Animator::_axesChanged(){
             for ( std::set<AxisInfo::KnownType>::iterator it = zAxes.begin();
                     it != zAxes.end(); it++ ){
                 const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-                QString purpose = AxisMapper::getPurpose( *it, cs );
+                QString purpose = AxisMapper::getPurpose( *it );
                 QString animId;
                 if ( purpose.length() > 0 ){
                     addAnimator( purpose, animId );
@@ -657,7 +657,7 @@ bool Animator::_updateAnimatorBound( const QString& key ){
         if ( controller != nullptr ){
             for ( int i = 0; i < animAxisCount; i++ ){
                 const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-                QString animPurpose = AxisMapper::getPurpose( animationAxes[i], cs );
+                QString animPurpose = AxisMapper::getPurpose( animationAxes[i] );
                 if ( animPurpose == key ){
                     axisFound = true;
                     break;
@@ -704,7 +704,7 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
     for ( std::set<AxisInfo::KnownType>::iterator it = animAxes.begin();
         it != animAxes.end(); it++ ){
         const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-        QString animName = AxisMapper::getPurpose( *it, cs );
+        QString animName = AxisMapper::getPurpose( *it );
         if ( !m_animators.contains( animName ) && animName.length() > 0 ){
             QString animId;
             addAnimator( animName , animId );
@@ -727,7 +727,7 @@ void Animator::_updateFrame( Controller* controller, Carta::Lib::AxisInfo::Known
     if ( controller ){
         int frameIndex = controller->getFrame( type );
         const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-        QString animName = AxisMapper::getPurpose( type, cs );
+        QString animName = AxisMapper::getPurpose( type );
         if ( m_animators.contains( animName) ){
             int currentIndex = m_animators[animName]->getFrame();
             if ( currentIndex != frameIndex ){

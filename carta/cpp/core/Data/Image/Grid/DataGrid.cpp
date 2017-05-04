@@ -452,10 +452,9 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
     *axisChanged = false;
     QString actualAxis = AxisMapper::getDisplayName( axisId );
     if ( !actualAxis.isEmpty() ){
-        QString actualPurpose = AxisMapper::getPurpose( purpose );
-        if ( !actualPurpose.isEmpty() ){
+        if ( !purpose.isEmpty() ){
             QString oldPurpose = m_state.getValue<QString>( axisId );
-            if ( oldPurpose != actualPurpose ){
+            if ( oldPurpose != purpose ){
 
                 //Get a running total of display axes that are being used; at the same time store
                 //the key of the axis containing the duplicate name, if there is one.
@@ -500,59 +499,6 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
         result = "Unrecognized axis: "+axisId;
     }
     return result;
-
-/*
-    QString result;
-    *axisChanged = false;
-    QString actualAxis = AxisMapper::getDisplayName( axisId );
-    // if ( !actualAxis.isEmpty() ){
-        QString oldPurpose = m_state.getValue<QString>( axisId );
-        // if ( oldPurpose != purpose ){
-
-            //Get a running total of display axes that are being used; at the same time store
-            //the key of the axis containing the duplicate name, if there is one.
-            // QList<QString> usedPurposes;
-            // QString duplicateAxisPurposeKey;
-            // QStringList axisNames = AxisMapper::getDisplayNames();
-            // int displayAxisCount = axisNames.size();
-            // for ( int i = 0; i < displayAxisCount; i++ ){
-            //     if ( actualAxis != axisNames[i] ){
-            //         _addUsedPurpose( axisNames[i], purpose, usedPurposes, duplicateAxisPurposeKey );
-            //     }
-            // }
-            //
-            // //There is an axis that is already displaying the one that we want to display.  Thus,
-            // //we need to find a new purpose for the duplicate.
-            // if ( !duplicateAxisPurposeKey.isEmpty() ){
-            //     int purposeCount = m_state.getArraySize( SUPPORTED_AXES );
-            //     for ( int i = 0; i < purposeCount; i++ ){
-            //         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
-            //         QString axisPurpose = m_state.getValue<QString>( lookup );
-            //         if ( !usedPurposes.contains( axisPurpose ) && axisPurpose.length() > 0 ){
-            //             m_state.setValue<QString>(duplicateAxisPurposeKey, axisPurpose );
-            //             break;
-            //         }
-            //     }
-            // }
-            *axisChanged = true;
-            m_state.setValue<QString>( actualAxis, purpose );
-
-            m_state.flushState();
-
-            // update Label format
-            std::vector<AxisInfo::KnownType> AxisTypeArray = _getDisplayAxes();
-            m_formats->setAxisformat(&AxisTypeArray[0]);
-        // }
-        //
-        // else {
-        //     result = "Unrecognized axis type: "+purpose;
-        // }
-    // }
-    // else {
-    //     result = "Unrecognized axis: "+axisId;
-    // }
-    return result;
-*/
 }
 
 
@@ -606,7 +552,7 @@ bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
     QString coordStr = m_state.getValue<QString>( COORD_SYSTEM );
     const Carta::Lib::KnownSkyCS& cs = m_coordSystems->getIndex( coordStr );
     for ( int i = 0; i < axisCount; i++ ){
-        QString name = AxisMapper::getPurpose( supportedAxes[i], cs );
+        QString name = AxisMapper::getPurpose( supportedAxes[i] );
         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
         QString oldName;
         if ( i < oldCount ){
