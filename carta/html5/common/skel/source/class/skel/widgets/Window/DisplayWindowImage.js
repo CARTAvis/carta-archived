@@ -234,6 +234,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param content {boolean} - true if the content should be visible; false otherwise.
          */
         _adjustControlVisibility : function(content){
+
             this.m_controlsVisible = content;
             this._layoutControls();
         },
@@ -373,10 +374,45 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             if ( this.m_statLabel === null ){
                 var path = skel.widgets.Path.getInstance();
                 var viewPath = this.m_identifier + path.SEP + path.VIEW;
+
                 this.m_statLabel = new skel.boundWidgets.Label( "", "", viewPath, function( anObject){
+                    // this callback function will be called for everytime it receives new cursor pixel value coordinate
+                    // from flushstate
                     return anObject.formattedCursorCoordinates;
                 });
                 this.m_statLabel.setRich( true );
+            }
+        },
+
+        /**
+         * Initialize the label for displaying current file name.
+         */
+        _initFileLabel: function() {
+            if ( this.m_fileLabel === null ){
+                this.m_fileLabel = new qx.ui.basic.Label();
+            }
+        },
+
+        _getCurrentFileName: function() {
+            if (!this.m_datas) {
+                return ""
+            }
+
+            var len = this.m_datas.length;
+
+            for (var i = 0; i < len; i++) {
+                var layerData = this.m_datas[i];
+                if (layerData.selected == true && layerData.name) {
+                    return layerData.name;
+                }
+            }
+
+            return "";
+        },
+
+        _updateFileLabel: function() {
+            if (this.m_fileLabel) {
+                this.m_fileLabel.setValue(this._getCurrentFileName());
             }
         },
 
@@ -446,7 +482,10 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_content.add( this.m_viewContent, {flex:1} );
             if ( this.m_statisticsVisible ){
                 this.m_content.add( this.m_statLabel );
+                this.m_content.add(this.m_fileLabel);
+                this._updateFileLabel();
             }
+
             if ( this.m_controlsVisible ){
                 this.m_content.add( this.m_imageControls );
             }
@@ -641,6 +680,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     dataCmd.datasChanged();
                     this._initContextMenu();
 
+                    // to show the file name of the current image
+                    this._updateFileLabel();
                 }
                 catch( err ){
                     console.log( "DisplayWindowImage could not parse: "+val );
@@ -699,6 +740,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this._registerControlsStack();
             this._registerControlsRegion();
             this._initStatistics();
+            this._initFileLabel();
             this._dataLoadedCB();
 
             //Get the shared variable for preferences
@@ -739,6 +781,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_imageControls : null,
         m_controlsVisible : false,
         m_statLabel : null,
+        m_fileLabel : null,
         m_statisticsVisible : false,
         m_shapes : [ "Rectangle", "Ellipse", "Point", "Polygon" ]
     }

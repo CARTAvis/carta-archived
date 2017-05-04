@@ -182,6 +182,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
 
             if (this.m_title == "Image") {
                 this.m_fileCombo = new skel.boundWidgets.ComboBox();
+                this.m_fileCombo.setWidth(180);
                 this.m_fileCombo.setToolTipText( "Select the file");
                 this.m_fileCombo.addListener( "comboChanged", function(){
                     var data = this.m_fileCombo.getValue();
@@ -421,7 +422,7 @@ qx.Class.define("skel.boundWidgets.Animator", {
             this.m_endLabel = new qx.ui.basic.Label("");
             skel.widgets.TestID.addTestId( this.m_endLabel, this.m_title+"AnimatorUpperBound");
             var locationComposite = new qx.ui.container.Composite();
-            locationComposite.setLayout(new qx.ui.layout.HBox(5));
+            locationComposite.setLayout(new qx.ui.layout.HBox(5)); //spacing
             locationComposite.add(titleLabel);
 
             this._addFileSelectionUItoComposite(locationComposite);
