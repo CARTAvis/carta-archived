@@ -70,7 +70,7 @@ public:
     static QStringList getDisplayNames();
 
 
-    static std::map<QString, Carta::Lib::AxisInfo::KnownType> axisMap;
+    static std::multimap<Carta::Lib::AxisInfo::KnownType, QString> axisMap;
 
     virtual ~AxisMapper();
 

@@ -1223,6 +1223,8 @@ QString Controller::_setLayersSelected( QStringList names ){
                 setFrameImage( selectIndex );
             }
         }
+        // refresh the map of axes immediately after read data
+        _setAxisMap();
         emit colorChanged( this );
         emit dataChanged( this );
     }
@@ -1314,6 +1316,17 @@ void Controller::setZoomLevel( double zoomFactor ){
 
 void Controller::setZoomLevelJS( double zoomFactor, double layerId ){
     m_stack->_setZoomLevelForLayerId( zoomFactor, layerId );
+}
+
+void Controller::_setAxisMap(){
+    std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
+    int axisCount = supportedAxes.size();
+    AxisMapper::axisMap.clear();
+    for( int i=0; i<axisCount; i++ ){
+        QString name = supportedAxes[i].longLabel().plain();
+        AxisMapper::axisMap.insert( std::pair<Carta::Lib::AxisInfo::KnownType, QString>
+                                    (supportedAxes[i].knownType(), name) );
+    }
 }
 
 void Controller::_updateCursor( int mouseX, int mouseY ){

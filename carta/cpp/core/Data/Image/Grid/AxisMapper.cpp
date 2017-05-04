@@ -26,7 +26,7 @@ const QString AxisMapper::QUALITY = "Quality";
 const QList<QString> AxisMapper::m_purposes( {RIGHT_ASCENSION, DECLINATION, SPECTRAL,
     STOKES, TABULAR, QUALITY, LINEAR});
 
-std::map<QString, Carta::Lib::AxisInfo::KnownType> AxisMapper::axisMap;
+std::multimap<Carta::Lib::AxisInfo::KnownType, QString> AxisMapper::axisMap;
 
 AxisMapper::AxisMapper(){
 
@@ -91,12 +91,7 @@ QString AxisMapper::getPurpose( Carta::Lib::AxisInfo::KnownType type,
     //     }
     // }
     // return name;
-    std::map<QString, Carta::Lib::AxisInfo::KnownType>::iterator iter;
-    for( iter = axisMap.begin(); iter != axisMap.end(); iter++){
-        if(iter->second == type){
-            return iter->first;
-        }
-    }
+    return axisMap.find(type)->second;
 }
 
 QString AxisMapper::getPurpose( const QString& purpose ){
@@ -139,7 +134,13 @@ Carta::Lib::AxisInfo::KnownType AxisMapper::getType( const QString& purpose ){
     // }
     // return target;
 
-    return axisMap[purpose];
+    std::multimap<Carta::Lib::AxisInfo::KnownType, QString>::iterator iter;
+    for( iter = axisMap.begin(); iter != axisMap.end(); iter++){
+        if(iter->second == purpose){
+            return iter->first;
+        }
+    }
+    //qFatal("The axisType cannot be found");
 }
 
 

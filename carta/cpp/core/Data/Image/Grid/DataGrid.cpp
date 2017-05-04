@@ -653,13 +653,10 @@ bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     // }
     // return axisTypesChanged;
 
-    AxisMapper::axisMap.clear();
     for( int i=0; i<axisCount; i++ ){
-        QString name = supportedAxes[i].shortLabel().plain();
+        QString name = supportedAxes[i].longLabel().plain();
         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
         QString oldName;
-        AxisMapper::axisMap.insert( std::pair<QString, Carta::Lib::AxisInfo::KnownType>
-                                    (name, supportedAxes[i].knownType()) );
         if ( i < oldCount ){
             oldName = m_state.getValue<QString>( lookup );
         }
