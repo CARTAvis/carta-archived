@@ -140,7 +140,7 @@ cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Step5 - Build CASA libraries
 
-**Mac 10.12:**
+**Mac 10.11/10.12:**
 
 1. Use Homebrew and Macports to install needed libraries first, follow this guide,
 https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac
@@ -208,7 +208,7 @@ Some of third-party libraries they use are the same,  but may use different vers
 
 Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we use a fixed revision around September, 2016.
 
-#### 4.Start from August, 2016 to November, 2016, namaspace of casa libs was changing
+#### 4.Start from August, 2016 to November, 2016, namespace of casa libs was changing
 
 It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
 
@@ -473,4 +473,4 @@ CARTA third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
 
 ## Library and Plugin Issue
-1. RegionDS9 does not work on some Ubuntu.
+1. buildcasa.sh for Ubuntu needs update. 
