@@ -27,7 +27,7 @@ import sys, os, re, subprocess, codecs, optparse
 
 CMD_PYTHON = sys.executable
 #QOOXDOO_PATH = '../../../../ThirdParty/qooxdoo-4.0.1-sdk'
-QOOXDOO_PATH = '../../../../ThirdParty/qooxdoo-3.5-sdk'
+QOOXDOO_PATH = '../../../../ThirdParty/qooxdoo-5.0.2-sdk'
 QX_PYLIB = "tool/pylib"
 
 ##

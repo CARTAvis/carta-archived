@@ -1,7 +1,7 @@
 // global conf
 var common = {
-  QOOXDOO_VERSION: '3.5',
-  QOOXDOO_PATH: '../../../../ThirdParty/qooxdoo-3.5-sdk'
+  QOOXDOO_VERSION: '5.0.2',
+  QOOXDOO_PATH: '../../../../ThirdParty/qooxdoo-5.0.2-sdk'
 };
 
 // requires
