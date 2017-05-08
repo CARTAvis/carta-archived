@@ -224,7 +224,7 @@ Suggested path:
 
 cd `your-carta-work/CARTAvis/carta/html5/common/skel`, execute one of the following:
 
-Build everything: debug version + build API Doc (~12MB) + others
+Build everything: debug version + release version + API Doc (~12MB)
 ```
 ./generate.py
 ```
