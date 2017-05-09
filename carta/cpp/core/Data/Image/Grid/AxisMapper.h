@@ -19,21 +19,18 @@ class AxisMapper {
 public:
 
     /**
-     * Returns a standard axis purpose based on the one passed in, which may
-     * have different capitalization characteristics.
-     * @param purpose - an axis purpose that may have incorrect capitalization.
-     * @return the corresponding standardized purpose or an empty string if no such
-     *      purpose exists.
-     */
-    static QString getPurpose( const QString& purpose );
-
-    /**
      * Returns a purpose for the axis of the known type.
      * @param type - an identifier for an axis type.
      * @param cs - an enumerated coordinate system type.
      * @return a string based purpose for the axis passed in.
      */
     static QString getPurpose( Carta::Lib::AxisInfo::KnownType type );
+
+    /**
+     * The same as the getPurpose
+     * Used only for Animator to display the "channel"
+     */
+    static QString getAnimatorPurpose( Carta::Lib::AxisInfo::KnownType type );
 
     /**
      * Returns the default purpose for the standard x-, y-, and z- display axes.

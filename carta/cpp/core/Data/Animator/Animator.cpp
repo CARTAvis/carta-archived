@@ -182,10 +182,12 @@ void Animator::_axesChanged(){
             std::set<AxisInfo::KnownType> zAxes = controller->_getAxesHidden();
             for ( std::set<AxisInfo::KnownType>::iterator it = zAxes.begin();
                     it != zAxes.end(); it++ ){
-                const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-                QString purpose = AxisMapper::getPurpose( *it );
+                QString purpose = AxisMapper::getAnimatorPurpose( *it );
                 QString animId;
-                if ( purpose.length() > 0 ){
+                if(purpose == "Undefined"){
+                    continue;
+                }
+                else if ( purpose.length() > 0 ){
                     addAnimator( purpose, animId );
                     existingAnimators.insert( purpose );
                 }
@@ -656,8 +658,7 @@ bool Animator::_updateAnimatorBound( const QString& key ){
         bool axisFound = false;
         if ( controller != nullptr ){
             for ( int i = 0; i < animAxisCount; i++ ){
-                const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-                QString animPurpose = AxisMapper::getPurpose( animationAxes[i] );
+                QString animPurpose = AxisMapper::getAnimatorPurpose( animationAxes[i] );
                 if ( animPurpose == key ){
                     axisFound = true;
                     break;
@@ -703,20 +704,21 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
     std::set<AxisInfo::KnownType> animAxes = controller->_getAxesHidden();
     for ( std::set<AxisInfo::KnownType>::iterator it = animAxes.begin();
         it != animAxes.end(); it++ ){
-        const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-        QString animName = AxisMapper::getPurpose( *it );
-        if ( !m_animators.contains( animName ) && animName.length() > 0 ){
-            QString animId;
-            addAnimator( animName , animId );
-        }
-        else {
-            if ( m_animators.contains( animName ) ){
-                if ( m_animators[animName]->isRemoved( ) ){
-                    m_animators[animName]->setRemoved( false );
-                    if ( controller->getFrameUpperBound(*it) > 0 ){
-                        m_animators[animName]->setVisible( true );
+        QString animName = AxisMapper::getAnimatorPurpose( *it );
+        if(animName != "Undefined"){
+            if ( !m_animators.contains( animName ) && animName.length() > 0 ){
+                QString animId;
+                addAnimator( animName , animId );
+            }
+            else {
+                if ( m_animators.contains( animName ) ){
+                    if ( m_animators[animName]->isRemoved( ) ){
+                        m_animators[animName]->setRemoved( false );
+                        if ( controller->getFrameUpperBound(*it) > 0 ){
+                            m_animators[animName]->setVisible( true );
+                        }
+                        _adjustStateAnimatorTypes();
                     }
-                    _adjustStateAnimatorTypes();
                 }
             }
         }
@@ -726,8 +728,7 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
 void Animator::_updateFrame( Controller* controller, Carta::Lib::AxisInfo::KnownType type ){
     if ( controller ){
         int frameIndex = controller->getFrame( type );
-        const Carta::Lib::KnownSkyCS& cs = controller->getCoordinateSystem();
-        QString animName = AxisMapper::getPurpose( type );
+        QString animName = AxisMapper::getAnimatorPurpose( type );
         if ( m_animators.contains( animName) ){
             int currentIndex = m_animators[animName]->getFrame();
             if ( currentIndex != frameIndex ){

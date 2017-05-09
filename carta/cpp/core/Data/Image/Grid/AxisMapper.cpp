@@ -74,18 +74,30 @@ QStringList AxisMapper::getDisplayNames(){
 }
 
 QString AxisMapper::getPurpose( Carta::Lib::AxisInfo::KnownType type){
-    return axisMap.find(type)->second;
+    return (axisMap.find(type) != axisMap.end()) ?
+                axisMap.find(type)->second : QString("Undefined");
+}
+
+QString AxisMapper::getAnimatorPurpose( Carta::Lib::AxisInfo::KnownType type){
+    if(type == Carta::Lib::AxisInfo::KnownType::SPECTRAL){
+        return QString("Channel");
+    }
+    return getPurpose(type);
 }
 
 Carta::Lib::AxisInfo::KnownType AxisMapper::getType( const QString& purpose ){
 
-    Carta::Lib::AxisInfo::KnownType target = Carta::Lib::AxisInfo::KnownType::OTHER;
     std::multimap<Carta::Lib::AxisInfo::KnownType, QString>::iterator iter;
+    // for Animator to display "channel"
+    if(purpose == "Channel"){
+        return Carta::Lib::AxisInfo::KnownType::SPECTRAL;
+    }
     for( iter = axisMap.begin(); iter != axisMap.end(); iter++){
         if(iter->second == purpose){
             return iter->first;
         }
     }
+    return Carta::Lib::AxisInfo::KnownType::OTHER;
     //qFatal("The axisType cannot be found");
 }
 
