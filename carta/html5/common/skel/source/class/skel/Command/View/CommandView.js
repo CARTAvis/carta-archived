@@ -19,7 +19,7 @@ qx.Class.define("skel.Command.View.CommandView", {
         this.base( arguments, label, cmd);
         this.setToolTipText( "Change the plugin view to " + this.getLabel()+".");
     },
-    
+
     members : {
 
         doAction : function( vals, undoCB ){
@@ -37,12 +37,12 @@ qx.Class.define("skel.Command.View.CommandView", {
                     //Changing the view will change to a custom layout, but we don't want to show
                     //the custom layout dialog in such a case.
                     var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
-                    layoutCmd.setActive( false );
+                    layoutCmd.setCustomActive( false );
                     var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
                     customLayoutCmd.setValue( true );
                     skel.widgets.Window.WindowFactory.setExistingWindows( []);
                     qx.event.message.Bus.dispatch(new qx.event.message.Message( "setView", data));
-                    layoutCmd.setActive( true );
+                    layoutCmd.setCustomActive( true );
                 }
             }
         }

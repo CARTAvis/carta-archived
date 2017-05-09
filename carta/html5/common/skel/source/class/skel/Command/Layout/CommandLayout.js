@@ -59,17 +59,28 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
             }
         },
 
+        //CoommandView
+        //CommandWindowRemove
+        //WindowAddDirection
+
         /**
          * Set the children of this command active/inactive.
          * @param active {boolean} true if the command should be active; false otherwise.
          */
         //Written so that when a window is added or removed, the server-side update of
         //the value will not trigger a re-layout.
-        setActive : function( active ){
+        setCustomActive : function( active ){
             for ( var i = 0; i < this.m_cmds.length; i++ ){
                 this.m_cmds[i].setActive( active );
             }
         },
+
+        // qooxdoo override example:
+        // http://qooxdoo.678.n2.nabble.com/how-to-override-methods-in-subclasses-td7585250.html
+        // hide : function(e){
+        //     this.base(arguments, e); // not this.base.hide(arguments, e)
+        //     something_important();
+        // }
 
         // no use, 20170307
         setValues : function( image, analysis, custom ){
@@ -101,10 +112,10 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
               if (cmdLayout){
                   // important, should use setActive(false) & setActive(true),
                   // otherwise will trigger loop layout-reset
-                  this.setActive( false );
+                  this.setCustomActive( false );
                   this.setupAllCheckStatus(cmdLayout);
                 //   cmdLayout.setValue( true );
-                  this.setActive( true );
+                  this.setCustomActive( true );
 
                   return true;
               }
