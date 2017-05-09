@@ -85,6 +85,21 @@ QString AxisMapper::getAnimatorPurpose( Carta::Lib::AxisInfo::KnownType type){
     return getPurpose(type);
 }
 
+void AxisMapper::cleanAxisMap(){
+    axisMap.clear();
+}
+
+void AxisMapper::setAxisMap( AxisMapData supplant, QString target ){
+    std::multimap<Carta::Lib::AxisInfo::KnownType, QString>::iterator
+            iter = axisMap.find(supplant.first);
+    // if there is any axis with the same type, check whether
+    // we do want replace the name.
+    if(iter != axisMap.end() && iter->second == target){
+        axisMap.erase(iter);
+    }
+    axisMap.insert(supplant);
+}
+
 Carta::Lib::AxisInfo::KnownType AxisMapper::getType( const QString& purpose ){
 
     std::multimap<Carta::Lib::AxisInfo::KnownType, QString>::iterator iter;
@@ -98,7 +113,6 @@ Carta::Lib::AxisInfo::KnownType AxisMapper::getType( const QString& purpose ){
         }
     }
     return Carta::Lib::AxisInfo::KnownType::OTHER;
-    //qFatal("The axisType cannot be found");
 }
 
 

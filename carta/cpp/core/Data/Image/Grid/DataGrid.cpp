@@ -574,30 +574,6 @@ bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     bool axisTypesChanged = false;
     int oldCount = m_state.getArraySize( SUPPORTED_AXES );
     m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
-    // //QString coordStr = m_state.getValue<QString>( COORD_SYSTEM );
-    // //const Carta::Lib::KnownSkyCS& cs = m_coordSystems->getIndex( coordStr );
-    // for ( int i = 0; i < axisCount; i++ ){
-    //     QString name = supportedAxes[i].shortLabel().plain();
-    //     QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
-    //     QString oldName;
-    //     if ( i < oldCount ){
-    //         oldName = m_state.getValue<QString>( lookup );
-    //     }
-    //     if ( name != oldName ){
-    //         axisTypesChanged = true;
-    //         if(i==0){
-    //             _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
-    //         }
-    //         else if(i==1){
-    //             _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
-    //         }
-    //         m_state.setValue<QString>( lookup, name );
-    //     }
-    // }
-    // if ( axisTypesChanged ){
-    //     m_state.flushState();
-    // }
-    // return axisTypesChanged;
 
     for( int i=0; i<axisCount; i++ ){
         QString name = supportedAxes[i].longLabel().plain();
@@ -607,10 +583,19 @@ bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
             oldName = m_state.getValue<QString>( lookup );
         }
         if ( name != oldName ){
+            //_setAxis( AxisMapper::AXIS_X, supportedAxes[0].longLabel().plain(), &axisTypesChanged);
+            //_setAxis( AxisMapper::AXIS_Y, supportedAxes[1].longLabel().plain(), &axisTypesChanged);
+            //if(i==0){
+            //    _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
+            //}
+            //else if(i==1){
+            //    _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
+            //}
             axisTypesChanged = true;
             m_state.setValue<QString>( lookup, name );
         }
     }
+
     if ( axisTypesChanged ){
         m_state.flushState();
     }

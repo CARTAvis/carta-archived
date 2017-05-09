@@ -18,6 +18,8 @@ class AxisMapper {
 
 public:
 
+    typedef std::pair<Carta::Lib::AxisInfo::KnownType, QString> AxisMapData;
+
     /**
      * Returns a purpose for the axis of the known type.
      * @param type - an identifier for an axis type.
@@ -65,8 +67,9 @@ public:
      */
     static QStringList getDisplayNames();
 
+    static void cleanAxisMap();
 
-    static std::multimap<Carta::Lib::AxisInfo::KnownType, QString> axisMap;
+    static void setAxisMap( AxisMapData supplant, QString target );
 
     virtual ~AxisMapper();
 
@@ -85,6 +88,7 @@ public:
 private:
     static QString _getAxisRAPurpose( const Carta::Lib::KnownSkyCS& cs );
     static QString _getAxisDECPurpose( const Carta::Lib::KnownSkyCS& cs );
+    static std::multimap<Carta::Lib::AxisInfo::KnownType, QString> axisMap;
     AxisMapper( );
 
 	AxisMapper( const AxisMapper& other);
