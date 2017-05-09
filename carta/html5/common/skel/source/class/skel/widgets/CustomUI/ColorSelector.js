@@ -15,28 +15,28 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
          * Constructor.
          */
         construct: function ( ) {
-            
+
             this.base( arguments);
             this.setPadding( 0, 0, 0, 0 );
             this.getChildControl( "hex-field-composite").exclude();
             this.getChildControl( "hsb-spinner-composite").exclude();
             this.getChildControl( "preview-field-set").exclude();
         },
-       
+
 
         members: {
-            
+
              // property apply
              _applyBrightness : function(value, old){
                  try {
                       if (this.__updateContext === null) {
                           this.__updateContext = "brightnessModifier";
                       }
-        
+
                       if (this.__updateContext !== "hsbSpinner") {
                           this.getChildControl("hsb-spinner-brightness").setValue(value);
                       }
-                      
+
                       if (this.__updateContext !== "brightnessField" ){
                         var brightValue = this._getBrightnessPosition( value );
                         if (this.getChildControl("brightness-handle").getBounds()) {
@@ -45,14 +45,14 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                           this.getChildControl("brightness-handle").setLayoutProperties({ top : brightValue });
                         }
                       }
-                      
+
                       switch(this.__updateContext){
                         case "hsbSpinner":
                         case "brightnessField":
                         case "brightnessModifier":
                             this._setRgbFromHue();
                       }
-        
+
                       if (this.__updateContext === "brightnessModifier") {
                         this.__updateContext = null;
                       }
@@ -61,7 +61,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                      console.log( "applyBright error"+err);
                  }
             },
-            
+
             // property apply
             _applyHue : function(value, old){
                 if ( this.__updateContext == "rgbSpinner"){
@@ -76,11 +76,11 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                    if (this.__updateContext === null) {
                       this.__updateContext = "hueModifier";
                    }
-    
+
                    if (this.__updateContext !== "hsbSpinner") {
                       this.getChildControl("hsb-spinner-hue").setValue(value);
                    }
-    
+
                    if (this.__updateContext !== "hueSaturationField" ){
                       //Hue in [0,360].  We must map it to [0,128].  360/128 = 2.8125, the minimum
                       //amount to actually do a move.{
@@ -88,13 +88,13 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                       if (this.getChildControl("hue-saturation-handle").getBounds()) {
                           var paddingLeft = this.getChildControl("hue-saturation-pane").getPaddingLeft();
                          this.getChildControl("hue-saturation-handle").setDomLeft(domLeft + paddingLeft);
-     
-                      } 
+
+                      }
                       else {
                           this.getChildControl("hue-saturation-handle").setLayoutProperties({ left : domLeft });
                       }
                    }
-                  
+
                    switch(this.__updateContext)
                    {
                     case "hsbSpinner":
@@ -102,7 +102,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     case "hueModifier":
                         this._setRgbFromHue();
                    }
-                  
+
                    if (this.__updateContext === "hueModifier") {
                       this.__updateContext = null;
                    }
@@ -111,8 +111,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     console.log( "_applyHue err"+err);
                 }
             },
-            
-            
+
+
             // property apply
             _applySaturation : function(value, old){
                 if ( this.__updateContext == "rgbSpinner"){
@@ -128,22 +128,22 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                   if (this.__updateContext === null) {
                     this.__updateContext = "saturationModifier";
                   }
-    
+
                   if (this.__updateContext !== "hsbSpinner") {
                     this.getChildControl("hsb-spinner-saturation").setValue(value);
                   }
-                  
+
                   if (this.__updateContext !== "hueSaturationField"){
                      var satVal = this._getSaturationPosition( value );
                      if (this.getChildControl("hue-saturation-handle").getBounds()) {
-                         this.getChildControl("hue-saturation-handle").setDomTop( satVal + 
+                         this.getChildControl("hue-saturation-handle").setDomTop( satVal +
                               this.getChildControl("hue-saturation-pane").getPaddingTop());
-                      } 
+                      }
                       else {
                           this.getChildControl("hue-saturation-handle").setLayoutProperties({ top : satVal });
                       }
                   }
-                
+
                   switch(this.__updateContext)
                   {
                     case "hsbSpinner":
@@ -151,7 +151,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     case "saturationModifier":
                       this._setRgbFromHue();
                   }
-    
+
                   if (this.__updateContext === "saturationModifier") {
                     this.__updateContext = null;
                   }
@@ -161,31 +161,31 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 }
             },
 
-            
+
             _createChildControlImpl : function(id, hash) {
                 var control;
                 switch (id) {
-                
+
                 case "brightness-field":
                     control = new qx.ui.basic.Image("skel/decoration/brightness-field-128.png");
-                    control.addListener("mousedown", this._onBrightnessFieldMouseDown, this);
+                    // control.addListener("mousedown", this._onBrightnessFieldMouseDown, this);
                     break;
 
                 case "brightness-handle":
                     control = new qx.ui.basic.Image("skel/decoration/brightness-handle-128.gif");
-                    control.addListener("mousedown", this._onBrightnessHandleMouseDown, this);
-                    control.addListener("mouseup", this._onBrightnessHandleMouseUp, this);
-                    control.addListener("mousemove", this._onBrightnessHandleMouseMove, this);
+                    // control.addListener("mousedown", this._onBrightnessHandleMouseDown, this);
+                    // control.addListener("mouseup", this._onBrightnessHandleMouseUp, this);
+                    // control.addListener("mousemove", this._onBrightnessHandleMouseMove, this);
                     break;
                 case "control-bar":
                     control = new qx.ui.container.Composite(new qx.ui.layout.HBox(1));
 
                     control.add(this.getChildControl("control-pane"));
                     control.add(this.getChildControl("visual-pane"));
-                    
+
                     this._add(control);
                     break;
-                    
+
                 case "control-pane":
                     control = new qx.ui.container.Composite(new qx.ui.layout.HBox(2));
                     control.add(this.getChildControl("preset-field-set"));
@@ -195,15 +195,16 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 case "hue-saturation-pane":
                     control = new qx.ui.container.Composite(new qx.ui.layout.Canvas());
                     control.setAllowGrowY(false);
-                    control.addListener("mousewheel", this._onHueSaturationPaneMouseWheel, this);
+
+                    // control.addListener("mousewheel", this._onHueSaturationPaneMouseWheel, this);
                     control.add(this.getChildControl("hue-saturation-field"));
                     control.add(this.getChildControl("hue-saturation-handle"), {left: 0, top: this.m_JPG_SIZE});
                     break;
                 case "hue-saturation-field":
                     control = new qx.ui.basic.Image("skel/decoration/hue-128.png");
-                    control.addListener("mousedown", this._onHueSaturationFieldMouseDown, this);
+                    // control.addListener("mousedown", this._onHueSaturationFieldMouseDown, this);
                     break;
-                    
+
                 case "input-field-set":
                     //control = new qx.ui.container.Composite();
                     control = new qx.ui.groupbox.GroupBox("Details");
@@ -214,22 +215,22 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                     control.add(this.getChildControl("hex-field-composite"));
                     control.add(this.getChildControl("rgb-spinner-composite"));
                     control.add(this.getChildControl("hsb-spinner-composite"));
-                    break;    
-           
+                    break;
+
                 case "rgb-spinner-composite":
                     var layout = new qx.ui.layout.Grid();
                     //control = new qx.ui.groupbox.GroupBox("");
                     control = new qx.ui.container.Composite();
                     control.setLayout( layout );
-                  
+
                     var redLabel = new qx.ui.basic.Label( this.tr("Red:"));
                     control.add( redLabel, {row: 0, column:0});
                     control.add( this.getChildControl( "rgb-spinner-red"), {row:0, column:1});
-                    
+
                     var greenLabel = new qx.ui.basic.Label( this.tr( "Green:"));
                     control.add( greenLabel, {row:1, column:0} );
                     control.add( this.getChildControl("rgb-spinner-green"), {row:1, column:1});
-                    
+
                     var blueLabel = new qx.ui.basic.Label( this.tr( "Blue:"));
                     control.add( blueLabel, {row:2, column:0} );
                     control.add( this.getChildControl( "rgb-spinner-blue"), {row:2, column:1});
@@ -264,7 +265,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                       }
                     }
                     break;
-                
+
                     case "visual-pane":
                         //control = new qx.ui.container.Composite();
                         control = new qx.ui.groupbox.GroupBox("Visual");
@@ -274,9 +275,9 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                         break;
                 }
                 return control || this.base(arguments, id, hash);
-               
+
             },
-            
+
             /**
              * Return the scale factor between the original color picker and the
              * new color picker.
@@ -286,7 +287,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
             _getMultiplyFactor : function(){
                 return this.m_TOTAL / this.m_JPG_SIZE;
             },
-            
+
             /**
              * Convert a brightness value to a corresponding position on the brightness
              * scale.
@@ -297,21 +298,21 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 var brightPos = this.m_JPG_SIZE - Math.round( parseFloat(val) * this.m_JPG_SIZE / this.m_TOTAL_BRIGHTNESS );
                 return brightPos;
             },
-            
+
             /**
              * Convert a brightness position to a brightness value.
              * @param val {Number} - a position on the brightness scale [0,128].
              * @return {Number} - a corresponding brightness value [0,100].
              */
             _getBrightnessVal : function( val ){
-                var brightVal = this.m_TOTAL_BRIGHTNESS - 
+                var brightVal = this.m_TOTAL_BRIGHTNESS -
                     Math.round( parseFloat(val) * this.m_TOTAL_BRIGHTNESS / this.m_JPG_SIZE );
                 if ( brightVal == 0 ){
                     brightVal = 1;
                 }
                 return brightVal;
             },
-            
+
             /**
              * Convert from a hue value in the range 0 to 360 into a position on
              * the hue/saturation screen from 0 to 128.
@@ -323,7 +324,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 var hueValApply = Math.round( val / this.m_HUE_SCALE_FACTOR / multiplyFactor );
                 return hueValApply;
             },
-            
+
             /**
              * Convert a hue position on the hue/saturation screen from 0 to 128
              * to a hue value in the range 0 to 360.
@@ -335,7 +336,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 var hueVal = Math.round( val * this.m_HUE_SCALE_FACTOR * multiplyFactor );
                 return hueVal;
             },
-            
+
             /**
              * Convert a saturation value to a position on the hue/saturation screen.
              * @param val {Number} - a saturation value in [0,100].
@@ -350,18 +351,18 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 var satVal = this.m_JPG_SIZE - Math.floor( parseFloat(evenVal) / this.m_TOTAL_SATURATION * this.m_JPG_SIZE );
                 return satVal;
             },
-            
+
             /**
              * Convert a position on the hue/saturation pane to a saturation value.
              * @param val {Number} -a position in the hue/saturation pane in [0,128].
              * @return {Number} - the corresponding saturation value in [0,100].
              */
             _getSaturationVal : function( val ){
-                var satVal = this.m_TOTAL_SATURATION - 
+                var satVal = this.m_TOTAL_SATURATION -
                     Math.round(parseFloat(val) / this.m_JPG_SIZE * this.m_TOTAL_SATURATION );
                 return satVal;
             },
-            
+
             /**
              * Generated event when a color square is clicked.
              */
@@ -370,7 +371,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 arguments.callee.base.apply(this, arguments, e );
             },
 
-        
+
         /**
          * Sets the brightness and moves the brightness handle.
          * @param e {qx.event.type.Mouse} Incoming event object
@@ -380,25 +381,25 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
             try {
               var value = qx.lang.Number.limit(e.getDocumentTop() - this.__brightnessSubtract, 0, this.m_JPG_SIZE);
               this.__updateContext = "brightnessField";
-    
+
               if (this.getChildControl("brightness-handle").getBounds()) {
                 this.getChildControl("brightness-handle").setDomTop(value);
-              } 
+              }
               else {
                 this.getChildControl("brightness-handle").setLayoutProperties({ top : value });
               }
-              
+
               var brightVal = this._getBrightnessVal( value );
               this.setBrightness(brightVal);
-    
+
               this.__updateContext = null;
             }
             catch( err ){
                 console.log( "setBrightEvent err="+err );
             }
         },
-        
-        
+
+
         /**
          * Sets the saturation and moves the saturation handle.
          * @param e {qx.event.type.Mouse} Incoming event object
@@ -412,7 +413,7 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
               this.__updateContext = "hueSaturationField";
               var satVal = this._getSaturationVal( vTop );
               this.setSaturation( satVal );
-              
+
               //Hue
               var hueVal = this._getHueVal( vLeft );
               this.setHue( hueVal );
@@ -422,8 +423,8 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
                 console.log( "hue/sat err "+err);
             }
         },
-        
-        
+
+
         //Flag to preventing rounding drift when the brightness is set repeatedly.
         m_brightnessUpdate : false,
         m_JPG_SIZE : 128,
@@ -434,4 +435,3 @@ qx.Class.define( "skel.widgets.CustomUI.ColorSelector",
         m_TOTAL_SATURATION : 100
         }
     } );
-
