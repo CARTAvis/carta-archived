@@ -68,9 +68,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             // move the logic (->0.9) from Stack.cpp to here. Here is more suitable place.
             //TODO: grimmer. default m_currentZoomLevel =1 needed to be synced with cpp
             if ( wheelFactor < 0 ) {
-                newZoom = data.m_currentZoomLevel / 0.9;
+                var newZoom = data.m_currentZoomLevel / 0.9;
             } else {
-                newZoom = data.m_currentZoomLevel * 0.9;
+                var newZoom = data.m_currentZoomLevel * 0.9;
             }
 
             // console.log("aspect Wheel-newZoom:", newZoom,";min:", data.m_minimalZoomLevel);
