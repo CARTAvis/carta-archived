@@ -75,6 +75,8 @@ public:
     void resetState( const Carta::State::StateInterface& savedState );
 
     void setLayoutDefault();
+    void setLayoutDefault2();
+
 
     void setLayoutHistogramAnalysis();
 
