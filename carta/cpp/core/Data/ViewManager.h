@@ -122,6 +122,8 @@ public:
      */
     void reload();
 
+    void setDefaultLayoutView2();
+
     /**
      * Reset the layout to a default view.
      */
