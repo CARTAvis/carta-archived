@@ -59,10 +59,6 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
             }
         },
 
-        //CoommandView
-        //CommandWindowRemove
-        //WindowAddDirection
-
         /**
          * Set the children of this command active/inactive.
          * @param active {boolean} true if the command should be active; false otherwise.

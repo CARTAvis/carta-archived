@@ -430,40 +430,6 @@ QString Layout::_removeWindow( const QString& locationId ){
     return result;
 }
 
-
-//void Layout::setLayoutDefault2(){
-//    QStringList oldNames = QStringList();
-//    _makeRoot();
-
-//    LayoutNode* rightTop = NodeFactory::makeComposite( false );
-
-//    LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
-//    rightTop->setChildFirst( statLeaf );
-//    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
-//    rightTop->setChildSecond( hiddenLeaf );
-
-//    LayoutNode* rightBottom = NodeFactory::makeComposite( false );
-//    LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
-//    rightBottom->setChildFirst( colorLeaf );
-//    LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
-//    rightBottom->setChildSecond( animLeaf );
-
-//    LayoutNode* right = NodeFactory::makeComposite( false );
-
-//    right->setChildFirst( rightTop );
-//    right->setChildSecond( rightBottom );
-
-//    m_layoutRoot->setHorizontal( true );
-//    m_layoutRoot->setChildSecond( right );
-
-//    LayoutNode* controlLeaf = NodeFactory::makeLeaf( Controller::PLUGIN_NAME );
-//    m_layoutRoot->setChildFirst( controlLeaf );
-//    m_state.setValue<QString>( TYPE_SELECTED, TYPE_DEFAULT );
-//    QStringList names = getPluginList();
-//    emit pluginListChanged( names, oldNames );
-//    m_state.flushState();
-//}
-
 void Layout::setLayoutDefault(bool cleanPluginList) {
 
     QStringList oldNames;

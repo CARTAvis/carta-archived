@@ -21,13 +21,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_viewContent.setLayout(new qx.ui.layout.Canvas());
 
         this.m_content.add( this.m_viewContent, {flex:1} );
-        console.log("grimmer t0");
-        console.trace();
 
         this.m_imageControls = new skel.widgets.Image.ImageControls();
-        // comment掉 anObject.windowIdInitialized(); 還是不會跑到下面, 所以上一行本身也會crash
-
-        console.log("grimmer t0-2");
 
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
         // this.m_content.add( this.m_imageControls );
@@ -755,19 +750,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             //Get the shared variable for preferences
             this.initializePrefs();
 
-            console.log("grimmer t1");
-            var ttt = this.getIdentifier();
-            console.log("grimmer t2");
-
             if (this.m_imageControls) {
-
-                console.log("grimmer t4, setupt imageControl id !!!!!!");
-
                 this.m_imageControls.setId( this.getIdentifier());
-
-            } else {
-                console.log("grimmer t3, cann't setupt imageControls ID");
-                console.trace();
             }
 
         },
