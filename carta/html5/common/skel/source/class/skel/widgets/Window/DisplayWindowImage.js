@@ -123,6 +123,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
         _setupDefaultLayerData: function(data, oldDatas) {
 
+
             data.m_minimalZoomLevel = 1;
             data.m_currentZoomLevel = 1;
 
@@ -137,7 +138,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 if (oldData.id == data.id) {
                     data.m_currentZoomLevel = oldData.m_currentZoomLevel;
                     // console.log("Aspect debug: inherit old zoomLevel");
-                    data.m_scheduleZoomFit = oldData.m_scheduleZoomFit;
+
+                    if (data.pixelX == oldData.pixelX && data.pixelY == oldData.pixelY) {
+                        data.m_scheduleZoomFit = oldData.m_scheduleZoomFit;
+                    } else {
+                        //console.log("Aspect debug:aspect not same x, y ratio, should be permutation case");
+                    }
+
                     break;
                 }
             }
@@ -174,7 +181,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         // 3. any view updated. e.g. open two files, switch to another, get 2 times callback here
 
         // now the default window size is 638, 666
-        useViewUpdateInfoToTryFitWindowSize : function(view_width, view_height){
+        useViewUpdateInfoToTryFitWindowSize: function(view_width, view_height) {
+
             // console.log("Aspect debug, view updateded, size:"+view_width+";"+view_height);
             if (!view_width || !view_height) {
                 console.log("Aspect debug: invalid width or height");
@@ -217,7 +225,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 // m_curentZoomLevel == 1 means, this dataset is initially loaded
                 // if not equual to 1, means like A->B->A, does not fit to Window Size automatically
                 // 20170502 update: after add data.m_scheduleZoomFit, the check == 1 may not be needed
-                if (data.m_currentZoomLevel == 1 && finalZoom != data.m_currentZoomLevel) {
+                if (finalZoom != data.m_currentZoomLevel) {
                     // console.log("Aspect debug: try to send zoom level");
                     this.m_view.sendZoomLevel(finalZoom, data.id);
 
@@ -632,7 +640,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             // 1. open any new file (two times callback, but the later one has correct selected info)
             // 2. switch a opened data (1 callback)
             var val = this.m_sharedVarStack.get();
-            if ( val ){
+            if (val) {
                 try {
                     var winObj = JSON.parse( val );
 
@@ -641,7 +649,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     //Add close menu buttons for all the images that are loaded.
                     var dataObjs = winObj.layers;
                     var visibleData = false;
-                    if ( dataObjs ){
+                    if (dataObjs) {
                         for ( var j = 0; j < dataObjs.length; j++ ){
                             if ( dataObjs[j].visible ){
                                 visibleData = true;
@@ -650,9 +658,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
 
-                    if ( dataObjs) {
+                    if (dataObjs) {
                         var len = dataObjs.length;
-                        for ( var i = 0; i < len; i++ ){
+                        for (var i = 0; i < len; i++) {
                             var newDataObj = dataObjs[i];
                             this._setupDefaultLayerData(newDataObj, oldDatas);
 
@@ -670,9 +678,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
 
-                    if ( !visibleData ){
+                    if (!visibleData) {
                         //No images to show so set the view hidden.
-                        if ( this.m_view !== null ){
+                        if (this.m_view !== null) {
                             this.m_view.setVisibility( "hidden" );
                         }
                     }
