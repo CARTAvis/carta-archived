@@ -55,7 +55,8 @@ quantiles2pixels(
     std::vector < Scalar > allValues;
     view.forEach(
         [& allValues] ( const Scalar & val ) {
-            if ( ! std::isnan( val ) ) {
+            // check if the value from raw data is finite
+            if ( std::isfinite( val ) ) {
                 allValues.push_back( val );
             }
         }
@@ -87,10 +88,13 @@ quantiles2pixels(
                 if( inp <= v) cnt ++;
             }
             double qq = double(cnt)/allValues.size();
-            qDebug() << "  " << q << "->" << v << qq << fabs(q-qq)
+            qDebug() << "  Set percentile" << q << "->"
+                     << "the intensity is" << v
+                     << ", its actual percentile is" << qq
+                     << ", the absolute difference between set and actual percentiles is" << fabs(q-qq)
                      << ((fabs(q-qq) > 0.01) ? "!!!" : "");
         }
-        qDebug() << "-----------------------------";
+        qDebug() << "--------------------------------------------";
     }
 
     return result;

@@ -144,7 +144,7 @@ AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
 
 AxisInfo::KnownType DataSource::_getAxisXType() const {
     return _getAxisType( m_axisIndexX );
-};
+}
 
 AxisInfo::KnownType DataSource::_getAxisYType() const {
     return _getAxisType( m_axisIndexY );
@@ -424,7 +424,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             }
         }
 
-        qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i].second << "and location is" << intensities[i].first;
+        qDebug() << "++++++++ For percentile" << percentiles[i]
+                 << "intensity is" << intensities[i].second
+                 << "and location is" << intensities[i].first << "(channel)";
     }
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
@@ -439,11 +441,15 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
         qDebug() << "++++++++ Spectral Index No. is " << spectralIndex << "; Stoke Index No. is " << stokeIndex;
 
-        // get raw data (for all stokes if any) in order to sort the raw data set
+        // get raw data (for all stokes if any) in order to sort the raw data set by selection algorithm
         // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
 
-        // get raw data (only for the stoke I) in order to sort the raw data set
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForIntensity( frameLow, frameHigh, spectralIndex, stokeIndex);
+        // get raw data (only for the stoke I) in order to sort the raw data set by selection algorithm
+        int stokeSliceIndex = 0; // 0 is for stoke I; 1 is for stoke Q; 2 is for stoke U; 3 is for stoke V; Other value is for all stokes
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForIntensity( frameLow, frameHigh, spectralIndex, stokeIndex, stokeSliceIndex );
+        qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
+        qDebug() << "++++++++ default stokeSliceIndex for percentile=" << stokeSliceIndex
+                 << "(0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V, Other value: all stokes)";
 
         if ( rawData == nullptr ){
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
@@ -500,7 +506,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         locationIndex = 0;
                     }
 
-                    // Following code line sort the entire raw data set (only for array values and not for array keys).
+                    // Following code line sort the partial raw data set by selection algorithm (only for array values and not for array keys).
                     // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
 
@@ -526,7 +532,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 						m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
 					}
 
-                    qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i].second << "and location is" << intensities[i].first;
+                    qDebug() << "++++++++ For percentile" << percentiles[i]
+                             << "intensity is" << intensities[i].second
+                             << "and location is" << intensities[i].first << "(channel)";
                 }
             }
         }
@@ -631,7 +639,6 @@ QString DataSource::_getPixelUnits() const {
 Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
-
         // get the image dimension:
         // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
         // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis,   and dim[3]: channel-axis
@@ -677,10 +684,10 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
     return rawData;
 }
 
-Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForIntensity( int frameStart, int frameEnd, int axisIndex, int axisStokeIndex ) const {
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForIntensity( int frameStart, int frameEnd, int axisIndex,
+                                                                            int axisStokeIndex, int stokeSliceIndex ) const {
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
-
         // get the image dimension:
         // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
         // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
@@ -694,39 +701,35 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForIntensity( int 
             // only deal with the extra dimensions other than x-axis and y-axis
             if ( i != m_axisIndexX && i != m_axisIndexY ){
 
-                // declare the variable "sliceSize" as the total number of channel or stoke
-                int sliceSize;
-
-                // If the stoke-axis is exist (axisStokeIndex != -1),
-                // we only consider the stoke I in the first element of stoke-axis.
-                if ( i == axisStokeIndex) {
-                    sliceSize = 1;
-                    qDebug() << "++++++++ we only consider the stoke I in the first element of stoke-axis" ;
-                } else {
-                    sliceSize = m_image->dims()[i];
-                    qDebug() << "++++++++ the total number of channel is " << sliceSize;
-                }
+                // get the number of slice (e.q. channel) in this dimension
+                int sliceSize = m_image->dims()[i];
 
                 SliceND& slice = frameSlice.next();
 
-                //If it is the target axis,
+                // If it is the target axis..
                 if ( i == axisIndex ){
-                   //Use the passed in frame range
-                   if (0 <= frameStart && frameStart < sliceSize &&
+                   // Use the passed in frame range
+                   if ( 0 <= frameStart && frameStart < sliceSize &&
                         0 <= frameEnd && frameEnd < sliceSize ){
-                        slice.start( frameStart );
-                        slice.end( frameEnd + 1);
-                   }
-                   else {
+                       slice.start( frameStart );
+                       slice.end( frameEnd + 1);
+                   } else {
                        slice.start(0);
                        slice.end( sliceSize);
                    }
+                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3){
+                    // If the stoke-axis is exist (axisStokeIndex != -1),
+                    // we only consider the stoke I in the first element of stoke-axis.
+                    qDebug() << "++++++++ we only consider the stoke I in the first element of stoke-axis" ;
+                    slice.start( stokeSliceIndex );
+                    slice.end( stokeSliceIndex + 1 );
+                } else {
+                    // Or the entire range
+                    qDebug() << "++++++++ the total number of channel is " << sliceSize;
+                    slice.start( 0 );
+                    slice.end( sliceSize );
                 }
-                //Or the entire range
-                else {
-                   slice.start( 0 );
-                   slice.end( sliceSize );
-                }
+
                 slice.step( 1 );
             }
         }
@@ -770,8 +773,10 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getPermutedImage
 }
 
 Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
+
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     std::vector<int> mFrames = _fitFramesToImage( frames );
+
     if ( m_permuteImage ){
         int imageDim =m_permuteImage->dims().size();
 
@@ -780,21 +785,44 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vecto
 
         SliceND nextSlice = SliceND();
         SliceND& slice = nextSlice;
+
         for ( int i = 0; i < imageDim; i++ ){
-            //Since the image has been permuted the first two indices represent
-            //the display axes.
+
+            //Since the image has been permuted the first two indices represent the display axes.
             if ( i != 0 && i != 1 ){
+
                 //Take a slice at the indicated frame.
                 int frameIndex = 0;
-		int thisAxis = indices[i];
+                int thisAxis = indices[i];
+
                 AxisInfo::KnownType type = _getAxisType( thisAxis );
-                if ( AxisInfo::KnownType::OTHER != type ){
-                    int axisIndex = static_cast<int>( type );
+
+                //if ( AxisInfo::KnownType::OTHER != type ){
+                //    int axisIndex = static_cast<int>( type );
+                //    frameIndex = mFrames[axisIndex];
+                //    qDebug() << "***** axisIndex= " << axisIndex << "***** frameIndex= " << frameIndex;
+                //}
+
+                // check the type of axis and its indix of slices
+                int axisIndex = -1;
+                if ( type == AxisInfo::KnownType::SPECTRAL ) {
+                    axisIndex = static_cast<int>( type );
                     frameIndex = mFrames[axisIndex];
+                    // qDebug() << "++++++++ SPECTRAL axis Index with permutation is" << axisIndex << ", the current frame Index is" << frameIndex;
+                } else if ( type == AxisInfo::KnownType::STOKES ) {
+                    axisIndex = static_cast<int>( type );
+                    frameIndex = mFrames[axisIndex];
+                    // qDebug() << "++++++++ STOKE axis Index with permutation is" << axisIndex << ", the current frame Index is" << frameIndex;
+                } else if ( type != AxisInfo::KnownType::OTHER ) {
+                    axisIndex = static_cast<int>( type );
+                    frameIndex = mFrames[axisIndex];
+                    // qDebug() << "++++++++ axis Index with permutation is" << axisIndex << ", the current frame Index is" << frameIndex;
                 }
+
                 slice.start( frameIndex );
                 slice.end( frameIndex + 1);
             }
+
             if ( i < imageDim - 1 ){
                 slice.next();
             }
@@ -1124,22 +1152,31 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
 			maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
 		}
 
-        if (minClipInCache && maxClipInCache) {
-            clips.clear();
-            clips.push_back(qb2d(minClipVal));
-            clips.push_back(qb2d(maxClipVal));
-            qDebug() << "++++++++ got clips from cache";
-        } else {
+        // following if..else.. bracket for minClipInCache and maxClipInCache processing is not necessary,
+        // and it will cause the update of percentiles for different stokes or special channels failed
+        // (because minClipVal and maxClipVal do not change, and use the old cache as the result).
+        //
+        //if (minClipInCache && maxClipInCache) {
+        //    clips.clear();
+        //    clips.push_back(qb2d(minClipVal));
+        //    clips.push_back(qb2d(maxClipVal));
+        //    qDebug() << "++++++++ got clips from cache";
+        //} else {
+        //
+        //    Carta::Lib::NdArray::Double doubleView( view.get(), false );
+        //    clips = Carta::Core::Algorithms::quantiles2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+        //
+        //    if (m_diskCache) {
+        //        m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
+        //        m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+        //        qDebug() << "++++++++ calculated clips and put in cache";
+        //	}
+        //}
 
-            Carta::Lib::NdArray::Double doubleView( view.get(), false );
-            clips = Carta::Core::Algorithms::quantiles2pixels(doubleView, { minClipPercentile, maxClipPercentile });
-
-            if (m_diskCache) {
-                m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
-                m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
-                qDebug() << "++++++++ calculated clips and put in cache";
-			}
-        }
+        // allow the update of percentiles for different stokes or special channels,
+        // even if we have the same minClipVal and maxClipVal settings.
+        Carta::Lib::NdArray::Double doubleView( view.get(), false );
+        clips = Carta::Core::Algorithms::quantiles2pixels(doubleView, { minClipPercentile, maxClipPercentile });
 
         qDebug() << "++++++++ clips are" << clips[0] << "and" << clips[1];
 

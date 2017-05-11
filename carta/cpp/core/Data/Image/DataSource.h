@@ -304,7 +304,8 @@ private:
      * @return the raw data or nullptr if there is none.
      */
     Carta::Lib::NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex ) const;
-    Carta::Lib::NdArray::RawViewInterface *  _getRawDataForIntensity( int frameLow, int frameHigh, int axisIndex, int axisStokeIndex ) const;
+    Carta::Lib::NdArray::RawViewInterface *  _getRawDataForIntensity( int frameLow, int frameHigh, int axisIndex,
+                                                                      int axisStokeIndex, int stokeSliceIndex ) const;
 
     /**
      * Returns the raw data for the current view.
