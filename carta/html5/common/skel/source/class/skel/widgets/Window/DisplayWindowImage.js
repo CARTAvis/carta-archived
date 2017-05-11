@@ -80,7 +80,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
                 data.m_currentZoomLevel = newZoom;
 
-                this.m_view.sendPanZoomLevel(pt, newZoom, data.id);
+                // this.m_view.sendPanZoomLevel(pt, newZoom, data.id);
                 // console.log("Aspect debug: send wheel zoom:"+newZoom,";",pt+";id:", data.id);
 
                 // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
@@ -119,6 +119,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     continue;
                 }
             }
+
+            // each this.m_view.sendPanZoomLevel(pt, newZoom, data.id); in loop
+            //->
+            this.m_view.sendPanZoom(pt, wheelFactor);
+
         },
 
         _setupDefaultLayerData: function(data, oldDatas) {

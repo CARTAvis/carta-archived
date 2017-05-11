@@ -57,15 +57,15 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
             this.m_inputHandlers[handlerType] = handler;
         },
 
-        // sendPanZoom : function(pt, wheelFactor) {
-        //     var path = skel.widgets.Path.getInstance();
-        //     var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
-        //
-        //     this.m_connector.sendCommand( cmd,
-        //         "" + pt.x + " " + pt.y + " " + wheelFactor);
-        // },
+        sendPanZoom : function(pt, wheelFactor) {
+            var path = skel.widgets.Path.getInstance();
+            var cmd = this.m_viewId + path.SEP_COMMAND + path.ZOOM;
 
-        // new command for fitToWinowSize and setup minimal zoom level functions.
+            this.m_connector.sendCommand( cmd,
+                "" + pt.x + " " + pt.y + " " + wheelFactor);
+        },
+
+        // new command for mouse wheel zooom event, for 1 image, 
         sendPanZoomLevel : function(pt, level, id) {
 
             var path = skel.widgets.Path.getInstance();

@@ -540,7 +540,7 @@ public:
      * @param zoomLevel zoom level
      * @param layerId specify the id of a layerData to update its Pan and Zoom level
      */
-    void updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId );
+    void updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId );
 
     /**
      * Update the zoom settings.

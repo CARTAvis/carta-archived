@@ -710,7 +710,7 @@ void Controller::_initializeCallbacks(){
             double centerY = vals[1];
             double level = vals[2];
             double layerId = vals[3];
-            updatePanZoomLevel( centerX, centerY, level, layerId );
+            updatePanZoomLevelJS( centerX, centerY, level, layerId );
         }
         return "";
     });
@@ -1361,7 +1361,7 @@ void Controller::_updateDisplayAxes(){
 
 
 
-void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){
+void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId ){
     m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
     emit contextChanged();
     emit zoomChanged();
