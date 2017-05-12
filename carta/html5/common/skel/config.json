@@ -1,63 +1,77 @@
 {
-	"name"		: "skel",
-	
-	"include" :
-	[
-		{
-			"path" : "${QOOXDOO_PATH}/tool/data/config/application.json"
-		}
-	],
+  "name"    : "skel",
 
-	"export" :
-	[
-		"api",
-		"api-data",
-		"build",
-		"clean",
-		"distclean",
-		"dependencies",
-		"fix",
-		"info",
-		"inspector",
-		"lint",
-		"migration",
-		"pretty",
-		"profiling",
-		"source",
-		"source-all",
-		"source-hybrid",
-		"source-server",
-		"source-server-reload",
-		"source-httpd-config",
-		"simulation-build",
-		"simulation-run",
-		"test",
-		"test-source",
-		"translation",
-		"validate-config",
-		"validate-manifest",
-		"watch",
-		"all"
-	],
+  "include" :
+  [
+    {
+      "path" : "${QOOXDOO_PATH}/tool/data/config/application.json"
+    }
+  ],
 
-	"default-job" : "all",
+  "export" :
+  [
+    "api",
+    "api-data",
+    "build",
+    "clean",
+    "distclean",
+    "dependencies",
+    "fix",
+    "info",
+    "lint",
+    "migration",
+    "pretty",
+    "profiling",
+    "source",
+    "source-all",
+    "source-hybrid",
+    "source-server",
+    "source-server-reload",
+    "source-httpd-config",
+    "test",
+    "test-source",
+    "translation",
+    "validate-config",
+    "validate-manifest",
+    "watch",
+    "all"
+  ],
 
-	"let" :
-	{
-		"APPLICATION"	 : "skel",
-		"QOOXDOO_PATH" : "../qooxdoo-3.5-sdk",
-    //			"QOOXDOO_PATH" : "../qooxdoo-4.0.1-sdk",
-		"QXTHEME"			 : "skel.theme.Theme",
-		"API_EXCLUDE"	 : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*", "${APPLICATION}.simulation.*"],
-		"LOCALES"			 : [ "en" ],
-		"CACHE"				 : "${TMPDIR}/qx${QOOXDOO_VERSION}/cache",
-		"ROOT"				 : "."
-	},
+  "default-job" : "source-hybrid",
 
-	// You only need to edit the remainder of this file, if you want to customize
-	// specific jobs, or add own job definitions.
+  "let" :
+  {
+    "APPLICATION"  : "skel",
+    "QOOXDOO_PATH" : "../qooxdoo-5.0.2-sdk",
+    "QXTHEME"      : "skel.theme.Theme",
+    "API_EXCLUDE"  : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*"],
+    "LOCALES"      : [ "en" ],
+    "CACHE"        : "${TMPDIR}/qx${QOOXDOO_VERSION}/cache",
+    "ROOT"         : "."
+  },
 
-	"jobs" : {
+  // You only need to edit the remainder of this file, if you want to customize
+  // specific jobs, or add own job definitions.
+
+
+  "jobs" : {
+
+    // Uncomment the following entry to add a contrib or library to your
+    // project; make sure to adapt the path to the Manifest.json; if you are
+    // using a contrib: library, it will be downloaded into the path specified
+    // by the 'cache/downloads' config key
+    /*
+    "libraries" :
+    {
+      "library" :
+      [
+        {
+          "manifest" : "contrib://SkeletonApplication/trunk/Manifest.json"
+        }
+      ]
+    }
+    */
+
 		// the default job runs multiple jobs
 		"all" : {
 			"run" :
@@ -75,7 +89,7 @@
 				},
 				"paths": {
 					"app-root": "../.."
-          
+
 				},
 				"code": {
 					"decode-uris-plug": "customuris.js"
@@ -95,8 +109,8 @@
 				}
 		  }
 		},
-		
-/*    
+
+/*
 		, "build-script": {
 		  "compile-options": {
 				"code": {
@@ -106,4 +120,5 @@
 		}
 */
 	}
+
 }

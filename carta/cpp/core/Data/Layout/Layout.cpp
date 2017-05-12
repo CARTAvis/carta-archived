@@ -430,8 +430,16 @@ QString Layout::_removeWindow( const QString& locationId ){
     return result;
 }
 
-void Layout::setLayoutDefault(){
-    QStringList oldNames = getPluginList();
+void Layout::setLayoutDefault(bool cleanPluginList) {
+
+    QStringList oldNames;
+
+    if (cleanPluginList) {
+        oldNames = getPluginList();
+    } else {
+        oldNames = QStringList();
+    }
+
     _makeRoot();
 
     LayoutNode* rightTop = NodeFactory::makeComposite( false );

@@ -21,7 +21,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_viewContent.setLayout(new qx.ui.layout.Canvas());
 
         this.m_content.add( this.m_viewContent, {flex:1} );
+
         this.m_imageControls = new skel.widgets.Image.ImageControls();
+
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
         // this.m_content.add( this.m_imageControls );
     },
@@ -760,7 +762,11 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
             //Get the shared variable for preferences
             this.initializePrefs();
-            this.m_imageControls.setId( this.getIdentifier());
+
+            if (this.m_imageControls) {
+                this.m_imageControls.setId( this.getIdentifier());
+            }
+
         },
 
         /**

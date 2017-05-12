@@ -5,7 +5,7 @@
 qx.Class.define("skel.Command.Window.CommandWindowRemove", {
     extend : skel.Command.Command,
     type : "singleton",
-    
+
     /**
      * Constructor.
      */
@@ -15,9 +15,9 @@ qx.Class.define("skel.Command.Window.CommandWindowRemove", {
         this.base( arguments, "Remove", cmd );
         this.setToolTipText( "Close the selected window.");
     },
-    
+
     members : {
-        
+
         doAction : function( vals, undoCB ){
             var activeWins = skel.Command.Command.m_activeWins;
             if ( activeWins.length > 0 ){
@@ -25,7 +25,7 @@ qx.Class.define("skel.Command.Window.CommandWindowRemove", {
                 //to a custom one.  So that we don't get the custom layout popup to appear signifying
                 //a layout change, we temporarily disable it.
                 var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
-                layoutCmd.setActive( false );
+                layoutCmd.setCustomActive( false );
                 var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
                 customLayoutCmd.setValue( true );
                 var path = skel.widgets.Path.getInstance();
@@ -35,7 +35,7 @@ qx.Class.define("skel.Command.Window.CommandWindowRemove", {
                     var params = "id:"+locationId;
                     this.sendCommand( path.LAYOUT, params, undoCB );
                 }
-                layoutCmd.setActive( true );
+                layoutCmd.setCustomActive( true );
             }
         }
     }

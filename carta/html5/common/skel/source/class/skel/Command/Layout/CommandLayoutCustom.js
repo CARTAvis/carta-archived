@@ -19,7 +19,7 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
     members : {
 
         doAction : function( vals ){
-            if ( this.m_active ){
+            if ( this.getActive() ){
                 qx.event.message.Bus.dispatch(new qx.event.message.Message( "showLayoutPopup", vals));
             }
 
@@ -37,9 +37,9 @@ qx.Class.define("skel.Command.Layout.CommandLayoutCustom", {
         //the server will change to a custom layout.  In such a case, the value of this command
         //may be changed to true(if it is not already a custom layout), but we don't want to
         //show the custom layout popup.
-        setActive : function( active ){
-            this.m_active = active;
-        },
+        // setActive : function( active ){
+        //     this.m_active = active;
+        // },
 
         m_active : true
     }

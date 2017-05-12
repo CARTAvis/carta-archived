@@ -9,7 +9,7 @@
 
 
 qx.Class.define("skel.Command.Command", {
-    extend : qx.ui.core.Command,
+    extend : qx.ui.command.Command,
 
     /**
      * Constructor.

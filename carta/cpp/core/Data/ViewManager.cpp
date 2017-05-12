@@ -141,13 +141,13 @@ void ViewManager::_adjustSize( int count, const QString& name, const QVector<int
 }
 
 void ViewManager::_clear(){
-    _clearHistograms( 0, m_controllers.size() );
+   _clearHistograms( 0, m_histograms.size() );
     _clearAnimators( 0, m_animators.size() );
     _clearColormaps( 0, m_colormaps.size() );
     _clearStatistics( 0, m_statistics.size() );
-    _clearImageZooms( 0, m_imageZooms.size() );
-    _clearImageContexts( 0, m_imageContexts.size() );
-    _clearProfilers( 0, m_profilers.size() );
+   _clearImageZooms( 0, m_imageZooms.size() );
+   _clearImageContexts( 0, m_imageContexts.size() );
+   _clearProfilers( 0, m_profilers.size() );
     _clearControllers( 0, m_controllers.size() );
     if ( m_layout != nullptr ){
         m_layout->clear();
@@ -418,7 +418,7 @@ void ViewManager::_initCallbacks(){
 
     addCommandCallback( "setDefaultLayout", [=] (const QString & /*cmd*/,
                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-            setDefaultLayoutView();
+            setDefaultLayoutViewWithCurrentPluginList();
             return "";
     });
 
@@ -517,7 +517,8 @@ void ViewManager::_initCallbacks(){
 
 
 void ViewManager::_initializeDefaultState(){
-    setDefaultLayoutView();
+    setDefaultLayoutViewNoOldPluginList();
+
     // setAnalysisView();
     // setHistogramAnalysisView();
     // setImageView();
@@ -1106,7 +1107,9 @@ int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex
     return existingCount;
 }
 
-void ViewManager::setDefaultLayoutView(){
+
+void ViewManager::setDefaultLayoutView(bool cleanPluginList) {
+
     if ( m_layout == nullptr ){
         _makeLayout();
     }
@@ -1118,7 +1121,7 @@ void ViewManager::setDefaultLayoutView(){
         _clearProfilers( 0, m_profilers.size() );
         _clearControllers( 1, m_controllers.size() );
 
-        m_layout->setLayoutDefault();
+        m_layout->setLayoutDefault(cleanPluginList);
 
         //Add the links to establish reasonable defaults.
         m_animators[0]->addLink( m_controllers[0]);
@@ -1129,6 +1132,18 @@ void ViewManager::setDefaultLayoutView(){
         // m_colormaps[0]->addLink( m_histograms[0]);
         _refreshState();
     }
+
+}
+
+
+void ViewManager::setDefaultLayoutViewWithCurrentPluginList(){
+
+    setDefaultLayoutView(true);
+}
+
+void ViewManager::setDefaultLayoutViewNoOldPluginList(){
+
+    setDefaultLayoutView(false);
 }
 
 void ViewManager::setAnalysisView(){

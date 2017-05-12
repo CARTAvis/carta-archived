@@ -14,19 +14,19 @@ qx.Class.define("skel.Command.Window.WindowAddDirection", {
         this.base( arguments, label, cmd );
         this.m_direction = "";
     },
-    
+
     members : {
-        
+
         doAction : function( vals, undoCB ){
             if ( skel.Command.Command.m_activeWins.length > 0 ){
                 //Adding a window will change to a custom layout, but we don't want to show
                 //the custom layout dialog in such a case.
                 var layoutCmd = skel.Command.Layout.CommandLayout.getInstance();
-                layoutCmd.setActive( false );
+                layoutCmd.setCustomActive( false );
                 var customLayoutCmd = skel.Command.Layout.CommandLayoutCustom.getInstance();
                 customLayoutCmd.setValue( true );
-                
-                
+
+
                 //Send the command to the server
                 var path = skel.widgets.Path.getInstance();
                 var idList = "";
@@ -41,10 +41,10 @@ qx.Class.define("skel.Command.Window.WindowAddDirection", {
                 }
                 var params = "id:" + idList + ",position:" + this.m_direction;
                 this.sendCommand( path.LAYOUT, params, undoCB );
-                layoutCmd.setActive( true );
+                layoutCmd.setCustomActive( true );
             }
         },
-        
+
         m_direction : null
     }
 });

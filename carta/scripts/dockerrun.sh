@@ -31,7 +31,7 @@ if [ $# -eq 0 ] ; then
     -w="/home/developer" -e DISPLAY=$DISPLAYARG \
     -e SHELL="/bin/bash" \
     -v /tmp/.X11-unix:/tmp/.X11-unix -v $DIR/../../:/home/developer/src/CARTAvis \
-    carta/cartabuild:base_20170105 /bin/bash
+    carta/cartabuild:base_20170510 /bin/bash
 else
     docker run --rm -u 1000 -p 8080:8080 -p 9999:9999 -ti --name carta \
     -w="/home/developer" -e DISPLAY=$DISPLAYARG \
@@ -39,5 +39,5 @@ else
     -v /tmp/.X11-unix:/tmp/.X11-unix -v $DIR/../../:/home/developer/src/CARTAvis \
     -v $1:/home/developer/CARTA/Images \
     -v $1:/scratch/Images \
-    carta/cartabuild:base_20170105 /bin/bash
+    carta/cartabuild:base_20170510 /bin/bash
 fi
