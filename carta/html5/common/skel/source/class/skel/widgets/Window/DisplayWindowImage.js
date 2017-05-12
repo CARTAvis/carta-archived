@@ -23,10 +23,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_content.add( this.m_viewContent, {flex:1} );
         this.m_imageControls = new skel.widgets.Image.ImageControls();
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
+
+        // grimmer: click/select will trigger 4 times of call of _initMenu, why?
+        // start CARTA, number of _initMenu's call is 7. So after simulating, becomes 11
+        this.simulateSelecteFun = this.simulateSelecteFun.bind(this);
+        setTimeout(this.simulateSelecteFun, 0);
+
         // this.m_content.add( this.m_imageControls );
     },
 
     members : {
+
+        simulateSelecteFun: function() {
+            this.setSelected(true, false);
+        },
 
         resetZoomToFitWindowForData: function(data) {
             this.m_view.sendZoomLevel(data.m_minimalZoomLevel, data.id);
@@ -271,6 +281,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Call back that initializes the View when data is loaded.
          */
         _dataLoadedCB : function(){
+
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
                 this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
@@ -384,6 +395,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Initialize the label for displaying cursor statistics.
          */
         _initStatistics : function(){
+
             if ( this.m_statLabel === null ){
                 var path = skel.widgets.Path.getInstance();
                 var viewPath = this.m_identifier + path.SEP + path.VIEW;
@@ -491,6 +503,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Add/remove content based on user visibility preferences.
          */
         _layoutControls : function(){
+
             this.m_content.removeAll();
             this.m_content.add( this.m_viewContent, {flex:1} );
             if ( this.m_statisticsVisible ){
@@ -748,6 +761,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Implemented to initialize the context menu.
          */
         windowIdInitialized : function() {
+
             arguments.callee.base.apply(this, arguments);
 
             this._registerControlsStack();
@@ -768,6 +782,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param winObj {Object} - an object containing server side information values.
          */
         windowSharedVarUpdate : function( winObj ){
+
             if ( winObj !== null ){
                 this.m_autoClip = winObj.autoClip;
                 this.m_clipPercent = winObj.clipValueMax - winObj.clipValueMin;
