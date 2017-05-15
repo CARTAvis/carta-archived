@@ -15,7 +15,7 @@ class CCMetaDataInterface
 
 public:
 
-    CCMetaDataInterface( QString htmlTitle, std::shared_ptr < casa::CoordinateSystem > casaCS );
+    CCMetaDataInterface( QString htmlTitle, std::shared_ptr < casacore::CoordinateSystem > casaCS );
 
     virtual Carta::Lib::Image::MetaDataInterface *
     clone() override;
@@ -25,7 +25,7 @@ public:
 
 //    virtual CoordinateGridPlotterInterface::SharedPtr
 //    coordinateGridPlotter() override;
-    std::shared_ptr<casa::CoordinateSystem> getCoordinateSystem() const;
+    std::shared_ptr<casacore::CoordinateSystem> getCoordinateSystem() const;
 
     ///Return the rest frequency and units
     virtual std::pair<double,QString> getRestFrequency() const override;
@@ -44,5 +44,5 @@ public:
 protected:
 
     Carta::Lib::HtmlString m_title;
-    std::shared_ptr < casa::CoordinateSystem > m_casaCS;
+    std::shared_ptr < casacore::CoordinateSystem > m_casaCS;
 };

@@ -195,7 +195,7 @@ CCRawView < PType >::get( const Carta::Lib::NdArray::RawViewInterface::VI & pos 
                        + p * m_appliedSlice.dims()[i].step;
     }
 
-    // casa::ImageInterface::operator() returns the result by value
+    // casacore::ImageInterface::operator() returns the result by value
     // so in order to return reference (to satisfy our API) we need to store this
     // in a buffer first...
     m_buff = m_ccimage-> m_casaII->
@@ -225,8 +225,8 @@ CCRawView < PType >::forEach(
     /// \todo the shape of the subsection... e.g. [3:7:2,5:6] only needs a cursor
     /// of size 2x1(x1x1x1....x1) regardless of the image size...
     auto cursorShape = imageShape;
-    casa::LatticeStepper stepper( imageShape, cursorShape, casa::LatticeStepper::RESIZE );
-    casa::IPosition blc( imgDims, 0 );
+    casacore::LatticeStepper stepper( imageShape, cursorShape, casacore::LatticeStepper::RESIZE );
+    casacore::IPosition blc( imgDims, 0 );
     auto trc = blc;
     auto inc = blc;
     for ( size_t i = 0 ; i < imgDims ; i++ ) {
@@ -236,7 +236,7 @@ CCRawView < PType >::forEach(
         inc( i ) = slice1d.step;
     }
     stepper.subSection( blc, trc, inc );
-    casa::RO_LatticeIterator < PType > iterator( * casaII, stepper );
+    casacore::RO_LatticeIterator < PType > iterator( * casaII, stepper );
 
     bool first = true;
     for ( iterator.reset() ; ! iterator.atEnd() ; iterator++ ) {

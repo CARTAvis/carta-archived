@@ -6,16 +6,16 @@ ConverterWavelengthVelocity::ConverterWavelengthVelocity(const QString& oldUnits
         ConverterWavelength( oldUnits, newUnits) {
 }
 
-casa::Vector<double> ConverterWavelengthVelocity::convert( const casa::Vector<double>& oldValues,
-        casa::SpectralCoordinate spectralCoordinate ) {
-    casa::Vector<double> resultValues( oldValues.size());
+casacore::Vector<double> ConverterWavelengthVelocity::convert( const casacore::Vector<double>& oldValues,
+        casacore::SpectralCoordinate spectralCoordinate ) {
+    casacore::Vector<double> resultValues( oldValues.size());
 
     bool validWavelength = spectralCoordinate.setWavelengthUnit( oldUnits.toStdString() );
     bool validVelocity = spectralCoordinate.setVelocity( newUnits.toStdString() );
 
     bool successfulConversion = false;
     if ( validWavelength && validVelocity ) {
-        casa::Vector<double> frequencyValues( oldValues.size());
+        casacore::Vector<double> frequencyValues( oldValues.size());
         successfulConversion = spectralCoordinate.wavelengthToFrequency( frequencyValues,oldValues);
         if ( successfulConversion ) {
             successfulConversion = spectralCoordinate.frequencyToVelocity( resultValues, frequencyValues);
