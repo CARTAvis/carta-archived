@@ -131,8 +131,8 @@ Setup QT5PATH variable, like `QT5PATH=/opt/Qt/5.3/gcc_64/bin`, this is to build 
 
 ### [Experiment] Use Qt 5.7 + Community QtWebKit package on Mac
 
-1. Get Webkit from https://github.com/annulen/webkit/releases/, use its version >= QtWebKit Technology Preview 4.
-2. [Fix] Workaround for users of Xcode withi this package http://qt5blogger.blogspot.tw/
+1. Get Webkit from https://github.com/annulen/webkit/releases/, use QtWebKit Technology Preview 4 or Qt 5.7 or Preview 5 for  Qt 5.5
+2. [Fix] Workaround for users of Xcode withi this package http://qt5blogger.blogspot.tw/ or https://www.evernote.com/l/AAb6tTinxbtICqWZmwYpM8ttghOKyB_MH_E
 
 ## Step4 - Install most Third Party libraries, some are built from source code
 
@@ -238,6 +238,8 @@ Or build release version of UI
 ```
 
 This step is not necessary to be executed before buliding CARTA (Qt-c++ program). Without this, you will see blank UI when you launching CARTA. Also, if you just modify JavaScript UI file but do not add new JavaScript class, you do not need to build again.   
+
+p.s. we have not applied release build for our production/deployment but we will do it.
 
 ## Step3 - use command line to build
 
