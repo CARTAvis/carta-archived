@@ -397,7 +397,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             // disk cache
             // Look for the location first
-            QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
+            QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
             QByteArray locationVal;
 
             bool locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
@@ -406,7 +406,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             if (locationInCache) {
 
-                QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
+                QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
                 QByteArray intensityVal;
 
                 bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
@@ -526,8 +526,8 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
                     if (m_diskCache) {
 
-                        QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
-                        QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
+                        QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
+                        QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
 
 						m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
 						m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
