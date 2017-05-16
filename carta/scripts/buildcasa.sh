@@ -231,16 +231,25 @@ fi
 # but we put casa inside $CARTAWORKHOME/CARTAvis-externals/ThirdParty
 mkdir casa
 cd casa
-# it seems that its svn external link, casa submodule - casacore will checkout its latest one
-svn co --ignore-externals -r 38314 https://svn.cv.nrao.edu/svn/casa/trunk
-cd trunk
 
-# may switch to use git clone, https://safe.nrao.edu/wiki/bin/view/Software/CASA/CasaBuildInstructions
-# git clone https://github.com/casacore/casacore.git
-# git checkout 5f4ffede19d6dbeb296e4db2ebe467db842e7b46 (= svn 105506, 20160919, can not find 105507 on Svn client now)
-# no need to rename for git way
-svn co -r 105507 https://github.com/casacore/casacore/trunk
-mv trunk casacore
+### old svn way
+# it seems that its svn external link, casa submodule - casacore will checkout its latest one
+# svn co --ignore-externals -r 38314 https://svn.cv.nrao.edu/svn/casa/trunk
+# cd trunk
+# # may switch to use git clone, https://safe.nrao.edu/wiki/bin/view/Software/CASA/CasaBuildInstructions
+# # git clone https://github.com/casacore/casacore.git
+# # git checkout 5f4ffede19d6dbeb296e4db2ebe467db842e7b46 (= svn 105506, 20160919, can not find 105507 on Svn client now)
+# # no need to rename for git way
+# svn co -r 105507 https://github.com/casacore/casacore/trunk
+# mv trunk casacore
+###
+
+### new total git way + only clone casacore without asap part
+git clone https://open-bitbucket.nrao.edu/scm/casa/casa.git trunk
+cd trunk
+git checkout 77a3c0170c895142883dc1b69c4996f430c9e8ec ## = 5.0.0-mas-193, 20170506
+git submodule update --init casacore
+###
 
 ############################ casacore
 
@@ -264,6 +273,7 @@ mkdir build && cd build
 
 if [ "$(uname)" == "Darwin" ]; then
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 \
+    -DUseCasacoreNamespace=1 \
     -DCMAKE_Fortran_COMPILER=/usr/local/Cellar/gcc/6.3.0_1/bin/gfortran-6 \
     -DPYTHON_LIBRARY=/System/Library/Frameworks/Python.framework/Versions/2.7/Python \
     -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
@@ -275,6 +285,7 @@ if [ "$(uname)" == "Darwin" ]; then
     -DCMAKE_INSTALL_PREFIX=../../$TARGETOS -DBUILD_PYTHON=1 -DCXX11=1 ..
 elif [ "$isCentOS" = true ] ; then
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
+    -DUseCasacoreNamespace=1 \
     -DCMAKE_INSTALL_PREFIX=../../$TARGETOS -DBUILD_PYTHON=1 \
     -DPYTHON_INCLUDE_DIR=/usr/include/python2.7 \
     -DPYTHON_LIBRARY=/usr/lib64/libpython2.7.so \
@@ -291,6 +302,7 @@ else
     # https://safe.nrao.edu/wiki/bin/view/Software/CASA/CartaBuildInstructionsForUbuntu
     # -DCMAKE_PREFIX_PATH=/media/workdrive/CARTA/CARTAvis-externals/ThirdParty/wcslib
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
+    -DUseCasacoreNamespace=1 \
     -DCMAKE_INSTALL_PREFIX=../../$TARGETOS -DBUILD_PYTHON=1 \
     -DCMAKE_BUILD_TYPE=Release -DCXX11=1 ..
 fi
@@ -313,30 +325,38 @@ make install
 ############################ casa-submodule: code/imageanalysis
 cd ../../code
 
-# Apply https://safe.nrao.edu/wiki/pub/Software/CASA/CartaBuildInstructionsForUbuntu/imageanalysisonubuntu.diff
-# to Code to build imageanalysis only. Reduce build time a lot !!!!!
-curl -O http://www.asiaa.sinica.edu.tw/~tckang/casa/casacodereduce1.diff
-svn patch casacodereduce1.diff
 
-## if no insert NO_LINK, casa will try to use the libraries to run and will not find out their shared libraries,
-# since no more yum/apt version which is easily searchable without using rpath or LD_LIBRARY_PATH.
-perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( WCSLIB/' CMakeLists.txt
-perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
-perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( QWT/' CMakeLists.txt
+### old
+# # Apply https://safe.nrao.edu/wiki/pub/Software/CASA/CartaBuildInstructionsForUbuntu/imageanalysisonubuntu.diff
+# # to Code to build imageanalysis only. Reduce build time a lot !!!!!
+# curl -O http://www.asiaa.sinica.edu.tw/~tckang/casa/casacodereduce1.diff
+# svn patch casacodereduce1.diff
+#
+# ## if no insert NO_LINK, casa will try to use the libraries to run and will not find out their shared libraries,
+# # since no more yum/apt version which is easily searchable without using rpath or LD_LIBRARY_PATH.
+# perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( WCSLIB/' CMakeLists.txt
+# perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( CASACORE/' CMakeLists.txt
+# perl -pi -e '$_ .= qq(NO_LINK\n) if /casa_find\( QWT/' CMakeLists.txt
+#
+# perl -pi.bak -e 's/QtGui QtDBus QtXml/QtGui QtXml/g' CMakeLists.txt
+#
+# if [ "$(uname)" == "Darwin" ]; then
+#   sed -i "" 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
+#   sed -i "" 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
+#   sed -i "" 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
+#   sed -i "" 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
+# else
+#   sed -i 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
+#   sed -i 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
+#   sed -i 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
+#   sed -i 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
+# fi
+###
 
-perl -pi.bak -e 's/QtGui QtDBus QtXml/QtGui QtXml/g' CMakeLists.txt
-
-if [ "$(uname)" == "Darwin" ]; then
-  sed -i "" 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
-  sed -i "" 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
-  sed -i "" 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
-  sed -i "" 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
-else
-  sed -i 's/.*casa_add_module( graphics/#&/' CMakeLists.txt
-  sed -i 's/.*casa_add_module( atmosphere/#&/' CMakeLists.txt
-  sed -i 's/.*casa_add_module( parallel/#&/' CMakeLists.txt
-  sed -i 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
-fi
+### new for new git way/repo, will improve later. 201705
+curl -O http://www.asiaa.sinica.edu.tw/~tckang/casa/casacodereduce2.diff
+git apply casacodereduce2.diff
+###
 
 mkdir build && cd build
 
@@ -346,6 +366,7 @@ mkdir build && cd build
 ## DSKIP_PGPLOT is used by display, qtviewer/guitools?, or some imageanalysis/test
 if [ "$(uname)" == "Darwin" ]; then
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 \
+    -DUseCasacoreNamespace=1 \
     -Darch=$TARGETOS -DCMAKE_BUILD_TYPE=Release -DCXX11=1 \
     -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
@@ -365,6 +386,7 @@ if [ "$(uname)" == "Darwin" ]; then
     -DINTERACTIVE_ITERATION=1  ..
 elif [ "$isCentOS" = true ] ; then
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 -DEXTRA_C_FLAGS=-DPG_PPU \
+    -DUseCasacoreNamespace=1 \
     -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
     -DQWT_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0 \
@@ -377,6 +399,7 @@ elif [ "$isCentOS" = true ] ; then
 else
     # -DWCSLIB_ROOT_DIR=/media/workdrive/CARTA/CARTAvis-externals/ThirdParty/wcslib
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 '-DEXTRA_C_FLAGS=-DPG_PPU' \
+    -DUseCasacoreNamespace=1 \
     -DWCSLIB_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/cfitsio \
     -DQWT_ROOT_DIR=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.0 \
