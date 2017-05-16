@@ -41,7 +41,8 @@ bool CoordinateSystems::m_registered =
 
 CoordinateSystems::CoordinateSystems( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
-    //m_coordSystems.insert(Carta::Lib::KnownSkyCS::Default, NATIVE );
+    m_coordSystems.insert(Carta::Lib::KnownSkyCS::Default, NATIVE );
+    //m_coordSystems.insert(Carta::Lib::KnownSkyCS::Unknown, UNKNOWN);
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::J2000, J2000);
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::Galactic, GALACTIC);
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::ICRS, ICRS);
@@ -58,7 +59,7 @@ QString CoordinateSystems::getDefault() const {
 }
 
 Carta::Lib::KnownSkyCS  CoordinateSystems::getDefaultType() const {
-    return Carta::Lib::KnownSkyCS::J2000;
+    return Carta::Lib::KnownSkyCS::Default;
 }
 
 QString CoordinateSystems::getCoordinateSystem( const QString& system ) const {

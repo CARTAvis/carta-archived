@@ -1,6 +1,7 @@
 #include "State/ObjectManager.h"
 #include "State/UtilState.h"
 #include "Data/Image/Controller.h"
+#include "Data/Image/CoordinateSystems.h"
 #include "Data/Image/DataFactory.h"
 #include "Data/Image/Stack.h"
 #include "Data/Image/DataSource.h"
@@ -138,6 +139,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
             selectedLayers.append( stackId );
             _setLayersSelected( selectedLayers );
         }
+        //setDefaultImageSkyCS();
         _updateDisplayAxes();
         emit dataChanged( this );
     }
@@ -489,6 +491,7 @@ double Controller::getZoomLevel( ) const {
 
 void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     m_stack->_gridChanged( state, applyAll );
+    //setDefaultImageSkyCS();
 }
 
 void Controller::_onInputEvent( InputEvent  ev ){
@@ -1366,7 +1369,7 @@ void Controller::_updateDisplayAxes(){
         m_gridControls->_setAxisInfos( supportedAxes );
         AxisInfo::KnownType xType = m_stack->_getAxisXType();
         AxisInfo::KnownType yType = m_stack->_getAxisYType();
-        const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+        //const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
         QString xPurpose = AxisMapper::getPurpose( xType );
         QString yPurpose = AxisMapper::getPurpose( yType );
         m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
@@ -1374,6 +1377,13 @@ void Controller::_updateDisplayAxes(){
     }
 }
 
+
+// void Controller::setDefaultImageSkyCS(){
+//     const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+//     CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
+//     QString csName = m_coords->getName(cs);
+//     m_gridControls->setCoordinateSystem(csName);
+// }
 
 
 void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){

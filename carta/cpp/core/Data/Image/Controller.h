@@ -676,6 +676,8 @@ private:
 	void _renderZoom( double factor );
 	void _renderContext( double zoomFactor );
 
+    void setDefaultImageSkyCS();
+
 	/**
 	 * Make a frame selection.
 	 * @param axisType - the axis for which a frame is being set.
