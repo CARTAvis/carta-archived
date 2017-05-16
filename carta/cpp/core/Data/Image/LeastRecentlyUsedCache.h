@@ -29,7 +29,7 @@ public:
      * @param percentile - the percentile as a number in [0,1].
      * @param intensity - the intensity.
      */
-    void put(int frameLow, int frameHigh, int location, double percentile, double intensity );
+    void put(int frameLow, int frameHigh, int location, double percentile, double intensity , int stokeFrame);
 
     /**
      * Returns the (location,intensity) corresponding to the given frame range and
@@ -37,9 +37,10 @@ public:
      * @param frameLow - lower boundary of the channel range.
      * @param frameHigh - upper boundary of the channel range.
      * @param percentile - the percentile in [0,1] that is needed.
+     * stokeFrame - the index number of stoke slice
      * @return - the (location,intensity) corresponding to the passed in information.
      */
-    std::pair<int,double> getIntensity( int frameLow, int frameHigh, double percentile);
+    std::pair<int,double> getIntensity( int frameLow, int frameHigh, double percentile, int stokeFrame);
 
     /**
      * Return a string representation of the contents of the cache.

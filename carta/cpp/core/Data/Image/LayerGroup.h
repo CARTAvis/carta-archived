@@ -221,10 +221,11 @@ protected:
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
      * @return - a list of (location,intensity) pairs.
      */
     virtual std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
+            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current

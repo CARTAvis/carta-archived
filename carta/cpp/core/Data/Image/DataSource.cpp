@@ -373,8 +373,9 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 }
 
 // TODO: create another function which only looks for the intensity. Most calling functions don't need the location.
+// 2017/05/16    C.C. Chiang: Modify this function that can get the intensity (pixel) for different stokes (I, Q, U and V)
 std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles ){
+        const std::vector<double>& percentiles, int stokeFrame ){
 
     //See if it is in the cached percentiles first.
     int percentileCount = percentiles.size();
@@ -384,7 +385,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
     int foundCount = 0;
     for ( int i = 0; i < percentileCount; i++ ){
 
-        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
+        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i], stokeFrame);
 
         if ( val.first>= 0 ){
 
@@ -396,7 +397,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             // disk cache
             // Look for the location first
-            QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+            QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
             QByteArray locationVal;
 
             bool locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
@@ -405,7 +406,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 
             if (locationInCache) {
 
-                QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+                QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
                 QByteArray intensityVal;
 
                 bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
@@ -419,7 +420,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     foundCount++;
 
                     // put them in the memory cache
-                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second, stokeFrame);
                 }
             }
         }
@@ -445,11 +446,11 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
 
         // get raw data (only for the stoke I) in order to sort the raw data set by selection algorithm
-        int stokeSliceIndex = 0; // 0 is for stoke I; 1 is for stoke Q; 2 is for stoke U; 3 is for stoke V; Other value is for all stokes
+        int stokeSliceIndex = stokeFrame; // -1 is for no stoke; 0 is for stoke I; 1 is for stoke Q; 2 is for stoke U; 3 is for stoke V
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForIntensity( frameLow, frameHigh, spectralIndex, stokeIndex, stokeSliceIndex );
         qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
-        qDebug() << "++++++++ default stokeSliceIndex for percentile=" << stokeSliceIndex
-                 << "(0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V, Other value: all stokes)";
+        qDebug() << "++++++++ set the Stoke Index for Percentile=" << stokeSliceIndex
+                 << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
 
         if ( rawData == nullptr ){
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
@@ -521,12 +522,12 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     }
 
                     // put calculated values in both the memory cache and the disk cache
-                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second, stokeFrame);
 
                     if (m_diskCache) {
 
-						QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
-						QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+                        QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
+                        QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]).arg(stokeFrame);
 
 						m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
 						m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
@@ -543,10 +544,10 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 }
 
 std::vector<std::pair<int,double> > DataSource::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles){
-   //See if we can find it in the least recently used cache; otherwise, look it up.
+        const std::vector<double>& percentiles, int stokeFrame ){
+    //See if we can find it in the least recently used cache; otherwise, look it up.
     std::vector<std::pair<int,double> > intensities = _getIntensityCache( frameLow,
-            frameHigh, percentiles );
+            frameHigh, percentiles, stokeFrame );
     return intensities;
 }
 
@@ -921,7 +922,7 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
 		//Update the clip values
 		if ( recomputeClipsOnNewFrame ){
 			_updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
-		}
+        }
 		QString cacheId=m_pixelPipeline-> cacheId();
 		m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
 

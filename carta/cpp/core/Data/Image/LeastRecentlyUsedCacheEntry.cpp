@@ -6,17 +6,19 @@ namespace Carta {
 namespace Data {
 
 LeastRecentlyUsedCacheEntry::LeastRecentlyUsedCacheEntry( int frameLow, int frameHigh,
-        int location, double percentile, double intensity ){
+        int location, double percentile, double intensity, int stokeFrame ){
     m_frameLow = frameLow;
     m_frameHigh = frameHigh;
     m_location = location;
     m_percentile = percentile;
     m_intensity = intensity;
+    m_stokeFrame = stokeFrame;
 }
 
 int LeastRecentlyUsedCacheEntry::getFrameLow() const {
     return m_frameLow;
 }
+
 int LeastRecentlyUsedCacheEntry::getFrameHigh() const {
     return m_frameHigh;
 }
@@ -31,6 +33,10 @@ double LeastRecentlyUsedCacheEntry::getPercentile() const {
 
 double LeastRecentlyUsedCacheEntry::getIntensity() const {
     return m_intensity;
+}
+
+int LeastRecentlyUsedCacheEntry::getStokeFrame() const {
+    return m_stokeFrame;
 }
 
 bool LeastRecentlyUsedCacheEntry::operator==( const LeastRecentlyUsedCacheEntry& other ) const {

@@ -482,12 +482,12 @@ QRectF LayerGroup::_getInputRect( const QSize& size ) const {
 }
 
 std::vector<std::pair<int,double> > LayerGroup::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles ) const{
+        const std::vector<double>& percentiles, int stokeFrame ) const{
     std::vector<std::pair<int,double> > results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
-                percentiles );
+                percentiles, stokeFrame );
     }
     return results;
 }
