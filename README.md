@@ -475,4 +475,4 @@ CARTA third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
 
 ## Library and Plugin Issue
-1. buildcasa.sh for Ubuntu needs update. 
+1. For Ubuntu, buildcasa.sh needs update to build RegionDS9 plugin.
