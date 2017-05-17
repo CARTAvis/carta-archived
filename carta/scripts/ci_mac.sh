@@ -9,10 +9,10 @@
 
 ### define your variables first
 export cartawork=~/src2
-branch=upgradeToNewNamespace #optional
-qtwebkit=qtwebkit-tp5-qt58-darwin-x64
 export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
 export CARTABUILDHOME=$cartawork/CARTAvis/build
+qtwebkit=qtwebkit-tp5-qt58-darwin-x64
+branch=upgradeToNewNamespace #optional
 ##
 
 ### prerequisite
@@ -50,7 +50,7 @@ sudo /opt/casa/02/bin/port -N install bison # 3.0.4
 
 ### Install the libraries for casa
 # part1 homebrew part
-./CARTAvis/carta/scripts/installLibsForCASAonMac.sh
+sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 # part2
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## build libsakura-4.0.2065.
