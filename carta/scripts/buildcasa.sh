@@ -6,7 +6,6 @@
 
 if [ -z ${cartawork+x} ]; then
 	export cartawork=`pwd`
-else
 fi
 
 isCentOS=true

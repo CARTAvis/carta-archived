@@ -4,7 +4,6 @@
 
 if [ -z ${cartawork+x} ]; then
 	export cartawork=`pwd`
-else
 fi
 
 isCentOS=true
@@ -92,16 +91,16 @@ if [ -z ${QT5PATH+x} ]; then
 	echo "QT5PATH is unset";
 	QT5PATH=/
 	if [ "$(uname)" == "Darwin" ]; then
-		QT5PATH=$HOME/Qt/5.3/clang_64/bin
+		QT5PATH=$HOME/Qt/5.3/clang_64
 	else
-		QT5PATH=/opt/Qt/5.3/gcc_64/bin
+		QT5PATH=/opt/Qt/5.3/gcc_64
 	fi
-	export PATH=$QT5PATH:$PATH
+	export PATH=$QT5PATH/bin:$PATH
 else
 	echo "QT5PATH is already set to '$QT5PATH'";
 	export PATH=$QT5PATH/bin:$PATH # Homebrew case
-	export PATH=$QT5PATH/clang_64/bin:$PATH # Qt official installer case
-	export PATH=$QT5PATH/gcc_64/bin:$PATH # Qt official installer case
+	# export PATH=$QT5PATH/clang_64/bin:$PATH # Qt official installer case
+	# export PATH=$QT5PATH/gcc_64/bin:$PATH # Qt official installer case
 fi
 
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
