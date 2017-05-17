@@ -131,7 +131,7 @@ Setup QT5PATH variable, like `QT5PATH=/opt/Qt/5.3/gcc_64/bin`, this is to build 
 
 ### [Experiment] Use Qt 5.7 + Community QtWebKit package on Mac
 
-1. Get Webkit from https://github.com/annulen/webkit/releases/, use QtWebKit Technology Preview 4 or Qt 5.7 or Preview 5 for  Qt 5.5
+1. Get Webkit from https://github.com/annulen/webkit/releases/, use QtWebKit Technology Preview 4 or Qt 5.7 or Preview 5 for  Qt 5.8.
 2. [Fix] Workaround for users of Xcode withi this package http://qt5blogger.blogspot.tw/ or https://www.evernote.com/l/AAb6tTinxbtICqWZmwYpM8ttghOKyB_MH_E
 
 ## Step4 - Install most Third Party libraries, some are built from source code
@@ -200,9 +200,9 @@ Some of third-party libraries they use are the same,  but may use different vers
 5. gsl (CARTA uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
 6. blas lib. (required when building GSL, also when building casacore)
 7. GFortran (CARTA uses ast library which uses GFortran, and casacore uses this, too)
-8. Qt. (CARTA uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
-9. qwt (CARTA uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
-9. Python and numpy (should be ok. CARTA:2.7. casa:2.7)
+8. Qt. (CARTA uses Qt>=5.3.x. casa & its needed qwt uses 4.8.x)  
+9. qwt (we need two version. 6.1.2 is built by the same Qt versoin used by CARTA, Qt>=5.3.x. casa submodule, code uses 4.8.x to build qwt 6.1.0)
+9. Python and numpy (should be ok. CARTA:2.7. casa:2.7/3.5)
 
 #### 3.How to change the revision of casa we use to build
 
