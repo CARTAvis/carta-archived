@@ -523,6 +523,14 @@ QStringList GridControls::_parseColorParams( const QString& params, const QStrin
     return result;
 }
 
+void GridControls::_resetCoordinateSystem( const QString coordSystem ){
+    m_dataGrid->_resetCoordinateSystem( coordSystem );
+    Carta::State::StateInterface gridState = m_dataGrid->_getState();
+    QString gridStateStr = gridState.toString();
+    m_state.setObject( DataGrid::GRID, gridStateStr );
+    m_state.flushState();
+}
+
 void GridControls::_resetState( const Carta::State::StateInterface& otherState ){
     m_dataGrid->_resetState( otherState );
     QString gridStateStr = m_dataGrid->_getState().toString();

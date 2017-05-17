@@ -61,6 +61,7 @@ private:
      */
     Carta::Lib::KnownSkyCS _getSkyCS() const;
     bool _isGridVisible() const;
+    void _resetCoordinateSystem( const QString& coordSystem );
     void _resetState( const Carta::State::StateInterface& otherState );
     QString _setAxis( const QString& axisId, const QString& purpose, bool* axisChanged );
     bool _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );

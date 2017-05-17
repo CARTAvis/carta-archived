@@ -139,7 +139,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
             selectedLayers.append( stackId );
             _setLayersSelected( selectedLayers );
         }
-        //setDefaultImageSkyCS();
+        _setSkyCSName();
         _updateDisplayAxes();
         emit dataChanged( this );
     }
@@ -491,7 +491,7 @@ double Controller::getZoomLevel( ) const {
 
 void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     m_stack->_gridChanged( state, applyAll );
-    //setDefaultImageSkyCS();
+    _setSkyCSName();
 }
 
 void Controller::_onInputEvent( InputEvent  ev ){
@@ -1099,6 +1099,19 @@ void Controller::setAutoClip( bool autoClip ){
     }
 }
 
+
+void Controller::_setAxisMap(){
+    std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
+    int axisCount = supportedAxes.size();
+    AxisMapper::cleanAxisMap();
+    for( int i=0; i<axisCount; i++ ){
+        QString name = supportedAxes[i].longLabel().plain();
+        AxisMapper::setAxisMap( std::pair<Carta::Lib::AxisInfo::KnownType, QString>
+                                    (supportedAxes[i].knownType(), name), QString("") );
+    }
+}
+
+
 QString Controller::setClipValue( double clipVal  ) {
     QString result;
     if ( 0 <= clipVal && clipVal <= 1 ){
@@ -1117,6 +1130,14 @@ QString Controller::setClipValue( double clipVal  ) {
         result = "Clip value must be in [0,1].";
     }
     return result;
+}
+
+
+void Controller::_setSkyCSName(){
+    const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+    CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
+    QString csName = m_coords->getName(cs);
+    m_gridControls->_resetCoordinateSystem(csName);
 }
 
 
@@ -1321,17 +1342,6 @@ void Controller::setZoomLevelJS( double zoomFactor, double layerId ){
     m_stack->_setZoomLevelForLayerId( zoomFactor, layerId );
 }
 
-void Controller::_setAxisMap(){
-    std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
-    int axisCount = supportedAxes.size();
-    AxisMapper::cleanAxisMap();
-    for( int i=0; i<axisCount; i++ ){
-        QString name = supportedAxes[i].longLabel().plain();
-        AxisMapper::setAxisMap( std::pair<Carta::Lib::AxisInfo::KnownType, QString>
-                                    (supportedAxes[i].knownType(), name), QString("") );
-    }
-}
-
 void Controller::_updateCursor( int mouseX, int mouseY ){
     if ( m_stack->_getStackSize() == 0 ){
         return;
@@ -1376,14 +1386,6 @@ void Controller::_updateDisplayAxes(){
         m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
     }
 }
-
-
-// void Controller::setDefaultImageSkyCS(){
-//     const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-//     CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
-//     QString csName = m_coords->getName(cs);
-//     m_gridControls->setCoordinateSystem(csName);
-// }
 
 
 void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){
