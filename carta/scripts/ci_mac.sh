@@ -22,9 +22,17 @@ SECONDS=0
 
 echo "step1: define your variables first"
 
-if [ -z ${cartawork+x} ]; then
+# if [ -z ${cartawork+x} ]; then
+#   export cartawork=~/cartahome
+# fi
+
+if [ $# -eq 0 ] ; then
   export cartawork=~/cartahome
+else
+  export cartawork=$1
 fi
+
+echo "CARTA working folder is $cartawork"
 
 export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
 export CARTABUILDHOME=$cartawork/CARTAvis/build
@@ -33,7 +41,11 @@ branch=upgradeToNewNamespace #optional
 ##
 
 echo "step1-2: create ThirdParty folder"
-sudo su $SUDO_USER -c "mkdir -p $cartawork/CARTAvis-externals/ThirdParty"
+
+su $SUDO_USER <<EOF
+mkdir -p $cartawork
+mkdir -p $cartawork/CARTAvis-externals/ThirdParty
+EOF
 
 # su $SUDO_USER <<EOF
 # /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -50,7 +62,6 @@ sudo -u $SUDO_USER ruby \
   </dev/null
 sudo su $SUDO_USER -c "brew install wget"
 printDuration
-
 
 if [ -f $cartawork/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
   echo "Macports-flex exist, so ignore macports part"
@@ -99,12 +110,10 @@ echo "step3: download CARTA soure code"
 pause
 
 su $SUDO_USER <<EOF
-mkdir -p $cartawork
 cd $cartawork
 git clone https://github.com/CARTAvis/carta.git CARTAvis
 cd CARTAvis
 git checkout $branch
-mkdir -p $cartawork/CARTAvis-externals/ThirdParty
 EOF
 ###
 printDuration
@@ -115,9 +124,9 @@ pause
 
 sudo su $SUDO_USER -c "brew install qt"
 printDuration
+
 echo "step4-2: Install Third party for CARTA"
 pause
-
 cd $cartawork
 sudo ./CARTAvis/carta/scripts/install3party.sh
 ###
@@ -126,7 +135,6 @@ printDuration
 ### Install the libraries for casa
 echo "step5: Install some libraries for casa from homebrew"
 pause
-
 # part1 homebrew part
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 printDuration
