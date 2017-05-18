@@ -5,6 +5,10 @@ function printDuration(){
   echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
 }
 
+function pause(){
+  read -p "Press [Enter] key to continue"
+}
+
 
 ### TODO
 ## 1. use the following two to improve sudo part
@@ -51,10 +55,10 @@ printDuration
 if [ -f $cartawork/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
   echo "Macports-flex exist, so ignore macports part"
 else
-  echo "Macports-flex exist, so start to install macports and its flex, bison"
+  echo "Macports-flex does not exist, so start to install macports and its flex, bison"
 
   echo "step2-2: prerequisite: install macports"
-  read -p "Press [Enter] key to start backup..."
+  pause
 
   # 3. install macports
   macporthome=$cartawork/CARTAvis-externals/ThirdParty/macports
@@ -72,7 +76,7 @@ else
   printDuration
 
   echo "step2-3: install flex from macports"
-  read -p "Press [Enter] key to start backup..."
+  pause
 
   # these can be installed by ordinary Macports, too.
   sudo $macporthome/bin/port -N install flex  # 2.5.37, long time to install,
@@ -82,7 +86,7 @@ else
   printDuration
 
   echo "step2-4: install bison from macports"
-  read -p "Press [Enter] key to start backup..."
+  pause
 
   sudo $macporthome/bin/port -N install bison # 3.0.4
   ###
@@ -92,7 +96,7 @@ fi
 
 ### download CARTA soure code
 echo "step3: download CARTA soure code"
-read -p "Press [Enter] key to start backup..."
+pause
 
 su $SUDO_USER <<EOF
 mkdir -p $cartawork
@@ -107,12 +111,12 @@ printDuration
 
 ### Install 3 party for CARTA
 echo "step4: Install Qt for CARTA"
-read -p "Press [Enter] key to start backup..."
+pause
 
 sudo su $SUDO_USER -c "brew install qt"
 printDuration
 echo "step4-2: Install Third party for CARTA"
-read -p "Press [Enter] key to start backup..."
+pause
 
 cd $cartawork
 sudo ./CARTAvis/carta/scripts/install3party.sh
@@ -121,13 +125,13 @@ printDuration
 
 ### Install the libraries for casa
 echo "step5: Install some libraries for casa from homebrew"
-read -p "Press [Enter] key to start backup..."
+pause
 
 # part1 homebrew part
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 printDuration
 echo "step5-2: Install some libraries for casa, build from source"
-read -p "Press [Enter] key to start backup..."
+pause
 
 # part2
 cd $cartawork/CARTAvis-externals/ThirdParty
@@ -164,7 +168,7 @@ printDuration
 
 ### build casa
 echo "step6: Build casa"
-read -p "Press [Enter] key to start backup..."
+pause
 
 cd $cartawork
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
@@ -173,7 +177,7 @@ printDuration
 
 ### setup QtWebkit
 echo "step7: setup QtWebkit"
-read -p "Press [Enter] key to start backup..."
+pause
 
 su $SUDO_USER <<EOF
 cd $cartawork/CARTAvis-externals/ThirdParty
@@ -203,7 +207,7 @@ printDuration
 ### build UI of CARTA
 su $SUDO_USER <<EOF
 echo "step8: Build UI of CARTA"
-read -p "Press [Enter] key to start backup..."
+pause
 cd $cartawork/CARTAvis/carta/html5/common/skel
 ./generate.py
 ###
@@ -211,7 +215,7 @@ printDuration
 
 ### build CARTA
 echo "step9: Build CARTA"
-read -p "Press [Enter] key to start backup..."
+pause
 export PATH=$QT5PATH/bin:$PATH
 mkdir -p $CARTABUILDHOME
 cd $CARTABUILDHOME
@@ -225,7 +229,7 @@ date
 
 ### packagize CARTA
 echo "step10: packagize CARTA"
-read -p "Press [Enter] key to start backup..."
+pause
 curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
 chmod 755 final_mac_packaging_steps.sh
 ./final_mac_packaging_steps.sh
