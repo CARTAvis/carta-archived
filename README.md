@@ -210,7 +210,7 @@ Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we
 
 #### 4.Start from August, 2016 to November, 2016, namespace of casa libs was changing
 
-It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
+It transited from **casa::** to **casacore::**. So do not use the combination of the submodules (casacore and code) during this time.
 
 # Build CARTA program
 
