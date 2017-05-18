@@ -17,7 +17,11 @@ date
 SECONDS=0
 
 echo "step1: define your variables first"
-export cartawork=~/src3
+
+if [ -z ${cartawork+x} ]; then
+  export cartawork=~/cartahome
+fi
+
 export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
 export CARTABUILDHOME=$cartawork/CARTAvis/build
 export qtwebkit=qtwebkit-tp5-qt58-darwin-x64
@@ -42,7 +46,7 @@ printDuration
 
 read -p "Press [Enter] key to start backup..."
 
-if [ -f /Users/grimmer/src3/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
+if [ -f $cartawork/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
   echo "Macports-flex exist, so ignore macports part"
 else
   echo "Macports-flex exist, so start to install macports and its flex, bison"
