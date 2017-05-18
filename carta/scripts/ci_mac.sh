@@ -167,6 +167,7 @@ printDuration
 echo "step7: setup QtWebkit"
 read -p "Press [Enter] key to start backup..."
 
+su $SUDO_USER <<EOF
 cd $cartawork/CARTAvis-externals/ThirdParty
 wget https://github.com/annulen/webkit/releases/download/qtwebkit-tp5/$qtwebkit.tar.xz
 tar -xvzf $qtwebkit.tar.xz
@@ -187,10 +188,9 @@ echo "QT.webkit.module = QtWebKit" >> $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
 perl -pi.bak -e 's/QT.webkit.module_config =/QT.webkit.module_config = v2 lib_bundle/g' $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
 echo "QT.webkitwidgets.module = QtWebKitWidgets" >> $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
 perl -pi.bak -e 's/QT.webkitwidgets.module_config =/QT.webkitwidgets.module_config = v2 lib_bundle /g' $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
+EOF
 ###
 printDuration
-
-
 
 ### build UI of CARTA
 su $SUDO_USER <<EOF
