@@ -128,7 +128,8 @@ printDuration
 echo "step4-2: Install Third party for CARTA"
 pause
 cd $cartawork
-sudo ./CARTAvis/carta/scripts/install3party.sh
+## if use sudo ./xx.sh will let it can not inherit QT5PATH
+./CARTAvis/carta/scripts/install3party.sh
 ###
 printDuration
 
@@ -188,7 +189,6 @@ printDuration
 ### setup QtWebkit
 echo "step7: setup QtWebkit"
 pause
-
 su $SUDO_USER <<EOF
 cd $cartawork/CARTAvis-externals/ThirdParty
 wget https://github.com/annulen/webkit/releases/download/qtwebkit-tp5/$qtwebkit.tar.xz
@@ -215,23 +215,28 @@ EOF
 printDuration
 
 ### build UI of CARTA
-su $SUDO_USER <<EOF
 echo "step8: Build UI of CARTA"
 pause
+su $SUDO_USER <<EOF
+echo $cartawork
 cd $cartawork/CARTAvis/carta/html5/common/skel
 ./generate.py
 ###
+EOF
 printDuration
 
 ### build CARTA
 echo "step9: Build CARTA"
 pause
+su $SUDO_USER <<EOF
+echo $QT5PATH
 export PATH=$QT5PATH/bin:$PATH
 mkdir -p $CARTABUILDHOME
 cd $CARTABUILDHOME
 qmake -config release NOSERVER=1 CARTA_BUILD_TYPE=release $cartawork/CARTAvis/carta -r
 make -j2
 ###
+EOF
 printDuration
 
 echo "end time:"
@@ -240,6 +245,7 @@ date
 ### packagize CARTA
 echo "step10: packagize CARTA"
 pause
+su $SUDO_USER <<EOF
 curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
 chmod 755 final_mac_packaging_steps.sh
 ./final_mac_packaging_steps.sh
