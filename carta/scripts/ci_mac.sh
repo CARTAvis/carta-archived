@@ -138,9 +138,9 @@ pause
 # part1 homebrew part
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 printDuration
-echo "step5-2: Install some libraries for casa, build from source"
-pause
 
+echo "step5-2: Install some libraries for casa, build from source-libsakura"
+pause
 # part2
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## build libsakura-4.0.2065.
@@ -157,6 +157,8 @@ make
 make apidoc
 sudo make install #/usr/local
 cd ../../
+echo "step5-3: Install some libraries for casa, build from source-rpfits"
+pause
 # in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
 # part3, Build rpfits-2.24, make sure you are still in `your-carta-work`/CARTAvis-externals/ThirdParty/
 wget ftp://ftp.atnf.csiro.au/pub/software/rpfits/rpfits-2.24.tar.gz
