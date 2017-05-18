@@ -118,7 +118,8 @@ cd ..
 ln -s qwt-6.1.2 qwt
 if [ "$(uname)" == "Darwin" ]; then
 	cd qwt
-	ln -s ../qwt-6.1.2/lib/qwt.framework/Versions/6/Headers include
+	# sometimes Versions/6 or Versions/1, have not investigated why
+	ln -s ../qwt-6.1.2/lib/qwt.framework/Versions/Current/Headers include
 	cd ..
 fi
 

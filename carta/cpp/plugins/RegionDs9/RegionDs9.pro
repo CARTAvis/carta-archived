@@ -35,20 +35,27 @@ LIBS += -L$${CFITSIODIR}/lib -lcfitsio
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
+# 1 original:
+# LIBS += -L$${FLEXANDBISONDIR}/lib -lfl -ly
+# INCLUDEPATH += $${FLEXANDBISONDIR}/include
 
-FLEXBIN= /opt/casa/02/bin/flex
-# /usr/local/opt/bison/bin/bison
-BISONBIN= /opt/casa/02/bin/bison
-
+# 2 then try homebrew, but not work
+# flex:2.6.3, bison:3.0.4
 # /usr/local/opt/flex/include
-FLEXINCLUDE = /opt/casa/02/include
-FLEXLIB= /opt/casa/02/lib
+# INCLUDEPATH += /usr/local/opt/bison/include
+# /usr/local/opt/bison/bin/bison
+
+# 3. now use macports: flex:2.6.1, bison 3.0.4, OK
+
+FLEXBIN= $${FLEXANDBISONDIR}/bin/flex
+BISONBIN= $${FLEXANDBISONDIR}/bin/bison
+
+FLEXINCLUDE = $${FLEXANDBISONDIR}/include
+FLEXLIB= $${FLEXANDBISONDIR}/lib
 
 unix:macx{
-    # use homebrew version, flex:2.6.3, bison:3.0.4
     LIBS += -L$${FLEXLIB} -lfl -ly
     INCLUDEPATH += $${FLEXINCLUDE}
-    # INCLUDEPATH += /usr/local/opt/bison/include
 } else {
     LIBS += -lfl -ly
 }

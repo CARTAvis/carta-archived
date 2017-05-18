@@ -23,7 +23,7 @@ brew install readline
 # so keep installing pgplot to pass the check. imageanalysis's testing code needs this (`<casa/System/PGPlotter.h>`)
 # but we remove the testing part of it. casacore's lattices' source codes have "pgplot" insdie but seems not need pgplot when compiling casacore
 #if you already have xquartz installed, it will not install again. this is needed by pgplot
-brew cask install xquartz ## needed root
+brew cask install xquartz 
 brew install pgplot
 
 brew install dbus # To pass cmake's check

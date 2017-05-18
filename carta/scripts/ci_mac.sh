@@ -1,54 +1,90 @@
 #!/bin/bash
 
+function printDuration(){
+  duration=$SECONDS
+  echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
+}
+
+
 ### TODO
 ## 1. use the following two to improve sudo part
 ## https://askubuntu.com/questions/585043/run-only-parts-of-a-script-as-sudo-entering-password-only-once
 ## or https://unix.stackexchange.com/questions/70859/why-doesnt-sudo-su-in-a-shell-script-run-the-rest-of-the-script-as-root
 ## 2. cache for gsl??? no, at least need build again !!! sakura and homebrew global part, hombrew can not be used with sudo
 ## x3. webkit preview 5 of qt 5.8 !!!!!
+echo "start time:"
+date
+SECONDS=0
 
-### define your variables first
-export cartawork=~/src2
+echo "step1: define your variables first"
+export cartawork=~/src3
 export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
 export CARTABUILDHOME=$cartawork/CARTAvis/build
-qtwebkit=qtwebkit-tp5-qt58-darwin-x64
+export qtwebkit=qtwebkit-tp5-qt58-darwin-x64
 branch=upgradeToNewNamespace #optional
 ##
+
+# su $SUDO_USER <<EOF
+# /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+# brew install wget
+# EOF
 
 ### prerequisite
 # 1. xcode
 # 2. isntall homebrw
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install wget
+echo "step2: prerequisite: install homebrew"
+# /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+sudo -u $SUDO_USER ruby \
+  -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
+  </dev/null
+sudo su $SUDO_USER -c "brew install wget"
+printDuration
+echo "step2-2: prerequisite: install macports"
 # 3. install macports
+macporthome=$cartawork/CARTAvis-externals/ThirdParty/macports
 mkdir -p $cartawork/CARTAvis-externals/ThirdParty
 cd $cartawork/CARTAvis-externals/ThirdParty
 curl -o MacPorts-2.4.1.tar.gz https://distfiles.macports.org/MacPorts/MacPorts-2.4.1.tar.gz
 tar zxf MacPorts-2.4.1.tar.gz
 cd MacPorts-2.4.1
-./configure --prefix=/opt/casa/02 --with-macports-user=root --with-applications-dir=/opt/casa/02/Applications
+# ./configure --prefix=/opt/casa/02 --with-macports-user=root --with-applications-dir=/opt/casa/02/Applications
+./configure --prefix=$macporthome
 make
 sudo make install
-sudo /opt/casa/02/bin/port -v selfupdate
-##
+#sudo /opt/casa/02/bin/port -v selfupdate
+sudo $macporthome/bin/port -v selfupdate
+###
+printDuration
 
 ### download CARTA soure code
+echo "step3: download CARTA soure code"
+su $SUDO_USER <<EOF
 mkdir -p $cartawork
 cd $cartawork
 git clone https://github.com/CARTAvis/carta.git CARTAvis
 cd CARTAvis
 git checkout $branch
-
-brew install qt
+EOF
+###
+printDuration
 
 ### Install 3 party for CARTA
+echo "step4: Install Qt & Third party for CARTA"
+sudo su $SUDO_USER -c "brew install qt"
+printDuration
 cd $cartawork
 sudo ./CARTAvis/carta/scripts/install3party.sh
 # these can be installed by ordinary Macports, too.
-sudo /opt/casa/02/bin/port -N install flex  # 2.5.37
-sudo /opt/casa/02/bin/port -N install bison # 3.0.4
+sudo $macporthome/bin/port -N install flex  # 2.5.37, long time to install,
+# try this later https://github.com/apiaryio/homebrew/blob/master/Library/Formula/flex.rb
+# https://searchcode.com/codesearch/view/92040310/
+# homebrew official default :2.6.3
+sudo $macporthome/bin/port -N install bison # 3.0.4
+###
+printDuration
 
 ### Install the libraries for casa
+echo "step5: Install the libraries for casa"
 # part1 homebrew part
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 # part2
@@ -65,7 +101,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_DOC=BOOL:OFF -DSIMD_ARCH=SSE4 \
 -DEIGEN3_INCLUDE_DIR=/usr/local/Cellar/eigen@3.2/3.2.10/include/eigen3 ..
 make
 make apidoc
-sudo make install
+sudo make install #/usr/local
 cd ../../
 # in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
 # part3, Build rpfits-2.24, make sure you are still in `your-carta-work`/CARTAvis-externals/ThirdParty/
@@ -81,12 +117,18 @@ make FC=gfortran-6 -f GNUmakefile
 cp librpfits.a ../rpfits/lib/
 cp rpfex rpfhdr ../rpfits/bin/
 cp code/RPFITS.h ../rpfits/include/
+###
+printDuration
 
 ### build casa
+echo "step6: Build casa"
 cd $cartawork
-./CARTAvis/carta/scripts/buildcasa.sh
+sudo ./CARTAvis/carta/scripts/buildcasa.sh
+###
+printDuration
 
 ### setup QtWebkit
+echo "step7: setup QtWebkit"
 cd $cartawork/CARTAvis-externals/ThirdParty
 wget https://github.com/annulen/webkit/releases/download/qtwebkit-tp5/$qtwebkit.tar.xz
 tar -xvzf $qtwebkit.tar.xz
@@ -107,18 +149,32 @@ echo "QT.webkit.module = QtWebKit" >> $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
 perl -pi.bak -e 's/QT.webkit.module_config =/QT.webkit.module_config = v2 lib_bundle/g' $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
 echo "QT.webkitwidgets.module = QtWebKitWidgets" >> $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
 perl -pi.bak -e 's/QT.webkitwidgets.module_config =/QT.webkitwidgets.module_config = v2 lib_bundle /g' $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
+###
+printDuration
 
 ### build UI of CARTA
+su $SUDO_USER <<EOF
+echo "step8: Build UI of CARTA"
 cd $cartawork/CARTAvis/carta/html5/common/skel
 ./generate.py
+###
+printDuration
 
 ### build CARTA
+echo "step9: Build CARTA"
 export PATH=$QT5PATH/bin:$PATH
 mkdir -p $CARTABUILDHOME
 cd $CARTABUILDHOME
 qmake -config release NOSERVER=1 CARTA_BUILD_TYPE=release $cartawork/CARTAvis/carta -r
 make -j2
+###
+printDuration
+
+echo "end time:"
+date
 
 ### packagize CARTA
 curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
-chmod 755 final_mac_packaging_steps.sh && ./final_mac_packaging_steps.sh
+chmod 755 final_mac_packaging_steps.sh
+./final_mac_packaging_steps.sh
+EOF
