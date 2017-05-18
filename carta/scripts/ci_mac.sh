@@ -28,6 +28,9 @@ export qtwebkit=qtwebkit-tp5-qt58-darwin-x64
 branch=upgradeToNewNamespace #optional
 ##
 
+echo "step1-2: create ThirdParty folder"
+sudo su $SUDO_USER -c "mkdir -p $cartawork/CARTAvis-externals/ThirdParty"
+
 # su $SUDO_USER <<EOF
 # /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 # brew install wget
@@ -44,7 +47,6 @@ sudo -u $SUDO_USER ruby \
 sudo su $SUDO_USER -c "brew install wget"
 printDuration
 
-read -p "Press [Enter] key to start backup..."
 
 if [ -f $cartawork/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
   echo "Macports-flex exist, so ignore macports part"
@@ -52,9 +54,11 @@ else
   echo "Macports-flex exist, so start to install macports and its flex, bison"
 
   echo "step2-2: prerequisite: install macports"
+  read -p "Press [Enter] key to start backup..."
+
   # 3. install macports
   macporthome=$cartawork/CARTAvis-externals/ThirdParty/macports
-  mkdir -p $cartawork/CARTAvis-externals/ThirdParty
+  # mkdir -p $cartawork/CARTAvis-externals/ThirdParty
   cd $cartawork/CARTAvis-externals/ThirdParty
   curl -o MacPorts-2.4.1.tar.gz https://distfiles.macports.org/MacPorts/MacPorts-2.4.1.tar.gz
   tar zxf MacPorts-2.4.1.tar.gz
