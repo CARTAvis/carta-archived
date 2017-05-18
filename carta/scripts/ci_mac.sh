@@ -39,22 +39,41 @@ sudo -u $SUDO_USER ruby \
   </dev/null
 sudo su $SUDO_USER -c "brew install wget"
 printDuration
+
 echo "step2-2: prerequisite: install macports"
-# 3. install macports
-macporthome=$cartawork/CARTAvis-externals/ThirdParty/macports
-mkdir -p $cartawork/CARTAvis-externals/ThirdParty
-cd $cartawork/CARTAvis-externals/ThirdParty
-curl -o MacPorts-2.4.1.tar.gz https://distfiles.macports.org/MacPorts/MacPorts-2.4.1.tar.gz
-tar zxf MacPorts-2.4.1.tar.gz
-cd MacPorts-2.4.1
-# ./configure --prefix=/opt/casa/02 --with-macports-user=root --with-applications-dir=/opt/casa/02/Applications
-./configure --prefix=$macporthome
-make
-sudo make install
-#sudo /opt/casa/02/bin/port -v selfupdate
-sudo $macporthome/bin/port -v selfupdate
-###
-printDuration
+
+if [ -f /Users/grimmer/src3/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
+  echo "Macports-flex exist, so ignore macports part"
+else
+  echo "Macports-flex exist, so start to install macports and its flex, bison"
+  # 3. install macports
+  macporthome=$cartawork/CARTAvis-externals/ThirdParty/macports
+  mkdir -p $cartawork/CARTAvis-externals/ThirdParty
+  cd $cartawork/CARTAvis-externals/ThirdParty
+  curl -o MacPorts-2.4.1.tar.gz https://distfiles.macports.org/MacPorts/MacPorts-2.4.1.tar.gz
+  tar zxf MacPorts-2.4.1.tar.gz
+  cd MacPorts-2.4.1
+  # ./configure --prefix=/opt/casa/02 --with-macports-user=root --with-applications-dir=/opt/casa/02/Applications
+  ./configure --prefix=$macporthome
+  make
+  sudo make install
+  #sudo /opt/casa/02/bin/port -v selfupdate
+  sudo $macporthome/bin/port -v selfupdate
+  printDuration
+
+  echo "step2-3: install flex from macports"
+  # these can be installed by ordinary Macports, too.
+  sudo $macporthome/bin/port -N install flex  # 2.5.37, long time to install,
+  # try this later https://github.com/apiaryio/homebrew/blob/master/Library/Formula/flex.rb
+  # https://searchcode.com/codesearch/view/92040310/
+  # homebrew official default :2.6.3
+  printDuration
+
+  echo "step2-4: install bison from macports"
+  sudo $macporthome/bin/port -N install bison # 3.0.4
+  ###
+  printDuration
+fi
 
 ### download CARTA soure code
 echo "step3: download CARTA soure code"
@@ -64,29 +83,27 @@ cd $cartawork
 git clone https://github.com/CARTAvis/carta.git CARTAvis
 cd CARTAvis
 git checkout $branch
+mkdir -p $cartawork/CARTAvis-externals/ThirdParty
 EOF
 ###
 printDuration
 
 ### Install 3 party for CARTA
-echo "step4: Install Qt & Third party for CARTA"
+echo "step4: Install Qt for CARTA"
 sudo su $SUDO_USER -c "brew install qt"
 printDuration
+echo "step4-2: Install Third party for CARTA"
 cd $cartawork
 sudo ./CARTAvis/carta/scripts/install3party.sh
-# these can be installed by ordinary Macports, too.
-sudo $macporthome/bin/port -N install flex  # 2.5.37, long time to install,
-# try this later https://github.com/apiaryio/homebrew/blob/master/Library/Formula/flex.rb
-# https://searchcode.com/codesearch/view/92040310/
-# homebrew official default :2.6.3
-sudo $macporthome/bin/port -N install bison # 3.0.4
 ###
 printDuration
 
 ### Install the libraries for casa
-echo "step5: Install the libraries for casa"
+echo "step5: Install some libraries for casa from homebrew"
 # part1 homebrew part
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
+printDuration
+echo "step5-2: Install some libraries for casa, build from source"
 # part2
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## build libsakura-4.0.2065.
@@ -123,7 +140,7 @@ printDuration
 ### build casa
 echo "step6: Build casa"
 cd $cartawork
-sudo ./CARTAvis/carta/scripts/buildcasa.sh
+sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
 ###
 printDuration
 
