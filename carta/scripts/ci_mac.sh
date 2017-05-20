@@ -252,3 +252,6 @@ curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_
 chmod 755 final_mac_packaging_steps.sh
 ./final_mac_packaging_steps.sh
 EOF
+
+echo "step11: reset folder permission to normal owner, not root"
+chown -R $SUDO_USER:staff $cartawork
