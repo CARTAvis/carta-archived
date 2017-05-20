@@ -6,6 +6,7 @@ function printDuration(){
 }
 
 function pause(){
+  afplay /System/Library/Sounds/Funk.aiff
   read -p "Press [Enter] key to continue"
 }
 
@@ -34,9 +35,10 @@ fi
 
 echo "CARTA working folder is $cartawork"
 
-export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
+
+export QT5PATH=/usr/local/opt/qt\@5.7
 export CARTABUILDHOME=$cartawork/CARTAvis/build
-export qtwebkit=qtwebkit-tp5-qt58-darwin-x64
+export qtwebkit=qtwebkit-tp4-qt57-darwin
 branch=upgradeToNewNamespace #optional
 ##
 
@@ -68,16 +70,16 @@ if [ -f $cartawork/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
 else
   echo "Macports-flex does not exist, so start to install macports and its flex, bison"
 
-  echo "step2-2: prerequisite: install macports"
+  echo "step2-2: prerequisite: install macports" ## ~ 3.5 min
   pause
 
-  # 3. install macports
+  # 3. install macports, can not use 2.4.1 version which will install flex 2.6.x and not compatible with CARTA, no region drawn
   macporthome=$cartawork/CARTAvis-externals/ThirdParty/macports
   # mkdir -p $cartawork/CARTAvis-externals/ThirdParty
   cd $cartawork/CARTAvis-externals/ThirdParty
-  curl -o MacPorts-2.4.1.tar.gz https://distfiles.macports.org/MacPorts/MacPorts-2.4.1.tar.gz
-  tar zxf MacPorts-2.4.1.tar.gz
-  cd MacPorts-2.4.1
+  curl -o MacPorts-2.3.4.tar.gz https://distfiles.macports.org/MacPorts/MacPorts-2.3.4.tar.gz
+  tar zxf MacPorts-2.3.4.tar.gz
+  cd MacPorts-2.3.4
   # ./configure --prefix=/opt/casa/02 --with-macports-user=root --with-applications-dir=/opt/casa/02/Applications
   ./configure --prefix=$macporthome
   make
@@ -122,7 +124,7 @@ printDuration
 echo "step4: Install Qt for CARTA"
 pause
 
-sudo su $SUDO_USER -c "brew install qt"
+sudo su $SUDO_USER -c "brew install qt@5.7"
 printDuration
 
 echo "step4-2: Install Third party for CARTA"
@@ -191,7 +193,7 @@ echo "step7: setup QtWebkit"
 pause
 su $SUDO_USER <<EOF
 cd $cartawork/CARTAvis-externals/ThirdParty
-wget https://github.com/annulen/webkit/releases/download/qtwebkit-tp5/$qtwebkit.tar.xz
+wget https://github.com/annulen/webkit/releases/download/qtwebkit-tp4/qtwebkit-tp4-qt57-darwin.tar.xz
 tar -xvzf $qtwebkit.tar.xz
 # export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
 # /Users/grimmer/Qt/5.7/clang_64
