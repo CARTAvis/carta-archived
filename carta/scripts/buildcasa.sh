@@ -312,6 +312,7 @@ mkdir build && cd build
 if [ "$(uname)" == "Darwin" ]; then
     cmake -DUseCrashReporter=0 -DBoost_NO_BOOST_CMAKE=1 \
     -DUseCasacoreNamespace=1 \
+    -DCMAKE_Fortran_COMPILER=/usr/local/bin/gfortran \
     -Darch=$TARGETOS -DCMAKE_BUILD_TYPE=Release -DCXX11=1 \
     -DWCSLIB_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/cfitsio \
