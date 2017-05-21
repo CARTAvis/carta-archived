@@ -110,7 +110,6 @@ fi
 ### download CARTA soure code
 echo "step3: download CARTA soure code"
 pause
-
 su $SUDO_USER <<EOF
 cd $cartawork
 git clone https://github.com/CARTAvis/carta.git CARTAvis
@@ -123,15 +122,35 @@ printDuration
 ### Install 3 party for CARTA
 echo "step4: Install Qt for CARTA"
 pause
-
 sudo su $SUDO_USER -c "brew install qt@5.7"
 printDuration
-
 echo "step4-2: Install Third party for CARTA"
 pause
 cd $cartawork
 ## if use sudo ./xx.sh will let it can not inherit QT5PATH
 ./CARTAvis/carta/scripts/install3party.sh
+###
+printDuration
+###
+echo "step4-3: Install flex and bison for CARTA"
+su $SUDO_USER <<EOF
+brew install bison
+cd $cartawork/CARTAvis-externals/ThirdParty
+curl -O -L https://github.com/westes/flex/archive/flex-2.5.37.tar.gz 
+tar zxvf flex-2.5.37.tar.gz
+mv flex-flex-2.5.37 flex-2.5.37
+cd flex-2.5.37
+brew install autoconf
+brew install automake 
+brew install gettext
+export PATH=/usr/local/opt/gettext/bin:$PATH
+export PATH=/usr/local/opt/texinfo/bin:$PATH
+brew cask install basictex
+export PATH="$PATH:/Library/TeX/texbin"
+./autogen.sh
+./configure --disable-dependency-tracking  --prefix=`pwd`/../flex
+make install 
+EOF
 ###
 printDuration
 
@@ -141,7 +160,6 @@ pause
 # part1 homebrew part
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 printDuration
-
 echo "step5-2: Install some libraries for casa, build from source-libsakura"
 pause
 # part2
@@ -160,6 +178,7 @@ make
 make apidoc
 sudo make install #/usr/local
 cd ../../
+printDuration
 echo "step5-3: Install some libraries for casa, build from source-rpfits"
 pause
 # in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
@@ -182,7 +201,6 @@ printDuration
 ### build casa
 echo "step6: Build casa"
 pause
-
 cd $cartawork
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
 ###

@@ -45,11 +45,19 @@ LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 # INCLUDEPATH += /usr/local/opt/bison/include
 # /usr/local/opt/bison/bin/bison
 
-# 3. now use macports: flex:2.6.1, bison 3.0.4, OK
+# 3. now use macports: flex:2.6.1, bison 3.0.4, not OK
 
+# FLEXANDBISONDIR=../../ThirdParty/macports
+# FLEXBIN= $${FLEXANDBISONDIR}/bin/flex
+# BISONBIN= $${FLEXANDBISONDIR}/bin/bison
+
+# FLEXINCLUDE = $${FLEXANDBISONDIR}/include
+# FLEXLIB= $${FLEXANDBISONDIR}/lib
+
+# 4. build from source code of flex, and use homebrew's bison
+
+BISONBIN=/usr/local/opt/bison/bin/bison
 FLEXBIN= $${FLEXANDBISONDIR}/bin/flex
-BISONBIN= $${FLEXANDBISONDIR}/bin/bison
-
 FLEXINCLUDE = $${FLEXANDBISONDIR}/include
 FLEXLIB= $${FLEXANDBISONDIR}/lib
 
