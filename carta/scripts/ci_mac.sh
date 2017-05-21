@@ -65,47 +65,6 @@ sudo -u $SUDO_USER ruby \
 sudo su $SUDO_USER -c "brew install wget"
 printDuration
 
-if [ -f $cartawork/CARTAvis-externals/ThirdParty/macports/bin/flex ]; then
-  echo "Macports-flex exist, so ignore macports part"
-else
-  echo "Macports-flex does not exist, so start to install macports and its flex, bison"
-
-  echo "step2-2: prerequisite: install macports" ## ~ 3.5 min
-  pause
-
-  # 3. install macports, can not use 2.4.1 version which will install flex 2.6.x and not compatible with CARTA, no region drawn
-  macporthome=$cartawork/CARTAvis-externals/ThirdParty/macports
-  # mkdir -p $cartawork/CARTAvis-externals/ThirdParty
-  cd $cartawork/CARTAvis-externals/ThirdParty
-  curl -o MacPorts-2.3.4.tar.gz https://distfiles.macports.org/MacPorts/MacPorts-2.3.4.tar.gz
-  tar zxf MacPorts-2.3.4.tar.gz
-  cd MacPorts-2.3.4
-  # ./configure --prefix=/opt/casa/02 --with-macports-user=root --with-applications-dir=/opt/casa/02/Applications
-  ./configure --prefix=$macporthome
-  make
-  sudo make install
-  #sudo /opt/casa/02/bin/port -v selfupdate
-  sudo $macporthome/bin/port -v selfupdate
-  printDuration
-
-  echo "step2-3: install flex from macports"
-  pause
-
-  # these can be installed by ordinary Macports, too.
-  sudo $macporthome/bin/port -N install flex  # 2.5.37, long time to install,
-  # try this later https://github.com/apiaryio/homebrew/blob/master/Library/Formula/flex.rb
-  # https://searchcode.com/codesearch/view/92040310/
-  # homebrew official default :2.6.3
-  printDuration
-
-  echo "step2-4: install bison from macports"
-  pause
-
-  sudo $macporthome/bin/port -N install bison # 3.0.4
-  ###
-  printDuration
-
-fi
 
 ### download CARTA soure code
 echo "step3: download CARTA soure code"
