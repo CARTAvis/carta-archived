@@ -131,28 +131,32 @@ cd $cartawork
 ./CARTAvis/carta/scripts/install3party.sh
 ###
 printDuration
-###
-echo "step4-3: Install flex and bison for CARTA"
+##
+
+echo "step4-3: Use homebrew to Install some libs needed by flex and bison for CARTA"
 su $SUDO_USER <<EOF
 brew install bison
-cd $cartawork/CARTAvis-externals/ThirdParty
-curl -O -L https://github.com/westes/flex/archive/flex-2.5.37.tar.gz 
-tar zxvf flex-2.5.37.tar.gz
-mv flex-flex-2.5.37 flex-2.5.37
-cd flex-2.5.37
 brew install autoconf
 brew install automake 
 brew install gettext
+brew cask install basictex
+EOF
+printDuration
+echo "step4-3: build flex"
+cd $cartawork/CARTAvis-externals/ThirdParty
+curl -O -L https://github.com/westes/flex/archive/flex-2.5.37.tar.gz
+tar zxvf flex-2.5.37.tar.gz
+mv flex-flex-2.5.37 flex-2.5.37
+cd flex-2.5.37
 export PATH=/usr/local/opt/gettext/bin:$PATH
 export PATH=/usr/local/opt/texinfo/bin:$PATH
-brew cask install basictex
 export PATH="$PATH:/Library/TeX/texbin"
 ./autogen.sh
 ./configure --disable-dependency-tracking  --prefix=`pwd`/../flex
 make install 
-EOF
 ###
 printDuration
+echo "finish building flex"
 
 ### Install the libraries for casa
 echo "step5: Install some libraries for casa from homebrew"
