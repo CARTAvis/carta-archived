@@ -116,6 +116,8 @@ su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
 brew install autoconf
 brew install automake
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/056def4318cd874871b266c9f1df88e450411966/Formula/texinfo.rb
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/512e7f6e9673a6f359c4c36d908126cb9c284f9f/Formula/help2man.rb
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/d407fb8563f480391d918e1f1160cb7e244a1a12/Formula/gettext.rb
 brew cask install basictex
 EOF
@@ -127,7 +129,8 @@ tar zxvf flex-2.5.37.tar.gz
 mv flex-flex-2.5.37 flex-2.5.37
 cd flex-2.5.37
 export PATH=/usr/local/opt/gettext/bin:$PATH
-export PATH=/usr/local/opt/texinfo/bin:$PATH
+export PATH=/usr/local/opt/texinfo/bin:$PATH 
+export PATH=/usr/local/Cellar/help2man/1.47.4/bin:$PATH
 export PATH="$PATH:/Library/TeX/texbin"
 ./autogen.sh
 ./configure --disable-dependency-tracking  --prefix=`pwd`/../flex
