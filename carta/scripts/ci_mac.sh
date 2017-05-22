@@ -35,11 +35,12 @@ fi
 
 echo "CARTA working folder is $cartawork"
 
-
-export QT5PATH=/usr/local/opt/qt\@5.7
+qt57brew=/usr/local/opt/qt\@5.7
+export QT5PATH=$qt57brew
 export CARTABUILDHOME=$cartawork/CARTAvis/build
-export qtwebkit=qtwebkit-tp4-qt57-darwin
 branch=upgradeToNewNamespace #optional
+qtwebkit=qtwebkit-tp4-qt57-darwin
+qtwebkitlink=https://github.com/annulen/webkit/releases/download/qtwebkit-tp4/qtwebkit-tp4-qt57-darwin.tar.xz
 ##
 
 echo "step1-2: create ThirdParty folder"
@@ -79,10 +80,15 @@ EOF
 printDuration
 
 ### Install 3 party for CARTA
-echo "step4: Install Qt for CARTA"
+echo "step4: Install Qt for CARTA if you use default homebrew-qt"
 pause
-sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
-sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
+if [ "$QT5PATH" == "$qt57brew" ]; then
+  echo "start to install homebrew-qt"
+  sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
+  sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
+else
+  echo "you use your own qt version"
+fi
 printDuration
 echo "step4-2: Install Third party for CARTA"
 pause
@@ -175,10 +181,8 @@ echo "step7: setup QtWebkit"
 pause
 su $SUDO_USER <<EOF
 cd $cartawork/CARTAvis-externals/ThirdParty
-curl -O -L https://github.com/annulen/webkit/releases/download/qtwebkit-tp4/qtwebkit-tp4-qt57-darwin.tar.xz
+curl -O -L $qtwebkitlink
 tar -xvzf $qtwebkit.tar.xz
-# export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
-# /Users/grimmer/Qt/5.7/clang_64
 # copy include
 cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKit $QT5PATH/include/
 cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKitWidgets $QT5PATH/include/
