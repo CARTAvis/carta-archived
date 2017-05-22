@@ -84,7 +84,6 @@ fi
 
 #####
 mkdir -p $cartawork/CARTAvis-externals/ThirdParty
-cd $cartawork/CARTAvis-externals/ThirdParty
 
 ## for building qwt by qt5.3 for carta
 if [ -z ${QT5PATH+x} ]; then
@@ -103,6 +102,7 @@ else
 	# export PATH=$QT5PATH/gcc_64/bin:$PATH # Qt official installer case
 fi
 
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
 tar xvfj qwt-6.1.2.tar.bz2 && mv qwt-6.1.2 qwt-6.1.2-src
 cd qwt-6.1.2-src # can use qwt 6.1.3 Pavol uses
@@ -123,11 +123,15 @@ if [ "$(uname)" == "Darwin" ]; then
 	cd ..
 fi
 
+echo "install qooxdoo"
+cd $cartawork/CARTAvis-externals/ThirdParty
 ## Install qooxdoo for CARTA
 curl -o qooxdoo-3.5-sdk.zip -L http://downloads.sourceforge.net/project/qooxdoo/qooxdoo-current/3.5/qooxdoo-3.5-sdk.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fqooxdoo%2Ffiles%2Fqooxdoo-current%2F3.5%2F&ts=1479095500&use_mirror=excellmedia
 unzip qooxdoo-3.5-sdk.zip
 
 ## rapidjson
+echo "build rapidjson"
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz
 mv v1.0.2.tar.gz rapidjson_v1.0.2.tar.gz
 tar xvfz rapidjson_v1.0.2.tar.gz
@@ -135,6 +139,8 @@ ln -s rapidjson-1.0.2 rapidjson
 
 ## to get the same version with casa, so cfitsio, wcslib are built for carta, casa
 ## wcslib-5.15
+echo "build wcslib"
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
 tar xvfj wcslib-5.15.tar.bz2 && mv wcslib-5.15 wcslib-5.15-src
 cd wcslib-5.15-src
@@ -143,6 +149,8 @@ make && make install
 cd ..
 
 ## cfitsio3390
+echo "build cfitsio"
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3390.tar.gz
 tar xvfz cfitsio3390.tar.gz && mv cfitsio cfitsio-src
 cd cfitsio-src
@@ -150,6 +158,8 @@ cd cfitsio-src
 make && make install
 cd ..
 
+echo "build ast"
+cd $cartawork/CARTAvis-externals/ThirdParty
 ## ast: carta only, static linking with CARTA
 curl -O -L http://www.starlink.ac.uk/download/ast/ast-8.0.2.tar.gz
 tar xvfz ast-8.0.2.tar.gz && mv ast-8.0.2 ast-8.0.2-src
@@ -159,6 +169,8 @@ make && make install
 cd ..
 
 ## gsl
+echo "build gsl"
+cd $cartawork/CARTAvis-externals/ThirdParty
 # yum:1.15. so carta keeps building it from source code.
 # casa's cmake needs yum version to pass the check but it will use /usr/local in high priority when building
 curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
@@ -167,4 +179,5 @@ cd gsl-2.1-src
 ./configure
 make
 sudo make install
-cd ..
+#cd ..
+cd $cartawork/CARTAvis-externals/ThirdParty
