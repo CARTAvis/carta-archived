@@ -103,23 +103,23 @@ else
 fi
 
 cd $cartawork/CARTAvis-externals/ThirdParty
-curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.3/qwt-6.1.3.tar.bz2
-tar xvfj qwt-6.1.3.tar.bz2 && mv qwt-6.1.3 qwt-6.1.3-src
-cd qwt-6.1.3-src # can use qwt 6.1.3 Pavol uses
+curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
+tar xvfj qwt-6.1.2.tar.bz2 && mv qwt-6.1.2 qwt-6.1.2-src
+cd qwt-6.1.2-src # can use qwt 6.1.2 Pavol uses
 if [ "$(uname)" == "Darwin" ]; then
-  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.3\/ / if $.==22' qwtconfig.pri
+  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2\/ / if $.==22' qwtconfig.pri
 else
 	# for unix part, not work on Mac
-	sed -i "22,22c QWT_INSTALL_PREFIX    = $cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.3" qwtconfig.pri
+	sed -i "22,22c QWT_INSTALL_PREFIX    = $cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.2" qwtconfig.pri
 fi
 qmake qwt.pro
 make && make install
 cd ..
-ln -s qwt-6.1.3 qwt
+ln -s qwt-6.1.2 qwt
 if [ "$(uname)" == "Darwin" ]; then
 	cd qwt
 	# sometimes Versions/6 or Versions/1, have not investigated why
-	ln -s ../qwt-6.1.3/lib/qwt.framework/Versions/Current/Headers include
+	ln -s ../qwt-6.1.2/lib/qwt.framework/Versions/Current/Headers include
 	cd ..
 fi
 
