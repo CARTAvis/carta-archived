@@ -103,30 +103,30 @@ else
 fi
 
 cd $cartawork/CARTAvis-externals/ThirdParty
-curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
-tar xvfj qwt-6.1.2.tar.bz2 && mv qwt-6.1.2 qwt-6.1.2-src
-cd qwt-6.1.2-src # can use qwt 6.1.3 Pavol uses
+curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.3/qwt-6.1.3.tar.bz2
+tar xvfj qwt-6.1.3.tar.bz2 && mv qwt-6.1.3 qwt-6.1.3-src
+cd qwt-6.1.3-src # can use qwt 6.1.3 Pavol uses
 if [ "$(uname)" == "Darwin" ]; then
-  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2\/ / if $.==22' qwtconfig.pri
+  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.3\/ / if $.==22' qwtconfig.pri
 else
 	# for unix part, not work on Mac
-	sed -i "22,22c QWT_INSTALL_PREFIX    = $cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.2" qwtconfig.pri
+	sed -i "22,22c QWT_INSTALL_PREFIX    = $cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.3" qwtconfig.pri
 fi
 qmake qwt.pro
 make && make install
 cd ..
-ln -s qwt-6.1.2 qwt
+ln -s qwt-6.1.3 qwt
 if [ "$(uname)" == "Darwin" ]; then
 	cd qwt
 	# sometimes Versions/6 or Versions/1, have not investigated why
-	ln -s ../qwt-6.1.2/lib/qwt.framework/Versions/Current/Headers include
+	ln -s ../qwt-6.1.3/lib/qwt.framework/Versions/Current/Headers include
 	cd ..
 fi
 
 echo "install qooxdoo"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## Install qooxdoo for CARTA
-curl -o qooxdoo-3.5-sdk.zip -L http://downloads.sourceforge.net/project/qooxdoo/qooxdoo-current/3.5/qooxdoo-3.5-sdk.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fqooxdoo%2Ffiles%2Fqooxdoo-current%2F3.5%2F&ts=1479095500&use_mirror=excellmedia
+curl -o qooxdoo-3.5-sdk.zip -L https://github.com/qooxdoo/qooxdoo/releases/download/release_3_5_1/qooxdoo-3.5.1-sdk.zip
 unzip qooxdoo-3.5-sdk.zip
 
 ## rapidjson
