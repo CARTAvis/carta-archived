@@ -7,7 +7,7 @@ function printDuration(){
 
 function pause(){
   afplay /System/Library/Sounds/Funk.aiff
-  read -p "Press [Enter] key to continue"
+  # read -p "Press [Enter] key to continue"
 }
 
 
@@ -62,7 +62,7 @@ echo "step2: prerequisite: install homebrew"
 sudo -u $SUDO_USER ruby \
   -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
   </dev/null
-sudo su $SUDO_USER -c "brew install wget"
+# sudo su $SUDO_USER -c "brew install wget"
 printDuration
 
 
@@ -81,7 +81,8 @@ printDuration
 ### Install 3 party for CARTA
 echo "step4: Install Qt for CARTA"
 pause
-sudo su $SUDO_USER -c "brew install qt@5.7"
+sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
+sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
 printDuration
 echo "step4-2: Install Third party for CARTA"
 pause
@@ -94,10 +95,10 @@ printDuration
 
 echo "step4-3: Use homebrew to Install some libs needed by flex and bison for CARTA"
 su $SUDO_USER <<EOF
-brew install bison
-brew install autoconf
-brew install automake 
-brew install gettext
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/091e0bebb25d235b9efeeebf184a819ed7ade8a7/Formula/autoconf.rb
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/c679306cc10018711fc3f16d46b3392909601e9b/Formula/automake.rb
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/d407fb8563f480391d918e1f1160cb7e244a1a12/Formula/gettext.rb
 brew cask install basictex
 EOF
 printDuration
@@ -112,7 +113,7 @@ export PATH=/usr/local/opt/texinfo/bin:$PATH
 export PATH="$PATH:/Library/TeX/texbin"
 ./autogen.sh
 ./configure --disable-dependency-tracking  --prefix=`pwd`/../flex
-make install 
+make install
 ###
 printDuration
 echo "finish building flex"
@@ -129,7 +130,7 @@ pause
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## build libsakura-4.0.2065.
 git clone https://github.com/grimmer0125/libsakura
-wget -O gtest-1.7.0.zip https://github.com/google/googletest/archive/release-1.7.0.zip
+curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
 unzip gtest-1.7.0.zip -d libsakura
 cd libsakura
 ln -s googletest-release-1.7.0 gtest
@@ -146,7 +147,7 @@ echo "step5-3: Install some libraries for casa, build from source-rpfits"
 pause
 # in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
 # part3, Build rpfits-2.24, make sure you are still in `your-carta-work`/CARTAvis-externals/ThirdParty/
-wget ftp://ftp.atnf.csiro.au/pub/software/rpfits/rpfits-2.24.tar.gz
+curl -O ftp://ftp.atnf.csiro.au/pub/software/rpfits/rpfits-2.24.tar.gz
 tar xvfz rpfits-2.24.tar.gz && mv rpfits rpfits-src
 mkdir -p rpfits/lib
 mkdir -p rpfits/include
@@ -174,7 +175,7 @@ echo "step7: setup QtWebkit"
 pause
 su $SUDO_USER <<EOF
 cd $cartawork/CARTAvis-externals/ThirdParty
-wget https://github.com/annulen/webkit/releases/download/qtwebkit-tp4/qtwebkit-tp4-qt57-darwin.tar.xz
+curl -O -L https://github.com/annulen/webkit/releases/download/qtwebkit-tp4/qtwebkit-tp4-qt57-darwin.tar.xz
 tar -xvzf $qtwebkit.tar.xz
 # export QT5PATH=/usr/local/Cellar/qt/5.8.0_2
 # /Users/grimmer/Qt/5.7/clang_64

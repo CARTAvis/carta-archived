@@ -124,7 +124,7 @@ if [ "$(uname)" == "Darwin" ]; then
 fi
 
 ## Install qooxdoo for CARTA
-wget 'http://downloads.sourceforge.net/project/qooxdoo/qooxdoo-current/3.5/qooxdoo-3.5-sdk.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fqooxdoo%2Ffiles%2Fqooxdoo-current%2F3.5%2F&ts=1479095500&use_mirror=excellmedia' -O qooxdoo-3.5-sdk.zip
+curl -o qooxdoo-3.5-sdk.zip -L http://downloads.sourceforge.net/project/qooxdoo/qooxdoo-current/3.5/qooxdoo-3.5-sdk.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fqooxdoo%2Ffiles%2Fqooxdoo-current%2F3.5%2F&ts=1479095500&use_mirror=excellmedia
 unzip qooxdoo-3.5-sdk.zip
 
 ## rapidjson
@@ -135,7 +135,7 @@ ln -s rapidjson-1.0.2 rapidjson
 
 ## to get the same version with casa, so cfitsio, wcslib are built for carta, casa
 ## wcslib-5.15
-wget ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
+curl -O -L ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
 tar xvfj wcslib-5.15.tar.bz2 && mv wcslib-5.15 wcslib-5.15-src
 cd wcslib-5.15-src
 ./configure --prefix=`pwd`/../wcslib/  ##--without-pgplot, pgplot is needed by casa
@@ -151,7 +151,7 @@ make && make install
 cd ..
 
 ## ast: carta only, static linking with CARTA
-wget http://www.starlink.ac.uk/download/ast/ast-8.0.2.tar.gz
+curl -O -L http://www.starlink.ac.uk/download/ast/ast-8.0.2.tar.gz
 tar xvfz ast-8.0.2.tar.gz && mv ast-8.0.2 ast-8.0.2-src
 cd ast-8.0.2-src
 ./configure --prefix=`pwd`/../ast/

@@ -133,7 +133,7 @@ else
     ## since the original source code will not be compiled OK by gcc 5.4, gcc 4.8 seem neither
     git clone https://github.com/grimmer0125/libsakura
 
-    wget -O gtest-1.7.0.zip https://github.com/google/googletest/archive/release-1.7.0.zip
+    curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
     unzip gtest-1.7.0.zip -d libsakura
     cd libsakura
     ln -s googletest-release-1.7.0 gtest
