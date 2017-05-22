@@ -112,6 +112,7 @@ printDuration
 ##
 
 echo "step4-3: Use homebrew to Install some libs needed by flex and bison for CARTA"
+pause
 su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
 brew install autoconf
@@ -165,25 +166,25 @@ make apidoc
 sudo make install #/usr/local
 cd ../../
 printDuration
-echo "step5-3: Install some libraries for casa, build from source-rpfits"
-pause
-# in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
-# part3, Build rpfits-2.24, make sure you are still in `your-carta-work`/CARTAvis-externals/ThirdParty/
-cd $cartawork/CARTAvis-externals/ThirdParty
-curl -O ftp://ftp.atnf.csiro.au/pub/software/rpfits/rpfits-2.24.tar.gz
-tar xvfz rpfits-2.24.tar.gz && mv rpfits rpfits-src
-mkdir -p rpfits/lib
-mkdir -p rpfits/include
-mkdir -p rpfits/bin
-cd rpfits-src
-export RPARCH="darwin"
-export PATH=/usr/local/Cellar/gcc/6.3.0_1/bin:$PATH
-make FC=gfortran-6 -f GNUmakefile
-cp librpfits.a ../rpfits/lib/
-cp rpfex rpfhdr ../rpfits/bin/
-cp code/RPFITS.h ../rpfits/include/
-###
-printDuration
+# echo "step5-3: Install some libraries for casa, build from source-rpfits"
+# pause
+# # in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
+# # part3, Build rpfits-2.24, make sure you are still in `your-carta-work`/CARTAvis-externals/ThirdParty/
+# cd $cartawork/CARTAvis-externals/ThirdParty
+# curl -O ftp://ftp.atnf.csiro.au/pub/software/rpfits/rpfits-2.24.tar.gz
+# tar xvfz rpfits-2.24.tar.gz && mv rpfits rpfits-src
+# mkdir -p rpfits/lib
+# mkdir -p rpfits/include
+# mkdir -p rpfits/bin
+# cd rpfits-src
+# export RPARCH="darwin"
+# export PATH=/usr/local/Cellar/gcc/6.3.0_1/bin:$PATH
+# make FC=gfortran-6 -f GNUmakefile
+# cp librpfits.a ../rpfits/lib/
+# cp rpfex rpfhdr ../rpfits/bin/
+# cp code/RPFITS.h ../rpfits/include/
+# ###
+# printDuration
 
 ### build casa
 echo "step6: Build casa"
