@@ -126,8 +126,8 @@ fi
 echo "install qooxdoo"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## Install qooxdoo for CARTA
-curl -o qooxdoo-3.5-sdk.zip -L http://downloads.sourceforge.net/project/qooxdoo/qooxdoo-current/3.5/qooxdoo-3.5-sdk.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fqooxdoo%2Ffiles%2Fqooxdoo-current%2F3.5%2F&ts=1479095500&use_mirror=excellmedia
-unzip qooxdoo-3.5-sdk.zip
+curl -o qooxdoo-3.5.1-sdk.zip -L https://github.com/qooxdoo/qooxdoo/releases/download/release_3_5_1/qooxdoo-3.5.1-sdk.zip
+unzip qooxdoo-3.5.1-sdk.zip
 
 ## rapidjson
 echo "build rapidjson"
@@ -161,9 +161,9 @@ cd ..
 echo "build ast"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## ast: carta only, static linking with CARTA
-curl -O -L http://www.starlink.ac.uk/download/ast/ast-8.0.2.tar.gz
-tar xvfz ast-8.0.2.tar.gz && mv ast-8.0.2 ast-8.0.2-src
-cd ast-8.0.2-src
+curl -O -L http://www.starlink.ac.uk/download/ast/ast-8.4.0.tar.gz
+tar xvfz ast-8.4.0.tar.gz && mv ast-8.4.0 ast-8.4.0-src
+cd ast-8.4.0-src
 ./configure --prefix=`pwd`/../ast/
 make && make install
 cd ..
