@@ -80,6 +80,17 @@ EOF
 ###
 printDuration
 
+
+echo "step4-0:install homebrew's gcc to get gfortran for ast, also cmake for libsakura, casa libs"
+su $SUDO_USER <<EOF
+### Basic tools
+brew install cmake
+brew link --overwrite cmake
+## now it is 7.1 we only use its gfortran which is also used by code
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb
+EOF
+pause
+
 ### Install 3 party for CARTA
 echo "step4: Install Qt for CARTA if you use default homebrew-qt"
 pause
@@ -129,6 +140,7 @@ echo "finish building flex"
 echo "step5: Install some libraries for casa from homebrew"
 pause
 # part1 homebrew part
+cd $cartawork
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 printDuration
 echo "step5-2: Install some libraries for casa, build from source-libsakura"
@@ -154,6 +166,7 @@ echo "step5-3: Install some libraries for casa, build from source-rpfits"
 pause
 # in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
 # part3, Build rpfits-2.24, make sure you are still in `your-carta-work`/CARTAvis-externals/ThirdParty/
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O ftp://ftp.atnf.csiro.au/pub/software/rpfits/rpfits-2.24.tar.gz
 tar xvfz rpfits-2.24.tar.gz && mv rpfits rpfits-src
 mkdir -p rpfits/lib

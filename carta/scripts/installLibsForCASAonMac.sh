@@ -1,11 +1,6 @@
 #!/bin/bash
 
-### Basic tools
-brew install cmake
-brew link --overwrite cmake
-
 ### For CASA - submodule - casacore
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb ## now it is 7.1 we only use its gfortran which is also used by code
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/cb79fc2ec2c5fcebf35f7bf26bb7459c9f87ae0b/Formula/fftw.rb
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/198f8903db0bb77f1b84e19e020c6f825210433d/Formula/boost-python.rb ## also used by code submodules
 
