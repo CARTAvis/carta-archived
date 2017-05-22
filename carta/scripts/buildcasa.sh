@@ -236,7 +236,7 @@ if [ "$(uname)" == "Darwin" ]; then
     -DPYTHON_LIBRARY=/System/Library/Frameworks/Python.framework/Versions/2.7/Python \
     -DWCSLIB_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/cfitsio \
-    -DBOOST_ROOT=/usr/local/Cellar/boost/1.63.0 \
+    -DBOOST_ROOT=/usr/local/opt/boost \
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
     -DCMAKE_C_COMPILER=/usr/bin/clang \
     -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
@@ -318,7 +318,7 @@ if [ "$(uname)" == "Darwin" ]; then
     -DCFITSIO_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/cfitsio \
     -DREADLINE_ROOT_DIR=/usr/local/opt/readline \
     -DPGPLOT_ROOT_DIR=/usr/local/opt/pgplot \
-    -DBOOST_ROOT=/usr/local/Cellar/boost/1.63.0 \
+    -DBOOST_ROOT=/usr/local/opt/boost \
     -DPGPLOT_INCLUDE_DIRS=/usr/local/opt/pgplot/include \
     -DPGPLOT_LIBRARIES=/usr/local/opt/pgplot/lib \
     -DSKIP_PGPLOT=1 \
