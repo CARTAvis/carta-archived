@@ -89,19 +89,19 @@ brew link --overwrite cmake
 ## now it is 7.1 we only use its gfortran which is also used by code
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb
 EOF
-pause
+printDuration
 
 ### Install 3 party for CARTA
 echo "step4: Install Qt for CARTA if you use default homebrew-qt"
-pause
 if [ "$QT5PATH" == "$qt57brew" ]; then
   echo "start to install homebrew-qt"
+  pause
   sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
   sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
+  printDuration
 else
   echo "you use your own qt version"
 fi
-printDuration
 echo "step4-2: Install Third party for CARTA"
 pause
 cd $cartawork
@@ -129,7 +129,7 @@ tar zxvf flex-2.5.37.tar.gz
 mv flex-flex-2.5.37 flex-2.5.37
 cd flex-2.5.37
 export PATH=/usr/local/opt/gettext/bin:$PATH
-export PATH=/usr/local/opt/texinfo/bin:$PATH 
+export PATH=/usr/local/opt/texinfo/bin:$PATH
 export PATH=/usr/local/Cellar/help2man/1.47.4/bin:$PATH
 export PATH="$PATH:/Library/TeX/texbin"
 ./autogen.sh
