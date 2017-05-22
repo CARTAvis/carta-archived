@@ -103,8 +103,8 @@ printDuration
 echo "step4-3: Use homebrew to Install some libs needed by flex and bison for CARTA"
 su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/091e0bebb25d235b9efeeebf184a819ed7ade8a7/Formula/autoconf.rb
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/c679306cc10018711fc3f16d46b3392909601e9b/Formula/automake.rb
+brew install autoconf
+brew install automake
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/d407fb8563f480391d918e1f1160cb7e244a1a12/Formula/gettext.rb
 brew cask install basictex
 EOF

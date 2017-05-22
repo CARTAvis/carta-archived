@@ -17,7 +17,7 @@ brew install eigen@3.2 ## the latest of eigen is 3.3.3 but its 3.3.3 is not comp
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/712fb0b23bad079214c28e325cd82548b216dcab/Formula/log4cxx.rb
 ###
 
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/012b062a345e68ffbbd68cc8a26944cd3341f071/Formula/readline.rb
+brew install readline
 
 # PGPLOT: 5.2.2_2.
 # We modify code's cmake to build without pgplot but the cmake's check is still there,
