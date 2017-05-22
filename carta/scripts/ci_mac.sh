@@ -36,6 +36,7 @@ fi
 echo "CARTA working folder is $cartawork"
 
 qt57brew=/usr/local/opt/qt\@5.7
+export qt57brewrealpath=/usr/local/Cellar/qt@5.7/5.7.1
 export QT5PATH=$qt57brew
 export CARTABUILDHOME=$cartawork/CARTAvis/build
 branch=upgradeToNewNamespace #optional
