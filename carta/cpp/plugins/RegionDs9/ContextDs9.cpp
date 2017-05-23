@@ -24,17 +24,17 @@ static inline double wrap_angle( double before, double after ) {
     return after;
 }
 
-static inline casa::Quantum<casa::Vector<double> > convert_angle( double x, const std::string &xunits, double y, const std::string &yunits,
-        casa::MDirection::Types original_coordsys, casa::MDirection::Types new_coordsys, const std::string &new_units="rad" ) {
-    casa::Quantum<double> xq(x,casa::String(xunits));
-    casa::Quantum<double> yq(y,casa::String(yunits));
-    casa::MDirection md = casa::MDirection::Convert(casa::MDirection(xq,yq,original_coordsys), new_coordsys)();
-    casa::Quantum<casa::Vector<double> > result = md.getAngle("rad");
+static inline casacore::Quantum<casacore::Vector<double> > convert_angle( double x, const std::string &xunits, double y, const std::string &yunits,
+        casacore::MDirection::Types original_coordsys, casacore::MDirection::Types new_coordsys, const std::string &new_units="rad" ) {
+    casacore::Quantum<double> xq(x,casacore::String(xunits));
+    casacore::Quantum<double> yq(y,casacore::String(yunits));
+    casacore::MDirection md = casacore::MDirection::Convert(casacore::MDirection(xq,yq,original_coordsys), new_coordsys)();
+    casacore::Quantum<casacore::Vector<double> > result = md.getAngle("rad");
     xq.convert("rad");
     yq.convert("rad");
     result.getValue( )(0) = wrap_angle(xq.getValue( ), result.getValue( )(0));
     result.getValue( )(1) = wrap_angle(yq.getValue( ), result.getValue( )(1));
-    result.convert(casa::String(new_units));
+    result.convert(casacore::String(new_units));
     return result;
 }
 

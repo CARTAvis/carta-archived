@@ -1,10 +1,5 @@
 #!/bin/bash
 
-## create working folder, $CARTAWORKHOME
-# mkdir ~/src
-# cd ~/src
-
-export CARTAWORKHOME=`pwd`
 QTINSTALLER=qt-unified-linux-x64-2.0.5-online.run
 QTURL=http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/$QTINSTALLER
 
@@ -30,15 +25,6 @@ else
     sudo apt-get -y install libgl1-mesa-glx libglib2.0-0
 fi
 
-## Use latest qt online installer to install latest creator + qt 5.3.2 choosed
-# Question: possible to use sudo yum to install qt 5.3.2 ? ref: qt5-qtbase-5.2.0-4.fc20.x86_64?
-
-# mkdir -p ~/download
-# cd ~/download
 wget $QTURL
 chmod 755 $QTINSTALLER
-# http://doc.qt.io/qt-5/linux.html
-# mkdir -p $CARTAWORKHOME/CARTAvis-externals/ThirdParty/Qt ## include qt creaetor
-./$QTINSTALLER ## will prompt UI to install, but font is missing
-# choose to install in  ~/src/CARTAvis-externals/ThirdParty/Qt5.3.2/,
-# can change to use default location, ~/Qt/?
+./$QTINSTALLER ## will prompt UI to install, use default location to install

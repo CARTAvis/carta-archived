@@ -10,10 +10,10 @@ IntensityConversionPlugin::IntensityConversionPlugin( QObject * parent ) :
 { }
 
 
-void IntensityConversionPlugin::_getBeamInfo( casa::ImageInfo& information,
-        casa::Double& beamAngle, casa::Double& beamArea) const {
+void IntensityConversionPlugin::_getBeamInfo( casacore::ImageInfo& information,
+        casacore::Double& beamAngle, casacore::Double& beamArea) const {
     //Get the major and minor axis beam widths.
-    casa::GaussianBeam beam;
+    casacore::GaussianBeam beam;
     bool multipleBeams = information.hasMultipleBeams();
     if ( !multipleBeams ){
         beam = information.restoringBeam();
@@ -21,8 +21,8 @@ void IntensityConversionPlugin::_getBeamInfo( casa::ImageInfo& information,
     else {
         beam = information.restoringBeam( 0, -1 );
     }
-    casa::Quantity majorQuantity = beam.getMajor();
-    casa::Quantity minorQuantity = beam.getMinor();
+    casacore::Quantity majorQuantity = beam.getMajor();
+    casacore::Quantity minorQuantity = beam.getMinor();
     double arcsecArea = beam.getArea( "arcsec2");
     beamArea = arcsecArea;
 
@@ -57,9 +57,9 @@ IntensityConversionPlugin::handleHook( BaseHook & hookData ){
             }
             CCImageBase * base = dynamic_cast<CCImageBase*>( image.get() );
             if ( base ){
-                casa::ImageInfo information = base->getImageInfo();
-                casa::Double beamAngle;
-                casa::Double beamArea;
+                casacore::ImageInfo information = base->getImageInfo();
+                casacore::Double beamAngle;
+                casacore::Double beamArea;
                 _getBeamInfo( information, beamAngle, beamArea );
                 std::vector<double> valsX = hook.paramsPtr->m_inputListX;
                 std::vector<double> valsY = hook.paramsPtr->m_inputListY;

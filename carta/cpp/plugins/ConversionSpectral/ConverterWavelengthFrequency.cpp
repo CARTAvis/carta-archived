@@ -7,17 +7,17 @@ ConverterWavelengthFrequency::ConverterWavelengthFrequency(const QString& oldUni
 ConverterWavelength( oldUnits, newUnits ) {
 }
 
-casa::Vector<double> ConverterWavelengthFrequency::convert( const casa::Vector<double>& oldValues,
-        casa::SpectralCoordinate spectralCoordinate ) {
-    casa::Vector<double> resultValues( oldValues.size());
+casacore::Vector<double> ConverterWavelengthFrequency::convert( const casacore::Vector<double>& oldValues,
+        casacore::SpectralCoordinate spectralCoordinate ) {
+    casacore::Vector<double> resultValues( oldValues.size());
     bool wavelengthRecognized = spectralCoordinate.setWavelengthUnit( oldUnits.toStdString() );
     bool successfulConversion = false;
     if ( wavelengthRecognized ) {
         successfulConversion = spectralCoordinate.wavelengthToFrequency( resultValues, oldValues );
         if ( successfulConversion ) {
-            casa::Vector<casa::String> coordUnits = spectralCoordinate.worldAxisUnits();
+            casacore::Vector<casacore::String> coordUnits = spectralCoordinate.worldAxisUnits();
             assert ( coordUnits.size() == 1 );
-            casa::String coordUnit = coordUnits[0];
+            casacore::String coordUnit = coordUnits[0];
             QString coordUnitStr( coordUnit.c_str());
             ConverterFrequency::convertFrequency( resultValues, coordUnitStr, newUnits, spectralCoordinate );
         }

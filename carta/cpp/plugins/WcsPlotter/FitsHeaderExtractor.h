@@ -8,7 +8,7 @@
 #include "CartaLib/IImage.h"
 #include <QStringList>
 
-namespace casa { class LatticeBase; }
+namespace casacore { class LatticeBase; }
 
 class FitsHeaderExtractor
 {
@@ -33,7 +33,7 @@ public:
 private:
 
     QString _FITSKeyWordParser(QString _raw);
-    QStringList _CasaFitsConverter( casa::LatticeBase * lbase);
+    QStringList _CasaFitsConverter( casacore::LatticeBase * lbase);
 
     Carta::Lib::Image::ImageInterface::SharedPtr m_cartaImage = nullptr;
     QStringList m_errors;

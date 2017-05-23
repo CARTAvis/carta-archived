@@ -69,20 +69,20 @@ std::vector<HookId> RegionCASA::getInitialHookList(){
 
 std::vector<QPointF>
 RegionCASA::_getPixelVertices( const casa::AnnotationBase::Direction& corners,
-        const casa::CoordinateSystem& csys, const casa::Vector<casa::MDirection>& directions ) const {
-    std::vector<casa::Quantity> xx, xy;
+        const casacore::CoordinateSystem& csys, const casacore::Vector<casacore::MDirection>& directions ) const {
+    std::vector<casacore::Quantity> xx, xy;
     _getWorldVertices(xx, xy, csys, directions );
-    casa::Vector<casa::Double> world = csys.referenceValue();
-    const casa::IPosition dirAxes = csys.directionAxesNumbers();
-    casa::String xUnit = csys.worldAxisUnits()[dirAxes[0]];
-    casa::String yUnit = csys.worldAxisUnits()[dirAxes[1]];
+    casacore::Vector<casacore::Double> world = csys.referenceValue();
+    const casacore::IPosition dirAxes = csys.directionAxesNumbers();
+    casacore::String xUnit = csys.worldAxisUnits()[dirAxes[0]];
+    casacore::String yUnit = csys.worldAxisUnits()[dirAxes[1]];
     int cornerCount = corners.size();
 
     std::vector<QPointF> pixelVertices( cornerCount );
     for (int i=0; i<cornerCount; i++) {
         world[dirAxes[0]] = xx[i].getValue(xUnit);
         world[dirAxes[1]] = xy[i].getValue(yUnit);
-        casa::Vector<casa::Double> pixel;
+        casacore::Vector<casacore::Double> pixel;
         csys.toPixel(pixel, world);
         pixelVertices[i]= QPointF( pixel[dirAxes[0]], pixel[dirAxes[1]] );
     }
@@ -108,31 +108,31 @@ RegionCASA::_loadRegion( const QString & fname,
 		std::shared_ptr<Carta::Lib::Image::ImageInterface> imagePtr ){
 	std::vector<Carta::Lib::Regions::RegionBase*> regionInfos;
 
-	casa::String fileName( fname.toStdString().c_str() );
+	casacore::String fileName( fname.toStdString().c_str() );
 	CCImageBase * base = dynamic_cast<CCImageBase*>( imagePtr.get() );
 	if ( base ){
 		Carta::Lib::Image::MetaDataInterface::SharedPtr metaPtr = base->metaData();
 		CCMetaDataInterface* metaData = dynamic_cast<CCMetaDataInterface*>(metaPtr.get());
 		if ( metaData ){
-			std::shared_ptr<casa::CoordinateSystem> cs = metaData->getCoordinateSystem();
+			std::shared_ptr<casacore::CoordinateSystem> cs = metaData->getCoordinateSystem();
 			std::vector < int > dimensions = imagePtr->dims();
 			int dimCount = dimensions.size();
-			casa::IPosition shape(dimCount);
+			casacore::IPosition shape(dimCount);
 			for ( int i = 0; i < dimCount; i++ ){
 				shape[i] = dimensions[i];
 			}
 			casa::RegionTextList regionList( fileName, *cs.get(), shape );
-			casa::Vector<casa::AsciiAnnotationFileLine> aaregions = regionList.getLines();
+			casacore::Vector<casa::AsciiAnnotationFileLine> aaregions = regionList.getLines();
 			int regionCount = aaregions.size();
 			for ( int i = 0; i < regionCount; i++ ){
 				if ( aaregions[i].getType() != casa::AsciiAnnotationFileLine::ANNOTATION ){
 					continue;
 				}
 
-				casa::CountedPtr<const casa::AnnotationBase> ann = aaregions[i].getAnnotationBase();
+				casacore::CountedPtr<const casa::AnnotationBase> ann = aaregions[i].getAnnotationBase();
 				Carta::Lib::Regions::RegionBase* rInfo = nullptr;
 
-				casa::Vector<casa::MDirection> directions = ann->getConvertedDirections();
+				casacore::Vector<casacore::MDirection> directions = ann->getConvertedDirections();
 				casa::AnnotationBase::Direction points = ann->getDirections();
 				std::vector<QPointF> corners =
 						_getPixelVertices( points, *cs.get(), directions );
@@ -172,22 +172,22 @@ RegionCASA::_loadRegion( const QString & fname,
 					Carta::Lib::Regions::Ellipse* regionEllipse = new Carta::Lib::Regions::Ellipse();
 					rInfo = regionEllipse;
 					const casa::AnnEllipse* ellipse = dynamic_cast<const casa::AnnEllipse*>( ann.get() );
-					casa::Int directionIndex = cs->findCoordinate(casa::Coordinate::Type::DIRECTION );
+					casacore::Int directionIndex = cs->findCoordinate(casacore::Coordinate::Type::DIRECTION );
 
-					casa::MDirection::Types csType = casa::MDirection::EXTRA;
+					casacore::MDirection::Types csType = casacore::MDirection::EXTRA;
 					if ( directionIndex >= 0 ){
-						casa::DirectionCoordinate  dCoord = cs->directionCoordinate(directionIndex);
+						casacore::DirectionCoordinate  dCoord = cs->directionCoordinate(directionIndex);
 						csType = dCoord.directionType();
 					}
 
-					if ( csType == casa::MDirection::EXTRA ){
+					if ( csType == casacore::MDirection::EXTRA ){
 						qWarning( "Unable to complete elliptical region, unspecified direction type.");
 						continue;
 					}
 
 
-					casa::MDirection dir_center = casa::MDirection::Convert(ellipse->getCenter( ), csType)();
-					casa::Vector<double> center = dir_center.getAngle("rad").getValue( );
+					casacore::MDirection dir_center = casacore::MDirection::Convert(ellipse->getCenter( ), csType)();
+					casacore::Vector<double> center = dir_center.getAngle("rad").getValue( );
 					// 90 deg around 0 & 180 deg
 					const double major_radius = ellipse->getSemiMajorAxis().getValue("rad");
 					const double minor_radius = ellipse->getSemiMinorAxis().getValue("rad");
@@ -233,38 +233,38 @@ RegionCASA::_loadRegion( const QString & fname,
 }
 
 double RegionCASA::_getRadiusPixel( const QPointF& centerRadian, const QPointF& centerPixel,
-		double radius, double angleDegrees, const casa::CoordinateSystem& cSys ) const {
+		double radius, double angleDegrees, const casacore::CoordinateSystem& cSys ) const {
 	double pointX = centerRadian.x() + radius * cos( angleDegrees * ( M_PI / 180));
 	double pointY = centerRadian.y() + radius * sin ( angleDegrees * ( M_PI / 180));
 	bool successful = false;
-	casa::Vector<casa::Double> pixelPt = _toPixel( cSys, pointX, pointY, &successful );
+	casacore::Vector<casacore::Double> pixelPt = _toPixel( cSys, pointX, pointY, &successful );
 	double xDiff = pixelPt[0] - centerPixel.x();
 	double yDiff = pixelPt[1] - centerPixel.y();
 	double radiusPixel = qSqrt( xDiff * xDiff + yDiff * yDiff );
 	return radiusPixel;
 }
 
-void RegionCASA::_getWorldVertices(std::vector<casa::Quantity>& x, std::vector<casa::Quantity>& y,
-        const casa::CoordinateSystem& csys,
-        const casa::Vector<casa::MDirection>& directions ) const {
-    const casa::IPosition dirAxes = csys.directionAxesNumbers();
-    casa::String xUnit = csys.worldAxisUnits()[dirAxes[0]];
-    casa::String yUnit = csys.worldAxisUnits()[dirAxes[1]];
+void RegionCASA::_getWorldVertices(std::vector<casacore::Quantity>& x, std::vector<casacore::Quantity>& y,
+        const casacore::CoordinateSystem& csys,
+        const casacore::Vector<casacore::MDirection>& directions ) const {
+    const casacore::IPosition dirAxes = csys.directionAxesNumbers();
+    casacore::String xUnit = csys.worldAxisUnits()[dirAxes[0]];
+    casacore::String yUnit = csys.worldAxisUnits()[dirAxes[1]];
     int directionCount = directions.size();
     x.resize( directionCount );
     y.resize( directionCount );
     for (int i = 0; i < directionCount; i++) {
-        x[i] = casa::Quantity(directions[i].getAngle(xUnit).getValue(xUnit)[0], xUnit);
-        y[i] = casa::Quantity(directions[i].getAngle(yUnit).getValue(yUnit)[1], yUnit);
+        x[i] = casacore::Quantity(directions[i].getAngle(xUnit).getValue(xUnit)[0], xUnit);
+        y[i] = casacore::Quantity(directions[i].getAngle(yUnit).getValue(yUnit)[1], yUnit);
     }
 }
 
-casa::Vector<casa::Double> RegionCASA::_toPixel( const casa::CoordinateSystem& cSys,
+casacore::Vector<casacore::Double> RegionCASA::_toPixel( const casacore::CoordinateSystem& cSys,
 		double x, double y, bool* successful ) const {
 	int pixelCount = cSys.nPixelAxes();
-	casa::Vector<casa::Double> worldPt( pixelCount, 0 );
+	casacore::Vector<casacore::Double> worldPt( pixelCount, 0 );
 	worldPt = cSys.referenceValue();
-	casa::Vector<casa::Double> pixelPt( pixelCount);
+	casacore::Vector<casacore::Double> pixelPt( pixelCount);
 	pixelPt = cSys.referencePixel();
 	if ( pixelCount >= 2 ){
 		worldPt[0] = x;
@@ -273,7 +273,7 @@ casa::Vector<casa::Double> RegionCASA::_toPixel( const casa::CoordinateSystem& c
 			pixelPt = cSys.toPixel( worldPt );
 			*successful = true;
 		}
-		catch( const casa::AipsError& error ){
+		catch( const casacore::AipsError& error ){
 			qDebug() << error.getMesg().c_str()<<" x="<<x<<" y="<<y;
 			*successful = false;
 		}

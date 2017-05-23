@@ -19,35 +19,35 @@
 
 const QString ImageRegionGenerator::RAD_UNITS = "rad";
 
-std::pair<casa::Vector<casa::Quantity>,casa::Vector<casa::Quantity> > ImageRegionGenerator::_getEllipsePositionRadii(
-		Carta::Lib::Regions::Ellipse* ellipse, const casa::CoordinateSystem &cs ){
+std::pair<casacore::Vector<casacore::Quantity>,casacore::Vector<casacore::Quantity> > ImageRegionGenerator::_getEllipsePositionRadii(
+		Carta::Lib::Regions::Ellipse* ellipse, const casacore::CoordinateSystem &cs ){
 
 
 	QRectF outlineBox = ellipse->outlineBox();
 	QPointF topLeftPt = outlineBox.topLeft();
 	QPointF centerPt = outlineBox.center();
 	bool validCenter = false;
-	casa::Vector<casa::Double> centerWorld = _toWorld( cs, centerPt.x(), centerPt.y(), &validCenter );
+	casacore::Vector<casacore::Double> centerWorld = _toWorld( cs, centerPt.x(), centerPt.y(), &validCenter );
 	bool validTopLeft = false;
-	casa::Vector<casa::Double> topLeft = _toWorld( cs, topLeftPt.x(), topLeftPt.y(), &validTopLeft );
+	casacore::Vector<casacore::Double> topLeft = _toWorld( cs, topLeftPt.x(), topLeftPt.y(), &validTopLeft );
 
-	casa::Vector<casa::Quantum<casa::Double> > qcenter, qtlc;
-	casa::Vector<casa::Quantity> radii_(2);
+	casacore::Vector<casacore::Quantum<casacore::Double> > qcenter, qtlc;
+	casacore::Vector<casacore::Quantity> radii_(2);
 
 	if ( validCenter && validTopLeft ){
 		qcenter.resize(2);
 		qtlc.resize(2);
 
-		casa::String units( RAD_UNITS.toStdString().c_str() );
+		casacore::String units( RAD_UNITS.toStdString().c_str() );
 
-		qcenter[0] = casa::Quantum<casa::Double>(centerWorld[0], units);
-		qcenter[1] = casa::Quantum<casa::Double>(centerWorld[1], units);
+		qcenter[0] = casacore::Quantum<casacore::Double>(centerWorld[0], units);
+		qcenter[1] = casacore::Quantum<casacore::Double>(centerWorld[1], units);
 
-		qtlc[0] = casa::Quantum<casa::Double>(topLeft[0], units);
-		qtlc[1] = casa::Quantum<casa::Double>(topLeft[1], units);
+		qtlc[0] = casacore::Quantum<casacore::Double>(topLeft[0], units);
+		qtlc[1] = casacore::Quantum<casacore::Double>(topLeft[1], units);
 
 		int directionIndex = cs.directionCoordinateNumber();
-		casa::MDirection::Types cccs = casa::MDirection::N_Types;
+		casacore::MDirection::Types cccs = casacore::MDirection::N_Types;
 		if ( directionIndex < 0 ){
 			// no direction coordinate was found...
 			double c0 = qcenter[0].getValue();
@@ -61,34 +61,34 @@ std::pair<casa::Vector<casa::Quantity>,casa::Vector<casa::Quantity> > ImageRegio
 			cccs = cs.directionCoordinate( directionIndex).directionType( true );
 			// a direction coordinate was found...
 
-			casa::Vector<casa::Double> center_rad(2);
+			casacore::Vector<casacore::Double> center_rad(2);
 			center_rad[0] = qcenter[0].getValue( units );
 			center_rad[1] = qcenter[1].getValue( units );
-			casa::MDirection mdcenter( casa::Quantum<casa::Vector<casa::Double> > (center_rad,units), cccs  );
+			casacore::MDirection mdcenter( casacore::Quantum<casacore::Vector<casacore::Double> > (center_rad,units), cccs  );
 
-			casa::Vector<casa::Double> tlc_rad_x(2);
+			casacore::Vector<casacore::Double> tlc_rad_x(2);
 			tlc_rad_x[0] = qtlc[0].getValue( units);
 			tlc_rad_x[1] = qcenter[1].getValue( units );
-			casa::MDirection mdtlc_x( casa::Quantum<casa::Vector<casa::Double> >(tlc_rad_x,units),cccs );
+			casacore::MDirection mdtlc_x( casacore::Quantum<casacore::Vector<casacore::Double> >(tlc_rad_x,units),cccs );
 
-			casa::Vector<casa::Double> tlc_rad_y(2);
+			casacore::Vector<casacore::Double> tlc_rad_y(2);
 			tlc_rad_y[0] = qcenter[0].getValue(units);
 			tlc_rad_y[1] = qtlc[1].getValue(units);
-			casa::MDirection mdtlc_y( casa::Quantum<casa::Vector<casa::Double> >(tlc_rad_y,units),cccs );
+			casacore::MDirection mdtlc_y( casacore::Quantum<casacore::Vector<casacore::Double> >(tlc_rad_y,units),cccs );
 
 			double xdistance = mdcenter.getValue( ).separation(mdtlc_x.getValue( ));
 			double ydistance = mdcenter.getValue( ).separation(mdtlc_y.getValue( ));
-			radii_[0] = casa::Quantity(xdistance, units);
-			radii_[1] = casa::Quantity(ydistance, units);
+			radii_[0] = casacore::Quantity(xdistance, units);
+			radii_[1] = casacore::Quantity(ydistance, units);
 		}
 	}
 	return std::make_pair(qcenter,radii_);
 }
 
 
-casa::ImageRegion* ImageRegionGenerator::makeRegion( casa::ImageInterface<casa::Float> * casaImage,
+casacore::ImageRegion* ImageRegionGenerator::makeRegion( casacore::ImageInterface<casacore::Float> * casaImage,
 		std::shared_ptr<Carta::Lib::Regions::RegionBase> region ){
-	casa::ImageRegion* imageRegion = nullptr;
+	casacore::ImageRegion* imageRegion = nullptr;
 	if ( region ){
 		QString regionType = region->typeName();
 		if ( regionType == "rectangle" ){
@@ -121,38 +121,38 @@ casa::ImageRegion* ImageRegionGenerator::makeRegion( casa::ImageInterface<casa::
 	return imageRegion;
 }
 
-casa::ImageRegion* ImageRegionGenerator::_makeRegionRectangle( casa::ImageInterface<casa::Float> * image,
+casacore::ImageRegion* ImageRegionGenerator::_makeRegionRectangle( casacore::ImageInterface<casacore::Float> * image,
 		const QRectF& outlineBox){
-	casa::ImageRegion* imageRegion = nullptr;
+	casacore::ImageRegion* imageRegion = nullptr;
 	if ( image ){
-		casa::Vector<casa::Int> dispAxes(2);
-		const casa::CoordinateSystem &cs = image->coordinates( );
-		int directionIndex = cs.findCoordinate( casa::Coordinate::DIRECTION );
+		casacore::Vector<casacore::Int> dispAxes(2);
+		const casacore::CoordinateSystem &cs = image->coordinates( );
+		int directionIndex = cs.findCoordinate( casacore::Coordinate::DIRECTION );
 		if ( directionIndex >= 0 ){
-			casa::Vector<casa::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
+			casacore::Vector<casacore::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
 			dispAxes(0) = dirPixelAxis[0];
 			dispAxes(1) = dirPixelAxis[1];
 
-			casa::Vector<casa::Quantum<casa::Double> > qbrc(2);
-			casa::Vector<casa::Quantum<casa::Double> > qtlc(2);
+			casacore::Vector<casacore::Quantum<casacore::Double> > qbrc(2);
+			casacore::Vector<casacore::Quantum<casacore::Double> > qtlc(2);
 
 			QPointF tlc = outlineBox.topLeft();
 			QPointF brc = outlineBox.bottomRight();
 			bool blcValid = false;
-			casa::Vector<casa::Double> brcWorld = _toWorld( cs, brc.x(), brc.y(), &blcValid );
+			casacore::Vector<casacore::Double> brcWorld = _toWorld( cs, brc.x(), brc.y(), &blcValid );
 			bool trcValid = false;
-			casa::Vector<casa::Double> tlcWorld = _toWorld( cs, tlc.x(), tlc.y(), &trcValid );
+			casacore::Vector<casacore::Double> tlcWorld = _toWorld( cs, tlc.x(), tlc.y(), &trcValid );
 			if ( blcValid && trcValid ){
-				casa::String unitStr( RAD_UNITS.toStdString().c_str() );
-				qtlc[0] = casa::Quantum<casa::Double>( tlcWorld[0], unitStr );
-				qtlc[1] = casa::Quantum<casa::Double>( tlcWorld[1], unitStr );
-				qbrc[0] = casa::Quantum<casa::Double>( brcWorld[0], unitStr );
-				qbrc[1] = casa::Quantum<casa::Double>( brcWorld[1], unitStr );
+				casacore::String unitStr( RAD_UNITS.toStdString().c_str() );
+				qtlc[0] = casacore::Quantum<casacore::Double>( tlcWorld[0], unitStr );
+				qtlc[1] = casacore::Quantum<casacore::Double>( tlcWorld[1], unitStr );
+				qbrc[0] = casacore::Quantum<casacore::Double>( brcWorld[0], unitStr );
+				qbrc[1] = casacore::Quantum<casacore::Double>( brcWorld[1], unitStr );
 				try {
-					casa::WCBox box( qtlc, qbrc, casa::IPosition(dispAxes), cs, casa::Vector<casa::Int>() );
-					imageRegion = new casa::ImageRegion(box);
+					casacore::WCBox box( qtlc, qbrc, casacore::IPosition(dispAxes), cs, casacore::Vector<casacore::Int>() );
+					imageRegion = new casacore::ImageRegion(box);
 				}
-				catch( const casa::AipsError& error ) {
+				catch( const casacore::AipsError& error ) {
 					qDebug() << "Could not make image region error="<<error.getMesg().c_str();
 				}
 			}
@@ -161,26 +161,26 @@ casa::ImageRegion* ImageRegionGenerator::_makeRegionRectangle( casa::ImageInterf
 	return imageRegion;
 }
 
-casa::ImageRegion* ImageRegionGenerator::_makeRegionEllipse( casa::ImageInterface<casa::Float> * image,
+casacore::ImageRegion* ImageRegionGenerator::_makeRegionEllipse( casacore::ImageInterface<casacore::Float> * image,
 		Carta::Lib::Regions::Ellipse* ellipse){
-	casa::ImageRegion* imageRegion = nullptr;
+	casacore::ImageRegion* imageRegion = nullptr;
 	if ( image ){
-		casa::Vector<casa::Int> dispAxes(2);
-		const casa::CoordinateSystem &cs = image->coordinates( );
-		int directionIndex = cs.findCoordinate( casa::Coordinate::DIRECTION );
+		casacore::Vector<casacore::Int> dispAxes(2);
+		const casacore::CoordinateSystem &cs = image->coordinates( );
+		int directionIndex = cs.findCoordinate( casacore::Coordinate::DIRECTION );
 		if ( directionIndex >= 0 ){
-			casa::Vector<casa::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
+			casacore::Vector<casacore::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
 			dispAxes(0) = dirPixelAxis[0];
 			dispAxes(1) = dirPixelAxis[1];
-			std::pair<casa::Vector<casa::Quantity>,casa::Vector<casa::Quantity> > positionRadii =
+			std::pair<casacore::Vector<casacore::Quantity>,casacore::Vector<casacore::Quantity> > positionRadii =
 					_getEllipsePositionRadii( ellipse, cs );
 			if ( positionRadii.second.size( ) == 2 ) {
 				try {
-					casa::WCEllipsoid ellipse( positionRadii.first, positionRadii.second,
-							casa::IPosition(dispAxes), cs );
-					imageRegion = new casa::ImageRegion(ellipse);
+					casacore::WCEllipsoid ellipse( positionRadii.first, positionRadii.second,
+							casacore::IPosition(dispAxes), cs );
+					imageRegion = new casacore::ImageRegion(ellipse);
 				}
-				catch( const casa::AipsError& error ) {
+				catch( const casacore::AipsError& error ) {
 					qDebug() << "Could not calculate ellipse position and radii: "<<error.getMesg().c_str();
 				}
 			}
@@ -189,19 +189,19 @@ casa::ImageRegion* ImageRegionGenerator::_makeRegionEllipse( casa::ImageInterfac
 	return imageRegion;
 }
 
-casa::ImageRegion* ImageRegionGenerator::_makeRegionPolygon( casa::ImageInterface<casa::Float> * image,
+casacore::ImageRegion* ImageRegionGenerator::_makeRegionPolygon( casacore::ImageInterface<casacore::Float> * image,
 		Carta::Lib::Regions::Polygon* polygon ){
-	casa::ImageRegion* imageRegion = nullptr;
+	casacore::ImageRegion* imageRegion = nullptr;
 	if ( image && polygon ){
 		QPolygonF poly = polygon->qpolyf();
 		int cornerPointCount = poly.count();
-		casa::Vector<casa::Double> x( cornerPointCount );
-		casa::Vector<casa::Double> y( cornerPointCount );
-		const casa::CoordinateSystem &cs = image->coordinates( );
+		casacore::Vector<casacore::Double> x( cornerPointCount );
+		casacore::Vector<casacore::Double> y( cornerPointCount );
+		const casacore::CoordinateSystem &cs = image->coordinates( );
 		bool successful = true;
 		for ( int i = 0; i < cornerPointCount; ++i ) {
 			QPointF polyPt = poly.value( i );
-			casa::Vector<casa::Double> worldPt = _toWorld( cs, polyPt.x(), polyPt.y(), &successful );
+			casacore::Vector<casacore::Double> worldPt = _toWorld( cs, polyPt.x(), polyPt.y(), &successful );
 			if ( successful ){
 				x[i] = worldPt[0];
 				y[i] = worldPt[1];
@@ -213,21 +213,21 @@ casa::ImageRegion* ImageRegionGenerator::_makeRegionPolygon( casa::ImageInterfac
 		}
 
 		if ( successful ){
-			casa::Vector<casa::Int> dispAxes(2);
-			const casa::CoordinateSystem &cs = image->coordinates( );
-			int directionIndex = cs.findCoordinate( casa::Coordinate::DIRECTION );
+			casacore::Vector<casacore::Int> dispAxes(2);
+			const casacore::CoordinateSystem &cs = image->coordinates( );
+			int directionIndex = cs.findCoordinate( casacore::Coordinate::DIRECTION );
 			if ( directionIndex >= 0 ){
-				casa::Vector<casa::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
+				casacore::Vector<casacore::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
 				dispAxes(0) = dirPixelAxis[0];
 				dispAxes(1) = dirPixelAxis[1];
-				const casa::String units( RAD_UNITS.toStdString().c_str() );
+				const casacore::String units( RAD_UNITS.toStdString().c_str() );
 				try {
-					casa::Quantum<casa::Vector<casa::Double> > qx( x, units );
-					casa::Quantum<casa::Vector<casa::Double> > qy( y, units );
-					casa::WCPolygon poly(qx, qy, casa::IPosition(dispAxes), cs);
-					imageRegion = new casa::ImageRegion(poly);
+					casacore::Quantum<casacore::Vector<casacore::Double> > qx( x, units );
+					casacore::Quantum<casacore::Vector<casacore::Double> > qy( y, units );
+					casacore::WCPolygon poly(qx, qy, casacore::IPosition(dispAxes), cs);
+					imageRegion = new casacore::ImageRegion(poly);
 				}
-				catch( casa::AipsError& error ) {
+				catch( casacore::AipsError& error ) {
 					qDebug() << "Error making image region: "<<error.getMesg().c_str();
 				}
 			}
@@ -236,11 +236,11 @@ casa::ImageRegion* ImageRegionGenerator::_makeRegionPolygon( casa::ImageInterfac
 	return imageRegion;
 }
 
-casa::Vector<casa::Double> ImageRegionGenerator::_toWorld( const casa::CoordinateSystem& cSys,
+casacore::Vector<casacore::Double> ImageRegionGenerator::_toWorld( const casacore::CoordinateSystem& cSys,
 		double x, double y, bool* successful ){
 	int pixelCount = cSys.nPixelAxes();
-	casa::Vector<casa::Double> pixelPt( pixelCount, 0 );
-	casa::Vector<casa::Double> worldPt;
+	casacore::Vector<casacore::Double> pixelPt( pixelCount, 0 );
+	casacore::Vector<casacore::Double> worldPt;
 	if ( pixelCount >= 2 ){
 		pixelPt[0] = x;
 		pixelPt[1] = y;
@@ -248,7 +248,7 @@ casa::Vector<casa::Double> ImageRegionGenerator::_toWorld( const casa::Coordinat
 			worldPt = cSys.toWorld( pixelPt );
 			*successful = true;
 		}
-		catch( const casa::AipsError& error ){
+		catch( const casacore::AipsError& error ){
 			qDebug() << error.getMesg().c_str();
 			*successful = false;
 		}

@@ -10,7 +10,7 @@
 #include <casacore/coordinates/Coordinates/StokesCoordinate.h>
 
 CCMetaDataInterface::CCMetaDataInterface( QString htmlTitle,
-                                          std::shared_ptr < casa::CoordinateSystem > casaCS )
+                                          std::shared_ptr < casacore::CoordinateSystem > casaCS )
 {
     m_title = Carta::Lib::HtmlString::fromHtml( htmlTitle );
     m_casaCS = casaCS;
@@ -28,7 +28,7 @@ CCMetaDataInterface::coordinateFormatter()
     return std::make_shared < CCCoordinateFormatter > ( m_casaCS );
 }
 
-std::shared_ptr<casa::CoordinateSystem> CCMetaDataInterface::getCoordinateSystem() const {
+std::shared_ptr<casacore::CoordinateSystem> CCMetaDataInterface::getCoordinateSystem() const {
     return m_casaCS;
 }
 
@@ -74,7 +74,7 @@ class CCCoordSystemConverter : public Carta::Lib::Regions::ICoordSystemConverter
 {
 public:
 
-    CCCoordSystemConverter( std::shared_ptr < casa::CoordinateSystem > casaCS )
+    CCCoordSystemConverter( std::shared_ptr < casacore::CoordinateSystem > casaCS )
     {
         m_casaCS = casaCS;
 
@@ -104,31 +104,31 @@ public:
             qDebug() << "    -type:" << subcs.type();
 
             // warn about subaxis not being 0 for everything but direction
-            if( subcs.type() != casa::Coordinate::Type::DIRECTION && coordAxis != 0) {
+            if( subcs.type() != casacore::Coordinate::Type::DIRECTION && coordAxis != 0) {
                 qWarning() << "CasaImageLoader plugin: coordAxis should be 0 for non-direction";
                 coordAxis = 0;
             }
             // warn about subaxis not being 0 or 1 for direction
-            if( subcs.type() == casa::Coordinate::Type::DIRECTION &&
+            if( subcs.type() == casacore::Coordinate::Type::DIRECTION &&
                 (coordAxis != 0 && coordAxis != 1))
             {
                 qWarning() << "CasaImageLoader plugin: coordAxis should be 0 or 1 for direction";
                 coordAxis = 0;
             }
 
-            if ( subcs.type() == casa::Coordinate::Type::DIRECTION ) {
-                const casa::DirectionCoordinate & dirc = m_casaCS-> directionCoordinate();
-                if ( dirc.directionType() == casa::MDirection::Types::J2000 ) {
+            if ( subcs.type() == casacore::Coordinate::Type::DIRECTION ) {
+                const casacore::DirectionCoordinate & dirc = m_casaCS-> directionCoordinate();
+                if ( dirc.directionType() == casacore::MDirection::Types::J2000 ) {
                     m_dstCS.setAxis( i,
                                      Carta::Lib::Regions::BasicCoordinateSystemInfo::j2000(),
                                      coordAxis );
                 }
-                else if ( dirc.directionType() == casa::MDirection::Types::GALACTIC ) {
+                else if ( dirc.directionType() == casacore::MDirection::Types::GALACTIC ) {
                     m_dstCS.setAxis( i,
                                      Carta::Lib::Regions::BasicCoordinateSystemInfo::galactic(),
                                      coordAxis );
                 }
-                else if ( dirc.directionType() == casa::MDirection::Types::ECLIPTIC ) {
+                else if ( dirc.directionType() == casacore::MDirection::Types::ECLIPTIC ) {
                     m_dstCS.setAxis( i,
                                      Carta::Lib::Regions::BasicCoordinateSystemInfo::ecliptic(),
                                      coordAxis );
@@ -136,25 +136,25 @@ public:
                 else {
                     qWarning() << "CasaImageLoader plugin:"
                                << "Don't know how to convert casa direction"
-                               << casa::MDirection::showType( dirc.directionType() ).c_str();
+                               << casacore::MDirection::showType( dirc.directionType() ).c_str();
                 }
             }
-            else if ( subcs.type() == casa::Coordinate::Type::SPECTRAL ) {
-                const casa::SpectralCoordinate & specc = m_casaCS-> spectralCoordinate();
-                if( specc.nativeType() == casa::SpectralCoordinate::SpecType::FREQ) {
+            else if ( subcs.type() == casacore::Coordinate::Type::SPECTRAL ) {
+                const casacore::SpectralCoordinate & specc = m_casaCS-> spectralCoordinate();
+                if( specc.nativeType() == casacore::SpectralCoordinate::SpecType::FREQ) {
                     m_dstCS.setAxis( i,
                                      Carta::Lib::Regions::BasicCoordinateSystemInfo::frequency() );
 
                 } else {
-                    casa::String cstring = "???";
-                    casa::SpectralCoordinate::specTypetoString( cstring, specc.nativeType());
+                    casacore::String cstring = "???";
+                    casacore::SpectralCoordinate::specTypetoString( cstring, specc.nativeType());
                     qWarning() << "CasaImageLoader plugin: "
                                << "Don't know how to convert casa spectral"
                                << cstring.c_str();
                 }
             }
-            else if ( subcs.type() == casa::Coordinate::Type::STOKES ) {
-                const casa::StokesCoordinate & stokesc = m_casaCS-> stokesCoordinate();
+            else if ( subcs.type() == casacore::Coordinate::Type::STOKES ) {
+                const casacore::StokesCoordinate & stokesc = m_casaCS-> stokesCoordinate();
                 auto s = stokesc.stokes().tovector();
                 qDebug() << "stokesv=" << s;
                 m_dstCS.setAxis( i,
@@ -203,7 +203,7 @@ public:
 
 private:
 
-    std::shared_ptr < casa::CoordinateSystem > m_casaCS;
+    std::shared_ptr < casacore::CoordinateSystem > m_casaCS;
     Carta::Lib::Regions::CompositeCoordinateSystem m_srcCS, m_dstCS;
 };
 

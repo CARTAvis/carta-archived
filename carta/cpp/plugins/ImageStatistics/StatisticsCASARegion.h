@@ -26,21 +26,21 @@ public:
      *      image.
      */
     static QList<Carta::Lib::StatInfo>
-    getStats( casa::ImageInterface<casa::Float>* image, std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
+    getStats( casacore::ImageInterface<casacore::Float>* image, std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
             const std::vector<int>& slice );
 private:
     StatisticsCASARegion();
-    static void _getStatsFromCalculator( casa::ImageInterface<casa::Float>* image,
-           const casa::Record& region, const std::vector<int>& slice,
+    static void _getStatsFromCalculator( casacore::ImageInterface<casacore::Float>* image,
+           const casacore::Record& region, const std::vector<int>& slice,
            QList<Carta::Lib::StatInfo>& stats, const QString& typeStr );
 
-    static void _insertScalar( const casa::Record& result, const casa::String& key,
+    static void _insertScalar( const casacore::Record& result, const casacore::String& key,
             Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
-    static void _insertList( const casa::Record& result, const casa::String& key,
+    static void _insertList( const casacore::Record& result, const casacore::String& key,
             Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
-    static void _insertString( const casa::Record& result, const casa::String& key,
+    static void _insertString( const casacore::Record& result, const casacore::String& key,
             Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
-    static QString _vectorToString( const casa::Vector<int>& valArray );
+    static QString _vectorToString( const casacore::Vector<int>& valArray );
 
     virtual ~StatisticsCASARegion();
 

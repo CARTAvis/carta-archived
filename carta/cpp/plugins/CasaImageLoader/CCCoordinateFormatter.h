@@ -19,7 +19,7 @@ class CCCoordinateFormatter : public CoordinateFormatterInterface
 
 public:
 
-    CCCoordinateFormatter( std::shared_ptr < casa::CoordinateSystem > casaCS );
+    CCCoordinateFormatter( std::shared_ptr < casacore::CoordinateSystem > casaCS );
 
     virtual CCCoordinateFormatter * clone() const override;
 
@@ -77,7 +77,7 @@ protected:
     void
     parseCasaCSi(int pixelAxis);
 
-    std::shared_ptr < casa::CoordinateSystem > m_casaCS;
+    std::shared_ptr < casacore::CoordinateSystem > m_casaCS;
 
     /// cached info per axis
     std::vector < AxisInfo > m_axisInfos;

@@ -37,7 +37,7 @@ StatisticsCASA::handleHook( BaseHook & hookData ){
                 qWarning() << "Missing image for statistics";
                 continue;
             }
-            casa::ImageInterface<casa::Float>* casaImage = cartaII2casaII_float( image );
+            casacore::ImageInterface<casacore::Float>* casaImage = cartaII2casaII_float( image );
             if( ! casaImage) {
                 qWarning() << "Image statistics plugin: not an image created by casaimageloader...";
                 return false;

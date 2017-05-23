@@ -10,7 +10,7 @@ ASTLIBDIR = ../../ThirdParty/ast
 WCSLIBDIR=../../ThirdParty/wcslib
 CFITSIODIR=../../ThirdParty/cfitsio
 IMAGEANALYSISDIR=../../ThirdParty/imageanalysis
-FLEXANDBISONDIR=../../ThirdParty/flexandbison
+FLEXANDBISONDIR=../../ThirdParty/flex
 
 # don't edit these:
 # relative links are replaced by absolute paths

@@ -3,6 +3,9 @@ defineTest(dbg) {
 #    message( $$1)
 }
 
+DEFINES += "UseCasacoreNamespace=1"
+
+
 ! include(common_config.pri) {
   error( "Could not find the common_config.pri file!" )
 }
@@ -122,4 +125,3 @@ PROJECT_ROOT = $$IN_PWD
 # add include/depend path to start from root
 INCLUDEPATH += $$PROJECT_ROOT
 DEPENDPATH += $$PROJECT_ROOT
-
