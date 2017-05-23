@@ -27,13 +27,15 @@ public:
     /// \note all entries are padded/truncated to 80 chars
     QStringList getHeader();
 
+    QString getFileName();
+
     /// \return list of errors (if any)
     QStringList getErrors();
 
 private:
 
     QString _FITSKeyWordParser(QString _raw);
-    QStringList _CasaFitsConverter( casa::LatticeBase * lbase);
+    QStringList _CasaFitsConverter();
 
     Carta::Lib::Image::ImageInterface::SharedPtr m_cartaImage = nullptr;
     QStringList m_errors;

@@ -28,6 +28,9 @@ struct AstWcsGridRenderService::Pimpl
     // fits header from the input image
     QStringList fitsHeader;
 
+    // fits file name
+    QString fitsName;
+
     // current sky CS
     Carta::Lib::KnownSkyCS knownSkyCS = Carta::Lib::KnownSkyCS::J2000;
 
@@ -93,6 +96,11 @@ AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::Share
         FitsHeaderExtractor fhExtractor;
         fhExtractor.setInput( m_iimage );
         QStringList header = fhExtractor.getHeader();
+        // Maybe, We can get the file name from "DataSource::_getFileName()"
+        // add a new menber fuction "AstWcsGridRenderService::setFileName"
+        // and remove "FitsHeaderExtractor::getFileName()"
+        // I think it will work when image is permuted
+        QString fileName = fhExtractor.getFileName();
 
         // sanity check
         if ( header.size() < 1 ) {
@@ -106,6 +114,12 @@ AstWcsGridRenderService::setInputImage( Carta::Lib::Image::ImageInterface::Share
             std::sort(&header[0],&header[len-2]);
             m().fitsHeader = header;
         }
+
+        if(fileName != m().fitsName)
+        {
+            m().fitsName = fileName;
+        }
+
     }
 } // setInputImage
 
@@ -240,7 +254,6 @@ AstWcsGridRenderService::renderNow()
     sgp.setOutputVGComposer( & m_vgc );
 
 //    sgp.setPlotOption( "tol=0.001" ); // this can slow down the grid rendering!!!
-    sgp.setPlotOption( "DrawTitle=0" );
 
     if ( !m_gridLines ){
         sgp.setPlotOption( "Grid=0");
@@ -319,13 +332,16 @@ AstWcsGridRenderService::renderNow()
     sgp.setPlotOption( QString( "Colour(TextLab1)=%1" ).arg( si( Element::LabelText1 ) ) );
     sgp.setPlotOption( QString( "Colour(TextLab2)=%1" ).arg( si( Element::LabelText2 ) ) );
 
+    // draw title
+    sgp.setPlotOption( "DrawTitle=0" );
+    //sgp.setPlotOption( QString( "Font(title)=%1" ).arg( Please set the font ));
+    //sgp.setPlotOption( QString( "Size(title)=%1" ).arg( Please set the size ));
+    //sgp.setPlotOption( QString( "Colour(title)=%1" ).arg( Please set the color));
+    //sgp.setPlotOption( "TitleGap=0.0" );
+    //sgp.setPlotOption(QString("Title(1)=%1").arg( m().fitsName )); // for SKY-SPECTRUM image
+    //sgp.setPlotOption(QString("Title=%1").arg( m().fitsName ));    // for SKY , LINEAR image
+
     sgp.setShadowPenIndex( si( Element::Shadow ) );
-
-
-
-//    sgp.setPlotOption( "Format(1)=\"+tms.10\"");
-//            sgp.setPlotOption( "Format(1)=\"gtms\"");
-    // grid density
     sgp.setDensityModifier( m_gridDensity );
 
 

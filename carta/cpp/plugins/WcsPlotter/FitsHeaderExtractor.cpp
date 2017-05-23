@@ -17,6 +17,39 @@
 #include <casacore/coordinates/Coordinates/LinearCoordinate.h>
 #include <casacore/images/Images/ImageInterface.h>
 
+casa::ImageInterface < casa::Float > * InterfaceConverter(QStringList & errorInfo, Carta::Lib::Image::ImageInterface::SharedPtr cartaImage)
+{
+    casa::ImageInterface < casa::Float > *fii;
+
+    // was this created using CasaImageLoader plugin?
+    CCImageBase * base = dynamic_cast < CCImageBase * > ( & * cartaImage );
+    if ( base )
+    {
+        casa::LatticeBase * latticeBase = base-> getCasaImage();
+        if ( latticeBase )
+        {
+            // can we get float image interface ?
+            #ifndef Q_OS_MAC
+                fii = dynamic_cast < casa::ImageInterface < casa::Float > * > ( latticeBase );
+            #else
+                fii = static_cast < casa::ImageInterface < casa::Float > * > ( latticeBase );
+            #endif
+
+            if ( ! fii )
+            {
+                errorInfo << "Could not convert base to float image";
+            }
+        }
+        else
+        {
+            errorInfo << "Cannot produce FITS header for this image because"
+                     << "I have no idea where this image came from.";
+        }
+    }
+
+    return fii;
+}
+
 void FitsLine::_parse(QString &key, QString &value, QString &comment) {
     // key is the first 8 characters (trimmed)
     key = _raw.left(8).trimmed();
@@ -79,6 +112,30 @@ FitsHeaderExtractor::setInput( Carta::Lib::Image::ImageInterface::SharedPtr imag
     m_cartaImage = image;
 }
 
+QString FitsHeaderExtractor::getFileName()
+{
+    m_errors.clear();
+    if ( ! m_cartaImage ) {
+        m_errors << "Input is NULL";
+        return QString();
+    }
+
+    // can we get float image interface ?
+    casa::ImageInterface < casa::Float > * fii = InterfaceConverter(m_errors, m_cartaImage);
+
+    if ( ! fii )
+    {
+        return QString();
+    }
+
+    // alias image to be reference to the image, since the original code used a reference
+    // rather than a pointer and I'm too lazy to convert everything to pointers :)
+    casa::ImageInterface < casa::Float > & image = *fii;
+
+    QString result = image.name(1).c_str();
+    return result;
+}
+
 QStringList
 FitsHeaderExtractor::getHeader()
 {
@@ -88,23 +145,7 @@ FitsHeaderExtractor::getHeader()
         return QStringList();
     }
 
-    QStringList result;
-
-    // was this created using CasaImageLoader plugin?
-    CCImageBase * base = dynamic_cast < CCImageBase * > ( & * m_cartaImage );
-    if ( base ) {
-        casa::LatticeBase * latticeBase = base-> getCasaImage();
-        if ( latticeBase ) {
-
-            // casacore's fits parser
-            result = _CasaFitsConverter( latticeBase );
-        }
-        else {
-            m_errors << "Cannot produce FITS header for this image because"
-                     << "I have no idea where this image came from.";
-        }
-    }
-
+    QStringList result = _CasaFitsConverter();
     return result;
 } // getHeader
 
@@ -118,24 +159,21 @@ FitsHeaderExtractor::getErrors()
 // tree. There are probably unused pieces of code/weird comments,etc...
 /// \todo clean up the code below
 QStringList
-FitsHeaderExtractor::_CasaFitsConverter( casa::LatticeBase * lbase )
+FitsHeaderExtractor::_CasaFitsConverter()
 {
-    // can we get float image interface ?
-    casa::ImageInterface < casa::Float > * fii = nullptr;
-    #ifndef Q_OS_MAC
-        fii = dynamic_cast < casa::ImageInterface < casa::Float > * > ( lbase );
-    #else
-        fii = static_cast < casa::ImageInterface < casa::Float > * > ( lbase );
-    #endif
 
-    if ( ! fii ) {
-        m_errors << "Could not convert base to float image";
+    // can we get float image interface ?
+    casa::ImageInterface < casa::Float > * fii = InterfaceConverter(m_errors, m_cartaImage);
+
+    if ( ! fii )
+    {
         return QStringList();
     }
 
     // alias image to be reference to the image, since the original code used a reference
     // rather than a pointer and I'm too lazy to convert everything to pointers :)
-    casa::ImageInterface < casa::Float > & image = * fii;
+    casa::ImageInterface < casa::Float > & image = *fii;
+
 
     using namespace casa;
 
