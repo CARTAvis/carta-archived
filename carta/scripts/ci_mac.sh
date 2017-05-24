@@ -6,7 +6,7 @@ function printDuration(){
 }
 
 function pause(){
-  afplay /System/Library/Sounds/Funk.aiff
+  # afplay /System/Library/Sounds/Funk.aiff
   # read -p "Press [Enter] key to continue"
 }
 
@@ -84,13 +84,25 @@ printDuration
 # printDuration
 
 echo "step4-0:install homebrew's gcc to get gfortran for ast, also cmake for libsakura, casa libs"
+if [ "$TRAVIS" = true ] ; then
+  echo "backup travis-c++"
+  mv /usr/local/include/c++ /usr/local/include/c++_backup
+fi
 su $SUDO_USER <<EOF
 ### Basic tools
-brew install cmake
-brew link --overwrite cmake
+if brew ls --versions cmake ; then
+  echo "cmake is already installed"
+else
+  brew install cmake
+  brew link --overwrite cmake
+fi
 ## now it is 7.1 we only use its gfortran which is also used by code
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb
 EOF
+if [ "$TRAVIS" = true ] ; then
+  echo "resume travis-c++"
+  mv /usr/local/include/c++_backup /usr/local/include/c++
+fi
 printDuration
 
 ### Install 3 party for CARTA
@@ -117,8 +129,16 @@ echo "step4-3: Use homebrew to Install some libs needed by flex and bison for CA
 pause
 su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
-brew install autoconf
-brew install automake
+if brew ls --versions autoconf ; then
+  echo "autoconf is already installed"
+else
+  brew install autoconf
+fi
+if brew ls --versions automake ; then
+  echo "automake is already installed"
+else
+  brew install automake
+fi
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/056def4318cd874871b266c9f1df88e450411966/Formula/texinfo.rb
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/512e7f6e9673a6f359c4c36d908126cb9c284f9f/Formula/help2man.rb
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/d407fb8563f480391d918e1f1160cb7e244a1a12/Formula/gettext.rb
@@ -190,9 +210,10 @@ printDuration
 
 echo "check everything before building casa"
 cd $cartawork/CARTAvis-externals/ThirdParty
-brew list
+sudo su $SUDO_USER -c "brew list"
 echo "list ThirdParty"
 ls
+echo "list ThirdParty end"
 ls ./ast/bin/ast_link
 ls ./cfitsio/lib/libcfitsio.a
 ls /usr/local/lib/libgsl.a
@@ -200,6 +221,8 @@ ls ./qwt-6.1.2/include/qwt.h
 ls ./wcslib/lib/libwcs.5.15.dylib
 ls /usr/local/lib/libsakura.4.0.dylib
 ls /usr/local/bin/gfortran
+which cython
+ls ~/Library/Python/2.7/lib/python/site-packages/matplotlib
 
 ### build casa
 echo "step6: Build casa"

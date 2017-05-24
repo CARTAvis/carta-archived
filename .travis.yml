@@ -25,25 +25,26 @@ install:
 # You can skip the installation step entirely by adding the following to your .travis.yml:
 # install: true
 
-# before_script:
+before_script:
+    - echo "some logs:"
+    - echo "in script:"
+    - echo `pwd`
+    - echo $TRAVIS_BUILD_DIR
+    - which wget
+    - node --version
+    - echo "ls"
+    - ls
+    - brew list
+    #- ls /usr/local/bin/gfortran # ls /usr/local/bin/gfortran" exited with 1
+    - ls /usr/local/include/c++
+    - echo "start build"
+    - cd .. # should become /Users/travis/build/CARTAvis/
+    - mv carta CARTAvis
+    - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
 
 #The default build command depends on the project language
 script: # build
-  - "echo some logs:"
-  - brew install wget
-  # - echo "in script:"
-  # - echo `pwd`
-  # - echo $TRAVIS_BUILD_DIR
-  # - which wget
-  # - node --version
-  # - echo "ls"
-  # - ls
-  # - brew list
-  # - ls /usr/local/bin/gfortran # ls /usr/local/bin/gfortran" exited with 1
-  # - echo "start build"
-  # - cd .. # should become /Users/travis/build/CARTAvis/
-  # - mv carta CARTAvis
-  # - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
+  - echo "in script step"
 
 # /Users/travis/build/CARTAvis/carta
 # /Users/travis/build/CARTAvis/CARTAvis
