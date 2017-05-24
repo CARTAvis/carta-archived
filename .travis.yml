@@ -5,11 +5,12 @@
 #  - jruby
 #  - rbx-2
 
-language: cpp
+# language seems to be ruby,
+# https://github.com/travis-ci/travis-ci/issues/4895
 os: osx
 osx_image: xcode8.3
-compiler:
-- clang
+# compiler:
+# - clang
 
 # In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
 before_install:
@@ -30,6 +31,8 @@ install:
 #The default build command depends on the project language
 script: # build
   - "echo some logs:"
+  - gcc --version
+  - ls /usr/local/include/c++
   # - afplay /System/Library/Sounds/Funk.aiff
   # - echo "in script:"
   # - echo `pwd`
@@ -41,9 +44,9 @@ script: # build
   # - brew list
   # - ls /usr/local/bin/gfortran # ls /usr/local/bin/gfortran" exited with 1
   # - echo "start build"
-  - cd .. # should become /Users/travis/build/CARTAvis/
-  - mv carta CARTAvis
-  - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
+  # - cd .. # should become /Users/travis/build/CARTAvis/
+  # - mv carta CARTAvis
+  # - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
 
 # /Users/travis/build/CARTAvis/carta
 # /Users/travis/build/CARTAvis/CARTAvis
