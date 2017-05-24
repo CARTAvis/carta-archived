@@ -30,7 +30,7 @@ install:
 #The default build command depends on the project language
 script: # build
   - "echo some logs:"
-  - ls /usr/local/bin/gfortran
+  - afplay /System/Library/Sounds/Funk.aiff
   # - echo "in script:"
   # - echo `pwd`
   # - echo $TRAVIS_BUILD_DIR
