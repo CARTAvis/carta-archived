@@ -5,9 +5,8 @@ function printDuration(){
   echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
 }
 
-function pause(){
-  # afplay /System/Library/Sounds/Funk.aiff
-  # read -p "Press [Enter] key to continue"
+function pause() {
+  echo "dummy pause"
 }
 
 ### TODO

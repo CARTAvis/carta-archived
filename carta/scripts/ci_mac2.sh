@@ -6,7 +6,7 @@ function printDuration() {
 }
 
 function pause() {
-
+  echo "dummy pause"
 }
 
 ### TODO
@@ -227,7 +227,6 @@ echo "check everything before building casa"
 cd $cartawork/CARTAvis-externals/ThirdParty
 sudo su $SUDO_USER -c "brew list"
 echo "list ThirdParty"
-echo "list ThirdParty end"
 
 ls $e_ast
 ls $e_cfitsio
@@ -247,6 +246,7 @@ ls /usr/local/bin/gfortran
 which cython
 ls ~/Library/Python/2.7/lib/python/site-packages/matplotlib
 ls -l # print again
+echo "list ThirdParty end"
 
 ### build casa
 #TODO: cache
