@@ -30,7 +30,7 @@ install:
 #The default build command depends on the project language
 script: # build
   - "echo some logs:"
-  - afplay /System/Library/Sounds/Funk.aiff
+  # - afplay /System/Library/Sounds/Funk.aiff
   # - echo "in script:"
   # - echo `pwd`
   # - echo $TRAVIS_BUILD_DIR
@@ -43,7 +43,7 @@ script: # build
   # - echo "start build"
   # - cd .. # should become /Users/travis/build/CARTAvis/
   # - mv carta CARTAvis
-  # - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
+  - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
 
 # /Users/travis/build/CARTAvis/carta
 # /Users/travis/build/CARTAvis/CARTAvis
