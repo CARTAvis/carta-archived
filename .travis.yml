@@ -1,0 +1,36 @@
+# language seems to be the minimized setting
+# language: ruby
+# rvm:
+#  - 2.2
+#  - jruby
+#  - rbx-2
+
+language: cpp
+os: osx
+osx_image: xcode8.3
+compiler:
+- clang
+
+# In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
+before_install:
+- brew update
+
+# The default dependency installation commands depend on the project language. For instance, Java builds either use Maven or Gradle, depending on which build file is present in the repository. Ruby projects use Bundler when a Gemfile is present in the repository.
+#
+# You can specify your own script to run to install whatever dependencies your project requires in .travis.yml:
+install:
+  - echo "in install:"
+  - echo `pwd`
+
+# You can skip the installation step entirely by adding the following to your .travis.yml:
+# install: true
+
+# before_script:
+
+#The default build command depends on the project language
+script: # build
+  - echo "in script:"
+  - echo `pwd`
+  - echo $TRAVIS_BUILD_DIR
+  - which wget
+  - node --version
