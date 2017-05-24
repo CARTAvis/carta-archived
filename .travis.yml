@@ -34,3 +34,5 @@ script: # build
   - echo $TRAVIS_BUILD_DIR
   - which wget
   - node --version
+  - echo "ls"
+  - ls
