@@ -29,6 +29,7 @@ install:
 
 #The default build command depends on the project language
 script: # build
+  - "echo some logs:"
   - echo "in script:"
   - echo `pwd`
   - echo $TRAVIS_BUILD_DIR
@@ -36,3 +37,14 @@ script: # build
   - node --version
   - echo "ls"
   - ls
+  - "echo start build"
+  - cd .. # should become /Users/travis/build/CARTAvis/
+  - mv carta CARTAvis
+  - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
+
+# /Users/travis/build/CARTAvis/carta
+# /Users/travis/build/CARTAvis/CARTAvis
+# /Users/travis/build/CARTAvis/CARTAvis-external
+# cmake 3.6.2 ?3.8.1
+# autoconf 2.69
+# automake 1.15

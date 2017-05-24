@@ -190,7 +190,7 @@ printDuration
 
 echo "check everything before building casa"
 cd $cartawork/CARTAvis-externals/ThirdParty
-brew list
+brew list 
 echo "list ThirdParty"
 ls
 ls ./ast/bin/ast_link
@@ -200,76 +200,77 @@ ls ./qwt-6.1.2/include/qwt.h
 ls ./wcslib/lib/libwcs.5.15.dylib
 ls /usr/local/lib/libsakura.4.0.dylib
 
-### build casa
-echo "step6: Build casa"
-pause
-cd $cartawork
-sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
-###
-printDuration
-
-### setup QtWebkit
-echo "step7: setup QtWebkit"
-pause
-su $SUDO_USER <<EOF
-cd $cartawork/CARTAvis-externals/ThirdParty
-curl -O -L $qtwebkitlink
-tar -xvzf $qtwebkit.tar.xz
-# copy include
-cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKit $QT5PATH/include/
-cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKitWidgets $QT5PATH/include/
-# copy lib
-cp $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/libqt* $QT5PATH/lib/
-cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/QtWebKit.framework $QT5PATH/lib/
-cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/QtWebKitWidgets.framework $QT5PATH/lib/
-cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/cmake/* $QT5PATH/lib/cmake/
-cp $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/pkgconfig/* $QT5PATH/lib/pkgconfig/
-# copy mkspecs
-cp $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/mkspecs/modules/* $QT5PATH/mkspecs/modules/
-echo "QT.webkit.module = QtWebKit" >> $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
-perl -pi.bak -e 's/QT.webkit.module_config =/QT.webkit.module_config = v2 lib_bundle/g' $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
-echo "QT.webkitwidgets.module = QtWebKitWidgets" >> $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
-perl -pi.bak -e 's/QT.webkitwidgets.module_config =/QT.webkitwidgets.module_config = v2 lib_bundle /g' $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
-EOF
-###
-printDuration
-
-### build UI of CARTA
-echo "step8: Build UI of CARTA"
-pause
-su $SUDO_USER <<EOF
-echo $cartawork
-cd $cartawork/CARTAvis/carta/html5/common/skel
-./generate.py
-###
-EOF
-printDuration
-
-### build CARTA
-echo "step9: Build CARTA"
-pause
-su $SUDO_USER <<EOF
-echo $QT5PATH
-export PATH=$QT5PATH/bin:$PATH
-mkdir -p $CARTABUILDHOME
-cd $CARTABUILDHOME
-qmake -config release NOSERVER=1 CARTA_BUILD_TYPE=release $cartawork/CARTAvis/carta -r
-make -j2
-###
-EOF
-printDuration
-
-echo "end time:"
-date
-
-### packagize CARTA
-echo "step10: packagize CARTA"
-pause
-su $SUDO_USER <<EOF
-curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
-chmod 755 final_mac_packaging_steps.sh
-./final_mac_packaging_steps.sh
-EOF
-
-echo "step11: reset folder permission to normal owner, not root"
-chown -R $SUDO_USER:staff $cartawork
+########################## comment for testing the above first
+#### build casa
+# echo "step6: Build casa"
+# pause
+# cd $cartawork
+# sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
+# ###
+# printDuration
+#
+# ### setup QtWebkit
+# echo "step7: setup QtWebkit"
+# pause
+# su $SUDO_USER <<EOF
+# cd $cartawork/CARTAvis-externals/ThirdParty
+# curl -O -L $qtwebkitlink
+# tar -xvzf $qtwebkit.tar.xz
+# # copy include
+# cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKit $QT5PATH/include/
+# cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKitWidgets $QT5PATH/include/
+# # copy lib
+# cp $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/libqt* $QT5PATH/lib/
+# cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/QtWebKit.framework $QT5PATH/lib/
+# cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/QtWebKitWidgets.framework $QT5PATH/lib/
+# cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/cmake/* $QT5PATH/lib/cmake/
+# cp $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/lib/pkgconfig/* $QT5PATH/lib/pkgconfig/
+# # copy mkspecs
+# cp $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/mkspecs/modules/* $QT5PATH/mkspecs/modules/
+# echo "QT.webkit.module = QtWebKit" >> $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
+# perl -pi.bak -e 's/QT.webkit.module_config =/QT.webkit.module_config = v2 lib_bundle/g' $QT5PATH/mkspecs/modules/qt_lib_webkit.pri
+# echo "QT.webkitwidgets.module = QtWebKitWidgets" >> $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
+# perl -pi.bak -e 's/QT.webkitwidgets.module_config =/QT.webkitwidgets.module_config = v2 lib_bundle /g' $QT5PATH/mkspecs/modules/qt_lib_webkitwidgets.pri
+# EOF
+# ###
+# printDuration
+#
+# ### build UI of CARTA
+# echo "step8: Build UI of CARTA"
+# pause
+# su $SUDO_USER <<EOF
+# echo $cartawork
+# cd $cartawork/CARTAvis/carta/html5/common/skel
+# ./generate.py
+# ###
+# EOF
+# printDuration
+#
+# ### build CARTA
+# echo "step9: Build CARTA"
+# pause
+# su $SUDO_USER <<EOF
+# echo $QT5PATH
+# export PATH=$QT5PATH/bin:$PATH
+# mkdir -p $CARTABUILDHOME
+# cd $CARTABUILDHOME
+# qmake -config release NOSERVER=1 CARTA_BUILD_TYPE=release $cartawork/CARTAvis/carta -r
+# make -j2
+# ###
+# EOF
+# printDuration
+#
+# echo "end time:"
+# date
+#
+# ### packagize CARTA
+# echo "step10: packagize CARTA"
+# pause
+# su $SUDO_USER <<EOF
+# curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
+# chmod 755 final_mac_packaging_steps.sh
+# ./final_mac_packaging_steps.sh
+# EOF
+#
+# echo "step11: reset folder permission to normal owner, not root"
+# chown -R $SUDO_USER:staff $cartawork
