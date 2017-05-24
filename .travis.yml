@@ -30,7 +30,7 @@ install:
 #The default build command depends on the project language
 script: # build
   - "echo some logs:"
-  - brew install wget
+  - ls /usr/local/bin/gfortran
   # - echo "in script:"
   # - echo `pwd`
   # - echo $TRAVIS_BUILD_DIR
