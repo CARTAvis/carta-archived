@@ -139,6 +139,31 @@ brew cask install basictex
 EOF
 printDuration
 
+e_ast=$cartawork/CARTAvis-externals/ThirdParty/ast/bin/ast_link
+e_cfitsio=$cartawork/CARTAvis-externals/ThirdParty/cfitsio/lib/libcfitsio.a
+e_qwt=$cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.2/include/qwt.h
+e_wcslib=$cartawork/CARTAvis-externals/ThirdParty/wcslib/lib/libwcs.5.15.dylib
+e_qooxdoo=$cartawork/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+e_rapidjson=$cartawork/CARTAvis-externals/ThirdParty/rapidjson
+e_flex=$cartawork/CARTAvis-externals/ThirdParty/flex/bin/flex
+
+#TODO: cache
+echo "step4-4: Build most of the Third party libs for CARTA"
+if [ -f "$e_ast" ] && [ -f "$e_cfitsio" ] && [ -f "$e_qwt" ] && [ -f "$e_wcslib" ] && [ -f "$e_qooxdoo" ] && [ -f "$e_rapidjson" ] && [ -f "$e_flex" ]
+then
+	echo "built cache of qwt etc libs exit !!!!"
+else
+  echo "built cache of qwt etc libs not exit, start to build!!!!"
+  pause
+  echo "clean ThirdParty"
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/*
+  cd $cartawork
+  ## if use sudo ./xx.sh will let it can not inherit QT5PATH
+  ./CARTAvis/carta/scripts/install3party.sh
+  ###
+  printDuration
+fi
+
 #TODO: cache
 echo "step4-3: build flex"
 cd $cartawork/CARTAvis-externals/ThirdParty
@@ -156,28 +181,6 @@ make install
 ###
 printDuration
 echo "finish building flex"
-
-e_ast=$cartawork/CARTAvis-externals/ThirdParty/ast/bin/ast_link
-e_cfitsio=$cartawork/CARTAvis-externals/ThirdParty/cfitsio/lib/libcfitsio.a
-e_qwt=$cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.2/include/qwt.h
-e_wcslib=$cartawork/CARTAvis-externals/ThirdParty/wcslib/lib/libwcs.5.15.dylib
-e_qooxdoo=$cartawork/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
-e_rapidjson=$cartawork/CARTAvis-externals/ThirdParty/rapidjson
-
-#TODO: cache
-echo "step4-4: Build most of the Third party libs for CARTA"
-if [ -f "$e_ast" ] && [ -f "$e_cfitsio" ] && [ -f "$e_qwt" ] && [ -f "$e_wcslib" ] && [ -f "$e_qooxdoo" ] && [ -f "$e_rapidjson" ]
-then
-	echo "built cache of qwt etc libs exit !!!!"
-else
-  echo "built cache of qwt etc libs not exit, start to build!!!!"
-  pause
-  cd $cartawork
-  ## if use sudo ./xx.sh will let it can not inherit QT5PATH
-  ./CARTAvis/carta/scripts/install3party.sh
-  ###
-  printDuration
-fi
 
 ## gsl
 echo "step4-5: build gsl"
@@ -257,6 +260,9 @@ then
 else
   echo "casacore and code built cache not exist, start to built it"
   pause
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/casa
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/casacore
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/imageanalysis
   cd $cartawork
   sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
   printDuration

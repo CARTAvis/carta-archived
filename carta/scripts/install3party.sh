@@ -127,7 +127,11 @@ fi
 echo "install qooxdoo"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## Install qooxdoo for CARTA
-curl -o qooxdoo-3.5.1-sdk.zip -L https://github.com/qooxdoo/qooxdoo/releases/download/release_3_5_1/qooxdoo-3.5.1-sdk.zip
+if [ -f qooxdoo-3.5.1-sdk.zip ]
+	echo "alreayd downloaded qooxdoo-3.5.1-sdk.zip"
+else
+	curl -o qooxdoo-3.5.1-sdk.zip -L https://github.com/qooxdoo/qooxdoo/releases/download/release_3_5_1/qooxdoo-3.5.1-sdk.zip
+then
 unzip qooxdoo-3.5.1-sdk.zip > /dev/null
 
 ## rapidjson

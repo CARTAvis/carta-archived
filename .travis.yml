@@ -13,10 +13,38 @@ compiler:
 
 cache:
   directories:
-  -$HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+  - $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+before_cache:
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/libsakura
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/gsl*
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qooxdoo-3.5.1-sdk
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0-src
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0.tar.gz
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2-src
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2.tar.bz2
+
+#casa/trunk/除了drawin !!!
+#qooxdoo-3.5.1-sdk.zip !!
+#qtwebkit-tp4-qt57-darwin !! ast>qtwebkit-tp4-qt57-darwin
+
+# ast-8.4.0-src
+# ast-8.4.0.tar.gz
+#gsl-2.1-src
+#gsl-2.1.tar.gz
+
+#libsakura?? #? 先清空好了
+
+# cfitsio-src
+# cfitsio3390.tar
+# wcslib-5.15.tar.bz2
+# wcslib-5.15-src
+# flex-2.5.37
+# flex-2.5.37.tar
+
+#gtest-1.7.0.zip
 
 # In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
-before_install:
+# before_install:
 # - brew update
 
 # The default dependency installation commands depend on the project language. For instance, Java builds either use Maven or Gradle, depending on which build file is present in the repository. Ruby projects use Bundler when a Gemfile is present in the repository.
@@ -29,7 +57,7 @@ install:
 # You can skip the installation step entirely by adding the following to your .travis.yml:
 # install: true
 
-before_script:
+# before_script:
 
 
 #The default build command depends on the project language
@@ -44,7 +72,6 @@ script: # build
   - echo "ls"
   - ls -l
   - brew list
-  #- ls /usr/local/bin/gfortran # ls /usr/local/bin/gfortran" exited with 1
   - ls /usr/local/include/c++
   - which python
   - python --version
