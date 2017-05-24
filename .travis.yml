@@ -35,6 +35,7 @@ script: # build
   - ls /usr/local/include/c++
   #- which gfortran
   - brew install gcc
+  - ls /usr/local/bin/gfortran
   # - afplay /System/Library/Sounds/Funk.aiff
   # - echo "in script:"
   # - echo `pwd`
