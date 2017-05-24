@@ -1,10 +1,3 @@
-# language seems to be the minimized setting
-# language: ruby
-# rvm:
-#  - 2.2
-#  - jruby
-#  - rbx-2
-
 language: cpp
 os: osx
 osx_image: xcode8.3
@@ -27,46 +20,11 @@ before_cache:
   - mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk
   - mv $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk/
   - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qtwebkit-tp4-qt57-darwin*
-#casa/trunk/除了drawin !!!
-#qtwebkit-tp4-qt57-darwin !! ast>qtwebkit-tp4-qt57-darwin
 
-#qooxdoo-3.5.1-sdk.zip !!
-
-# ast-8.4.0-src
-# ast-8.4.0.tar.gz
-#gsl-2.1-src
-#gsl-2.1.tar.gz
-
-#libsakura?? #? 先清空好了
-
-# cfitsio-src
-# cfitsio3390.tar
-# wcslib-5.15.tar.bz2
-# wcslib-5.15-src
-# flex-2.5.37
-# flex-2.5.37.tar
-
-#gtest-1.7.0.zip
-
-# In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
-# before_install:
-# - brew update
-
-# The default dependency installation commands depend on the project language. For instance, Java builds either use Maven or Gradle, depending on which build file is present in the repository. Ruby projects use Bundler when a Gemfile is present in the repository.
-#
-# You can specify your own script to run to install whatever dependencies your project requires in .travis.yml:
 install:
-  - echo "in install:"
-  - echo `pwd`
+  - echo "in install"
 
-# You can skip the installation step entirely by adding the following to your .travis.yml:
-# install: true
-
-# before_script:
-
-
-#The default build command depends on the project language
-script: # build
+script:
   - echo "in script step"
   - echo "some logs:"
   - echo "in script:"
@@ -83,13 +41,6 @@ script: # build
   - echo "list cache Third party folder"
   - ls -al $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
   - echo "start build"
-  - cd .. # should become /Users/travis/build/CARTAvis/
+  - cd ..
   - mv carta CARTAvis
   - sudo sh -E ./CARTAvis/carta/scripts/ci_mac2.sh
-
-# /Users/travis/build/CARTAvis/carta
-# /Users/travis/build/CARTAvis/CARTAvis
-# /Users/travis/build/CARTAvis/CARTAvis-external
-# cmake 3.6.2 ?3.8.1
-# autoconf 2.69
-# automake 1.15
