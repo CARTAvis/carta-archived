@@ -22,10 +22,15 @@ before_cache:
   - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0.tar.gz
   - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2-src
   - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2.tar.bz2
-
+  - mv $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa
+  - mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk
+  - mv $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk/
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qtwebkit-tp4-qt57-darwin*
 #casa/trunk/除了drawin !!!
-#qooxdoo-3.5.1-sdk.zip !!
 #qtwebkit-tp4-qt57-darwin !! ast>qtwebkit-tp4-qt57-darwin
+
+#qooxdoo-3.5.1-sdk.zip !!
 
 # ast-8.4.0-src
 # ast-8.4.0.tar.gz
