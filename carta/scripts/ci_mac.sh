@@ -199,6 +199,7 @@ ls /usr/local/lib/libgsl.a
 ls ./qwt-6.1.2/include/qwt.h
 ls ./wcslib/lib/libwcs.5.15.dylib
 ls /usr/local/lib/libsakura.4.0.dylib
+ls /usr/local/bin/gfortran
 
 ### build casa
 echo "step6: Build casa"

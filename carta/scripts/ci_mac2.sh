@@ -99,7 +99,7 @@ if [ "$QT5PATH" == "$qt57brew" ]; then
   echo "start to install homebrew-qt"
   pause
   sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
-  sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
+  sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
   printDuration
 else
   echo "you use your own qt version"
@@ -190,7 +190,7 @@ printDuration
 
 echo "check everything before building casa"
 cd $cartawork/CARTAvis-externals/ThirdParty
-brew list 
+brew list
 echo "list ThirdParty"
 ls
 ls ./ast/bin/ast_link
@@ -199,6 +199,7 @@ ls /usr/local/lib/libgsl.a
 ls ./qwt-6.1.2/include/qwt.h
 ls ./wcslib/lib/libwcs.5.15.dylib
 ls /usr/local/lib/libsakura.4.0.dylib
+ls /usr/local/bin/gfortran
 
 ########################## comment for testing the above first
 #### build casa

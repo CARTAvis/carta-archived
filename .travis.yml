@@ -37,6 +37,8 @@ script: # build
   - node --version
   - echo "ls"
   - ls
+  - brew list
+  - ls /usr/local/bin/gfortran
   - "echo start build"
   - cd .. # should become /Users/travis/build/CARTAvis/
   - mv carta CARTAvis
