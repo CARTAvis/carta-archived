@@ -13,7 +13,7 @@ compiler:
 
 # In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
 before_install:
-- brew update
+# - brew update
 
 # The default dependency installation commands depend on the project language. For instance, Java builds either use Maven or Gradle, depending on which build file is present in the repository. Ruby projects use Bundler when a Gemfile is present in the repository.
 #
@@ -30,19 +30,20 @@ install:
 #The default build command depends on the project language
 script: # build
   - "echo some logs:"
-  - echo "in script:"
-  - echo `pwd`
-  - echo $TRAVIS_BUILD_DIR
-  - which wget
-  - node --version
-  - echo "ls"
-  - ls
-  - brew list
-  - ls /usr/local/bin/gfortran
-  - "echo start build"
-  - cd .. # should become /Users/travis/build/CARTAvis/
-  - mv carta CARTAvis
-  - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
+  - brew install wget
+  # - echo "in script:"
+  # - echo `pwd`
+  # - echo $TRAVIS_BUILD_DIR
+  # - which wget
+  # - node --version
+  # - echo "ls"
+  # - ls
+  # - brew list
+  # - ls /usr/local/bin/gfortran # ls /usr/local/bin/gfortran" exited with 1
+  # - echo "start build"
+  # - cd .. # should become /Users/travis/build/CARTAvis/
+  # - mv carta CARTAvis
+  # - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
 
 # /Users/travis/build/CARTAvis/carta
 # /Users/travis/build/CARTAvis/CARTAvis
