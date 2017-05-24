@@ -34,6 +34,8 @@ script: # build
   - gcc --version
   - ls /usr/local/include/c++
   #- which gfortran
+  - echo $TRAVIS
+  - rm '/usr/local/include/c++' 
   - brew install gcc
   - ls /usr/local/bin/gfortran
   # - afplay /System/Library/Sounds/Funk.aiff
