@@ -297,6 +297,10 @@ private:
 
     int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
 
+    std::vector<int> _getStokeIndex( const std::vector<int>& frames ) const;
+
+    std::vector<int> _getChannelIndex( const std::vector<int>& frames ) const;
+
     /**
      * Returns the raw data as an array.
      * @param axisIndex - an index of an image axis.
@@ -306,8 +310,19 @@ private:
      * @return the raw data or nullptr if there is none.
      */
     Carta::Lib::NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex ) const;
-    Carta::Lib::NdArray::RawViewInterface *  _getRawDataForIntensity( int frameLow, int frameHigh, int axisIndex,
-                                                                      int axisStokeIndex, int stokeSliceIndex ) const;
+
+    /**
+     * Returns the raw data as an array.
+     * @param axisIndex - an index of an image axis.
+     * @param frameLow the lower bound for the frames or -1 for the whole image.
+     * @param frameHigh the upper bound for the frames or -1 for the whole image.
+     * @param axisIndex - the axis for the frames or -1 for all axes.
+     * @param axisStokeIndex - the axis for the stoke frame.
+     * @param stokeSliceIndex - the index of the stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V).
+     * @return the raw data or nullptr if there is none.
+     */
+    Carta::Lib::NdArray::RawViewInterface *  _getRawDataForStoke( int frameLow, int frameHigh, int axisIndex,
+            int axisStokeIndex, int stokeSliceIndex ) const;
 
     /**
      * Returns the raw data for the current view.

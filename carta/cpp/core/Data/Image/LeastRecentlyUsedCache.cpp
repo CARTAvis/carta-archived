@@ -17,17 +17,14 @@ std::pair<int,double> LeastRecentlyUsedCache::getIntensity(int frameLow, int fra
     int position = 0;
     for ( QLinkedList<LeastRecentlyUsedCacheEntry>::iterator iter = m_cache.begin();
          iter != m_cache.end(); iter++ ){
-        if ( (*iter).getFrameLow() == frameLow ){
-            if ( (*iter).getFrameHigh() == frameHigh ){
-                if ( (*iter).getStokeFrame() == stokeFrame ) {
-                    if ( qAbs( percentile - (*iter).getPercentile() )< ERROR_MARGIN ){
-                        intensities.first = (*iter).getLocation();
-                        intensities.second = (*iter).getIntensity();
-                        _refresh(position);
-                        break;
-                    }
-                }
-            }
+        if ( (*iter).getFrameLow() == frameLow &&
+             (*iter).getFrameHigh() == frameHigh &&
+             (*iter).getStokeFrame() == stokeFrame &&
+             qAbs( percentile - (*iter).getPercentile() )< ERROR_MARGIN ) {
+            intensities.first = (*iter).getLocation();
+            intensities.second = (*iter).getIntensity();
+            _refresh(position);
+            break;
         }
         position++;
     }

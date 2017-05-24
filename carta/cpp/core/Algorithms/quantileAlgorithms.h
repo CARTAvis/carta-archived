@@ -56,7 +56,9 @@ quantiles2pixels(
     view.forEach(
         [& allValues] ( const Scalar & val ) {
             // check if the value from raw data is finite
-            if ( std::isfinite( val ) ) {
+            //if ( std::isfinite( val ) ) {
+            // check if the raw data is NaN
+            if ( ! std::isnan( val ) ) {
                 allValues.push_back( val );
             }
         }

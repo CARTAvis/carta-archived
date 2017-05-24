@@ -276,7 +276,7 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                 auto result2 = Globals::instance()-> pluginManager()
                                                                 -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image,
                                                                         oldUnit, newUnit, hertzValues, converted,
-                                                                        1, "" );;
+                                                                        1, "" );
 
                 auto lam2 = [&convertedIntensity] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
                     if ( data.size() == 2 ){
