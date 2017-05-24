@@ -134,7 +134,7 @@ else
     git clone https://github.com/grimmer0125/libsakura
 
     curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
-    unzip gtest-1.7.0.zip -d libsakura
+    unzip gtest-1.7.0.zip -d libsakura > /dev/null
     cd libsakura
     ln -s googletest-release-1.7.0 gtest
     mkdir build

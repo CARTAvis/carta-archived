@@ -6,10 +6,9 @@ function printDuration(){
 }
 
 function pause(){
-  afplay /System/Library/Sounds/Funk.aiff
+  # afplay /System/Library/Sounds/Funk.aiff
   # read -p "Press [Enter] key to continue"
 }
-
 
 ### TODO
 ## 1. use the following two to improve sudo part
@@ -67,7 +66,7 @@ if [ ! -f "`which brew`" ] ; then
       </dev/null
 else
     echo "brew is installed, update it"
-    sudo -u $SUDO_USER brew update
+    # sudo -u $SUDO_USER brew update
 fi
 printDuration
 
@@ -106,26 +105,20 @@ fi
 printDuration
 
 ### Install 3 party for CARTA
-echo "step4: Install Qt for CARTA if you use default homebrew-qt"
+echo "step4: Install & build libraries for CARTA"
+
+echo "step4-1: Install Qt for CARTA if you use default homebrew-qt"
 if [ "$QT5PATH" == "$qt57brew" ]; then
   echo "start to install homebrew-qt"
   pause
   sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
-  sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
+  sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
   printDuration
 else
   echo "you use your own qt version"
 fi
-echo "step4-2: Install Third party for CARTA"
-pause
-cd $cartawork
-## if use sudo ./xx.sh will let it can not inherit QT5PATH
-./CARTAvis/carta/scripts/install3party.sh
-###
-printDuration
-##
 
-echo "step4-3: Use homebrew to Install some libs needed by flex and bison for CARTA"
+echo "step4-2: Use homebrew to Install some libs needed by flex and bison for CARTA"
 pause
 su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
@@ -145,10 +138,12 @@ brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/d407fb8563
 brew cask install basictex
 EOF
 printDuration
+
+#TODO: cache
 echo "step4-3: build flex"
 cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L https://github.com/westes/flex/archive/flex-2.5.37.tar.gz
-tar zxvf flex-2.5.37.tar.gz
+tar zxvf flex-2.5.37.tar.gz > /dev/null
 mv flex-flex-2.5.37 flex-2.5.37
 cd flex-2.5.37
 export PATH=/usr/local/opt/gettext/bin:$PATH
@@ -162,21 +157,58 @@ make install
 printDuration
 echo "finish building flex"
 
+e_ast=$cartawork/CARTAvis-externals/ThirdParty/ast/bin/ast_link
+e_cfitsio=$cartawork/CARTAvis-externals/ThirdParty/cfitsio/lib/libcfitsio.a
+e_qwt=$cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.2/include/qwt.h
+e_wcslib=$cartawork/CARTAvis-externals/ThirdParty/wcslib/lib/libwcs.5.15.dylib
+e_qooxdoo=$cartawork/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+e_rapidjson=$cartawork/CARTAvis-externals/ThirdParty/rapidjson
+
+#TODO: cache
+echo "step4-4: Build most of the Third party libs for CARTA"
+if [ -f "$e_ast" ] && [ -f "$e_cfitsio" ] && [ -f "$e_qwt" ] && [ -f "$e_wcslib" ] && [ -f "$e_qooxdoo" ] && [ -f "$e_rapidjson" ]
+then
+	echo "built cache of qwt etc libs exit !!!!"
+else
+  echo "built cache of qwt etc libs not exit, start to build!!!!"
+  pause
+  cd $cartawork
+  ## if use sudo ./xx.sh will let it can not inherit QT5PATH
+  ./CARTAvis/carta/scripts/install3party.sh
+  ###
+  printDuration
+fi
+
+## gsl
+echo "step4-5: build gsl"
+cd $cartawork/CARTAvis-externals/ThirdParty
+# yum:1.15. so carta keeps building it from source code.
+# casa's cmake needs yum version to pass the check but it will use /usr/local in high priority when building
+curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
+tar xvfz gsl-2.1.tar.gz > /dev/null
+mv gsl-2.1 gsl-2.1-src
+cd gsl-2.1-src
+./configure
+make
+sudo make install
+#cd ..
+cd $cartawork/CARTAvis-externals/ThirdParty
+
 ### Install the libraries for casa
-echo "step5: Install some libraries for casa from homebrew"
+echo "step5: use Homebrew to Install some libraries for casa"
 pause
 # part1 homebrew part
 cd $cartawork
 sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/installLibsForCASAonMac.sh"
 printDuration
-echo "step5-2: Install some libraries for casa, build from source-libsakura"
+
+echo "step5-2: Build libsakura for casa"
 pause
-# part2
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## build libsakura-4.0.2065.
 git clone https://github.com/grimmer0125/libsakura
 curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
-unzip gtest-1.7.0.zip -d libsakura
+unzip gtest-1.7.0.zip -d libsakura > /dev/null
 cd libsakura
 ln -s googletest-release-1.7.0 gtest
 mkdir build
@@ -188,58 +220,59 @@ make apidoc
 sudo make install #/usr/local
 cd ../../
 printDuration
-# echo "step5-3: Install some libraries for casa, build from source-rpfits"
-# pause
-# # in casa-code's cmake, its related parameter is -DLIBSAKURA_ROOT_DIR, but not need now since we install into /usr/local
-# # part3, Build rpfits-2.24, make sure you are still in `your-carta-work`/CARTAvis-externals/ThirdParty/
-# cd $cartawork/CARTAvis-externals/ThirdParty
-# curl -O ftp://ftp.atnf.csiro.au/pub/software/rpfits/rpfits-2.24.tar.gz
-# tar xvfz rpfits-2.24.tar.gz && mv rpfits rpfits-src
-# mkdir -p rpfits/lib
-# mkdir -p rpfits/include
-# mkdir -p rpfits/bin
-# cd rpfits-src
-# export RPARCH="darwin"
-# export PATH=/usr/local/Cellar/gcc/6.3.0_1/bin:$PATH
-# make FC=gfortran-6 -f GNUmakefile
-# cp librpfits.a ../rpfits/lib/
-# cp rpfex rpfhdr ../rpfits/bin/
-# cp code/RPFITS.h ../rpfits/include/
-# ###
-# printDuration
 
 echo "check everything before building casa"
 cd $cartawork/CARTAvis-externals/ThirdParty
 sudo su $SUDO_USER -c "brew list"
 echo "list ThirdParty"
-ls
 echo "list ThirdParty end"
-ls ./ast/bin/ast_link
-ls ./cfitsio/lib/libcfitsio.a
-ls /usr/local/lib/libgsl.a
-ls ./qwt-6.1.2/include/qwt.h
-ls ./wcslib/lib/libwcs.5.15.dylib
-ls /usr/local/lib/libsakura.4.0.dylib
+
+ls $e_ast
+ls $e_cfitsio
+ls $e_qwt
+ls $e_wcslib
+ls $e_qooxdoo
+ls $e_rapidjson
+# ls ./ast/bin/ast_link
+# ls ./cfitsio/lib/libcfitsio.a
+# ls ./qwt-6.1.2/include/qwt.h
+# ls ./wcslib/lib/libwcs.5.15.dylib
+# ls ./qooxdoo-3.5.1-sdk
+# ls ./rapidjson
+ls /usr/local/lib/libgsl.a # can not cache
+ls /usr/local/lib/libsakura.4.0.dylib # can not cache
 ls /usr/local/bin/gfortran
 which cython
 ls ~/Library/Python/2.7/lib/python/site-packages/matplotlib
+ls -l # print again
 
-########################## comment for testing the above first
-#### build casa
-# echo "step6: Build casa"
-# pause
-# cd $cartawork
-# sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
-# ###
-# printDuration
-#
-# ### setup QtWebkit
+### build casa
+#TODO: cache
+echo "step6: Build casa"
+checkcasacore=$cartawork/CARTAvis-externals/ThirdParty/casacore/include/casacore/casa/aips.h
+checkcasacode=$cartawork/CARTAvis-externals/ThirdParty/imageanalysis/lib/libimageanalysis.dylib
+if [ -f "$checkcasacore" ] && [ -f "$checkcasacode" ]
+then
+	echo "casacore and code built cache exist!!"
+else
+  echo "casacore and code built cache not exist, start to built it"
+  pause
+  cd $cartawork
+  sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
+  printDuration
+  echo "check everything after building casa"
+  ls $checkcasacore
+  ls $checkcasacode
+fi
+###
+
+### setup QtWebkit
 # echo "step7: setup QtWebkit"
 # pause
 # su $SUDO_USER <<EOF
 # cd $cartawork/CARTAvis-externals/ThirdParty
 # curl -O -L $qtwebkitlink
-# tar -xvzf $qtwebkit.tar.xz
+# tar -xvzf $qtwebkit.tar.xz > /dev/null
 # # copy include
 # cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKit $QT5PATH/include/
 # cp -r $cartawork/CARTAvis-externals/ThirdParty/$qtwebkit/include/QtWebKitWidgets $QT5PATH/include/
@@ -298,3 +331,7 @@ ls ~/Library/Python/2.7/lib/python/site-packages/matplotlib
 #
 # echo "step11: reset folder permission to normal owner, not root"
 # chown -R $SUDO_USER:staff $cartawork
+#
+# echo "list final result in build folder"
+# ls -al $CARTABUILDHOME
+# echo "end"

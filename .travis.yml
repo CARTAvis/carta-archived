@@ -11,6 +11,10 @@ osx_image: xcode8.3
 compiler:
 - clang
 
+cache:
+  directories:
+  -$HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+
 # In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
 before_install:
 # - brew update
@@ -26,25 +30,30 @@ install:
 # install: true
 
 before_script:
-    - echo "some logs:"
-    - echo "in script:"
-    - echo `pwd`
-    - echo $TRAVIS_BUILD_DIR
-    - which wget
-    - node --version
-    - echo "ls"
-    - ls
-    - brew list
-    #- ls /usr/local/bin/gfortran # ls /usr/local/bin/gfortran" exited with 1
-    - ls /usr/local/include/c++
-    - echo "start build"
-    - cd .. # should become /Users/travis/build/CARTAvis/
-    - mv carta CARTAvis
-    - sudo sh ./CARTAvis/carta/scripts/ci_mac2.sh
+
 
 #The default build command depends on the project language
 script: # build
   - echo "in script step"
+  - echo "some logs:"
+  - echo "in script:"
+  - echo `pwd`
+  - echo $TRAVIS_BUILD_DIR
+  - which wget
+  - node --version
+  - echo "ls"
+  - ls -l
+  - brew list
+  #- ls /usr/local/bin/gfortran # ls /usr/local/bin/gfortran" exited with 1
+  - ls /usr/local/include/c++
+  - which python
+  - python --version
+  - echo "list cache Third party folder"
+  - ls -al $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+  - echo "start build"
+  - cd .. # should become /Users/travis/build/CARTAvis/
+  - mv carta CARTAvis
+  - sudo sh -E ./CARTAvis/carta/scripts/ci_mac2.sh
 
 # /Users/travis/build/CARTAvis/carta
 # /Users/travis/build/CARTAvis/CARTAvis

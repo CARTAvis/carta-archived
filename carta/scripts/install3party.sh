@@ -10,7 +10,7 @@ isCentOS=true
 if grep -q CentOS /etc/os-release; then
     echo "isCentOS"
 else
-    echo "should be Ubuntu"
+    echo "should be Ubuntu or Mac"
 		isCentOS=false
 fi
 
@@ -104,7 +104,8 @@ fi
 
 cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
-tar xvfj qwt-6.1.2.tar.bz2 && mv qwt-6.1.2 qwt-6.1.2-src
+tar xvfj qwt-6.1.2.tar.bz2 > /dev/null
+mv qwt-6.1.2 qwt-6.1.2-src
 cd qwt-6.1.2-src # can use qwt 6.1.2 Pavol uses
 if [ "$(uname)" == "Darwin" ]; then
   perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2\/ / if $.==22' qwtconfig.pri
@@ -127,14 +128,14 @@ echo "install qooxdoo"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## Install qooxdoo for CARTA
 curl -o qooxdoo-3.5.1-sdk.zip -L https://github.com/qooxdoo/qooxdoo/releases/download/release_3_5_1/qooxdoo-3.5.1-sdk.zip
-unzip qooxdoo-3.5.1-sdk.zip
+unzip qooxdoo-3.5.1-sdk.zip > /dev/null
 
 ## rapidjson
 echo "build rapidjson"
 cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz
 mv v1.0.2.tar.gz rapidjson_v1.0.2.tar.gz
-tar xvfz rapidjson_v1.0.2.tar.gz
+tar xvfz rapidjson_v1.0.2.tar.gz > /dev/null
 ln -s rapidjson-1.0.2 rapidjson
 
 ## to get the same version with casa, so cfitsio, wcslib are built for carta, casa
@@ -142,7 +143,8 @@ ln -s rapidjson-1.0.2 rapidjson
 echo "build wcslib"
 cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
-tar xvfj wcslib-5.15.tar.bz2 && mv wcslib-5.15 wcslib-5.15-src
+tar xvfj wcslib-5.15.tar.bz2 > /dev/null
+mv wcslib-5.15 wcslib-5.15-src
 cd wcslib-5.15-src
 ./configure --prefix=`pwd`/../wcslib/  ##--without-pgplot, pgplot is needed by casa
 make && make install
@@ -152,7 +154,8 @@ cd ..
 echo "build cfitsio"
 cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3390.tar.gz
-tar xvfz cfitsio3390.tar.gz && mv cfitsio cfitsio-src
+tar xvfz cfitsio3390.tar.gz > /dev/null
+mv cfitsio cfitsio-src
 cd cfitsio-src
 ./configure --prefix=`pwd`/../cfitsio/
 make && make install
@@ -162,22 +165,27 @@ echo "build ast"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## ast: carta only, static linking with CARTA
 curl -O -L http://www.starlink.ac.uk/download/ast/ast-8.4.0.tar.gz
-tar xvfz ast-8.4.0.tar.gz && mv ast-8.4.0 ast-8.4.0-src
+tar xvfz ast-8.4.0.tar.gz > /dev/null
+mv ast-8.4.0 ast-8.4.0-src
 cd ast-8.4.0-src
 ./configure --prefix=`pwd`/../ast/
 make && make install
 cd ..
 
-## gsl
-echo "build gsl"
-cd $cartawork/CARTAvis-externals/ThirdParty
-# yum:1.15. so carta keeps building it from source code.
-# casa's cmake needs yum version to pass the check but it will use /usr/local in high priority when building
-curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
-tar xvfz gsl-2.1.tar.gz && mv gsl-2.1 gsl-2.1-src
-cd gsl-2.1-src
-./configure
-make
-sudo make install
-#cd ..
-cd $cartawork/CARTAvis-externals/ThirdParty
+if [ "$(uname)" == "Darwin" ]; then
+	echo "not build gsl here"
+else
+	echo "build gsl"
+	cd $cartawork/CARTAvis-externals/ThirdParty
+	# yum:1.15. so carta keeps building it from source code.
+	# casa's cmake needs yum version to pass the check but it will use /usr/local in high priority when building
+	curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
+	tar xvfz gsl-2.1.tar.gz > /dev/null
+	mv gsl-2.1 gsl-2.1-src
+	cd gsl-2.1-src
+	./configure
+	make
+	sudo make install
+	#cd ..
+	cd $cartawork/CARTAvis-externals/ThirdParty
+fi
