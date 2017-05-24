@@ -33,6 +33,7 @@ script: # build
   - "echo some logs:"
   - gcc --version
   - ls /usr/local/include/c++
+  - which gfortran
   # - afplay /System/Library/Sounds/Funk.aiff
   # - echo "in script:"
   # - echo `pwd`
