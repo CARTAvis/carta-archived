@@ -82,10 +82,10 @@ printDuration
 # printDuration
 
 echo "step4-0:install homebrew's gcc to get gfortran for ast, also cmake for libsakura, casa libs"
-if [ "$TRAVIS" = true ] ; then
-  echo "backup travis-c++"
-  mv /usr/local/include/c++ /usr/local/include/c++_backup
-fi
+# if [ "$TRAVIS" = true ] ; then
+echo "backup travis-c++"
+mv /usr/local/include/c++ /usr/local/include/c++_backup
+# fi
 su $SUDO_USER <<EOF
 ### Basic tools
 if brew ls --versions cmake ; then
@@ -97,10 +97,10 @@ fi
 ## now it is 7.1 we only use its gfortran which is also used by code
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb
 EOF
-if [ "$TRAVIS" = true ] ; then
-  echo "resume travis-c++"
-  mv /usr/local/include/c++_backup /usr/local/include/c++
-fi
+# if [ "$TRAVIS" = true ] ; then
+echo "resume travis-c++"
+mv /usr/local/include/c++_backup /usr/local/include/c++
+# fi
 printDuration
 
 ### Install 3 party for CARTA
@@ -111,7 +111,7 @@ if [ "$QT5PATH" == "$qt57brew" ]; then
   echo "start to install homebrew-qt"
   pause
   sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
-  sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
+  sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
   printDuration
 else
   echo "you use your own qt version"

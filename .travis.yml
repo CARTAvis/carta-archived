@@ -43,4 +43,16 @@ script:
   - echo "start build"
   - cd ..
   - mv carta CARTAvis
-  - sudo sh -E ./CARTAvis/carta/scripts/ci_mac2.sh
+  - chmod 755 ./CARTAvis/carta/scripts/ci_mac2.sh
+  - export TRAVIS
+  - sudo -E ./CARTAvis/carta/scripts/ci_mac2.sh
+  - git clone https://github.com/grimmer0125/testgdrive.git
+  - mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/
+  - cd testgdrive
+  - npm install
+  - npm start
+
+  #$HOME/build/CARTAvis
+  # upload final dmg
+  # ls -al $CARTABUILDHOME/Carta-${OS_X_VERSION}-${cartaver}.dmg
+  # Carta-10.12-0.9.0.dmg
