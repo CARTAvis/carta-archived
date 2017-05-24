@@ -1,6 +1,7 @@
 #!/bin/bash
-
+su $SUDO_USER <<EOF
 brew install cmake
+EOF
 
 #
 # function printDuration(){
