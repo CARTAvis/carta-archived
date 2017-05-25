@@ -146,6 +146,10 @@ e_qooxdoo=$cartawork/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
 e_rapidjson=$cartawork/CARTAvis-externals/ThirdParty/rapidjson
 e_flex=$cartawork/CARTAvis-externals/ThirdParty/flex/bin/flex
 
+echo "list Third party before building build something inside"
+ls -l $cartawork/CARTAvis-externals/ThirdParty
+echo "list ThirdParty end"
+
 #TODO: cache
 echo "step4-4: Build most of the Third party libs for CARTA"
 if [ -f "$e_ast" ] && [ -f "$e_cfitsio" ] && [ -f "$e_qwt" ] && [ -f "$e_wcslib" ] && [ -f "$e_qooxdoo" ] && [ -f "$e_rapidjson" ] && [ -f "$e_flex" ]
