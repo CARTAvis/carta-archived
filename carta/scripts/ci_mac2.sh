@@ -234,6 +234,7 @@ ls $e_qwt
 ls $e_wcslib
 ls $e_qooxdoo
 ls $e_rapidjson
+ls $e_flex
 # ls ./ast/bin/ast_link
 # ls ./cfitsio/lib/libcfitsio.a
 # ls ./qwt-6.1.2/include/qwt.h

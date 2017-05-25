@@ -7,7 +7,8 @@ if [ -z ${cartawork+x} ]; then
 fi
 
 isCentOS=true
-if grep -q CentOS /etc/os-release; then
+centos_release=/etc/os-release
+if [ -f "$centos_release" ] && grep -q CentOS $centos_release  ; then
     echo "isCentOS"
 else
     echo "should be Ubuntu or Mac"
@@ -128,10 +129,11 @@ echo "install qooxdoo"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## Install qooxdoo for CARTA
 if [ -f qooxdoo-3.5.1-sdk.zip ]
+then
 	echo "alreayd downloaded qooxdoo-3.5.1-sdk.zip"
 else
 	curl -o qooxdoo-3.5.1-sdk.zip -L https://github.com/qooxdoo/qooxdoo/releases/download/release_3_5_1/qooxdoo-3.5.1-sdk.zip
-then
+fi
 unzip qooxdoo-3.5.1-sdk.zip > /dev/null
 
 ## rapidjson

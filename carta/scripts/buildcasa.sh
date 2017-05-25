@@ -9,10 +9,11 @@ if [ -z ${cartawork+x} ]; then
 fi
 
 isCentOS=true
-if grep -q CentOS /etc/os-release; then
+centos_release=/etc/os-release
+if [ -f "$centos_release" ] && grep -q CentOS $centos_release  ; then
     echo "isCentOS"
 else
-    echo "should be Ubuntu"
+    echo "should be Ubuntu or Mac"
 	isCentOS=false
 fi
 
