@@ -257,26 +257,26 @@ EOF
 #
 # ### build casa
 # #TODO: cache
-# echo "step6: Build casa"
-# checkcasacore=$cartawork/CARTAvis-externals/ThirdParty/casacore/include/casacore/casa/aips.h
-# checkcasacode=$cartawork/CARTAvis-externals/ThirdParty/imageanalysis/lib/libimageanalysis.dylib
-# if [ -f "$checkcasacore" ] && [ -f "$checkcasacode" ]
-# then
-# 	echo "casacore and code built cache exist!!"
-# else
-#   echo "casacore and code built cache not exist, start to built it"
-#   pause
-#   rm -rf $cartawork/CARTAvis-externals/ThirdParty/casa
-#   rm -rf $cartawork/CARTAvis-externals/ThirdParty/casacore
-#   rm -rf $cartawork/CARTAvis-externals/ThirdParty/imageanalysis
-#   cd $cartawork
-#   sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
-#   printDuration
-#   echo "check everything after building casa"
-#   ls $checkcasacore
-#   ls $checkcasacode
-# fi
-# ###
+echo "step6: Build casa"
+checkcasacore=$cartawork/CARTAvis-externals/ThirdParty/casacore/include/casacore/casa/aips.h
+checkcasacode=$cartawork/CARTAvis-externals/ThirdParty/imageanalysis/lib/libimageanalysis.dylib
+if [ -f "$checkcasacore" ] && [ -f "$checkcasacode" ]
+then
+	echo "casacore and code built cache exist!!"
+else
+  echo "casacore and code built cache not exist, start to built it"
+  pause
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/casa
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/casacore
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/imageanalysis
+  cd $cartawork
+  sudo su $SUDO_USER -c "./CARTAvis/carta/scripts/buildcasa.sh"
+  printDuration
+  echo "check everything after building casa"
+  ls $checkcasacore
+  ls $checkcasacode
+fi
+###
 
 ### setup QtWebkit
 echo "step7: setup QtWebkit"

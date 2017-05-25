@@ -23,9 +23,6 @@ before_cache:
 
 before_install:
   - echo "in before_install"
-  - export testtest=123
-  - echo $testtest
-  - echo "afte testtest"
   - echo "list cache Third party folder"
   - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then ls -al $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; else echo "no Third party there";fi
   - cd ..
@@ -55,6 +52,9 @@ script:
   # - which python
   # - python --version, 2.7.13, homebrew
   - echo "in script, current folder:"
+  - export testtest=123
+  - echo $testtest
+  - echo "afte testtest"
   - echo `pwd`
   - echo "start build"
   - cd $HOME/build/CARTAvis
