@@ -21,36 +21,49 @@ before_cache:
   - mv $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk/
   - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qtwebkit-tp4-qt57-darwin*
 
-install:
-  - echo "in install"
-
-script:
-  - echo "in script step"
-  - echo "some logs:"
-  - echo "in script:"
-  - echo `pwd`
-  - echo $TRAVIS_BUILD_DIR
-  - which wget
-  - node --version
-  - echo "ls"
-  - ls -l
-  - brew list
-  - ls /usr/local/include/c++
-  - which python
-  - python --version
+before_install:
+  - echo "in before_install"
+  - export testtest=123
+  - echo $testtest
+  - echo "afte testtest"
   - echo "list cache Third party folder"
-  - ls -al $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
-  - echo "start build"
+  - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then ls -al $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; else echo "no Third party there";fi
   - cd ..
   - mv carta CARTAvis
+  - git clone https://github.com/grimmer0125/testgdrive.git
+  - npm install
   - chmod 755 ./CARTAvis/carta/scripts/ci_mac2.sh
   - export TRAVIS
   - sudo -E ./CARTAvis/carta/scripts/ci_mac2.sh
-  - git clone https://github.com/grimmer0125/testgdrive.git
-  - mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/
-  - cd testgdrive
-  - npm install
-  - npm start
+
+install:
+  - echo "in install" # can do something like npm install
+  - echo `pwd`
+
+script:
+  # - echo "in script step"
+  # - echo "some logs:"
+  # - echo "in script:"
+  # - echo `pwd`
+  # - echo $TRAVIS_BUILD_DIR
+  # - which wget
+  # - node --version
+  # - echo "ls"
+  # - ls -l
+  # - brew list
+  # - ls /usr/local/include/c++
+  # - which python
+  # - python --version, 2.7.13, homebrew
+  - echo "in script, current folder:"
+  - echo `pwd`
+  - echo "start build"
+  - cd $HOME/build/CARTAvis
+  # - mv carta CARTAvis
+  - chmod 755 ./CARTAvis/carta/scripts/ci_mac.sh
+  - export TRAVIS
+  - sudo -E ./CARTAvis/carta/scripts/ci_mac.sh
+  # - git clone https://github.com/grimmer0125/testgdrive.git
+  - if [ -f "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm start;else echo "no dmg there"; fi
 
   #$HOME/build/CARTAvis
   # upload final dmg
