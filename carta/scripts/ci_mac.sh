@@ -186,19 +186,11 @@ EOF
 # echo "finish building flex"
 #
 # ## gsl
-# echo "step4-5: build gsl"
-# cd $cartawork/CARTAvis-externals/ThirdParty
-# # yum:1.15. so carta keeps building it from source code.
-# # casa's cmake needs yum version to pass the check but it will use /usr/local in high priority when building
-# curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
-# tar xvfz gsl-2.1.tar.gz > /dev/null
-# mv gsl-2.1 gsl-2.1-src
-# cd gsl-2.1-src
-# ./configure
-# make
-# sudo make install
-# #cd ..
-# cd $cartawork/CARTAvis-externals/ThirdParty
+# echo "step4-5: install gsl from homebrw"
+# su $SUDO_USER <<EOF
+# brew install gsl
+# brew link --overwrite gsl
+# EOF
 #
 # ### Install the libraries for casa
 # echo "step5: use Homebrew to Install some libraries for casa"

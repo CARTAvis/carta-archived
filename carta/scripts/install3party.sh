@@ -179,7 +179,7 @@ make && make install
 cd ..
 
 if [ "$(uname)" == "Darwin" ]; then
-	echo "not build gsl here"
+	echo "not build gsl here, use homebrew to install it somewhere"
 else
 	echo "build gsl"
 	cd $cartawork/CARTAvis-externals/ThirdParty
