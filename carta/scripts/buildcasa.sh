@@ -234,6 +234,7 @@ if [ "$(uname)" == "Darwin" ]; then
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 \
     -DUseCasacoreNamespace=1 \
 	-DCMAKE_Fortran_COMPILER=/usr/local/bin/gfortran \
+    -DPYTHON2_EXECUTABLE=/usr/bin/python \
     -DPYTHON_LIBRARY=/System/Library/Frameworks/Python.framework/Versions/2.7/Python \
     -DWCSLIB_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/cfitsio \
