@@ -197,6 +197,9 @@ public:
      */
     QString setShowTicks( bool showTicks );
 
+
+    QString setSpectralSystem( const QString& specSystem );
+
     /**
      * Set the color of the tick marks.
      * @param redAmount - a nonnegative integer in [0,255].

@@ -7,6 +7,7 @@
 #include "DummyGridRenderer.h"
 #include "CartaLib/AxisInfo.h"
 #include "Data/Image/CoordinateSystems.h"
+#include "Data/Image/SpectralSystems.h"
 #include "LabelFormats.h"
 #include "Data/Util.h"
 #include "State/StateInterface.h"
@@ -23,6 +24,7 @@ namespace Data {
 const QString DataGrid::CLASS_NAME = "DataGrid";
 const QString DataGrid::AXES = "axes";
 const QString DataGrid::COORD_SYSTEM = "skyCS";
+const QString DataGrid::SPEC_SYSTEM = "specCS";
 const QString DataGrid::DIRECTION = "direction";
 const QString DataGrid::FONT = "font";
 const QString DataGrid::LABEL_COLOR = "labels";
@@ -54,6 +56,7 @@ const int DataGrid::LABEL_DECIMAL_MAX = 10;
 using Carta::Lib::AxisInfo;
 
 CoordinateSystems* DataGrid::m_coordSystems = nullptr;
+SpectralSystems* DataGrid::m_specSystems = nullptr;
 Fonts* DataGrid::m_fonts = nullptr;
 Themes* DataGrid::m_themes = nullptr;
 LabelFormats* DataGrid::m_formats = nullptr;
@@ -254,6 +257,8 @@ void DataGrid::_initializeDefaultState(){
 
     QString defaultSystem = m_coordSystems->getDefault();
     m_state.insertValue<QString>( COORD_SYSTEM, defaultSystem);
+    defaultSystem = m_specSystems->getDefault();
+    m_state.insertValue<QString>( SPEC_SYSTEM, defaultSystem);
 
     //Thickness seems to go from 0 to 20 - double
     //Transparency seems to go from 0 to 1
@@ -315,6 +320,10 @@ void DataGrid::_initializeSingletons( ){
     //Load the available color maps.
     if ( m_coordSystems == nullptr ){
         m_coordSystems = Util::findSingletonObject<CoordinateSystems>();
+    }
+
+    if ( m_specSystems == nullptr ){
+        m_specSystems = Util::findSingletonObject<SpectralSystems>();
     }
 
     //Available fonts
@@ -439,6 +448,10 @@ void DataGrid::_resetGridRenderer(){
         QString coordSystem = m_state.getValue<QString>( COORD_SYSTEM );
         Carta::Lib::KnownSkyCS index = m_coordSystems->getIndex( coordSystem);
         m_wcsGridRenderer-> setSkyCS( index );
+
+        QString specSystem = m_state.getValue<QString> ( SPEC_SYSTEM );
+        Carta::Lib::KnownSpecCS specIndex = m_specSystems->getIndex( specSystem );
+        m_wcsGridRenderer->setSpecCS( specIndex );
 
     }
 }
@@ -889,7 +902,21 @@ QString DataGrid::_setShowTicks( bool showTicks, bool* ticksChanged ){
     return result;
 }
 
-
+QString DataGrid::_setSpectralSystem( const QString& specSystem, bool* coordChanged ){
+    QString result;
+    *coordChanged = false;
+    QString recognizedSystem = m_specSystems->getSpectralSystem( specSystem );
+    if ( !recognizedSystem.isEmpty() ){
+        if ( m_state.getValue<QString>( SPEC_SYSTEM) != recognizedSystem ){
+            m_state.setValue<QString>( SPEC_SYSTEM, recognizedSystem );
+            *coordChanged = true;
+        }
+    }
+    else {
+        result= "The coordinate system "+specSystem+" is not supported.";
+    }
+    return result;
+}
 
 QStringList DataGrid::_setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged ){
     QStringList result = _setColor( TICK, redAmount, greenAmount, blueAmount, colorChanged );

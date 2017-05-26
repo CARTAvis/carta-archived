@@ -69,6 +69,9 @@ public:
     setSkyCS( Carta::Lib::KnownSkyCS cs ) override;
 
     virtual void
+    setSpecCS( Carta::Lib::KnownSpecCS cs ) override;
+
+    virtual void
     setPen( Element e, const QPen & pen ) override;
 
 //    virtual const QPen &
@@ -108,6 +111,7 @@ private:
     QString _getDisplayLocation( const Carta::Lib::AxisLabelInfo::Locations& labelLocation ) const;
 
     QString _getSystem();
+    QString _getSpecSystem();
     //Don't draw tick marks.
     void _turnOffTicks(WcsPlotterPluginNS::AstGridPlotter* sgp);
     //Don't label a particular axis

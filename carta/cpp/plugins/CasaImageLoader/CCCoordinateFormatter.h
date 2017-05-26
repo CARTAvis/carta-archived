@@ -59,6 +59,9 @@ public:
     virtual KnownSkyCS
     skyCS() override;
 
+    virtual KnownSpecCS
+    specCS() override;
+
     virtual Me &
     setSkyCS( const KnownSkyCS & scs ) override;
 

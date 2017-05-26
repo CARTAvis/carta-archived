@@ -83,6 +83,7 @@ HEADERS += \
     Data/Image/Save/SaveService.h \
     Data/Image/Save/SaveView.h \
     Data/Image/Save/SaveViewLayered.h \
+    Data/Image/SpectralSystems.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -229,6 +230,7 @@ SOURCES += \
     Data/Image/Save/SaveService.cpp \
     Data/Image/Save/SaveView.cpp \
     Data/Image/Save/SaveViewLayered.cpp \
+    Data/Image/SpectralSystems.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \

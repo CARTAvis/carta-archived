@@ -73,6 +73,10 @@ DummyGridRenderer::setSkyCS( Lib::KnownSkyCS )
 { }
 
 void
+DummyGridRenderer::setSpecCS( Lib::KnownSpecCS )
+{ }
+
+void
 DummyGridRenderer::setTickLength( double )
 { }
 

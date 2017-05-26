@@ -70,6 +70,9 @@ public:
     setSkyCS( Carta::Lib::KnownSkyCS ) override;
 
     virtual void
+    setSpecCS( Carta::Lib::KnownSpecCS ) override;
+
+    virtual void
     setTickLength( double ) override;
 
     virtual void

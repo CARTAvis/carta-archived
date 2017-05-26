@@ -288,6 +288,32 @@ CCCoordinateFormatter::skyCS()
     } // switch
 } // skyCS
 
+Carta::Lib::KnownSpecCS
+CCCoordinateFormatter::specCS(){
+    if ( ! m_casaCS->hasSpectralAxis() ) {
+        return KnownSpecCS::Unknown;
+    }
+    const casa::SpectralCoordinate & specCoord= m_casaCS->spectralCoordinate();
+    casa::SpectralCoordinate::SpecType specType = specCoord.nativeType();
+    switch (specType) {
+        case casa::SpectralCoordinate::SpecType::FREQ :
+            return KnownSpecCS::FREQ;
+        case casa::SpectralCoordinate::SpecType::VRAD :
+            return KnownSpecCS::VRAD;
+        case casa::SpectralCoordinate::SpecType::VOPT :
+            return KnownSpecCS::VOPT;
+        case casa::SpectralCoordinate::SpecType::BETA :
+            return KnownSpecCS::BETA;
+        case casa::SpectralCoordinate::SpecType::WAVE :
+            return KnownSpecCS::WAVE;
+        case casa::SpectralCoordinate::SpecType::AWAV :
+            return KnownSpecCS::AWAV;
+
+        default:
+            return KnownSpecCS::Unknown;
+    }
+}
+
 CCCoordinateFormatter::Me &
 CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
 {

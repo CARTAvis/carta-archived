@@ -14,6 +14,7 @@
 #include "Data/Image/ImageContext.h"
 #include "Data/Image/ImageZoom.h"
 #include "Data/Image/LayerCompositionModes.h"
+#include "Data/Image/SpectralSystems.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/Gamma.h"
@@ -94,6 +95,7 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<PreferencesSave>();
     Util::findSingletonObject<ChannelUnits>();
     Util::findSingletonObject<CoordinateSystems>();
+    Util::findSingletonObject<SpectralSystems>();
     Util::findSingletonObject<Themes>();
     Util::findSingletonObject<ContourGenerateModes>();
     Util::findSingletonObject<ContourSpacingModes>();

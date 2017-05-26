@@ -16,6 +16,7 @@ qx.Class.define("skel.widgets.Path", {
         this.CONTOUR_LINE_STYLES = this.BASE_PATH + "ContourStyles";
         this.CONTOUR_SPACING_MODES = this.BASE_PATH + "ContourSpacingModes";
         this.COORDINATE_SYSTEMS = this.BASE_PATH + "CoordinateSystems";
+        this.SPECTRAL_SYSTEMS = this.BASE_PATH + "SpectralSystems";
         this.DATA_COUNT = this.BASE_PATH + "controller"+ this.SEP + "dataCount";
         this.ERROR_HANDLER = this.BASE_PATH + "ErrorManager";
         this.FONTS = this.BASE_PATH + "Fonts";
@@ -44,14 +45,14 @@ qx.Class.define("skel.widgets.Path", {
         this.TRANSFORMS_DATA = this.BASE_PATH +"TransformsData";
         this.TRANSFORMS_IMAGE = this.BASE_PATH + "TransformsImage";
     },
-    
+
     statics : {
         CHANGE_VALUE : "changeValue",
         HORIZONTAL : "horizontal",
         VERTICAL : "vertical",
         MAX_RGB : 255
     },
-    
+
     members : {
         ANIMATOR : "Animator",
         ANIMATOR_TYPES : "",
@@ -71,6 +72,7 @@ qx.Class.define("skel.widgets.Path", {
         CONTOUR_LINE_STYLES : "",
         CONTOUR_SPACING_MODES : "",
         COORDINATE_SYSTEMS : "",
+        SPECTRAL_SYSTEMS : "",
         DATA : "data",
         DATA_COUNT : "",
         DATA_LOADER : "DataLoader",
@@ -124,8 +126,8 @@ qx.Class.define("skel.widgets.Path", {
         ZOOM : "zoom",
         VIEW : "view",
         VIEW_MANAGER : "ViewManager",
-        
-       
+
+
         /**
          * Returns the command for announcing the creation of a shape.
          * @param winId {String} the server side id of the object displaying the shape.
@@ -134,7 +136,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandRegisterShape : function(winId){
             return winId + this.SEP_COMMAND +"registerShape";
         },
-        
+
         /**
          * Returns the command for obtaining the unique identifier of a top level object.
          * @return {String} command for obtaining the unique identifier of a top level object.
@@ -142,7 +144,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandRegisterView : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "registerView";
         },
-        
+
         /**
          * Returns the command for getting a list of available data to load.
          * @return {String} command for getting a list of available data to load.
@@ -150,7 +152,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandLoadData : function(){
             return this.BASE_PATH + this.DATA_LOADER + this.SEP_COMMAND + "getData";
         },
-            
+
         /**
          * Returns the command for loading selected data.
          * @return {String} command for loading selected data.
@@ -158,7 +160,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandDataLoaded : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "dataLoaded";
         },
-        
+
         /**
          * Returns the command for changing a window location.
          * @return {String} command for changing a window location.
@@ -166,7 +168,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandMoveWindow : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "moveWindow";
         },
-        
+
         /**
          * Returns the command for indicating which object the animator should control.
          * @return {String} command for linking the animator with a controlled object.
@@ -174,7 +176,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandLinkAnimator : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "linkAnimator";
         },
-        
+
         /**
          * Returns the command for resetting (emptying) the layout.
          * @return {String} command for resetting the layout.
@@ -182,7 +184,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandClearLayout : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "clearLayout";
         },
-        
+
         /**
          * Returns the command to register snapshots.
          * @return {String} command for registering snapshots.
@@ -190,7 +192,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandRegisterSnapshots : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "registerSnapshots";
         },
-        
+
         /**
          * Returns the command for resizing the number of rows/columns in the layout.
          * @return {String} command for resizing the layout.
@@ -198,7 +200,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandSetLayoutSize : function(){
             return this.BASE_PATH + this.LAYOUT_MANAGER + this.SEP_COMMAND + "setLayoutSize";
         },
-        
+
         /**
          * Returns the command for updating the plug-in that is displayed.
          * @return {String} command for updating the displayed plug-in.
@@ -206,7 +208,7 @@ qx.Class.define("skel.widgets.Path", {
         getCommandSetPlugin : function(){
             return this.BASE_PATH + this.VIEW_MANAGER + this.SEP_COMMAND + "setPlugin";
         },
-        
+
         /**
          * Returns the command for updating a shape.
          * @return {String} command for updating a shape.

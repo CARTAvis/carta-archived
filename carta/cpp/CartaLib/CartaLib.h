@@ -91,6 +91,20 @@ enum class KnownSkyCS
     Error ///< intended as an indication of error
 };
 
+/// known spectral systems
+enum class KnownSpecCS
+{
+    Unknown = 0,
+    Default,
+    FREQ,
+    VRAD,
+    VOPT,
+    BETA,
+    WAVE,
+    AWAV,
+    Error
+};
+
 /// convenience function to convert KnownSkyCS to int
 int knownSkyCS2int( KnownSkyCS cs);
 

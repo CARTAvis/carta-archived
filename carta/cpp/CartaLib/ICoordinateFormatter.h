@@ -24,6 +24,7 @@ public:
 
     // \todo temporary typedef until we move this entire class to Carta::Lib
     typedef Carta::Lib::KnownSkyCS KnownSkyCS;
+    typedef Carta::Lib::KnownSpecCS KnownSpecCS;
 
     /// \todo we can remove this once we put this class into carta namespace
     typedef Carta::Lib::TextFormat TextFormat;
@@ -59,6 +60,8 @@ public:
     /// get the sky coordinate system used right now
     virtual KnownSkyCS skyCS() = 0;
 
+    virtual KnownSpecCS specCS() = 0;
+
     /// set the sky coordinate system
     /// \warning this can fail if conversion not possible/supported. Check skyCS() to see
     /// if it was successful.
@@ -91,4 +94,3 @@ public:
     virtual ~CoordinateFormatterInterface() {}
 
 };
-

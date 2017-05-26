@@ -23,6 +23,7 @@ namespace Carta {
 namespace Data {
 
 class CoordinateSystems;
+class SpectralSystems;
 class Fonts;
 class LabelFormats;
 class Themes;
@@ -86,6 +87,7 @@ private:
     QString _setShowInternalLabels( bool showInternalLabels, bool * gridChanged );
     QString _setShowStatistics( bool showStatistics, bool * statisticsChanged );
     QString _setShowTicks( bool showTicks, bool* ticksChanged );
+    QString _setSpectralSystem( const QString& specSystem, bool* coordChanged );
     QString _setTickLength( int tickLength, bool* lengthChanged );
     QString _setTickThickness( int tickThickness, bool* thicknessChanged );
     QStringList _setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged );
@@ -109,6 +111,7 @@ private:
 
     const static QString AXES;
     const static QString COORD_SYSTEM;
+    const static QString SPEC_SYSTEM;
     const static QString DIRECTION;
     const static QString FONT;
     const static QString LABEL_AXIS;
@@ -145,6 +148,7 @@ private:
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_wcsGridRenderer;
 
     static CoordinateSystems* m_coordSystems;
+    static SpectralSystems* m_specSystems;
     static Fonts* m_fonts;
     static Themes* m_themes;
     static LabelFormats* m_formats;

@@ -286,6 +286,12 @@ public:
         return KnownSkyCS::Unknown;
     }
 
+    virtual KnownSpecCS
+    specCS() override
+    {
+        return KnownSpecCS::Unknown;
+    }
+
     virtual Me &
     setSkyCS( const KnownSkyCS & scs ) override
     {

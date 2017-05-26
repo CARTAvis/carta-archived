@@ -153,6 +153,16 @@ void GridControls::_initializeCallbacks(){
                 return result;
             });
 
+    addCommandCallback( "setSpectralSystem", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+                std::set<QString> keys = {DataGrid::SPEC_SYSTEM};
+                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                QString showAxisStr = dataValues[DataGrid::SHOW_AXIS];
+                QString result = setSpectralSystem( dataValues[DataGrid::SPEC_SYSTEM] );
+                Util::commandPostProcess( result );
+                return result;
+            });
+
     addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {
                     std::set<QString> keys = {DataGrid::FORMAT, DataGrid::LABEL_SIDE};
@@ -750,7 +760,14 @@ QString GridControls::setShowTicks( bool showTicks ){
     return result;
 }
 
-
+QString GridControls::setSpectralSystem( const QString& specSystem ){
+    bool coordChanged = false;
+    QString result = m_dataGrid->_setSpectralSystem( specSystem, &coordChanged );
+    if ( coordChanged ){
+        _updateGrid();
+    }
+    return result;
+}
 
 QStringList GridControls::setTickColor( int redAmount, int greenAmount, int blueAmount ){
     bool tickColorChanged = false;

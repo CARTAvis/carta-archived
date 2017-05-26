@@ -116,6 +116,10 @@ public:
     virtual void
     setSkyCS( KnownSkyCS cs ) = 0;
 
+    /// current spectral system
+    virtual void
+    setSpecCS( KnownSpecCS cs ) = 0;
+
     //Set the length of the ticks
     virtual void
     setTickLength( double tickLength ) = 0;

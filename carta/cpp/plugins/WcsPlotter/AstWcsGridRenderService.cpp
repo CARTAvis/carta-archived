@@ -29,7 +29,10 @@ struct AstWcsGridRenderService::Pimpl
     QStringList fitsHeader;
 
     // current sky CS
-    Carta::Lib::KnownSkyCS knownSkyCS = Carta::Lib::KnownSkyCS::J2000;
+    Carta::Lib::KnownSkyCS knownSkyCS = Carta::Lib::KnownSkyCS::Default;
+
+    // current spectral system
+    Carta::Lib::KnownSpecCS knownSpecCS = Carta::Lib::KnownSpecCS::Default;
 
     // list of pens
     std::vector < QPen > pens;
@@ -279,7 +282,7 @@ AstWcsGridRenderService::renderNow()
        if ( Carta::Lib::AxisDisplayInfo::isCelestialPlane( m_axisDisplayInfos) ){
            sgp.setPlotOption( system );
        }
-   }
+    }
 
     // labelOPtion for Ast
     QString labelOPtion = _setDisplayLabelOptionforAst();
@@ -435,12 +438,13 @@ QString AstWcsGridRenderService::_setDisplayLabelOptionforAst()
                 else if(axisType == Carta::Lib::AxisInfo::KnownType::SPECTRAL)
                 {
                     // check system for spectral
-                    setPlotOption << QString("system(%1)=%2").arg(ii+1).arg( "VRAD" );
+                    // setPlotOption << QString("system(%1)=%2").arg(ii+1).arg( "VRAD" );
                     //setPlotOption << QString("system(%1)=%2").arg(ii+1).arg( "Freq" );
-                    setPlotOption << QString("Digits(%1)=%2").arg(ii+1).arg(precision);
+                    setPlotOption << QString("system(%1)=%2").arg(ii+1).arg( _getSpecSystem() );
+                    //setPlotOption << QString("Digits(%1)=%2").arg(ii+1).arg(precision);
 
                     // set unit
-                    setPlotOption << QString("Unit(%1)=%2").arg(ii+1).arg("km/s");
+                    //setPlotOption << QString("Unit(%1)=%2").arg(ii+1).arg("km/s");
 
                 }
                 else
@@ -517,7 +521,16 @@ AstWcsGridRenderService::setSkyCS( Carta::Lib::KnownSkyCS cs )
     }
 }
 
-
+void
+AstWcsGridRenderService::setSpecCS( Carta::Lib::KnownSpecCS cs )
+{
+    // invalidate vglist if the requested spectral system is different
+    // from the last one
+    if ( m().knownSpecCS != cs ) {
+        m_vgValid = false;
+        m().knownSpecCS = cs;
+    }
+}
 
 void
 AstWcsGridRenderService::setPen( Carta::Lib::IWcsGridRenderService::Element e, const QPen & pen )
@@ -667,6 +680,27 @@ AstWcsGridRenderService::_getSystem( ){
 
 
    return system;
+}
+
+QString
+AstWcsGridRenderService::_getSpecSystem(){
+    switch ( m().knownSpecCS ) {
+        case Carta::Lib::KnownSpecCS::FREQ :
+            return "FREQ";
+        case Carta::Lib::KnownSpecCS::VRAD :
+            return "VRAD";
+        case Carta::Lib::KnownSpecCS::VOPT :
+            return "VOPT";
+        case Carta::Lib::KnownSpecCS::BETA :
+            return "BETA";
+        case Carta::Lib::KnownSpecCS::WAVE :
+            return "WAVE";
+        case Carta::Lib::KnownSpecCS::AWAV :
+            return "AWAV";
+        default :
+            // This case should be avoided, or the gridline will show red color.
+            return "";
+    }
 }
 
 void
