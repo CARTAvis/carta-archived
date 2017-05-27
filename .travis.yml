@@ -39,14 +39,14 @@ install:
 #The default build command depends on the project language
 script: # build
   - echo "in script  !!"
-    - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then "Thiry exist, no create";  mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; fi
-    - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
-    - echo `pwd`
-    - ls
-    - echo "try to write data to cache"
-    - echo "current id: $TRAVIS_JOB_ID"
-    - echo "current number: $TRAVIS_JOB_NUMBER"
-    - echo "aaa" > $TRAVIS_JOB_NUMBER.txt
+  - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "Thiry exist, no create";  else mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; fi
+  - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+  - echo `pwd`
+  - ls
+  - echo "try to write data to cache"
+  - echo "current id: $TRAVIS_JOB_ID"
+  - echo "current number: $TRAVIS_JOB_NUMBER"
+  - echo "aaa" > $TRAVIS_JOB_NUMBER.txt
   # - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "ls 3party";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;  else echo "no Third party there";fi
   # - echo "try to write data to cache"
   # - ls
