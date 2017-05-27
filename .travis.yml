@@ -40,6 +40,7 @@ install:
 script: # build
   - echo "in script  !!"
   - git clone https://github.com/grimmer0125/testgdrive.git
+  - cd testgdrive
   - npm install
   - npm start
   # - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "Thiry exist, no create";  else mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; fi
@@ -84,16 +85,13 @@ script: # build
 # automake 1.15
 
 
-jobs:
-  include:
-    # - stage: prepare cache
-    #   script: true
-    #   rvm: 2.3
-    - stage: testcache
-      script:
-        - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
-        - echo `pwd`
-        - ls
+# jobs:
+#   include:
+#     - stage: testcache
+#       script:
+#         - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+#         - echo `pwd`
+#         - ls
 
       # rvm: 2.3
     # - stage: test
