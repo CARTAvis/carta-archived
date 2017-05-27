@@ -16,9 +16,11 @@ else
 fi
 
 if [ "$(uname)" == "Darwin" ]; then
-	sudo easy_install cython
-	sudo easy_install pip
-	pip install matplotlib --user -U
+	if [ "$TRAVIS" != true ] ; then
+		sudo easy_install cython
+		sudo easy_install pip
+		pip install matplotlib --user -U
+	fi
 elif [ "$isCentOS" = true ] ; then
 	##### CentOS 7
 
