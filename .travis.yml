@@ -44,7 +44,7 @@ install:
 
 #The default build command depends on the project language
 script: # build
-  - echo "in script"
+  - echo "in script  !!"
   - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "ls 3party";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;  else echo "no Third party there";fi
   # - echo "try to write data to cache"
   # - ls
