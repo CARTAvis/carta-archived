@@ -9,6 +9,15 @@
 # https://github.com/travis-ci/travis-ci/issues/4895
 os: osx
 osx_image: xcode8.3
+
+cache:
+  directories:
+  - $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+
+before_cache:
+  - echo "in before cache"
+  - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; else echo "no Third party there";fi
+  - echo "aaa" > a.txt
 # compiler:
 # - clang
 
@@ -30,14 +39,15 @@ install:
 
 #The default build command depends on the project language
 script: # build
-  - "echo some logs:"
-  - gcc --version
-  - ls /usr/local/include/c++
-  #- which gfortran
-  - echo $TRAVIS
-  - rm '/usr/local/include/c++' 
-  - brew install gcc
-  - ls /usr/local/bin/gfortran
+  - echo "in script"
+  - ls aaa
+  # - gcc --version
+  # - ls /usr/local/include/c++
+  # #- which gfortran
+  # - echo $TRAVIS
+  # - rm '/usr/local/include/c++'
+  # - brew install gcc
+  # - ls /usr/local/bin/gfortran
   # - afplay /System/Library/Sounds/Funk.aiff
   # - echo "in script:"
   # - echo `pwd`
