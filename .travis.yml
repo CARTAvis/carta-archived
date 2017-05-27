@@ -43,7 +43,7 @@ script: # build
   - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
   - echo `pwd`
   - ls
-  - echo "try to write data to cache"
+  - echo "try to write data to cache2"
   - echo ${TRAVIS_JOB_ID}
   - echo ${TRAVIS_JOB_NUMBER}
   - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
