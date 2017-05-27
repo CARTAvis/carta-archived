@@ -86,7 +86,7 @@ jobs:
     # - stage: prepare cache
     #   script: true
     #   rvm: 2.3
-    - stage: test
+    - stage: testcache
       script:
         - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
         - echo `pwd`
