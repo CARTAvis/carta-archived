@@ -44,8 +44,8 @@ script: # build
   - echo `pwd`
   - ls
   - echo "try to write data to cache"
-  - echo "current id: ${TRAVIS_JOB_ID}"
-  - echo "current number: ${TRAVIS_JOB_NUMBER}"
+  - echo ${TRAVIS_JOB_ID}
+  - echo ${TRAVIS_JOB_NUMBER}
   - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
   # - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "ls 3party";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;  else echo "no Third party there";fi
   # - echo "try to write data to cache"
