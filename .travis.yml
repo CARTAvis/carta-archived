@@ -39,14 +39,17 @@ install:
 #The default build command depends on the project language
 script: # build
   - echo "in script  !!"
-  - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "Thiry exist, no create";  else mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; fi
-  - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
-  - echo `pwd`
-  - ls
-  - echo "try to write data to cache2"
-  - echo ${TRAVIS_JOB_ID}
-  - echo ${TRAVIS_JOB_NUMBER}
-  - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
+  - git clone https://github.com/grimmer0125/testgdrive.git
+  - npm install
+  - npm start
+  # - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "Thiry exist, no create";  else mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; fi
+  # - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+  # - echo `pwd`
+  # - ls
+  # - echo "try to write data to cache2"
+  # - echo ${TRAVIS_JOB_ID}
+  # - echo ${TRAVIS_JOB_NUMBER}
+  # - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
   # - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "ls 3party";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;  else echo "no Third party there";fi
   # - echo "try to write data to cache"
   # - ls
@@ -91,6 +94,7 @@ jobs:
         - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
         - echo `pwd`
         - ls
+
       # rvm: 2.3
     # - stage: test
     #   script: bundle show
