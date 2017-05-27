@@ -79,3 +79,22 @@ script: # build
 # cmake 3.6.2 ?3.8.1
 # autoconf 2.69
 # automake 1.15
+
+
+jobs:
+  include:
+    # - stage: prepare cache
+    #   script: true
+    #   rvm: 2.3
+    - stage: test
+      script:
+        - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+        - echo `pwd`
+        - ls
+      # rvm: 2.3
+    # - stage: test
+    #   script: bundle show
+    #   rvm: 2.3
+    # - stage: test
+    #   script: bundle show
+    #   rvm: 2.3
