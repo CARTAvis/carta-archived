@@ -87,6 +87,8 @@ jobs:
       install: true
       script:
         - echo "stage2- buildcasa"
+        - echo "third party size is"
+        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
         - echo "2-1"
         - ls -l $HOME/build/CARTAvis/CARTAvis-externals/
         - echo "2-2"
@@ -115,6 +117,8 @@ jobs:
       install: true
       script:
         - echo "stage3, buildcarta, in script, current folder:"
+        - echo "third party size is"
+        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
         - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty -d > /dev/null
         - sudo easy_install cython
@@ -122,8 +126,8 @@ jobs:
         - pip install matplotlib --user -U
         - cd ..
         - mv carta CARTAvis
-        - chmod 755 ./CARTAvis/carta/scripts/ci_mac.sh
-        - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
+        - chmod 755 ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
+        - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         - git clone https://github.com/grimmer0125/testgdrive.git
         - npm install
         - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm start;else echo "no dmg there"; fi
