@@ -28,14 +28,6 @@ else
 fi
 printDuration
 
-echo "step4-0:install homebrew's gcc to get gfortran for ast"
-installgfortran
-
-### Install 3 party for CARTA
-echo "step4: Install & build libraries for CARTA"
-echo "step4-1: Install Qt for CARTA if you use default homebrew-qt"
-installqt
-
 function installflex() {
 echo "step4-2: Use homebrew to Install some libs needed by flex for CARTA" #bison
 pause
@@ -79,11 +71,11 @@ echo "finish building flex"
 
 }
 
-
-
 echo "list Third party before building build something inside"
 ls -l $cartawork/CARTAvis-externals/ThirdParty
 echo "list ThirdParty end"
+
+echo "step4: Install & build libraries for CARTA"
 
 #TODO: cache
 echo "step4-4: Build most of the Third party libs for CARTA"
@@ -95,6 +87,10 @@ else
   pause
   echo "clean ThirdParty"
   rm -rf $cartawork/CARTAvis-externals/ThirdParty/*
+  echo "step4-0:install homebrew's gcc to get gfortran for ast"
+  installgfortran
+  echo "step4-1: Install Qt for CARTA if you use default homebrew-qt"
+  installqt
   cd $cartawork
   ## if use sudo ./xx.sh will let it can not inherit QT5PATH
   ./CARTAvis/carta/scripts/install3party.sh
