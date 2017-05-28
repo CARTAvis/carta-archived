@@ -17,9 +17,12 @@ fi
 
 if [ "$(uname)" == "Darwin" ]; then
 	if [ "$TRAVIS" != true ] ; then
+		echo "3party, not in travis"
 		sudo easy_install cython
 		sudo easy_install pip
 		pip install matplotlib --user -U
+	else
+		echo "3party, in travis"
 	fi
 elif [ "$isCentOS" = true ] ; then
 	##### CentOS 7
