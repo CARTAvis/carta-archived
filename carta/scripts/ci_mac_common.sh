@@ -51,7 +51,7 @@ echo "install gfortran, start to backup travis-c++"
 mv /usr/local/include/c++ /usr/local/include/c++_backup
 su $SUDO_USER <<EOF
 ## now it is 7.1 we only use its gfortran which is also used by code
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb
+brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.sierra.bottle.tar.gz
 EOF
 echo "resume travis-c++"
 mv /usr/local/include/c++_backup /usr/local/include/c++
