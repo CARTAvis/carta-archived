@@ -20,7 +20,7 @@ script:
   - echo "test third party"
   - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
   - ls -l
-  - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
+  # - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
   - echo "build folder:"
   - ls -al $HOME/build
   - echo "CARTAvis folder:"
@@ -120,7 +120,7 @@ jobs:
         - echo "third party size is"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
-        - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty -d > /dev/null
+        - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk.zip -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty -d > /dev/null
         - sudo easy_install cython
         - sudo easy_install pip
         - pip install matplotlib --user -U

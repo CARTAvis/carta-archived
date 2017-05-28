@@ -9,7 +9,9 @@ source $cartawork/CARTAvis/carta/scripts/ci_mac_common.sh
 #libsakura?
 
 #flex's gettext, not sure gettext is needed or not
+su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/d407fb8563f480391d918e1f1160cb7e244a1a12/Formula/gettext.rb
+EOF
 
 #qt
 echo "step4-1: Install Qt for CARTA if you use default homebrew-qt"
@@ -24,7 +26,9 @@ echo "step4-5: install gsl from homebrew"
 installgsl
 
 #bison
+su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
+EOF
 
 echo "check everything before building carta"
 cd $cartawork/CARTAvis-externals/ThirdParty
@@ -94,7 +98,7 @@ pause
 su $SUDO_USER <<EOF
 curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
 chmod 755 final_mac_packaging_steps.sh
-./final_mac_packaging_steps.sh
+./final_mac_packaging_steps.sh > /dev/null
 EOF
 
 echo "step11: reset folder permission to normal owner, not root"
