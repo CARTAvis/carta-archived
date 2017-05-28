@@ -61,21 +61,21 @@ ls -l $cartawork/CARTAvis-externals/ThirdParty
 echo "list ThirdParty end"
 
 #TODO: cache
-# echo "step4-4: Build most of the Third party libs for CARTA"
-# if [ -e "$e_ast" ] && [ -e "$e_cfitsio" ] && [ -e "$e_qwt" ] && [ -e "$e_wcslib" ] && [ -e "$e_qooxdoo" ] && [ -e "$e_rapidjson" ] && [ -e "$e_flex" ]
-# then
-# 	echo "built cache of qwt etc libs exit !!!!"
-# else
-#   echo "built cache of qwt etc libs not exit, start to build!!!!"
-#   pause
-#   echo "clean ThirdParty"
-#   rm -rf $cartawork/CARTAvis-externals/ThirdParty/*
-#   cd $cartawork
-#   ## if use sudo ./xx.sh will let it can not inherit QT5PATH
-#   ./CARTAvis/carta/scripts/install3party.sh
-#   ###
-#   printDuration
-# fi
+echo "step4-4: Build most of the Third party libs for CARTA"
+if [ -e "$e_ast" ] && [ -e "$e_cfitsio" ] && [ -e "$e_qwt" ] && [ -e "$e_wcslib" ] && [ -e "$e_qooxdoo" ] && [ -e "$e_rapidjson" ] && [ -e "$e_flex" ]
+then
+	echo "built cache of qwt etc libs exit !!!!"
+else
+  echo "built cache of qwt etc libs not exit, start to build!!!!"
+  pause
+  echo "clean ThirdParty"
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/*
+  cd $cartawork
+  ## if use sudo ./xx.sh will let it can not inherit QT5PATH
+  ./CARTAvis/carta/scripts/install3party.sh
+  ###
+  printDuration
+fi
 
 #TODO: cache
 echo "step4-3: build flex"

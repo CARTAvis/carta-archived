@@ -86,43 +86,43 @@ jobs:
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
         - cd ..
         - mv carta CARTAvis
-    #     - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
-    #   before_cache:
-    #     - echo "in before cache in stage2"
-    #     - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
-    #     - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa
-    #     - mkdir -p $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk
-    #     - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/
-    #     - echo "size is, after delete"
-    #     - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-    # - stage: buildcarta
-    #   install: true
-    #   script:
-    #     - echo "stage3, buildcarta, in script, current folder:"
-    #     - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
-    #     - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty -d > /dev/null
-    #     - sudo easy_install cython
-    #     - sudo easy_install pip
-    #     - pip install matplotlib --user -U
-    #     - cd ..
-    #     - mv carta CARTAvis
-    #     - chmod 755 ./CARTAvis/carta/scripts/ci_mac.sh
-    #     - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
-    #     - git clone https://github.com/grimmer0125/testgdrive.git
-    #     - npm install
-    #     - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm start;else echo "no dmg there"; fi
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
-    #   before_cache:
-    #     - echo "in before cache in stage3"
-    #     - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
-    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/gsl*
-    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qtwebkit-tp4-qt57-darwin*
-    #     - echo "size is, after delete"
-    #     - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-    #     # - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-    #     # - echo `pwd`
-    #     # - ls
+        - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
+      before_cache:
+        - echo "in before cache in stage2"
+        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
+        - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/
+        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa
+        - mkdir -p $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk
+        - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/
+        - echo "size is, after delete"
+        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+    - stage: buildcarta
+      install: true
+      script:
+        - echo "stage3, buildcarta, in script, current folder:"
+        - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
+        - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty -d > /dev/null
+        - sudo easy_install cython
+        - sudo easy_install pip
+        - pip install matplotlib --user -U
+        - cd ..
+        - mv carta CARTAvis
+        - chmod 755 ./CARTAvis/carta/scripts/ci_mac.sh
+        - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
+        - git clone https://github.com/grimmer0125/testgdrive.git
+        - npm install
+        - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm start;else echo "no dmg there"; fi
+        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+      before_cache:
+        - echo "in before cache in stage3"
+        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
+        # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/gsl*
+        # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qtwebkit-tp4-qt57-darwin*
+        - echo "size is, after delete"
+        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        # - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        # - echo `pwd`
+        # - ls
