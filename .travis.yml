@@ -136,8 +136,8 @@ jobs:
         - chmod 755 ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         - git clone https://github.com/grimmer0125/testgdrive.git
-        - npm install
-        - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm start;else echo "no dmg there"; fi
+        # - npm install
+        - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm install;npm start;else echo "no dmg there"; fi
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
         - echo "in before cache in stage3"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
