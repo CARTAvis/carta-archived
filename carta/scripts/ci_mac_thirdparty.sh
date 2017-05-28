@@ -8,7 +8,7 @@ source $cartawork/CARTAvis/carta/scripts/ci_mac_common.sh
 
 echo "step1-2: create ThirdParty folder"
 su $SUDO_USER <<EOF
-if [ -f "$cartawork/CARTAvis-externals/ThirdParty" ]; then
+if [ -e "$cartawork/CARTAvis-externals/ThirdParty" ]; then
   echo "thirdparty exist";
 else
   echo "third party does not exist";
@@ -62,7 +62,7 @@ echo "list ThirdParty end"
 
 #TODO: cache
 # echo "step4-4: Build most of the Third party libs for CARTA"
-# if [ -f "$e_ast" ] && [ -f "$e_cfitsio" ] && [ -f "$e_qwt" ] && [ -f "$e_wcslib" ] && [ -f "$e_qooxdoo" ] && [ -f "$e_rapidjson" ] && [ -f "$e_flex" ]
+# if [ -e "$e_ast" ] && [ -e "$e_cfitsio" ] && [ -e "$e_qwt" ] && [ -e "$e_wcslib" ] && [ -e "$e_qooxdoo" ] && [ -e "$e_rapidjson" ] && [ -e "$e_flex" ]
 # then
 # 	echo "built cache of qwt etc libs exit !!!!"
 # else

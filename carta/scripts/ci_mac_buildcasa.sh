@@ -58,7 +58,7 @@ checkAllforCASA
 echo "step6: Build casa"
 checkcasacore=$cartawork/CARTAvis-externals/ThirdParty/casacore/include/casacore/casa/aips.h
 checkcasacode=$cartawork/CARTAvis-externals/ThirdParty/imageanalysis/lib/libimageanalysis.dylib
-if [ -f "$checkcasacore" ] && [ -f "$checkcasacode" ]
+if [ -e "$checkcasacore" ] && [ -e "$checkcasacode" ]
 then
 	echo "casacore and code built cache exist!!"
 else
