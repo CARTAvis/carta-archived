@@ -119,6 +119,9 @@ jobs:
         - echo "stage3, buildcarta, in script, current folder:"
         - echo "third party size is"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casacore/include/casacore/casa/aips.h
+        - ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/imageanalysis/lib/libimageanalysis.dylib
+        - ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin/lib/libcasa_scimath*
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
         - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk.zip -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty -d > /dev/null
         - sudo easy_install cython

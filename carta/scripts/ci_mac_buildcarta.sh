@@ -25,9 +25,11 @@ installgfortran
 echo "step4-5: install gsl from homebrew"
 installgsl
 
-#bison
+#bison, fftw, boost-python(<-not sure if we need )
 su $SUDO_USER <<EOF
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/cb79fc2ec2c5fcebf35f7bf26bb7459c9f87ae0b/Formula/fftw.rb
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/198f8903db0bb77f1b84e19e020c6f825210433d/Formula/boost-python.rb
 EOF
 
 echo "check everything before building carta"
@@ -98,7 +100,7 @@ pause
 su $SUDO_USER <<EOF
 curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
 chmod 755 final_mac_packaging_steps.sh
-./final_mac_packaging_steps.sh > /dev/null
+./final_mac_packaging_steps.sh
 EOF
 
 echo "step11: reset folder permission to normal owner, not root"
