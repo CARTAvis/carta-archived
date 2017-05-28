@@ -32,6 +32,7 @@ brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/cb79fc2ec2
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/198f8903db0bb77f1b84e19e020c6f825210433d/Formula/boost-python.rb
 EOF
 
+
 echo "check everything before building carta"
 cd $cartawork/CARTAvis-externals/ThirdParty
 sudo su $SUDO_USER -c "brew list"
@@ -39,6 +40,10 @@ checkAllforCARTA
 echo "list ThirdParty"
 ls -l # print again
 echo "list ThirdParty end"
+
+
+echo "print fftw in /usr/local/opt"
+ls /usr/local/opt/fftw/lib/*
 
 ### setup QtWebkit
 echo "step7: setup QtWebkit"
