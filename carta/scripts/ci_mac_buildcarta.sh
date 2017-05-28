@@ -15,6 +15,10 @@ brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/d407fb8563
 echo "step4-1: Install Qt for CARTA if you use default homebrew-qt"
 installqt
 
+# gfortran
+echo "step4-0:install homebrew's gcc to get gfortran for ast"
+installgfortran
+
 #gsl
 echo "step4-5: install gsl from homebrew"
 installgsl

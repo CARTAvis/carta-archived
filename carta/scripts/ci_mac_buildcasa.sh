@@ -15,6 +15,9 @@ else
 fi
 EOF
 
+echo "step4-0:install homebrew's gcc to get gfortran for ast"
+installgfortran
+
 echo "step4-5: install gsl from homebrew"
 installgsl
 

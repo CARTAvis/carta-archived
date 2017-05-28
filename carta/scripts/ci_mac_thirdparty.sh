@@ -29,7 +29,6 @@ fi
 printDuration
 
 echo "step4-0:install homebrew's gcc to get gfortran for ast"
-# , also cmake for libsakura, casa libs
 installgfortran
 
 ### Install 3 party for CARTA
