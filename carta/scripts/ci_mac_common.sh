@@ -30,10 +30,10 @@ echo "start time:"; date
 
 echo "step1: define your variables first"
 
-DIR=""
-DIR=`dirname "$0"`; DIR=`eval "cd \"$DIR\" && pwd"`
-export cartawork=$DIR/../../..
-echo "CARTA working folder is $cartawork"
+# DIR=""
+# DIR=`dirname "$0"`; DIR=`eval "cd \"$DIR\" && pwd"`
+# export cartawork=$DIR/../../..
+# echo "CARTA working folder is $cartawork"
 
 qt57brew=/usr/local/opt/qt\@5.7
 export qt57brewrealpath=/usr/local/Cellar/qt@5.7/5.7.1

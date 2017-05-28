@@ -9,6 +9,19 @@ cache:
   - $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
   # - $HOME/Library/Caches/Homebrew
 
+install: true
+script:
+  - echo "stage1- thirdparty"
+  - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;else echo "no thridparty there"; fi
+  - cd ..
+  - mv carta CARTAvis
+  - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qooxdoo-3.5.1-sdk
+before_cache:
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0-src
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0.tar.gz
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2-src
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2.tar.bz2
 
 # before_install:
   # - echo "in before_install"
@@ -47,20 +60,6 @@ cache:
 
 jobs:
   include:
-    - stage: test 
-      install: true
-      script:
-        - echo "stage1- thirdparty"
-        - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;else echo "no thridparty there"; fi
-        - cd ..
-        - mv carta CARTAvis
-        - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qooxdoo-3.5.1-sdk
-      before_cache:
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0-src
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0.tar.gz
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2-src
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2.tar.bz2
     - stage: buildcasa
       install: true
       script:

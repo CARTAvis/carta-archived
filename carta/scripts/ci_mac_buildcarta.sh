@@ -1,6 +1,10 @@
 #!/bin/bash
 
-source ./ci_mac_common.sh
+DIR=""
+DIR=`dirname "$0"`; DIR=`eval "cd \"$DIR\" && pwd"`
+export cartawork=$DIR/../../..
+echo "CARTA working folder is $cartawork"
+source $cartawork/CARTAvis/carta/scripts/ci_mac_common.sh
 
 #libsakura?
 
