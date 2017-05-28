@@ -6,39 +6,39 @@ compiler:
 
 cache:
   directories:
-  - $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+  - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
   # - $HOME/Library/Caches/Homebrew
 
 install: true
 script:
   - echo "stage1- thirdparty"
-  - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;else echo "no thridparty there"; fi
+  - if [ -f "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
   - cd ..
   - mv carta CARTAvis
   - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qooxdoo-3.5.1-sdk
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
   - echo "test third party"
-  - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+  - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
   - ls -l
   - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
   - echo "build folder:"
   - ls -al $HOME/build
   - echo "CARTAvis folder:"
   - ls -al $HOME/build/CARTAvis
-  - echo "CARTAvis/CARTAvis-external:"
-  - ls -al $HOME/build/CARTAvis/CARTAvis-external
+  - echo "CARTAvis/CARTAvis-externals:"
+  - ls -al $HOME/build/CARTAvis/CARTAvis-externals
   - echo "git folder:"
   - ls -al $HOME/build/CARTAvis/CARTAvis
 before_cache:
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0-src
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/ast-8.4.0.tar.gz
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2-src
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qwt-6.1.2.tar.bz2
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0-src
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0.tar.gz
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2-src
+  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
 
 # before_install:
   # - echo "in before_install"
   # - echo "list cache Third party folder"
-  # - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then ls -al $HOME/build/CARTAvis/CARTAvis-external/ThirdParty; else echo "no Third party there";fi
+  # - if [ -f "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then ls -al $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty; else echo "no Third party there";fi
   # - cd ..
   # - mv carta CARTAvis
   # - git clone https://github.com/grimmer0125/testgdrive.git
@@ -77,25 +77,25 @@ jobs:
       script:
         - echo "stage2- buildcasa"
         - echo "2-1"
-        - ls -l $HOME/build/CARTAvis/CARTAvis-external/
+        - ls -l $HOME/build/CARTAvis/CARTAvis-externals/
         - echo "2-2"
-        - ls -l $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
-        - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;else echo "no thridparty there"; fi
+        - ls -l $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - if [ -f "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
         - cd ..
         - mv carta CARTAvis
     #     - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
     #   before_cache:
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/libsakura
-    #     - mv $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa
-    #     - mkdir -p $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk
-    #     - mv $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/casa/trunk/
+    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
+    #     - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/
+    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa
+    #     - mkdir -p $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk
+    #     - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/
     # - stage: buildcarta
     #   install: true
     #   script:
     #     - echo "stage3, buildcarta, in script, current folder:"
-    #     - if [ -f "$HOME/build/CARTAvis/CARTAvis-external/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-external/ThirdParty;else echo "no thridparty there"; fi
-    #     - unzip $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qooxdoo-3.5.1-sdk -d $HOME/build/CARTAvis/CARTAvis-external/ThirdParty -d > /dev/null
+    #     - if [ -f "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
+    #     - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty -d > /dev/null
     #     - sudo easy_install cython
     #     - sudo easy_install pip
     #     - pip install matplotlib --user -U
@@ -106,12 +106,12 @@ jobs:
     #     - git clone https://github.com/grimmer0125/testgdrive.git
     #     - npm install
     #     - if [ -f "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm start;else echo "no dmg there"; fi
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qooxdoo-3.5.1-sdk
+    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
     #   before_cache:
-    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/libsakura
-    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/gsl*
-    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qooxdoo-3.5.1-sdk
-    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-external/ThirdParty/qtwebkit-tp4-qt57-darwin*
-    #     # - cd $HOME/build/CARTAvis/CARTAvis-external/ThirdParty
+    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
+    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/gsl*
+    #     # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+    #     - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qtwebkit-tp4-qt57-darwin*
+    #     # - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
     #     # - echo `pwd`
     #     # - ls
