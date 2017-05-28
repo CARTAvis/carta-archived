@@ -7,6 +7,7 @@ compiler:
 cache:
   directories:
   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+  - $HOME/Library/Caches/Homebrew
   # - $HOME/Library/Caches/Homebrew
 
 install: true
@@ -31,6 +32,8 @@ script:
   - ls -al $HOME/build/CARTAvis/CARTAvis
   - echo "in before cache in stage1, size is "
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+  - echo "brew size:"
+  - du -sh $HOME/Library/Caches/Homebrew
 before_cache:
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0-src
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0.tar.gz
@@ -38,7 +41,6 @@ before_cache:
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
   - echo "size is, after delete"
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-
 after_success:
   - echo "stage 1 size is, after delete"
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
@@ -99,6 +101,8 @@ jobs:
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
         - echo "in before cache in stage2"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - echo "brew size:"
+        - du -sh $HOME/Library/Caches/Homebrew
       before_cache:
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
         - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/
@@ -137,6 +141,8 @@ jobs:
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
         - echo "in before cache in stage3"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - echo "brew size:"
+        - du -sh $HOME/Library/Caches/Homebrew
       before_cache:
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/gsl*

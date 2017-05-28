@@ -36,6 +36,7 @@ echo "step4: Install & build libraries for CARTA"
 echo "step4-1: Install Qt for CARTA if you use default homebrew-qt"
 installqt
 
+function installflex() {
 echo "step4-2: Use homebrew to Install some libs needed by flex for CARTA" #bison
 pause
 su $SUDO_USER <<EOF
@@ -56,27 +57,6 @@ brew cask install basictex
 EOF
 printDuration
 
-echo "list Third party before building build something inside"
-ls -l $cartawork/CARTAvis-externals/ThirdParty
-echo "list ThirdParty end"
-
-#TODO: cache
-echo "step4-4: Build most of the Third party libs for CARTA"
-if [ -e "$e_ast" ] && [ -e "$e_cfitsio" ] && [ -e "$e_qwt" ] && [ -e "$e_wcslib" ] && [ -e "$e_qooxdoo" ] && [ -e "$e_rapidjson" ] && [ -e "$e_flex" ]
-then
-	echo "built cache of qwt etc libs exit !!!!"
-else
-  echo "built cache of qwt etc libs not exit, start to build!!!!"
-  pause
-  echo "clean ThirdParty"
-  rm -rf $cartawork/CARTAvis-externals/ThirdParty/*
-  cd $cartawork
-  ## if use sudo ./xx.sh will let it can not inherit QT5PATH
-  ./CARTAvis/carta/scripts/install3party.sh
-  ###
-  printDuration
-fi
-
 #TODO: cache
 echo "step4-3: build flex"
 cd $cartawork/CARTAvis-externals/ThirdParty
@@ -96,6 +76,33 @@ make install
 ###
 printDuration
 echo "finish building flex"
+
+}
+
+
+
+echo "list Third party before building build something inside"
+ls -l $cartawork/CARTAvis-externals/ThirdParty
+echo "list ThirdParty end"
+
+#TODO: cache
+echo "step4-4: Build most of the Third party libs for CARTA"
+if [ -e "$e_ast" ] && [ -e "$e_cfitsio" ] && [ -e "$e_qwt" ] && [ -e "$e_wcslib" ] && [ -e "$e_qooxdoo" ] && [ -e "$e_rapidjson" ] && [ -e "$e_flex" ]
+then
+	echo "built cache of qwt etc libs exit !!!!"
+else
+  echo "built cache of qwt etc libs not exit, start to build!!!!"
+  pause
+  echo "clean ThirdParty"
+  rm -rf $cartawork/CARTAvis-externals/ThirdParty/*
+  cd $cartawork
+  ## if use sudo ./xx.sh will let it can not inherit QT5PATH
+  ./CARTAvis/carta/scripts/install3party.sh
+  ###
+  printDuration
+
+  installflex
+fi
 
 echo "list Third party before after build something inside"
 cd  $cartawork/CARTAvis-externals/ThirdParty
