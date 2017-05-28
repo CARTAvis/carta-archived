@@ -47,7 +47,7 @@ cache:
 
 jobs:
   include:
-    - stage: thirdparty
+    - stage: test 
       install: true
       script:
         - echo "stage1- thirdparty"
