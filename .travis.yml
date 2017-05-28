@@ -16,7 +16,7 @@ script:
   - cd ..
   - mv carta CARTAvis
   - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
   - echo "test third party"
   - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
   - ls -l
@@ -32,17 +32,17 @@ script:
   - echo "in before cache in stage1, size is "
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
 before_cache:
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0-src
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0.tar.gz
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2-src
-  - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
+  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0-src
+  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0.tar.gz
+  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2-src
+  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
   - echo "size is, after delete"
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
 
 after_success:
   - echo "stage 1 size is, after delete"
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-  
+
 after_failure:
   - echo "stage 1 size is, after delete"
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
@@ -98,9 +98,9 @@ jobs:
         - echo "in before cache in stage2"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
       before_cache:
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
         - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa
         - mkdir -p $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk
         - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/
         - echo "size is, after delete"
@@ -127,14 +127,14 @@ jobs:
         - git clone https://github.com/grimmer0125/testgdrive.git
         - npm install
         - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm start;else echo "no dmg there"; fi
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
         - echo "in before cache in stage3"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
       before_cache:
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/gsl*
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
-        - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qtwebkit-tp4-qt57-darwin*
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qtwebkit-tp4-qt57-darwin*
         - echo "size is, after delete"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
         # - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
