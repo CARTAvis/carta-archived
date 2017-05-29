@@ -51,7 +51,13 @@ echo "install gfortran, start to backup travis-c++"
 mv /usr/local/include/c++ /usr/local/include/c++_backup
 su $SUDO_USER <<EOF
 ## now it is 7.1 we only use its gfortran which is also used by code
-brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.sierra.bottle.tar.gz
+if sw_vers -productVersion | grep 10.12 ; then
+  echo "it is 10.12"
+  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.sierra.bottle.tar.gz
+else
+  echo "it is 10.11"
+  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.el_capitan.bottle.tar.gz
+fi
 EOF
 echo "resume travis-c++"
 mv /usr/local/include/c++_backup /usr/local/include/c++
@@ -64,8 +70,13 @@ function installqt() {
   if [ "$QT5PATH" == "$qt57brew" ]; then
     echo "start to install homebrew-qt"
     pause
-    sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
-    sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
+    if sw_vers -productVersion | grep 10.12 ; then
+      echo "it is 10.12"
+      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
+    else
+      echo "it is 10.11"
+      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.el_capitan.bottle.tar.gz"
+    fi
     printDuration
   else
     echo "you use your own qt version"
