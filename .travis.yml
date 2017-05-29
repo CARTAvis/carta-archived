@@ -7,7 +7,7 @@ compiler:
 cache:
   directories:
   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-  - $HOME/build/CARTAvis/CARTAvis/build
+  - $HOME/build/CARTAvis/build
   # - $HOME/Library/Caches/Homebrew
 
 install: true
@@ -136,7 +136,7 @@ jobs:
         - cd ..
         - mv carta CARTAvis
         - echo "delete build folder first"
-        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis/build
+        - sudo rm -rf $HOME/build/CARTAvis/build
         - chmod 755 ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         # - npm install
@@ -159,18 +159,18 @@ jobs:
       script:
         - echo "in packaging stage"
         - echo "list build folder"
-        - ls $HOME/build/CARTAvis/CARTAvis/build
+        - ls $HOME/build/CARTAvis/build
         - echo "build size"
-        - du -sh $HOME/build/CARTAvis/CARTAvis/build
+        - du -sh $HOME/build/CARTAvis/build
         - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk.zip -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty > /dev/null
         - cd ..
         - mv carta CARTAvis
         - chmod 755 ./CARTAvis/carta/scripts/ci_mac_packaging.sh
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_packaging.sh
         - git clone https://github.com/grimmer0125/testgdrive.git
-        - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm install;npm start;else echo "no dmg there"; fi
+        - if [ -e "$HOME/build/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm install;npm start;else echo "no dmg there"; fi
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
-        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis/build
+        - sudo rm -rf $HOME/build/CARTAvis/build
       # after_success:
       #   - echo "stage 3 size is, after delete"
       #   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty

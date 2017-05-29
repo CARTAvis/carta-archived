@@ -38,7 +38,7 @@ echo "step1: define your variables first"
 qt57brew=/usr/local/opt/qt\@5.7
 export qt57brewrealpath=/usr/local/Cellar/qt@5.7/5.7.1
 export QT5PATH=$qt57brew
-export CARTABUILDHOME=$cartawork/CARTAvis/build
+export CARTABUILDHOME=$cartawork/build
 branch=upgradeToNewNamespace #optional
 qtwebkit=qtwebkit-tp4-qt57-darwin
 qtwebkitlink=https://github.com/annulen/webkit/releases/download/qtwebkit-tp4/qtwebkit-tp4-qt57-darwin.tar.xz
