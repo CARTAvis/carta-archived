@@ -21,6 +21,9 @@ script:
   - mv carta CARTAvis
   - pwd
   - ls
+  - ls CARTAvis
+  - ls CARTAvis/carta
+  - ls ./CARTAvis
   - ls ./CARTAvis/carta/scripts/
   - chmod 755 ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
   - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
