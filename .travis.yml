@@ -7,7 +7,7 @@ compiler:
 cache:
   directories:
   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-  - $HOME/Library/Caches/Homebrew
+  # - $HOME/Library/Caches/Homebrew
   # - $HOME/Library/Caches/Homebrew
 
 install: true
