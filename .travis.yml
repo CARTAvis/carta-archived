@@ -13,6 +13,7 @@ cache:
 install: true
 script:
   - echo "stage1- thirdparty"
+  - ls
   - echo "list default homebrew"
   - brew list
   - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
