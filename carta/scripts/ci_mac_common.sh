@@ -48,7 +48,7 @@ qtwebkitlink=https://github.com/annulen/webkit/releases/download/qtwebkit-tp4/qt
 function installgfortran() {
 
 echo "install gfortran, start to backup travis-c++"
-mv /usr/local/include/c++ /usr/local/include/c++_backup
+mv /usr/local/include/c++ /usr/local/include/c++_backup # this folder is from homebrew's gcc49
 su $SUDO_USER <<EOF
 ## now it is 7.1 we only use its gfortran which is also used by code
 if sw_vers -productVersion | grep 10.12 ; then
