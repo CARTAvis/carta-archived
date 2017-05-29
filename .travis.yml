@@ -99,8 +99,6 @@ jobs:
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
         - cd ..
         - mv carta CARTAvis
-        - echo "delete build folder first"
-        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis/build
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
         - echo "in before cache in stage2"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
@@ -129,6 +127,8 @@ jobs:
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
         - cd ..
         - mv carta CARTAvis
+        - echo "delete build folder first"
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis/build
         - chmod 755 ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         # - npm install
