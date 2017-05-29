@@ -18,6 +18,10 @@ script:
   - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
   - cd ..
   - mv carta CARTAvis
+  - pwd
+  - ls
+  - ls ./CARTAvis/carta/scripts/
+  - chmod 755 ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
   - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
   - echo "test third party"
