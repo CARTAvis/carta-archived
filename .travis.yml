@@ -7,7 +7,7 @@ compiler:
 cache:
   directories:
   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-  # - $HOME/Library/Caches/Homebrew
+  - $HOME/build/CARTAvis/CARTAvis/build
   # - $HOME/Library/Caches/Homebrew
 
 install: true
@@ -24,32 +24,31 @@ script:
   - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
   - ls -l
   # - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
-  - echo "build folder:"
-  - ls -al $HOME/build
-  - echo "CARTAvis folder:"
-  - ls -al $HOME/build/CARTAvis
-  - echo "CARTAvis/CARTAvis-externals:"
-  - ls -al $HOME/build/CARTAvis/CARTAvis-externals
+  # - echo "build folder:"
+  # - ls -al $HOME/build
+  # - echo "CARTAvis folder:"
+  # - ls -al $HOME/build/CARTAvis
+  # - echo "CARTAvis/CARTAvis-externals:"
+  # - ls -al $HOME/build/CARTAvis/CARTAvis-externals
   - echo "git folder:"
   - ls -al $HOME/build/CARTAvis/CARTAvis
-  - echo "in before cache in stage1, size is "
+  - echo "in before cache in stage1, third party size is"
   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-  - echo "brew size:"
-  - du -sh $HOME/Library/Caches/Homebrew
+  # - echo "brew size:"
+  # - du -sh $HOME/Library/Caches/Homebrew
 before_cache:
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0-src
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0.tar.gz
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2-src
   - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
-  - echo "size is, after delete"
-  - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-after_success:
-  - echo "stage 1 size is, after delete"
-  - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-
-after_failure:
-  - echo "stage 1 size is, after delete"
-  - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+  # - echo "size is, after delete"
+  # - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+# after_success:
+#   - echo "stage 1 size is, after delete"
+#   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+# after_failure:
+#   - echo "stage 1 size is, after delete"
+#   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
 # before_install:
   # - echo "in before_install"
   # - echo "list cache Third party folder"
@@ -100,64 +99,73 @@ jobs:
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
         - cd ..
         - mv carta CARTAvis
+        - echo "delete build folder first"
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis/build
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcasa.sh
         - echo "in before cache in stage2"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-        - echo "brew size:"
-        - du -sh $HOME/Library/Caches/Homebrew
+        # - echo "brew size:"
+        # - du -sh $HOME/Library/Caches/Homebrew
       before_cache:
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
         - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa
         - mkdir -p $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk
         - mv $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/darwin $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/
-        - echo "size is, after delete"
-        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-      after_success:
-        - echo "stage 2 size is, after delete"
-        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-      after_failure:
-        - echo "stage 2 size is, after delete"
-        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        # - echo "size is, after delete"
+        # - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+      # after_success:
+      #   - echo "stage 2 size is, after delete"
+      #   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+      # after_failure:
+      #   - echo "stage 2 size is, after delete"
+      #   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
     - stage: buildcarta
       install: true
       script:
         - echo "stage3, buildcarta, in script, current folder:"
         - echo "third party size is"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-        - ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casacore/include/casacore/casa/aips.h
-        - ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/imageanalysis/lib/libimageanalysis.dylib
-        - ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/casa/trunk/darwin/lib/libcasa_scimath*
         - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
-        - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk.zip -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty > /dev/null
-        - sudo easy_install cython
-        - sudo easy_install pip
-        - pip install matplotlib --user -U
         - cd ..
         - mv carta CARTAvis
         - chmod 755 ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
-        - git clone https://github.com/grimmer0125/testgdrive.git
         # - npm install
-        - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm install;npm start;else echo "no dmg there"; fi
-        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
         - echo "in before cache in stage3"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-        - echo "brew size:"
-        - du -sh $HOME/Library/Caches/Homebrew
+        # - echo "brew size:"
+        # - du -sh $HOME/Library/Caches/Homebrew
       before_cache:
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/libsakura
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/gsl*
         # - rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qtwebkit-tp4-qt57-darwin*
-        - echo "size is, after delete"
-        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        # - echo "size is, after delete"
+        # - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
         # - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
         # - echo `pwd`
         # - ls
-      after_success:
-        - echo "stage 3 size is, after delete"
-        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-      after_failure:
-        - echo "stage 3 size is, after delete"
-        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+    - stage: packaging
+      install: true
+      script:
+        - echo "in packaging stage"
+        - echo "list build folder"
+        - ls $HOME/build/CARTAvis/CARTAvis/build
+        - echo "build size"
+        - du -sh $HOME/build/CARTAvis/CARTAvis/build
+        - unzip $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk.zip -d $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty > /dev/null
+        - cd ..
+        - mv carta CARTAvis
+        - chmod 755 ./CARTAvis/carta/scripts/ci_mac_packaging.sh
+        - sudo -E ./CARTAvis/carta/scripts/ci_mac_packaging.sh
+        - git clone https://github.com/grimmer0125/testgdrive.git
+        - if [ -e "$HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/CARTAvis/build/Carta-10.12-0.9.0.dmg ./testgdrive/;cd testgdrive;npm install;npm start;else echo "no dmg there"; fi
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis/build
+      # after_success:
+      #   - echo "stage 3 size is, after delete"
+      #   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+      # after_failure:
+      #   - echo "stage 3 size is, after delete"
+      #   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
