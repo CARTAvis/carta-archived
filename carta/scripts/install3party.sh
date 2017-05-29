@@ -114,7 +114,7 @@ tar xvfj qwt-6.1.2.tar.bz2 > /dev/null
 mv qwt-6.1.2 qwt-6.1.2-src
 cd qwt-6.1.2-src # can use qwt 6.1.2 Pavol uses
 if [ "$(uname)" == "Darwin" ]; then
-  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2\/ / if $.==22' qwtconfig.pri
+  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2 / if $.==22' qwtconfig.pri
 else
 	# for unix part, not work on Mac
 	sed -i "22,22c QWT_INSTALL_PREFIX    = $cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.2" qwtconfig.pri
