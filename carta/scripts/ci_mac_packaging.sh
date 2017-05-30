@@ -26,7 +26,7 @@ cd $CARTABUILDHOME
 su $SUDO_USER <<EOF
 curl -O https://raw.githubusercontent.com/CARTAvis/deploytask/Qt5.8.0/final_mac_packaging_steps.sh
 chmod 755 final_mac_packaging_steps.sh
-if [ "$TRAVIS_BUILD_NUMBER" != ""] ; then
+if [ "$TRAVIS_BUILD_NUMBER" != "" ] ; then
   export cartaversion=$TRAVIS_BUILD_NUMBER
 fi
 ./final_mac_packaging_steps.sh

@@ -86,7 +86,13 @@ echo $QT5PATH
 export PATH=$QT5PATH/bin:$PATH
 mkdir -p $CARTABUILDHOME
 cd $CARTABUILDHOME
-qmake -config release NOSERVER=1 CARTA_BUILD_TYPE=release $cartawork/CARTAvis/carta -r
+if [ "$TRAVIS_BRANCH" != "" ] && [[ $TRAVIS_BRANCH == *"release"* ]]; then
+  echo "carta build is release type"
+  qmake -config release NOSERVER=1 CARTA_BUILD_TYPE=release $cartawork/CARTAvis/carta -r
+else
+  echo "carta build is dev type"
+  qmake NOSERVER=1 CARTA_BUILD_TYPE=dev $cartawork/CARTAvis/carta -r
+fi
 make -j2
 ###
 EOF
