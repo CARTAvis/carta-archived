@@ -4,15 +4,16 @@ QTINSTALLER=qt-unified-linux-x64-2.0.5-online.run
 QTURL=http://ftp.jaist.ac.jp/pub/qtproject/archive/online_installers/2.0/$QTINSTALLER
 
 isCentOS=true
-if grep -q CentOS /etc/os-release; then
+centos_release=/etc/os-release
+if [ -f "$centos_release" ] && grep -q CentOS $centos_release  ; then
     echo "isCentOS"
 else
-    echo "should be Ubuntu"
+    echo "should be Ubuntu or Mac"
 	isCentOS=false
-    # QTINSTALLER=qt-opensource-linux-x64-5.8.0.run
-    # QTURL=http://download.qt.io/official_releases/qt/5.8/5.8.0/$QTINSTALLER
-    #       http://download.qt.io/archive/qt/5.3/5.3.2/qt-opensource-linux-x64-5.3.2.run
 fi
+# QTINSTALLER=qt-opensource-linux-x64-5.8.0.run
+# QTURL=http://download.qt.io/official_releases/qt/5.8/5.8.0/$QTINSTALLER
+#       http://download.qt.io/archive/qt/5.3/5.3.2/qt-opensource-linux-x64-5.3.2.run
 
 if [ "$isCentOS" = true ] ; then
     # this is needed by installing 5.3.2 from qt-opensource-linux-x64-5.3.2.run,

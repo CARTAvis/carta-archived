@@ -9,10 +9,11 @@ if [ -z ${cartawork+x} ]; then
 fi
 
 isCentOS=true
-if grep -q CentOS /etc/os-release; then
+centos_release=/etc/os-release
+if [ -f "$centos_release" ] && grep -q CentOS $centos_release  ; then
     echo "isCentOS"
 else
-    echo "should be Ubuntu"
+    echo "should be Ubuntu or Mac"
 	isCentOS=false
 fi
 
@@ -134,7 +135,7 @@ else
     git clone https://github.com/grimmer0125/libsakura
 
     curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
-    unzip gtest-1.7.0.zip -d libsakura
+    unzip gtest-1.7.0.zip -d libsakura > /dev/null
     cd libsakura
     ln -s googletest-release-1.7.0 gtest
     mkdir build
@@ -233,6 +234,7 @@ if [ "$(uname)" == "Darwin" ]; then
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 \
     -DUseCasacoreNamespace=1 \
 	-DCMAKE_Fortran_COMPILER=/usr/local/bin/gfortran \
+    -DPYTHON2_EXECUTABLE=/usr/bin/python \
     -DPYTHON_LIBRARY=/System/Library/Frameworks/Python.framework/Versions/2.7/Python \
     -DWCSLIB_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/wcslib \
     -DCFITSIO_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/cfitsio \

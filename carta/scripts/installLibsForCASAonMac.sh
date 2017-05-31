@@ -24,7 +24,7 @@ brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/ho
 
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/70cdd3ed9ab1e4b7721f9884d363745e46a68539/Formula/dbus.rb # To pass cmake's check
 
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0eb58b8a50600eb3c663a788f6697c1f672433ed/Formula/libxml2.rb
+brew install libxml2
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/8bac3e33d64f57a18b328b8284d37cb40979c481/Formula/xerces-c.rb
 
 ## Qt 4.8. Not sure if the target three submodules need Qt but cmake's check will check if Qt exists
