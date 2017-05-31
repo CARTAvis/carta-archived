@@ -1,7 +1,5 @@
 #!/bin/bash
 
-## working folder, $cartawork
-
 if [ -z ${cartawork+x} ]; then
 	export cartawork=`pwd`
 fi
