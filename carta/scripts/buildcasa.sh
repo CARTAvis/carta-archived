@@ -73,8 +73,8 @@ EOF
     sudo yum -y install pgplot-devel pgplot-demos pgplot-motif # , 5.3.1
 
     #### install Qt 4.8.5
-    sudo yum -y install qt-devel.x86_64
-    alias qmake='qmake-qt4'
+    # sudo yum -y install qt-devel.x86_64
+    # alias qmake='qmake-qt4'
 else
 	##### Ubuntu 16.04
     ## can use sudo aptitude search to search packages
@@ -83,7 +83,7 @@ else
     ####### casacore part:
     # sudo apt-get -y install libwcs5 wcslib-dev
     sudo apt-get -y install gfortran python-numpy libfftw3-dev liblapacke-dev
-    sudo apt-get -y install libboost-dev liblapack-dev liblapack3 liblapacke liblapacke-dev
+    sudo apt-get -y install libboost-dev liblapack-dev liblapack3 liblapacke
 
     # sudo apt-get -y install libblas-dev libblas3 \ move to install3party since gsl needs too
 
@@ -93,16 +93,16 @@ else
 
     ## forget the below are for casacore or casa-code (<-seems this)
     sudo apt-get -y install libboost-regex-dev libboost-program-options-dev
-    sudo apt-get -y install ibboost-thread-dev libboost-serialization-dev libboost-filesystem-dev libboost-system-dev
+    sudo apt-get -y install libboost-thread-dev libboost-serialization-dev libboost-filesystem-dev libboost-system-dev
     #######
 
     ####### casa-code part:
     sudo apt-get -y install libgsl-dev
     ## needed to be installed before building qt 4.8, otherwise Qt d-bus (QtDbus) moduble will not be built in
     ## not sure if all are needed or not
-    sudo apt-get -y install libdbus-1-dev libqt4-dbus libqtdbus4 dbus-cpp-dev libdbus-c++-dev libdbus-cpp-dev
+    sudo apt-get -y install libdbus-1-dev dbus-cpp-dev libdbus-c++-dev libdbus-cpp-dev
 
-    sudo apt-get -y install default-jre ## openjdk-7-jdk, openjdk-7-jre
+    # sudo apt-get -y install default-jre ## openjdk-7-jdk, openjdk-7-jre
     sudo apt-get -y install libxslt1-dev
 
     sudo apt-get -y install libreadline-dev libxml2-dev
@@ -111,7 +111,7 @@ else
     # sudo add-apt-repository -s ppa:radio-astro/main # seems this repo having pgplot, too
     sudo add-apt-repository -s ppa:kernsuite/kern-1
     sudo apt-get update
-    sudo apt-get -y install rpfits
+    # sudo apt-get -y install rpfits
 
     sudo apt-get install software-properties-common
     sudo apt-add-repository multiverse
@@ -123,15 +123,16 @@ else
 
     ####### there is no-prebuilt libsakura for ubuntu, needed for casa-code
     ## http://alma-intweb.mtk.nao.ac.jp/~sakura/api/html/INSTALL.txt
-    apt-get install doxygen
+    sudo apt-get install doxygen
     # apt-get install gtest
-    apt-get install libeigen3-dev
-    apt-get install liblog4cxx10v5
+    sudo apt-get install libeigen3-dev
+    sudo apt-get install liblog4cxx10v5
 
     #wget ftp://alma-dl.mtk.nao.ac.jp/sakura/releases/latest_src/libsakura-4.0.2065.tar.gz
     ## tar -xvzf libsakura-4.0.2065.tar.gz
     ## Use our own modified version,
     ## since the original source code will not be compiled OK by gcc 5.4, gcc 4.8 seem neither
+    cd $cartawork/CARTAvis-externals/ThirdParty
     git clone https://github.com/grimmer0125/libsakura
 
     curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
@@ -143,7 +144,7 @@ else
     cmake ..
     make
     make apidoc
-    make install ## default: /usr/local
+    sudo make install ## default: /usr/local
     ####### casa-code part
 
     ##### Qt 4.8.5 way1:  Build (slow)
@@ -159,8 +160,8 @@ else
     ## ./configure --prefix $cartawork/CARTAvis-externals/ThirdParty/Qt4.8.5 -> fail, not know why
     #./configure # some interactive questioin. "o", "yes" !!
 
-    ## TODO: way2, to install Qt 4.8.7, use qmake or qmake-qt4. Not use this way to test all.
-    sudo apt-get install libqt4-dev
+    ## xTODO: way2, to install Qt 4.8.7, use qmake or qmake-qt4. Not use this way to test all.
+    # sudo apt-get install libqt4-dev
 fi
 
 cd $cartawork/CARTAvis-externals/ThirdParty
@@ -264,6 +265,8 @@ else
     cmake -DBoost_NO_BOOST_CMAKE=1 -DCASA_BUILD=1 -DBUILD_TESTING=OFF \
     -DUseCasacoreNamespace=1 \
     -DCMAKE_INSTALL_PREFIX=../../$TARGETOS -DBUILD_PYTHON=1 \
+    -DWCSLIB_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/wcslib \
+    -DCFITSIO_ROOT_DIR=$cartawork/CARTAvis-externals/ThirdParty/cfitsio \
     -DCMAKE_BUILD_TYPE=Release -DCXX11=1 ..
 fi
 
@@ -369,6 +372,6 @@ cd ../casacore
 ln -s $cartawork/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/include/ include
 ln -s $cartawork/CARTAvis-externals/ThirdParty/casa/trunk/$TARGETOS/lib lib
 
-if [ "$isCentOS" = true ] ; then
-    unalias qmake
-fi
+# if [ "$isCentOS" = true ] ; then
+#     unalias qmake
+# fi
