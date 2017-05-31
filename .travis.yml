@@ -1,15 +1,13 @@
 language: cpp
 os: osx
-# osx_image: xcode8.3
-compiler:
-- clang
-
+compiler: clang
 cache:
   directories:
   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
   - $HOME/build/CARTAvis/build
   # - $HOME/Library/Caches/Homebrew
 
+# osx_image: xcode8.3
 
   # - echo "size is, after delete"
   # - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
@@ -56,9 +54,16 @@ cache:
 
 jobs:
   include:
-    # - stage: thirdparty
-    - install: true
-    - script:
+    - stage: thirdparty
+      language: cpp
+      os: osx
+      compiler: clang
+      cache:
+      directories:
+        - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - $HOME/build/CARTAvis/build
+      install: true
+      script:
         - echo "stage1- thirdparty"
         - ls
         - echo "list default homebrew"
@@ -97,6 +102,13 @@ jobs:
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2-src
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
     - stage: buildcasa
+      language: cpp
+      os: osx
+      compiler: clang
+      cache:
+      directories:
+        - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - $HOME/build/CARTAvis/build
       install: true
       script:
         - echo "stage2- buildcasa"
@@ -129,6 +141,13 @@ jobs:
       #   - echo "stage 2 size is, after delete"
       #   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
     - stage: buildcarta
+      language: cpp
+      os: osx
+      compiler: clang
+      cache:
+      directories:
+        - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - $HOME/build/CARTAvis/build
       install: true
       script:
         - echo "stage3, buildcarta, in script, current folder:"
@@ -157,6 +176,13 @@ jobs:
         # - echo `pwd`
         # - ls
     - stage: packaging
+      language: cpp
+      os: osx
+      compiler: clang
+      cache:
+      directories:
+        - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - $HOME/build/CARTAvis/build
       install: true
       script:
         - echo "in packaging stage"
