@@ -1,54 +1,14 @@
 language: cpp
 os: osx
-# osx_image: xcode8.3
-compiler:
-- clang
-
+compiler: clang
 cache:
   directories:
   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
   - $HOME/build/CARTAvis/build
   # - $HOME/Library/Caches/Homebrew
 
-install: true
-script:
-  - echo "stage1- thirdparty"
-  - ls
-  - echo "list default homebrew"
-  - brew list
-  - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
-  - cd ..
-  - mv carta CARTAvis
-  - pwd
-  - ls
-  - ls CARTAvis
-  - ls CARTAvis/carta
-  - ls ./CARTAvis
-  - ls ./CARTAvis/carta/scripts/
-  - chmod 755 ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
-  - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
-  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
-  - echo "test third party"
-  - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-  - ls -l
-  # - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
-  # - echo "build folder:"
-  # - ls -al $HOME/build
-  # - echo "CARTAvis folder:"
-  # - ls -al $HOME/build/CARTAvis
-  # - echo "CARTAvis/CARTAvis-externals:"
-  # - ls -al $HOME/build/CARTAvis/CARTAvis-externals
-  - echo "git folder:"
-  - ls -al $HOME/build/CARTAvis/CARTAvis
-  - echo "in before cache in stage1, third party size is"
-  - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
-  # - echo "brew size:"
-  # - du -sh $HOME/Library/Caches/Homebrew
-before_cache:
-  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0-src
-  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0.tar.gz
-  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2-src
-  - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
+# osx_image: xcode8.3
+
   # - echo "size is, after delete"
   # - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
 # after_success:
@@ -94,7 +54,61 @@ before_cache:
 
 jobs:
   include:
+    - stage: thirdparty
+      # language: cpp
+      # os: osx
+      # compiler: clang
+      # cache:
+      # directories:
+      #   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+      #   - $HOME/build/CARTAvis/build
+      install: true
+      script:
+        - echo "stage1- thirdparty"
+        - ls
+        - echo "list default homebrew"
+        - brew list
+        - if [ -e "$HOME/build/CARTAvis/CARTAvis-externals/ThirdParty" ]; then echo "third party exist";ls $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty;else echo "no thridparty there"; fi
+        - cd ..
+        - mv carta CARTAvis
+        - pwd
+        - ls
+        - ls CARTAvis
+        - ls CARTAvis/carta
+        - ls ./CARTAvis
+        - ls ./CARTAvis/carta/scripts/
+        - chmod 755 ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
+        - sudo -E ./CARTAvis/carta/scripts/ci_mac_thirdparty.sh
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
+        - echo "test third party"
+        - cd $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        - ls -l
+        # - echo "aaa" > ${TRAVIS_JOB_NUMBER}.txt
+        # - echo "build folder:"
+        # - ls -al $HOME/build
+        # - echo "CARTAvis folder:"
+        # - ls -al $HOME/build/CARTAvis
+        # - echo "CARTAvis/CARTAvis-externals:"
+        # - ls -al $HOME/build/CARTAvis/CARTAvis-externals
+        - echo "git folder:"
+        - ls -al $HOME/build/CARTAvis/CARTAvis
+        - echo "in before cache in stage1, third party size is"
+        - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+        # - echo "brew size:"
+        # - du -sh $HOME/Library/Caches/Homebrew
+      before_cache:
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0-src
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/ast-8.4.0.tar.gz
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2-src
+        - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qwt-6.1.2.tar.bz2
     - stage: buildcasa
+      # language: cpp
+      # os: osx
+      # compiler: clang
+      # cache:
+      # directories:
+      #   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+      #   - $HOME/build/CARTAvis/build
       install: true
       script:
         - echo "stage2- buildcasa"
@@ -127,6 +141,13 @@ jobs:
       #   - echo "stage 2 size is, after delete"
       #   - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
     - stage: buildcarta
+      # language: cpp
+      # os: osx
+      # compiler: clang
+      # cache:
+      # directories:
+      #   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+      #   - $HOME/build/CARTAvis/build
       install: true
       script:
         - echo "stage3, buildcarta, in script, current folder:"
@@ -155,6 +176,13 @@ jobs:
         # - echo `pwd`
         # - ls
     - stage: packaging
+      # language: cpp
+      # os: osx
+      # compiler: clang
+      # cache:
+      # directories:
+      #   - $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
+      #   - $HOME/build/CARTAvis/build
       install: true
       script:
         - echo "in packaging stage"
