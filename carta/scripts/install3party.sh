@@ -183,8 +183,8 @@ cd ast-8.4.0-src
 make && make install
 cd ..
 
-if [ "$(uname)" == "Darwin" ]; then
-	echo "not build gsl here, use homebrew to install it somewhere"
+if [ "$(uname)" == "Darwin" ] && [ "$TRAVIS" == true ]; then
+	echo "in travis-ci, not build gsl here, use homebrew to install it somewhere"
 else
 	echo "build gsl"
 	cd $cartawork/CARTAvis-externals/ThirdParty
