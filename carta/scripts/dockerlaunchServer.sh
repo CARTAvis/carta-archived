@@ -19,7 +19,8 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/developer/src/CARTAvis-externals/T
 
 # copy from the script to launch desktop version,
 ulimit -n 2048
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/casa/lib/libcasa:/opt/casa/lib/libcode/:/opt/casa/otherlib/:/opt/wcslib-5.13/lib/
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/casa/lib/libcasa:/opt/casa/lib/libcode/:/opt/casa/otherlib/:/opt/wcslib-5.13/lib/
+export LD_LIBRARY_PATH=~/src/CARTAvis-externals/ThirdParty/casa/trunk/linux/lib:${LD_LIBRARY_PATH}
 
 # alex's , but ville's does not have
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$cartabuildfolder/cpp/core \
