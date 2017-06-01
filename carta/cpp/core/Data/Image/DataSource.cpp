@@ -221,7 +221,7 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
             std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames);
             double percent = (maxPercent - minPercent)*100;
             out << "<span style=\"color: #0000ff;\">with intensity bounds for Quantile mode "
-                << percent << "%: [Max, Min] = "
+                << percent << "%: [Min, Max] = "
                 << "[" << intensity[0]
                 << ", " << intensity[1] << "] "
                 << pixelUnits << "</span>"
