@@ -213,14 +213,14 @@ Carta::Lib::KnownSkyCS LayerData::_getCoordinateSystem() const {
     return cs;
 }
 
-QString LayerData::_getCursorText( int mouseX, int mouseY, const std::vector<int>& frames,
-        const QSize& outputSize ){
+QString LayerData::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY, const std::vector<int>& frames,
+        const QSize& outputSize){
     QString cursorText;
     if ( m_dataSource ){
         Carta::Lib::KnownSkyCS cs = m_dataGrid->_getSkyCS();
         QPointF pan = _getPan();
         double zoom = _getZoom();
-        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs, frames, zoom, pan, outputSize );
+        cursorText = m_dataSource->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY, cs, frames, zoom, pan, outputSize);
     }
     return cursorText;
 }

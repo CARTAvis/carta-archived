@@ -1089,7 +1089,7 @@ void Controller::saveImageResultCB( bool result ){
 
 void Controller::setAutoClip( bool autoClip ){
     bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
-    if ( autoClip != oldAutoClip ){
+    if ( autoClip != oldAutoClip ) {
         m_state.setValue<bool>( AUTO_CLIP, autoClip );
         m_state.flushState();
     }
@@ -1335,7 +1335,13 @@ void Controller::_updateCursorText(bool notifyClients ){
     QString formattedCursor;
     int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
     int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
-    QString cursorText = m_stack->_getCursorText( mouseX, mouseY);
+
+    // get Quantile information and show them on the image viewer
+    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+    bool isAutoClip = m_state.getValue<bool>(AUTO_CLIP);
+    QString cursorText = m_stack->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY);
+
     if ( !cursorText.isEmpty()){
         if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
             m_stateMouse.setValue<QString>( CURSOR, cursorText );

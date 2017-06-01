@@ -133,7 +133,7 @@ private:
      * @param frames - a list of current image frames.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
+    QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
             double zoom, const QPointF& pan, const QSize& outputSize );
 
 
@@ -488,6 +488,8 @@ private:
      */
     void _viewResize( const QSize& newSize );
 
+    std::vector<double> _getQuantileIntensityCache( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
+            double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
     void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );

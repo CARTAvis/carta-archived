@@ -141,8 +141,8 @@ protected:
      * @param frames - list of image frames.
      * @return a QString containing cursor text.
      */
-    virtual QString _getCursorText( int mouseX, int mouseY,
-            const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
+    virtual QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
+            const std::vector<int>& frames, const QSize& outputSize) Q_DECL_OVERRIDE;
 
     /**
      * Return the data source of the image.

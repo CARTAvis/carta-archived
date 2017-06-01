@@ -191,7 +191,7 @@ QStringList DataSource::_getCoordinates( double x, double y,
 }
 
 // print the pixel value and x-y coordinate for the cursor on the image viewer
-QString DataSource::_getCursorText( int mouseX, int mouseY,
+QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
         Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
         double zoom, const QPointF& pan, const QSize& outputSize ){
     QString str;
@@ -211,8 +211,22 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
 
         QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
-        out << "Pixel value: " << pixelValue << " " << pixelUnits << " at ";
-        out <<"pixel coordinate: X=" << imgX << ", Y=" << imgY << "\n";
+        out << "Pixel information: value = " << pixelValue << " " << pixelUnits << " at ";
+        out << "coordinate (X, Y) = " << "("<< imgX << ", " << imgY << ")" << "\n";
+
+        // get the Min. and Max. values of intensity for Quantile mode
+        if (isAutoClip == true) {
+            std::vector<int> mFrames = _fitFramesToImage( frames );
+            std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+            std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames);
+            double percent = (maxPercent - minPercent)*100;
+            out << "<span style=\"color: #0000ff;\">with intensity bounds for Quantile mode "
+                << percent << "%: [Max, Min] = "
+                << "[" << intensity[0]
+                << ", " << intensity[1] << "] "
+                << pixelUnits << "</span>"
+                << "\n";
+        }
 
         cf-> setSkyCS( cs );
         out << "[ " << m_coords->getName( cs ) << " ] ";
@@ -1164,9 +1178,8 @@ void DataSource::_setGamma( double gamma ){
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
-
-void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
-        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
+std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames) {
 
     std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
@@ -1182,11 +1195,15 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         bool maxClipInCache(0);
 
         // 2017/05/23   C.C. Chiang: check if these are the right frame, stoke and percentile values
-        QString minClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(frames.back()).arg(stokeIndex[1]).arg(minClipPercentile);
-        QString maxClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(frames.back()).arg(stokeIndex[1]).arg(maxClipPercentile);
+        QString minClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
+        QString maxClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
+        QString minClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
+        QString maxClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
 
         qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
         qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
+        qDebug() << "++++++++ minClipLocationKey" << minClipLocationKey.toUtf8();
+        qDebug() << "++++++++ maxClipLocationKey" << maxClipLocationKey.toUtf8();
         qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
 
         QByteArray minClipVal;
@@ -1210,6 +1227,9 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
             if (m_diskCache) {
                 m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
                 m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+                m_diskCache->setEntry( minClipLocationKey.toUtf8(), i2qb(0), 0);
+                m_diskCache->setEntry( maxClipLocationKey.toUtf8(), i2qb(0), 0);
+
                 qDebug() << "++++++++ calculated clips and put in cache";
             }
         }
@@ -1220,7 +1240,13 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
         m_quantileCache[quantileIndex].m_maxPercentile = maxClipPercentile;
     }
+    return clips;
+}
 
+void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
+    // get quantile intensity cache
+    std::vector<double> clips = _getQuantileIntensityCache(view, minClipPercentile, maxClipPercentile, frames);
     m_pixelPipeline-> setMinMax( clips[0], clips[1] );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }

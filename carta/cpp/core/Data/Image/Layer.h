@@ -182,7 +182,7 @@ protected:
      * @param outputSize - the size of the image in pixels.
      * @return a QString containing cursor text.
      */
-    virtual QString _getCursorText( int mouseX, int mouseY,
+    virtual QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
             const std::vector<int>& frames, const QSize& outputSize ) = 0;
 
 
