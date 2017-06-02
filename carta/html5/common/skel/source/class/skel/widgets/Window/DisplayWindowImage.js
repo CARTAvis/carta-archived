@@ -27,7 +27,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         // grimmer: click/select will trigger 4 times of call of _initMenu, why?
         // start CARTA, number of _initMenu's call is 7. So after simulating, becomes 11
         this.simulateSelecteFun = this.simulateSelecteFun.bind(this);
-        setTimeout(this.simulateSelecteFun, 500);
+        setTimeout(this.simulateSelecteFun, 1200);
 
         // this.m_content.add( this.m_imageControls );
     },
