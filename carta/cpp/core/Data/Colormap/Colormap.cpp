@@ -276,7 +276,7 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                 auto result2 = Globals::instance()-> pluginManager()
                                                                 -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image,
                                                                         oldUnit, newUnit, hertzValues, converted,
-                                                                        1, "" );;
+                                                                        1, "" );
 
                 auto lam2 = [&convertedIntensity] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
                     if ( data.size() == 2 ){
@@ -334,7 +334,11 @@ std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vec
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
         std::pair<int,int> bounds(-1,-1);
+        // show colormap for Percentile mode
         values = controller->getIntensity( -1, -1, percents );
+        // show colormap for Quantile mode
+        // TODO: need to modify _updateIntensityBounds() as well !!
+        // values = controller->getIntensity( percents );
     }
     return values;
 }
@@ -1158,7 +1162,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
                   m_stateData.setValue<int>( INTENSITY_MAX_INDEX, intensities[1].first );
               }
               if ( intensityChanged ){
-            	  _colorStateChanged();
+                  _colorStateChanged();
                   m_stateData.flushState();
               }
         }
