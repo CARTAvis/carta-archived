@@ -40,6 +40,7 @@ class Service;
 namespace Data {
 
 class CoordinateSystems;
+class SpectralSystems;
 
 class DataSource : public QObject {
 
@@ -132,6 +133,7 @@ private:
             Carta::Lib::KnownSpecCS spcs, const std::vector<int>& frames) const;
 
     QString _getSkyCS();
+    QString _getSpecCS();
 
     /**
      * Returns information about the image at the current location of the cursor.
@@ -491,6 +493,7 @@ private:
 
     //Used pointer to coordinate systems.
     static CoordinateSystems* m_coords;
+    static SpectralSystems* m_spec;
 
     //Pointer to image interface.
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;

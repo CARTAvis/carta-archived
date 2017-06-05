@@ -1,5 +1,6 @@
 #include "DataSource.h"
 #include "CoordinateSystems.h"
+#include "SpectralSystems.h"
 #include "Data/Colormap/Colormaps.h"
 #include "Globals.h"
 #include "PluginManager.h"
@@ -34,6 +35,7 @@ const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
+SpectralSystems* DataSource::m_spec = nullptr;
 
 DataSource::DataSource() :
     m_image( nullptr ),
@@ -242,6 +244,14 @@ QString DataSource::_getSkyCS(){
     return coordName;
 }
 
+QString DataSource::_getSpecCS(){
+
+    CoordinateFormatterInterface::SharedPtr cf(
+            m_image-> metaData()-> coordinateFormatter()-> clone() );
+
+    QString specName = m_spec->getName( cf->specCS() );
+    return specName;
+}
 
 QString DataSource::_getCursorText( int mouseX, int mouseY,
         Carta::Lib::KnownSkyCS cs, Carta::Lib::KnownSpecCS spcs, const std::vector<int>& frames,
@@ -784,6 +794,9 @@ void DataSource::_initializeSingletons( ){
     //Load the available color maps.
     if ( m_coords == nullptr ){
         m_coords = Util::findSingletonObject<CoordinateSystems>();
+    }
+    if ( m_spec == nullptr ){
+        m_spec = Util::findSingletonObject<SpectralSystems>();
     }
 }
 

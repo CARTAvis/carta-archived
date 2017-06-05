@@ -6,6 +6,7 @@
 #include "Data/Util.h"
 #include "Data/Colormap/ColorState.h"
 #include "Data/Image/CoordinateSystems.h"
+#include "Data/Image/SpectralSystems.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
 #include "State/UtilState.h"
@@ -637,6 +638,13 @@ void LayerData::_gridChanged( const Carta::State::StateInterface& state ){
         substituteState.setValue<QString>( skyCS, csName );
         //m_state.setValue<QString>( skyCS, csName );
         //m_state.flushState();
+    }
+    QString specCS = Carta::Data::DataGrid::SPEC_SYSTEM;
+    QString specName = state.getValue<QString>( specCS );
+    SpectralSystems* m_spec = Util::findSingletonObject<SpectralSystems>();
+    if(m_spec->getIndex(specName) == Carta::Lib::KnownSpecCS::Default){
+        specName = m_dataSource->_getSpecCS();
+        substituteState.setValue<QString>( specCS, specName );
     }
     m_dataGrid->_resetState( substituteState );
 }

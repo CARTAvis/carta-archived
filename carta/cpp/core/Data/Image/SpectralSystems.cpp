@@ -55,7 +55,7 @@ QString SpectralSystems::getDefault() const {
 }
 
 Carta::Lib::KnownSpecCS  SpectralSystems::getDefaultType() const {
-    return Carta::Lib::KnownSpecCS::Default;
+    return Carta::Lib::KnownSpecCS::VRAD;
 }
 
 QString SpectralSystems::getSpectralSystem( const QString& system ) const {

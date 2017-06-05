@@ -441,7 +441,7 @@ CCCoordinateFormatter::setSpecCS( const KnownSpecCS & spcs )
             break;
 
         default:
-            sptype = casa::SpectralCoordinate::SpecType::VRAD;
+            CARTA_ASSERT( false );
             break;
     }
 
