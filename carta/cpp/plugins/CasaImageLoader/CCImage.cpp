@@ -5,7 +5,7 @@
 #include <QDebug>
 #include "CCImage.h"
 
-casa::ImageInterface < casa::Float > *
+casacore::ImageInterface < casacore::Float > *
 cartaII2casaII_float( std::shared_ptr < Carta::Lib::Image::ImageInterface > ii )
 {
     // first we convert to base, this seems to work on all platforms
@@ -17,9 +17,9 @@ cartaII2casaII_float( std::shared_ptr < Carta::Lib::Image::ImageInterface > ii )
     auto latticeBase = base-> getCasaImage();
 
     // now we try to cast the base to casacore image interface float type
-    return dynamic_cast< casa::ImageInterface < casa::Float > * > ( latticeBase);
+    return dynamic_cast< casacore::ImageInterface < casacore::Float > * > ( latticeBase);
 
-//    casa::ImageInterface < casa::Float > * ciif = dynamic_cast< casa::ImageInterface < casa::Float > * > ( latticeBase );
+//    casacore::ImageInterface < casacore::Float > * ciif = dynamic_cast< casacore::ImageInterface < casacore::Float > * > ( latticeBase );
 //    qWarning() << "ciif" << ciif;
 //    return ciif;
 }

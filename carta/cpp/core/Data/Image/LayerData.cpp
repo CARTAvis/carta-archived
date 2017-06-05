@@ -938,6 +938,9 @@ void LayerData::_resetPan( ){
     _setPan( panValue.x(), panValue.y() );
 }
 
+QString LayerData::_getFileName() {
+    return m_dataSource->_getFileName();
+}
 
 QString LayerData::_setFileName( const QString& fileName, bool * success ){
     QString result = m_dataSource->_setFileName( fileName, success );

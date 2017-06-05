@@ -229,6 +229,14 @@ int Stack::_getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     return upperBound;
 }
 
+QStringList Stack::_getFileList() {
+
+    QStringList nameList;
+    for ( std::shared_ptr<Layer> layer : m_children ){
+        nameList.append( layer->_getFileName());
+    }
+    return nameList;
+}
 
 std::vector<int> Stack::_getImageSlice() const {
     std::vector<int> result;

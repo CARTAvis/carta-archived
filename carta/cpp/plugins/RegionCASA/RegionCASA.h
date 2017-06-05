@@ -53,7 +53,7 @@ private:
      */
     std::vector<QPointF>
         _getPixelVertices( const casa::AnnotationBase::Direction& corners,
-            const casa::CoordinateSystem& csys, const casa::Vector<casa::MDirection>& directions ) const;
+            const casacore::CoordinateSystem& csys, const casacore::Vector<casacore::MDirection>& directions ) const;
 
     /**
      * Convert the length is world coordinates to pixel coordinates.
@@ -64,7 +64,7 @@ private:
      * @return - the corresponding length in pixel coordinates.
      */
     double _getRadiusPixel( const QPointF& centerRadian, const QPointF& centerPixel,
-       		double radius, double angleDegrees, const casa::CoordinateSystem& cSys ) const;
+       		double radius, double angleDegrees, const casacore::CoordinateSystem& cSys ) const;
 
     /**
      * Get a lists of x- and y- coordinates of the corner points of a region based on world
@@ -74,9 +74,9 @@ private:
      * @param csys - the coordinate system of the containing image.
      * @param directions - a list of MDirections for the image.
      */
-    void _getWorldVertices(std::vector<casa::Quantity>& x, std::vector<casa::Quantity>& y,
-            const casa::CoordinateSystem& csys,
-            const casa::Vector<casa::MDirection>& directions ) const;
+    void _getWorldVertices(std::vector<casacore::Quantity>& x, std::vector<casacore::Quantity>& y,
+            const casacore::CoordinateSystem& csys,
+            const casacore::Vector<casacore::MDirection>& directions ) const;
 
     /**
      * Returns true if the region is a casa region; false otherwise.
@@ -103,6 +103,6 @@ private:
      * @param successful - set to true if the point is successfully converted; otherwise set to false.
      * @return - a list of the corresponding pixel coordinates.
      */
-    casa::Vector<casa::Double> _toPixel( const casa::CoordinateSystem& cSys,
+    casacore::Vector<casacore::Double> _toPixel( const casacore::CoordinateSystem& cSys,
     		double x, double y, bool* successful ) const;
 };

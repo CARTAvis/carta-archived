@@ -36,7 +36,7 @@ do
     shift
 done
 
-appname=desktop
+appname=CARTA
 dirname=`dirname $0`
 
 tmp="${dirname#?}"

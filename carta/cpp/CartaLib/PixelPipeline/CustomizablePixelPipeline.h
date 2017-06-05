@@ -82,7 +82,8 @@ private:
 enum class ScaleType
 {
     Linear, /// x' = x
-    Polynomial, /// x' = x^a
+    Polynomial3, /// x' = x^3
+    Polynomial4, /// x' = x^4
     Sqr, /// x' = x ^ 2
     Sqrt, /// x' = x ^ 1/2
     Log /// x' = log(ax + 1) / log(a+1)
@@ -119,8 +120,11 @@ public:
         case ScaleType::Sqrt :
             return gamma + "Sqrt";
 
-        case ScaleType::Polynomial :
-            return gamma + "Poly" + double2base64( m_a );
+        case ScaleType::Polynomial3 :
+              return gamma + "Poly3";
+
+        case ScaleType::Polynomial4 :
+              return gamma + "Poly4";
         }
         CARTA_ASSERT_X( false, "Invalid scale type" );
         return "";
@@ -189,8 +193,15 @@ public:
             };
             return;
 
-        case ScaleType::Polynomial :
-            setParam( 2.0 );
+        case ScaleType::Polynomial3 :
+            setParam( 3.0 );
+            m_func = [this] ( double & val ) {
+                val = std::pow( val, m_a );
+            };
+            return;
+
+        case ScaleType::Polynomial4 :
+            setParam( 4.0 );
             m_func = [this] ( double & val ) {
                 val = std::pow( val, m_a );
             };

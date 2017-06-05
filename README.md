@@ -121,7 +121,7 @@ You need to do the following patch for Qt on Mac.
 
 1. One issue about Xcode + Qt 5.3 (5.5, 5.6 do not need). In $HOME/Qt/5.x/clang_64/mkspecs/qdevice.pri, Change `!host_build:QMAKE_MAC_SDK = macosx10.8` to `!host_build:QMAKE_MAC_SDK = macosx`. Ref: http://stackoverflow.com/questions/26320677/error-could-not-resolve-sdk-path-for-macosx10-8
 
-2. one issue about Xcode 8 + Qt. In Qt/5.x/clang_64/mkspecs/macx-clang/qmake.conf, chanage `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7` to `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10`. Ref: http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake.
+2. one issue about Xcode 8 + Qt (< Qt 5.8). In Qt/5.x/clang_64/mkspecs/macx-clang/qmake.conf, chanage `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7` to `QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.10` (or 10.9 is used Qt 5.8 by default, Qt 5.7 uses 10.8). Ref: http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake.
 
 3. Xcode 8 + Qt (Not always happen, fix when it happen). When this error, **Qt Creator - Project ERROR: Xcode not set up properly. You may need to confirm the license agreement by running /usr/bin/xcodebuild** happens, open Qt_install_folder/5.x/clang_64/mkspecs/features/mac/default_pre.prf, replace `isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null")))` with `isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null")))`. Ref: http://stackoverflow.com/questions/33728905/qt-creator-project-error-xcode-not-set-up-properly-you-may-need-to-confirm-t.
 
@@ -131,8 +131,8 @@ Setup QT5PATH variable, like `QT5PATH=/opt/Qt/5.3/gcc_64/bin`, this is to build 
 
 ### [Experiment] Use Qt 5.7 + Community QtWebKit package on Mac
 
-1. Get Webkit from https://github.com/annulen/webkit/releases/, use its version >= QtWebKit Technology Preview 4.
-2. [Fix] Workaround for users of Xcode withi this package http://qt5blogger.blogspot.tw/
+1. Get Webkit from https://github.com/annulen/webkit/releases/, use QtWebKit Technology Preview 4 or Qt 5.7 or Preview 5 for  Qt 5.8.
+2. [Fix] Workaround for users of Xcode withi this package http://qt5blogger.blogspot.tw/ or https://www.evernote.com/l/AAb6tTinxbtICqWZmwYpM8ttghOKyB_MH_E
 
 ## Step4 - Install most Third Party libraries, some are built from source code
 
@@ -140,7 +140,7 @@ cd `your-carta-work`, execute `sudo ./CARTAvis/carta/scripts/install3party.sh`
 
 ## Step5 - Build CASA libraries
 
-**Mac 10.12:**
+**Mac 10.11/10.12:**
 
 1. Use Homebrew and Macports to install needed libraries first, follow this guide,
 https://github.com/CARTAvis/carta/wiki/Install-Third-Party-For-CARTA-CASA-On-Mac
@@ -200,17 +200,17 @@ Some of third-party libraries they use are the same,  but may use different vers
 5. gsl (CARTA uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
 6. blas lib. (required when building GSL, also when building casacore)
 7. GFortran (CARTA uses ast library which uses GFortran, and casacore uses this, too)
-8. Qt. (CARTA uses 5.3.2, 5.4/5.5 may be ok. casa & its needed qwt uses 4.8.5)  
-9. qwt (CARTA uses qt 5.3.2 to build qwt 6.1.2 and casa submodule, code uses 4.8.5 to build qwt 6.1.0)
-9. Python and numpy (should be ok. CARTA:2.7. casa:2.7)
+8. Qt. (CARTA uses Qt>=5.3.x. casa & its needed qwt uses 4.8.x)  
+9. qwt (we need two version. 6.1.2 is built by the same Qt versoin used by CARTA, Qt>=5.3.x. casa submodule, code uses 4.8.x to build qwt 6.1.0)
+9. Python and numpy (should be ok. CARTA:2.7. casa:2.7/3.5)
 
 #### 3.How to change the revision of casa we use to build
 
 Go to `buildcasa.sh`, change the svn revision of casa we use to checkout. Now we use a fixed revision around September, 2016.
 
-#### 4.Start from August, 2016 to November, 2016, namaspace of casa libs was changing
+#### 4.Start from August, 2016 to November, 2016, namespace of casa libs was changing
 
-It transited from **CASA::** to **CASACORE::**. So do not use the combination of the submodules (casacore and code) during this time.
+It transited from **casa::** to **casacore::**. So do not use the combination of the submodules (casacore and code) during this time.
 
 # Build CARTA program
 
@@ -224,7 +224,7 @@ Suggested path:
 
 cd `your-carta-work/CARTAvis/carta/html5/common/skel`, execute one of the following:
 
-Build everything: debug version + build API Doc (~12MB) + others
+Build everything: debug version + release version + API Doc (~12MB)
 ```
 ./generate.py
 ```
@@ -238,6 +238,8 @@ Or build release version of UI
 ```
 
 This step is not necessary to be executed before buliding CARTA (Qt-c++ program). Without this, you will see blank UI when you launching CARTA. Also, if you just modify JavaScript UI file but do not add new JavaScript class, you do not need to build again.   
+
+p.s. we have not applied release build for our production/deployment but we will do it.
 
 ## Step3 - use command line to build
 
@@ -372,27 +374,27 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
     cd $CARTAWORKHOME/CARTAvis
     export CARTABUILDHOME=`pwd`
 
-    mkdir -p $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
-    cp $CARTABUILDHOME/build/cpp/core/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
+    mkdir -p $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/
+    cp $CARTABUILDHOME/build/cpp/core/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/
 
     # need to rm for qt creator 4.2, otherwise when build+run together will result in core/libcore.1.dylib not able find out qwt
     rm $CARTABUILDHOME/build/cpp/core/libcore.1.dylib
-    cp $CARTABUILDHOME/build/cpp/CartaLib/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/
+    cp $CARTABUILDHOME/build/cpp/CartaLib/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/
 
-    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
-    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib
+    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/MacOS/CARTA
+    install_name_tool -change qwt.framework/Versions/6/qwt $CARTABUILDHOME/ThirdParty/qwt-6.1.2/lib/qwt.framework/Versions/6/qwt $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib
 
     # not sure the effect of the below line, try comment
     # install_name_tool -change libplugin.dylib $CARTABUILDHOME/build/cpp/plugins/CasaImageLoader/libplugin.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
-    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
+    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
 
-    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
-    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
-    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/MacOS/desktop
-    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/plugins/ImageStatistics/libplugin.dylib
+    install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/MacOS/CARTA
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/MacOS/CARTA
+    install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib
 
-    for f in `find . -name libplugin.dylib`; do install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libcore.1.dylib $f; done
-    for f in `find . -name libplugin.dylib`; do install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/desktop.app/Contents/Frameworks/libCartaLib.1.dylib $f; done
+    for f in `find . -name libplugin.dylib`; do install_name_tool -change libcore.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libcore.1.dylib $f; done
+    for f in `find . -name libplugin.dylib`; do install_name_tool -change libCartaLib.1.dylib  $CARTABUILDHOME/build/cpp/desktop/CARTA.app/Contents/Frameworks/libCartaLib.1.dylib $f; done
     for f in `find . -name "*.dylib"`; do install_name_tool -change libwcs.5.15.dylib  $CARTABUILDHOME/ThirdParty/wcslib/lib/libwcs.5.15.dylib $f; echo $f; done
     ```
 
@@ -400,7 +402,7 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 3. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
 ```
-$CARTAWORKHOME/CARTAvis/build/cpp/desktop/desktop --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
+$CARTAWORKHOME/CARTAvis/build/cpp/desktop/CARTA --html $CARTAWORKHOME/CARTAvis/carta/html5/desktop/desktopIndex.html
 ```
 
 Some of optional parameters:
@@ -439,11 +441,11 @@ Observation about build Size (on Mac), before packaging:
 
 # Dynamic/Shared Library search issue
 
-1. CARTA is built to **desktop program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
+1. CARTA dekstop version is built to **CARTA program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
 
-2. It seems that Qt-built dynamic libs do not have **Search issue**, at least before moving desktop program (for packaging).
+2. It seems that Qt-built dynamic libs do not have **Search issue**, at least before moving CARTA program (for packaging).
 
-3. We use **install_name_tool** (Mac) and **chrpath** or **PatchELF** (Linux) to specify dynamic linking path of each lib. On mac, **desktop** is located in **desktop.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so we need to have different handles.
+3. We use **install_name_tool** (Mac) and **chrpath** or **PatchELF** (Linux) to specify dynamic linking path of each lib. On mac, **CARTA** is located in **CARTA.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so we need to have different handles.
 
 # Build on CI/CD
 
@@ -473,4 +475,4 @@ CARTA third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
 
 ## Library and Plugin Issue
-1. RegionDS9 does not work on some Ubuntu.
+1. For Ubuntu, buildcasa.sh needs update to build RegionDS9 plugin.

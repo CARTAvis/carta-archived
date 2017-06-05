@@ -93,7 +93,7 @@ FitsHeaderExtractor::getHeader()
     // was this created using CasaImageLoader plugin?
     CCImageBase * base = dynamic_cast < CCImageBase * > ( & * m_cartaImage );
     if ( base ) {
-        casa::LatticeBase * latticeBase = base-> getCasaImage();
+        casacore::LatticeBase * latticeBase = base-> getCasaImage();
         if ( latticeBase ) {
 
             // casacore's fits parser
@@ -118,14 +118,14 @@ FitsHeaderExtractor::getErrors()
 // tree. There are probably unused pieces of code/weird comments,etc...
 /// \todo clean up the code below
 QStringList
-FitsHeaderExtractor::_CasaFitsConverter( casa::LatticeBase * lbase )
+FitsHeaderExtractor::_CasaFitsConverter( casacore::LatticeBase * lbase )
 {
     // can we get float image interface ?
-    casa::ImageInterface < casa::Float > * fii = nullptr;
+    casacore::ImageInterface < casacore::Float > * fii = nullptr;
     #ifndef Q_OS_MAC
-        fii = dynamic_cast < casa::ImageInterface < casa::Float > * > ( lbase );
+        fii = dynamic_cast < casacore::ImageInterface < casacore::Float > * > ( lbase );
     #else
-        fii = static_cast < casa::ImageInterface < casa::Float > * > ( lbase );
+        fii = static_cast < casacore::ImageInterface < casacore::Float > * > ( lbase );
     #endif
 
     if ( ! fii ) {
@@ -135,9 +135,9 @@ FitsHeaderExtractor::_CasaFitsConverter( casa::LatticeBase * lbase )
 
     // alias image to be reference to the image, since the original code used a reference
     // rather than a pointer and I'm too lazy to convert everything to pointers :)
-    casa::ImageInterface < casa::Float > & image = * fii;
+    casacore::ImageInterface < casacore::Float > & image = * fii;
 
-    using namespace casa;
+    using namespace casacore;
 
     QStringList errors;
     bool preferVelocity = true;

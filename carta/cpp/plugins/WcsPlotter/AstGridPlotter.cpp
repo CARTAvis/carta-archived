@@ -310,7 +310,7 @@ AstGridPlotter::plot()
 //        grfGlobals()->pens.push_back( QPen( QColor( "green"), 1));
 //    }
     // setup shadow pen
-    grfGlobals()-> lineShadowPenIndex = m_shadowPenIndex;
+    grfGlobals()-> lineShadowPenIndex = -1;//m_shadowPenIndex;
     // assign VG composer
     grfGlobals()-> vgComposer = m_vgc;
     // pre-cache some things

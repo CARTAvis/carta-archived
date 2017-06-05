@@ -82,7 +82,7 @@ bool ImageHistogram<T>::compute( ){
 		m_histogramMaker->setNBins( m_binCount );
 
 		//Set the intensity range.
-		casa::Vector<T> includeRange;
+		casacore::Vector<T> includeRange;
 		if ( m_intensityMin != ALL_INTENSITIES && m_intensityMax != ALL_INTENSITIES ){
 			includeRange.resize(2);
 			includeRange[0] = m_intensityMin;
@@ -92,8 +92,8 @@ bool ImageHistogram<T>::compute( ){
 		try {
 
 			//Calculate the histogram
-			casa::Array<T> values;
-			casa::Array<T> counts;
+			casacore::Array<T> values;
+			casacore::Array<T> counts;
 			success = m_histogramMaker->getHistograms( values, counts );
 			if ( success ){
 				//Store the data
@@ -103,7 +103,7 @@ bool ImageHistogram<T>::compute( ){
 				counts.tovector( m_yValues );
 			}
 		}
-		catch( casa::AipsError& error ){
+		catch( casacore::AipsError& error ){
 			success = false;
 			qDebug() << "Exception: "<<error.what();
 		}
@@ -115,10 +115,10 @@ bool ImageHistogram<T>::compute( ){
 }
 
 template <class T>
-void ImageHistogram<T>::_filterByChannels( const casa::ImageInterface<T>* image ){
+void ImageHistogram<T>::_filterByChannels( const casacore::ImageInterface<T>* image ){
 	if ( m_channelMin != ALL_CHANNELS && m_channelMax != ALL_CHANNELS ){
 		//Create a slicer from the image
-		casa::CoordinateSystem cSys = image->coordinates();
+		casacore::CoordinateSystem cSys = image->coordinates();
 		if ( cSys.hasSpectralAxis() ){
 			//We use the preset spectral coordinate, if it
 			//exists because images can be rotated when they
@@ -126,12 +126,12 @@ void ImageHistogram<T>::_filterByChannels( const casa::ImageInterface<T>* image 
 			//take rotation into account.
 			int spectralIndex = cSys.spectralAxisNumber();
 			if ( spectralIndex >= 0 ){
-                casa::IPosition imShape = image->shape();
+                casacore::IPosition imShape = image->shape();
 
                 int shapeCount = imShape.nelements();
-                casa::IPosition startPos( shapeCount, 0);
-                casa::IPosition endPos(imShape - 1);
-                casa::IPosition stride( shapeCount, 1);
+                casacore::IPosition startPos( shapeCount, 0);
+                casacore::IPosition endPos(imShape - 1);
+                casacore::IPosition stride( shapeCount, 1);
 
                 int endIndex = m_channelMax;
                 if ( m_channelMax >= imShape(spectralIndex) && m_channelMin < imShape(spectralIndex)){
@@ -141,21 +141,21 @@ void ImageHistogram<T>::_filterByChannels( const casa::ImageInterface<T>* image 
                 startPos[spectralIndex] = m_channelMin;
                 endPos[spectralIndex] = endIndex;
 
-                casa::Slicer channelSlicer( startPos, endPos, stride, casa::Slicer::endIsLast );
-                casa::ImageInterface<T>* img = new casa::SubImage<T>( *(image), channelSlicer );
+                casacore::Slicer channelSlicer( startPos, endPos, stride, casacore::Slicer::endIsLast );
+                casacore::ImageInterface<T>* img = new casacore::SubImage<T>( *(image), channelSlicer );
                 delete m_histogramMaker;
-                m_histogramMaker = new casa::LatticeHistograms<casa::Float>( *img );
+                m_histogramMaker = new casacore::LatticeHistograms<casacore::Float>( *img );
 			}
 		}
 	}
 	else {
 	    delete m_histogramMaker;
-	    m_histogramMaker = new casa::LatticeHistograms<casa::Float>( *image );
+	    m_histogramMaker = new casacore::LatticeHistograms<casacore::Float>( *image );
 	}
 }
 
 template <class T>
-void ImageHistogram<T>::setImage( const casa::ImageInterface<T>*  val ){
+void ImageHistogram<T>::setImage( const casacore::ImageInterface<T>*  val ){
     if ( val != nullptr ){
         if ( m_image == nullptr || m_image->name(true) != val->name(true) ){
             m_image = val;
@@ -165,7 +165,7 @@ void ImageHistogram<T>::setImage( const casa::ImageInterface<T>*  val ){
 }
 
 template <class T>
-void ImageHistogram<T>::setRegion( casa::ImageRegion* region, const QString& id ){
+void ImageHistogram<T>::setRegion( casacore::ImageRegion* region, const QString& id ){
 	if ( m_region == nullptr || m_regionId != id ){
 		delete m_region;
 		m_region = region;
@@ -178,7 +178,7 @@ bool ImageHistogram<T>::_reset(){
 	bool success = true;
 	if ( m_image != nullptr ){
 	    if ( !m_histogramMaker ){
-	        m_histogramMaker = new casa::LatticeHistograms<T>( *(m_image) );
+	        m_histogramMaker = new casacore::LatticeHistograms<T>( *(m_image) );
 	    }
 		try {
 			if ( m_region == NULL ){
@@ -187,7 +187,7 @@ bool ImageHistogram<T>::_reset(){
 			}
 			else {
 				//Make the histogram based on the region
-				casa::SubImage<T>* subImage = new casa::SubImage<T>( *m_image, *m_region );
+				casacore::SubImage<T>* subImage = new casacore::SubImage<T>( *m_image, *m_region );
 				 _filterByChannels( subImage );
 				//Filter will make a new image based on this one so we can delete this sub
 				//image once filter is done.
@@ -195,7 +195,7 @@ bool ImageHistogram<T>::_reset(){
 			}
 			success = compute();
 		}
-		catch( casa::AipsError& error ){
+		catch( casacore::AipsError& error ){
 			success = false;
 			qDebug() << "Error making histogram: "<<error.getMesg().c_str();
 		}
@@ -320,7 +320,7 @@ std::vector< std::pair<double,double> > ImageHistogram<T>::getData() const {
 
 template <class T>
 QString ImageHistogram<T>::getName() const {
-    casa::String strname = ImageHistogram::m_image->name(true);
+    casacore::String strname = ImageHistogram::m_image->name(true);
     QString qname(strname.c_str());
     qname = qname + m_regionId;
 
@@ -334,7 +334,7 @@ QString ImageHistogram<T>::getUnitsX() const {
 
 template<class T>
 QString ImageHistogram<T>::getUnitsY() const {
-    const casa::Unit pixelUnit = ImageHistogram::m_image->units();
+    const casacore::Unit pixelUnit = ImageHistogram::m_image->units();
     return pixelUnit.getName().c_str();
 }
 
@@ -365,7 +365,7 @@ template <class T>
 void ImageHistogram<T>::toAscii( QTextStream& out ) const {
 	const QString LINE_END( "\n");
 	QString centerStr( "#Bin Center(");
-	casa::Unit unit = ImageHistogram::m_image->units();
+	casacore::Unit unit = ImageHistogram::m_image->units();
 	QString unitStr( unit.getName().c_str());
 	centerStr.append( unitStr + ")");
 	out << centerStr << "Count";

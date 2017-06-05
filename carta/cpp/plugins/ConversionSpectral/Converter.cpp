@@ -77,16 +77,16 @@ Converter::Converter( const QString& oldUnitsStr, const QString& newUnitsStr):
 }
 
 
-double Converter::convert ( double oldValue, casa::SpectralCoordinate spectralCoordinate ) {
+double Converter::convert ( double oldValue, casacore::SpectralCoordinate spectralCoordinate ) {
     std::vector<double> sourceValues( 1 );
     sourceValues[0] = oldValue;
-    casa::Vector<double> destValues = convert( sourceValues, spectralCoordinate );
+    casacore::Vector<double> destValues = convert( sourceValues, spectralCoordinate );
     double result = destValues[0];
     return result;
 }
 
-void Converter::convert( casa::Vector<double> &resultValues, int sourceIndex,
-        int destIndex, casa::SpectralCoordinate /*spectralCoordinate*/) {
+void Converter::convert( casacore::Vector<double> &resultValues, int sourceIndex,
+        int destIndex, casacore::SpectralCoordinate /*spectralCoordinate*/) {
     if ( sourceIndex >= 0 && destIndex >= 0 ) {
         int diff = qAbs( destIndex - sourceIndex );
         float power = pow( 10, diff );

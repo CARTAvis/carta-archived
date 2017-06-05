@@ -43,14 +43,14 @@ class tWindow(unittest.TestCase):
         ActionChains(driver).click( minimizeButton ).perform()
 
         # Verify that there is a Restore button on the status bar and no DisplayWindowImage.
-        restoreButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[contains(text(), 'Restore: CasaImageLoader')]/..")))
+        restoreButton = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[contains(text(), 'Restore: ImageViewer')]/..")))
 
         # Restore the window.  Verify the restore button is gone from the status bar and there is a DisplayWindowImage
         ActionChains(driver).click( restoreButton ).perform()
 
         #Check that the clipping menu item is no longer available
         try:
-            restoreLabel = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[contains(text(), 'Restore: CasaImageLoader')]")))
+            restoreLabel = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, "//div[@qxclass='qx.ui.toolbar.MenuButton']/div[contains(text(), 'Restore: ImageViewer')]")))
             self.assertTrue( False, "Should not be able to locate the restore image loader button")
         except Exception:
             print "Test restore button was successfully removed"

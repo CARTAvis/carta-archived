@@ -145,6 +145,9 @@ coreMain( QString platformString, int argc, char * * argv )
     catch ( const QString & err ) {
         qCritical() << "Exception(QString &):" << err;
     }
+    catch( const std::exception & ex ) {
+        qCritical() << "Exception(std::runtime_error)!" << ex.what();
+    }
     catch ( ... ) {
         qCritical() << "Exception(unknown type)!";
     }

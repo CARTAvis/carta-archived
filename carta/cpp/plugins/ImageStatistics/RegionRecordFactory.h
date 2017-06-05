@@ -5,7 +5,7 @@
 #include <vector>
 #include "CartaLib/Regions/IRegion.h"
 
-namespace casa {
+namespace casacore {
     class ImageRegion;
 }
 
@@ -24,8 +24,8 @@ public:
      * @param typeStr - an identifier for the type of region (return value).
      * @return - a record representation of the region.
      */
-	static casa::Record getRegionRecord(
-	        casa::ImageInterface<casa::Float>* casaImage,
+	static casacore::Record getRegionRecord(
+	        casacore::ImageInterface<casacore::Float>* casaImage,
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
 	        const std::vector<int>& slice, QString& typeStr );
 
@@ -36,42 +36,42 @@ private:
 	RegionRecordFactory( const RegionRecordFactory& other );
 	RegionRecordFactory operator=( const RegionRecordFactory& other );
 
-	static casa::ImageRegion*
-	_getEllipsoid(const casa::CoordinateSystem& cSys,
-	            const casa::Vector<casa::Double>& x, const casa::Vector<casa::Double>& y);
+	static casacore::ImageRegion*
+	_getEllipsoid(const casacore::CoordinateSystem& cSys,
+	            const casacore::Vector<casacore::Double>& x, const casacore::Vector<casacore::Double>& y);
 
 	static void _getMinMaxCorners( const QPolygonF & corners,
 	        std::pair<double,double>& minCorner, std::pair<double,double>& maxCorner);
 
-	static casa::ImageRegion*
-	_getPolygon( casa::ImageInterface<casa::Float>* casaImage,
+	static casacore::ImageRegion*
+	_getPolygon( casacore::ImageInterface<casacore::Float>* casaImage,
 	        const QPolygonF& corners, const std::vector<int>& slice );
 
-	static casa::ImageRegion*
-	_getRectangle( casa::ImageInterface<casa::Float>* casaImage,
+	static casacore::ImageRegion*
+	_getRectangle( casacore::ImageInterface<casacore::Float>* casaImage,
 	        const QPolygonF& corners,
 	        const std::vector<int>& slice );
 
-	static casa::Record _getRegionRecordEllipse(
-	        casa::ImageInterface<casa::Float>* casaImage,
+	static casacore::Record _getRegionRecordEllipse(
+	        casacore::ImageInterface<casacore::Float>* casaImage,
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
 	        const std::vector<int>& slice);
 
-	static casa::Record _getRegionRecordPoint(
-	        casa::ImageInterface<casa::Float>* casaImage,
+	static casacore::Record _getRegionRecordPoint(
+	        casacore::ImageInterface<casacore::Float>* casaImage,
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
 	        const std::vector<int>& slice, QString& typeStr );
 
-	static casa::Record _getRegionRecordPolygon(
-	        casa::ImageInterface<casa::Float>* casaImage,
+	static casacore::Record _getRegionRecordPolygon(
+	        casacore::ImageInterface<casacore::Float>* casaImage,
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
 	        const std::vector<int>& slice, QString& typeStr );
 
-	static casa::Record _getRegionRecordRectangle(
-	        casa::ImageInterface<casa::Float>* casaImage,
+	static casacore::Record _getRegionRecordRectangle(
+	        casacore::ImageInterface<casacore::Float>* casaImage,
 	        std::shared_ptr<Carta::Lib::Regions::RegionBase> region,
 	        const std::vector<int>& slice, QString& typeStr );
 
-	static bool _getWorldVertex( int pixelX, int pixelY, const casa::CoordinateSystem& cSys,
-	        const std::vector<int>& slice, casa::Vector<casa::Double>& worldVertices );
+	static bool _getWorldVertex( int pixelX, int pixelY, const casacore::CoordinateSystem& cSys,
+	        const std::vector<int>& slice, casacore::Vector<casacore::Double>& worldVertices );
 };

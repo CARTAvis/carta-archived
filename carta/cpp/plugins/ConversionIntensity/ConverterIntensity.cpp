@@ -323,8 +323,8 @@ double ConverterIntensity::convertQuantity( double yValue, double frequencyValue
         const QString& oldUnits, const QString& newUnits, double beamSolidAngle,
         double beamArea ) {
 
-    casa::String oldUnitStr = oldUnits.toStdString();
-    casa::String newUnitStr = newUnits.toStdString();
+    casacore::String oldUnitStr = oldUnits.toStdString();
+    casacore::String newUnitStr = newUnits.toStdString();
 
     double convertedYValue = yValue;
     if ( oldUnits != KELVIN && newUnits != KELVIN ) {

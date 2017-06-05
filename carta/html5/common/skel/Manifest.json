@@ -1,15 +1,15 @@
 {
-  "info" : 
+  "info" :
   {
     "name" : "skel",
 
     "summary" : "Custom Application",
     "description" : "This is a skeleton for a custom application with qooxdoo.",
-    
+
     "homepage" : "http://some.homepage.url/",
 
     "license" : "SomeLicense",
-    "authors" : 
+    "authors" :
     [
       {
         "name" : "First Author (uid)",
@@ -18,10 +18,10 @@
     ],
 
     "version" : "master",
-    "qooxdoo-versions": ["3.5"]
+    "qooxdoo-versions": ["3.5.1"]
   },
-  
-  "provides" : 
+
+  "provides" :
   {
     "namespace"   : "skel",
     "encoding"    : "utf-8",
@@ -31,4 +31,3 @@
     "type"        : "application"
   }
 }
-

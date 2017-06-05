@@ -44,6 +44,9 @@ else{
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.so
 }
 
+# set the name of Desktop Application
+TARGET = CARTA
+
 # for release builds
 carta_qrc {
 

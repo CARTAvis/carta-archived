@@ -14,15 +14,15 @@ public:
     static Converter* getConverter( const QString& oldUnits,const QString& newUnits );
 
     //Converts units withen a unit type (for example frequency MHz -> GHz
-    static void convert( casa::Vector<double> &resultValues, int sourceIndex,
-            int destIndex, casa::SpectralCoordinate coordinate);
+    static void convert( casacore::Vector<double> &resultValues, int sourceIndex,
+            int destIndex, casacore::SpectralCoordinate coordinate);
 
 
     //Abstract methods to be implemented by subclasses.
-    virtual double toPixel( double value, casa::SpectralCoordinate coordinate ) = 0;
-    virtual casa::Vector<double> convert( const casa::Vector<double>& oldValues,
-            casa::SpectralCoordinate coordinate) = 0;
-    virtual double convert ( double oldValue, casa::SpectralCoordinate coordinate);
+    virtual double toPixel( double value, casacore::SpectralCoordinate coordinate ) = 0;
+    virtual casacore::Vector<double> convert( const casacore::Vector<double>& oldValues,
+            casacore::SpectralCoordinate coordinate) = 0;
+    virtual double convert ( double oldValue, casacore::SpectralCoordinate coordinate);
     virtual ~Converter();
 
     typedef enum {FREQUENCY_UNIT, VELOCITY_UNIT, WAVELENGTH_UNIT, CHANNEL_UNIT, UNRECOGNIZED } UnitType;

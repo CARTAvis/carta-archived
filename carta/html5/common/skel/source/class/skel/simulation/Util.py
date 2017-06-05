@@ -255,7 +255,7 @@ def load_image_different_window(unittest, driver, imageName):
 
 def load_image_windowIndex( unittest,driver,imageName,windowIndex):
     # Ensure that there is a new image window
-    windowId = "CasaImageLoader"+str(windowIndex)
+    windowId = "ImageViewer"+str(windowIndex)
     imageWindow = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, windowId)))
     ActionChains(driver).double_click( imageWindow ).perform()
 

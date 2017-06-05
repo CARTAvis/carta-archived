@@ -53,7 +53,7 @@ const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
-const QString Controller::PLUGIN_NAME = "CasaImageLoader";
+const QString Controller::PLUGIN_NAME = "ImageViewer";
 const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
 
 
@@ -115,9 +115,6 @@ Controller::Controller( const QString& path, const QString& id ) :
 	m_regionControls.reset( regionObj );
 }
 
-
-
-
 void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 	m_stack->_addContourSet( contourSet );
 }
@@ -127,7 +124,6 @@ QString Controller::addData(const QString& fileName, bool* success) {
 	QString result = DataFactory::addData( this, fileName, success );
     return result;
 }
-
 
 QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     QString result = m_stack->_addDataImage( fileName, success );
@@ -144,8 +140,9 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-
-
+QStringList Controller::getFileList(){
+  return m_stack->_getFileList();
+}
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
@@ -239,7 +236,7 @@ void Controller::_contourSetRemoved( const QString setName ){
 void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
         bool applyAll ){
     m_stack->_displayAxesChanged( displayAxisTypes, applyAll );
-    emit axesChanged();
+    emit axesChanged(); //animator has this signal axesChanged, also frameChanged
     _updateCursorText( true );
 }
 
@@ -713,7 +710,7 @@ void Controller::_initializeCallbacks(){
             double centerY = vals[1];
             double level = vals[2];
             double layerId = vals[3];
-            updatePanZoomLevel( centerX, centerY, level, layerId );
+            updatePanZoomLevelJS( centerX, centerY, level, layerId );
         }
         return "";
     });
@@ -1190,6 +1187,7 @@ QString Controller::setLayerName( const QString& id, const QString& name ){
     return result;
 }
 
+// 20170420, no one use yet
 QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     if ( indices.size() > 0 ){
@@ -1376,7 +1374,7 @@ void Controller::_updateDisplayAxes(){
 
 
 
-void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){
+void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId ){
     m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
     emit contextChanged();
     emit zoomChanged();
