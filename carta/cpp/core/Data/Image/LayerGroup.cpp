@@ -284,6 +284,14 @@ std::vector<Carta::Lib::AxisInfo::KnownType> LayerGroup::_getAxisTypes() const {
     return axisTypes;
 }
 
+std::vector<Carta::Lib::AxisInfo> LayerGroup::_getAxisInfos() const {
+    std::vector<Carta::Lib::AxisInfo> axisInfos;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        axisInfos = m_children[dataIndex]->_getAxisInfos();
+    }
+    return axisInfos;
+}
 
 QPointF LayerGroup::_getCenterPixel() const {
     int dataIndex = _getIndexCurrent();

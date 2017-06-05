@@ -421,7 +421,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
     //qDebug() << pixelAxis << "-->" << coord << "," << coord2;
     //qDebug() << "   "
     //         << casacore::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
-    
+
     AxisInfo & aInfo = m_axisInfos[pixelAxis];
 
     // default will be unknown axis
@@ -435,6 +435,19 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         const auto & cc = m_casaCS->coordinate( coord );
         auto skycs = skyCS();
 
+        // Directly save the label from casa
+        QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
+        QString longLabel = rawAxisLabel.toLower();
+        // Transform each first character to uppercase.
+        if ( rawAxisLabel != "" ){
+            QStringList longLabelSplit = longLabel.split(" ");
+            for( int i=0; i<longLabelSplit.length(); i++){
+                longLabelSplit[i].replace(0, 1, longLabelSplit[i].at(0).toUpper());
+            }
+            longLabel = longLabelSplit.join(" ");
+        }
+        aInfo.setLongLabel( HtmlString::fromPlain( longLabel ) );
+
         // we handle sky coordinate
         if ( cc.type() == casacore::Coordinate::DIRECTION ) {
             // is it longitude?
@@ -445,22 +458,19 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 if ( skycs == KnownSkyCS::B1950 ||
                      skycs == KnownSkyCS::J2000 ||
                      skycs == KnownSkyCS::ICRS ) {
-                    aInfo.setLongLabel( HtmlString::fromPlain( "Right ascension" ) )
-                        .setShortLabel( HtmlString( "RA", "&alpha;" ) );
+                    aInfo.setShortLabel( HtmlString( "RA", "&alpha;" ) );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 5;
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
-                    aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic longitude" ) )
+                    aInfo.setShortLabel( HtmlString( "ELon", "&lambda;"));
                         //.setShortLabel( HtmlString( "ELon", "l" ) );
-                        .setShortLabel( HtmlString( "ELon", "&lambda;"));
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
-                    aInfo.setLongLabel( HtmlString::fromPlain( "Galactic longitude" ) )
+                    aInfo.setShortLabel( HtmlString( "GLon", "l"));
                         //.setShortLabel( HtmlString( "GLon", "&lambda;" ) );
-                        .setShortLabel( HtmlString( "GLon", "l"));
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;
                 }
@@ -476,22 +486,19 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 if ( skycs == KnownSkyCS::B1950 ||
                      skycs == KnownSkyCS::J2000 ||
                      skycs == KnownSkyCS::ICRS ) {
-                    aInfo.setLongLabel( HtmlString::fromPlain( "Declination" ) )
-                        .setShortLabel( HtmlString( "Dec", "&delta;" ) );
+                    aInfo.setShortLabel( HtmlString( "Dec", "&delta;" ) );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 4;
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
-                    aInfo.setLongLabel( HtmlString::fromPlain( "Ecliptic latitude" ) )
+                    aInfo.setShortLabel( HtmlString( "Elat", "&beta;"));
                         //.setShortLabel( HtmlString( "ELat", "b" ) );
-                        .setShortLabel( HtmlString( "Elat", "&beta;"));
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
-                    aInfo.setLongLabel( HtmlString::fromPlain( "Galactic latitude" ) )
+                    aInfo.setShortLabel( HtmlString( "GLat", "b"));
                         //.setShortLabel( HtmlString( "GLat", "&beta;" ) );
-                        .setShortLabel( HtmlString( "GLat", "b"));
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;
                 }
@@ -502,13 +509,14 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         }
         else if ( cc.type() == casacore::Coordinate::SPECTRAL ) {
             aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
-                .setLongLabel( HtmlString::fromPlain( "Frequency" ) )
-                .setShortLabel( HtmlString( "Freq", "Freq" ) );
+                .setLongLabel( HtmlString::fromPlain("Radio Velocity") )
+                //.setShortLabel( HtmlString::fromPlain( longLabel ));
+                .setShortLabel( HtmlString( "Vrad", "Vrad") );
+                //.setShortLabel( HtmlString( "Freq", "Freq" ) );
             m_precisions[pixelAxis] = 9;
         }
         else if ( cc.type() == casacore::Coordinate::STOKES ) {
             aInfo.setKnownType( AxisInfo::KnownType::STOKES )
-                .setLongLabel( HtmlString::fromPlain( "Stokes" ) )
                 .setShortLabel( HtmlString::fromPlain( "Stokes" ) );
         }
         else if ( cc.type() == casacore::Coordinate::TABULAR ) {
@@ -520,15 +528,14 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         }
         else if ( cc.type() == casacore::Coordinate::LINEAR ){
             aInfo.setKnownType( AxisInfo::KnownType::LINEAR )
-                .setLongLabel( HtmlString::fromPlain( "Linear"))
-                .setShortLabel( HtmlString::fromPlain( "Linear"));
+                .setShortLabel( HtmlString::fromPlain( rawAxisLabel.toLower() ) );
         }
         else {
             // other types... we copy whatever casacore dishes out
             aInfo.setKnownType( AxisInfo::KnownType::OTHER );
-            QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
+            // QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
             QString shortLabel = rawAxisLabel;
-            aInfo.setLongLabel( HtmlString::fromPlain( rawAxisLabel ) );
+            // aInfo.setLongLabel( HtmlString::fromPlain( rawAxisLabel ) );
             aInfo.setShortLabel( HtmlString::fromPlain( shortLabel ) );
         }
         CARTA_ASSERT( cc.worldAxisNames().size() > 0 );

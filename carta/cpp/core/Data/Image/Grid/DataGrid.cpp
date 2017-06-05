@@ -452,10 +452,9 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
     *axisChanged = false;
     QString actualAxis = AxisMapper::getDisplayName( axisId );
     if ( !actualAxis.isEmpty() ){
-        QString actualPurpose = AxisMapper::getPurpose( purpose );
-        if ( !actualPurpose.isEmpty() ){
+        if ( !purpose.isEmpty() ){
             QString oldPurpose = m_state.getValue<QString>( axisId );
-            if ( oldPurpose != actualPurpose ){
+            if ( oldPurpose != purpose ){
 
                 //Get a running total of display axes that are being used; at the same time store
                 //the key of the axis containing the duplicate name, if there is one.
@@ -553,7 +552,7 @@ bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
     QString coordStr = m_state.getValue<QString>( COORD_SYSTEM );
     const Carta::Lib::KnownSkyCS& cs = m_coordSystems->getIndex( coordStr );
     for ( int i = 0; i < axisCount; i++ ){
-        QString name = AxisMapper::getPurpose( supportedAxes[i], cs );
+        QString name = AxisMapper::getPurpose( supportedAxes[i] );
         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
         QString oldName;
         if ( i < oldCount ){
@@ -564,6 +563,39 @@ bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
             m_state.setValue<QString>( lookup, name );
         }
     }
+    if ( axisTypesChanged ){
+        m_state.flushState();
+    }
+    return axisTypesChanged;
+}
+
+bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
+    int axisCount = supportedAxes.size();
+    bool axisTypesChanged = false;
+    int oldCount = m_state.getArraySize( SUPPORTED_AXES );
+    m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+
+    for( int i=0; i<axisCount; i++ ){
+        QString name = supportedAxes[i].longLabel().plain();
+        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
+        QString oldName;
+        if ( i < oldCount ){
+            oldName = m_state.getValue<QString>( lookup );
+        }
+        if ( name != oldName ){
+            //_setAxis( AxisMapper::AXIS_X, supportedAxes[0].longLabel().plain(), &axisTypesChanged);
+            //_setAxis( AxisMapper::AXIS_Y, supportedAxes[1].longLabel().plain(), &axisTypesChanged);
+            //if(i==0){
+            //    _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
+            //}
+            //else if(i==1){
+            //    _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
+            //}
+            axisTypesChanged = true;
+            m_state.setValue<QString>( lookup, name );
+        }
+    }
+
     if ( axisTypesChanged ){
         m_state.flushState();
     }

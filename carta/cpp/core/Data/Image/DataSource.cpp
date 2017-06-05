@@ -130,6 +130,21 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
 }
 
 
+std::vector<AxisInfo> DataSource::_getAxisInfos() const {
+    std::vector<AxisInfo> Infos;
+    CoordinateFormatterInterface::SharedPtr cf(
+                   m_image-> metaData()-> coordinateFormatter()-> clone() );
+    int axisCount = cf->nAxes();
+    for ( int axis = 0 ; axis < axisCount; axis++ ) {
+        const AxisInfo & axisInfo = cf-> axisInfo( axis );
+        if ( axisInfo.knownType() != AxisInfo::KnownType::OTHER ){
+            Infos.push_back( axisInfo );
+        }
+    }
+    return Infos;
+}
+
+
 AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
     AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
     CoordinateFormatterInterface::SharedPtr cf(
@@ -225,7 +240,12 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
 
         QStringList coordList = _getCoordinates( imgX, imgY, cs, frames);
         for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-            out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
+            if(ais[i].knownType() == Carta::Lib::AxisInfo::KnownType::SPECTRAL){
+                out << coordList[i] << " ";
+            }
+            else{
+                out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
+            }
         }
         out << "\n";
 

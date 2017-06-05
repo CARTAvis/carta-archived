@@ -547,6 +547,14 @@ void GridControls::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes
     }
 }
 
+void GridControls::_setAxisInfos( std::vector<AxisInfo> supportedAxes ){
+    bool axisInfosChanged = m_dataGrid->_setAxisInfos( supportedAxes );
+    if ( axisInfosChanged ){
+        _updateGrid();
+    }
+    _notifyAxesChanged();
+}
+
 QStringList GridControls::setAxesColor( int redAmount, int greenAmount, int blueAmount ){
     bool axesColorChanged = false;
     QStringList result = m_dataGrid->_setAxesColor( redAmount, greenAmount, blueAmount, &axesColorChanged );

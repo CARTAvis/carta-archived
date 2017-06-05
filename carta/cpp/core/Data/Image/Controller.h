@@ -692,7 +692,10 @@ private:
 
 	//Set draw zoom & context views.
 	void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> stackDraw );
-	void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
+    void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
+
+    // Set the AxisMapper::axisMap to use
+    void _setAxisMap();
 
 	void _updateCursor( int mouseX, int mouseY );
 	void _updateCursorText(bool notifyClients );

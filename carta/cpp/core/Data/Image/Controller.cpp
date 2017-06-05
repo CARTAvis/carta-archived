@@ -1221,6 +1221,8 @@ QString Controller::_setLayersSelected( QStringList names ){
                 setFrameImage( selectIndex );
             }
         }
+        // refresh the map of axes immediately after read data
+        _setAxisMap();
         emit colorChanged( this );
         emit dataChanged( this );
     }
@@ -1314,6 +1316,17 @@ void Controller::setZoomLevelJS( double zoomFactor, double layerId ){
     m_stack->_setZoomLevelForLayerId( zoomFactor, layerId );
 }
 
+void Controller::_setAxisMap(){
+    std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
+    int axisCount = supportedAxes.size();
+    AxisMapper::cleanAxisMap();
+    for( int i=0; i<axisCount; i++ ){
+        QString name = supportedAxes[i].longLabel().plain();
+        AxisMapper::setAxisMap( std::pair<Carta::Lib::AxisInfo::KnownType, QString>
+                                    (supportedAxes[i].knownType(), name), QString("") );
+    }
+}
+
 void Controller::_updateCursor( int mouseX, int mouseY ){
     if ( m_stack->_getStackSize() == 0 ){
         return;
@@ -1347,13 +1360,13 @@ void Controller::_updateCursorText(bool notifyClients ){
 
 void Controller::_updateDisplayAxes(){
     if ( m_gridControls ){
-        std::vector<AxisInfo::KnownType> supportedAxes = m_stack->_getAxisTypes();
-        m_gridControls->_setAxisTypes( supportedAxes );
+        std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
+        m_gridControls->_setAxisInfos( supportedAxes );
         AxisInfo::KnownType xType = m_stack->_getAxisXType();
         AxisInfo::KnownType yType = m_stack->_getAxisYType();
         const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-        QString xPurpose = AxisMapper::getPurpose( xType, cs );
-        QString yPurpose = AxisMapper::getPurpose( yType, cs );
+        QString xPurpose = AxisMapper::getPurpose( xType );
+        QString yPurpose = AxisMapper::getPurpose( yType );
         m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
         m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
     }

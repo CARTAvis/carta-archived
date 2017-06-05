@@ -88,6 +88,7 @@ protected:
     virtual Carta::Lib::AxisInfo::KnownType _getAxisYType() const Q_DECL_OVERRIDE;
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisZTypes() const Q_DECL_OVERRIDE;
     virtual std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const Q_DECL_OVERRIDE;
+    virtual std::vector<Carta::Lib::AxisInfo> _getAxisInfos() const Q_DECL_OVERRIDE;
 
     virtual QPointF _getCenterPixel() const Q_DECL_OVERRIDE;
 

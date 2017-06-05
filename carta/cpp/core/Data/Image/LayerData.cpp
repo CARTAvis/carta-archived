@@ -157,6 +157,13 @@ std::vector<AxisInfo::KnownType> LayerData::_getAxisTypes() const {
     return axisTypes;
 }
 
+std::vector<AxisInfo> LayerData::_getAxisInfos() const {
+    std::vector<AxisInfo> axisInfos;
+    if ( m_dataSource ){
+        axisInfos = m_dataSource->_getAxisInfos();
+    }
+    return axisInfos;
+}
 
 QPointF LayerData::_getCenterPixel() const {
     QPointF center;
