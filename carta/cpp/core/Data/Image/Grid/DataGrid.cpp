@@ -180,6 +180,12 @@ Carta::Lib::KnownSkyCS DataGrid::_getSkyCS() const {
     return index;
 }
 
+Carta::Lib::KnownSpecCS DataGrid::_getSpecCS() const {
+    // spectral system
+    QString specSystem = m_state.getValue<QString>( SPEC_SYSTEM );
+    Carta::Lib::KnownSpecCS index = m_specSystems->getIndex( specSystem);
+    return index;
+}
 
 QPen DataGrid::_getPen( const QString& key, const Carta::State::StateInterface& state  ){
     QString redLookup = Carta::State::UtilState::getLookup( key, Util::RED );

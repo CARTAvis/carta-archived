@@ -68,6 +68,8 @@ public:
     /// \warning this resets skyFormatting and precisions for the sky axes
     virtual Me & setSkyCS( const KnownSkyCS & scs) = 0;
 
+    virtual Me & setSpecCS( const KnownSpecCS & spcs ) = 0;
+
     /// get the current sky formatting (degree, sexagesimal, etc)
     /// \note never returns Default
     virtual SkyFormatting skyFormatting() = 0;

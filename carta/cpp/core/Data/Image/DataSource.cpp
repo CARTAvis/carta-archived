@@ -205,6 +205,34 @@ QStringList DataSource::_getCoordinates( double x, double y,
     return list;
 }
 
+// Use prototype to replace part function of original one temporarily.
+// It should be combined later.
+QStringList DataSource::_getCoordinates( double x, double y,
+        Carta::Lib::KnownSkyCS system, Carta::Lib::KnownSpecCS spcs,
+        const std::vector<int>& frames ) const{
+    std::vector<int> mFrames = _fitFramesToImage( frames );
+    CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
+    cf-> setSkyCS( system );
+    cf-> setSpecCS( spcs );
+    int imageSize = m_image->dims().size();
+    std::vector < double > pixel( imageSize, 0.0 );
+    for ( int i = 0; i < imageSize; i++ ){
+        if ( i == m_axisIndexX ){
+            pixel[i] = x;
+        }
+        else if ( i == m_axisIndexY ){
+            pixel[i] = y;
+        }
+        else {
+            AxisInfo::KnownType axisType = _getAxisType( i );
+            int axisIndex = static_cast<int>( axisType );
+            pixel[i] = mFrames[axisIndex];
+        }
+    }
+    QStringList list = cf-> formatFromPixelCoordinate( pixel );
+    return list;
+}
+
 QString DataSource::_getSkyCS(){
 
     CoordinateFormatterInterface::SharedPtr cf(
@@ -216,7 +244,7 @@ QString DataSource::_getSkyCS(){
 
 
 QString DataSource::_getCursorText( int mouseX, int mouseY,
-        Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
+        Carta::Lib::KnownSkyCS cs, Carta::Lib::KnownSpecCS spcs, const std::vector<int>& frames,
         double zoom, const QPointF& pan, const QSize& outputSize ){
     QString str;
     QTextStream out( & str );
@@ -240,6 +268,7 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
         out <<"pixel:" << imgX << "," << imgY << "\n";
 
         cf-> setSkyCS( cs );
+        cf-> setSpecCS( spcs );
         out << "[ " << m_coords->getName( cs ) << " ] ";
         std::vector <AxisInfo> ais;
         for ( int axis = 0 ; axis < cf->nAxes() ; axis++ ) {
@@ -247,14 +276,9 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
             ais.push_back( ai );
         }
 
-        QStringList coordList = _getCoordinates( imgX, imgY, cs, frames);
+        QStringList coordList = _getCoordinates( imgX, imgY, cs, spcs, frames);
         for ( size_t i = 0 ; i < ais.size() ; i++ ) {
-            if(ais[i].knownType() == Carta::Lib::AxisInfo::KnownType::SPECTRAL){
-                out << coordList[i] << " ";
-            }
-            else{
-                out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
-            }
+            out << ais[i].shortLabel().html() << ":" << coordList[i] << " ";
         }
         out << "\n";
 

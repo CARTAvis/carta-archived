@@ -61,6 +61,7 @@ private:
      * @return the coordinate system that is selected.
      */
     Carta::Lib::KnownSkyCS _getSkyCS() const;
+    Carta::Lib::KnownSpecCS _getSpecCS() const;
     bool _isGridVisible() const;
     void _resetCoordinateSystem( const QString& coordSystem );
     void _resetState( const Carta::State::StateInterface& otherState );

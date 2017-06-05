@@ -146,6 +146,7 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
     casa::Vector < casa::Double > pixel = pix;
     m_casaCS->toWorld( world, pix );
 
+    casa::String Type;
     // for spectral axis
     // convert freq to radio velocity
     int NumberofSpectralAxis = -1;
@@ -154,6 +155,9 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
     {
         NumberofSpectralAxis = m_casaCS->spectralAxisNumber();
         casa::SpectralCoordinate casaSpeSystem = m_casaCS->spectralCoordinate();
+        // bool test = casaSpeSystem.setNativeType(casa::SpectralCoordinate::SpecType::VOPT);
+        // casa::SpectralCoordinate::specTypetoString(Type, casaSpeSystem.nativeType());
+        // casaSpeSystem.setVelocity(casa::String("km/s"), casa::MDoppler::OPTICAL);
         casaSpeSystem.pixelToVelocity(velocity,pixel(NumberofSpectralAxis));
     }
 
@@ -170,13 +174,29 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
     QStringList list;
     for ( int i = 0 ; i < nAxes() ; i++ ) {
         QString val = formatWorldValue( i, world[i] );
-        if(NumberofSpectralAxis == i &&
-           NumberofSpectralAxis != -1)
-        {
-            val = " VRAD:";
-            val +=  QString::number(casa::Double(velocity.getValue()));
-            val +=  " ";
-            val +=  velocity.getUnit().c_str();
+        // This part should be integrated to the formatWorldValue()
+        if(NumberofSpectralAxis == i ){
+            switch ( specCS() ) {
+               case KnownSpecCS::FREQ :
+                   break;
+               case KnownSpecCS::VRAD :
+                   val = QString::number(casa::Double(velocity.getValue()))
+                       + " " + velocity.getUnit().c_str();
+                   break;
+               case KnownSpecCS::VOPT :
+                   val = QString::number(casa::Double(velocity.getValue()))
+                       + " " + velocity.getUnit().c_str();
+                   break;
+               case KnownSpecCS::BETA :
+                   break;
+               case KnownSpecCS::WAVE :
+                   break;
+               case KnownSpecCS::AWAV :
+                   break;
+
+               default:
+                   break;
+            }
         }
         list.append( val );
     }
@@ -379,6 +399,71 @@ CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
     return * this;
 } // setSkyCS
 
+CCCoordinateFormatter::Me &
+CCCoordinateFormatter::setSpecCS( const KnownSpecCS & spcs )
+{
+    // don't even try to set this to unknown
+    if ( spcs == KnownSpecCS::Unknown ) {
+        return * this;
+    }
+
+    // find out where the direction world coordinate lives
+    // int which = m_casaCS->spectralAxisNumber();
+    int which = m_casaCS->spectralCoordinateNumber();
+    if ( which < 0 ) {
+        // this system does not have spec cs, so we are done
+        return * this;
+    }
+
+    casa::SpectralCoordinate specCSCopy = m_casaCS->spectralCoordinate();
+    // change the system in the copy
+    casa::SpectralCoordinate::SpecType sptype;
+    switch (spcs) {
+        case KnownSpecCS::FREQ :
+            sptype = casa::SpectralCoordinate::SpecType::FREQ;
+            break;
+        case KnownSpecCS::VRAD :
+            sptype = casa::SpectralCoordinate::SpecType::VRAD;
+            specCSCopy.setVelocity(casa::String("km/s"), casa::MDoppler::RADIO);
+            break;
+        case KnownSpecCS::VOPT :
+            sptype = casa::SpectralCoordinate::SpecType::VOPT;
+            specCSCopy.setVelocity(casa::String("m/s"), casa::MDoppler::OPTICAL);
+            break;
+        case KnownSpecCS::BETA :
+            sptype = casa::SpectralCoordinate::SpecType::BETA;
+            break;
+        case KnownSpecCS::WAVE :
+            sptype = casa::SpectralCoordinate::SpecType::WAVE;
+            break;
+        case KnownSpecCS::AWAV :
+            sptype = casa::SpectralCoordinate::SpecType::AWAV;
+            break;
+
+        default:
+            sptype = casa::SpectralCoordinate::SpecType::VRAD;
+            break;
+    }
+
+    if ( !specCSCopy.setNativeType(sptype) ){
+        qWarning() << "Failed to set the type of spectral coordinate.";
+        return * this;
+    }
+
+    if ( ! m_casaCS->replaceCoordinate( specCSCopy, which ) ) {
+        qWarning() << "Could not set wcs because replaceCoordinate() failed";
+        return * this;
+    }
+    // now we need to adjust axisinfos, formatting and precision
+    // TODO: set the format of spectral coordinate, such as the unit and rest freq, etc.
+    // setSkyFormatting( SkyFormatting::Default ); // left for reminding
+
+    parseCasaCSi( m_casaCS->spectralAxisNumber() );
+
+    // chaning support
+    return * this;
+}
+
 SkyFormatting
 CCCoordinateFormatter::skyFormatting()
 {
@@ -447,7 +532,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
     //qDebug() << pixelAxis << "-->" << coord << "," << coord2;
     //qDebug() << "   "
     //         << casa::Coordinate::typeToString( m_casaCS->coordinate( coord ).type() ).c_str();
-    
+
     AxisInfo & aInfo = m_axisInfos[pixelAxis];
 
     // default will be unknown axis
@@ -460,6 +545,7 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
     if ( coord >= 0 ) {
         const auto & cc = m_casaCS->coordinate( coord );
         auto skycs = skyCS();
+        KnownSpecCS speccs = specCS();
 
         // Directly save the label from casa
         QString rawAxisLabel = cc.worldAxisNames() ( coord2 ).c_str();
@@ -534,11 +620,39 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
             }
         }
         else if ( cc.type() == casa::Coordinate::SPECTRAL ) {
-            aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL )
-                .setLongLabel( HtmlString::fromPlain("Radio Velocity") )
-                //.setShortLabel( HtmlString::fromPlain( longLabel ));
-                .setShortLabel( HtmlString( "Vrad", "Vrad") );
-                //.setShortLabel( HtmlString( "Freq", "Freq" ) );
+            aInfo.setKnownType( AxisInfo::KnownType::SPECTRAL );
+
+            switch (speccs) {
+                case KnownSpecCS::FREQ:
+                    aInfo.setShortLabel( HtmlString( "Freq", "Freq") );
+                    break;
+                case KnownSpecCS::VRAD:
+                    aInfo.setShortLabel( HtmlString( "Vrad", "Vrad") );
+                    break;
+                case KnownSpecCS::VOPT:
+                    aInfo.setShortLabel( HtmlString( "Vopt", "Vopt") );
+                    break;
+                case KnownSpecCS::BETA:
+                    aInfo.setShortLabel( HtmlString( "Beta", "Beta") );
+                    break;
+                case KnownSpecCS::WAVE:
+                    aInfo.setShortLabel( HtmlString( "Wave", "Wave") );
+                    break;
+                case KnownSpecCS::AWAV:
+                    aInfo.setShortLabel( HtmlString( "Awav", "Awav") );
+                    break;
+                case KnownSpecCS::Unknown:
+                    aInfo.setShortLabel( HtmlString( "Unknown", "Unknown") );
+                    break;
+
+                default:
+                    CARTA_ASSERT( false );
+            }
+                // .setLongLabel( HtmlString::fromPlain("Radio Velocity") )
+                // .setShortLabel( HtmlString::fromPlain( longLabel ));
+                // .setShortLabel( HtmlString( "Vrad", "Vrad") );
+                // .setShortLabel( HtmlString( "Freq", "Freq" ) );
+
             m_precisions[pixelAxis] = 9;
         }
         else if ( cc.type() == casa::Coordinate::STOKES ) {

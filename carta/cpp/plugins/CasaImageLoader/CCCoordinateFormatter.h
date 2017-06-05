@@ -65,6 +65,9 @@ public:
     virtual Me &
     setSkyCS( const KnownSkyCS & scs ) override;
 
+    virtual Me &
+    setSpecCS( const KnownSpecCS & spcs ) override;
+
     virtual SkyFormatting
     skyFormatting() override;
 

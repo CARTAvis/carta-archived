@@ -299,6 +299,13 @@ public:
         return * this;
     }
 
+    virtual Me &
+    setSpecCS( const KnownSpecCS & spcs ) override
+    {
+        Q_UNUSED( spcs );
+        return * this;
+    }
+
     virtual SkyFormatting
     skyFormatting() override
     {

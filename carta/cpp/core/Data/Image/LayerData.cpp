@@ -226,6 +226,7 @@ QString LayerData::_getCursorText( int mouseX, int mouseY, const std::vector<int
     QString cursorText;
     if ( m_dataSource ){
         Carta::Lib::KnownSkyCS cs = m_dataGrid->_getSkyCS();
+        Carta::Lib::KnownSpecCS spcs = m_dataGrid->_getSpecCS();
         //if(cs == Carta::Lib::KnownSkyCS::Default){
             //QString csName = m_dataSource->_getSkyCS();
             //bool *csChanged;
@@ -235,7 +236,7 @@ QString LayerData::_getCursorText( int mouseX, int mouseY, const std::vector<int
         //}
         QPointF pan = _getPan();
         double zoom = _getZoom();
-        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs, frames, zoom, pan, outputSize );
+        cursorText = m_dataSource->_getCursorText( mouseX, mouseY, cs, spcs, frames, zoom, pan, outputSize );
     }
     return cursorText;
 }

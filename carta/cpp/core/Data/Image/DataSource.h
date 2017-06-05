@@ -128,7 +128,8 @@ private:
      */
     QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
             const std::vector<int>& frames) const;
-
+    QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
+            Carta::Lib::KnownSpecCS spcs, const std::vector<int>& frames) const;
 
     QString _getSkyCS();
 
@@ -139,7 +140,8 @@ private:
      * @param frames - a list of current image frames.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
+    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs,
+            Carta::Lib::KnownSpecCS spcs, const std::vector<int>& frames,
             double zoom, const QPointF& pan, const QSize& outputSize );
 
 
@@ -515,10 +517,10 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
-    
+
     // disk cache
     std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
-    
+
     //Indices of the display axes.
     int m_axisIndexX;
     int m_axisIndexY;
