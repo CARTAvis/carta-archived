@@ -659,6 +659,15 @@ std::shared_ptr<Layer> LayerGroup::_getSelectedGroup() {
     return group;
 }
 
+Carta::Lib::KnownSpecCS LayerGroup::_getSpectralSystem() const {
+    Carta::Lib::KnownSpecCS spcs = Carta::Lib::KnownSpecCS::Unknown;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0){
+        spcs = m_children[dataIndex]->_getSpectralSystem();
+    }
+    return spcs;
+}
+
 int LayerGroup::_getStackSize() const {
     return m_children.size();
 }

@@ -329,6 +329,8 @@ protected:
      */
     virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) Q_DECL_OVERRIDE;
 
+    virtual Carta::Lib::KnownSpecCS _getSpectralSystem() const Q_DECL_OVERRIDE;
+
     int _getStackSize() const;
     int _getStackSizeVisible() const;
 

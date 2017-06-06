@@ -213,7 +213,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
         },
 
         _setSpectralSystem : function( specCS ){
-            if ( typeof skyCS !== "undefined"){
+            if ( typeof specCS !== "undefined"){
                 this.m_specSystem.setValue( specCS );
             }
         },
@@ -277,6 +277,7 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
         m_connector : null,
 
         m_coordSystem : null,
+        m_specSystem: null,
 
         m_showStatistics : null,
         m_showSystem : null,

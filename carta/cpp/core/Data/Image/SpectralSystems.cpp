@@ -99,10 +99,10 @@ QList<Carta::Lib::KnownSpecCS> SpectralSystems::getIndices() const{
     return m_specSystems.keys();
 }
 
-QString SpectralSystems::getName(Carta::Lib::KnownSpecCS skyCS ) const {
+QString SpectralSystems::getName(Carta::Lib::KnownSpecCS specCS ) const {
     QString name;
-    if ( m_specSystems.contains( skyCS )){
-        name = m_specSystems[skyCS];
+    if ( m_specSystems.contains( specCS )){
+        name = m_specSystems[specCS];
     }
     return name;
 }

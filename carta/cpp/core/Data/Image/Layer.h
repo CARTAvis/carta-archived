@@ -395,6 +395,7 @@ protected:
      */
     virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) = 0;
 
+    virtual Carta::Lib::KnownSpecCS _getSpectralSystem() const = 0;
 
     /**
      * Return the state of this layer.

@@ -275,6 +275,8 @@ protected:
      */
     virtual std::vector< std::shared_ptr<ColorState> >  _getSelectedColorStates( bool global ) Q_DECL_OVERRIDE;
 
+    virtual Carta::Lib::KnownSpecCS _getSpectralSystem() const Q_DECL_OVERRIDE;
+
     /**
      * Return the state of this layer.
      * @param truncatePaths - true if full paths to files should not be given.

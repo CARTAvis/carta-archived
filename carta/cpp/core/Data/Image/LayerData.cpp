@@ -558,6 +558,14 @@ QSize LayerData::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode asp
     return saveSize;
 }
 
+Carta::Lib::KnownSpecCS LayerData::_getSpectralSystem() const {
+    Carta::Lib::KnownSpecCS spcs = Carta::Lib::KnownSpecCS::Unknown;
+    if ( m_dataGrid ){
+        spcs = m_dataGrid->_getSpecCS();
+    }
+    return spcs;
+}
+
 QString LayerData::_getStateString( bool truncatePaths ) const{
 
     Carta::State::StateInterface copyState( m_state );

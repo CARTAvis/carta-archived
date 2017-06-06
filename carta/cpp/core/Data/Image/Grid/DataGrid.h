@@ -64,6 +64,7 @@ private:
     Carta::Lib::KnownSpecCS _getSpecCS() const;
     bool _isGridVisible() const;
     void _resetCoordinateSystem( const QString& coordSystem );
+    void _resetSpectralSystem( const QString& specSystem );
     void _resetState( const Carta::State::StateInterface& otherState );
     QString _setAxis( const QString& axisId, const QString& purpose, bool* axisChanged );
     bool _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );

@@ -2,6 +2,7 @@
 #include "State/UtilState.h"
 #include "Data/Image/Controller.h"
 #include "Data/Image/CoordinateSystems.h"
+#include "Data/Image/SpectralSystems.h"
 #include "Data/Image/DataFactory.h"
 #include "Data/Image/Stack.h"
 #include "Data/Image/DataSource.h"
@@ -437,6 +438,10 @@ QString Controller::_getRegionControlsId() const {
 	return m_regionControls->getPath();
 }
 
+Carta::Lib::KnownSpecCS Controller::getSpectralSystem() const {
+    return m_stack->_getSpectralSystem();
+}
+
 QString Controller::_getStackId() const {
     return m_stack->getPath();
 }
@@ -492,6 +497,7 @@ double Controller::getZoomLevel( ) const {
 void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
     m_stack->_gridChanged( state, applyAll );
     _setSkyCSName();
+    _setSpecCSName();
 }
 
 void Controller::_onInputEvent( InputEvent  ev ){
@@ -1140,6 +1146,12 @@ void Controller::_setSkyCSName(){
     m_gridControls->_resetCoordinateSystem(csName);
 }
 
+void Controller::_setSpecCSName(){
+    const Carta::Lib::KnownSpecCS spcs = getSpectralSystem();
+    SpectralSystems* m_spec = Util::findSingletonObject<SpectralSystems>();
+    QString specName = m_spec->getName(spcs);
+    m_gridControls->_resetSpectralSystem(specName);
+}
 
 void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
     m_stack->_setFrameAxis( value, axisType );

@@ -360,6 +360,9 @@ bool DataGrid::_isGridVisible() const {
 void DataGrid::_resetCoordinateSystem( const QString& coordSystem ){
     if ( m_state.getValue<QString>( COORD_SYSTEM) != coordSystem ){
         m_state.setValue<QString>( COORD_SYSTEM, coordSystem );
+        if ( coordSystem.isEmpty() ){
+            m_state.setValue<QString>( COORD_SYSTEM, QString("Unknown") );
+        }
     }
 }
 
@@ -462,7 +465,11 @@ void DataGrid::_resetGridRenderer(){
     }
 }
 
-
+void DataGrid::_resetSpectralSystem( const QString& specSystem ){
+    if ( m_state.getValue<QString>( SPEC_SYSTEM) != specSystem ){
+        m_state.setValue<QString>( SPEC_SYSTEM, specSystem );
+    }
+}
 
 void DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
     if ( otherState.getValue<QString>( Carta::State::StateInterface::OBJECT_TYPE).length() > 0 ){
@@ -919,7 +926,7 @@ QString DataGrid::_setSpectralSystem( const QString& specSystem, bool* coordChan
         }
     }
     else {
-        result= "The coordinate system "+specSystem+" is not supported.";
+        result= "The spectral system "+specSystem+" is not supported.";
     }
     return result;
 }
