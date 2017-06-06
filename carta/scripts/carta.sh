@@ -44,7 +44,7 @@ if [ "${dirname%$tmp}" != "/" ]; then
 dirname=$PWD/$dirname
 fi
 
-logfilename=$HOME/.cartavis/log/$(date +"%Y_%m_%d_%M_%S_%Z").log
+logfilename=$HOME/.cartavis/log/$(date +"%Y_%m_%d_%H_%M_%S_%Z").log
 
 if [ ! -d $HOME/CARTA/Images/CubesTest -o\
      ! -d $HOME/.cartavis/log  -o\
