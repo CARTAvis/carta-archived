@@ -203,6 +203,10 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
         double imgX = imgPt.x();
         double imgY = imgPt.y();
 
+        // set print out values with rounded imgX and imgY
+        QString round_imgX = QString::number(imgX, 'f', 2);
+        QString round_imgY = QString::number(imgY, 'f', 2);
+
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
 
@@ -211,20 +215,26 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
 
         QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
-        out << "Pixel information: value = " << pixelValue << " " << pixelUnits << " at ";
-        out << "coordinate (X, Y) = " << "("<< imgX << ", " << imgY << ")" << "\n";
+
+        out << "Pixel value = " << pixelValue << " " << pixelUnits << " at ";
+        out << "(X, Y) = " << "("<< round_imgX << ", " << round_imgY << ")" << "\n";
 
         // get the Min. and Max. values of intensity for Quantile mode
         if (isAutoClip == true) {
             std::vector<int> mFrames = _fitFramesToImage( frames );
             std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
             std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames);
+
+            // set print out values with rounded intensities
+            QString sci_intensityMin = QString::number(intensity[0], 'E', 3);
+            QString sci_intensityMax = QString::number(intensity[1], 'E', 3);
+
             double percent = (maxPercent - minPercent)*100;
-            out << "<span style=\"color: #0000ff;\">with intensity bounds for Quantile mode "
-                << percent << "%: [Min, Max] = "
-                << "[" << intensity[0]
-                << ", " << intensity[1] << "] "
-                << pixelUnits << "</span>"
+            out << "<span style=\"color: #000000;\">bounds for "
+                << percent << "% clipping per frame: "
+                << "[" << sci_intensityMin
+                << ", " << sci_intensityMax << "] "
+                << "</span>"
                 << "\n";
         }
 
@@ -314,7 +324,10 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
         if ( rawData != nullptr ){
             Carta::Lib::NdArray::TypedView<double> view( rawData, true );
             double val =  view.get( { valX, valY } );
-            pixelValue = QString::number( val );
+
+            // set the rounded pixel value to print out
+            pixelValue = QString::number(val, 'E', 3);
+            //pixelValue = QString::number( val );
         }
     }
     return pixelValue;
