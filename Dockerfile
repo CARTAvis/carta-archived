@@ -1,5 +1,5 @@
-FROM carta/cartabuild:base_20170105
-     
+FROM carta/cartabuild:base_20170603
+
 COPY . /home/developer/src/CARTAvis
 WORKDIR /home/developer/
 USER 1000
