@@ -51,26 +51,30 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
          */
         _initSystem : function(){
             var systemContainer = new qx.ui.container.Composite();
-            systemContainer.setLayout( new qx.ui.layout.HBox(1));
+            systemContainer.setLayout( new qx.ui.layout.VBox(1));
 
+            var coordSystemContainer = new qx.ui.container.Composite( new qx.ui.layout.HBox(1) );
             this.m_coordSystem = new skel.boundWidgets.ComboBox("setCoordinateSystem", "skyCS");
             this.m_coordSystem.setToolTipText( "Select a coordinate system for the image.");
             skel.widgets.TestID.addTestId( this.m_coordSystem, "ImageCoordinateSystem");
             var systemLabel = new qx.ui.basic.Label( "Coordinate System:");
-            systemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
-            systemContainer.add( systemLabel );
-            systemContainer.add( this.m_coordSystem );
-            systemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            coordSystemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            coordSystemContainer.add( systemLabel );
+            coordSystemContainer.add( this.m_coordSystem );
+            coordSystemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            systemContainer.add( coordSystemContainer );
             //this.m_content.add( systemContainer );
 
+            var specSystemContainer = new qx.ui.container.Composite( new qx.ui.layout.HBox(1) );
             this.m_specSystem = new skel.boundWidgets.ComboBox("setSpectralSystem", "specCS");
             this.m_specSystem.setToolTipText( "Seletct a spectral system for the image." );
             skel.widgets.TestID.addTestId( this.m_specSystem, "ImageSpectralSystem" );
             var specLabel = new qx.ui.basic.Label( "Spectral System:" );
-            systemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
-            systemContainer.add( specLabel );
-            systemContainer.add( this.m_specSystem );
-            systemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            specSystemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            specSystemContainer.add( specLabel );
+            specSystemContainer.add( this.m_specSystem );
+            specSystemContainer.add( new qx.ui.core.Spacer(5), {flex:1});
+            systemContainer.add( specSystemContainer );
             this.m_content.add( systemContainer );
         },
 
