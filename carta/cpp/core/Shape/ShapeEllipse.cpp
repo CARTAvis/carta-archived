@@ -53,18 +53,24 @@ QSizeF ShapeEllipse::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+	pen.setCosmetic(true);
+        pen.setColor(m_color);
+	QPen rectPen = outlinePen;
+	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon
 	comp.append < vge::SetPen > ( pen );
 	comp.append < vge::SetBrush > ( brush );
-	comp.append < vge::DrawRect > ( m_shadowRect );
 	comp.append < vge::DrawEllipse > ( m_shadowRect );
 
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
-		//Draw the control points
+		//Draw the control points and show the outline if hovered or selected
 		if ( isHovered() || isSelected()){
+			comp.append < vge::SetPen > ( rectPen );
+			comp.append < vge::DrawRect > ( m_shadowRect );
+			comp.append < vge::SetPen > ( pen );
 			int cornerCount = m_controlPoints.size();
 			for ( int i = 0; i < cornerCount; i++ ){
 				comp.appendList( m_controlPoints[i]->getVGList() );
@@ -83,7 +89,7 @@ void ShapeEllipse::handleDragDone( const QPointF & pt ){
 	}
 	else {
 		// calculate offset to move the shadow polygon to match the un-edited shape
-		if ( !isEditMode() ){
+		if ( !isEditMode() && m_dragMode ){
 			_moveShadow( pt );
 			_syncShadowToCPs();
 		}
@@ -111,7 +117,16 @@ bool ShapeEllipse::isCorner( const QPointF& pt ) const {
 
 bool ShapeEllipse::isPointInside( const QPointF & pt ) const {
 	bool pointInside = m_ellipseRegion-> isPointInside( {pt} );
-	return pointInside;
+	int cornerCount = m_controlPoints.size();
+	bool onControlPoint = false;
+	for ( int i = 0; i < cornerCount; i++ ){
+	  onControlPoint = m_controlPoints[i]->isPointInside( {pt} );
+	  if (onControlPoint){
+	    break;
+	  }
+	}
+	return (pointInside|onControlPoint);
+
 }
 
 void ShapeEllipse::_moveShadow( const QPointF& pt ){
@@ -171,5 +186,3 @@ void ShapeEllipse::_updateEllipseFromShadow(){
 
 }
 }
-
-

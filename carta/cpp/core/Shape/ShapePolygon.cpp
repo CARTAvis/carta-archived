@@ -40,6 +40,10 @@ QSizeF ShapePolygon::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+	pen.setCosmetic(true);
+        pen.setColor(m_color);
+	QPen rectPen = outlinePen;
+	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon
@@ -59,14 +63,11 @@ Carta::Lib::VectorGraphics::VGList ShapePolygon::getVGList() const {
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
 		//Draw the outline box; use a different style if it is selected.
-		if ( isSelected() ){
-			comp.append < vge::SetPen > ( outlinePen );
+	        if ( isSelected() || isHovered() ){
+			comp.append < vge::SetPen > ( rectPen );
 			QRectF shadowRect = m_shadowPolygon.boundingRect();
 			comp.append < vge::DrawRect > ( shadowRect );
 			comp.append < vge::SetPen > ( pen );
-		}
-		else if ( isHovered() || isActive() ){
-			comp.append <vge::DrawRect >( m_shadowPolygon.boundingRect() );
 		}
 
 		//Draw the control points
@@ -114,7 +115,15 @@ bool ShapePolygon::isCorner( const QPointF& pt ) const {
 
 bool ShapePolygon::isPointInside( const QPointF & pt ) const {
 	bool pointInside = m_polygonRegion-> isPointInside( {pt} );
-	return pointInside;
+	int cornerCount = m_controlPoints.size();
+	bool onControlPoint = false;
+	for ( int i = 0; i < cornerCount; i++ ){
+	  onControlPoint = m_controlPoints[i]->isPointInside( {pt} );
+	  if (onControlPoint){
+	    break;
+	  }
+	}
+	return (pointInside|onControlPoint);
 }
 
 void ShapePolygon::_moveShadow( const QPointF& pt ){
@@ -155,5 +164,3 @@ void ShapePolygon::_syncShadowToCPs(){
 }
 }
 }
-
-

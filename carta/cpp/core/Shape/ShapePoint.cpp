@@ -26,12 +26,36 @@ QSizeF ShapePoint::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+        // Set pen width 0 for precise presentation of point
+        // Width of zero indicates a cosmetic (i.e. zoom-independent) pen drawn 1px wide
+        pen.setWidth(0);
+        pen.setColor(m_color);
+        QPen rectPen = outlinePen;
+	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
-	//Draw the basic polygon
-	comp.append < vge::SetPen > ( pen );
+	//Draw the basic polygon (exterior manipulation region of point)
+	comp.append < vge::SetPen > ( rectPen );
 	comp.append < vge::SetBrush > ( brush );
-	comp.append < vge::DrawRect > ( m_shadowRect );
+	comp.append < vge::DrawEllipse > ( m_shadowRect );
+
+        //Draw crosshairs by calculating distance from center (Pythagorean theorem)
+        QPointF center = m_shadowRect.center();
+        double radius = m_shadowRect.width()/2;
+        double diffXY = radius/qSqrt(2);
+        QPointF bottomLeft = QPointF( center.x()-diffXY, center.y()-diffXY );
+        QPointF topLeft = QPointF( center.x()-diffXY, center.y()+diffXY );
+        QPointF topRight = QPointF( center.x()+diffXY, center.y()+diffXY );
+        QPointF bottomRight = QPointF( center.x()+diffXY, center.y()-diffXY );
+        double innerRadius = 0.5;
+
+        comp.append < vge::SetPen > ( pen );
+	comp.append < vge::SetBrush > ( brush );
+        comp.append < vge::DrawLine > ( bottomLeft, QPointF( center.x()-innerRadius, center.y()-innerRadius ) );
+        comp.append < vge::DrawLine > ( topLeft, QPointF( center.x()-innerRadius, center.y()+innerRadius ) );
+        comp.append < vge::DrawLine > ( topRight, QPointF( center.x()+innerRadius, center.y()+innerRadius ) );
+        comp.append < vge::DrawLine > ( bottomRight, QPointF( center.x()+innerRadius, center.y()-innerRadius ) );
+
 	return comp.vgList();
 }
 
@@ -57,7 +81,15 @@ void ShapePoint::handleDragDone( const QPointF & pt ){
 
 bool ShapePoint::isPointInside( const QPointF & pt ) const {
 	bool pointInside = m_pointRegion->isPointInside( {pt} );
-	return pointInside;
+	int cornerCount = m_controlPoints.size();
+	bool onControlPoint = false;
+	for ( int i = 0; i < cornerCount; i++ ){
+	  onControlPoint = m_controlPoints[i]->isPointInside( {pt} );
+	  if (onControlPoint){
+	    break;
+	  }
+	}
+	return (pointInside|onControlPoint);
 }
 
 void ShapePoint::_moveShadow( const QPointF& pt ){
@@ -81,5 +113,3 @@ void ShapePoint::_syncShadowToCPs(){
 }
 }
 }
-
-

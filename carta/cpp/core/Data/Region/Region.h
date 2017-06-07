@@ -253,6 +253,15 @@ public:
 	 */
 	QString setRegionName( const QString& name );
 
+        /**
+	 * Set the color for the region.
+         * @param redAmount - an integer in [0, 255] indicating the amount of red.
+         * @param greenAmount  an integer in [0,255] indicating the amount of green.
+         * @param blueAmount - an integer in [0,255] indicating the amount of blue.
+         * @return a list of errors or an empty list if the color was successfully set.
+	 */
+	virtual bool setColor( QColor color );
+
 	/**
 	 * Set whether or not the shape is selected;
 	 * @param value - true if the shape is selected; false otherwise.
@@ -320,6 +329,7 @@ protected:
 	const static QString ACTIVE;
 	const static QString CUSTOM_NAME;
 	const static QString HOVERED;
+        const static QString COLOR;
 	const static QString REGION_TYPE;
 	const static int SIGNIFICANT_DIGITS;
 	std::shared_ptr<Shape::ShapeBase> m_shape;

@@ -268,10 +268,7 @@ bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev
 				m_regions[i]->handleTouch( imagePt);
 			}
 			if ( regionCount > 0 ){
-				//If it was a tap outside all of the regions, it may have unselected
-				//all of them, but the current region should be selected.
-				m_regions[selectedIndex]->setSelected( true );
-				emit regionsChanged();
+			        emit regionsChanged();
 			}
 		}
 	}
@@ -434,6 +431,23 @@ void RegionControls::_initializeCallbacks(){
 		Util::commandPostProcess( result );
 		return result;
 	});
+
+        addCommandCallback( "setColor", [=] (const QString & /*cmd*/,
+			const QString & params, const QString & /*sessionId*/) ->QString {
+                int redAmount = 0;
+                int greenAmount = 0;
+                int blueAmount = 0;
+                QStringList result = _parseColorParams( params, "Region", &redAmount, &greenAmount, &blueAmount);
+                if ( result.size() == 0 ){
+                  result = setRegionColor( redAmount, greenAmount, blueAmount );
+                }
+                QString errors;
+                if ( result.size() > 0 ){
+                  errors = result.join( ",");
+                }
+                Util::commandPostProcess( errors );
+		return errors;
+        });
 }
 
 void RegionControls::_initializeSelections(){
@@ -509,6 +523,31 @@ void RegionControls::_regionSelectionChanged( const QString& id ){
 void RegionControls::_regionShapeChanged( ){
 	_saveStateRegions();
 }
+
+QStringList RegionControls::_parseColorParams( const QString& params, const QString& label,
+                                               int* red, int* green, int* blue ) const {
+    QStringList result;
+    std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE};
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    QString redStr = dataValues[Util::RED];
+    bool validInt = false;
+    *red = redStr.toInt(&validInt);
+    if ( !validInt ){
+      result.append(label + " red amount must be a nonnegative integer: "+params);
+    }
+    QString greenStr = dataValues[Util::GREEN];
+    *green = greenStr.toInt( &validInt );
+    if ( !validInt ){
+      result.append( label + " green amount must be a nonnegative integer: "+params);
+    }
+    QString blueStr = dataValues[Util::BLUE];
+    *blue = blueStr.toInt( &validInt );
+    if ( !validInt ){
+      result.append(label + " blue amount must be a nonnegative integer:"+params);
+    }
+    return result;
+  }
+
 
 void RegionControls::_resetStateData( const QString& state ){
     Carta::State::StateInterface dataState( "");
@@ -723,6 +762,24 @@ QString RegionControls::setRegionWidth( double width ){
 	return result;
 }
 
+QStringList RegionControls::setRegionColor( int redAmount, int greenAmount, int blueAmount ){
+        QStringList result;
+        bool colorChanged = false;
+	int regionCount = m_regions.size();
+	for ( int i = 0; i < regionCount; i++ ){
+		if ( m_regions[i]->isSelected() ){
+                  QColor color = QColor(redAmount,greenAmount,blueAmount,255);
+                  if ( m_regions[i]->setColor( color ) ){
+				colorChanged = true;
+			}
+		}
+	}
+	if ( colorChanged ){
+		_saveStateRegions();
+		emit regionsChanged();
+	}
+    return result;
+}
 
 void RegionControls::_setRegionsSelected( QStringList ids ){
 	int regionCount = m_regions.size();
