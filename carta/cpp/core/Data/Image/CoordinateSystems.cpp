@@ -52,6 +52,8 @@ CoordinateSystems::CoordinateSystems( const QString& path, const QString& id):
 
     _initializeDefaultState();
     _initializeCallbacks();
+    //Don't display "Unknown" for users to select
+    m_coordSystems.insert(Carta::Lib::KnownSkyCS::Unknown, UNKNOWN);
 }
 
 QString CoordinateSystems::getDefault() const {
@@ -104,7 +106,7 @@ QList<Carta::Lib::KnownSkyCS> CoordinateSystems::getIndices() const{
 }
 
 QString CoordinateSystems::getName(Carta::Lib::KnownSkyCS skyCS ) const {
-    QString name;
+    QString name = UNKNOWN;
     if ( m_coordSystems.contains( skyCS )){
         name = m_coordSystems[skyCS];
     }

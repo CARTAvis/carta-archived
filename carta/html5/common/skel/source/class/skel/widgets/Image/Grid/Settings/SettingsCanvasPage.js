@@ -196,6 +196,10 @@ qx.Class.define("skel.widgets.Image.Grid.Settings.SettingsCanvasPage", {
         _setCoordinateSystem : function( skyCS ){
             if ( typeof skyCS !== "undefined"){
                 this.m_coordSystem.setValue( skyCS );
+                this.m_coordSystem.setEnabled( true );
+                if ( skyCS === "Unknown" ){
+                    this.m_coordSystem.setEnabled( false );
+                }
             }
         },
         
