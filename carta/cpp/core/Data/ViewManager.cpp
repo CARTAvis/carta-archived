@@ -1212,6 +1212,10 @@ void ViewManager::setImageCompositeView(){
 
         m_layout->setLayoutImageComposite();
 
+        // 20170608, it seems that it still works without adding these two lines
+        m_animators[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_controllers[0]);
+
         m_imageZooms[0]->addLink( m_controllers[0]);
         m_imageContexts[0]->addLink( m_controllers[0]);
     }
