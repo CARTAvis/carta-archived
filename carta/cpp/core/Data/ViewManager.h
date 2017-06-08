@@ -151,6 +151,13 @@ public:
      */
     void setDeveloperView();
 
+
+    /**
+     * Reset the layout to a layout including a image context and a imageZoom in the right top corner, plus a animator and a coloprmap
+     */
+    void setImageCompositeView();
+
+
     /**
      * Reset the layout to a predefined view displaying only a single image.
      */

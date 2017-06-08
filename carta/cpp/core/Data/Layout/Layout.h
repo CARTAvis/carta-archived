@@ -56,6 +56,8 @@ public:
      */
     bool isLayoutAnalysis() const;
 
+    bool isLayoutImageComposite() const;
+
     /**
      * Returns true if the layout is the standard histogram analysis layout; false otherwise.
      * @return true if the layout is a standard histogram analysis layout; false otherwise.
@@ -97,6 +99,11 @@ public:
      * Set a layout showing widgets currently under development.
      */
     void setLayoutDeveloper();
+
+    /**
+     * Set a predefined layout displaying only a single image and a imageZoom and a imageContxt
+     */
+    void setLayoutImageComposite();
 
     /**
      * Set a predefined layout displaying only a single image.
@@ -175,9 +182,10 @@ private:
     static const QString TYPE_SELECTED;
 
     static const QString TYPE_IMAGE;
+    static const QString TYPE_IMAGECOMPOSITE;
 
     static const QString TYPE_DEFAULT;
-    static const QString TYPE_ANALYSIS;
+    static const QString TYPE_ANALYSIS; // LineAnalysis, profiler
     static const QString TYPE_HISTOGRAMANALYSIS;
     static const QString TYPE_CUSTOM;
     Layout( const Layout& other);

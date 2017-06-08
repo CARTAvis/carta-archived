@@ -430,7 +430,9 @@ void ViewManager::_initCallbacks(){
 
     addCommandCallback( "setImageLayout", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-            setImageView();
+
+            // Will rename command later
+            setImageCompositeView();
             return "";
     });
 
@@ -1140,57 +1142,11 @@ void ViewManager::setDefaultLayoutView(bool cleanPluginList) {
 void ViewManager::setDefaultLayoutViewWithCurrentPluginList(){
 
     setDefaultLayoutView(true);
-
-//    if ( m_layout == nullptr ){
-//        _makeLayout();
-//    }
-//    if ( !m_layout->isLayoutDefault()){
-//        _clearHistograms( 0, m_histograms.size() );
-//        _clearAnimators( 1, m_animators.size() );
-//        _clearColormaps( 1, m_colormaps.size() );
-//        _clearStatistics( 1, m_statistics.size());
-//        _clearProfilers( 0, m_profilers.size() );
-//        _clearControllers( 1, m_controllers.size() );
-
-//        m_layout->setLayoutDefault();
-
-//        //Add the links to establish reasonable defaults.
-//        m_animators[0]->addLink( m_controllers[0]);
-//        m_colormaps[0]->addLink( m_controllers[0]);
-//        m_statistics[0]->addLink( m_controllers[0]);
-
-//        // m_histograms[0]->addLink( m_controllers[0]);
-//        // m_colormaps[0]->addLink( m_histograms[0]);
-//        _refreshState();
-//    }
 }
 
 void ViewManager::setDefaultLayoutViewNoOldPluginList(){
 
     setDefaultLayoutView(false);
-
-//    if ( m_layout == nullptr ){
-//        _makeLayout();
-//    }
-//    if ( !m_layout->isLayoutDefault()){
-//        _clearHistograms( 0, m_histograms.size() );
-//        _clearAnimators( 1, m_animators.size() );
-//        _clearColormaps( 1, m_colormaps.size() );
-//        _clearStatistics( 1, m_statistics.size());
-//        _clearProfilers( 0, m_profilers.size() );
-//        _clearControllers( 1, m_controllers.size() );
-
-//        m_layout->setLayoutDefault2();
-
-//        //Add the links to establish reasonable defaults.
-//        m_animators[0]->addLink( m_controllers[0]);
-//        m_colormaps[0]->addLink( m_controllers[0]);
-//        m_statistics[0]->addLink( m_controllers[0]);
-
-//        // m_histograms[0]->addLink( m_controllers[0]);
-//        // m_colormaps[0]->addLink( m_histograms[0]);
-//        _refreshState();
-//    }
 }
 
 void ViewManager::setAnalysisView(){
@@ -1236,6 +1192,28 @@ void ViewManager::setHistogramAnalysisView(){
         m_histograms[0]->addLink( m_controllers[0]);
         m_colormaps[0]->addLink( m_histograms[0]);
         _refreshState();
+    }
+}
+
+void ViewManager::setImageCompositeView(){
+    if ( m_layout == nullptr ){
+        _makeLayout();
+    }
+    if ( !m_layout->isLayoutImageComposite() ){
+        _clearHistograms( 0, m_histograms.size() );
+        _clearAnimators( 1, m_animators.size() );
+        _clearColormaps( 1, m_colormaps.size() );
+        _clearStatistics( 0, m_statistics.size());
+        _clearProfilers( 0, m_profilers.size());
+        _clearControllers( 1, m_controllers.size() );
+
+        _clearImageZooms( 1, m_imageZooms.size());
+        _clearImageContexts( 1, m_imageContexts.size());
+
+        m_layout->setLayoutImageComposite();
+
+        m_imageZooms[0]->addLink( m_controllers[0]);
+        m_imageContexts[0]->addLink( m_controllers[0]);
     }
 }
 
