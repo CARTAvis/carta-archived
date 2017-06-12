@@ -12,7 +12,7 @@ qx.Class.define("skel.Command.Layout.CommandLayoutImage", {
     construct : function() {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + "setImageLayout";
-        this.base( arguments, "Image Layout", cmd );
+        this.base( arguments, "Image Composite Layout", cmd );
         this.m_toolBarVisible = false;
         this.setValue( false );
         this.setToolTipText( "Set a predefined layout that displays a single image.");
