@@ -60,7 +60,7 @@ Carta::Lib::VectorGraphics::VGList ShapeRectangle::getVGList() const {
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
 		//Draw the control points
-		if ( isHovered() || isSelected()){
+		if ( isSelected()){
 			int cornerCount = m_controlPoints.size();
 			for ( int i = 0; i < cornerCount; i++ ){
 				comp.appendList( m_controlPoints[i]->getVGList() );

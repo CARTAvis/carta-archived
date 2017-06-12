@@ -15,7 +15,6 @@ namespace Carta {
 namespace Data {
 
 const QString Region::ACTIVE = "active";
-const QString Region::HOVERED = "hovered";
 const QString Region::COLOR = "color";
 const QString Region::REGION_TYPE = "regionType";
 const QString Region::CUSTOM_NAME = "customName";
@@ -137,19 +136,6 @@ void Region::handleDragStart( const QPointF & pt ) {
 	}
 }
 
-void Region::handleHover( const QPointF& pt ){
-	//Only active shapes participate in user events
-	if ( isActive() ){
-		bool hovered = false;
-		if ( m_shape->isPointInside( pt ) ){
-			hovered = true;
-		}
-		setHovered( hovered );
-	}
-}
-
-
-
 void Region::handleTouch( const QPointF& pt ){
 	//Only active shapes participate in user events
 	if ( isActive() ){
@@ -181,7 +167,6 @@ void Region::_initializeState(){
 	m_state.insertValue<bool>( Util::SELECTED, true );
 	m_state.insertValue<bool>( CUSTOM_NAME, false );
 	m_state.insertValue<bool>( ACTIVE, true );
-	m_state.insertValue<bool>( HOVERED, true );
         m_state.insertValue<QString>( Util::COLOR, "" );
 	m_state.insertValue<QString>( Util::NAME, "");
 	m_state.insertValue<QString>( Util::ID, getId() );
@@ -200,11 +185,6 @@ bool Region::isDraggable() const {
 
 bool Region::isEditMode() const {
 	return m_shape->isEditMode();
-}
-
-
-bool Region::isHovered() const {
-	return m_state.getValue<bool>( HOVERED );
 }
 
 
@@ -247,18 +227,6 @@ void Region::setEditMode( bool editMode ) {
 
 bool Region::setHeight( double /*value*/ ){
 	return false;
-}
-
-bool Region::setHovered( bool hovered ) {
-	bool oldHovered = isHovered();
-	bool redrawNeeded = false;
-	if ( hovered != oldHovered ){
-		m_state.setValue<bool>( HOVERED, hovered );
-		m_state.flushState();
-		m_shape->setHovered( hovered );
-		redrawNeeded = true;
-	}
-	return redrawNeeded;
 }
 
 void Region::setModel( Carta::Lib::Regions::RegionBase* /*model*/ ){
@@ -342,7 +310,6 @@ void Region::_updateName(){
 void Region::_updateShapeFromState(){
 	m_shape->setActive( isActive() );
 	m_shape->setSelected( isSelected() );
-	m_shape->setHovered( isHovered() );
 }
 
 Region::~Region(){
