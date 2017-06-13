@@ -459,8 +459,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
             var settingsCmd = skel.Command.Settings.SettingsImage.getInstance();
             this.m_supportedCmds.push( settingsCmd.getLabel());
-            var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
-            this.m_supportedCmds.push( popupCmd.getLabel() );
+            // var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
+            // this.m_supportedCmds.push( popupCmd.getLabel() );
             var zoomResetCmd = skel.Command.Data.CommandZoomReset.getInstance();
             this.m_supportedCmds.push( zoomResetCmd.getLabel() );
             var panResetCmd = skel.Command.Data.CommandPanReset.getInstance();

@@ -12,19 +12,19 @@ qx.Class.define("skel.Command.Clip.CommandClipAuto", {
     construct : function() {
         var path = skel.widgets.Path.getInstance();
         var cmd = path.SEP_COMMAND + path.AUTO_CLIP;
-        this.base( arguments, "Recompute Clips on New Frame", cmd);
+        this.base( arguments, "Per Frame ", cmd);
         this.m_toolBarVisible = false;
         this.setEnabled( false );
         this.m_global = false;
         this.setValue( false );
     },
-    
+
     members : {
-        
+
         getType : function(){
             return skel.Command.Command.TYPE_BOOL;
         },
-        
+
         doAction : function( vals,  undoCB ){
             if ( skel.Command.Command.m_activeWins.length > 0 ){
                 for ( var i = 0; i < skel.Command.Command.m_activeWins.length; i++ ){
@@ -35,7 +35,7 @@ qx.Class.define("skel.Command.Clip.CommandClipAuto", {
                 }
             }
         },
-        
+
         /**
          * Reset whether or not the command is enabled based on the windows that
          * are selected.
@@ -45,7 +45,7 @@ qx.Class.define("skel.Command.Clip.CommandClipAuto", {
             var enabled = parentCmd.isEnabled();
             this.setEnabled( enabled );
         },
-        
+
         m_params : "autoClip:"
     }
 });

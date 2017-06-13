@@ -65,7 +65,7 @@ qx.Class.define( "skel.Application",
             },
 
             _afterConnect: function(){
-                
+
                 var connector = mImport( "connector" );
                 if( connector.getConnectionStatus() != connector.CONNECTION_STATUS.CONNECTED ) {
                     console.log( "Connection not established yet..." );
@@ -88,16 +88,16 @@ qx.Class.define( "skel.Application",
                 this.m_statusBar = new skel.widgets.Menu.StatusBar();
                 this.m_menuBar = new skel.widgets.Menu.MenuBar();
                 this.m_toolBar = new skel.widgets.Menu.ToolBar();
-                
+
                 var errorHandler = skel.widgets.ErrorHandler.getInstance();
                 errorHandler.setStatusBar( this.m_statusBar );
-                
+
                 this._initDesktop();
                 this._initSubscriptions();
                 this._layout();
         },
-        
-        
+
+
         /**
          * Return the total height in pixels of display elements like a possible status
          * bar at the bottom of the main window.
@@ -114,8 +114,8 @@ qx.Class.define( "skel.Application",
             }
             return bottomPos;
         },
-        
-        
+
+
         /**
          * Return the total height in pixels of display elements like a possible menu or toolbar
          * bar at the top of the main window.
@@ -138,8 +138,8 @@ qx.Class.define( "skel.Application",
             }
             return topPos;
         },
-            
-        
+
+
         /**
          * Remove the widget from the main display.
          * @param widget {qx.ui.core.Widget} the widget to remove.
@@ -150,8 +150,8 @@ qx.Class.define( "skel.Application",
                 root.remove( widget );
             }
         },
-        
-        
+
+
         /**
          * Remove an overlay window.
          */
@@ -171,16 +171,16 @@ qx.Class.define( "skel.Application",
             this._hideWindow( this.m_windowMove );
             this.m_statusBar.clearMessages();
         },
-        
-        
+
+
         /**
          * Iconify a window.
          */
         _iconifyWindow: function( ev ){
             this.m_statusBar.addIconifiedWindow( ev, this );
         },
-        
-        
+
+
         /**
          * Initialize desktop callbacks.
          */
@@ -191,8 +191,8 @@ qx.Class.define( "skel.Application",
                 this.m_menuBar.addWindowMenu( ev );
             }, this );
         },
-        
-        
+
+
         /**
          * Initialize message callbacks.
          */
@@ -223,18 +223,25 @@ qx.Class.define( "skel.Application",
             }, this );
             qx.event.message.Bus.subscribe( "closeFileBrowser", function( message ){
                 this._hideWidget( this.m_fileBrowser );
+                // Without setting null, filebrowser will not update its list, even users add new file into folders.
+                if( this.m_fileBrowser !== null ) {
+                    this.m_fileBrowser = null;
+                }
             }, this );
             qx.event.message.Bus.subscribe( "showFileSaver", function(message){
                 this._showFileSaver(message);
             }, this );
             qx.event.message.Bus.subscribe( "closeFileSaver", function( message ){
                 this._hideWidget( this.m_fileSaver );
+                if( this.m_saveBrowser !== null ) {
+                    this.m_saveBrowser = null;
+                }
             }, this );
             qx.event.message.Bus.subscribe( "showSaveBrowser", function(message){
                 this._showSaveBrowser(message);
             }, this );
             qx.event.message.Bus.subscribe( "cancelSaveBrowser", function( message ){
-                this._hideWidget( this.m_saveBrowser ); 
+                this._hideWidget( this.m_saveBrowser );
             }, this );
             qx.event.message.Bus.subscribe( "shareSession", function( ev ){
                 this.m_statusBar.updateSessionSharing( ev );
@@ -245,13 +252,13 @@ qx.Class.define( "skel.Application",
             qx.event.message.Bus.subscribe( "showSessionSaveDialog", function(message){
                 this._showSessionSave( message);
             }, this );
-            
+
             qx.event.message.Bus.subscribe( "layoutChanged", function( ev ){
                 this._layout();
             }, this );
         },
-        
-        
+
+
         /**
          * Update the layout of the main display area containing possible menu bars,
          * tool bars, status bars, etc.
@@ -259,7 +266,7 @@ qx.Class.define( "skel.Application",
         _layout : function(){
             this._hideWindows();
             this.m_mainContainer.removeAll();
-            
+
             var showMenuCmd = skel.Command.Preferences.Show.CommandShowMenu.getInstance();
             if ( showMenuCmd.getValue() ){
                 this.m_mainContainer.add( this.m_menuBar );
@@ -274,7 +281,7 @@ qx.Class.define( "skel.Application",
                 this.m_mainContainer.add( this.m_statusBar);
             }
         },
-        
+
         /**
          * A linkage between displays has either been added or removed.
          * @param addLink {boolean} whether the link is being added or removed.
@@ -285,7 +292,7 @@ qx.Class.define( "skel.Application",
             var linkDest = data.getDestination();
             this.m_desktop.link( linkSource, linkDest, addLink );
         },
-        
+
         /**
          * Restore the window at the given layout row and column to its original position.
          * @param locationId {String} an identifier for the location where the window should be restored.
@@ -293,8 +300,8 @@ qx.Class.define( "skel.Application",
         restoreWindow : function( locationId ){
             this.m_desktop.restoreWindow( locationId );
         },
-        
-        
+
+
         _showCustomizeDialog : function( message ){
             if( this.m_customizeDialog === null ) {
                 this.m_customizeDialog = new skel.Command.Customize.CustomizeDialog();
@@ -312,8 +319,8 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_customizeDialog, layoutObj );
         },
-        
-        
+
+
         _showLayoutPopup : function( message ){
             if( this.m_layoutPopup === null ) {
                 this.m_layoutPopup = new skel.widgets.Layout.CustomLayoutPopup();
@@ -346,8 +353,8 @@ qx.Class.define( "skel.Application",
                 this._showWidget( this.m_layoutPopup, layoutObj );
             }
         },
-        
-        
+
+
         _showFileBrowser : function( message ){
             if( this.m_fileBrowser === null ) {
                 this.m_fileBrowser = new skel.widgets.IO.FileBrowser();
@@ -361,11 +368,11 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_fileBrowser, layoutObj );
         },
-        
-        
+
+
         _showFileSaver : function( message ){
-            
-            
+
+
             if( this.m_fileSaver === null ) {
                 this.m_fileSaver = new skel.widgets.IO.FileSaver();
             }
@@ -378,7 +385,7 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_fileSaver, layoutObj );
         },
-        
+
         _showSaveBrowser : function( message ){
             if( this.m_saveBrowser === null ) {
                 this.m_saveBrowser = new skel.widgets.IO.SaveBrowser();
@@ -392,8 +399,8 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_saveBrowser, layoutObj );
         },
-        
-        
+
+
         _showSessionRestore : function( message ){
             if ( this.m_sessionRestoreDialog === null ){
                 this.m_sessionRestoreDialog = new skel.Command.Session.RestoreDialog();
@@ -409,8 +416,8 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_sessionRestoreDialog, layoutObj );
         },
-        
-        
+
+
         _showSessionSave : function( message ){
             if ( this.m_sessionSaveDialog === null ){
                 this.m_sessionSaveDialog = new skel.Command.Session.SaveDialog();
@@ -426,16 +433,16 @@ qx.Class.define( "skel.Application",
             };
             this._showWidget( this.m_sessionSaveDialog, layoutObj );
         },
-       
-        
+
+
         _showWidget : function( widget, layoutObj ){
             var root = this.getRoot();
             if( root.indexOf( widget ) < 0 ) {
                 root.add( widget, layoutObj );
             }
         },
-        
-        
+
+
         /**
          * Show an overlay window displaying linkage between windows that allows
          * the user to edit links.
@@ -471,16 +478,16 @@ qx.Class.define( "skel.Application",
                 this.m_linkRemoveListenId = this.m_windowLink.addListener( "linkRemove", function( ev ){
                     this._linksChanged( false, ev );
                 }, this );
-               
-            
+
+
             this._updateLinkInfo( pluginId, winId );
             this.m_statusBar.showInformation( this.m_windowLink.getHelp());
             var topPos = this._getLinkTopOffset();
             var bottomPos = this._getLinkBottomOffset();
             this.getRoot().add( this.m_windowLink, {left:0, top:topPos, bottom:bottomPos, right:0});
        },
-       
-       
+
+
        /**
         * Show an overlay window displaying linkage between windows that allows
         * the user to edit links.
@@ -508,7 +515,7 @@ qx.Class.define( "skel.Application",
            this.getRoot().add( this.m_windowMove, {left:0, top:topPos, bottom:bottomPos, right:0});
       },
 
-        
+
         /**
          * Show a window as a pop-up dialog.
          * @param message {Object} information about the window that will be shown.
@@ -528,7 +535,7 @@ qx.Class.define( "skel.Application",
             }, this );
             this._setPopupWinProperties( win );
         },
-            
+
         /**
          * Set uniform look and feel for a pop-up window.
          * @param win {skel.widgets.Window.MoveResizeWindow}.
@@ -553,7 +560,7 @@ qx.Class.define( "skel.Application",
             win.open();
             win.setUserBounds( leftPt, topPt, widthVal, heightVal );
         },
-        
+
         /**
          * Provides the draw canvas with information about links from a particular
          * plugin and window.
@@ -567,7 +574,7 @@ qx.Class.define( "skel.Application",
                 this.m_windowLink.setDrawInfo( linkInfos );
             }
         },
-        
+
         /**
          * Provides the draw canvas with information about moves from a particular
          * plugin and window.
@@ -600,5 +607,3 @@ qx.Class.define( "skel.Application",
         m_linkRemoveListenId : null
     }
 } );
-
-
