@@ -200,8 +200,8 @@ Some of third-party libraries they use are the same,  but may use different vers
 5. gsl (CARTA uses 2.1 version of gsl source code to build, and casa/code seems not require specific version and we usually install apt/ym version, 1.5 for casa/code)
 6. blas lib. (required when building GSL, also when building casacore)
 7. GFortran (CARTA uses ast library which uses GFortran, and casacore uses this, too)
-8. Qt. (CARTA uses Qt>=5.3.x. casa & its needed qwt uses 4.8.x)  
-9. qwt (we need two version. 6.1.2 is built by the same Qt versoin used by CARTA, Qt>=5.3.x. casa submodule, code uses 4.8.x to build qwt 6.1.0)
+8. ~~Qt. (CARTA uses Qt>=5.3.x. casa & its needed qwt uses 4.8.x)~~  
+9. ~~qwt (we need two version. 6.1.2 is built by the same Qt versoin used by CARTA, Qt>=5.3.x. casa submodule, code uses 4.8.x to build qwt 6.1.0)~~
 9. Python and numpy (should be ok. CARTA:2.7. casa:2.7/3.5)
 
 #### 3.How to change the revision of casa we use to build
