@@ -361,7 +361,7 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
     ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/casacore/lib:${LD_LIBRARY_PATH}
 
     ## 1-2 for wcslib, only Mac. no need to setup the path wcslib on Linux, we already use QMAKE_RPATHDIR which seems not work on Mac.
-    ## export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib/lib:${LD_LIBRARY_PATH}
+    export LD_LIBRARY_PATH=$CARTAWORKHOME/CARTAvis-externals/ThirdParty/wcslib/lib:${LD_LIBRARY_PATH}
 
     ## 1-3 for /usr/local/lib/libgsl.dylib which is needed by Fitter1D plugin
     export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}

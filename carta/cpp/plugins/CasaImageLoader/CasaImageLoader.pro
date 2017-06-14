@@ -56,13 +56,16 @@ else{
 
 ## will improve mac later
 unix:!macx {
+
+  # the below line seems not effect
   QMAKE_RPATHDIR=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
 
   # if we do not setup QMAKE_RPATHDIR+=$${WCSLIBDIR}/lib,
   # CasaImageLoader will have two duplicate linking to wcslib.
   # case1: both are "can not found out"
-  # case2: use @ORIGIN for wcslib, one of them can be found out, but the result is the same (pluing not work)
+  # case2: use @ORIGIN for wcslib, one of them can be found out, but the result is the same (plugin not work)
   # QMAKE_RPATHDIR+=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/wcslib/lib
+  # the previous solution is to setup LD_LIBRARY_PATH
 
   QMAKE_RPATHDIR+=$${WCSLIBDIR}/lib
 
