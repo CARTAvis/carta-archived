@@ -142,8 +142,8 @@ protected:
      * @param frames - list of image frames.
      * @return a QString containing cursor text.
      */
-    virtual QString _getCursorText( int mouseX, int mouseY,
-            const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
+    virtual QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
+            const std::vector<int>& frames, const QSize& outputSize) Q_DECL_OVERRIDE;
 
     /**
      * Return the data source of the image.
@@ -324,6 +324,8 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
+    virtual QString _getFileName();
+
     /**
      * Attempts to load an image file.
      * @param fileName - an identifier for the location of the image file.
@@ -356,10 +358,11 @@ protected:
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
      * @return - a list of (location,intensity) pairs.
      */
     virtual std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
+            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
 
 
     /**

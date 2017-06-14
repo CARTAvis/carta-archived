@@ -1,6 +1,10 @@
 #include "Selection.h"
 
 #include <QDebug>
+#include <QFileInfo>
+
+#include "State/StateInterface.h"
+#include "State/UtilState.h"
 
 namespace Carta {
 
@@ -16,6 +20,7 @@ const QString Selection::SELECTIONS = "selections";
 const QString Selection::IMAGE = "Image";
 const QString Selection::REGION = "Region";
 const QString Selection::CHANNEL = "Channel";
+const QString Selection::FILELIST = "fileList";
 
 bool Selection::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
@@ -34,6 +39,7 @@ void Selection::_initializeStates(){
     m_state.insertValue<int>( HIGH_KEY, 1);
     m_state.insertValue<int>( HIGH_KEY_USER, 0 );
     m_state.insertValue<int>( INDEX_KEY, 0);
+    m_state.insertArray(FILELIST, 0);
     m_state.flushState();
 }
 
@@ -174,8 +180,56 @@ void Selection::setLowerBound(int newLowerBound) {
     }
 }
 
+void Selection::setFileList(QStringList fileList) {
 
+    int dataCount = fileList.count();
 
+    int oldDataCount = m_state.getArraySize( FILELIST );
+
+    if ( oldDataCount != dataCount ){
+      m_state.resizeArray(FILELIST, dataCount, Carta::State::StateInterface::PreserveNone );
+    }
+
+    for (int i = 0; i < dataCount; i++) {
+       QString absFileName = fileList[i];
+       QFileInfo fileInfo(absFileName);
+       QString fileName(fileInfo.fileName());
+
+       QString lookup = Carta::State::UtilState::getLookup( FILELIST, i );
+
+       m_state.setValue<QString>(lookup, fileName);
+
+    }
+
+}
+
+QString Selection::setIndex(int frameValue, QStringList fileList) {
+    QString result;
+    if ( frameValue >= 0 ){
+        int upperBound = getUpperBoundUser();
+        int lowerBound = getLowerBoundUser();
+        if ( lowerBound <= frameValue && frameValue <= upperBound ){
+            int oldValue = m_state.getValue<int>(INDEX_KEY );
+            if ( oldValue != frameValue ){
+                m_state.setValue<int>(INDEX_KEY, frameValue);
+
+                // Append fileList info
+                setFileList(fileList);
+
+                m_state.flushState();
+                emit indexChanged( );
+            }
+        }
+        else {
+            result = "Selection index "+ QString::number(frameValue)+" must be between "+
+                    QString::number(lowerBound) + " and " + QString::number(upperBound);
+        }
+    }
+    else {
+        result = "Selection index must be nonnegative: "+ QString::number( frameValue );
+    }
+    return result;
+}
 
 QString Selection::setIndex(int frameValue) {
     QString result;

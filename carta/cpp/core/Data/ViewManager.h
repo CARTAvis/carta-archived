@@ -122,10 +122,19 @@ public:
      */
     void reload();
 
+    void setDefaultLayoutViewNoOldPluginList();
+
     /**
      * Reset the layout to a default view.
      */
-    void setDefaultLayoutView();
+    void setDefaultLayoutViewWithCurrentPluginList();
+
+
+    /**
+     * Reset the layout to a default view. Without thid new cleanPluginList parameter, some crash will happen when refreshing the browser window.
+     * The other layouts do not have this issue is because they are not responsible to re-construct the UI.
+     */
+    void setDefaultLayoutView(bool cleanPluginList);
 
     /**
      * Reset the layout to a predefined analysis view.
@@ -141,6 +150,13 @@ public:
      * Reset the layout to a predefined developer layout.
      */
     void setDeveloperView();
+
+
+    /**
+     * Reset the layout to a layout including a image context and a imageZoom in the right top corner, plus a animator and a coloprmap
+     */
+    void setImageCompositeView();
+
 
     /**
      * Reset the layout to a predefined view displaying only a single image.

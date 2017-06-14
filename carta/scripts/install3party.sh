@@ -1,60 +1,38 @@
 #!/bin/bash
 
-## working folder, $CARTAWORKHOME
-export CARTAWORKHOME=`pwd`
-
-##################################
-# Install some required packages
-##################################
-
-## Requirement of carta:
-## g++ >= 4.8.1
-## cfitsio >= 3360
-## wcslib >= 4.23
-## gsl >= 2.1
-## ast >= 8.0.2
-
-#####
-# How to solve portable issues for dynamic libs, e.g. move carta binary or even packaing? Use rpath??
-####
+if [ -z ${cartawork+x} ]; then
+	export cartawork=`pwd`
+fi
 
 isCentOS=true
-if grep -q CentOS /etc/os-release; then
+centos_release=/etc/os-release
+if [ -f "$centos_release" ] && grep -q CentOS $centos_release  ; then
     echo "isCentOS"
 else
-    echo "should be Ubuntu"
+    echo "should be Ubuntu or Mac"
 		isCentOS=false
 fi
 
 if [ "$(uname)" == "Darwin" ]; then
-	sudo easy_install cython
-	sudo easy_install pip
-	pip install matplotlib --user -U
+	if [ "$TRAVIS" != true ] ; then
+		echo "3party, not in travis"
+		sudo easy_install cython
+		sudo easy_install pip
+		pip install matplotlib --user -U
+	else
+		echo "3party, in travis"
+	fi
 elif [ "$isCentOS" = true ] ; then
 	##### CentOS 7
 
-	## these (wcslib, cfitsio) are required by Carta (but also duplicate install from source),
-	## also are required by casa-submodules (at least casacore)
-	## Todo [Giveup] !!: carta switchs to use yum version which are 3370, 5.15.
-	## carta uses ThirdParty to look for cfitsio, wcslio,
-	## so to use yum version, switch to /usr/lib, /usr/include etc? <-on Linux, default search path
 	sudo yum -y install epel-release ## which has cfitsio, leveldb, old wcslib
-	## to get the same version, so that cfitsio, wcslib are built for carta, casa
 
-	## move to buildcasa
+	## Default wcslib on CentOS 7 is 4.x. But it seems toe become 5.x, after using casa.repo.
+	## wcslib.x86_64 5.15-2.el7.1 @casa
 	# sudo yum -y install wcslib wcslib-devel
-
 	# sudo yum -y install cfitsio cfitsio-devel
 	# -> change to all use build from code, since yum/apt/mac ports have different version
 
-	## Default wcslib on CentOS 7 is 4.x. But it seems that, after using casa.repo.
-	## wcslib.x86_64 5.15-2.el7.1 @casa
-
-	## required by carta, casa-submodue:code
-	# yum:1.15. so carta keeps building it from source code.
-	# Todo [Done]: fix header/lib/dynamic path in Qt, on Mac, CentOS, for Carta.
-	# carta uses /usr/local to look for gsl.
-	# Maybe just build from source and install there, let carta and casa use
 	# sudo yum -y install gsl gsl-devel -> move to buildcasa.sh
 
 	## these are required by carta, also are required by casa-submodules
@@ -64,15 +42,12 @@ elif [ "$isCentOS" = true ] ; then
 	sudo yum -y install Cython
 	sudo yum install python-matplotlib
 
-	## carta only:
-	## ast (static linking)
-
 	## sqlite
 	sudo yum -y install sqlite-devel
 
 	## leveldb
 	# leveldb needs epel-release, so install it first
-	# (nrao-carta does not mention but nrao-casa mention)
+	# (nrao-carta page does not mention but nrao-casa page mention)
 	# second way: curl -O -L  https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
 	# mv RPM-GPG-KEY-EPEL-7  /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 	sudo yum -y install leveldb leveldb-devel
@@ -81,6 +56,14 @@ elif [ "$isCentOS" = true ] ; then
 	## needed by building gsl and casacore,
 	## but seems already exist or no need ?
 	sudo yum -y install blas blas-devel
+
+	# for building Qt 4.8.5,
+	# On Grimmer's docker -centos 7.3 , only when buidling Carta by Qt-5.3.2, we need gstreamer-devel, gstreamer-plugins-base
+	# But on Chia-Jung Hsu's pc - centos 7.3, building Qt 4.8.5 needs pkgconfig(gstreamer-app-0.10) which install gstreamer-plugins-base-devel ,
+	#    also gstreamer-devel, gstreamer-plugins-base,  gstreamer
+	# Qt's QtWebkit may use gstreamer libs
+	# We do not build Qt 4.8.5 on CentOS anymore, but building CARTA may need this, so move here
+	sudo yum -y install 'pkgconfig(gstreamer-app-0.10)'
 else
 	##### Ubuntu 16.04
 	# sudo apt-get -y install libcfitsio3-dev
@@ -98,37 +81,41 @@ else
 
 	## needed for compiling qwt
 	apt-get install mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev
+
+	## needed for building CARTA
+	sudo apt-get -y install libgstreamer0.10-dev gstreamer0.10-plugins-base
 fi
 
-
 #####
-
-mkdir -p $CARTAWORKHOME/CARTAvis-externals/ThirdParty
-cd $CARTAWORKHOME/CARTAvis-externals/ThirdParty
+mkdir -p $cartawork/CARTAvis-externals/ThirdParty
 
 ## for building qwt by qt5.3 for carta
 if [ -z ${QT5PATH+x} ]; then
 	echo "QT5PATH is unset";
 	QT5PATH=/
 	if [ "$(uname)" == "Darwin" ]; then
-		QT5PATH=$HOME/Qt/5.3/clang_64/bin
+		QT5PATH=$HOME/Qt/5.3/clang_64
 	else
-		QT5PATH=/opt/Qt/5.3/gcc_64/bin
+		QT5PATH=/opt/Qt/5.3/gcc_64
 	fi
-	export PATH=$QT5PATH:$PATH
+	export PATH=$QT5PATH/bin:$PATH
 else
 	echo "QT5PATH is already set to '$QT5PATH'";
-	export PATH=$QT5PATH:$PATH
+	export PATH=$QT5PATH/bin:$PATH # Homebrew case
+	# export PATH=$QT5PATH/clang_64/bin:$PATH # Qt official installer case
+	# export PATH=$QT5PATH/gcc_64/bin:$PATH # Qt official installer case
 fi
 
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
-tar xvfj qwt-6.1.2.tar.bz2 && mv qwt-6.1.2 qwt-6.1.2-src
-cd qwt-6.1.2-src # can use qwt 6.1.3 Pavol uses
+tar xvfj qwt-6.1.2.tar.bz2 > /dev/null
+mv qwt-6.1.2 qwt-6.1.2-src
+cd qwt-6.1.2-src # can use qwt 6.1.2 Pavol uses
 if [ "$(uname)" == "Darwin" ]; then
-  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{CARTAWORKHOME}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2\/ / if $.==22' qwtconfig.pri
+  perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.2 / if $.==22' qwtconfig.pri
 else
 	# for unix part, not work on Mac
-	sed -i "22,22c QWT_INSTALL_PREFIX    = $CARTAWORKHOME/CARTAvis-externals/ThirdParty/qwt-6.1.2" qwtconfig.pri
+	sed -i "22,22c QWT_INSTALL_PREFIX    = $cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.2" qwtconfig.pri
 fi
 qmake qwt.pro
 make && make install
@@ -136,48 +123,78 @@ cd ..
 ln -s qwt-6.1.2 qwt
 if [ "$(uname)" == "Darwin" ]; then
 	cd qwt
-	ln -s ../qwt-6.1.2/lib/qwt.framework/Versions/6/Headers include
+	# sometimes Versions/6 or Versions/1, have not investigated why
+	ln -s ../qwt-6.1.2/lib/qwt.framework/Versions/Current/Headers include
 	cd ..
 fi
 
+echo "install qooxdoo"
+cd $cartawork/CARTAvis-externals/ThirdParty
 ## Install qooxdoo for CARTA
-wget 'http://downloads.sourceforge.net/project/qooxdoo/qooxdoo-current/3.5/qooxdoo-3.5-sdk.zip?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fqooxdoo%2Ffiles%2Fqooxdoo-current%2F3.5%2F&ts=1479095500&use_mirror=excellmedia' -O qooxdoo-3.5-sdk.zip
-unzip qooxdoo-3.5-sdk.zip
+if [ -f qooxdoo-3.5.1-sdk.zip ]
+then
+	echo "alreayd downloaded qooxdoo-3.5.1-sdk.zip"
+else
+	curl -o qooxdoo-3.5.1-sdk.zip -L https://github.com/qooxdoo/qooxdoo/releases/download/release_3_5_1/qooxdoo-3.5.1-sdk.zip
+fi
+unzip qooxdoo-3.5.1-sdk.zip > /dev/null
 
 ## rapidjson
+echo "build rapidjson"
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L https://github.com/miloyip/rapidjson/archive/v1.0.2.tar.gz
-tar xvfz v1.0.2.tar.gz
-ln -s rapidjson-1.0.2 rapidjson # can become mv
+mv v1.0.2.tar.gz rapidjson_v1.0.2.tar.gz
+tar xvfz rapidjson_v1.0.2.tar.gz > /dev/null
+ln -s rapidjson-1.0.2 rapidjson
 
+## to get the same version with casa, so cfitsio, wcslib are built for carta, casa
 ## wcslib-5.15
-wget ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
-tar xvfj wcslib-5.15.tar.bz2 && mv wcslib-5.15 wcslib-5.15-src
+echo "build wcslib"
+cd $cartawork/CARTAvis-externals/ThirdParty
+curl -O -L ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
+tar xvfj wcslib-5.15.tar.bz2 > /dev/null
+mv wcslib-5.15 wcslib-5.15-src
 cd wcslib-5.15-src
-# ./configure --prefix=${THIRDPARTY_PATH}/wcslib/ --without-pgplot <-pgplot ?? <-add back later
-./configure --prefix=`pwd`/../wcslib/  ##--without-pgplot which is needed by casa
+./configure --prefix=`pwd`/../wcslib/  ##--without-pgplot, pgplot is needed by casa
 make && make install
 cd ..
 
 ## cfitsio3390
+echo "build cfitsio"
+cd $cartawork/CARTAvis-externals/ThirdParty
 curl -O -L http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3390.tar.gz
-tar xvfz cfitsio3390.tar.gz && mv cfitsio cfitsio-src
+tar xvfz cfitsio3390.tar.gz > /dev/null
+mv cfitsio cfitsio-src
 cd cfitsio-src
 ./configure --prefix=`pwd`/../cfitsio/
 make && make install
 cd ..
 
-## ast
-wget http://www.starlink.ac.uk/download/ast/ast-8.0.2.tar.gz
-tar xvfz ast-8.0.2.tar.gz && mv ast-8.0.2 ast-8.0.2-src
-cd ast-8.0.2-src
+echo "build ast"
+cd $cartawork/CARTAvis-externals/ThirdParty
+## ast: carta only, static linking with CARTA
+curl -O -L http://www.starlink.ac.uk/download/ast/ast-8.4.0.tar.gz
+tar xvfz ast-8.4.0.tar.gz > /dev/null
+mv ast-8.4.0 ast-8.4.0-src
+cd ast-8.4.0-src
 ./configure --prefix=`pwd`/../ast/
 make && make install
 cd ..
 
-## gsl
-curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
-tar xvfz gsl-2.1.tar.gz && mv gsl-2.1 gsl-2.1-src
-cd gsl-2.1-src
-./configure
-make && make install
-cd ..
+if [ "$(uname)" == "Darwin" ] && [ "$TRAVIS" == true ]; then
+	echo "in travis-ci, not build gsl here, use homebrew to install it somewhere"
+else
+	echo "build gsl"
+	cd $cartawork/CARTAvis-externals/ThirdParty
+	# yum:1.15. so carta keeps building it from source code.
+	# casa's cmake needs yum version to pass the check but it will use /usr/local in high priority when building
+	curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
+	tar xvfz gsl-2.1.tar.gz > /dev/null
+	mv gsl-2.1 gsl-2.1-src
+	cd gsl-2.1-src
+	./configure
+	make
+	sudo make install
+	#cd ..
+	cd $cartawork/CARTAvis-externals/ThirdParty
+fi

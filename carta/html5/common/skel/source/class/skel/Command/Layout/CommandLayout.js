@@ -86,7 +86,9 @@ qx.Class.define("skel.Command.Layout.CommandLayout", {
         setCheckedType: function(layoutType) {
           if(layoutType) {
               var cmdLayout = null;
-              if (layoutType == "Image") {
+              if (layoutType == "ImageComposite") {
+                  cmdLayout  = skel.Command.Layout.CommandLayoutImage.getInstance();
+              } else if (layoutType == "Image") {
                   cmdLayout  = skel.Command.Layout.CommandLayoutImage.getInstance();
               } else if (layoutType == "Analysis") {
                   cmdLayout  = skel.Command.Layout.CommandLayoutAnalysis.getInstance();

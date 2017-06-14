@@ -35,7 +35,7 @@ Carta::Lib::Hooks::HistogramResult Histogram1::_computeHistogram( ){
 } // _computeHistogram
 
 std::pair < int, int >
-Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
+Histogram1::_getChannelBounds( casacore::ImageInterface<casacore::Float>* casaImage,
         double freqMin, double freqMax, const QString & unitStr ) const{
     std::pair < int, int > bounds( - 1, - 1 );
     if ( ! casaImage ) {
@@ -43,8 +43,8 @@ Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
         return bounds;
     }
 
-    casa::CoordinateSystem cSys = casaImage->coordinates();
-    casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
+    casacore::CoordinateSystem cSys = casaImage->coordinates();
+    casacore::Int specAx = cSys.findCoordinate( casacore::Coordinate::SPECTRAL );
     if ( specAx < 0 ) {
         //qWarning() << "Image did not have a spectral coordinate";
         /// \todo Does this mean we can only compute histograms on spectral coordinates!?!?!?!
@@ -55,20 +55,20 @@ Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
     int channelHigh = - 1;
     std::string units = unitStr.toStdString();
 
-    casa::IPosition imgShape = casaImage->shape();
+    casacore::IPosition imgShape = casaImage->shape();
     int maxChannel = imgShape[specAx] - 1;
-    casa::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
+    casacore::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
 
     //Minimum frequency
-    casa::MVFrequency minMV( casa::Quantity( 0, units ) );
+    casacore::MVFrequency minMV( casacore::Quantity( 0, units ) );
     specCoord.toWorld( minMV, 0 );
-    casa::Quantity minQuantity = minMV.get( units );
+    casacore::Quantity minQuantity = minMV.get( units );
     double lowBound = minQuantity.getValue();
 
     //Maximum frequency
-    casa::MVFrequency maxMV( casa::Quantity( 0, units ) );
+    casacore::MVFrequency maxMV( casacore::Quantity( 0, units ) );
     specCoord.toWorld( maxMV, maxChannel );
-    casa::Quantity maxQuantity = maxMV.get( units );
+    casacore::Quantity maxQuantity = maxMV.get( units );
     double highBound = maxQuantity.getValue();
     if ( highBound < lowBound ) {
         std::swap( highBound, lowBound);
@@ -83,9 +83,9 @@ Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
     }
 
     //Lower bound
-    casa::Quantity freqQuantity( frequencyMin, units );
-    casa::MVFrequency mvFreq( freqQuantity );
-    casa::Double pixel = - 1;
+    casacore::Quantity freqQuantity( frequencyMin, units );
+    casacore::MVFrequency mvFreq( freqQuantity );
+    casacore::Double pixel = - 1;
     if ( specCoord.toPixel( pixel, mvFreq ) ) {
         channelLow = qRound( pixel );
         if ( channelLow > maxChannel ) {
@@ -93,9 +93,9 @@ Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
         }
     }
 
-    casa::Quantity freqQuantityMax( frequencyMax, units );
-    casa::MVFrequency mvFreqMax( freqQuantityMax );
-    casa::Double pixelMax = - 1;
+    casacore::Quantity freqQuantityMax( frequencyMax, units );
+    casacore::MVFrequency mvFreqMax( freqQuantityMax );
+    casacore::Double pixelMax = - 1;
     if ( specCoord.toPixel( pixelMax, mvFreqMax ) ) {
         channelHigh = qRound( pixelMax );
         if ( channelHigh > maxChannel ) {
@@ -109,7 +109,7 @@ Histogram1::_getChannelBounds( casa::ImageInterface<casa::Float>* casaImage,
 } // _getChannelBounds
 
 std::pair < double, double >
-Histogram1::_getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
+Histogram1::_getFrequencyBounds( casacore::ImageInterface<casacore::Float>* casaImage,
         int channelMin, int channelMax, const QString & unitStr ) const{
     std::pair < double, double > bounds( - 1, - 1 );
     if ( ! casaImage ) {
@@ -117,29 +117,29 @@ Histogram1::_getFrequencyBounds( casa::ImageInterface<casa::Float>* casaImage,
         return bounds;
     }
 
-    casa::CoordinateSystem cSys = casaImage->coordinates();
-    casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
+    casacore::CoordinateSystem cSys = casaImage->coordinates();
+    casacore::Int specAx = cSys.findCoordinate( casacore::Coordinate::SPECTRAL );
     if ( specAx < 0 ) {
         //qWarning() << "Image did not have a spectral coordinate";
         return bounds;
     }
 
-    casa::IPosition imgShape = casaImage->shape();
+    casacore::IPosition imgShape = casaImage->shape();
     int chanMin = std::max( 0, channelMin);
     int chanMax = std::min( int(imgShape[specAx]) - 1, channelMax);
 
-    casa::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
+    casacore::SpectralCoordinate specCoord = cSys.spectralCoordinate( specAx );
     std::string units = unitStr.toStdString();
 
     // Lower bound
     double freqLow = - 1;
-    casa::MVFrequency mvFreq( casa::Quantity( 0, units));
+    casacore::MVFrequency mvFreq( casacore::Quantity( 0, units));
     if ( specCoord.toWorld( mvFreq, chanMin ) ) {
         freqLow = mvFreq.get( units ).getValue();
     }
 
     double freqHigh = - 1;
-    casa::MVFrequency mvFreqMax( casa::Quantity( 0, units ) );
+    casacore::MVFrequency mvFreqMax( casacore::Quantity( 0, units ) );
     if ( specCoord.toWorld( mvFreqMax, chanMax ) ) {
         freqHigh = mvFreqMax.get( units ).getValue();
     }
@@ -167,17 +167,17 @@ Histogram1::handleHook( BaseHook & hookData )
             return false;
         }
 
-        casa::ImageInterface<casa::Float> * casaImage = cartaII2casaII_float( image );
+        casacore::ImageInterface<casacore::Float> * casaImage = cartaII2casaII_float( image );
         if( ! casaImage) {
             qWarning() << "Histogram plugin: not an image created by casaimageloader...";
             return false;
         }
         if ( !m_histogram ){
-            m_histogram.reset(new ImageHistogram < casa::Float >());
+            m_histogram.reset(new ImageHistogram < casacore::Float >());
         }
         std::shared_ptr<Carta::Lib::Regions::RegionBase> regionBase = hook.paramsPtr->region;
         QString regionId = hook.paramsPtr->regionId;
-        casa::ImageRegion* imageRegion = nullptr;
+        casacore::ImageRegion* imageRegion = nullptr;
         if ( regionBase ){
         	imageRegion = ImageRegionGenerator::makeRegion( casaImage, regionBase );
         }
@@ -190,8 +190,8 @@ Histogram1::handleHook( BaseHook & hookData )
         int minChannel = - 1;
         int maxChannel = - 1;
         if ( frequencyMin < 0 || frequencyMax < 0 ) {
-            casa::CoordinateSystem cSys = casaImage->coordinates();
-            casa::Int specAx = cSys.findCoordinate( casa::Coordinate::SPECTRAL );
+            casacore::CoordinateSystem cSys = casaImage->coordinates();
+            casacore::Int specAx = cSys.findCoordinate( casacore::Coordinate::SPECTRAL );
             if ( specAx >= 0 ) {
                 minChannel = hook.paramsPtr->minChannel;
                 maxChannel = hook.paramsPtr->maxChannel;

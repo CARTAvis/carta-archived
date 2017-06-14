@@ -16,6 +16,7 @@ namespace Data {
 
 const QString Region::ACTIVE = "active";
 const QString Region::HOVERED = "hovered";
+const QString Region::COLOR = "color";
 const QString Region::REGION_TYPE = "regionType";
 const QString Region::CUSTOM_NAME = "customName";
 const int Region::SIGNIFICANT_DIGITS = 6;
@@ -181,6 +182,7 @@ void Region::_initializeState(){
 	m_state.insertValue<bool>( CUSTOM_NAME, false );
 	m_state.insertValue<bool>( ACTIVE, true );
 	m_state.insertValue<bool>( HOVERED, true );
+        m_state.insertValue<QString>( Util::COLOR, "" );
 	m_state.insertValue<QString>( Util::NAME, "");
 	m_state.insertValue<QString>( Util::ID, getId() );
 }
@@ -286,6 +288,13 @@ QString Region::setRegionName( const QString& name ){
 		}
 	}
 	return result;
+}
+
+bool Region::setColor( QColor color){
+        bool colorChanged = false;
+        colorChanged = true;
+        m_shape->setColor( color );
+        return colorChanged;
 }
 
 void Region::setSelected( bool selected ) {

@@ -18,32 +18,32 @@ public:
      * @param image - a pointer to an image.
      * @return - a map of (key,value) pairs representing the image's statistics.
      */
-    static QList<Carta::Lib::StatInfo> getStats( const casa::ImageInterface<casa::Float>* image );
+    static QList<Carta::Lib::StatInfo> getStats( const casacore::ImageInterface<casacore::Float>* image );
 private:
-    static bool _beamCompare( const casa::GaussianBeam &a, const casa::GaussianBeam &b );
+    static bool _beamCompare( const casacore::GaussianBeam &a, const casacore::GaussianBeam &b );
 
-    static std::vector<QString> _beamAsStringVector( const casa::GaussianBeam &beam );
+    static std::vector<QString> _beamAsStringVector( const casacore::GaussianBeam &beam );
 
-    static void _computeStats( const casa::ImageInterface<casa::Float>* image,
+    static void _computeStats( const casacore::ImageInterface<casacore::Float>* image,
             QList<Carta::Lib::StatInfo>& stats );
 
-    static void _getStatsPlanar( const casa::ImageInterface<casa::Float>* image,
+    static void _getStatsPlanar( const casacore::ImageInterface<casacore::Float>* image,
                 QList<Carta::Lib::StatInfo>& stats, int zIndex, int hIndex  );
 
-    static void _insertRaDec( const casa::CoordinateSystem& cs, casa::Vector<casa::Int>& shapeVector,
+    static void _insertRaDec( const casacore::CoordinateSystem& cs, casacore::Vector<casacore::Int>& shapeVector,
             QList<Carta::Lib::StatInfo> & stats );
 
-    static void _insertRestoringBeam( const casa::ImageInterface<casa::Float>* image,
+    static void _insertRestoringBeam( const casacore::ImageInterface<casacore::Float>* image,
             QList<Carta::Lib::StatInfo>& stats );
 
-    static void _insertShape( const casa::Vector<casa::Int>& shapeVector,
+    static void _insertShape( const casacore::Vector<casacore::Int>& shapeVector,
             QList<Carta::Lib::StatInfo>& stats );
 
-    static void _insertSpectral( const casa::CoordinateSystem& cs,
-            casa::Vector<casa::Int>& shapeVector, QList<Carta::Lib::StatInfo>& stats );
+    static void _insertSpectral( const casacore::CoordinateSystem& cs,
+            casacore::Vector<casacore::Int>& shapeVector, QList<Carta::Lib::StatInfo>& stats );
 
 
-    static std::vector<QString> _medianRestoringBeamAsStr( std::vector<casa::GaussianBeam> beams);
+    static std::vector<QString> _medianRestoringBeamAsStr( std::vector<casacore::GaussianBeam> beams);
     StatisticsCASAImage();
 
     virtual ~StatisticsCASAImage();

@@ -1,6 +1,6 @@
 {
 	"name"		: "skel",
-	
+
 	"include" :
 	[
 		{
@@ -45,7 +45,7 @@
 	"let" :
 	{
 		"APPLICATION"	 : "skel",
-		"QOOXDOO_PATH" : "../qooxdoo-3.5-sdk",
+		"QOOXDOO_PATH" : "../qooxdoo-3.5.1-sdk",
     //			"QOOXDOO_PATH" : "../qooxdoo-4.0.1-sdk",
 		"QXTHEME"			 : "skel.theme.Theme",
 		"API_EXCLUDE"	 : ["qx.test.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*", "${APPLICATION}.simulation.*"],
@@ -75,7 +75,7 @@
 				},
 				"paths": {
 					"app-root": "../.."
-          
+
 				},
 				"code": {
 					"decode-uris-plug": "customuris.js"
@@ -95,8 +95,8 @@
 				}
 		  }
 		},
-		
-/*    
+
+/*
 		, "build-script": {
 		  "compile-options": {
 				"code": {

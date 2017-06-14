@@ -70,11 +70,10 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                 }
                 else if ( fileName == ".."){
                     //Strip off child from path, and make that the new text.
-                    var lastSepIndex = this.m_path.lastIndexOf( path.SEP );
-                    if ( lastSepIndex >= 0 ){
-                        var parentPath = this.m_path.substr(0, lastSepIndex );
-                        dirPath = parentPath;
-                    }
+                    // lastIndexOf should larger then 1 ( means the path of root "/")
+                    var lastSepIndex = Math.max( 1, this.m_path.lastIndexOf( path.SEP ));
+                    var parentPath = this.m_path.substr(0, lastSepIndex );
+                    dirPath = parentPath;
                 }
                 else if ( this._isDirectory( fileName )){
                     //If the node is a directory, add the directory to the base path.

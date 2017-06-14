@@ -11,35 +11,35 @@ StatisticsCASARegion::StatisticsCASARegion() {
 
 QList<Carta::Lib::StatInfo>
 StatisticsCASARegion::getStats(
-        casa::ImageInterface<casa::Float>* image,
+        casacore::ImageInterface<casacore::Float>* image,
         std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
         const std::vector<int>& slice ){
     QList<Carta::Lib::StatInfo> stats;
     QString regionTypeStr;
-    casa::Record regionRecord = RegionRecordFactory:: getRegionRecord(
+    casacore::Record regionRecord = RegionRecordFactory:: getRegionRecord(
             image, regionInfo, slice, regionTypeStr );
     _getStatsFromCalculator( image, regionRecord, slice, stats, regionTypeStr );
     return stats;
 }
 
 
-void StatisticsCASARegion::_getStatsFromCalculator( casa::ImageInterface<casa::Float>* image,
-       const casa::Record& region, const std::vector<int>& slice,
+void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<casacore::Float>* image,
+       const casacore::Record& region, const std::vector<int>& slice,
        QList<Carta::Lib::StatInfo>& stats, const QString& regionType ){
     //If the region record is empty, there are not stats - just return.
     int fieldCount = region.nfields();
     if ( fieldCount == 0 ){
         return;
     }
-    std::shared_ptr<const casa::ImageInterface<casa::Float> > imagePtr( image->cloneII() );
+    std::shared_ptr<const casacore::ImageInterface<casacore::Float> > imagePtr( image->cloneII() );
 
-    casa::CoordinateSystem cs = image->coordinates();
-    casa::Vector<casa::Int> displayAxes = cs.directionAxesNumbers();
-    casa::Quantum<casa::Double> pix0( 0, "pix");
-    casa::IPosition shape = image->shape();
+    casacore::CoordinateSystem cs = image->coordinates();
+    casacore::Vector<casacore::Int> displayAxes = cs.directionAxesNumbers();
+    casacore::Quantum<casacore::Double> pix0( 0, "pix");
+    casacore::IPosition shape = image->shape();
     int nAxes = shape.nelements();
-    casa::Vector<casa::Quantum<casa::Double> > blcq( nAxes, pix0);
-    casa::Vector<casa::Quantum<casa::Double> > trcq( nAxes, pix0);
+    casacore::Vector<casacore::Quantum<casacore::Double> > blcq( nAxes, pix0);
+    casacore::Vector<casacore::Quantum<casacore::Double> > trcq( nAxes, pix0);
     for ( int i = 0; i < nAxes; i++ ){
         if ( i == displayAxes[0] || i == displayAxes[1]){
             trcq[i].setValue( shape[i] );
@@ -50,15 +50,15 @@ void StatisticsCASARegion::_getStatsFromCalculator( casa::ImageInterface<casa::F
         }
     }
 
-    casa::WCBox box( blcq, trcq, cs, casa::Vector<casa::Int>());
-    casa::ImageRegion* imgBox = new casa::ImageRegion( box );
-    std::shared_ptr<casa::SubImage<casa::Float> > boxImage( new casa::SubImage<Float>(*image, *imgBox ) );
+    casacore::WCBox box( blcq, trcq, cs, casacore::Vector<casacore::Int>());
+    casacore::ImageRegion* imgBox = new casacore::ImageRegion( box );
+    std::shared_ptr<casacore::SubImage<casacore::Float> > boxImage( new casacore::SubImage<Float>(*image, *imgBox ) );
 
-    ImageStatsCalculator calc( boxImage, &region, "", true);
+    casa::ImageStatsCalculator calc( boxImage, &region, "", true);
     calc.setList(False);
     Record result = calc.calculate();
-    const casa::String blcKey( "blc");
-    const casa::String trcKey( "trc");
+    const casacore::String blcKey( "blc");
+    const casacore::String trcKey( "trc");
     _insertScalar( result, "npts", Carta::Lib::StatInfo::StatType::FrameCount, stats );
     _insertScalar( result, "sum", Carta::Lib::StatInfo::StatType::Sum, stats );
     _insertScalar( result, "sumsq", Carta::Lib::StatInfo::StatType::SumSq, stats );
@@ -79,9 +79,9 @@ void StatisticsCASARegion::_getStatsFromCalculator( casa::ImageInterface<casa::F
 
     //Put in an identifier.
     if ( result.isDefined( blcKey ) && result.isDefined( trcKey ) ){
-        casa::Vector<int> blcArray = result.asArrayInt( blcKey );
+        casacore::Vector<int> blcArray = result.asArrayInt( blcKey );
         QString blcVal = _vectorToString( blcArray );
-        casa::Vector<int> trcArray = result.asArrayInt( trcKey );
+        casacore::Vector<int> trcArray = result.asArrayInt( trcKey );
         QString trcVal = _vectorToString( trcArray );
         QString idVal = regionType + ":" + blcVal;
         if ( blcVal != trcVal ){
@@ -97,10 +97,10 @@ void StatisticsCASARegion::_getStatsFromCalculator( casa::ImageInterface<casa::F
 
 
 void
-StatisticsCASARegion::_insertList( const casa::Record& result, const casa::String& key,
+StatisticsCASARegion::_insertList( const casacore::Record& result, const casacore::String& key,
         Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats ){
     if ( result.isDefined( key) ){
-        casa::Vector<int> valArray = result.asArrayInt( key );
+        casacore::Vector<int> valArray = result.asArrayInt( key );
         QString val = _vectorToString( valArray );
         if ( !val.isEmpty()){
             Carta::Lib::StatInfo info( statType );
@@ -112,10 +112,10 @@ StatisticsCASARegion::_insertList( const casa::Record& result, const casa::Strin
 
 
 void
-StatisticsCASARegion::_insertScalar( const casa::Record& result, const casa::String& key,
+StatisticsCASARegion::_insertScalar( const casacore::Record& result, const casacore::String& key,
         Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats ){
     if ( result.isDefined( key ) ){
-        casa::Vector<double> valArray = result.asArrayDouble(key);
+        casacore::Vector<double> valArray = result.asArrayDouble(key);
         if ( valArray.nelements() > 0 ){
             Carta::Lib::StatInfo info( statType );
             info.setValue( QString::number( valArray[0] ) );
@@ -125,17 +125,17 @@ StatisticsCASARegion::_insertScalar( const casa::Record& result, const casa::Str
 }
 
 void
-StatisticsCASARegion::_insertString( const casa::Record& result, const casa::String& key,
+StatisticsCASARegion::_insertString( const casacore::Record& result, const casacore::String& key,
         Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats ){
     if ( result.isDefined( key ) ){
-        casa::String valStr = result.asString(key);
+        casacore::String valStr = result.asString(key);
         Carta::Lib::StatInfo info( statType );
         info.setValue( valStr.c_str() );
         stats.append( info );
     }
 }
 
-QString StatisticsCASARegion::_vectorToString( const casa::Vector<int>& valArray ){
+QString StatisticsCASARegion::_vectorToString( const casacore::Vector<int>& valArray ){
     int elementCount = valArray.nelements();
     QString val("[");
     for ( int i = 0; i < elementCount; i++ ){

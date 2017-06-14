@@ -41,9 +41,10 @@ const QString Layout::LAYOUT_PLUGINS = "plugins";
 const QString Layout::POSITION = "position";
 const QString Layout::CLASS_NAME = "Layout";
 
-const QString Layout::TYPE_DEFAULT = "Default"; //Line Analysis
+const QString Layout::TYPE_DEFAULT = "Default";
 const QString Layout::TYPE_ANALYSIS = "Analysis"; //Line Analysis
 const QString Layout::TYPE_HISTOGRAMANALYSIS = "HistogramAnalysis";
+const QString Layout::TYPE_IMAGECOMPOSITE = "ImageComposite";
 const QString Layout::TYPE_IMAGE = "Image";
 const QString Layout::TYPE_CUSTOM = "Custom";
 
@@ -344,6 +345,13 @@ bool Layout::isLayoutHistogramAnalysis() const {
     return isCurrentLayout;
 }
 
+bool Layout::isLayoutImageComposite() const {
+    if ( m_state.getValue<QString>(TYPE_SELECTED) == TYPE_IMAGECOMPOSITE ){
+        return true;
+    }
+    return false;
+}
+
 bool Layout::isLayoutImage() const {
     bool layoutImage = false;
     if ( m_state.getValue<QString>(TYPE_SELECTED) == TYPE_IMAGE ){
@@ -430,8 +438,16 @@ QString Layout::_removeWindow( const QString& locationId ){
     return result;
 }
 
-void Layout::setLayoutDefault(){
-    QStringList oldNames = getPluginList();
+void Layout::setLayoutDefault(bool cleanPluginList) {
+
+    QStringList oldNames;
+
+    if (cleanPluginList) {
+        oldNames = getPluginList();
+    } else {
+        oldNames = QStringList();
+    }
+
     _makeRoot();
 
     LayoutNode* rightTop = NodeFactory::makeComposite( false );
@@ -564,6 +580,41 @@ void Layout::setLayoutDeveloper(){
 }
 
 
+void Layout::setLayoutImageComposite(){
+    QStringList oldNames = getPluginList();
+    _makeRoot();
+
+    LayoutNode* rightTop = NodeFactory::makeComposite( false );
+    rightTop->setHorizontal( true );
+    //Image Contxt
+    LayoutNode* contextLeaf = NodeFactory::makeLeaf( ImageContext::CLASS_NAME );
+    rightTop->setChildFirst( contextLeaf  );
+    LayoutNode* zoomLeaf = NodeFactory::makeLeaf( ImageZoom::CLASS_NAME );
+    rightTop->setChildSecond( zoomLeaf );
+
+    LayoutNode* rightBottom = NodeFactory::makeComposite( false );
+    LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
+    rightBottom->setChildFirst( colorLeaf );
+    LayoutNode* animLeaf = NodeFactory::makeLeaf( Animator::CLASS_NAME );
+    rightBottom->setChildSecond( animLeaf );
+
+    LayoutNode* right = NodeFactory::makeComposite( false );
+
+    right->setChildFirst( rightTop );
+    right->setChildSecond( rightBottom );
+
+    m_layoutRoot->setHorizontal( true );
+    m_layoutRoot->setChildSecond( right );
+
+    //Image Loader
+    LayoutNode* controlLeaf = NodeFactory::makeLeaf( Controller::PLUGIN_NAME );
+    m_layoutRoot->setChildFirst( controlLeaf );
+
+    QStringList names = getPluginList();
+    emit pluginListChanged( names, oldNames );
+    m_state.setValue<QString>( TYPE_SELECTED, TYPE_IMAGECOMPOSITE );
+    m_state.flushState();
+}
 
 void Layout::setLayoutImage(){
     QStringList oldNames = getPluginList();

@@ -22,7 +22,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
     },
 
     members : {
-        
+
 
 
         /**
@@ -53,7 +53,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
                 }
             }
         },
-        
+
         /**
          * Initialize a tool bar containing 'quick' access buttons.
          */
@@ -61,7 +61,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             var cmds = skel.Command.CommandAll.getInstance();
             this._resetToolbar( cmds );
         },
-        
+
         /**
          * Initialize a context menu.
          */
@@ -81,7 +81,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             contextMenu.add( removeButton );
             this.setContextMenu(contextMenu);
         },
-        
+
         /**
          * Initialize the list of messages to listen to.
          */
@@ -93,9 +93,9 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             qx.event.message.Bus.subscribe( "commandVisibilityToolChanged", function( message){
                 this._init();
             }, this );
-            
+
         },
-        
+
         /**
          * Tell a command to perform its action.
          * @param lookup {String} an identifier for a command.
@@ -107,17 +107,29 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             var cmd = cmdFactory.getCommand( lookup);
             cmd.doAction( val, undo );
         },
-        
-       
-        
+
+
+
         /**
          * Make a widget for the tool bar out of the command.
          * @param cmd {skel.Command.Command}.
          */
         _makeTool : function( cmd ){
+
             if ( cmd.isVisibleToolbar()){
                 var cmdType = cmd.getType();
                 if ( cmdType === skel.Command.Command.TYPE_GROUP){
+
+                    if(cmd.getLabel()=="Clips") {
+                        var fileButton = new qx.ui.toolbar.RadioButton("Clipping:");
+                        fileButton.setEnabled(false);
+                        this.add(fileButton);
+                    } else if (cmd.getLabel()=="Draw") {
+                        var fileButton = new qx.ui.toolbar.RadioButton("Region:");
+                        fileButton.setEnabled(false);
+                        this.add(fileButton);
+                    }
+
                     var radios = skel.widgets.Util.makeRadioGroup( cmd, true );
                     for ( var i = 0; i < radios.length; i++ ){
                         this.add( radios[i] );
@@ -139,8 +151,8 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
                 console.log( "Cmd was not visible on toolbar "+cmd );
             }
         },
-        
-        
+
+
         /**
          * Erase the current tool bar and reset with the new list of commands.
          * @param cmds {Array} the new list of commands.
@@ -151,7 +163,7 @@ qx.Class.define("skel.widgets.Menu.ToolBar", {
             this.addSpacer();
         }
     }
-    
-    
+
+
 
 });

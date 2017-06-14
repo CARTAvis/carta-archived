@@ -58,7 +58,7 @@ qx.Class.define("skel.widgets.Path", {
         AUTO_CLIP : "setAutoClip",
         BASE_PATH : "",
         CARTA : "CartaObjects",
-        CASA_LOADER : "CasaImageLoader",
+        CASA_LOADER : "ImageViewer",
         CHANNEL_UNITS : "",
         //CENTER : "center",
         CLIP_VALUE : "setClipValue",

@@ -7,10 +7,10 @@ ConverterFrequencyWavelength::ConverterFrequencyWavelength(const QString& oldUni
 
 }
 
-casa::Vector<double> ConverterFrequencyWavelength::convert( const casa::Vector<double>& oldValues,
-        casa::SpectralCoordinate spectralCoordinate ) {
+casacore::Vector<double> ConverterFrequencyWavelength::convert( const casacore::Vector<double>& oldValues,
+        casacore::SpectralCoordinate spectralCoordinate ) {
 
-    casa::Vector<double> resultValues(oldValues.size());
+    casacore::Vector<double> resultValues(oldValues.size());
     resultValues = oldValues;
 
     bool unitsUnderstood = spectralCoordinate.setWavelengthUnit( newUnits.toStdString() );
@@ -20,8 +20,8 @@ casa::Vector<double> ConverterFrequencyWavelength::convert( const casa::Vector<d
         successfulConversion = spectralCoordinate.frequencyToWavelength( resultValues, oldValues );
 
         if ( successfulConversion ) {
-            casa::Vector<casa::String> spectralUnits = spectralCoordinate.worldAxisUnits();
-            casa::String spectralUnit = spectralUnits[0];
+            casacore::Vector<casacore::String> spectralUnits = spectralCoordinate.worldAxisUnits();
+            casacore::String spectralUnit = spectralUnits[0];
             QString spectralUnitStr( spectralUnit.c_str() );
             if ( spectralUnitStr != oldUnits ) {
                 ConverterFrequency::convertFrequency( resultValues, spectralUnitStr,

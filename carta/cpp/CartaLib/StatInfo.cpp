@@ -105,10 +105,10 @@ QString StatInfo::toString( StatType statType){
         label = "Median Restoring Beam";
     }
     else if ( statType == StatType::RightAscensionRange ){
-        label = "Right Ascension Range";
+        label = "RA Range";
     }
     else if ( statType == StatType::DeclinationRange ){
-        label = "Declination Range";
+        label = "Dec Range";
     }
     else if ( statType == StatType::FrequencyRange ){
         label = "Frequency Range";

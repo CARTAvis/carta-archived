@@ -23,10 +23,20 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         this.m_content.add( this.m_viewContent, {flex:1} );
         this.m_imageControls = new skel.widgets.Image.ImageControls();
         this.m_imageControls.addListener( "gridControlsChanged", this._gridChanged, this );
-        this.m_content.add( this.m_imageControls );
+
+        // grimmer: click/select will trigger 4 times of call of _initMenu, why?
+        // start CARTA, number of _initMenu's call is 7. So after simulating, becomes 11
+        this.simulateSelecteFun = this.simulateSelecteFun.bind(this);
+        setTimeout(this.simulateSelecteFun, 1200);
+
+        // this.m_content.add( this.m_imageControls );
     },
 
     members : {
+
+        simulateSelecteFun: function() {
+            this.setSelected(true, false);
+        },
 
         resetZoomToFitWindowForData: function(data) {
             this.m_view.sendZoomLevel(data.m_minimalZoomLevel, data.id);
@@ -68,22 +78,23 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             // move the logic (->0.9) from Stack.cpp to here. Here is more suitable place.
             //TODO: grimmer. default m_currentZoomLevel =1 needed to be synced with cpp
             if ( wheelFactor < 0 ) {
-                newZoom = data.m_currentZoomLevel / 0.9;
+                var newZoom = data.m_currentZoomLevel / 0.9;
             } else {
-                newZoom = data.m_currentZoomLevel * 0.9;
+                var newZoom = data.m_currentZoomLevel * 0.9;
             }
 
             // console.log("aspect Wheel-newZoom:", newZoom,";min:", data.m_minimalZoomLevel);
 
-            if (newZoom >= data.m_minimalZoomLevel) {
+            // Due to this limitation will have some behaviors which are expeceted by users, so just git rid of it
+            // if (newZoom >= data.m_minimalZoomLevel) {
 
                 data.m_currentZoomLevel = newZoom;
 
-                this.m_view.sendPanZoomLevel(pt, newZoom, data.id);
+                // this.m_view.sendPanZoomLevel(pt, newZoom, data.id);
                 // console.log("Aspect debug: send wheel zoom:"+newZoom,";",pt+";id:", data.id);
 
                 // data.m_effectZoomLevel = data.m_currentZoomLevel / data.m_minimalZoomLevel;
-            }
+            // }
         },
 
         //TODO: grimmer. save previous mousewheel and prevent wheel delta 1, -1, 1 happen
@@ -118,14 +129,22 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     continue;
                 }
             }
+
+            // each this.m_view.sendPanZoomLevel(pt, newZoom, data.id); in loop
+            //->
+            this.m_view.sendPanZoom(pt, wheelFactor);
+
         },
 
         _setupDefaultLayerData: function(data, oldDatas) {
+
 
             data.m_minimalZoomLevel = 1;
             data.m_currentZoomLevel = 1;
 
             data.m_effectZoomLevel = 1; // not use this anymore, will remove later
+
+            data.m_scheduleZoomFit = true;
 
             var len = oldDatas.length;
             for (var i = 0; i < len; i++) {
@@ -134,6 +153,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 if (oldData.id == data.id) {
                     data.m_currentZoomLevel = oldData.m_currentZoomLevel;
                     // console.log("Aspect debug: inherit old zoomLevel");
+
+                    if (data.pixelX == oldData.pixelX && data.pixelY == oldData.pixelY) {
+                        data.m_scheduleZoomFit = oldData.m_scheduleZoomFit;
+                    } else {
+                        //console.log("Aspect debug:aspect not same x, y ratio, should be permutation case");
+                    }
+
                     break;
                 }
             }
@@ -165,12 +191,13 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
 
         // Trigger timing:
         // 0. init UI, 638x649: 2 times, 0x0: 1 time
-        // 1. after load file時,  638x664: 3 times
+        // 1. after load file,  638x664: 3 times
         // 2. When users adjsut the window size, the view will be updated
         // 3. any view updated. e.g. open two files, switch to another, get 2 times callback here
 
         // now the default window size is 638, 666
-        useViewUpdateInfoToTryFitWindowSize : function(view_width, view_height){
+        useViewUpdateInfoToTryFitWindowSize: function(view_width, view_height) {
+
             // console.log("Aspect debug, view updateded, size:"+view_width+";"+view_height);
             if (!view_width || !view_height) {
                 console.log("Aspect debug: invalid width or height");
@@ -198,21 +225,22 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                 // console.log("Aspect debug. set minimal for file:", data.name,";", zoom );
                 data.m_minimalZoomLevel = zoom;
 
-                if (!data.selected) {
+                // if (!data.selected) {
+                //     continue;
+                // }
+
+                if (!data.m_scheduleZoomFit) {
                     continue;
                 }
 
-                if (!this.m_scheduleZoomFit) {
-                    continue;
-                }
-
-                this.m_scheduleZoomFit = false;
+                data.m_scheduleZoomFit = false;
 
                 var finalZoom = zoom; //*data.m_effectZoomLevel
 
                 // m_curentZoomLevel == 1 means, this dataset is initially loaded
                 // if not equual to 1, means like A->B->A, does not fit to Window Size automatically
-                if (data.m_currentZoomLevel == 1 && finalZoom != data.m_currentZoomLevel) {
+                // 20170502 update: after add data.m_scheduleZoomFit, the check == 1 may not be needed
+                if (finalZoom != data.m_currentZoomLevel) {
                     // console.log("Aspect debug: try to send zoom level");
                     this.m_view.sendZoomLevel(finalZoom, data.id);
 
@@ -229,6 +257,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param content {boolean} - true if the content should be visible; false otherwise.
          */
         _adjustControlVisibility : function(content){
+
             this.m_controlsVisible = content;
             this._layoutControls();
         },
@@ -252,6 +281,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Call back that initializes the View when data is loaded.
          */
         _dataLoadedCB : function(){
+
             if (this.m_view === null) {
                 this.m_view = new skel.boundWidgets.View.PanZoomView(this.m_identifier);
                 this.m_view.installHandler( skel.boundWidgets.View.InputHandler.Drag );
@@ -365,13 +395,49 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Initialize the label for displaying cursor statistics.
          */
         _initStatistics : function(){
+
             if ( this.m_statLabel === null ){
                 var path = skel.widgets.Path.getInstance();
                 var viewPath = this.m_identifier + path.SEP + path.VIEW;
+
                 this.m_statLabel = new skel.boundWidgets.Label( "", "", viewPath, function( anObject){
+                    // this callback function will be called for everytime it receives new cursor pixel value coordinate
+                    // from flushstate
                     return anObject.formattedCursorCoordinates;
                 });
                 this.m_statLabel.setRich( true );
+            }
+        },
+
+        /**
+         * Initialize the label for displaying current file name.
+         */
+        _initFileLabel: function() {
+            if ( this.m_fileLabel === null ){
+                this.m_fileLabel = new qx.ui.basic.Label();
+            }
+        },
+
+        _getCurrentFileName: function() {
+            if (!this.m_datas) {
+                return ""
+            }
+
+            var len = this.m_datas.length;
+
+            for (var i = 0; i < len; i++) {
+                var layerData = this.m_datas[i];
+                if (layerData.selected == true && layerData.name) {
+                    return layerData.name;
+                }
+            }
+
+            return "";
+        },
+
+        _updateFileLabel: function() {
+            if (this.m_fileLabel) {
+                this.m_fileLabel.setValue(this._getCurrentFileName());
             }
         },
 
@@ -393,8 +459,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             }
             var settingsCmd = skel.Command.Settings.SettingsImage.getInstance();
             this.m_supportedCmds.push( settingsCmd.getLabel());
-            var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
-            this.m_supportedCmds.push( popupCmd.getLabel() );
+            // var popupCmd = skel.Command.Popup.CommandPopup.getInstance();
+            // this.m_supportedCmds.push( popupCmd.getLabel() );
             var zoomResetCmd = skel.Command.Data.CommandZoomReset.getInstance();
             this.m_supportedCmds.push( zoomResetCmd.getLabel() );
             var panResetCmd = skel.Command.Data.CommandPanReset.getInstance();
@@ -437,11 +503,15 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Add/remove content based on user visibility preferences.
          */
         _layoutControls : function(){
+
             this.m_content.removeAll();
             this.m_content.add( this.m_viewContent, {flex:1} );
             if ( this.m_statisticsVisible ){
                 this.m_content.add( this.m_statLabel );
+                this.m_content.add(this.m_fileLabel);
+                this._updateFileLabel();
             }
+
             if ( this.m_controlsVisible ){
                 this.m_content.add( this.m_imageControls );
             }
@@ -588,7 +658,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             // 1. open any new file (two times callback, but the later one has correct selected info)
             // 2. switch a opened data (1 callback)
             var val = this.m_sharedVarStack.get();
-            if ( val ){
+            if (val) {
                 try {
                     var winObj = JSON.parse( val );
 
@@ -597,7 +667,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     //Add close menu buttons for all the images that are loaded.
                     var dataObjs = winObj.layers;
                     var visibleData = false;
-                    if ( dataObjs ){
+                    if (dataObjs) {
                         for ( var j = 0; j < dataObjs.length; j++ ){
                             if ( dataObjs[j].visible ){
                                 visibleData = true;
@@ -606,9 +676,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
 
-                    if ( dataObjs) {
+                    if (dataObjs) {
                         var len = dataObjs.length;
-                        for ( var i = 0; i < len; i++ ){
+                        for (var i = 0; i < len; i++) {
                             var newDataObj = dataObjs[i];
                             this._setupDefaultLayerData(newDataObj, oldDatas);
 
@@ -626,16 +696,9 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                         }
                     }
 
-                    if (this.m_datas && this.m_datas.length > 0){
-
-                        //TODO 1. It is possible that we do not set this to true when switching back to the opened file
-                        //     2. It is possible that storing m_scheduleZoomFit as data.m_scheduleZoomFit but no effect now
-                        this.m_scheduleZoomFit = true;
-                    }
-
-                    if ( !visibleData ){
+                    if (!visibleData) {
                         //No images to show so set the view hidden.
-                        if ( this.m_view !== null ){
+                        if (this.m_view !== null) {
                             this.m_view.setVisibility( "hidden" );
                         }
                     }
@@ -643,6 +706,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
                     dataCmd.datasChanged();
                     this._initContextMenu();
 
+                    // to show the file name of the current image
+                    this._updateFileLabel();
                 }
                 catch( err ){
                     console.log( "DisplayWindowImage could not parse: "+val );
@@ -696,12 +761,16 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * Implemented to initialize the context menu.
          */
         windowIdInitialized : function() {
+
             arguments.callee.base.apply(this, arguments);
 
             this._registerControlsStack();
             this._registerControlsRegion();
             this._initStatistics();
-            this._dataLoadedCB();
+            this._initFileLabel();
+
+            // commnet this to avoild splash black empty image when launching CARTA, use lazy loading
+            // this._dataLoadedCB();
 
             //Get the shared variable for preferences
             this.initializePrefs();
@@ -713,6 +782,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
          * @param winObj {Object} - an object containing server side information values.
          */
         windowSharedVarUpdate : function( winObj ){
+
             if ( winObj !== null ){
                 this.m_autoClip = winObj.autoClip;
                 this.m_clipPercent = winObj.clipValueMax - winObj.clipValueMin;
@@ -721,7 +791,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         },
 
         m_zoomAllmode : false,
-        m_scheduleZoomFit : false,
+        // m_scheduleZoomFit : false,
         m_autoClip : false,
         m_clipPercent : 0,
 
@@ -741,6 +811,7 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
         m_imageControls : null,
         m_controlsVisible : false,
         m_statLabel : null,
+        m_fileLabel : null,
         m_statisticsVisible : false,
         m_shapes : [ "Rectangle", "Ellipse", "Point", "Polygon" ]
     }

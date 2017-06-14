@@ -6,27 +6,27 @@ Converter( oldUnits, newUnits ) {
 
 }
 
-double ConverterWavelength::toPixel( double value, casa::SpectralCoordinate spectralCoordinate) {
+double ConverterWavelength::toPixel( double value, casacore::SpectralCoordinate spectralCoordinate) {
     spectralCoordinate.setWavelengthUnit( oldUnits.toStdString() );
-    casa::Vector<casa::Double> frequencyVector(1);
-    casa::Vector<casa::Double> wavelengthVector(1);
+    casacore::Vector<casacore::Double> frequencyVector(1);
+    casacore::Vector<casacore::Double> wavelengthVector(1);
     wavelengthVector[0] = value;
     spectralCoordinate.wavelengthToFrequency(frequencyVector, wavelengthVector );
-    casa::Double pixelValue;
+    casacore::Double pixelValue;
     spectralCoordinate.toPixel( pixelValue, frequencyVector[0]);
     return pixelValue;
 }
 
-casa::Vector<double> ConverterWavelength::convert( const casa::Vector<double>& oldValues,
-        casa::SpectralCoordinate spectralCoordinate) {
-    casa::Vector<double> resultValues( oldValues.size() );
+casacore::Vector<double> ConverterWavelength::convert( const casacore::Vector<double>& oldValues,
+        casacore::SpectralCoordinate spectralCoordinate) {
+    casacore::Vector<double> resultValues( oldValues.size() );
     resultValues = oldValues;
     convertWavelength( resultValues, oldUnits, newUnits, spectralCoordinate );
     return resultValues;
 }
 
-void ConverterWavelength::convertWavelength( casa::Vector<double> &resultValues,
-        QString& sourceUnits, QString& destUnits, casa::SpectralCoordinate& coord) {
+void ConverterWavelength::convertWavelength( casacore::Vector<double> &resultValues,
+        QString& sourceUnits, QString& destUnits, casacore::SpectralCoordinate& coord) {
     int sourceIndex = Converter::WAVELENGTH_UNITS.indexOf( sourceUnits );
     int destIndex = Converter::WAVELENGTH_UNITS.indexOf( destUnits );
     Converter::convert( resultValues, sourceIndex, destIndex, coord );

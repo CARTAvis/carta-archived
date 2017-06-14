@@ -282,6 +282,22 @@ QString AnimatorType::setFrameStep( int step ){
     return result;
 }
 
+QString AnimatorType::setFrame( int frameIndex, QStringList fileList ) {
+    QString result;
+    //Set our state to reflect the new image.
+    if ( frameIndex >= 0 ){
+        int oldIndex = m_select->getIndex();
+        if ( frameIndex != oldIndex ){
+            result = m_select->setIndex( frameIndex, fileList );
+        }
+    }
+    else {
+        result="Frame index must be nonnegative: "+QString::number(frameIndex);
+    }
+    return result;
+}
+
+
 QString AnimatorType::setFrame( int frameIndex ){
     QString result;
     //Set our state to reflect the new image.

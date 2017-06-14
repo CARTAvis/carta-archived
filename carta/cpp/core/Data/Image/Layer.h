@@ -183,7 +183,7 @@ protected:
      * @param outputSize - the size of the image in pixels.
      * @return a QString containing cursor text.
      */
-    virtual QString _getCursorText( int mouseX, int mouseY,
+    virtual QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
             const std::vector<int>& frames, const QSize& outputSize ) = 0;
 
 
@@ -266,10 +266,11 @@ protected:
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
      * @return - a list of (location,intensity) pairs.
      */
     virtual std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles ) const = 0;
+            const std::vector<double>& percentiles, int stokeFrame) const = 0;
 
     /**
      * Returns whether or not the layer can be loaded with the indicated frames.
@@ -514,7 +515,8 @@ protected:
      */
     virtual QString _setFileName( const QString& fileName, bool* success );
 
-
+    virtual QString _getFileName();
+    
     /**
      * Give the layer (a more user-friendly) name.
      * @param id - an identifier for the layer to rename.

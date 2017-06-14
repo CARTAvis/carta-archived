@@ -48,6 +48,8 @@ QSizeF ShapeRectangle::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapeRectangle::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
+	pen.setCosmetic(true);
+        pen.setColor(m_color);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon
@@ -82,7 +84,7 @@ void ShapeRectangle::handleDragDone( const QPointF & pt ){
 	}
 	else {
 		// calculate offset to move the shadow polygon to match the un-edited shape
-		if ( !isEditMode() ){
+		if ( !isEditMode() && m_dragMode ){
 			_moveShadow( pt );
 			_syncShadowToCPs();
 		}
@@ -111,7 +113,15 @@ bool ShapeRectangle::isCorner( const QPointF& pt ) const {
 
 bool ShapeRectangle::isPointInside( const QPointF & pt ) const {
 	bool pointInside = m_rectRegion-> isPointInside( {pt} );
-	return pointInside;
+	int cornerCount = m_controlPoints.size();
+	bool onControlPoint = false;
+	for ( int i = 0; i < cornerCount; i++ ){
+	  onControlPoint = m_controlPoints[i]->isPointInside( {pt} );
+	  if (onControlPoint){
+	    break;
+	  }
+	}
+	return (pointInside|onControlPoint);
 }
 
 void ShapeRectangle::_moveShadow( const QPointF& pt ){
@@ -153,5 +163,3 @@ void ShapeRectangle::_syncShadowToCPs(){
 }
 }
 }
-
-

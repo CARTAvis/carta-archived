@@ -159,7 +159,7 @@ AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
 
 AxisInfo::KnownType DataSource::_getAxisXType() const {
     return _getAxisType( m_axisIndexX );
-};
+}
 
 AxisInfo::KnownType DataSource::_getAxisYType() const {
     return _getAxisType( m_axisIndexY );
@@ -214,8 +214,8 @@ QString DataSource::_getSkyCS(){
     return coordName;
 }
 
-
-QString DataSource::_getCursorText( int mouseX, int mouseY,
+// print the pixel value and x-y coordinate for the cursor on the image viewer
+QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
         Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
         double zoom, const QPointF& pan, const QSize& outputSize ){
     QString str;
@@ -227,17 +227,40 @@ QString DataSource::_getCursorText( int mouseX, int mouseY,
         double imgX = imgPt.x();
         double imgY = imgPt.y();
 
+        // set print out values with rounded imgX and imgY
+        QString round_imgX = QString::number(imgX, 'f', 2);
+        QString round_imgY = QString::number(imgY, 'f', 2);
+
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
-
 
         QString coordName = m_coords->getName( cf->skyCS() );
         //out << "Default sky cs:" << coordName << "\n";
 
         QString pixelValue = _getPixelValue( round(imgX), round(imgY), frames );
         QString pixelUnits = _getPixelUnits();
-        out << "Pixel value:" << pixelValue << " " << pixelUnits << " at ";
-        out <<"pixel:" << imgX << "," << imgY << "\n";
+
+        out << "Pixel value = " << pixelValue << " " << pixelUnits << " at ";
+        out << "(X, Y) = " << "("<< round_imgX << ", " << round_imgY << ")" << "\n";
+
+        // get the Min. and Max. values of intensity for Quantile mode
+        if (isAutoClip == true) {
+            std::vector<int> mFrames = _fitFramesToImage( frames );
+            std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+            std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames);
+
+            // set print out values with rounded intensities
+            QString sci_intensityMin = QString::number(intensity[0], 'E', 3);
+            QString sci_intensityMax = QString::number(intensity[1], 'E', 3);
+
+            double percent = (maxPercent - minPercent)*100;
+            out << "<span style=\"color: #000000;\">bounds for "
+                << percent << "% clipping per frame: "
+                << "[" << sci_intensityMin
+                << ", " << sci_intensityMax << "] "
+                << "</span>"
+                << "\n";
+        }
 
         cf-> setSkyCS( cs );
         out << "[ " << m_coords->getName( cs ) << " ] ";
@@ -330,7 +353,10 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
         if ( rawData != nullptr ){
             Carta::Lib::NdArray::TypedView<double> view( rawData, true );
             double val =  view.get( { valX, valY } );
-            pixelValue = QString::number( val );
+
+            // set the rounded pixel value to print out
+            pixelValue = QString::number(val, 'E', 3);
+            //pixelValue = QString::number( val );
         }
     }
     return pixelValue;
@@ -401,58 +427,85 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
-// TODO: create another function which only looks for the intensity. Most calling functions don't need the location.
+// 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
 std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles ){
+        const std::vector<double>& percentiles, int stokeFrame ){
+
     //See if it is in the cached percentiles first.
     int percentileCount = percentiles.size();
     std::vector<std::pair<int,double> > intensities(percentileCount,std::pair<int,double>(-1,0));
+
     //Find all the intensities we can in the cache.
     int foundCount = 0;
     for ( int i = 0; i < percentileCount; i++ ){
 
-        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i]);
+        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i], stokeFrame);
+
         if ( val.first>= 0 ){
+
             qDebug() << "++++++++ found location and intensity in memory cache";
             intensities[i] = val;
             foundCount++;
+
         } else if (m_diskCache) {
+
             // disk cache
             // Look for the location first
-            QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+            QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
             QByteArray locationVal;
+
             bool locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
 
             qDebug() << "++++++++ location key is" << locationKey.toUtf8();
 
             if (locationInCache) {
-                QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+
+                QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
                 QByteArray intensityVal;
+
                 bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
 
                 qDebug() << "++++++++ intensity key is" << intensityKey.toUtf8();
 
                 if (intensityInCache) {
+
                     qDebug() << "++++++++ found location and intensity in disk cache";
                     intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
                     foundCount++;
+
                     // put them in the memory cache
-                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second, stokeFrame);
                 }
             }
         }
 
-        qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i].second << "and location is" << intensities[i].first;
+        qDebug() << "++++++++ For percentile" << percentiles[i]
+                 << "intensity is" << intensities[i].second
+                 << "and location is" << intensities[i].first << "(channel)";
     }
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if ( foundCount < percentileCount ){
+
         qDebug() << "++++++++ Calculating some values";
 
         std::vector<std::pair<int,double> > allValues;
-        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
 
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+        // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+        qDebug() << "++++++++ Spectral Index No. is " << spectralIndex << "; Stoke Index No. is " << stokeIndex;
+
+        // get raw data (for all stokes if any) in order to sort the raw data set by selection algorithm
+        // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+
+        // get raw data (only for the stoke I) in order to sort the raw data set by selection algorithm
+        int stokeSliceIndex = stokeFrame; // -1 is for no stoke; 0 is for stoke I; 1 is for stoke Q; 2 is for stoke U; 3 is for stoke V
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke( frameLow, frameHigh, spectralIndex, stokeIndex, stokeSliceIndex );
+        qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
+        qDebug() << "++++++++ set the Stoke Index for Percentile=" << stokeSliceIndex
+                 << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+
         if ( rawData == nullptr ){
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
             return intensities;
@@ -470,6 +523,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         allValues.reserve(total_size);
         int index = 0;
 
+        // filter the raw data and save in a pair array {key, value} if the value is finite
         view.forEach( [&allValues, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( std::make_pair(index, val) );
@@ -477,28 +531,45 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             index++;
         }
         );
+        qDebug() << "++++++++ raw data index number=" << index;
 
         if ( allValues.size() > 0 ){
 
             int divisor = total_size;
             if (spectralIndex != -1) {
+                // "total_size" is the total number of data set including channels and stokes.
+                // The dimension of SPECTRAL index, dims[spectralIndex], is the total number of channel.
+                // So the divisor is the total number of data set for each channel (not for each stoke),
+                // and each channel may contains multiple stokes.
                 divisor /= dims[spectralIndex];
             }
 
-            // only compare the intensity values; ignore the indices
+            // return bool value: ture or false
+            // following code line is to only compare the intensity values and ignore the indices
             auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
 
             for ( int i = 0; i < percentileCount; i++ ){
-                //Missing intensity
+
+                //Missing intensity key value, which means we do not find it in the memory cache and the disk cache
                 if ( intensities[i].first < 0 ){
+
+                    // The definition of percentile (e.q. 99%) in the following code lines is to get elements from data array that
+                    // are in the range (e.q. 0.5%-th ~ 99.5%-th of elements), note the data array has to be sorted first.
+                    // Note this is not getting elements in the Gaussian distribution range (e.q. 0.5% ~ 99.5%).
                     int locationIndex = allValues.size() * percentiles[i] - 1;
+
                     if ( locationIndex < 0 ){
                         locationIndex = 0;
                     }
 
+                    // Following code line sort the partial raw data set by selection algorithm (only for array values and not for array keys).
+                    // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
 
+                    // get the intensity value
                     intensities[i].second = allValues[locationIndex].second;
+
+                    // get the channel index corresponding to the above intensity value
                     intensities[i].first = allValues[locationIndex].first / divisor;
 
                     if ( frameLow >= 0 ){
@@ -506,18 +577,20 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     }
 
                     // put calculated values in both the memory cache and the disk cache
-
-                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second );
+                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second, stokeFrame);
 
                     if (m_diskCache) {
-						QString locationKey = QString("%1/%2/%3/%4/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
-						QString intensityKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(percentiles[i]);
+
+                        QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
+                        QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
 
 						m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
 						m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
 					}
 
-                    qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i].second << "and location is" << intensities[i].first;
+                    qDebug() << "++++++++ For percentile" << percentiles[i]
+                             << "intensity is" << intensities[i].second
+                             << "and location is" << intensities[i].first << "(channel)";
                 }
             }
         }
@@ -526,10 +599,10 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
 }
 
 std::vector<std::pair<int,double> > DataSource::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles){
-   //See if we can find it in the least recently used cache; otherwise, look it up.
+        const std::vector<double>& percentiles, int stokeFrame ){
+    //See if we can find it in the least recently used cache; otherwise, look it up.
     std::vector<std::pair<int,double> > intensities = _getIntensityCache( frameLow,
-            frameHigh, percentiles );
+            frameHigh, percentiles, stokeFrame );
     return intensities;
 }
 
@@ -622,12 +695,25 @@ QString DataSource::_getPixelUnits() const {
 Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, int frameEnd, int axisIndex ) const {
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     if ( m_image ){
+        // get the image dimension:
+        // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
+        // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis,   and dim[3]: channel-axis
+        //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
         int imageDim =m_image->dims().size();
+
         SliceND frameSlice = SliceND().next();
+
         for ( int i = 0; i < imageDim; i++ ){
+
+            // only deal with the extra dimensions other than x-axis and y-axis
             if ( i != m_axisIndexX && i != m_axisIndexY ){
+
+                // declare and set the variable "sliceSize" as the total number of channel or stoke
                 int sliceSize = m_image->dims()[i];
+                qDebug() << "++++++++ For the image dimension: dim[" << i << "], the total number of slices is " << sliceSize;
+
                 SliceND& slice = frameSlice.next();
+
                 //If it is the target axis,
                 if ( i == axisIndex ){
                    //Use the passed in frame range
@@ -654,13 +740,67 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
     return rawData;
 }
 
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int frameStart, int frameEnd, int axisIndex,
+        int axisStokeIndex, int stokeSliceIndex ) const {
+
+    Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
+
+    if ( m_image ){
+        // get the image dimension:
+        // if the image dimension=3, then dim[0]: x-axis, dim[1]: y-axis, and dim[2]: channel-axis
+        // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
+        //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
+        int imageDim =m_image->dims().size();
+
+        SliceND frameSlice = SliceND().next();
+
+        for ( int i = 0; i < imageDim; i++ ){
+
+            // only deal with the extra dimensions other than x-axis and y-axis
+            if ( i != m_axisIndexX && i != m_axisIndexY ){
+
+                // get the number of slice (e.q. channel) in this dimension
+                int sliceSize = m_image->dims()[i];
+
+                SliceND& slice = frameSlice.next();
+
+                // If it is the target axis..
+                if ( i == axisIndex ){
+                   // Use the passed in frame range
+                   if ( 0 <= frameStart && frameStart < sliceSize &&
+                        0 <= frameEnd && frameEnd < sliceSize ){
+                       slice.start( frameStart );
+                       slice.end( frameEnd + 1);
+                   } else {
+                       slice.start(0);
+                       slice.end( sliceSize);
+                   }
+                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3){
+                    // If the stoke-axis is exist (axisStokeIndex != -1),
+                    // we only consider the stoke I in the first element of stoke-axis.
+                    qDebug() << "++++++++ we only consider the stoke I in the first element of stoke-axis" ;
+                    slice.start( stokeSliceIndex );
+                    slice.end( stokeSliceIndex + 1 );
+                } else {
+                    // Or the entire range
+                    qDebug() << "++++++++ the total number of channel is " << sliceSize;
+                    slice.start( 0 );
+                    slice.end( sliceSize );
+                }
+
+                slice.step( 1 );
+            }
+        }
+        rawData = m_image->getDataSlice( frameSlice );
+    }
+    return rawData;
+}
 
 int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
     int cacheIndex = 0;
     if ( m_image ){
         int imageSize = m_image->dims().size();
         int mult = 1;
-
         for ( int i = imageSize-1; i >= 0; i-- ){
             if ( i != m_axisIndexX && i != m_axisIndexY ){
                 AxisInfo::KnownType axisType = _getAxisType( i );
@@ -668,7 +808,6 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
                 if ( AxisInfo::KnownType::OTHER != axisType ){
                     int index = static_cast<int>( axisType );
                     frame = frames[index];
-
                 }
                 cacheIndex = cacheIndex + mult * frame;
                 int frameCount = m_image->dims()[i];
@@ -677,6 +816,52 @@ int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
         }
     }
     return cacheIndex;
+}
+
+std::vector<int> DataSource::_getStokeIndex( const std::vector<int>& frames ) const {
+    std::vector<int> stokeIndex = {-1, -1};
+    if ( m_permuteImage ) {
+        int imageDim =m_permuteImage->dims().size();
+        std::vector<int> indices = _getPermOrder();
+        for ( int i = 0; i < imageDim; i++ ) {
+            if ( i != 0 && i != 1 ) {
+                int frameIndex = 0;
+                int axisIndex = -1;
+                int thisAxis = indices[i];
+                AxisInfo::KnownType type = _getAxisType( thisAxis );
+                if ( type == AxisInfo::KnownType::STOKES ) {
+                    axisIndex = static_cast<int>( type );
+                    frameIndex = frames[axisIndex];
+                    stokeIndex[0] = axisIndex;
+                    stokeIndex[1] = frameIndex;
+                }
+            }
+        }
+    }
+    return stokeIndex;
+}
+
+std::vector<int> DataSource::_getChannelIndex( const std::vector<int>& frames ) const {
+    std::vector<int> channelIndex = {-1, -1};
+    if ( m_permuteImage ) {
+        int imageDim =m_permuteImage->dims().size();
+        std::vector<int> indices = _getPermOrder();
+        for ( int i = 0; i < imageDim; i++ ) {
+            if ( i != 0 && i != 1 ) {
+                int frameIndex = 0;
+                int axisIndex = -1;
+                int thisAxis = indices[i];
+                AxisInfo::KnownType type = _getAxisType( thisAxis );
+                if ( type == AxisInfo::KnownType::SPECTRAL ) {
+                    axisIndex = static_cast<int>( type );
+                    frameIndex = frames[axisIndex];
+                    channelIndex[0] = axisIndex;
+                    channelIndex[1] = frameIndex;
+                }
+            }
+        }
+    }
+    return channelIndex;
 }
 
 std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getPermutedImage() const {
@@ -690,8 +875,10 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> DataSource::_getPermutedImage
 }
 
 Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vector<int> frames ) const {
+
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
     std::vector<int> mFrames = _fitFramesToImage( frames );
+
     if ( m_permuteImage ){
         int imageDim =m_permuteImage->dims().size();
 
@@ -700,21 +887,37 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( const std::vecto
 
         SliceND nextSlice = SliceND();
         SliceND& slice = nextSlice;
+
         for ( int i = 0; i < imageDim; i++ ){
-            //Since the image has been permuted the first two indices represent
-            //the display axes.
+
+            //Since the image has been permuted the first two indices represent the display axes.
             if ( i != 0 && i != 1 ){
+
                 //Take a slice at the indicated frame.
                 int frameIndex = 0;
-		int thisAxis = indices[i];
+                int thisAxis = indices[i];
                 AxisInfo::KnownType type = _getAxisType( thisAxis );
-                if ( AxisInfo::KnownType::OTHER != type ){
-                    int axisIndex = static_cast<int>( type );
+
+                // check the type of axis and its indix of slices
+                int axisIndex = -1;
+                if ( type == AxisInfo::KnownType::SPECTRAL ) {
+                    axisIndex = static_cast<int>( type );
                     frameIndex = mFrames[axisIndex];
+                    // qDebug() << "++++++++ SPECTRAL axis Index with permutation is" << axisIndex << ", the current frame Index is" << frameIndex;
+                } else if ( type == AxisInfo::KnownType::STOKES ) {
+                    axisIndex = static_cast<int>( type );
+                    frameIndex = mFrames[axisIndex];
+                    // qDebug() << "++++++++ STOKE axis Index with permutation is" << axisIndex << ", the current frame Index is" << frameIndex;
+                } else if ( type != AxisInfo::KnownType::OTHER ) {
+                    axisIndex = static_cast<int>( type );
+                    frameIndex = mFrames[axisIndex];
+                    // qDebug() << "++++++++ axis Index with permutation is" << axisIndex << ", the current frame Index is" << frameIndex;
                 }
+
                 slice.start( frameIndex );
                 slice.end( frameIndex + 1);
             }
+
             if ( i < imageDim - 1 ){
                 slice.next();
             }
@@ -813,7 +1016,7 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
 		//Update the clip values
 		if ( recomputeClipsOnNewFrame ){
 			_updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
-		}
+        }
 		QString cacheId=m_pixelPipeline-> cacheId();
 		m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
 
@@ -1017,32 +1220,41 @@ void DataSource::_setGamma( double gamma ){
     m_renderService->setPixelPipeline( m_pixelPipeline, m_pixelPipeline->cacheId());
 }
 
+std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames) {
 
-void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
-        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
     std::vector<double> clips = m_quantileCache[ quantileIndex].m_clips;
+    std::vector<int> stokeIndex = _getStokeIndex( mFrames );
+    std::vector<int> channelIndex = _getChannelIndex( mFrames );
+
     if ( clips.size() < 2  ||
             m_quantileCache[quantileIndex].m_minPercentile != minClipPercentile  ||
             m_quantileCache[quantileIndex].m_maxPercentile != maxClipPercentile ) {
 
-		bool minClipInCache(0);
-		bool maxClipInCache(0);
+        bool minClipInCache(0);
+        bool maxClipInCache(0);
 
-		// TODO: check if these are the right frame values and percentile values
-		QString minClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(minClipPercentile);
-		QString maxClipKey = QString("%1/%2/%3/%4/intensity").arg(m_fileName).arg(frames[0]).arg(frames.back()).arg(maxClipPercentile);
+        // 2017/05/23   C.C. Chiang: check if these are the right frame, stoke and percentile values
+        QString minClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
+        QString maxClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
+        QString minClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
+        QString maxClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
 
-		qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8() << "maxClipKey" << maxClipKey.toUtf8();
+        qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
+        qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
+        qDebug() << "++++++++ minClipLocationKey" << minClipLocationKey.toUtf8();
+        qDebug() << "++++++++ maxClipLocationKey" << maxClipLocationKey.toUtf8();
+        qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
 
-		QByteArray minClipVal;
-		QByteArray maxClipVal;
+        QByteArray minClipVal;
+        QByteArray maxClipVal;
 
-		if (m_diskCache) {
-			minClipInCache = m_diskCache->readEntry(minClipKey.toUtf8(), minClipVal);
-			maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
-		}
+        if (m_diskCache) {
+            minClipInCache = m_diskCache->readEntry(minClipKey.toUtf8(), minClipVal);
+            maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
+        }
 
         if (minClipInCache && maxClipInCache) {
             clips.clear();
@@ -1057,8 +1269,11 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
             if (m_diskCache) {
                 m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
                 m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+                m_diskCache->setEntry( minClipLocationKey.toUtf8(), i2qb(0), 0);
+                m_diskCache->setEntry( maxClipLocationKey.toUtf8(), i2qb(0), 0);
+
                 qDebug() << "++++++++ calculated clips and put in cache";
-			}
+            }
         }
 
         qDebug() << "++++++++ clips are" << clips[0] << "and" << clips[1];
@@ -1067,6 +1282,13 @@ void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInter
         m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
         m_quantileCache[quantileIndex].m_maxPercentile = maxClipPercentile;
     }
+    return clips;
+}
+
+void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
+    // get quantile intensity cache
+    std::vector<double> clips = _getQuantileIntensityCache(view, minClipPercentile, maxClipPercentile, frames);
     m_pixelPipeline-> setMinMax( clips[0], clips[1] );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }

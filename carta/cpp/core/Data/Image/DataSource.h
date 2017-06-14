@@ -139,7 +139,7 @@ private:
      * @param frames - a list of current image frames.
      * @return a QString containing cursor text.
      */
-    QString _getCursorText( int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
+    QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY, Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,
             double zoom, const QPointF& pan, const QSize& outputSize );
 
 
@@ -215,20 +215,22 @@ private:
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
      * @return - a list of corresponding (location,intensity) pairs.
      */
     std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles);
+            const std::vector<double>& percentiles, int stokeFrame);
 
     /**
      * Returns the intensities corresponding to a given percentiles.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
      * @return - a list of corresponding (location,intensity) pairs.
      */
     std::vector<std::pair<int,double> > _getIntensityCache( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles );
+        const std::vector<double>& percentiles, int stokeFrame );
 
     /**
      * Returns the color used to draw nan pixels.
@@ -301,6 +303,10 @@ private:
 
     int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
 
+    std::vector<int> _getStokeIndex( const std::vector<int>& frames ) const;
+
+    std::vector<int> _getChannelIndex( const std::vector<int>& frames ) const;
+
     /**
      * Returns the raw data as an array.
      * @param axisIndex - an index of an image axis.
@@ -310,6 +316,19 @@ private:
      * @return the raw data or nullptr if there is none.
      */
     Carta::Lib::NdArray::RawViewInterface *  _getRawData( int frameLow, int frameHigh, int axisIndex ) const;
+
+    /**
+     * Returns the raw data as an array.
+     * @param axisIndex - an index of an image axis.
+     * @param frameLow the lower bound for the frames or -1 for the whole image.
+     * @param frameHigh the upper bound for the frames or -1 for the whole image.
+     * @param axisIndex - the axis for the frames or -1 for all axes.
+     * @param axisStokeIndex - the axis for the stoke frame.
+     * @param stokeSliceIndex - the index of the stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V).
+     * @return the raw data or nullptr if there is none.
+     */
+    Carta::Lib::NdArray::RawViewInterface *  _getRawDataForStoke( int frameLow, int frameHigh, int axisIndex,
+            int axisStokeIndex, int stokeSliceIndex ) const;
 
     /**
      * Returns the raw data for the current view.
@@ -475,6 +494,8 @@ private:
      */
     void _viewResize( const QSize& newSize );
 
+    std::vector<double> _getQuantileIntensityCache( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
+            double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
     void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );

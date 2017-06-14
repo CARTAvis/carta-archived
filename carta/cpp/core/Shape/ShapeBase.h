@@ -7,6 +7,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/InputEvents.h"
 #include "CartaLib/VectorGraphics/VGList.h"
+#include <QtCore/qmath.h>
 #include <QObject>
 
 namespace Carta {
@@ -61,6 +62,12 @@ public:
 	 * @retun - information about the cursor position in the shape.
 	 */
 	QString getCursor() const;
+
+        /**
+	 * Return information about the color of the shape.
+	 * @retun - information about the color of the shape.
+	 */
+	QColor getColor() const;
 
 	/**
 	 * Return the size of the bounding box containing the shape.
@@ -131,6 +138,12 @@ public:
 	 */
 	void setCursor( const QString & value );
 
+        /**
+	 * Set the color of the shape;
+	 * @param color - the color to set.
+	 */
+	virtual void setColor( QColor color );
+
 	/**
 	 * Set whether or not the shape can be deleted.
 	 * @param value - true if the shape can be deleted; false otherwise.
@@ -183,6 +196,7 @@ protected:
 	const static QPen outlinePen;
 	bool m_dragMode;
 	QPointF m_dragStart;
+        QColor m_color;
 	int m_dragControlIndex;
 	std::vector < std::shared_ptr<ControlPointEditable> > m_controlPoints;
 

@@ -166,13 +166,13 @@ QString Stack::_getCurrentId() const {
     return id;
 }
 
-QString Stack::_getCursorText( int mouseX, int mouseY ){
+QString Stack::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY) {
     int dataIndex = _getIndexCurrent();
     QString cursorText;
     if ( dataIndex >= 0 ){
         std::vector<int> frameIndices = _getFrameIndices();
         QSize outputSize = m_stackDraw->getClientSize();
-        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY,
+        cursorText = m_children[dataIndex]->_getCursorText( isAutoClip, minPercent, maxPercent, mouseX, mouseY,
                 frameIndices, outputSize );
     }
     return cursorText;
@@ -229,6 +229,14 @@ int Stack::_getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     return upperBound;
 }
 
+QStringList Stack::_getFileList() {
+
+    QStringList nameList;
+    for ( std::shared_ptr<Layer> layer : m_children ){
+        nameList.append( layer->_getFileName());
+    }
+    return nameList;
+}
 
 std::vector<int> Stack::_getImageSlice() const {
     std::vector<int> result;

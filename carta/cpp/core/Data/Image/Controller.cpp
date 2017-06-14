@@ -54,7 +54,7 @@ const QString Controller::CURSOR = "formattedCursorCoordinates";
 const QString Controller::CENTER = "center";
 const QString Controller::IMAGE = "image";
 const QString Controller::PAN_ZOOM_ALL = "panZoomAll";
-const QString Controller::PLUGIN_NAME = "CasaImageLoader";
+const QString Controller::PLUGIN_NAME = "ImageViewer";
 const QString Controller::STACK_SELECT_AUTO = "stackAutoSelect";
 
 
@@ -116,9 +116,6 @@ Controller::Controller( const QString& path, const QString& id ) :
 	m_regionControls.reset( regionObj );
 }
 
-
-
-
 void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 	m_stack->_addContourSet( contourSet );
 }
@@ -128,7 +125,6 @@ QString Controller::addData(const QString& fileName, bool* success) {
 	QString result = DataFactory::addData( this, fileName, success );
     return result;
 }
-
 
 QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     QString result = m_stack->_addDataImage( fileName, success );
@@ -146,8 +142,9 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-
-
+QStringList Controller::getFileList(){
+  return m_stack->_getFileList();
+}
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
     QString result;
@@ -241,7 +238,7 @@ void Controller::_contourSetRemoved( const QString setName ){
 void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
         bool applyAll ){
     m_stack->_displayAxesChanged( displayAxisTypes, applyAll );
-    emit axesChanged();
+    emit axesChanged(); //animator has this signal axesChanged, also frameChanged
     _updateCursorText( true );
 }
 
@@ -366,7 +363,9 @@ std::vector<std::pair<int,double> > Controller::getIntensity( const std::vector<
 }
 
 std::vector<std::pair<int,double> > Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
-    std::vector<std::pair<int,double> > intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles );
+    int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<std::pair<int,double> > intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
     return intensities;
 }
 
@@ -716,7 +715,7 @@ void Controller::_initializeCallbacks(){
             double centerY = vals[1];
             double level = vals[2];
             double layerId = vals[3];
-            updatePanZoomLevel( centerX, centerY, level, layerId );
+            updatePanZoomLevelJS( centerX, centerY, level, layerId );
         }
         return "";
     });
@@ -1093,7 +1092,7 @@ void Controller::saveImageResultCB( bool result ){
 
 void Controller::setAutoClip( bool autoClip ){
     bool oldAutoClip = m_state.getValue<bool>(AUTO_CLIP );
-    if ( autoClip != oldAutoClip ){
+    if ( autoClip != oldAutoClip ) {
         m_state.setValue<bool>( AUTO_CLIP, autoClip );
         m_state.flushState();
     }
@@ -1214,6 +1213,7 @@ QString Controller::setLayerName( const QString& id, const QString& name ){
     return result;
 }
 
+// 20170420, no one use yet
 QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     if ( indices.size() > 0 ){
@@ -1361,7 +1361,13 @@ void Controller::_updateCursorText(bool notifyClients ){
     QString formattedCursor;
     int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
     int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
-    QString cursorText = m_stack->_getCursorText( mouseX, mouseY);
+
+    // get Quantile information and show them on the image viewer
+    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+    bool isAutoClip = m_state.getValue<bool>(AUTO_CLIP);
+    QString cursorText = m_stack->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY);
+
     if ( !cursorText.isEmpty()){
         if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
             m_stateMouse.setValue<QString>( CURSOR, cursorText );
@@ -1387,8 +1393,7 @@ void Controller::_updateDisplayAxes(){
     }
 }
 
-
-void Controller::updatePanZoomLevel( double centerX, double centerY, double zoomLevel, double layerId ){
+void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId ){
     m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
     emit contextChanged();
     emit zoomChanged();

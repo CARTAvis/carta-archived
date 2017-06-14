@@ -81,6 +81,8 @@ private slots:
 
 private:
 
+    QStringList _getFileList();
+
     QString _addDataImage(const QString& fileName, bool* success );
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll );
@@ -91,7 +93,7 @@ private:
     QStringList _getCoords( double x, double y,
                 Carta::Lib::KnownSkyCS system ) const;
 
-    QString _getCursorText( int mouseX, int mouseY );
+    QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY );
 
     QList<std::shared_ptr<Layer> > _getDrawChildren() const;
     int _getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;

@@ -28,8 +28,8 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
     qDebug() << "CasaImageLoader plugin is handling hook #" << hookData.hookId();
     if( hookData.is<Carta::Lib::Hooks::Initialize>()) {
         // Register FITS and Miriad image types
-        casa::FITSImage::registerOpenFunction();
-        casa::MIRIADImage::registerOpenFunction();
+        casacore::FITSImage::registerOpenFunction();
+        casacore::MIRIADImage::registerOpenFunction();
         return true;
     }
 
@@ -55,9 +55,9 @@ std::vector<HookId> CasaImageLoader::getInitialHookList()
 }
 
 template <typename T>
-static CCImageBase::SharedPtr tryCast( casa::LatticeBase * lat)
+static CCImageBase::SharedPtr tryCast( casacore::LatticeBase * lat)
 {
-    typedef casa::ImageInterface<T> CCIT;
+    typedef casacore::ImageInterface<T> CCIT;
     CCIT * cii = dynamic_cast<CCIT *>(lat);
     typename CCImage<T>::SharedPtr res = nullptr;
     if( cii) {
@@ -78,23 +78,23 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
     // get the image type
-    casa::ImageOpener::ImageTypes filetype = casacore::ImageOpener::imageType(fname.toStdString());
+    casacore::ImageOpener::ImageTypes filetype = casacore::ImageOpener::imageType(fname.toStdString());
 
     // load image
-    casa::LatticeBase * lat = nullptr;
-    if(filetype == casa::ImageOpener::ImageTypes::AIPSPP)
+    casacore::LatticeBase * lat = nullptr;
+    if(filetype == casacore::ImageOpener::ImageTypes::AIPSPP)
     {
-        lat = casa::ImageOpener::openPagedImage ( fname.toStdString());
+        lat = casacore::ImageOpener::openPagedImage ( fname.toStdString());
         qDebug() << "\t-opened as paged image";
     }
-    else if(filetype != casa::ImageOpener::ImageTypes::UNKNOWN)
+    else if(filetype != casacore::ImageOpener::ImageTypes::UNKNOWN)
     {
-        lat = casa::ImageOpener::openImage ( fname.toStdString());
-        if(filetype == casa::ImageOpener::ImageTypes::FITS)
+        lat = casacore::ImageOpener::openImage ( fname.toStdString());
+        if(filetype == casacore::ImageOpener::ImageTypes::FITS)
         {
             qDebug() << "\t-opened as FITS image";
         }
-        else if(filetype == casa::ImageOpener::ImageTypes::MIRIAD )
+        else if(filetype == casacore::ImageOpener::ImageTypes::MIRIAD )
         {
             qDebug() << "\t-opened as MIRIAD image";
         }
@@ -122,19 +122,19 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     auto shapes = shape.asStdVector();
     qDebug() << "lat.shape = " << std::string( lat->shape().toString()).c_str();
     qDebug() << "lat.dataType = " << lat->dataType();
-    qDebug() << "Float type is " << casa::TpFloat;
+    qDebug() << "Float type is " << casacore::TpFloat;
 
     CCImageBase::SharedPtr res;
     res = tryCast<float>(lat);
     // Please note that the following code will not be reached
     // even if the FITS file is defined in 64 bit
     // and FitsHeaderExtractor::_CasaFitsConverter assumes that
-    // image is load in casa::ImageInterface < casa::Float > format
+    // image is load in casacore::ImageInterface < casacore::Float > format
     if( ! res) res = tryCast<double>(lat);
     if( ! res) res = tryCast<u_int8_t>(lat);
     if( ! res) res = tryCast<int16_t>(lat);
     if( ! res) res = tryCast<int32_t>(lat);
-    if( ! res) res = tryCast<casa::Int>(lat);
+    if( ! res) res = tryCast<casacore::Int>(lat);
     //Certain image related functions are defined only for Int, there is no
     //long long in the image class right now.  TempImage<int32_t> fails to
     //compile, for example.
@@ -148,13 +148,13 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
 
     // if the initial conversion attempt failed, try a LEL expression
 /*
-    casa::ImageInterface<casa::Float> * img = 0;
+    casacore::ImageInterface<casacore::Float> * img = 0;
     try {
         qDebug() << "Trying LEL conversion";
         std::string expr = "float('" + fname.toStdString() + "')";
         qDebug() << "Espression is " << expr.c_str();
-        casa::LatticeExpr<casa::Float> le ( casa::ImageExprParse::command( expr ));
-        img = new casa::ImageExpr<casa::Float> ( le, expr );
+        casacore::LatticeExpr<casacore::Float> le ( casacore::ImageExprParse::command( expr ));
+        img = new casacore::ImageExpr<casacore::Float> ( le, expr );
         qDebug() << "\t-LEL conversion successful";
         return CCImage<float>::create( img);
     } catch ( ... ) {} 

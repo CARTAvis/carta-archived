@@ -109,7 +109,6 @@ HEADERS += \
     IImageRenderService.h \
     Hooks/GetImageRenderService.h \
     IRemoteVGView.h \
-    RegionInfo.h \
     Hooks/GetProfileExtractor.h \
     Regions/IRegion.h \
     InputEvents.h \

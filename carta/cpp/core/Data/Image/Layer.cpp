@@ -100,6 +100,10 @@ QStringList Layer::_getLayerIds( ) const {
     return idList;
 }
 
+QString Layer::_getFileName() {
+    return "";
+}
+
 QString Layer::_getLayerName() const {
     return m_state.getValue<QString>( Util::NAME );
 }

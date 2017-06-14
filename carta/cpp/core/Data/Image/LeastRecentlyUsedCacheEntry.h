@@ -20,8 +20,8 @@ public:
      * @param percentile - a number in [0,1].
      * @param intensity - the intensity corresponding to the percentile.
      */
-    LeastRecentlyUsedCacheEntry( int frameLow, int frameHigh, int location,
-            double percentile, double intensity );
+    LeastRecentlyUsedCacheEntry(int frameLow, int frameHigh, int location,
+            double percentile, double intensity , int stokeFrame);
 
     /**
      * Returns the lower boundary of the spectral index.
@@ -34,6 +34,12 @@ public:
      * @return - the upper boundary of the spectral index.
      */
     int getFrameHigh() const;
+
+    /**
+     * Returns the stoke frame slice index.
+     * @return - the stoke frame slice index.
+     */
+    int getStokeFrame() const;
 
     /**
      * Returns the index in the image data where the information is located.
@@ -77,6 +83,7 @@ private:
     int m_location;
     double m_percentile;
     double m_intensity;
+    int m_stokeFrame;
     LeastRecentlyUsedCacheEntry& operator=( const LeastRecentlyUsedCacheEntry& other );
 };
 }

@@ -329,13 +329,13 @@ Carta::Lib::KnownSkyCS LayerGroup::_getCoordinateSystem() const {
     return cs;
 }
 
-QString LayerGroup::_getCursorText( int mouseX, int mouseY,
-        const std::vector<int>& frames, const QSize& outputSize ){
+QString LayerGroup::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
+        const std::vector<int>& frames, const QSize& outputSize) {
     QString cursorText;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        cursorText = m_children[dataIndex]->_getCursorText( mouseX, mouseY,
-                frames, outputSize );
+        cursorText = m_children[dataIndex]->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY,
+                frames, outputSize);
     }
     return cursorText;
 
@@ -490,12 +490,12 @@ QRectF LayerGroup::_getInputRect( const QSize& size ) const {
 }
 
 std::vector<std::pair<int,double> > LayerGroup::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles ) const{
+        const std::vector<double>& percentiles, int stokeFrame ) const{
     std::vector<std::pair<int,double> > results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
-                percentiles );
+                percentiles, stokeFrame );
     }
     return results;
 }

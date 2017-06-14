@@ -36,19 +36,19 @@ SpectralConversionPlugin::handleHook( BaseHook & hookData ){
                     Carta::Lib::Image::MetaDataInterface::SharedPtr metaPtr = base->metaData();
                     CCMetaDataInterface* metaData = dynamic_cast<CCMetaDataInterface*>(metaPtr.get());
                     if ( metaData ){
-                        std::shared_ptr<casa::CoordinateSystem> cs = metaData->getCoordinateSystem();
-                        int spectralIndex = cs->findCoordinate(casa::Coordinate::SPECTRAL,  -1);
+                        std::shared_ptr<casacore::CoordinateSystem> cs = metaData->getCoordinateSystem();
+                        int spectralIndex = cs->findCoordinate(casacore::Coordinate::SPECTRAL,  -1);
                         if ( spectralIndex >= 0 ){
-                            casa::SpectralCoordinate sc = cs->spectralCoordinate( spectralIndex );
+                            casacore::SpectralCoordinate sc = cs->spectralCoordinate( spectralIndex );
                             std::vector<double> inputValues = hook.paramsPtr->m_inputList;
                             int dataCount = inputValues.size();
-                            casa::Vector<double> inputs( dataCount );
+                            casacore::Vector<double> inputs( dataCount );
                             for ( int i = 0; i < dataCount; i++ ){
                                 inputs[i] = inputValues[i];
                             }
                             std::vector<double> resultValues;
                             if ( !newUnits.isEmpty() ){
-                                casa::Vector<double> outputs = converter->convert( inputs, sc );
+                                casacore::Vector<double> outputs = converter->convert( inputs, sc );
                                 resultValues = outputs.tovector();
                             }
                             else {

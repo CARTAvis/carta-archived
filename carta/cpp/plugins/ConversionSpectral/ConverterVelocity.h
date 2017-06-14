@@ -5,10 +5,10 @@
 class ConverterVelocity : public Converter {
 public:
     ConverterVelocity(const QString& oldUnits,const QString& newUnits);
-    virtual double toPixel( double value, casa::SpectralCoordinate spectralCoordinate);
-    static void convertVelocity( casa::Vector<double> &resultValues,
-            QString& sourceUnits, QString& destUnits, casa::SpectralCoordinate& coord);
-    virtual casa::Vector<double> convert( const casa::Vector<double>& oldValues,
-            casa::SpectralCoordinate spectralCoordinate )  Q_DECL_OVERRIDE;
+    virtual double toPixel( double value, casacore::SpectralCoordinate spectralCoordinate);
+    static void convertVelocity( casacore::Vector<double> &resultValues,
+            QString& sourceUnits, QString& destUnits, casacore::SpectralCoordinate& coord);
+    virtual casacore::Vector<double> convert( const casacore::Vector<double>& oldValues,
+            casacore::SpectralCoordinate spectralCoordinate )  Q_DECL_OVERRIDE;
     virtual ~ConverterVelocity();
 };

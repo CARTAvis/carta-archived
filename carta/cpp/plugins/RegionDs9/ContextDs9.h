@@ -40,18 +40,18 @@ enum SkyFrame {FK4, FK4_NO_E, FK5, ICRS, GALACTIC, SUPERGALACTIC,
 enum SkyDist {DEGREE, ARCMIN, ARCSEC};
 enum PointShape {CIRCLE,BOX,DIAMOND,CROSS,XPT,ARROW,BOXCIRCLE};
 
-inline casa::MDirection::Types todirection( SkyFrame frame ) {
+inline casacore::MDirection::Types todirection( SkyFrame frame ) {
     switch ( frame ) {
     case FK4:
-        return casa::MDirection::B1950;
+        return casacore::MDirection::B1950;
     case FK5:
-        return casa::MDirection::J2000;
+        return casacore::MDirection::J2000;
     case GALACTIC:
-        return casa::MDirection::GALACTIC;
+        return casacore::MDirection::GALACTIC;
     case ECLIPTIC:
-        return casa::MDirection::ECLIPTIC;
+        return casacore::MDirection::ECLIPTIC;
     default:
-        return casa::MDirection::GALACTIC;
+        return casacore::MDirection::GALACTIC;
     }
 }
 
