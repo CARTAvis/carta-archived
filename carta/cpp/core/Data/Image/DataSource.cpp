@@ -205,6 +205,15 @@ QStringList DataSource::_getCoordinates( double x, double y,
     return list;
 }
 
+QString DataSource::_getSkyCS(){
+
+    CoordinateFormatterInterface::SharedPtr cf(
+            m_image-> metaData()-> coordinateFormatter()-> clone() );
+
+    QString coordName = m_coords->getName( cf->skyCS() );
+    return coordName;
+}
+
 // print the pixel value and x-y coordinate for the cursor on the image viewer
 QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
         Carta::Lib::KnownSkyCS cs, const std::vector<int>& frames,

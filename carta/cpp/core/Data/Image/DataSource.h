@@ -129,6 +129,9 @@ private:
     QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
             const std::vector<int>& frames) const;
 
+
+    QString _getSkyCS();
+
     /**
      * Returns information about the image at the current location of the cursor.
      * @param mouseX the mouse x-position in screen coordinates.

@@ -341,7 +341,12 @@ bool DataGrid::_isGridVisible() const {
 }
 
 
-
+// Use to set the displayed coordinate system in UI
+void DataGrid::_resetCoordinateSystem( const QString& coordSystem ){
+    if ( m_state.getValue<QString>( COORD_SYSTEM) != coordSystem ){
+        m_state.setValue<QString>( COORD_SYSTEM, coordSystem );
+    }
+}
 
 void DataGrid::_resetGridRenderer(){
     if ( m_wcsGridRenderer.get() != nullptr){

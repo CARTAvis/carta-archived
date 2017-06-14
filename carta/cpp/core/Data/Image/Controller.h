@@ -681,6 +681,10 @@ private:
 	void _renderZoom( double factor );
 	void _renderContext( double zoomFactor );
 
+    // Set the AxisMapper::axisMap to use
+    void _setAxisMap();
+    void _setSkyCSName();
+
 	/**
 	 * Make a frame selection.
 	 * @param axisType - the axis for which a frame is being set.
@@ -693,9 +697,6 @@ private:
 	//Set draw zoom & context views.
 	void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> stackDraw );
     void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
-
-    // Set the AxisMapper::axisMap to use
-    void _setAxisMap();
 
 	void _updateCursor( int mouseX, int mouseY );
 	void _updateCursorText(bool notifyClients );

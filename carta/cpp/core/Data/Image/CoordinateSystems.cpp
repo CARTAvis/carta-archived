@@ -41,7 +41,8 @@ bool CoordinateSystems::m_registered =
 
 CoordinateSystems::CoordinateSystems( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){
-    //m_coordSystems.insert(Carta::Lib::KnownSkyCS::Default, NATIVE );
+    m_coordSystems.insert(Carta::Lib::KnownSkyCS::Default, NATIVE );
+    //m_coordSystems.insert(Carta::Lib::KnownSkyCS::Unknown, UNKNOWN);
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::J2000, J2000);
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::Galactic, GALACTIC);
     m_coordSystems.insert(Carta::Lib::KnownSkyCS::ICRS, ICRS);
@@ -51,6 +52,8 @@ CoordinateSystems::CoordinateSystems( const QString& path, const QString& id):
 
     _initializeDefaultState();
     _initializeCallbacks();
+    //Don't display "Unknown" for users to select
+    m_coordSystems.insert(Carta::Lib::KnownSkyCS::Unknown, UNKNOWN);
 }
 
 QString CoordinateSystems::getDefault() const {
@@ -58,7 +61,7 @@ QString CoordinateSystems::getDefault() const {
 }
 
 Carta::Lib::KnownSkyCS  CoordinateSystems::getDefaultType() const {
-    return Carta::Lib::KnownSkyCS::J2000;
+    return Carta::Lib::KnownSkyCS::Default;
 }
 
 QString CoordinateSystems::getCoordinateSystem( const QString& system ) const {
@@ -103,7 +106,7 @@ QList<Carta::Lib::KnownSkyCS> CoordinateSystems::getIndices() const{
 }
 
 QString CoordinateSystems::getName(Carta::Lib::KnownSkyCS skyCS ) const {
-    QString name;
+    QString name = UNKNOWN;
     if ( m_coordSystems.contains( skyCS )){
         name = m_coordSystems[skyCS];
     }

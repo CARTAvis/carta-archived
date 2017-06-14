@@ -5,6 +5,7 @@
 #include "Data/DataLoader.h"
 #include "Data/Util.h"
 #include "Data/Colormap/ColorState.h"
+#include "Data/Image/CoordinateSystems.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
 #include "State/UtilState.h"
@@ -225,6 +226,13 @@ QString LayerData::_getCursorText(bool isAutoClip, double minPercent, double max
     QString cursorText;
     if ( m_dataSource ){
         Carta::Lib::KnownSkyCS cs = m_dataGrid->_getSkyCS();
+        //if(cs == Carta::Lib::KnownSkyCS::Default){
+            //QString csName = m_dataSource->_getSkyCS();
+            //bool *csChanged;
+            //m_dataGrid->_setCoordinateSystem( csName, csChanged);
+            //cs = m_dataGrid->_getSkyCS();
+            //cs = m_dataGrid->_getSkyCS(csName);
+        //}
         QPointF pan = _getPan();
         double zoom = _getZoom();
         cursorText = m_dataSource->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY, cs, frames, zoom, pan, outputSize);
@@ -619,7 +627,17 @@ double LayerData::_getZoom() const {
 }
 
 void LayerData::_gridChanged( const Carta::State::StateInterface& state ){
-    m_dataGrid->_resetState( state );
+    QString skyCS = Carta::Data::DataGrid::COORD_SYSTEM;
+    QString csName = state.getValue<QString>( skyCS );
+    Carta::State::StateInterface substituteState = state;
+    CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
+    if(m_coords->getIndex(csName) == Carta::Lib::KnownSkyCS::Default){
+        csName = m_dataSource->_getSkyCS();
+        substituteState.setValue<QString>( skyCS, csName );
+        //m_state.setValue<QString>( skyCS, csName );
+        //m_state.flushState();
+    }
+    m_dataGrid->_resetState( substituteState );
 }
 
 
@@ -945,6 +963,11 @@ QString LayerData::_getFileName() {
 QString LayerData::_setFileName( const QString& fileName, bool * success ){
     QString result = m_dataSource->_setFileName( fileName, success );
     if ( *success){
+
+        Carta::Lib::KnownSkyCS cs;
+        QString csName = m_dataSource->_getSkyCS();
+        bool csChanged = false;
+        QString initCS = m_dataGrid->_setCoordinateSystem( csName, &csChanged);
 
         //Reset the pan and zoom when the image is loaded.
         _resetPan();
