@@ -47,7 +47,7 @@ def colormapScalarHook():
     maps_whiteList = ['Spectral','coolwarm','Set1','gnuplot2',
                       'jet','Reds','gist_stern','Blues',
                       'terrain','gnuplot','hot','Greens',
-                      'nipy_spectral']
+                      'nipy_spectral','viridis','inferno','RdBu']
     print("including the following colormaps only: ", maps_whiteList)
     maps_filtered = []
     for x in maps:
