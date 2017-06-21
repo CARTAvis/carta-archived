@@ -138,10 +138,7 @@ qx.Class.define("skel.widgets.Util", {
          */
         makeButton : function( cmd, cb, tool, value){
             var label = cmd.getLabel();
-            var button = new qx.ui.menu.Button( label );
-            if ( tool ){
-                button = new qx.ui.toolbar.Button( label );
-            }
+            var button = new qx.ui.toolbar.Button( label );
             button.addListener( "execute", function(){
                 this.doAction( value, cb );
             }, cmd );
