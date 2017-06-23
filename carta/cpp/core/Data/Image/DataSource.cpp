@@ -17,6 +17,7 @@
 #include <QDebug>
 #include <sys/time.h>
 #include <numeric>
+#include <ctime>
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 
@@ -562,9 +563,14 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         locationIndex = 0;
                     }
 
+                    std::clock_t starttime = clock();
                     // Following code line sort the partial raw data set by selection algorithm (only for array values and not for array keys).
                     // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
+                    std::clock_t endtime = clock();
+                    qDebug() << "---------------- The time of calculating percentile. ----------------"
+                             << "Index : " << i
+                             << "Time : " << (float)(endtime-starttime)/CLOCKS_PER_SEC << "sec";
 
                     // get the intensity value
                     intensities[i].second = allValues[locationIndex].second;
