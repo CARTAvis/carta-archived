@@ -17,6 +17,8 @@
 #include <QDebug>
 #include <sys/time.h>
 #include <numeric>
+#include <QElapsedTimer>
+
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 
@@ -523,6 +525,10 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         allValues.reserve(total_size);
         int index = 0;
 
+        // start timer for loading the raw data
+        QElapsedTimer timer;
+        timer.start();
+
         // filter the raw data and save in a pair array {key, value} if the value is finite
         view.forEach( [&allValues, &index] ( const double  val ) {
             if ( std::isfinite( val ) ) {
@@ -532,6 +538,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
         }
         );
         qDebug() << "++++++++ raw data index number=" << index;
+
+        // end of timer for loading the raw data
+        qCritical() << "<> Time to load the raw data:" << timer.elapsed() << "milliseconds";
 
         if ( allValues.size() > 0 ){
 
@@ -562,9 +571,16 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         locationIndex = 0;
                     }
 
+                    // start timer for getting the nth_element from raw data
+                    QElapsedTimer timer2;
+                    timer2.start();
+
                     // Following code line sort the partial raw data set by selection algorithm (only for array values and not for array keys).
                     // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
+
+                    // end of timer for getting the nth_element from the raw data
+                    qCritical() << "<> Time to get the nth_element from the raw data:" << timer2.elapsed() << "milliseconds";
 
                     // get the intensity value
                     intensities[i].second = allValues[locationIndex].second;

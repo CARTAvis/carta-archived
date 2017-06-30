@@ -20,7 +20,7 @@
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include <QtCore/qmath.h>
 #include <set>
-
+#include <QElapsedTimer>
 #include <QDebug>
 
 namespace Carta {
@@ -334,8 +334,17 @@ std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vec
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
         std::pair<int,int> bounds(-1,-1);
+
+        // start the timer for percentile calculation
+        QElapsedTimer timer;
+        timer.start();
+
         // show colormap for Percentile mode
         values = controller->getIntensity( -1, -1, percents );
+
+        // end of timer for calculating the percentile
+        qCritical() << "<> Time to calculate the percentile:" << timer.elapsed() << "milliseconds";
+
         // show colormap for Quantile mode
         // TODO: need to modify _updateIntensityBounds() as well !!
         // values = controller->getIntensity( percents );
