@@ -496,7 +496,7 @@ void ViewManager::_initCallbacks(){
         // get the timer for the function "loadFile(...)"
         QElapsedTimer timer;
         timer.start();
-        qCritical() << "<> start loading file" << dataValues[DATA] << "!!!";
+        qCritical() << "<> Start loading file" << dataValues[DATA] << "!!!";
 
         // execute the function "loadFile(...)"
         QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
