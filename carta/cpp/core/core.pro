@@ -150,6 +150,7 @@ HEADERS += \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
     Algorithms/quantileAlgorithms.h \
+    Algorithms/percentileAlgorithms.h \
     ScriptedClient/Listener.h \
     ScriptedClient/ScriptedCommandInterpreter.h \
     ScriptedClient/VarLengthMessage.h \
@@ -306,6 +307,7 @@ SOURCES += \
     Shape/ShapeRectangle.cpp \
     ImageRenderService.cpp \
     Algorithms/quantileAlgorithms.cpp \
+    Algorithms/percentileAlgorithms.cpp \
     ScriptedClient/Listener.cpp \
     ScriptedClient/ScriptedCommandInterpreter.cpp \
     ScriptedClient/VarLengthMessage.cpp \

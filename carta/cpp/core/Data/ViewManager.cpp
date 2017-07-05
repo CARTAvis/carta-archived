@@ -443,6 +443,16 @@ void ViewManager::_initCallbacks(){
         std::set<QString> keys = {Util::ID,DATA};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         bool fileLoaded = false;
+
+        // custmoize the style of print out messages
+        qInstallMessageHandler(myMessageOutput);
+
+        // get the timer for the function "loadFile(...)"
+        QElapsedTimer timer;
+        timer.start();
+        qCritical() << "<> Start loading file" << dataValues[DATA] << "!!!";
+
+        // execute the function "loadFile(...)"
         QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
         if ( !fileLoaded ){
             Util::commandPostProcess( result);
