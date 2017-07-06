@@ -568,9 +568,40 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
                     std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
                     std::clock_t endtime = clock();
-                    qDebug() << "---------------- The time of calculating percentile. ----------------"
-                             << "Index : " << i
-                             << "Time : " << (float)(endtime-starttime)/CLOCKS_PER_SEC << "sec";
+                    std::cout << "---------------- The time of calculating percentile by nth_element. ----------------"
+                             << " Index : " << i << " Value : " << allValues[locationIndex].second
+                             << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
+
+                    starttime = clock();
+                    std::vector<std::pair<int,double> >::iterator valiter;
+                    double pval = allValues.begin()->second;
+                    int allvalcount = 0;
+                    if ( i==0 ){
+                        for (valiter=allValues.begin(); valiter!=allValues.end(); valiter++){
+                            if (pval > valiter->second) {
+                                pval = valiter->second;
+                            }
+                            allvalcount++;
+                        }
+                    }
+                    endtime = clock();
+                    std::cout << "---------------- The time of calculating percentile by iterator. ----------------"
+                             << " Index : " << i << " Value : " << pval << " Count : " << allvalcount << " Size : " << total_size
+                             << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
+
+                    starttime = clock();
+                    pval = allValues.begin()->second;
+                    if ( i==1 ){
+                        for (valiter=allValues.begin(); valiter!=allValues.end(); valiter++){
+                            if (pval < valiter->second) {
+                                pval = valiter->second;
+                            }
+                        }
+                    }
+                    endtime = clock();
+                    std::cout << "---------------- The time of calculating percentile by iterator. ----------------"
+                          << " Index : " << i << " Value : " << pval
+                          << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
 
                     // get the intensity value
                     intensities[i].second = allValues[locationIndex].second;
