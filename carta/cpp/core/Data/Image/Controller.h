@@ -443,6 +443,12 @@ public:
     QString setClipValue( double clipValue );
 
     /**
+     * @brief recall the clip value and update the percentile/colormap settings
+     * in order to update the stoke information that triggered from animation panel
+     */
+    void recallClipValue();
+
+    /**
      * Set whether or not to apply a composition mode to the image.
      * @param compMode - the type of composition mode to apply.
      * @return an error message if there was a problem recognizing the composition mode.

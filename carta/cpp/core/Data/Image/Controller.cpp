@@ -1132,6 +1132,13 @@ QString Controller::setClipValue( double clipVal  ) {
 }
 
 
+void Controller::recallClipValue() {
+    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+    emit clipsChanged( minPercent, maxPercent );
+}
+
+
 void Controller::_setSkyCSName(){
     const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
     CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
