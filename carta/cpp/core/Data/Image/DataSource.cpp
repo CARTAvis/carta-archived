@@ -492,11 +492,18 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache(int frameLow,
         // get raw data (for all stokes if any) in order to sort the raw data set by selection algorithm
         // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
 
+        // check input sets including stoke frame for getting raw data from the image file
+        qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
+        qDebug() << "++++++++ set the stoke index for percentile=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+
         // get raw data (for the specific stoke) in order to sort the raw data set by selection algorithm
         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
-        qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
-        qDebug() << "++++++++ set the Stoke Index for Percentile=" << stokeFrame
-                 << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+
+        // check if rawData is a null pointer
+        if (rawData == nullptr) {
+            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+            return intensities;
+        }
 
         // load raw data through "Carta::Lib::NdArray::RawViewInterface" shared pointer
         std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
@@ -508,11 +515,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache(int frameLow,
         // call algorithm function to calculate percentiles
         std::vector<std::pair<int,double> > clips;
         clips = Carta::Core::Algorithms::percentile2pixels_I(doubleView, spectralIndex, {percentiles[0], percentiles[1]});
-
-        if (rawData == nullptr) {
-            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
-            return intensities;
-        }
 
         for (int i = 0; i < percentileCount; i++) {
 
@@ -700,31 +702,32 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
         //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
         int imageDim =m_image->dims().size();
         qDebug() << "++++++++ the dimension of image raw data for percentile calculation=" << imageDim;
+        qDebug() << "check permuted axis: axisIndexX=" << m_axisIndexX << ", axisIndexY=" << m_axisIndexY;
 
         SliceND frameSlice = SliceND().next();
 
-        for ( int i = 0; i < imageDim; i++ ){
+        for ( int i = 0; i < imageDim; i++ ) {
 
             // only deal with the extra dimensions other than x-axis and y-axis
             if ( i != m_axisIndexX && i != m_axisIndexY ){
 
                 // get the number of slice (e.q. channel) in this dimension
                 int sliceSize = m_image->dims()[i];
-
                 SliceND& slice = frameSlice.next();
 
                 // If it is the target axis..
-                if ( i == axisIndex ){
+                if ( i == axisIndex ) {
                    // Use the passed in frame range
                    if ( 0 <= frameStart && frameStart < sliceSize &&
                         0 <= frameEnd && frameEnd < sliceSize ){
                        slice.start( frameStart );
                        slice.end( frameEnd + 1);
                    } else {
+                       qDebug() << "for spectral axis index=" << i << ", the total slice size is" << sliceSize;
                        slice.start(0);
                        slice.end( sliceSize);
                    }
-                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3){
+                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3) {
                     // If the stoke-axis is exist (axisStokeIndex != -1),
                     // we only consider one stoke (stokeSliceIndex) for percentile calculation
                     qDebug() << "++++++++ we only consider the stoke" << stokeSliceIndex <<
@@ -732,8 +735,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                     slice.start( stokeSliceIndex );
                     slice.end( stokeSliceIndex + 1 );
                 } else {
-                    // Or the entire range
-                    qDebug() << "++++++++ the total number of channel is" << sliceSize;
+                    qDebug() << "for other axis index=" << i << ", the total slice size is" << sliceSize;
                     slice.start( 0 );
                     slice.end( sliceSize );
                 }

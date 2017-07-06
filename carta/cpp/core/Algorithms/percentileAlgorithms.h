@@ -182,8 +182,7 @@ percentile2pixels_I(
 
         int locationIndex = allValues.size()*q - 1;
         if (locationIndex < 0) locationIndex = 0;
-
-        //qDebug() << "++++++++ locationIndex=" << locationIndex << ", x1=" << x1;
+        qDebug() << "the locationIndex for percentile is" << locationIndex;
 
         // start timer for getting the nth_element from raw data
         QElapsedTimer timer2;
