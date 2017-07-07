@@ -38,8 +38,8 @@ qx.Class.define("skel.widgets.IO.FileBrowser", {
             loadButton.addListener("execute", function() {
                 
                 var filePath = this.getSelectedPath();
-                if (this.m_target !== null) {
-                    this.m_target.dataLoaded(filePath);
+                if (this.m_tree.m_target !== null) {
+                    this.m_tree.m_target.dataLoaded(filePath);
                 }
 
             }, this);
@@ -55,18 +55,18 @@ qx.Class.define("skel.widgets.IO.FileBrowser", {
             this._add(this.m_treeDisplay);
             this._add(buttonComposite);
         },
-        
-        
+
+
 
         /**
          * Stores the window that wants to add data.
          * @param source {String} an identifier for the window that needs to load data.
          */
         setTarget : function(source) {
-            this.m_target = source;
+            this.m_tree.m_target = source;
         },
-        
-        
+
+
         m_target : null
 
     },
