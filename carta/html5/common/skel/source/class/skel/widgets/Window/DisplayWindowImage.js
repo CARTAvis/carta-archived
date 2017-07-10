@@ -508,8 +508,8 @@ qx.Class.define("skel.widgets.Window.DisplayWindowImage", {
             this.m_content.add( this.m_viewContent, {flex:1} );
             if ( this.m_statisticsVisible ){
                 this.m_content.add( this.m_statLabel );
-                this.m_content.add(this.m_fileLabel);
-                this._updateFileLabel();
+                // this.m_content.add(this.m_fileLabel);
+                // this._updateFileLabel();
             }
 
             if ( this.m_controlsVisible ){
