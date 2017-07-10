@@ -85,7 +85,6 @@ function installqt() {
 
 function installgsl() {
 su $SUDO_USER <<EOF
-brew install gsl
 brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.3/gsl-2.3.el_capitan.bottle.tar.gz
 brew link --overwrite gsl
 EOF
