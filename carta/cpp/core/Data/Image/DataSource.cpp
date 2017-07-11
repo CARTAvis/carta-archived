@@ -548,6 +548,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
             // return bool value: ture or false
             // following code line is to only compare the intensity values and ignore the indices
             auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
+            auto ascendIntensityTuples  = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second > rhs.second; };
 
             for ( int i = 0; i < percentileCount; i++ ){
 
@@ -564,13 +565,13 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                     }
 
                     std::clock_t starttime = clock();
-                    // Following code line sort the partial raw data set by selection algorithm (only for array values and not for array keys).
-                    // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
-                    std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
+                    // // Following code line sort the partial raw data set by selection algorithm (only for array values and not for array keys).
+                    // // get elements from data array that are in the range (e.q. 0.5%-th ~ 99.5%-th of elements)
+                    // std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
                     std::clock_t endtime = clock();
-                    std::cout << "---------------- The time of calculating percentile by nth_element. ----------------"
-                             << " Index : " << i << " Value : " << allValues[locationIndex].second
-                             << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
+                    // std::cout << "---------------- The time of calculating percentile by nth_element. ----------------"
+                    //          << " Index : " << i << " Value : " << allValues[locationIndex].second
+                    //          << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
 
                     starttime = clock();
                     std::vector<std::pair<int,double> >::iterator valiter;
@@ -603,8 +604,33 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                           << " Index : " << i << " Value : " << pval
                           << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
 
+                    starttime = clock();
+                    if ( i==0 ) {
+                        std::partial_sort (allValues.begin(), allValues.begin()+locationIndex+1, allValues.end(), compareIntensityTuples);
+                        intensities[i].second = allValues[locationIndex].second;
+                    }
+                    pval = allValues.begin()->second;
+                    endtime = clock();
+                    std::cout << "---------------- The time of partial sorting descending. ----------------"
+                        << " Index : " << i << " Value : " << pval
+                        << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
+
+                    starttime = clock();
+                    if ( i==1 ) {
+                        double revpercentile = 1.0 - percentiles[1];
+                        int revlocationIndex = std::max((int)(allValues.size() * revpercentile - 1), 0);
+                        // std::reverse(allValues.begin(), allValues.end());
+                        std::partial_sort (allValues.begin(), allValues.begin()+revlocationIndex+1, allValues.end(), ascendIntensityTuples);
+                        intensities[i].second = allValues[revlocationIndex].second;
+                    }
+                    pval = allValues.begin()->second;
+                    endtime = clock();
+                    std::cout << "---------------- The time of partial sorting ascending. ----------------"
+                        << " Index : " << i << " Value : " << pval
+                        << " Time : " << (double)(endtime-starttime)/CLOCKS_PER_SEC << "sec" << endl;
+
                     // get the intensity value
-                    intensities[i].second = allValues[locationIndex].second;
+                    // intensities[i].second = allValues[locationIndex].second;
 
                     // get the channel index corresponding to the above intensity value
                     intensities[i].first = allValues[locationIndex].first / divisor;
@@ -621,9 +647,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache( int frameLow
                         QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
                         QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
 
-						m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
-						m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
-					}
+                        m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
+                        m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
+                    }
 
                     qDebug() << "++++++++ For percentile" << percentiles[i]
                              << "intensity is" << intensities[i].second
@@ -687,11 +713,11 @@ QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) c
 }
 
 std::pair<double,QString> DataSource::_getRestFrequency() const {
-	std::pair<double,QString> restFreq( -1, "");
-	if ( m_image ){
-		restFreq = m_image->metaData()->getRestFrequency();
-	}
-	return restFreq;
+    std::pair<double,QString> restFreq( -1, "");
+    if ( m_image ){
+        restFreq = m_image->metaData()->getRestFrequency();
+    }
+    return restFreq;
 }
 
 QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
@@ -1006,60 +1032,60 @@ void DataSource::_initializeSingletons( ){
 
 bool DataSource::_isLoadable( std::vector<int> frames ) const {
         int imageDim =m_image->dims().size();
-	bool loadable = true;
-	for ( int i = 0; i < imageDim; i++ ){
-		AxisInfo::KnownType type = _getAxisType( i );
-		if ( AxisInfo::KnownType::OTHER != type ){
-			int axisIndex = static_cast<int>( type );
-			int frameIndex = frames[axisIndex];
+    bool loadable = true;
+    for ( int i = 0; i < imageDim; i++ ){
+        AxisInfo::KnownType type = _getAxisType( i );
+        if ( AxisInfo::KnownType::OTHER != type ){
+            int axisIndex = static_cast<int>( type );
+            int frameIndex = frames[axisIndex];
                         int frameCount = m_image->dims()[i];
-			if ( frameIndex >= frameCount ){
-				loadable = false;
-				break;
-			}
-		}
-		else {
-			loadable = false;
-			break;
-		}
-	}
-	return loadable;
+            if ( frameIndex >= frameCount ){
+                loadable = false;
+                break;
+            }
+        }
+        else {
+            loadable = false;
+            break;
+        }
+    }
+    return loadable;
 }
 
 bool DataSource::_isSpectralAxis() const {
-	bool spectralAxis = false;
-	int imageSize = m_image->dims().size();
-	for ( int i = 0; i < imageSize; i++ ){
-		AxisInfo::KnownType axisType = _getAxisType( i );
-		if ( axisType == AxisInfo::KnownType::SPECTRAL ){
-			spectralAxis = true;
-			break;
-		}
-	}
-	return spectralAxis;
+    bool spectralAxis = false;
+    int imageSize = m_image->dims().size();
+    for ( int i = 0; i < imageSize; i++ ){
+        AxisInfo::KnownType axisType = _getAxisType( i );
+        if ( axisType == AxisInfo::KnownType::SPECTRAL ){
+            spectralAxis = true;
+            break;
+        }
+    }
+    return spectralAxis;
 }
 
 void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
         double minClipPercentile, double maxClipPercentile){
-	//Only load if the frames make sense for the image.  I.e., the frame index
-	//should be less than the image size.
-	if ( _isLoadable( frames ) ){
-		int frameSize = frames.size();
-		CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
-		std::vector<int> mFrames = _fitFramesToImage( frames );
-		std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
-		std::vector<int> dimVector = view->dims();
+    //Only load if the frames make sense for the image.  I.e., the frame index
+    //should be less than the image size.
+    if ( _isLoadable( frames ) ){
+        int frameSize = frames.size();
+        CARTA_ASSERT( frameSize == static_cast<int>(AxisInfo::KnownType::OTHER));
+        std::vector<int> mFrames = _fitFramesToImage( frames );
+        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
+        std::vector<int> dimVector = view->dims();
 
-		//Update the clip values
-		if ( recomputeClipsOnNewFrame ){
-			_updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
+        //Update the clip values
+        if ( recomputeClipsOnNewFrame ){
+            _updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
         }
-		QString cacheId=m_pixelPipeline-> cacheId();
-		m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
+        QString cacheId=m_pixelPipeline-> cacheId();
+        m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
 
-		QString renderId = _getViewIdCurrent( mFrames );
-		m_renderService-> setInputView( view, renderId );
-	}
+        QString renderId = _getViewIdCurrent( mFrames );
+        m_renderService-> setInputView( view, renderId );
+    }
 }
 
 
