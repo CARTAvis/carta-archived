@@ -555,7 +555,7 @@ void Animator::_resetAnimationParameters( int selectedImage ){
             Controller* controller = _getControllerSelected();
             if (controller != nullptr) {
                 //AddFileListInfo
-                m_animators[Selection::IMAGE]->setFrame( selectedImage, controller->getFileList());
+                m_animators[Selection::IMAGE]->setFrame( selectedImage, controller->getOpenedFileList());
             } else {
                 m_animators[Selection::IMAGE]->setFrame( selectedImage );
             }

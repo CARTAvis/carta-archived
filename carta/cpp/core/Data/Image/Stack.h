@@ -81,7 +81,7 @@ private slots:
 
 private:
 
-    QStringList _getFileList();
+    QStringList _getOpenedFileList();
 
     QString _addDataImage(const QString& fileName, bool* success );
 

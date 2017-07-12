@@ -63,7 +63,7 @@ public:
     /**
      * let Anmiator get file List
      */
-    QStringList getFileList();
+    QStringList getOpenedFileList();
 
     /**
      * Clear the view.

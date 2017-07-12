@@ -142,8 +142,8 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
     return result;
 }
 
-QStringList Controller::getFileList(){
-  return m_stack->_getFileList();
+QStringList Controller::getOpenedFileList(){
+  return m_stack->_getOpenedFileList();
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){

@@ -229,7 +229,7 @@ int Stack::_getFrameUpperBound( AxisInfo::KnownType axisType ) const {
     return upperBound;
 }
 
-QStringList Stack::_getFileList() {
+QStringList Stack::_getOpenedFileList() {
 
     QStringList nameList;
     for ( std::shared_ptr<Layer> layer : m_children ){
