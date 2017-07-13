@@ -42,6 +42,8 @@ public:
     /// Return the location where the state is saved.
     virtual QString getStateLocation( const QString& saveName ) const;
 
+    void startWebSocketServer();
+
 public slots:
 
     /// javascript calls this to set a state

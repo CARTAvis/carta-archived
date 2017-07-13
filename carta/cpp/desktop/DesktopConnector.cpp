@@ -16,6 +16,10 @@
 #include <QCoreApplication>
 #include <functional>
 
+//#include "uWS.h"
+#include <uWS/uWS.h>
+
+#include <thread>
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
 ///  to remember with each view
@@ -50,6 +54,21 @@ struct DesktopConnector::ViewInfo
 
 };
 
+
+void DesktopConnector::startWebSocketServer() {
+
+    std::cout << "websocket starts running" << std::endl;
+    uWS::Hub h;
+    h.onMessage([](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
+        std::cout << "get something, echo back" << std::endl;
+        ws->send(message, length, opCode);
+    });
+    h.listen(3003);
+    h.run(); // will block here
+
+    std::cout << "websocket ends running" << std::endl;
+}
+
 DesktopConnector::DesktopConnector()
 {
     // queued connection to prevent callbacks from firing inside setState
@@ -58,6 +77,11 @@ DesktopConnector::DesktopConnector()
              Qt::QueuedConnection );
 
     m_callbackNextId = 0;
+
+    // test WebSocket part
+    std::thread mThread( &DesktopConnector::startWebSocketServer, this );
+    mThread.detach();
+
 }
 
 void DesktopConnector::initialize(const InitializeCallback & cb)
