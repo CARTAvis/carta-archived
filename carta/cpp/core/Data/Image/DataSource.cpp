@@ -12,7 +12,6 @@
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IPCache.h"
 #include "../../ImageRenderService.h"
-#include "../../Algorithms/quantileAlgorithms.h"
 #include "../../Algorithms/percentileAlgorithms.h"
 #include "../../Algorithms/cacheUtils.h"
 #include <QDebug>
@@ -1215,7 +1214,7 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         } else {
 
             Carta::Lib::NdArray::Double doubleView( view.get(), false );
-            clips = Carta::Core::Algorithms::quantiles2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+            clips = Carta::Core::Algorithms::percentile2pixels(doubleView, { minClipPercentile, maxClipPercentile });
 
             if (m_diskCache) {
                 m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
