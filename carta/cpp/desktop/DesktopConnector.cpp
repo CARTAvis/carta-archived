@@ -59,9 +59,30 @@ void DesktopConnector::startWebSocketServer() {
 
     std::cout << "websocket starts running" << std::endl;
     uWS::Hub h;
-    h.onMessage([](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
-        std::cout << "get something, echo back" << std::endl;
-        ws->send(message, length, opCode);
+    // DesktopConnector *conn = this;
+    h.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
+        std::cout << "get something, echo back:" << message << std::endl;
+//        ws->send(message, length, opCode);
+
+        QString message2(message);
+        qDebug() << "convert to:"<< message2;
+
+        if (message2.contains("requestFileList")) {
+
+            // if ( )
+            QString command = "/CartaObjects/DataLoader:getData";
+            QString parameter = "path:";
+
+//            conn->jsSendCommandSlot(command, parameter);
+            jsSendCommandSlot(command, parameter);
+
+    // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
+    //    /CartaObjects/DataLoader:getData
+    //    path:
+
+        } else {
+            ws->send("hello", 5, opCode);
+        }
     });
     h.listen(3003);
     h.run(); // will block here
@@ -239,6 +260,12 @@ void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
 {
+//    /CartaObjects/DataLoader:getData
+//    path:
+
+    int k= 0;
+    int k2= 0;
+
     // call all registered callbacks and collect results, but asynchronously
     defer( [cmd, parameter, this ]() {
         auto & allCallbacks = m_commandCallbackMap[ cmd];
