@@ -90,6 +90,9 @@ brew install gsl
 brew link --overwrite gsl
 echo "check if gsl_multifit is present:"
 ls /usr/local/include/gsl/gsl_multifit.h
+echo "check what libgsl dylibs are present"
+ls /usr/local/opt/gsl/lib/libgsl.*
+cp /usr/local/opt/gsl/lib/libgsl.23.dylib /usr/local/opt/gsl/lib/libgsl.19.dylib
 EOF
 }
 
