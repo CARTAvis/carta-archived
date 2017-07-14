@@ -372,8 +372,6 @@ private:
      */
     void _resetZoom();
 
-    void _resizeQuantileCache();
-
     /**
      * Sets a new color map.
      * @param name the identifier for the color map.
@@ -506,16 +504,6 @@ private:
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
-
-    struct QuantileCacheEntry {
-    	double m_minPercentile;
-    	double m_maxPercentile;
-    	std::vector<double> m_clips;
-    };
-
-    /// clip cache to avoid time-consuming operation or recomputing
-    /// unnecessary clips.
-    std::vector<QuantileCacheEntry> m_quantileCache;
 
     /// the rendering service
     std::shared_ptr<Carta::Core::ImageRenderService::Service> m_renderService;

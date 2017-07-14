@@ -966,18 +966,6 @@ void DataSource::_resetPan(){
     }
 }
 
-void DataSource::_resizeQuantileCache(){
-    m_quantileCache.resize(0);
-    int nf = 1;
-    int imageSize = m_image->dims().size();
-    for ( int i = 0; i < imageSize; i++ ){
-        if ( i != m_axisIndexX && i != m_axisIndexY ){
-            nf = nf * m_image->dims()[i];
-        }
-    }
-    m_quantileCache.resize( nf);
-}
-
 QString DataSource::_setFileName( const QString& fileName, bool* success ){
     QString file = fileName.trimmed();
     *success = true;
@@ -995,8 +983,6 @@ QString DataSource::_setFileName( const QString& fileName, bool* success ){
                     _resetZoom();
                     _resetPan();
 
-                    // clear quantile cache
-                    _resizeQuantileCache();
                     m_fileName = file;
                 }
                 else {
@@ -1115,8 +1101,6 @@ void DataSource::_setDisplayAxes(std::vector<AxisInfo::KnownType> displayAxisTyp
     if ( axisXChanged || axisYChanged ){
         m_permuteImage = _getPermutedImage();
         _resetPan();
-        _resizeQuantileCache();
-
     }
     std::vector<int> mFrames = _fitFramesToImage( frames );
     _updateRenderedView( mFrames );
@@ -1153,63 +1137,59 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
 
     std::vector<int> mFrames = _fitFramesToImage( frames );
     int quantileIndex = _getQuantileCacheIndex( mFrames );
-    std::vector<double> clips = m_quantileCache[ quantileIndex].m_clips;
     std::vector<int> stokeIndex = _getStokeIndex( mFrames );
     std::vector<int> channelIndex = _getChannelIndex( mFrames );
 
-    if ( clips.size() < 2  ||
-            m_quantileCache[quantileIndex].m_minPercentile != minClipPercentile  ||
-            m_quantileCache[quantileIndex].m_maxPercentile != maxClipPercentile ) {
+    // 2017/05/23   C.C. Chiang: check if these are the right frame, stoke and percentile values
+    QString minClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
+    QString maxClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
+    QString minClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
+    QString maxClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
 
+    qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
+    qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
+    qDebug() << "++++++++ minClipLocationKey" << minClipLocationKey.toUtf8();
+    qDebug() << "++++++++ maxClipLocationKey" << maxClipLocationKey.toUtf8();
+    qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
+
+    std::vector<double> clips;
+
+    // If the disk cache exists, try to find the clips in the cache first
+    if (m_diskCache) {
         bool minClipInCache(0);
         bool maxClipInCache(0);
-
-        // 2017/05/23   C.C. Chiang: check if these are the right frame, stoke and percentile values
-        QString minClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
-        QString maxClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
-        QString minClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
-        QString maxClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
-
-        qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
-        qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
-        qDebug() << "++++++++ minClipLocationKey" << minClipLocationKey.toUtf8();
-        qDebug() << "++++++++ maxClipLocationKey" << maxClipLocationKey.toUtf8();
-        qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
 
         QByteArray minClipVal;
         QByteArray maxClipVal;
 
-        if (m_diskCache) {
-            minClipInCache = m_diskCache->readEntry(minClipKey.toUtf8(), minClipVal);
-            maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
-        }
+        minClipInCache = m_diskCache->readEntry(minClipKey.toUtf8(), minClipVal);
+        maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
 
         if (minClipInCache && maxClipInCache) {
-            clips.clear();
             clips.push_back(qb2d(minClipVal));
             clips.push_back(qb2d(maxClipVal));
             qDebug() << "++++++++ got clips from cache";
-        } else {
+        }
+    }
 
-            Carta::Lib::NdArray::Double doubleView( view.get(), false );
-            clips = Carta::Core::Algorithms::percentile2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+    // If the clips were not found in the cache, calculate them
+    if (clips.size() < 2) {
+        Carta::Lib::NdArray::Double doubleView( view.get(), false );
+        clips = Carta::Core::Algorithms::percentile2pixels(doubleView, { minClipPercentile, maxClipPercentile });
 
-            if (m_diskCache) {
-                m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
-                m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
-                m_diskCache->setEntry( minClipLocationKey.toUtf8(), i2qb(0), 0);
-                m_diskCache->setEntry( maxClipLocationKey.toUtf8(), i2qb(0), 0);
+        // If the disk cache exists, put the calculated clips in it
+        if (m_diskCache) {
+            m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
+            m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+            m_diskCache->setEntry( minClipLocationKey.toUtf8(), i2qb(0), 0);
+            m_diskCache->setEntry( maxClipLocationKey.toUtf8(), i2qb(0), 0);
 
-                qDebug() << "++++++++ calculated clips and put in cache";
-            }
+            qDebug() << "++++++++ calculated clips and put in cache";
         }
 
         qDebug() << "++++++++ clips are" << clips[0] << "and" << clips[1];
-
-        m_quantileCache[quantileIndex].m_clips = clips;
-        m_quantileCache[quantileIndex].m_minPercentile = minClipPercentile;
-        m_quantileCache[quantileIndex].m_maxPercentile = maxClipPercentile;
     }
+    
     return clips;
 }
 
