@@ -434,8 +434,10 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
         const std::vector<double>& percentiles, int stokeFrame) {
 
     int percentileCount = percentiles.size();
-    std::vector<std::pair<int,double> > intensities(percentileCount,std::pair<int,double>(-1,0));
+    std::vector<std::pair<int,double> > intensities(percentileCount, std::pair<int,double>(-1,0));
+    
     int foundCount = 0;
+    std::vector<bool> found(percentileCount, false);
     
     // If the disk cache exists, try to look up cached intensity and location values
     if (m_diskCache) {
@@ -457,6 +459,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
                     qDebug() << "++++++++ found location and intensity in disk cache";
                     intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
                     foundCount++;
+                    found[i] = true;
                 }
             }
 
@@ -497,17 +500,26 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
         // please refer to IImage.h:186  TypedView( RawViewInterface * rawView, bool keepOwnership = false )
         Carta::Lib::NdArray::Double doubleView(view.get(), false);
 
-        // call algorithm function to calculate percentiles
-        std::vector<std::pair<int,double> > clips;
-        clips = Carta::Core::Algorithms::percentile2pixels_I(doubleView, spectralIndex, {percentiles[0], percentiles[1]});
+        // Make a list of the percentiles which have to be calculated
+
+        std::vector<double> percentiles_to_calculate;
+
+        for (int i = 0; i < percentileCount; i++) {
+            if (!found[i]) {
+                percentiles_to_calculate.push_back(percentiles[i]);
+            }
+        }
+
+        // Calculate only the required percentiles
+        
+        std::map<double, std::pair<int,double> > clips_map = Carta::Core::Algorithms::percentile2pixels_I(doubleView, spectralIndex, percentiles_to_calculate);
 
         for (int i = 0; i < percentileCount; i++) {
 
-            //Missing intensity key value, which means we do not find it in the memory cache and the disk cache
-            if (intensities[i].first < 0) {
-                
-                intensities[i].second = clips[i].second;
-                intensities[i].first = clips[i].first;
+            if (!found[i]) {                
+                intensities[i].second = clips_map[percentiles[i]].second;
+                intensities[i].first = clips_map[percentiles[i]].first;
+                found[i] = true; // for completeness, in case we test this later
 
                 if (frameLow >= 0) {
                     intensities[i].first += frameLow;
@@ -1175,7 +1187,8 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
     // If the clips were not found in the cache, calculate them
     if (clips.size() < 2) {
         Carta::Lib::NdArray::Double doubleView( view.get(), false );
-        clips = Carta::Core::Algorithms::percentile2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+        std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+        clips = {clips_map[minClipPercentile], clips_map[maxClipPercentile]};
 
         // If the disk cache exists, put the calculated clips in it
         if (m_diskCache) {
