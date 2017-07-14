@@ -92,7 +92,7 @@ percentile2pixels(
 ///
 template < typename Scalar >
 static
-std::map<double, std::pair<int,double>>
+std::map<double, std::pair<int,Scalar>>
 percentile2pixels_I(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     int spectralIndex,
@@ -109,8 +109,8 @@ percentile2pixels_I(
 
     // read in all values from the view into memory so that we can do quickselect on it
     int index = 0;
-    std::vector<std::pair<int,double>> allValues;
-    std::map<double, std::pair<int,double>> result;
+    std::vector<std::pair<int,Scalar>> allValues;
+    std::map<double, std::pair<int,Scalar>> result;
 
     std::vector<int> dims = view.dims();
     qDebug() << "++++++++ raw data shape for calculating percentile is"<< dims;
@@ -132,7 +132,7 @@ percentile2pixels_I(
     timer.start();
 
     view.forEach(
-        [&allValues, &index] ( const double &val ) {
+        [&allValues, &index] ( const Scalar &val ) {
             // check if the value from raw data is finite
             if ( std::isfinite( val ) ) {
             // check if the raw data is NaN
@@ -154,7 +154,7 @@ percentile2pixels_I(
 
     // for every input percentile, do quickselect and store the result
     // only compare the intensity values and ignore the indices
-    auto compareIntensityTuples = [] (const std::pair<int,double>& lhs, const std::pair<int,double>& rhs) { return lhs.second < rhs.second; };
+    auto compareIntensityTuples = [] (const std::pair<int,Scalar>& lhs, const std::pair<int,Scalar>& rhs) { return lhs.second < rhs.second; };
 
     for ( double q : quant ) {
 
