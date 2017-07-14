@@ -149,7 +149,6 @@ HEADERS += \
     Shape/ShapeRectangle.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
-    Algorithms/quantileAlgorithms.h \
     Algorithms/percentileAlgorithms.h \
     ScriptedClient/Listener.h \
     ScriptedClient/ScriptedCommandInterpreter.h \
