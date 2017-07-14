@@ -305,7 +305,6 @@ SOURCES += \
     Shape/ShapePolygon.cpp \
     Shape/ShapeRectangle.cpp \
     ImageRenderService.cpp \
-    Algorithms/quantileAlgorithms.cpp \
     Algorithms/percentileAlgorithms.cpp \
     ScriptedClient/Listener.cpp \
     ScriptedClient/ScriptedCommandInterpreter.cpp \
