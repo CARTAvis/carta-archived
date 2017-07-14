@@ -1252,13 +1252,9 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
     // 2017/05/23   C.C. Chiang: check if these are the right frame, stoke and percentile values
     QString minClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
     QString maxClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
-    QString minClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
-    QString maxClipLocationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
 
     qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
     qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
-    qDebug() << "++++++++ minClipLocationKey" << minClipLocationKey.toUtf8();
-    qDebug() << "++++++++ maxClipLocationKey" << maxClipLocationKey.toUtf8();
     qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
 
     std::vector<double> clips;
@@ -1291,8 +1287,6 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         if (m_diskCache) {
             m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
             m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
-            m_diskCache->setEntry( minClipLocationKey.toUtf8(), i2qb(0), 0);
-            m_diskCache->setEntry( maxClipLocationKey.toUtf8(), i2qb(0), 0);
 
             qDebug() << "++++++++ calculated clips and put in cache";
         }
