@@ -431,7 +431,7 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 }
 
 // 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
-std::vector<std::pair<int,double> > DataSource::_getIntensityCache(int frameLow, int frameHigh,
+std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame) {
 
     //See if it is in the cached percentiles first.
@@ -543,14 +543,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensityCache(int frameLow,
             }
         }
     }
-    return intensities;
-}
-
-std::vector<std::pair<int,double> > DataSource::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ){
-    //See if we can find it in the least recently used cache; otherwise, look it up.
-    std::vector<std::pair<int,double> > intensities = _getIntensityCache( frameLow,
-            frameHigh, percentiles, stokeFrame );
     return intensities;
 }
 
