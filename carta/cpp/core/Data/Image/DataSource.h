@@ -301,8 +301,6 @@ private:
      */
     QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const;
 
-    int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
-
     std::vector<int> _getStokeIndex( const std::vector<int>& frames ) const;
 
     std::vector<int> _getChannelIndex( const std::vector<int>& frames ) const;

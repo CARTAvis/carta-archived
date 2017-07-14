@@ -833,28 +833,6 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
     return rawData;
 }
 
-int DataSource::_getQuantileCacheIndex( const std::vector<int>& frames) const {
-    int cacheIndex = 0;
-    if ( m_image ){
-        int imageSize = m_image->dims().size();
-        int mult = 1;
-        for ( int i = imageSize-1; i >= 0; i-- ){
-            if ( i != m_axisIndexX && i != m_axisIndexY ){
-                AxisInfo::KnownType axisType = _getAxisType( i );
-                int frame = 0;
-                if ( AxisInfo::KnownType::OTHER != axisType ){
-                    int index = static_cast<int>( axisType );
-                    frame = frames[index];
-                }
-                cacheIndex = cacheIndex + mult * frame;
-                int frameCount = m_image->dims()[i];
-                mult = mult * frameCount;
-            }
-        }
-    }
-    return cacheIndex;
-}
-
 std::vector<int> DataSource::_getStokeIndex( const std::vector<int>& frames ) const {
     std::vector<int> stokeIndex = {-1, -1};
     if ( m_permuteImage ) {
@@ -1245,7 +1223,6 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames) {
 
     std::vector<int> mFrames = _fitFramesToImage( frames );
-    int quantileIndex = _getQuantileCacheIndex( mFrames );
     std::vector<int> stokeIndex = _getStokeIndex( mFrames );
     std::vector<int> channelIndex = _getChannelIndex( mFrames );
 
