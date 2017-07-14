@@ -64,17 +64,14 @@ percentile2pixels(
                 allValues.push_back( val );
             }
         }
-        );
-
-    std::map < double, Scalar > result;
+    );
 
     // indicate bad clip if no finite numbers were found
     if ( allValues.size() == 0 ) {
-        for (double q : quant) {
-            result[q] = std::numeric_limits < Scalar >::quiet_NaN();
-        }
-        return result;
+        qFatal( "The size of raw data is zero !!" );
     }
+
+    std::map < double, Scalar > result;
 
     // for every input percentile, do quickselect and store the result
 
@@ -82,28 +79,9 @@ percentile2pixels(
         size_t x1 = Carta::Lib::clamp<size_t>( allValues.size() * q, 0, allValues.size()-1);
         CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
         std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
-        result[q] = allValues[x1]
+        result[q] = allValues[x1];
     }
     CARTA_ASSERT( result.size() == quant.size());
-
-    // some extra debugging help:
-    if( CARTA_RUNTIME_CHECKS) {
-        qDebug() << "percentile quality check:";
-        for( double q : quant ) {
-            double v = result[q];
-            size_t cnt = 0;
-            for( auto inp : allValues) {
-                if( inp <= v) cnt ++;
-            }
-            double qq = double(cnt)/allValues.size();
-            qDebug() << "  Set percentile" << q << "->"
-                     << "the intensity is" << v
-                     << ", its actual percentile is" << qq
-                     << ", the absolute difference between set and actual percentiles is" << fabs(q-qq)
-                     << ((fabs(q-qq) > 0.01) ? "!!!" : "");
-        }
-        qDebug() << "--------------------------------------------";
-    }
 
     return result;
 } // computeClips
