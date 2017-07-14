@@ -8,7 +8,6 @@
 #include "CartaLib/AxisDisplayInfo.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
-#include "LeastRecentlyUsedCache.h"
 
 #include <memory>
 
@@ -517,9 +516,6 @@ private:
     /// clip cache to avoid time-consuming operation or recomputing
     /// unnecessary clips.
     std::vector<QuantileCacheEntry> m_quantileCache;
-
-    ///Percentile/Intensity cache
-    LeastRecentlyUsedCache m_cachedPercentiles;
 
     /// the rendering service
     std::shared_ptr<Carta::Core::ImageRenderService::Service> m_renderService;

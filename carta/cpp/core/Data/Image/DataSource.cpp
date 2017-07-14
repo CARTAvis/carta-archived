@@ -38,7 +38,6 @@ CoordinateSystems* DataSource::m_coords = nullptr;
 DataSource::DataSource() :
     m_image( nullptr ),
     m_permuteImage( nullptr),
-    m_cachedPercentiles(100),
     m_axisIndexX( 0 ),
     m_axisIndexY( 1 ){
         m_cmapCacheSize = 1000;
@@ -434,32 +433,20 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame) {
 
-    //See if it is in the cached percentiles first.
     int percentileCount = percentiles.size();
     std::vector<std::pair<int,double> > intensities(percentileCount,std::pair<int,double>(-1,0));
-
-    //Find all the intensities we can in the cache.
     int foundCount = 0;
-    for (int i = 0; i < percentileCount; i++) {
-
-        std::pair<int,double> val = m_cachedPercentiles.getIntensity( frameLow, frameHigh, percentiles[i], stokeFrame);
-
-        if (val.first>= 0) {
-
-            qDebug() << "++++++++ found location and intensity in memory cache";
-            intensities[i] = val;
-            foundCount++;
-
-        } else if (m_diskCache) {
-
-            // disk cache, Look for the location first
+    
+    // If the disk cache exists, try to look up cached intensity and location values
+    if (m_diskCache) {
+        for (int i = 0; i < percentileCount; i++) {
+            // Look for the location first
             QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
             QByteArray locationVal;
             bool locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
             qDebug() << "++++++++ location key is" << locationKey.toUtf8();
 
             if (locationInCache) {
-
                 QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
                 QByteArray intensityVal;
                 bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
@@ -470,13 +457,13 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
                     qDebug() << "++++++++ found location and intensity in disk cache";
                     intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
                     foundCount++;
-                    m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second, stokeFrame);
                 }
             }
-        }
+
         qDebug() << "++++++++ For percentile" << percentiles[i]
                  << "intensity is" << intensities[i].second
                  << "and location is" << intensities[i].first << "(channel)";
+        }
     }
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
@@ -526,8 +513,7 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
                     intensities[i].first += frameLow;
                 }
 
-                // put calculated values in both the memory cache and the disk cache
-                m_cachedPercentiles.put( frameLow, frameHigh, intensities[i].first, percentiles[i], intensities[i].second, stokeFrame);
+                // put calculated values in the disk cache if it exists
 
                 if (m_diskCache) {
 
