@@ -335,7 +335,7 @@ std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vec
     if ( controller != nullptr ){
         std::pair<int,int> bounds(-1,-1);
         // show colormap for Percentile mode
-        values = controller->getIntensity( -1, -1, percents );
+        values = controller->getLocationAndIntensity( -1, -1, percents );
         // show colormap for Quantile mode
         // TODO: need to modify _updateIntensityBounds() as well !!
         // values = controller->getIntensity( percents );

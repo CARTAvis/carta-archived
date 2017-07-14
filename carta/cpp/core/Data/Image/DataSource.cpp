@@ -430,7 +430,7 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 }
 
 // 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
-std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int frameHigh,
+std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame) {
 
     int percentileCount = percentiles.size();
@@ -455,7 +455,6 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
                 qDebug() << "++++++++ intensity key is" << intensityKey.toUtf8();
 
                 if (intensityInCache) {
-
                     qDebug() << "++++++++ found location and intensity in disk cache";
                     intensities[i] = std::make_pair(qb2i(locationVal), qb2d(intensityVal));
                     foundCount++;
@@ -463,9 +462,9 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
                 }
             }
 
-        qDebug() << "++++++++ For percentile" << percentiles[i]
-                 << "intensity is" << intensities[i].second
-                 << "and location is" << intensities[i].first << "(channel)";
+            qDebug() << "++++++++ For percentile" << percentiles[i]
+                     << "intensity is" << intensities[i].second
+                     << "and location is" << intensities[i].first << "(channel)";
         }
     }
 
@@ -528,19 +527,117 @@ std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int 
                 // put calculated values in the disk cache if it exists
 
                 if (m_diskCache) {
-
                     QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
                     QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
 
                     m_diskCache->setEntry(locationKey.toUtf8(), i2qb(intensities[i].first), 0);
                     m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i].second), 0);
                 }
+                
                 qDebug() << "++++++++ For percentile" << percentiles[i]
                          << "intensity is" << intensities[i].second
                          << "and location is" << intensities[i].first << "(channel)";
             }
         }
     }
+    
+    return intensities;
+}
+
+// 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
+std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
+        const std::vector<double>& percentiles, int stokeFrame) {
+
+    int percentileCount = percentiles.size();
+    std::vector<double> intensities(percentileCount, double(0));
+    
+    int foundCount = 0;
+    std::vector<bool> found(percentileCount, false);
+    
+    // If the disk cache exists, try to look up cached intensity and location values
+    if (m_diskCache) {
+        for (int i = 0; i < percentileCount; i++) {
+            QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
+            QByteArray intensityVal;
+            bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
+            qDebug() << "++++++++ intensity key is" << intensityKey.toUtf8();
+
+            if (intensityInCache) {
+                qDebug() << "++++++++ found intensity in disk cache";
+                intensities[i] = qb2d(intensityVal);
+                foundCount++;
+                found[i] = true;
+            }
+            
+            qDebug() << "++++++++ For percentile" << percentiles[i]
+                     << "intensity is" << intensities[i];
+        }
+    }
+
+    //Not all percentiles were in the cache.  We are going to have to look some up.
+    if (foundCount < percentileCount) {
+
+        qDebug() << "++++++++ Calculating percentile to pixel values..";
+
+        // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+        qDebug() << "++++++++ Spectral Index No. is " << spectralIndex << "; Stoke Index No. is " << stokeIndex;
+
+        // get raw data (for all stokes if any) in order to sort the raw data set by selection algorithm
+        // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+
+        // get raw data (for the specific stoke) in order to sort the raw data set by selection algorithm
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
+        qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
+        qDebug() << "++++++++ set the Stoke Index for Percentile=" << stokeFrame
+                 << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+
+        if (rawData == nullptr) {
+            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+            return intensities;
+        }
+
+        // load raw data through "Carta::Lib::NdArray::RawViewInterface" shared pointer
+        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+
+        // get raw data as double variables
+        // please refer to IImage.h:186  TypedView( RawViewInterface * rawView, bool keepOwnership = false )
+        Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+        // Make a list of the percentiles which have to be calculated
+
+        std::vector<double> percentiles_to_calculate;
+
+        for (int i = 0; i < percentileCount; i++) {
+            if (!found[i]) {
+                percentiles_to_calculate.push_back(percentiles[i]);
+            }
+        }
+
+        // Calculate only the required percentiles
+        
+        std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles_to_calculate);
+
+        for (int i = 0; i < percentileCount; i++) {
+
+            if (!found[i]) {                
+                intensities[i] = clips_map[percentiles[i]];
+                found[i] = true; // for completeness, in case we test this later
+
+                // put calculated values in the disk cache if it exists
+
+                if (m_diskCache) {
+                    QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]);
+                    m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i]), 0);
+                }
+                
+                qDebug() << "++++++++ For percentile" << percentiles[i]
+                         << "intensity is" << intensities[i];
+            }
+        }
+    }
+    
     return intensities;
 }
 

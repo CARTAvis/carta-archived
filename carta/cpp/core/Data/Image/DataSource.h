@@ -210,14 +210,25 @@ private:
             const QSize& outputSize, bool* valid ) const;
 
     /**
-     * Returns the intensities corresponding to a given percentiles.
+     * Returns the locations and intensities corresponding to a given percentiles.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
      * @return - a list of corresponding (location,intensity) pairs.
      */
-    std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
+    std::vector<std::pair<int,double> > _getLocationAndIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles, int stokeFrame);
+
+    /**
+     * Returns the intensities corresponding to a given percentiles.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
+     * @return - a list of intensity values.
+     */
+    std::vector<double> _getIntensity( int frameLow, int frameHigh,
             const std::vector<double>& percentiles, int stokeFrame);
 
 
