@@ -17,7 +17,6 @@
 #include <functional>
 
 //#include "uWS.h"
-#include <uWS/uWS.h>
 
 #include <thread>
 ///
@@ -67,14 +66,14 @@ void DesktopConnector::startWebSocketServer() {
         QString message2(message);
         qDebug() << "convert to:"<< message2;
 
-        if (message2.contains("requestFileList")) {
+        if (message2.contains("REQUEST_FILE_LIST")) {
 
             // if ( )
             QString command = "/CartaObjects/DataLoader:getData";
             QString parameter = "path:";
 
 //            conn->jsSendCommandSlot(command, parameter);
-            jsSendCommandSlot(command, parameter);
+            pseudoJsSendCommandSlot(ws, opCode, command, parameter);
 
     // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
     //    /CartaObjects/DataLoader:getData
@@ -256,6 +255,47 @@ void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value
             qWarning() << "JS setState has no listener" << key << "=" << value;
         }
     }
+}
+
+void DesktopConnector::pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter)
+{
+    // call all registered callbacks and collect results, but asynchronously
+//    defer( [cmd, parameter, this ]() {
+        auto & allCallbacks = m_commandCallbackMap[ cmd];
+        QStringList results;
+        for( auto & cb : allCallbacks) {
+            results += cb( cmd, parameter, "1"); // session id fixed to "1"
+        }
+
+        // pass results back to javascript
+        auto returnStr = results.join("|");
+        returnStr.insert(1, "\"cmd\":\"REQUEST_FILE_LIST\",");
+//        emit jsCommandResultsSignal(ttt);
+
+//        QByteArray ba = str1.toLatin1();
+//        const char *c_str2 = ba.data();
+//        printf("str2: %s", c_str2);
+
+//        QByteArray byteArray=str.toLocal8Bit ();
+//        char *c=byteArray.data();
+
+//        const char *x = returnStr.toUtf8().constData();
+
+//        //        QByteArray byteArray=str.toLocal8Bit ();
+//        //        char *c=byteArray.data();
+
+//        int length = returnStr.size();
+//        int length2 = returnStr.length();
+
+        std::string aaa = returnStr.toStdString();
+        int bbb = aaa.length();
+
+        ws->send(aaa.c_str(), bbb, opCode);
+
+        if( allCallbacks.size() == 0) {
+            qWarning() << "JS command has no server listener:" << cmd << parameter;
+        }
+//    });
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)

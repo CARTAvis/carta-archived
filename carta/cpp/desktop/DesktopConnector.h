@@ -11,6 +11,8 @@
 #include "core/CallbackList.h"
 #include "CartaLib/IRemoteVGView.h"
 
+#include <uWS/uWS.h>
+
 class MainWindow;
 class IView;
 
@@ -43,6 +45,10 @@ public:
     virtual QString getStateLocation( const QString& saveName ) const;
 
     void startWebSocketServer();
+
+//    void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter);
+
+    void pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter);
 
 public slots:
 
