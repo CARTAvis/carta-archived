@@ -59,8 +59,6 @@ percentile2pixels(
         [& allValues] ( const Scalar & val ) {
             // check if the value from raw data is finite
             if ( std::isfinite( val ) ) {
-            // check if the raw data is NaN
-            //if ( ! std::isnan( val ) ) {
                 allValues.push_back( val );
             }
         }
@@ -136,8 +134,6 @@ percentile2pixels_I(
         [&allValues, &index] ( const Scalar &val ) {
             // check if the value from raw data is finite
             if ( std::isfinite( val ) ) {
-            // check if the raw data is NaN
-            //if ( ! std::isnan( val ) ) {
                 allValues.push_back( std::make_pair(index, val) );
             }
             index++;
