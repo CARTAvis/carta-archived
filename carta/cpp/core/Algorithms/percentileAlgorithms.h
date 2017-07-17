@@ -76,7 +76,8 @@ percentile2pixels(
     // for every input percentile, do quickselect and store the result
 
     for ( double q : quant ) {
-        size_t x1 = Carta::Lib::clamp<size_t>( allValues.size() * q, 0, allValues.size()-1);
+        // we clamp to incremented values and decrement at the end because size_t cannot be negative
+        size_t x1 = Carta::Lib::clamp<size_t>(allValues.size() * q , 1, allValues.size()) - 1;
         CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
         std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
         result[q] = allValues[x1];
@@ -157,28 +158,21 @@ percentile2pixels_I(
     auto compareIntensityTuples = [] (const std::pair<int,Scalar>& lhs, const std::pair<int,Scalar>& rhs) { return lhs.second < rhs.second; };
 
     for ( double q : quant ) {
-
         // x1 is the locationIndex used for quantile calculation
-        //size_t x1 = Carta::Lib::clamp<size_t>( allValues.size()*q, 0, allValues.size()-1);
-        //CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
-
-        int locationIndex = allValues.size()*q - 1;
-        if (locationIndex < 0) locationIndex = 0;
-
-        //qDebug() << "++++++++ locationIndex=" << locationIndex << ", x1=" << x1;
+        // we clamp to incremented values and decrement at the end because size_t cannot be negative
+        size_t x1 = Carta::Lib::clamp<size_t>(allValues.size() * q , 1, allValues.size()) - 1;
+        CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
 
         // start timer for getting the nth_element from raw data
         QElapsedTimer timer2;
         timer2.start();
 
-        //std::nth_element( allValues.begin(), allValues.begin()+x1, allValues.end(), compareIntensityTuples );
-        std::nth_element( allValues.begin(), allValues.begin()+locationIndex, allValues.end(), compareIntensityTuples );
+        std::nth_element( allValues.begin(), allValues.begin()+x1, allValues.end(), compareIntensityTuples );
 
         // end of timer for getting the nth_element from the raw data
         qCritical() << "<> Time to get the nth_element from the raw data:" << timer2.elapsed() << "milliseconds";
 
-        //result.push_back(std::make_pair(allValues[x1].first/divisor, allValues[x1].second));
-        result[q] = std::make_pair(allValues[locationIndex].first/divisor, allValues[locationIndex].second);
+        result[q] = std::make_pair(allValues[x1].first/divisor, allValues[x1].second);
     }
 
     return result;
