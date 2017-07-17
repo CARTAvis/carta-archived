@@ -96,13 +96,6 @@ cd gsl-2.3-src
 make
 sudo make install
 cd ..
-echo "check if gsl_multifit is present:"
-ls /usr/local/include/gsl/gsl_multifit.h
-echo "check what libgsl dylibs are present"
-ls /usr/local/opt/gsl/lib/libgsl.*
-ls /usr/local/lib/libgsl.*
-ls /usr/local/include/gsl_multifit.h
-#cp /usr/local/opt/gsl/lib/libgsl.23.dylib /usr/local/opt/gsl/lib/libgsl.19.dylib
 EOF
 }
 
