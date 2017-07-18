@@ -16,7 +16,7 @@
 #include <QCoreApplication>
 #include <functional>
 
-//#include "uWS.h"
+#include <QStringList>
 
 #include <thread>
 ///
@@ -53,7 +53,7 @@ struct DesktopConnector::ViewInfo
 
 };
 
-
+//TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.
 void DesktopConnector::startWebSocketServer() {
 
     std::cout << "websocket starts running" << std::endl;
@@ -61,9 +61,13 @@ void DesktopConnector::startWebSocketServer() {
     // DesktopConnector *conn = this;
     h.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
         std::cout << "get something, echo back:" << message << std::endl;
-//        ws->send(message, length, opCode);
+        //        ws->send(message, length, opCode);
 
-        QString message2(message);
+        char *psz = new char[length];
+        strncpy(psz, message, length);
+        QString message2(psz);
+        delete [] psz;
+
         qDebug() << "convert to:"<< message2;
 
         if (message2.contains("REQUEST_FILE_LIST")) {
@@ -72,13 +76,39 @@ void DesktopConnector::startWebSocketServer() {
             QString command = "/CartaObjects/DataLoader:getData";
             QString parameter = "path:";
 
-//            conn->jsSendCommandSlot(command, parameter);
-            pseudoJsSendCommandSlot(ws, opCode, command, parameter);
+//            QMetaObject::invokeMethod( this, "jsSendCommandSlot2", Qt::QueuedConnection );
+            //            conn->jsSendCommandSlot(command, parameter);
 
-    // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
-    //    /CartaObjects/DataLoader:getData
-    //    path:
+            // QMetaObject::invokeMethod(this, "quit",
+            //               Qt::QueuedConnection);
 
+             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
+
+            // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
+            //    /CartaObjects/DataLoader:getData
+            //    path:
+        } else if (message2.contains("SELECT_FILE_TO_OPEN")) {
+
+            QStringList myStringList = message2.split(';');
+            if(myStringList.size()>=2){
+              auto fileName = myStringList[1];
+              qDebug()<< "fileName:" << myStringList[1];
+
+              QString command = "/CartaObjects/ViewManager:dataLoaded";
+              QString parameter = "id:/CartaObjects/c14,data:" + fileName;
+
+              pseudoJsSendCommandSlot(ws, opCode, command, parameter);
+
+//              qDebug()<<"cmd:"<<cmd;
+//              qDebug()<<"parameter:"<< parameter;
+//              if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
+//                  if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
+//                      int kkk =0;
+//                  }
+//              }
+            }
+
+                            //            ws->send("hello", 5, opCode);
         } else {
             ws->send("hello", 5, opCode);
         }
@@ -269,7 +299,11 @@ void DesktopConnector::pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, 
 
         // pass results back to javascript
         auto returnStr = results.join("|");
-        returnStr.insert(1, "\"cmd\":\"REQUEST_FILE_LIST\",");
+
+        if(cmd == "/CartaObjects/DataLoader:getData") {
+            returnStr.insert(1, "\"cmd\":\"REQUEST_FILE_LIST\",");
+        }
+
 //        emit jsCommandResultsSignal(ttt);
 
 //        QByteArray ba = str1.toLatin1();
@@ -289,13 +323,49 @@ void DesktopConnector::pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, 
 
         std::string aaa = returnStr.toStdString();
         int bbb = aaa.length();
-
         ws->send(aaa.c_str(), bbb, opCode);
 
         if( allCallbacks.size() == 0) {
             qWarning() << "JS command has no server listener:" << cmd << parameter;
         }
 //    });
+}
+
+void DesktopConnector::jsSendCommandSlot2()
+{
+
+    QString cmd = "/CartaObjects/DataLoader:getData";
+    QString parameter = "path:";
+
+//    /CartaObjects/DataLoader:getData
+//    path:
+
+    int k= 0;
+    int k2= 0;
+
+//    qDebug()<<"cmd:"<<cmd;
+//    qDebug()<<"parameter:"<< parameter;
+//    if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
+//        if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
+//            int kkk =0;
+//        }
+//    }
+
+    // call all registered callbacks and collect results, but asynchronously
+    defer( [cmd, parameter, this ]() {
+        auto & allCallbacks = m_commandCallbackMap[ cmd];
+        QStringList results;
+        for( auto & cb : allCallbacks) {
+            results += cb( cmd, parameter, "1"); // session id fixed to "1"
+        }
+
+        // pass results back to javascript
+        emit jsCommandResultsSignal( results.join("|"));
+
+        if( allCallbacks.size() == 0) {
+            qWarning() << "JS command has no server listener:" << cmd << parameter;
+        }
+    });
 }
 
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
@@ -305,6 +375,14 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
 
     int k= 0;
     int k2= 0;
+
+//    qDebug()<<"cmd:"<<cmd;
+//    qDebug()<<"parameter:"<< parameter;
+//    if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
+//        if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
+//            int kkk =0;
+//        }
+//    }
 
     // call all registered callbacks and collect results, but asynchronously
     defer( [cmd, parameter, this ]() {

@@ -48,6 +48,9 @@ public:
 
 //    void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter);
 
+
+
+    void jsSendCommandSlot2();
     void pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter);
 
 public slots:
