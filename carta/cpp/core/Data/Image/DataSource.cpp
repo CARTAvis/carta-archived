@@ -792,7 +792,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
 
         SliceND frameSlice = SliceND().next();
 
-        for ( int i = 0; i < imageDim; i++ ) {
+        for ( int i = 0; i < imageDim; i++ ){
 
             // only deal with the extra dimensions other than x-axis and y-axis
             if ( i != m_axisIndexX && i != m_axisIndexY ){
@@ -802,7 +802,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                 SliceND& slice = frameSlice.next();
 
                 // If it is the target axis..
-                if ( i == axisIndex ) {
+                if ( i == axisIndex ){
                    // Use the passed in frame range
                    if ( 0 <= frameStart && frameStart < sliceSize &&
                         0 <= frameEnd && frameEnd < sliceSize ){
@@ -813,7 +813,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                        slice.start(0);
                        slice.end( sliceSize);
                    }
-                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3) {
+                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3){
                     // If the stoke-axis is exist (axisStokeIndex != -1),
                     // we only consider one stoke (stokeSliceIndex) for percentile calculation
                     qDebug() << "++++++++ we only consider the stoke" << stokeSliceIndex <<

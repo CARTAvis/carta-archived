@@ -43,7 +43,7 @@ percentile2pixels(
     std::vector < double > quant
     )
 {
-    qDebug() << "computeClips" << view.dims();
+    qDebug() << "++++++++ raw data shape for computing percentile per frame is" << view.dims();
 
     // basic preconditions
     if ( CARTA_RUNTIME_CHECKS ) {
