@@ -79,6 +79,9 @@ qx.Mixin.define("skel.widgets.IO.FileTreeMixin", {
                     //If the node is a directory, add the directory to the base path.
                     dirPath = dirPath + path.SEP + fileName;
                 }
+                else{
+                    this.m_tree.m_target.dataLoaded(dirPath + path.SEP + fileName);
+                }
                 this._initData( dirPath );
             }, this );
             //Update the directory and text fields when the tree selection
