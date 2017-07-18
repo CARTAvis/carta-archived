@@ -809,7 +809,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                        slice.start( frameStart );
                        slice.end( frameEnd + 1);
                    } else {
-                       qDebug() << "for spectral axis index=" << i << ", the total slice size is" << sliceSize;
+                       qDebug() << "++++++++ for spectral axis index=" << i << ", the total slice size is" << sliceSize;
                        slice.start(0);
                        slice.end( sliceSize);
                    }

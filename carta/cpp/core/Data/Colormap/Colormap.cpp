@@ -329,11 +329,9 @@ QString Colormap::getImageUnits() const {
 }
 
 std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vector<double>& percents ) const {
-
     std::vector<std::pair<int,double>> values;
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
-        std::pair<int,int> bounds(-1,-1);
 
         // start the timer for percentile calculation
         QElapsedTimer timer;
@@ -343,7 +341,13 @@ std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vec
         values = controller->getLocationAndIntensity( -1, -1, percents );
 
         // end of timer for calculating the percentile
-        qCritical() << "<> Time to calculate the percentile:" << timer.elapsed() << "milliseconds";
+        int elapsedTime = timer.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            // only show the elapsed time while it is greater than 1 ms
+            if (elapsedTime > 1) {
+                qCritical() << "<> Time to get the percentile:" << elapsedTime << "ms";
+            }
+        }
 
         // show colormap for Quantile mode
         // TODO: need to modify _updateIntensityBounds() as well !!

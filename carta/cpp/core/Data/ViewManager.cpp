@@ -490,19 +490,29 @@ void ViewManager::_initCallbacks(){
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         bool fileLoaded = false;
 
-        // custmoize the style of print out messages
-        qInstallMessageHandler(myMessageOutput);
+        if (CARTA_RUNTIME_CHECKS) {
+            // custmoize the style of print out messages
+            qInstallMessageHandler(myMessageOutput);
+        }
+
+        QString fileName = dataValues[DATA].split("/").last();
 
         // get the timer for the function "loadFile(...)"
         QElapsedTimer timer;
         timer.start();
-        qCritical() << "<> Start loading file" << dataValues[DATA] << "!!!";
+
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Start loading" << fileName << "!";
+        }
 
         // execute the function "loadFile(...)"
         QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
 
         // set the output stype of log lines
-        qCritical() << "<> Loading time for the image" << dataValues[DATA] << ":" << timer.elapsed() << "milliseconds";
+        int elapsedTime = timer.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Total loading time for" << fileName << ":" << elapsedTime << "ms";
+        }
 
         if ( !fileLoaded ){
             Util::commandPostProcess( result);

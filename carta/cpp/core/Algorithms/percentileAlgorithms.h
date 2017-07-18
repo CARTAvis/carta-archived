@@ -142,7 +142,10 @@ percentile2pixels_I(
     qDebug() << "++++++++ raw data index number=" << index;
 
     // end of timer for loading the raw data
-    qCritical() << "<> Time to load the raw data:" << timer.elapsed() << "milliseconds";
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to load the raw data:" << elapsedTime << "ms";
+    }
 
     // indicate bad clip if no finite numbers were found
     if ( allValues.size() == 0 ) {
@@ -166,7 +169,10 @@ percentile2pixels_I(
         std::nth_element( allValues.begin(), allValues.begin()+x1, allValues.end(), compareIntensityTuples );
 
         // end of timer for getting the nth_element from the raw data
-        qCritical() << "<> Time to get the nth_element from the raw data:" << timer2.elapsed() << "milliseconds";
+        int elapsedTime2 = timer2.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Time to get std::nth_element=" << q << "from raw data:" << elapsedTime2 << "ms";
+        }
 
         result[q] = std::make_pair(allValues[x1].first/divisor, allValues[x1].second);
     }
