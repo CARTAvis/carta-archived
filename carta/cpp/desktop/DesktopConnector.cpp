@@ -19,6 +19,9 @@
 #include <QStringList>
 
 #include <thread>
+
+#include "QtWebSockets/qwebsocketserver.h"
+#include "QtWebSockets/qwebsocket.h"
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
 ///  to remember with each view
@@ -82,7 +85,7 @@ void DesktopConnector::startWebSocketServer() {
             // QMetaObject::invokeMethod(this, "quit",
             //               Qt::QueuedConnection);
 
-             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
+//             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
 
             // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
             //    /CartaObjects/DataLoader:getData
@@ -97,7 +100,7 @@ void DesktopConnector::startWebSocketServer() {
               QString command = "/CartaObjects/ViewManager:dataLoaded";
               QString parameter = "id:/CartaObjects/c14,data:" + fileName;
 
-              pseudoJsSendCommandSlot(ws, opCode, command, parameter);
+//              pseudoJsSendCommandSlot(ws, opCode, command, parameter);
 
 //              qDebug()<<"cmd:"<<cmd;
 //              qDebug()<<"parameter:"<< parameter;
@@ -110,7 +113,7 @@ void DesktopConnector::startWebSocketServer() {
 
                             //            ws->send("hello", 5, opCode);
         } else {
-            ws->send("hello", 5, opCode);
+//            ws->send("hello", 5, opCode);
         }
     });
     h.listen(3003);
@@ -128,11 +131,120 @@ DesktopConnector::DesktopConnector()
 
     m_callbackNextId = 0;
 
-    // test WebSocket part
-    std::thread mThread( &DesktopConnector::startWebSocketServer, this );
-    mThread.detach();
+    // test1: uWebSocket part
+//    std::thread mThread( &DesktopConnector::startWebSocketServer, this );
+//    mThread.detach();
+
+    // test2: change to use Qt's buint-in WebSocket
+    // https://github.com/GarageGames/Qt/blob/master/qt-5/qtwebsockets/examples/websockets/echoserver/echoserver.cpp
+    m_pWebSocketServer = new QWebSocketServer(QStringLiteral("Echo Server"),
+                                            QWebSocketServer::NonSecureMode, this);
+    m_debug = true;
+    int port = 3003;
+    if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
+        if (m_debug)
+            qDebug() << "DesktopConnector listening on port" << port;
+        connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
+                this, &DesktopConnector::onNewConnection);
+//        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &DesktopConnector::closed);
+    }
 
 }
+
+DesktopConnector::~DesktopConnector()
+{
+    m_pWebSocketServer->close();
+    qDeleteAll(m_clients.begin(), m_clients.end());
+}
+
+void DesktopConnector::onNewConnection()
+{
+    QWebSocket *pSocket = m_pWebSocketServer->nextPendingConnection();
+
+    connect(pSocket, &QWebSocket::textMessageReceived, this, &DesktopConnector::processTextMessage);
+    connect(pSocket, &QWebSocket::binaryMessageReceived, this, &DesktopConnector::processBinaryMessage);
+    connect(pSocket, &QWebSocket::disconnected, this, &DesktopConnector::socketDisconnected);
+
+    m_clients << pSocket;
+}
+
+void DesktopConnector::processTextMessage(QString message)
+{
+    QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
+    if (m_debug)
+        qDebug() << "Message received:" << message;
+    if (!pClient) {
+        qDebug() << "invalid websocket client";
+        return;
+    }
+
+    if (message.contains("REQUEST_FILE_LIST")) {
+
+        // if ( )
+        QString command = "/CartaObjects/DataLoader:getData";
+        QString parameter = "path:";
+
+//            QMetaObject::invokeMethod( this, "jsSendCommandSlot2", Qt::QueuedConnection );
+        //            conn->jsSendCommandSlot(command, parameter);
+
+        // QMetaObject::invokeMethod(this, "quit",
+        //               Qt::QueuedConnection);
+
+        pseudoJsSendCommandSlot(command, parameter, pClient);
+//        jsSendCommandSlot(command, parameter);
+
+        // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
+        //    /CartaObjects/DataLoader:getData
+        //    path:
+    } else if (message.contains("SELECT_FILE_TO_OPEN")) {
+
+        QStringList myStringList = message.split(';');
+        if(myStringList.size()>=2){
+          auto fileName = myStringList[1];
+          qDebug()<< "fileName:" << myStringList[1];
+
+          QString command = "/CartaObjects/ViewManager:dataLoaded";
+          QString parameter = "id:/CartaObjects/c14,data:" + fileName;
+
+          pseudoJsSendCommandSlot(command, parameter, pClient);
+
+//              qDebug()<<"cmd:"<<cmd;
+//              qDebug()<<"parameter:"<< parameter;
+//              if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
+//                  if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
+//                      int kkk =0;
+//                  }
+//              }
+        }
+    } else {
+//            ws->send("hello", 5, opCode);
+    }
+
+
+
+}
+
+void DesktopConnector::processBinaryMessage(QByteArray message)
+{
+    QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
+    if (m_debug)
+        qDebug() << "Binary Message received:" << message;
+    if (pClient) {
+        pClient->sendBinaryMessage(message);
+    }
+}
+
+void DesktopConnector::socketDisconnected()
+{
+    QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
+    if (m_debug)
+        qDebug() << "socketDisconnected:" << pClient;
+    if (pClient) {
+        m_clients.removeAll(pClient);
+        pClient->deleteLater();
+    }
+}
+
 
 void DesktopConnector::initialize(const InitializeCallback & cb)
 {
@@ -287,7 +399,7 @@ void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value
     }
 }
 
-void DesktopConnector::pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter)
+void DesktopConnector::pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter, QWebSocket *pClient)
 {
     // call all registered callbacks and collect results, but asynchronously
 //    defer( [cmd, parameter, this ]() {
@@ -302,6 +414,7 @@ void DesktopConnector::pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, 
 
         if(cmd == "/CartaObjects/DataLoader:getData") {
             returnStr.insert(1, "\"cmd\":\"REQUEST_FILE_LIST\",");
+            pClient->sendTextMessage(returnStr);
         }
 
 //        emit jsCommandResultsSignal(ttt);
@@ -321,9 +434,9 @@ void DesktopConnector::pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, 
 //        int length = returnStr.size();
 //        int length2 = returnStr.length();
 
-        std::string aaa = returnStr.toStdString();
-        int bbb = aaa.length();
-        ws->send(aaa.c_str(), bbb, opCode);
+//        std::string aaa = returnStr.toStdString();
+//        int bbb = aaa.length();
+//        ws->send(aaa.c_str(), bbb, opCode);
 
         if( allCallbacks.size() == 0) {
             qWarning() << "JS command has no server listener:" << cmd << parameter;

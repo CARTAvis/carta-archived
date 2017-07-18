@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  webkitwidgets network widgets xml
+QT      +=  webkitwidgets network widgets xml websockets
 
 HEADERS += \
     MainWindow.h \
@@ -68,3 +68,5 @@ INCLUDEPATH += /usr/local/include
 LIBS += -L/usr/local/opt/openssl/lib
 LIBS += -L/usr/local/opt/libuv/lib
 LIBS += -L/usr/local/lib
+
+QT       += websockets

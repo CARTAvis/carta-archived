@@ -13,6 +13,12 @@
 
 #include <uWS/uWS.h>
 
+#include <QList>
+#include <QByteArray>
+
+QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
+QT_FORWARD_DECLARE_CLASS(QWebSocket)
+
 class MainWindow;
 class IView;
 
@@ -48,10 +54,15 @@ public:
 
 //    void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter);
 
-
-
     void jsSendCommandSlot2();
-    void pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter);
+//    void pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter);
+
+    // Qt's built-in WebSocket
+    QWebSocketServer *m_pWebSocketServer;
+    QList<QWebSocket *> m_clients;
+    bool m_debug;
+    ~DesktopConnector();
+    void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter, QWebSocket *pClient);
 
 public slots:
 
@@ -72,7 +83,16 @@ public slots:
     /// this is the callback for stateChangedSignal
     void stateChangedSlot( const QString & key, const QString & value);
 
+    // Qt's built-in WebSocket
+    void onNewConnection();
+    void processTextMessage(QString message);
+    void processBinaryMessage(QByteArray message);
+    void socketDisconnected();
+
 signals:
+
+    void closed();
+
 
     /// we emit this signal when state is changed (either by c++ or by javascript)
     /// we listen to this signal, and so does javascript
