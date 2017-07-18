@@ -20,11 +20,18 @@ class IPercentIntensityMap {
 public:
 
     /**
-     * Returns the intensity corresponding to a given percentile in the current frame.
+     * Returns the location and intensity corresponding to a given percentile in the current frame.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @return - a list of corresponding (location,intensity) pairs.
      */
-    virtual std::vector<std::pair<int,double> > getIntensity( const std::vector<double>& percentile) const = 0;
+    virtual std::vector<std::pair<int, double> > getLocationAndIntensity( const std::vector<double>& percentile) const = 0;
+
+    /**
+     * Returns the intensity corresponding to a given percentile in the current frame.
+     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @return - a list of corresponding intensity values.
+     */
+    virtual std::vector<double> getIntensity( const std::vector<double>& percentile) const = 0;
 
     /**
      * Return the percentile corresponding to the given intensity in the current frame.

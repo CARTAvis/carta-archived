@@ -340,7 +340,7 @@ std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vec
         timer.start();
 
         // show colormap for Percentile mode
-        values = controller->getIntensity( -1, -1, percents );
+        values = controller->getLocationAndIntensity( -1, -1, percents );
 
         // end of timer for calculating the percentile
         qCritical() << "<> Time to calculate the percentile:" << timer.elapsed() << "milliseconds";

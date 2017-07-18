@@ -356,22 +356,40 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-std::vector<std::pair<int,double> > Controller::getIntensity( const std::vector<double>& percentiles ) const{
+std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( const std::vector<double>& percentiles ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    std::vector<std::pair<int,double> > result = getIntensity( currentFrame, currentFrame, percentiles );
+    std::vector<std::pair<int,double> > result = getLocationAndIntensity( currentFrame, currentFrame, percentiles );
     return result;
 }
 
-std::vector<std::pair<int,double> > Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+
+std::vector<double> Controller::getIntensity( const std::vector<double>& percentiles ) const{
+    int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
+    std::vector<double> result = getIntensity( currentFrame, currentFrame, percentiles );
+    return result;
+}
+
+
+std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
     int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
-    std::vector<std::pair<int,double> > intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<std::pair<int,double> > intensities = m_stack->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
     return intensities;
 }
+
+
+std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+    int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<double> intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+    return intensities;
+}
+
 
 QRectF Controller::_getInputRectangle(  ) const {
     return m_stack->_getInputRectangle( );
 }
+
 
 QSize Controller::getOutputSize( ) const {
     QSize result = m_stack->_getOutputSize();
