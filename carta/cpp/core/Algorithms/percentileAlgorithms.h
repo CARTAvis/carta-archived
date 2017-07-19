@@ -85,9 +85,10 @@ percentile2pixels(
     return result;
 } // computeClips
 
+
 ///
-///
-///
+/// compute the percentile and return pixel values
+/// with respect to their spectral channels
 ///
 template < typename Scalar >
 static
@@ -175,6 +176,99 @@ percentile2pixels_I(
         }
 
         result[q] = std::make_pair(allValues[x1].first/divisor, allValues[x1].second);
+    }
+
+    return result;
+}
+
+
+///
+/// compute the minimum and maximum pixel values
+/// with respect to their spectral channels
+///
+template < typename Scalar >
+static
+std::map<double, std::pair<int,Scalar>>
+minMax2pixels(
+    Carta::Lib::NdArray::TypedView < Scalar > & view,
+    int spectralIndex,
+    std::vector < double > quant
+    )
+{
+    // basic preconditions
+    if ( CARTA_RUNTIME_CHECKS ) {
+        for ( auto q : quant ) {
+            CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
+            Q_UNUSED(q);
+        }
+    }
+
+    int index = 0;
+    std::map<double, std::pair<int,Scalar>> result;
+    double minPixel = 0.0;
+    double maxPixel = 0.0;
+    int indexOfMinPixel = 0;
+    int indexOfMaxPixel = 0;
+
+    std::vector<int> dims = view.dims();
+    qDebug() << "++++++++ raw data shape for calculating percentile is"<< dims;
+
+    int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
+
+    int divisor = total_size;
+    if (spectralIndex != -1) {
+        divisor /= dims[spectralIndex];
+    }
+    qDebug() << "++++++++ raw data size per channel=" << divisor;
+
+    // start timer for scanning the raw data
+    QElapsedTimer timer;
+    timer.start();
+
+    // scan the raw data from the view to get the minimum and maximum pixel values
+    // with respect to their spectral channels
+    view.forEach(
+        [&index, &minPixel, &maxPixel, &indexOfMinPixel, &indexOfMaxPixel] ( const Scalar &val ) {
+            // check if the value from raw data is finite
+            if ( std::isfinite( val ) ) {
+                if (index == 0) {
+                    minPixel = val;
+                    maxPixel = val;
+                } else {
+                    if (val < minPixel) {
+                        minPixel = val;
+                        indexOfMinPixel = index;
+                    }
+                    if (val > maxPixel) {
+                        maxPixel = val;
+                        indexOfMaxPixel = index;
+                    }
+                }
+            }
+            index++;
+        }
+    );
+    qDebug() << "++++++++ raw data index number=" << index;
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to scan the raw data:" << elapsedTime << "ms";
+    }
+
+    // check if the data size is zero
+    if (index == 0) {
+        qFatal( "The size of raw data is zero !!" );
+    }
+
+    // check if the data size is zero
+    if (index == 0) {
+        qFatal( "The size of raw data is zero !!" );
+    }
+
+    for ( double q : quant ) {
+        if (q==0) result[q] = std::make_pair(indexOfMinPixel/divisor, minPixel);
+        if (q==1) result[q] = std::make_pair(indexOfMaxPixel/divisor, maxPixel);
     }
 
     return result;

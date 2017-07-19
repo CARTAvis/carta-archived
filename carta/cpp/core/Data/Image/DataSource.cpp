@@ -513,7 +513,15 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
 
         // Calculate only the required percentiles
         
-        std::map<double, std::pair<int,double> > clips_map = Carta::Core::Algorithms::percentile2pixels_I(doubleView, spectralIndex, percentiles_to_calculate);
+        std::map<double, std::pair<int,double> > clips_map;
+
+        if (percentiles_to_calculate.size() == 2 && percentiles_to_calculate[0] == 0 && percentiles_to_calculate[1] == 1) {
+            qDebug() << "++++++++ use Carta::Core::Algorithms::minMax2pixels() function !!";
+            clips_map = Carta::Core::Algorithms::minMax2pixels(doubleView, spectralIndex, percentiles_to_calculate);
+        } else {
+            qDebug() << "++++++++ use Carta::Core::Algorithms::percentile2pixels_I() function !!";
+            clips_map = Carta::Core::Algorithms::percentile2pixels_I(doubleView, spectralIndex, percentiles_to_calculate);
+        }
 
         for (int i = 0; i < percentileCount; i++) {
 
