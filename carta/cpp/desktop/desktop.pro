@@ -61,12 +61,12 @@ QMAKE_EXTRA_COMPILERS += preprocess
 }
 
 # experimental websocket part, test on Mac
-LIBS +=  -lssl -lz -luv -luWS
-INCLUDEPATH += /usr/local/opt/openssl/include
-INCLUDEPATH += /usr/local/opt/libuv/include
-INCLUDEPATH += /usr/local/include
-LIBS += -L/usr/local/opt/openssl/lib
-LIBS += -L/usr/local/opt/libuv/lib
-LIBS += -L/usr/local/lib
+#LIBS +=  -lssl -lz -luv -luWS
+#INCLUDEPATH += /usr/local/opt/openssl/include
+#INCLUDEPATH += /usr/local/opt/libuv/include
+#INCLUDEPATH += /usr/local/include
+#LIBS += -L/usr/local/opt/openssl/lib
+#LIBS += -L/usr/local/opt/libuv/lib
+#LIBS += -L/usr/local/lib
 
 QT       += websockets

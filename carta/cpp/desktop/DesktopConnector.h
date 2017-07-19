@@ -11,7 +11,7 @@
 #include "core/CallbackList.h"
 #include "CartaLib/IRemoteVGView.h"
 
-#include <uWS/uWS.h>
+//#include <uWS/uWS.h>
 
 #include <QList>
 #include <QByteArray>

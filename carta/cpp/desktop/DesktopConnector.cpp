@@ -19,10 +19,10 @@
 #include <QStringList>
 
 #include <thread>
-
 #include "QtWebSockets/qwebsocketserver.h"
 #include "QtWebSockets/qwebsocket.h"
-///
+#include <QBuffer>
+
 /// \brief internal class of DesktopConnector, containing extra information we like
 ///  to remember with each view
 ///
@@ -56,70 +56,71 @@ struct DesktopConnector::ViewInfo
 
 };
 
+// uWebSockets part, comment now, change to use qt's built-in WebSocket
 //TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.
 void DesktopConnector::startWebSocketServer() {
 
-    std::cout << "websocket starts running" << std::endl;
-    uWS::Hub h;
-    // DesktopConnector *conn = this;
-    h.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
-        std::cout << "get something, echo back:" << message << std::endl;
-        //        ws->send(message, length, opCode);
+//    std::cout << "websocket starts running" << std::endl;
+//    uWS::Hub h;
+//    // DesktopConnector *conn = this;
+//    h.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
+//        std::cout << "get something, echo back:" << message << std::endl;
+//        //        ws->send(message, length, opCode);
 
-        char *psz = new char[length];
-        strncpy(psz, message, length);
-        QString message2(psz);
-        delete [] psz;
+//        char *psz = new char[length];
+//        strncpy(psz, message, length);
+//        QString message2(psz);
+//        delete [] psz;
 
-        qDebug() << "convert to:"<< message2;
+//        qDebug() << "convert to:"<< message2;
 
-        if (message2.contains("REQUEST_FILE_LIST")) {
+//        if (message2.contains("REQUEST_FILE_LIST")) {
 
-            // if ( )
-            QString command = "/CartaObjects/DataLoader:getData";
-            QString parameter = "path:";
+//            // if ( )
+//            QString command = "/CartaObjects/DataLoader:getData";
+//            QString parameter = "path:";
 
-//            QMetaObject::invokeMethod( this, "jsSendCommandSlot2", Qt::QueuedConnection );
-            //            conn->jsSendCommandSlot(command, parameter);
+////            QMetaObject::invokeMethod( this, "jsSendCommandSlot2", Qt::QueuedConnection );
+//            //            conn->jsSendCommandSlot(command, parameter);
 
-            // QMetaObject::invokeMethod(this, "quit",
-            //               Qt::QueuedConnection);
+//            // QMetaObject::invokeMethod(this, "quit",
+//            //               Qt::QueuedConnection);
 
-//             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
+////             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
 
-            // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
-            //    /CartaObjects/DataLoader:getData
-            //    path:
-        } else if (message2.contains("SELECT_FILE_TO_OPEN")) {
+//            // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
+//            //    /CartaObjects/DataLoader:getData
+//            //    path:
+//        } else if (message2.contains("SELECT_FILE_TO_OPEN")) {
 
-            QStringList myStringList = message2.split(';');
-            if(myStringList.size()>=2){
-              auto fileName = myStringList[1];
-              qDebug()<< "fileName:" << myStringList[1];
+//            QStringList myStringList = message2.split(';');
+//            if(myStringList.size()>=2){
+//              auto fileName = myStringList[1];
+//              qDebug()<< "fileName:" << myStringList[1];
 
-              QString command = "/CartaObjects/ViewManager:dataLoaded";
-              QString parameter = "id:/CartaObjects/c14,data:" + fileName;
+//              QString command = "/CartaObjects/ViewManager:dataLoaded";
+//              QString parameter = "id:/CartaObjects/c14,data:" + fileName;
 
-//              pseudoJsSendCommandSlot(ws, opCode, command, parameter);
+////              pseudoJsSendCommandSlot(ws, opCode, command, parameter);
 
-//              qDebug()<<"cmd:"<<cmd;
-//              qDebug()<<"parameter:"<< parameter;
-//              if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
-//                  if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
-//                      int kkk =0;
-//                  }
-//              }
-            }
+////              qDebug()<<"cmd:"<<cmd;
+////              qDebug()<<"parameter:"<< parameter;
+////              if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
+////                  if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
+////                      int kkk =0;
+////                  }
+////              }
+//            }
 
-                            //            ws->send("hello", 5, opCode);
-        } else {
-//            ws->send("hello", 5, opCode);
-        }
-    });
-    h.listen(3003);
-    h.run(); // will block here
+//                            //            ws->send("hello", 5, opCode);
+//        } else {
+////            ws->send("hello", 5, opCode);
+//        }
+//    });
+//    h.listen(4314);
+//    h.run(); // will block here
 
-    std::cout << "websocket ends running" << std::endl;
+//    std::cout << "websocket ends running" << std::endl;
 }
 
 DesktopConnector::DesktopConnector()
@@ -157,9 +158,13 @@ DesktopConnector::~DesktopConnector()
     qDeleteAll(m_clients.begin(), m_clients.end());
 }
 
+static QWebSocket *test_pClient = nullptr;
+
 void DesktopConnector::onNewConnection()
 {
     QWebSocket *pSocket = m_pWebSocketServer->nextPendingConnection();
+
+    test_pClient = pSocket;
 
     connect(pSocket, &QWebSocket::textMessageReceived, this, &DesktopConnector::processTextMessage);
     connect(pSocket, &QWebSocket::binaryMessageReceived, this, &DesktopConnector::processBinaryMessage);
@@ -491,11 +496,9 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
 
 //    qDebug()<<"cmd:"<<cmd;
 //    qDebug()<<"parameter:"<< parameter;
-//    if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
-//        if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
-//            int kkk =0;
-//        }
-//    }
+    if (cmd=="/CartaObjects/c14:setZoomLevel") {
+        int kkk =0;
+    }
 
     // call all registered callbacks and collect results, but asynchronously
     defer( [cmd, parameter, this ]() {
@@ -539,6 +542,15 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 
 void DesktopConnector::refreshViewNow(IView *view)
 {
+    static int enterCount =0;
+
+    enterCount++;
+
+//    if (enterCount>1) {
+//        return;
+//    }
+
+
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
         // this is an internal error...
@@ -573,14 +585,54 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
+        QString nname = view-> name();
         emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+        // finalImage = &pix;
     }
     else {
+        QString nname = view-> name();
+
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
         emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+
+        const QImage *finalImage = &origImage;
+        if (finalImage) {
+        //    image.load("test.png");
+           QByteArray byteArray;
+           QBuffer buffer(&byteArray);
+           finalImage->save(&buffer, "JPEG", 50); // writes the image in PNG format inside the buffer
+           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+           int kkk = 0;
+           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
+           if (test_pClient != nullptr) {
+               test_pClient->sendTextMessage(jsonStr);
+           }
+        } else {
+            qDebug() << "grimmer not ready";
+        }
+
     }
+
+
+
+    //http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
+
+    // test webSocket case
+    auto sendBackToWSClient = [this](const QImage & img) {
+
+    // 1. convert Qimage to jpeg base64 string
+
+
+    // 2.d send
+    //test_pClient->sendTextMessage();
+
+    };
+
+
+
+
 }
 
 void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)
