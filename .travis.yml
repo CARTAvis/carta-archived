@@ -52,6 +52,9 @@ cache:
   # ls -al $CARTABUILDHOME/Carta-${OS_X_VERSION}-${cartaver}.dmg
   # Carta-10.12-0.9.0.dmg
 
+notifications:
+    slack: cartaviewer:GE7zJW80d8gGDWoyWTzkPijq
+
 jobs:
   include:
     - stage: thirdparty

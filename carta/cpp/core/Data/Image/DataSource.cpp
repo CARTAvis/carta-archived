@@ -282,6 +282,9 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
         }
         out << "\n";
 
+        QString fileName = m_fileName.split("/").last();
+        out << fileName;
+
         str.replace( "\n", "<br />" );
     }
     return str;
