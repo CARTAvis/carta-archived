@@ -261,11 +261,6 @@ minMax2pixels(
         qFatal( "The size of raw data is zero !!" );
     }
 
-    // check if the data size is zero
-    if (index == 0) {
-        qFatal( "The size of raw data is zero !!" );
-    }
-
     for ( double q : quant ) {
         if (q==0) result[q] = std::make_pair(indexOfMinPixel/divisor, minPixel);
         if (q==1) result[q] = std::make_pair(indexOfMaxPixel/divisor, maxPixel);
