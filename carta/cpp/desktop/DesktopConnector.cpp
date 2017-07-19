@@ -141,7 +141,7 @@ DesktopConnector::DesktopConnector()
     m_pWebSocketServer = new QWebSocketServer(QStringLiteral("Echo Server"),
                                             QWebSocketServer::NonSecureMode, this);
     m_debug = true;
-    int port = 3003;
+    int port = 4314;
     if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
         if (m_debug)
             qDebug() << "DesktopConnector listening on port" << port;
