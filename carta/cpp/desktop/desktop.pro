@@ -26,11 +26,9 @@ RESOURCES = resources.qrc
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
-unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
 DEPENDPATH += $$PROJECT_ROOT/core
-DEPENDPATH += $$PROJECT_ROOT/CartaLib
 
-QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../core\''
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../core\''
 
 QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 unix:macx {
