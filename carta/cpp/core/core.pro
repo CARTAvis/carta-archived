@@ -338,6 +338,8 @@ INCLUDEPATH += $$absolute_path(../../../ThirdParty/rapidjson/include)
 #INCLUDEPATH += ../../../ThirdParty/qwt/include
 #LIBS += -L../../../ThirdParty/qwt/lib -lqwt
 
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''
+
 QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 INCLUDEPATH += $$QWT_ROOT/include
 unix:macx {
