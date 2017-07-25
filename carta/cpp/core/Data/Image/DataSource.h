@@ -213,6 +213,15 @@ private:
      * Returns the locations and intensities corresponding to a given percentiles.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param stokeFrame - the index number of stoke slice
+     * @return - minimum and maximum intensities.
+     */
+    std::vector<std::pair<int,double>> _getMinMaxIntensity(int frameLow, int frameHigh, int stokeFrame) const;
+
+    /**
+     * Returns the locations and intensities corresponding to a given percentiles.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
      * @return - a list of corresponding (location,intensity) pairs.
@@ -532,6 +541,9 @@ private:
     const static int INDEX_PERCENTILE;
     const static int INDEX_FRAME_LOW;
     const static int INDEX_FRAME_HIGH;
+    const static unsigned int APPROXIMATION_DIVIDED_NO;
+    const static unsigned int APPROXIMATION_ELEMENT_LIMIT;
+    const static bool APPROXIMATION_GET_LOCATION;
 
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);
