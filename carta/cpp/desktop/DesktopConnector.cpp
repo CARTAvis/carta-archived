@@ -586,28 +586,60 @@ void DesktopConnector::refreshViewNow(IView *view)
                                      0, origImage.height()-1);
 
         QString nname = view-> name();
+
+        qDebug()<<"grimmer image11111";
+
         emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
-        // finalImage = &pix;
+//        return;
+
+        QImage *finalImage;
+
+        finalImage = &pix;
+
+        if (finalImage) {
+//            image.load("test.png");
+           QByteArray byteArray;
+           QBuffer buffer(&byteArray);
+           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
+           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
+           if (test_pClient != nullptr) {
+               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
+               test_pClient->flush();
+               qDebug() << "send:"<<sendNumber;
+           }
+        } else {
+            qDebug() << "grimmer not ready";
+        }
+
     }
     else {
+
+        static int count = 0;
+        count++;
+
+        qDebug()<<"grimmer image2222:"<< count;
+
         QString nname = view-> name();
 
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
         emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+//        return;
 
         const QImage *finalImage = &origImage;
         if (finalImage) {
-        //    image.load("test.png");
+//            image.load("test.png");
            QByteArray byteArray;
            QBuffer buffer(&byteArray);
-           finalImage->save(&buffer, "JPEG", 50); // writes the image in PNG format inside the buffer
+           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer. 50 is a little bad
            QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-           int kkk = 0;
            QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
            if (test_pClient != nullptr) {
-               test_pClient->sendTextMessage(jsonStr);
+               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
+               test_pClient->flush();
+               qDebug() << "send:"<<sendNumber;
            }
         } else {
             qDebug() << "grimmer not ready";
