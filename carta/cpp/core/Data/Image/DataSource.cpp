@@ -35,7 +35,7 @@ const int DataSource::INDEX_PERCENTILE = 2;
 const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
 const unsigned int DataSource::APPROXIMATION_DIVIDED_NO = 1000000;
-const unsigned int DataSource::APPROXIMATION_ELEMENT_LIMIT = 300000000; // ~1.5G of the file size
+const unsigned int DataSource::APPROXIMATION_ELEMENT_LIMIT = 100000000; // ~0.5G of the file size
 const bool DataSource::APPROXIMATION_GET_LOCATION = false;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
