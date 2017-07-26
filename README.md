@@ -175,9 +175,7 @@ Use this repo, https://github.com/cartavis/deploytask.
 
 ### Some notes:
 
-1. Start from Qt 5.5, the **rpath** of dependent Qt library will use **@rpath** instead of using absolute path, on Mac.
-
-2. Observation about build Size (on Mac), before packaging:
+1. Observation about build Size (on Mac), before packaging:
 
 ```
 553M    Carta.app   (without default image)
@@ -191,11 +189,13 @@ Use this repo, https://github.com/cartavis/deploytask.
 
 # Dynamic/Shared Library search notes for runtime and packaging
 
-1. CARTA dekstop version is built to **CARTA program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
+1. On Mac, start from Qt 5.5, the **rpath** of dependent Qt library will use **@rpath** instead of using absolute path.
 
-2. It seems that Qt-built dynamic libs do not have **Search Path issue**, at least before moving CARTA program (for packaging).
+2. CARTA desktop version is built to **CARTA program + dynamic libs (libCARTA, libcore, many libPlugin built from Qt)** and use "a few static Third-party library + many dynamic Third-party library".
 
-3. We use **install_name_tool** (Mac) and **chrpath** or **PatchELF** (Linux) to specify dynamic linking path of each lib. On mac, **CARTA** is located in **CARTA.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so we need to have different handles.
+3. It seems that Qt-built dynamic libs do not have **Search Path issue**, at least before moving CARTA program (for packaging).
+
+4. We use **install_name_tool** (Mac) and **chrpath** or **PatchELF** (Linux) to specify dynamic linking path of each lib. On mac, **CARTA** is located in **CARTA.app/Contents/MacOS/desktop**  after building. Linux does not have these folder, so we need to have different handles.
 
 # CI/CD
 
