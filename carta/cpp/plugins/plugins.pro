@@ -9,6 +9,7 @@ SUBDIRS += Histogram
 SUBDIRS += WcsPlotter
 SUBDIRS += ConversionSpectral
 SUBDIRS += ConversionIntensity
+SUBDIRS += ConversionIntensity/Test.pro
 SUBDIRS += ImageAnalysis
 SUBDIRS += ImageStatistics
 SUBDIRS += RegionCASA
