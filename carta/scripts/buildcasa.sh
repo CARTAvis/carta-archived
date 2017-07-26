@@ -210,7 +210,8 @@ cd casa
 ### new git way: total git way + only clone casacore without asap part
 git clone https://open-bitbucket.nrao.edu/scm/casa/casa.git trunk
 cd trunk
-git checkout 77a3c0170c895142883dc1b69c4996f430c9e8ec ## = 5.0.0-mas-193, 20170506
+#git checkout 77a3c0170c895142883dc1b69c4996f430c9e8ec ## = 5.0.0-mas-193, 20170506
+git checkout tags/5.1.0-mas-40 # 4fd04f0965d27f188264080f9d7f3d70f934835b, 20170725
 git submodule update --init casacore
 ###
 
