@@ -212,3 +212,7 @@ https://github.com/CARTAvis/carta/wiki/todo
 
 CARTA third party libs list:
 https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
+
+Introduction to build Server ver. of CARTA Viewer on Linux
+=======
+https://github.com/CARTAvis/carta/wiki/Server-version-of-CARTA
