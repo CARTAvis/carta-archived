@@ -87,7 +87,15 @@ su $SUDO_USER <<EOF
 brew install cmake
 brew link --overwrite cmake
 ## now it is 7.1 we only use its gfortran which is also used by code
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb
+#brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ab90d39e3ca786c9f0b2fb44c2fd29880336cd2/Formula/gcc.rb
+## now it is 7.1 we only use its gfortran which is also used by code
+if sw_vers -productVersion | grep 10.12 ; then
+  echo "it is 10.12"
+  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.sierra.bottle.tar.gz
+else
+  echo "it is 10.11"
+  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.el_capitan.bottle.tar.gz
+fi
 EOF
 printDuration
 
@@ -96,8 +104,13 @@ echo "step4: Install Qt for CARTA if you use default homebrew-qt"
 if [ "$QT5PATH" == "$qt57brew" ]; then
   echo "start to install homebrew-qt"
   pause
-  sudo su $SUDO_USER -c "brew tap CARTAvis/tap"
-  sudo su $SUDO_USER -c "brew install CARTAvis/tap/qt@5.7"
+  if sw_vers -productVersion | grep 10.12 ; then
+    echo "it is 10.12"
+    sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
+  else
+    echo "it is 10.11"
+    sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.el_capitan.bottle.tar.gz"
+  fi
   printDuration
 else
   echo "you use your own qt version"
@@ -110,6 +123,16 @@ cd $cartawork
 ###
 printDuration
 ##
+
+echo "step4-2: install gsl 2.3"
+curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.3.tar.gz
+tar xvfz gsl-2.3.tar.gz > /dev/null
+mv gsl-2.3 gsl-2.3-src
+cd gsl-2.3-src
+./configure
+make
+sudo make install
+echo "finish installing gsl"
 
 echo "step4-3: Use homebrew to Install some libs needed by flex and bison for CARTA"
 pause
