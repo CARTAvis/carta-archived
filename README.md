@@ -34,7 +34,7 @@ CARTA can be built by Qt 5.3, 5.4, 5.5, 5.6~5.8. Start from 5.6,  we need to ins
 
 # Build CARTA
 
-Follow https://github.com/CARTAvis/carta/wiki/build.
+Follow https://github.com/CARTAvis/carta/wiki#build-carta.
 
 # Run CARTA
 
