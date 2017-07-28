@@ -251,7 +251,7 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
         if (isAutoClip == true) {
             std::vector<int> mFrames = _fitFramesToImage( frames );
             std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
-            std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames);
+            std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames, false);
 
             // set print out values with rounded intensities
             QString sci_intensityMin = QString::number(intensity[0], 'E', 3);
@@ -1319,7 +1319,7 @@ void DataSource::_setGamma( double gamma ){
 }
 
 std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
-        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames) {
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames, bool showMesg) {
 
     std::vector<int> mFrames = _fitFramesToImage( frames );
     std::vector<int> stokeIndex = _getStokeIndex( mFrames );
@@ -1329,9 +1329,11 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
     QString minClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
     QString maxClipKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
 
-    qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
-    qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
-    qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
+    if (showMesg == true) {
+        qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
+        qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
+        qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
+    }
 
     std::vector<double> clips;
 
@@ -1349,25 +1351,35 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         if (minClipInCache && maxClipInCache) {
             clips.push_back(qb2d(minClipVal));
             clips.push_back(qb2d(maxClipVal));
-            qDebug() << "++++++++ got clips from cache";
+            if (showMesg == true) qDebug() << "++++++++ got clips from cache" << "++++++++ clips are" << clips[0] << "and" << clips[1];
         }
     }
 
     // If the clips were not found in the cache, calculate them
     if (clips.size() < 2) {
         Carta::Lib::NdArray::Double doubleView( view.get(), false );
+
+        // start the timer for computing percentile per frame
+        QElapsedTimer timer;
+        timer.start();
+
         std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+
+        // end of timer for computing percentile per frame
+        int elapsedTime = timer.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Time to get the percentile per frame:" << elapsedTime << "ms";
+        }
+
         clips = {clips_map[minClipPercentile], clips_map[maxClipPercentile]};
 
         // If the disk cache exists, put the calculated clips in it
         if (m_diskCache) {
+            // this step is done in DataSource::_getCursorText() first !!
             m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
             m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
-
-            qDebug() << "++++++++ calculated clips and put in cache";
+            qDebug() << "++++++++ calculated clips and put in cache" << "++++++++ clips are" << clips[0] << "and" << clips[1];
         }
-
-        qDebug() << "++++++++ clips are" << clips[0] << "and" << clips[1];
     }
     
     return clips;
@@ -1376,7 +1388,7 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
 void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     // get quantile intensity cache
-    std::vector<double> clips = _getQuantileIntensityCache(view, minClipPercentile, maxClipPercentile, frames);
+    std::vector<double> clips = _getQuantileIntensityCache(view, minClipPercentile, maxClipPercentile, frames, true);
     m_pixelPipeline-> setMinMax( clips[0], clips[1] );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }

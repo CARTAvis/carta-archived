@@ -124,6 +124,12 @@ public:
     Carta::Lib::KnownSkyCS getCoordinateSystem() const;
 
     /**
+     * Return the auto clip.
+     * @return the auto clip.
+     */
+    bool getAutoClip() const;
+
+    /**
      * Return the minimum clip percentile.
      * @return the minimum clip percentile.
      */
@@ -598,7 +604,7 @@ signals:
      * @param minPercentile - the new minimum clip percentile.
      * @param maxPercentile - the new maximum clip percentile.
      */
-    void clipsChanged( double minPercentile, double maxPercentile );
+    void clipsChanged( double minPercentile, double maxPercentile, bool autoClip );
 
     /**
      * Notification that one or more color map(s) have changed.

@@ -53,7 +53,7 @@ public:
     Release() = 0;
 
     virtual
-    ~IPCache() {};
+    ~IPCache() {}
 
 };
 }

@@ -500,7 +500,7 @@ private:
     void _viewResize( const QSize& newSize );
 
     std::vector<double> _getQuantileIntensityCache( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
-            double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
+            double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames, bool showMesg );
 
     void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
