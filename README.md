@@ -46,6 +46,11 @@ cd `your-carta-work`,, execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
 
 It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.
 
+There are two things you need to know first. 
+1. The folder structure and why you need to choose a `your-carta-work`, take a look here, https://github.com/CARTAvis/carta/wiki/build#step2---choose-your-working-space-folder-of-carta-and-clone-source-code-of-carta. 
+
+2. Due to the history issue, so you should rename this git project folder from `carta` to `CARTAvis`. Therefore you can executee `git clone https://github.com/CARTAvis/carta.git CARTAvis`.
+
 ### requirement 2: install data of geodetic, ephemerides for some kinds of fits file.
 
 Paste the following content to your terminal to install.
