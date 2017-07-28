@@ -305,8 +305,8 @@ cd ../../code
 #   sed -i 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
 # fi
 ### new:  for new git way/repo, will improve later. 201705
-curl -O https://raw.githubusercontent.com/grimmer0125/tmp/master/casacodereduce3.diff
-git apply casacodereduce3.diff
+curl -O https://raw.githubusercontent.com/grimmer0125/tmp/master/casacodereduce201707.diff
+git apply casacodereduce201707.diff
 ###
 
 mkdir build && cd build
