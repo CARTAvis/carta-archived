@@ -7,6 +7,7 @@
 /* global mExport, mImport, QtConnector, QtConnector.* */
 /* jshint eqnull:true */
 
+console.log("desktopConnector.js");
 
 (function()
 {
@@ -21,7 +22,7 @@
 
     /**
      * Numerical constants representing status of the connection.
-     * 
+     *
      * @type {{}}
      */
     connector.CONNECTION_STATUS = {
@@ -58,7 +59,7 @@
     // listen for command results callbacks and always invoke the top callback
     // in the list
     // the command results always arrive in the same order they were sent
-    QtConnector.jsCommandResultsSignal.connect( function( result )
+    if(false) QtConnector.jsCommandResultsSignal.connect( function( result )
     {
         try {
             if( m_commandCallbacks.length < 1 ) {
@@ -83,7 +84,7 @@
     });
 
     // listen for jsViewUpdatedSignal to render the image
-    QtConnector.jsViewUpdatedSignal.connect( function(viewName, buffer, refreshId)
+    if(false) QtConnector.jsViewUpdatedSignal.connect( function(viewName, buffer, refreshId)
     {
         try {
             var view = m_views[viewName];
@@ -120,7 +121,7 @@
 
     /**
      * The View class
-     * 
+     *
      * @param container
      * @param viewName
      * @constructor
@@ -155,7 +156,7 @@
     /**
      * direct callback for mouse moves. We remember the coordinates, and then
      * make sure a timeout is scheduled to actually send the coordinates.
-     * 
+     *
      * @param ev
      */
     View.prototype.mouseMoveCB = function mouseMoveCB(ev) {
@@ -171,7 +172,7 @@
         // if throttling of mouse move events not enabled, send the event
         // directly
         if (this.MouseMoveDelay < 0) {
-            QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
+            if(false) QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
                     this.m_mousePos.y);
         } else {
             // we want to throttle the mouse move events
@@ -195,7 +196,7 @@
         this.m_mousePosSlotScheduled = false;
         // console.log( "calling jsMouseMoveSlot", this.m_viewName,
         // this.m_mousePos.x, this.m_mousePos.y );
-        QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
+        if(false) QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
                 this.m_mousePos.y);
     };
 
@@ -211,7 +212,7 @@
         // this.m_imgTag.height = this.m_container.offsetHeight;
         /*console.log("about to call jsUpdateViewSlot", this.m_viewName,
                 this.m_container.offsetWidth, this.m_container.offsetHeight);*/
-        QtConnector.jsUpdateViewSlot(this.m_viewName,
+        if(false) QtConnector.jsUpdateViewSlot(this.m_viewName,
                 this.m_container.offsetWidth, this.m_container.offsetHeight);
     };
     View.prototype.getName = function() {
@@ -274,12 +275,12 @@
             console.warn( "No connection callback specified!!!" );
         }
 
-        if( window.QtPlatform !== undefined || window.QtConnector !== undefined ) {
+        if( window.QtConnector !== undefined ) {
             m_connectionStatus = connector.CONNECTION_STATUS.CONNECTED;
         }
 
         // listen for changes to the state
-        QtConnector.stateChangedSignal.connect(function(key, val)
+        if(false) QtConnector.stateChangedSignal.connect(function(key, val)
         {
             try {
                 var st = getOrCreateState( key );
@@ -295,7 +296,7 @@
         });
 
         // let the c++ connector know we are ready
-        QtConnector.jsConnectorReadySlot();
+        if(false) QtConnector.jsConnectorReadySlot();
 
         if (m_connectionCB != null) {
             setZeroTimeout(m_connectionCB);
@@ -355,7 +356,7 @@
                 console.error( "value has weird type: ", value, m_statePtr.path );
                 throw "don't know how to set value";
             }
-            QtConnector.jsSetStateSlot(m_statePtr.path, value);
+            if(false) QtConnector.jsSetStateSlot(m_statePtr.path, value);
 
             return m_that;
         };
@@ -400,7 +401,7 @@
             throw new Error("callback must be a function, null, or undefined");
         }
         m_commandCallbacks.push( callback);
-        QtConnector.jsSendCommandSlot( cmd, params);
+        if(false) QtConnector.jsSendCommandSlot( cmd, params);
     };
 
 })();
