@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  webkitwidgets network widgets xml
+QT      += network widgets xml
 
 HEADERS +=
 
@@ -29,4 +29,3 @@ else{
     LIBS +=-L$$QWT_ROOT/lib -lqwt
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.so
 }
-
