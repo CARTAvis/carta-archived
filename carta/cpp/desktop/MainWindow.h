@@ -3,9 +3,10 @@
 
 #include <QMainWindow>
 
-class QWebView;
-class QLineEdit;
-class QWebInspector;
+// class QWebView;
+// class QLineEdit;
+// class QWebInspector;
+class QWebEngineView;
 
 class MainWindow : public QMainWindow
 {
@@ -32,8 +33,8 @@ protected:
 
 protected slots:
 
-    void adjustLocation();
-    void changeLocation();
+    // void adjustLocation();
+    // void changeLocation();
     void adjustTitle();
     void setProgress(int p);
     void finishLoading(bool);
@@ -45,10 +46,11 @@ protected slots:
     void cartaLicense();
 
 private:
-    QWebView * m_view = nullptr;
-    QLineEdit * m_locationEdit = nullptr;
+    // QLineEdit * m_locationEdit = nullptr;
     int m_progress;
-    QWebInspector * m_inspector = nullptr; // = nullptr;
+    // QWebView * m_view = nullptr;
+    QWebEngineView * m_view = nullptr;
+    // QWebInspector * m_inspector = nullptr; // = nullptr;
     std::vector< std::pair< QString, QObject *> > m_jsExports;
 };
 
