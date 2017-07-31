@@ -23,6 +23,10 @@
 #include "websockettransport.h"
 #include "qwebchannel.h"
 #include <QBuffer>
+
+#include <QDesktopServices>
+#include <QUrl>
+
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
 ///  to remember with each view
@@ -313,12 +317,13 @@ void DesktopConnector::sendImageToClient(const QString & viewName, const QImage 
        QBuffer buffer(&byteArray);
        finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
        QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+       emit jsViewUpdatedSignal( viewName, base64Str, id);
+
 //       QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
 //       if (test_pClient != nullptr) {
 //           qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
 //           test_pClient->flush();
 
-           emit jsViewUpdatedSignal( viewName, base64Str, id);
 
 
 //           qDebug() << "send:"<<sendNumber;
@@ -365,7 +370,12 @@ void DesktopConnector::refreshViewNow(IView *view)
                                      0, origImage.height()-1);
 
 //        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
-//        QImage *finalImage = &pix;
+        QImage *finalImage = &pix;
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
+        QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+        emit jsViewUpdatedSignal( view-> name(), base64Str, viewInfo-> refreshId);
     }
     else {
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);

@@ -143,6 +143,8 @@ void MainWindow::finishLoading(bool)
 
 void MainWindow::showJsConsole()
 {
+    QString link = "http://localhost:9000/";
+    QDesktopServices::openUrl(QUrl(link));
 //    m_inspector-> setVisible( ! m_inspector-> isVisible());
 }
 
