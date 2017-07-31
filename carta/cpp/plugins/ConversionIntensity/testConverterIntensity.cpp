@@ -29,8 +29,9 @@ private slots:
 void TestConverterIntensity::convert_data()
 {
     std::vector<double> values;
+    std::vector<double> x_values;
     std::vector<double> expected_values;
-    
+        
     QString from_units;
     QString to_units;
 
@@ -41,7 +42,10 @@ void TestConverterIntensity::convert_data()
     QTest::addColumn<QString>("from_units");
     QTest::addColumn<QString>("to_units");
     QTest::addColumn<std::vector<double>>("values");
+    QTest::addColumn<std::vector<double>>("x_values");
+    
     QTest::addColumn<std::vector<double>>("expected_values");
+    QTest::addColumn<bool>("check_absolute_error");
 
     QString row_name;
 
@@ -72,46 +76,53 @@ void TestConverterIntensity::convert_data()
                         multiplier = from_divisor / to_divisor;
 
                         values =  {1, 2, 3};
+                        x_values =  {4, 5, 6};
                         expected_values = {1 * multiplier, 2 * multiplier, 3 * multiplier};
 
                         row_name = from_units + " to " + to_units;
 
-                        QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << expected_values;
+                        QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << false;
                     }
+
+                    // common to all subsequent tests
+
+                    from_divisor = n1.second * p1.second;
+                    to_divisor = n2.second * p2.second;
+
+                    values =  {1, 2, 3};
+                    x_values =  {4, 5, 6};
+
+                    bool check_absolute_error = (from_divisor == to_divisor && from_divisor == 1) ? 1 : 0;
 
                     // Kelvin to Jy/beam
                     
                     from_units = n1.first + p1.first + "Kelvin";
                     to_units = n2.first + p2.first + "Jy/beam";
 
-                    from_divisor = n1.second * p1.second;
-                    to_divisor = n2.second * p2.second;
-
                     multiplier = KELVIN_TO_JY_BEAM_CONSTANT * from_divisor / to_divisor;
 
-                    values =  {1, 2, 3};
-                    expected_values = {1 * multiplier, 2 * multiplier, 3 * multiplier};
+                    for (int i = 0; i < 3; i++) {
+                        expected_values[i] = values[i] * multiplier * pow(x_values[i], 2);
+                    }
 
                     row_name = from_units + " to " + to_units;
 
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << expected_values;
+                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error;
 
                     // Jy/beam to Kelvin
                     
                     from_units = n1.first + p1.first + "Jy/beam";
                     to_units = n2.first + p2.first + "Kelvin";
 
-                    from_divisor = n1.second * p1.second;
-                    to_divisor = n2.second * p2.second;
-
                     multiplier = JY_BEAM_TO_KELVIN_CONSTANT * from_divisor / to_divisor;
 
-                    values =  {1, 2, 3};
-                    expected_values = {1 * multiplier, 2 * multiplier, 3 * multiplier};
+                    for (int i = 0; i < 3; i++) {
+                        expected_values[i] = (values[i] * multiplier) / pow(x_values[i], 2);
+                    }
 
                     row_name = from_units + " to " + to_units;
 
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << expected_values;
+                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error;
                 }
             }
         }
@@ -124,14 +135,16 @@ void TestConverterIntensity::convert()
     QFETCH(QString, from_units);
     QFETCH(QString, to_units);
     QFETCH(std::vector<double>, values);
+    QFETCH(std::vector<double>, x_values);
     QFETCH(std::vector<double>, expected_values);
+    QFETCH(bool, check_absolute_error);
 
     double error;
     double percentage_error;
     
     std::string failure_message;
     
-    ConverterIntensity::convert( values, {1, 1, 1}, from_units, to_units, 3, from_units, BEAM_SOLID_ANGLE, BEAM_AREA );
+    ConverterIntensity::convert( values, x_values, from_units, to_units, 3, from_units, BEAM_SOLID_ANGLE, BEAM_AREA );
     
     for (size_t i = 0; i < values.size(); i++) {
         error = fabs(values[i] - expected_values[i]);
@@ -139,6 +152,10 @@ void TestConverterIntensity::convert()
         failure_message = "Error is " + std::to_string(error) + " (" + std::to_string(percentage_error) + "%)";
         // Checking the percentile error for now, to distinguish actual failures from loss of precision.
         QVERIFY2(percentage_error < EPS, failure_message.c_str());
+        // But also at least check absolute error for conversions between units with no prefix
+        if (check_absolute_error) {
+            QVERIFY2(error < EPS, failure_message.c_str());
+        }
     }
 }
 
