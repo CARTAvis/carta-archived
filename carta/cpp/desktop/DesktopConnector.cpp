@@ -22,6 +22,7 @@
 #include "websocketclientwrapper.h"
 #include "websockettransport.h"
 #include "qwebchannel.h"
+#include <QBuffer>
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
 ///  to remember with each view
@@ -305,6 +306,28 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
     return viewIter-> second;
 }
 
+void DesktopConnector::sendImageToClient(const QString & viewName, const QImage *finalImage, qint64 id ){
+    if (finalImage) {
+//            image.load("test.png");
+       QByteArray byteArray;
+       QBuffer buffer(&byteArray);
+       finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
+       QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+//       QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
+//       if (test_pClient != nullptr) {
+//           qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
+//           test_pClient->flush();
+
+           emit jsViewUpdatedSignal( viewName, base64Str, id);
+
+
+//           qDebug() << "send:"<<sendNumber;
+//       }
+    } else {
+        qDebug() << "grimmer finalImage not ready";
+    }
+}
+
 void DesktopConnector::refreshViewNow(IView *view)
 {
     ViewInfo * viewInfo = findViewInfo( view-> name());
@@ -341,13 +364,17 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
-        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+//        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+//        QImage *finalImage = &pix;
     }
     else {
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
-        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+//        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+
+        const QImage *finalImage = &origImage;
+        sendImageToClient(view-> name(), finalImage, viewInfo-> refreshId);
     }
 }
 

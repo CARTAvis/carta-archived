@@ -48,7 +48,7 @@ public:
     void startWebSocketChannel();
     void onNewConnection();
     QWebSocketServer *m_pWebSocketServer;
-
+    void sendImageToClient(const QString & viewName, const QImage *finalImage, qint64 id );
 
 public slots:
 
@@ -80,7 +80,7 @@ signals:
     /// javascript listens to it
     void jsCommandResultsSignal( const QString & results);
     /// emitted by c++ when we want javascript to repaint the view
-    void jsViewUpdatedSignal( const QString & viewName, const QImage & img, qint64 id);
+    void jsViewUpdatedSignal( const QString & viewName, const QString & img, qint64 id);
 
 public:
 

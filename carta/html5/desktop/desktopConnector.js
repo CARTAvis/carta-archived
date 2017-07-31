@@ -106,7 +106,8 @@ console.log("desktopConnector.js");
 
                 // listen for jsViewUpdatedSignal to render the image
                 QtConnector.jsViewUpdatedSignal.connect(function (viewName, buffer, refreshId) {
-                    console.log("grimmer view update:", viewName, ";buff:", buffer);
+                    console.log("grimmer view update:", viewName, ";buff.len:", buffer.length);
+
                     try {
                         var view = m_views[viewName];
                         if (view == null) {
@@ -114,7 +115,9 @@ console.log("desktopConnector.js");
                             return;
                         }
                         if (buffer != null) {
-                            buffer.assignToHTMLImageElement(view.m_imgTag);
+                            // buffer.assignToHTMLImageElement(view.m_imgTag);
+                            var dataURL = "data:image/jpeg;base64," + buffer;
+                            view.m_imgTag.setAttribute('src', dataURL);
                             QtConnector.jsViewRefreshedSlot(view.getName(), refreshId);
                             view._callViewCallbacks();
                         }
