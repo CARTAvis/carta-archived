@@ -16,6 +16,12 @@
 #include <QCoreApplication>
 #include <functional>
 
+//#include <QtWebSockets/QWebSocketServer>
+#include "QtWebSockets/qwebsocketserver.h"
+#include "QtWebSockets/qwebsocket.h"
+#include "websocketclientwrapper.h"
+#include "websockettransport.h"
+#include "qwebchannel.h"
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
 ///  to remember with each view
@@ -50,6 +56,48 @@ struct DesktopConnector::ViewInfo
 
 };
 
+void DesktopConnector::onNewConnection()
+{
+    qDebug()<< "grimmer new Connection";
+//    QWebSocket *pSocket = m_pWebSocketServer->nextPendingConnection();
+
+//    test_pClient = pSocket;
+
+//    connect(pSocket, &QWebSocket::textMessageReceived, this, &DesktopConnector::processTextMessage);
+//    connect(pSocket, &QWebSocket::binaryMessageReceived, this, &DesktopConnector::processBinaryMessage);
+//    connect(pSocket, &QWebSocket::disconnected, this, &DesktopConnector::socketDisconnected);
+
+//    m_clients << pSocket;
+}
+
+
+void DesktopConnector::startWebSocketChannel(){
+
+    int port = 4318;
+
+        // setup the QWebSocketServer
+    m_pWebSocketServer = new QWebSocketServer(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode, this);
+    if (!m_pWebSocketServer->listen(QHostAddress::Any, port)) {
+        qFatal("Failed to open web socket server.");
+        return;
+    }
+
+    qDebug() << "DesktopConnector listening on port" << port;
+
+//    connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
+//            this, &DesktopConnector::onNewConnection);
+
+    // wrap WebSocket clients in QWebChannelAbstractTransport objects
+    WebSocketClientWrapper *clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
+
+    // setup the channel
+    QWebChannel *channel = new QWebChannel();
+    QObject::connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
+                     channel, &QWebChannel::connectTo);
+
+    channel->registerObject(QStringLiteral("QtConnector"), this);
+}
+
 DesktopConnector::DesktopConnector()
 {
     // queued connection to prevent callbacks from firing inside setState
@@ -58,6 +106,8 @@ DesktopConnector::DesktopConnector()
              Qt::QueuedConnection );
 
     m_callbackNextId = 0;
+
+    startWebSocketChannel();
 }
 
 void DesktopConnector::initialize(const InitializeCallback & cb)

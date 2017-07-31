@@ -11,6 +11,9 @@
 #include "core/CallbackList.h"
 #include "CartaLib/IRemoteVGView.h"
 
+QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
+QT_FORWARD_DECLARE_CLASS(QWebSocket)
+
 class MainWindow;
 class IView;
 
@@ -41,6 +44,11 @@ public:
 
     /// Return the location where the state is saved.
     virtual QString getStateLocation( const QString& saveName ) const;
+
+    void startWebSocketChannel();
+    void onNewConnection();
+    QWebSocketServer *m_pWebSocketServer;
+
 
 public slots:
 
