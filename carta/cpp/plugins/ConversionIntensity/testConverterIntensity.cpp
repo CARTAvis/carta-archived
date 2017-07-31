@@ -3,7 +3,8 @@
 
 // Why is the conversion between the same base units so imprecise?
 // This should be as lossless as the test code.
-const double EPS = 1e-8;
+// Checking the percentile error in the test for now, to distinguish actual failures from loss of precision.
+const double EPS = 1e-5;
 const double BOLTZMANN = 1.38e-23;
 const double LIGHT_SPEED_FACTOR = 9e-10; // WHY?! 
 
@@ -42,41 +43,7 @@ void TestConverterIntensity::convert_data()
     QTest::addColumn<std::vector<double>>("values");
     QTest::addColumn<std::vector<double>>("expected_values");
 
-    for (auto b : BASE_UNITS) {
-        
-        for (auto& p1 : SI_PREFIX) {
-            for (auto& n1 : NUM_PREFIX) {
-                
-                if (p1.first == "G" && n1.first != "") {
-                    continue; // not implemented in current plugin; remove after refactoring
-                }
-                
-                for (auto& p2 : SI_PREFIX) {
-                    for (auto& n2 : NUM_PREFIX) {
-                        
-                        if (p2.first == "G" && n2.first != "") {
-                            continue; // not implemented in current plugin; remove after refactoring
-                        }
-                        
-                        from_units = n1.first + p1.first + b;
-                        to_units = n2.first + p2.first + b;
-
-                        from_divisor = n1.second * p1.second;
-                        to_divisor = n2.second * p2.second;
-
-                        multiplier = from_divisor / to_divisor;
-
-                        values =  {1, 2, 3};
-                        expected_values = {1 * multiplier, 2 * multiplier, 3 * multiplier};
-
-                        QString row_name = from_units + " to " + to_units;
-
-                        QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << expected_values;
-                    }
-                }
-            }
-        }
-    }
+    QString row_name;
 
     for (auto& p1 : SI_PREFIX) {
         for (auto& n1 : NUM_PREFIX) {
@@ -91,6 +58,28 @@ void TestConverterIntensity::convert_data()
                     if (p2.first == "G" && n2.first != "") {
                         continue; // not implemented in current plugin; remove after refactoring
                     }
+
+                    // Within the same base units
+
+                    for (auto b : BASE_UNITS) {
+
+                        from_units = n1.first + p1.first + b;
+                        to_units = n2.first + p2.first + b;
+
+                        from_divisor = n1.second * p1.second;
+                        to_divisor = n2.second * p2.second;
+
+                        multiplier = from_divisor / to_divisor;
+
+                        values =  {1, 2, 3};
+                        expected_values = {1 * multiplier, 2 * multiplier, 3 * multiplier};
+
+                        row_name = from_units + " to " + to_units;
+
+                        QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << expected_values;
+                    }
+
+                    // Kelvin to Jy/beam
                     
                     from_units = n1.first + p1.first + "Kelvin";
                     to_units = n2.first + p2.first + "Jy/beam";
@@ -103,27 +92,11 @@ void TestConverterIntensity::convert_data()
                     values =  {1, 2, 3};
                     expected_values = {1 * multiplier, 2 * multiplier, 3 * multiplier};
 
-                    QString row_name = from_units + " to " + to_units;
+                    row_name = from_units + " to " + to_units;
 
                     QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << expected_values;
-                }
-            }
-        }
-    }
 
-    for (auto& p1 : SI_PREFIX) {
-        for (auto& n1 : NUM_PREFIX) {
-            
-            if (p1.first == "G" && n1.first != "") {
-                continue; // not implemented in current plugin; remove after refactoring
-            }
-            
-            for (auto& p2 : SI_PREFIX) {
-                for (auto& n2 : NUM_PREFIX) {
-                    
-                    if (p2.first == "G" && n2.first != "") {
-                        continue; // not implemented in current plugin; remove after refactoring
-                    }
+                    // Jy/beam to Kelvin
                     
                     from_units = n1.first + p1.first + "Jy/beam";
                     to_units = n2.first + p2.first + "Kelvin";
@@ -136,7 +109,7 @@ void TestConverterIntensity::convert_data()
                     values =  {1, 2, 3};
                     expected_values = {1 * multiplier, 2 * multiplier, 3 * multiplier};
 
-                    QString row_name = from_units + " to " + to_units;
+                    row_name = from_units + " to " + to_units;
 
                     QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << expected_values;
                 }
@@ -164,7 +137,8 @@ void TestConverterIntensity::convert()
         error = fabs(values[i] - expected_values[i]);
         percentage_error = error * 100 / expected_values[i];
         failure_message = "Error is " + std::to_string(error) + " (" + std::to_string(percentage_error) + "%)";
-        QVERIFY2(error < EPS, failure_message.c_str());
+        // Checking the percentile error for now, to distinguish actual failures from loss of precision.
+        QVERIFY2(percentage_error < EPS, failure_message.c_str());
     }
 }
 
