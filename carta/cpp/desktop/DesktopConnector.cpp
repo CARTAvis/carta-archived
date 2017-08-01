@@ -16,7 +16,6 @@
 #include <QCoreApplication>
 #include <functional>
 
-//#include <QtWebSockets/QWebSocketServer>
 #include "QtWebSockets/qwebsocketserver.h"
 #include "QtWebSockets/qwebsocket.h"
 #include "websocketclientwrapper.h"
@@ -61,26 +60,11 @@ struct DesktopConnector::ViewInfo
 
 };
 
-void DesktopConnector::onNewConnection()
-{
-    qDebug()<< "grimmer new Connection";
-//    QWebSocket *pSocket = m_pWebSocketServer->nextPendingConnection();
-
-//    test_pClient = pSocket;
-
-//    connect(pSocket, &QWebSocket::textMessageReceived, this, &DesktopConnector::processTextMessage);
-//    connect(pSocket, &QWebSocket::binaryMessageReceived, this, &DesktopConnector::processBinaryMessage);
-//    connect(pSocket, &QWebSocket::disconnected, this, &DesktopConnector::socketDisconnected);
-
-//    m_clients << pSocket;
-}
-
-
 void DesktopConnector::startWebSocketChannel(){
 
     int port = 4318;
 
-        // setup the QWebSocketServer
+    // setup the QWebSocketServer
     m_pWebSocketServer = new QWebSocketServer(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode, this);
     if (!m_pWebSocketServer->listen(QHostAddress::Any, port)) {
         qFatal("Failed to open web socket server.");
@@ -88,9 +72,6 @@ void DesktopConnector::startWebSocketChannel(){
     }
 
     qDebug() << "DesktopConnector listening on port" << port;
-
-//    connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
-//            this, &DesktopConnector::onNewConnection);
 
     // wrap WebSocket clients in QWebChannelAbstractTransport objects
     WebSocketClientWrapper *clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
@@ -310,29 +291,6 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
     return viewIter-> second;
 }
 
-void DesktopConnector::sendImageToClient(const QString & viewName, const QImage *finalImage, qint64 id ){
-    if (finalImage) {
-//            image.load("test.png");
-       QByteArray byteArray;
-       QBuffer buffer(&byteArray);
-       finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
-       QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-       emit jsViewUpdatedSignal( viewName, base64Str, id);
-
-//       QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
-//       if (test_pClient != nullptr) {
-//           qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
-//           test_pClient->flush();
-
-
-
-//           qDebug() << "send:"<<sendNumber;
-//       }
-    } else {
-        qDebug() << "grimmer finalImage not ready";
-    }
-}
-
 void DesktopConnector::refreshViewNow(IView *view)
 {
     ViewInfo * viewInfo = findViewInfo( view-> name());
@@ -369,7 +327,7 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
-//        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+        // emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
         QImage *finalImage = &pix;
         QByteArray byteArray;
         QBuffer buffer(&byteArray);
@@ -381,10 +339,14 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
-//        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+        // emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
 
         const QImage *finalImage = &origImage;
-        sendImageToClient(view-> name(), finalImage, viewInfo-> refreshId);
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
+        QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+        emit jsViewUpdatedSignal( view-> name(), base64Str,  viewInfo-> refreshId);
     }
 }
 

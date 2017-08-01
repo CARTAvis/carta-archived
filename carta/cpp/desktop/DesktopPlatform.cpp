@@ -9,7 +9,6 @@
 #include "core/Globals.h"
 
 #include <QtWidgets>
-// #include <QWebSettings>
 #include <QDesktopWidget>
 #include <unistd.h>
 
@@ -92,10 +91,11 @@ DesktopPlatform::DesktopPlatform()
     // create the connector
     m_connector = new DesktopConnector();
 
+    // TODO: comment QtWebKit's QWebSettings. But what is Accelerated2dCanvasEnabled?
     // enable web inspector
     // QWebSettings::enablePersistentStorage( "/tmp/xyz");
     // QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
-//    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
+    // QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
 
     // create main window
     m_mainWindow = new MainWindow();
@@ -108,10 +108,6 @@ DesktopPlatform::DesktopPlatform()
     int panelWidth = m_mainWindow->frameGeometry().width();
     int panelHeight = m_mainWindow->frameGeometry().height();
     m_mainWindow->setGeometry( (screenWidth/2)-(panelWidth/2), (screenHeight/2)-(panelHeight/2), panelWidth, panelHeight);
-
-    // add platform and connector to JS exports
-    // m_mainWindow->addJSExport( "QtPlatform", this);
-    // m_mainWindow->addJSExport( "QtConnector", m_connector);
 
     // load the url
     m_mainWindow->loadUrl( url);

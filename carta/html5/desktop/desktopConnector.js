@@ -7,8 +7,6 @@
 /* global mExport, mImport, QtConnector, QtConnector.* */
 /* jshint eqnull:true */
 
-console.log("desktopConnector.js");
-
 (function () {
     "use strict";
 

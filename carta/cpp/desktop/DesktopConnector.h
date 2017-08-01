@@ -46,9 +46,7 @@ public:
     virtual QString getStateLocation( const QString& saveName ) const;
 
     void startWebSocketChannel();
-    void onNewConnection();
     QWebSocketServer *m_pWebSocketServer;
-    void sendImageToClient(const QString & viewName, const QImage *finalImage, qint64 id );
 
 public slots:
 

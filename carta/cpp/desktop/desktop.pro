@@ -3,7 +3,6 @@
 }
 
 QT      += webenginewidgets network widgets xml websockets webchannel
-# QT      += webkitwidgets
 
 HEADERS += \
     MainWindow.h \

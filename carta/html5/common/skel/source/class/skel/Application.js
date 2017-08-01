@@ -11,6 +11,8 @@
 /* global qx, console, mImport */
 /* jshint strict: false */
 
+console.log("Application.js");
+
 /**
  * This is the main application class
  *
@@ -61,6 +63,7 @@ qx.Class.define( "skel.Application",
                 // only after we receive this event we can safely start modifying state, etc
                 // otherwise some state changes/commands might get lost
                 connector.setConnectionCB( this._afterConnect.bind( this ) );
+                console.log("grimmer Application tries connector.connect");
                 connector.connect();
             },
 
