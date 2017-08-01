@@ -14,6 +14,9 @@
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
+QT_FORWARD_DECLARE_CLASS(WebSocketClientWrapper)
+QT_FORWARD_DECLARE_CLASS(QWebChannel)
+
 class MainWindow;
 class IView;
 
@@ -47,6 +50,9 @@ public:
 
     void startWebSocketChannel();
     QWebSocketServer *m_pWebSocketServer;
+    WebSocketClientWrapper *m_clientWrapper;
+    QWebChannel *m_channel;
+    ~DesktopConnector();
 
 public slots:
 

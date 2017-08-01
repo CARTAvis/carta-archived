@@ -74,14 +74,14 @@ void DesktopConnector::startWebSocketChannel(){
     qDebug() << "DesktopConnector listening on port" << port;
 
     // wrap WebSocket clients in QWebChannelAbstractTransport objects
-    WebSocketClientWrapper *clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
+    m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
 
     // setup the channel
-    QWebChannel *channel = new QWebChannel();
-    QObject::connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
-                     channel, &QWebChannel::connectTo);
+    m_channel = new QWebChannel();
+    QObject::connect(m_clientWrapper, &WebSocketClientWrapper::clientConnected,
+                     m_channel, &QWebChannel::connectTo);
 
-    channel->registerObject(QStringLiteral("QtConnector"), this);
+    m_channel->registerObject(QStringLiteral("QtConnector"), this);
 }
 
 DesktopConnector::DesktopConnector()
@@ -93,7 +93,25 @@ DesktopConnector::DesktopConnector()
 
     m_callbackNextId = 0;
 
+    m_pWebSocketServer = nullptr;
+    m_clientWrapper = nullptr;
+    m_channel = nullptr;
     startWebSocketChannel();
+}
+
+DesktopConnector::~DesktopConnector()
+{
+    if (m_pWebSocketServer != nullptr) {
+        delete m_pWebSocketServer;
+    }
+
+    if (m_clientWrapper != nullptr) {
+        delete m_clientWrapper;
+    }
+
+    if (m_channel != nullptr) {
+        delete m_channel;
+    }
 }
 
 void DesktopConnector::initialize(const InitializeCallback & cb)
