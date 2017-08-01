@@ -67,11 +67,11 @@
         };
 
         socket.onopen = function () {
-            console.log("grimmer socket onopen");
+            console.log("websocket onopen");
             var xx = new QWebChannel(socket, function (channel) {
                 window.QtConnector = channel.objects.QtConnector;
 
-                console.log("grimmer new QWebChannel");
+                console.log("websocket new QWebChannel");
 
                 // start to setup the connection to cpp side.
                 connector.connect();
@@ -80,7 +80,6 @@
                 // in the list
                 // the command results always arrive in the same order they were sent
                 QtConnector.jsCommandResultsSignal.connect(function (result) {
-                    console.log("grimmer response result:", result);
                     try {
                         if (m_commandCallbacks.length < 1) {
                             console.warn("Received command results but no callbacks for this!!!");
@@ -104,8 +103,6 @@
 
                 // listen for jsViewUpdatedSignal to render the image
                 QtConnector.jsViewUpdatedSignal.connect(function (viewName, buffer, refreshId) {
-                    console.log("grimmer view update:", viewName, ";buff.len:", buffer.length);
-
                     try {
                         var view = m_views[viewName];
                         if (view == null) {
@@ -125,9 +122,6 @@
                     }
                 });
             });
-
-            console.log("grimmer webchannel:", xx);
-
         };
 
     }
@@ -288,15 +282,11 @@
     };
 
     connector.connect = function () {
-        console.log("grimmer connector.connect");
-
         if (m_connectionCB == null) {
             console.warn("No connection callback specified!!!");
         }
 
         if (window.QtConnector !== undefined && m_connectionStatus != connector.CONNECTION_STATUS.CONNECTED ) {
-            console.log("grimmer setupt flush state connect");
-
             m_connectionStatus = connector.CONNECTION_STATUS.CONNECTED;
 
             // // listen for changes to the state

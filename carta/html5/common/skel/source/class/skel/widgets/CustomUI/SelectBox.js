@@ -105,7 +105,6 @@ qx.Class.define("skel.widgets.CustomUI.SelectBox", {
 
             //Try to reset the old selection
             //    if ( oldValue !== null ){
-            //        console.log("grimmer colormap, olvValue != null");
             //        if ( items.length > 0 ){
             //            this.setSelection( selection );
             //        }

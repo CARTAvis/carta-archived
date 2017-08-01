@@ -82,7 +82,6 @@ WebSocketClientWrapper::WebSocketClientWrapper(QWebSocketServer *server, QObject
 */
 void WebSocketClientWrapper::handleNewConnection()
 {
-    qDebug()<< "grimmer new Connection";
     emit clientConnected(new WebSocketTransport(m_server->nextPendingConnection()));
 }
 
