@@ -40,7 +40,6 @@ void TestConverterIntensity::convert_data()
 
     double from_divisor;
     double to_divisor;
-    double multiplier;
 
     QTest::addColumn<QString>("from_units");
     QTest::addColumn<QString>("to_units");
@@ -59,25 +58,41 @@ void TestConverterIntensity::convert_data()
     lambdas["Kelvin"]["Jy/beam"] = [](double y, double x){ return y * pow(x, 2); };
     lambdas["Jy/beam"]["Kelvin"] = [](double y, double x){return y / pow(x, 2); };
     
-    //lambdas["Jy/arcsec^2"]["Jy/beam"] = [](double y, double x){ return y };
-    //lambdas["Jy/beam"]["Jy/arcsec^2"] = [](double y, double x){ return y };
+    lambdas["Jy/arcsec^2"]["Jy/beam"] = [](double y, double x){ return y; };
+    lambdas["Jy/beam"]["Jy/arcsec^2"] = [](double y, double x){ return y; };
     
-    //lambdas[""][""] = [](double y, double x){ return y };
-    //lambdas[""][""] = [](double y, double x){ return y };
+    lambdas["Jy/arcsec^2"]["MJy/sr"] = [](double y, double x){ return y; };
+    lambdas["MJy/sr"]["Jy/arcsec^2"] = [](double y, double x){ return y; };
     
-    //lambdas[""][""] = [](double y, double x){ return y };
-    //lambdas[""][""] = [](double y, double x){ return y };
+    lambdas["MJy/sr"]["Jy/beam"] = [](double y, double x){ return y; };
+    lambdas["Jy/beam"]["MJy/sr"] = [](double y, double x){ return y; };
     
-    //lambdas[""][""] = [](double y, double x){ return y };
-    //lambdas[""][""] = [](double y, double x){ return y };
+    lambdas["Jy/arcsec^2"]["Kelvin"] = [](double y, double x){ return y / pow(x, 2); };
+    lambdas["Kelvin"]["Jy/arcsec^2"] = [](double y, double x){ return y * pow(x, 2); };
     
-    //lambdas[""][""] = [](double y, double x){ return y };
-    //lambdas[""][""] = [](double y, double x){ return y };
+    lambdas["MJy/sr"]["Kelvin"] = [](double y, double x){ return y / pow(x, 2); };
+    lambdas["Kelvin"]["MJy/sr"] = [](double y, double x){ return y * pow(x, 2); };
     
-    // non-frame-dependent conversion option, excluding unit prefixes
+    // non-frame-dependent conversion portion, excluding unit prefixes
     std::map<QString, std::map<QString, double> > multipliers;
-    multipliers["Kelvin"]["Jy/beam"] = 2 * BOLTZMANN * BEAM_SOLID_ANGLE / LIGHT_SPEED_FACTOR;
+    
+    multipliers["Kelvin"]["Jy/beam"] = (2 * BOLTZMANN * BEAM_SOLID_ANGLE) / LIGHT_SPEED_FACTOR;
     multipliers["Jy/beam"]["Kelvin"] = LIGHT_SPEED_FACTOR / (2 * BOLTZMANN * BEAM_SOLID_ANGLE);
+
+    multipliers["Jy/arcsec^2"]["Jy/beam"] = BEAM_AREA;
+    multipliers["Jy/beam"]["Jy/arcsec^2"] = 1 / BEAM_AREA;
+    
+    multipliers["Jy/arcsec^2"]["MJy/sr"] = ARCSECONDS_SQUARED_PER_STERADIAN / JY_IN_MJY;
+    multipliers["MJy/sr"]["Jy/arcsec^2"] = JY_IN_MJY / ARCSECONDS_SQUARED_PER_STERADIAN;
+    
+    multipliers["MJy/sr"]["Jy/beam"] = (BEAM_AREA * JY_IN_MJY) / ARCSECONDS_SQUARED_PER_STERADIAN;
+    multipliers["Jy/beam"]["MJy/sr"] = ARCSECONDS_SQUARED_PER_STERADIAN / (BEAM_AREA * JY_IN_MJY);
+    
+    multipliers["Jy/arcsec^2"]["Kelvin"] = (BEAM_AREA * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN * BEAM_SOLID_ANGLE);
+    multipliers["Kelvin"]["Jy/arcsec^2"] = (2 * BOLTZMANN * BEAM_SOLID_ANGLE) / (BEAM_AREA * LIGHT_SPEED_FACTOR);
+    
+    multipliers["MJy/sr"]["Kelvin"] = (BEAM_AREA * JY_IN_MJY * LIGHT_SPEED_FACTOR) / (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * BEAM_SOLID_ANGLE);
+    multipliers["Kelvin"]["MJy/sr"] = (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * BEAM_SOLID_ANGLE) / (BEAM_AREA * JY_IN_MJY * LIGHT_SPEED_FACTOR);
     
 
     for (auto& p1 : SI_PREFIX) {
@@ -98,209 +113,33 @@ void TestConverterIntensity::convert_data()
 
                     from_divisor = n1.second * p1.second;
                     to_divisor = n2.second * p2.second;
-
-                    // Why is the conversion between the same base units so imprecise?
-                    // This should be as lossless as the test code.
-                    // Checking the percentile error in the test for now, to distinguish actual failures from loss of precision.
-                    double eps = 1e-5;
+                    
                     bool check_absolute_error = (from_divisor == to_divisor && from_divisor == 1) ? 1 : 0;
-
-                    // Within the same base units
-
-                    for (auto b : BASE_UNITS) {
-
-                        from_units = n1.first + p1.first + b;
-                        to_units = n2.first + p2.first + b;
-
-                        multiplier = from_divisor / to_divisor;
                     
-                        for (int i = 0; i < 3; i++) {
-                            expected_values[i] = values[i] * multiplier;
+                    for (auto b1 : BASE_UNITS) {
+                        for (auto b2 : BASE_UNITS) {
+                            if (b1 == b2) { // Within same base units
+                                for (int i = 0; i < 3; i++) {
+                                    expected_values[i] = values[i] * from_divisor / to_divisor;
+                                }
+                            } else { // Between different base units          
+                                for (int i = 0; i < 3; i++) {
+                                    expected_values[i] = lambdas[b1][b2](values[i], x_values[i]) * multipliers[b1][b2] * from_divisor / to_divisor;
+                                }
+                            }
+
+                            from_units = n1.first + p1.first + b1;
+                            to_units = n2.first + p2.first + b2;
+
+                            row_name = from_units + " to " + to_units;
+                            
+                            // The arcsecond/steradian conversion factor in the plugin has low precision, so we lower this for now
+                            double eps = (b1 == "MJy/sr" || b2 == "MJy/sr") ? 1e-3 : 1e-5;
+
+                            QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
+
                         }
-
-                        row_name = from_units + " to " + to_units;
-                        QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
                     }
-
-                    // Kelvin to Jy/beam
-                    
-                    from_units = n1.first + p1.first + "Kelvin";
-                    to_units = n2.first + p2.first + "Jy/beam";
-
-                    //multiplier = (2 * BOLTZMANN * BEAM_SOLID_ANGLE * from_divisor) / (to_divisor * LIGHT_SPEED_FACTOR);
-                    
-                    
-                    //std::function<double(double, double)> lambda = [&multiplier](double y, double x) { return y * multiplier * pow(x, 2); };
-                    
-                    for (int i = 0; i < 3; i++) {
-                        //expected_values[i] = values[i] * multiplier * pow(x_values[i], 2);
-                        //expected_values[i] = lambda(values[i], x_values[i]);
-                        expected_values[i] = lambdas["Kelvin"]["Jy/beam"](values[i], x_values[i]) * multipliers["Kelvin"]["Jy/beam"] * from_divisor / to_divisor;
-                    }
-
-                    row_name = from_units + " to " + to_units;
-
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
-
-                    // Jy/beam to Kelvin
-                    
-                    from_units = n1.first + p1.first + "Jy/beam";
-                    to_units = n2.first + p2.first + "Kelvin";
-
-                    multiplier = (from_divisor * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN * BEAM_SOLID_ANGLE * to_divisor);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = (values[i] * multiplier) / pow(x_values[i], 2);
-                    }
-
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
-
-                    // Jy/arcsec^2 to Jy/Beam
-                    
-                    from_units = n1.first + p1.first + "Jy/arcsec^2";
-                    to_units = n2.first + p2.first + "Jy/beam";
-
-                    multiplier = BEAM_AREA * from_divisor / to_divisor;
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier;
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
-                    
-                    // Jy/Beam to Jy/arcsec^2
-                    
-                    from_units = n1.first + p1.first + "Jy/beam";
-                    to_units = n2.first + p2.first + "Jy/arcsec^2";
-
-                    multiplier = from_divisor / (BEAM_AREA * to_divisor);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier;
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
-                    
-                    // Jy/arcsec^2 to MJy/sr
-                    
-                    from_units = n1.first + p1.first + "Jy/arcsec^2";
-                    to_units = n2.first + p2.first + "MJy/sr";
-                    
-                    multiplier = (ARCSECONDS_SQUARED_PER_STERADIAN * from_divisor) / (JY_IN_MJY * to_divisor);
-                    //multiplier = pow(206.265, 2) * from_divisor / to_divisor;
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier;
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << 1e-3;
-                    
-                    // MJy/sr to Jy/arcsec^2
-                    
-                    from_units = n1.first + p1.first + "MJy/sr";
-                    to_units = n2.first + p2.first + "Jy/arcsec^2";
-
-                    multiplier = (JY_IN_MJY * from_divisor) / (ARCSECONDS_SQUARED_PER_STERADIAN * to_divisor);
-                    //multiplier = from_divisor / (pow(206.265, 2) * to_divisor);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier;
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << 1e-3;
-                    
-                    // MJy/sr to Jy/Beam
-                    
-                    from_units = n1.first + p1.first + "MJy/sr";
-                    to_units = n2.first + p2.first + "Jy/beam";
-                    
-                    multiplier = (BEAM_AREA * JY_IN_MJY * from_divisor) / (ARCSECONDS_SQUARED_PER_STERADIAN * to_divisor);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier;
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << 1e-3;
-                    
-                    // Jy/Beam to MJy/sr
-                    
-                    from_units = n1.first + p1.first + "Jy/beam";
-                    to_units = n2.first + p2.first + "MJy/sr";
-
-                    multiplier = (ARCSECONDS_SQUARED_PER_STERADIAN * from_divisor) / (JY_IN_MJY * BEAM_AREA * to_divisor);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier;
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << 1e-3;
-                    
-                    // Jy/arcsec^2 to Kelvin
-                    
-                    from_units = n1.first + p1.first + "Jy/arcsec^2";
-                    to_units = n2.first + p2.first + "Kelvin";
-
-                    // is this right, and can it be simplified? 
-                    multiplier = (BEAM_AREA * from_divisor * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN * BEAM_SOLID_ANGLE * to_divisor);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = (values[i] * multiplier) / pow(x_values[i], 2) ;
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
-
-                    // Kelvin to Jy/arcsec^2
-                    
-                    from_units = n1.first + p1.first + "Kelvin";
-                    to_units = n2.first + p2.first + "Jy/arcsec^2";
-
-                    // is this right, and can it be simplified? 
-                    multiplier =  (2 * BOLTZMANN * BEAM_SOLID_ANGLE * from_divisor) / (BEAM_AREA * to_divisor * LIGHT_SPEED_FACTOR);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier * pow(x_values[i], 2);
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
-                    
-                    // MJy/sr to Kelvin
-                    
-                    from_units = n1.first + p1.first + "MJy/sr";
-                    to_units = n2.first + p2.first + "Kelvin";
-
-                    // is this right, and can it be simplified? 
-                    multiplier = (BEAM_AREA * JY_IN_MJY * from_divisor * LIGHT_SPEED_FACTOR) / (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * BEAM_SOLID_ANGLE * to_divisor);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = (values[i] * multiplier) / pow(x_values[i], 2);
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << 1e-3;
-                    
-                    // Kelvin to MJy/sr
-                    
-                    from_units = n1.first + p1.first + "Kelvin";
-                    to_units = n2.first + p2.first + "MJy/sr";
-
-                    // is this right, and can it be simplified? 
-                    multiplier = (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * BEAM_SOLID_ANGLE * from_divisor) / (BEAM_AREA * JY_IN_MJY * to_divisor * LIGHT_SPEED_FACTOR);
-                    
-                    for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier * pow(x_values[i], 2);
-                    }
-                    
-                    row_name = from_units + " to " + to_units;
-                    QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << 1e-3;
                 }
             }
         }
