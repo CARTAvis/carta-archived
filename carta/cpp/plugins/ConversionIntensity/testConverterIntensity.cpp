@@ -52,6 +52,33 @@ void TestConverterIntensity::convert_data()
     QTest::addColumn<double>("eps");
 
     QString row_name;
+    
+    // frame-dependent conversion portion
+    std::map<QString, std::map<QString, std::function<double(double, double)>> > lambdas;
+    
+    lambdas["Kelvin"]["Jy/beam"] = [](double y, double x){ return y * pow(x, 2); };
+    lambdas["Jy/beam"]["Kelvin"] = [](double y, double x){return y / pow(x, 2); };
+    
+    //lambdas["Jy/arcsec^2"]["Jy/beam"] = [](double y, double x){ return y };
+    //lambdas["Jy/beam"]["Jy/arcsec^2"] = [](double y, double x){ return y };
+    
+    //lambdas[""][""] = [](double y, double x){ return y };
+    //lambdas[""][""] = [](double y, double x){ return y };
+    
+    //lambdas[""][""] = [](double y, double x){ return y };
+    //lambdas[""][""] = [](double y, double x){ return y };
+    
+    //lambdas[""][""] = [](double y, double x){ return y };
+    //lambdas[""][""] = [](double y, double x){ return y };
+    
+    //lambdas[""][""] = [](double y, double x){ return y };
+    //lambdas[""][""] = [](double y, double x){ return y };
+    
+    // non-frame-dependent conversion option, excluding unit prefixes
+    std::map<QString, std::map<QString, double> > multipliers;
+    multipliers["Kelvin"]["Jy/beam"] = 2 * BOLTZMANN * BEAM_SOLID_ANGLE / LIGHT_SPEED_FACTOR;
+    multipliers["Jy/beam"]["Kelvin"] = LIGHT_SPEED_FACTOR / (2 * BOLTZMANN * BEAM_SOLID_ANGLE);
+    
 
     for (auto& p1 : SI_PREFIX) {
         for (auto& n1 : NUM_PREFIX) {
@@ -100,10 +127,15 @@ void TestConverterIntensity::convert_data()
                     from_units = n1.first + p1.first + "Kelvin";
                     to_units = n2.first + p2.first + "Jy/beam";
 
-                    multiplier = (2 * BOLTZMANN * BEAM_SOLID_ANGLE * from_divisor) / (to_divisor * LIGHT_SPEED_FACTOR);
-
+                    //multiplier = (2 * BOLTZMANN * BEAM_SOLID_ANGLE * from_divisor) / (to_divisor * LIGHT_SPEED_FACTOR);
+                    
+                    
+                    //std::function<double(double, double)> lambda = [&multiplier](double y, double x) { return y * multiplier * pow(x, 2); };
+                    
                     for (int i = 0; i < 3; i++) {
-                        expected_values[i] = values[i] * multiplier * pow(x_values[i], 2);
+                        //expected_values[i] = values[i] * multiplier * pow(x_values[i], 2);
+                        //expected_values[i] = lambda(values[i], x_values[i]);
+                        expected_values[i] = lambdas["Kelvin"]["Jy/beam"](values[i], x_values[i]) * multipliers["Kelvin"]["Jy/beam"] * from_divisor / to_divisor;
                     }
 
                     row_name = from_units + " to " + to_units;
