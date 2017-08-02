@@ -8,8 +8,8 @@ const double ARCSECONDS_SQUARED_PER_STERADIAN = pow(180 * 3600 / M_PI, 2);
 const double JY_IN_MJY = 1e6;
 
 std::vector<QString> BASE_UNITS = {"Jy/beam", "Jy/arcsec^2", "MJy/sr", "Kelvin"};
-std::map<QString, double> SI_PREFIX = {{"p", 1e-12}, {"n", 1e-9}, {"u", 1e-6}, {"m", 1e-3}, {"", 1}, {"k", 1e3}, {"M", 1e6}, {"G", 1e9}};
-std::map<QString, double> NUM_PREFIX = {{"", 1}, {"10", 10}, {"100", 100}};
+std::map<QString, int> SI_PREFIX = {{"p", -12}, {"n", -9}, {"u", -6}, {"m", -3}, {"", 0}, {"k", 3}, {"M", 6}, {"G", 9}};
+std::map<QString, int> NUM_PREFIX = {{"", 0}, {"10", 1}, {"100", 2}};
 
 // Taken from a sample file; should be consistent
 const double BMAJ = 1.88e-4;
@@ -38,8 +38,9 @@ void TestConverterIntensity::convert_data()
     QString from_units;
     QString to_units;
 
-    double from_divisor;
-    double to_divisor;
+    int from_power;
+    int to_power;
+    double prefix_multiplier;
 
     QTest::addColumn<QString>("from_units");
     QTest::addColumn<QString>("to_units");
@@ -111,20 +112,22 @@ void TestConverterIntensity::convert_data()
 
                     // common to all subsequent tests
 
-                    from_divisor = n1.second * p1.second;
-                    to_divisor = n2.second * p2.second;
+                    from_power = n1.second + p1.second;
+                    to_power = n2.second + p2.second;
+                    prefix_multiplier = pow(10, from_power - to_power);
                     
-                    bool check_absolute_error = (from_divisor == to_divisor && from_divisor == 1) ? 1 : 0;
+                    
+                    bool check_absolute_error = (from_power == to_power && from_power == 0) ? 1 : 0;
                     
                     for (auto b1 : BASE_UNITS) {
                         for (auto b2 : BASE_UNITS) {
                             if (b1 == b2) { // Within same base units
                                 for (int i = 0; i < 3; i++) {
-                                    expected_values[i] = values[i] * from_divisor / to_divisor;
+                                    expected_values[i] = values[i] * prefix_multiplier;
                                 }
                             } else { // Between different base units          
                                 for (int i = 0; i < 3; i++) {
-                                    expected_values[i] = lambdas[b1][b2](values[i], x_values[i]) * multipliers[b1][b2] * from_divisor / to_divisor;
+                                    expected_values[i] = lambdas[b1][b2](values[i], x_values[i]) * multipliers[b1][b2] * prefix_multiplier;
                                 }
                             }
 
