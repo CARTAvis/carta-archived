@@ -34,6 +34,9 @@ void TestConverterIntensity::convert_data()
     std::vector<double> values = {1, 2, 3};
     std::vector<double> x_values = {4, 5, 6};
     std::vector<double> expected_values = {0, 0, 0};
+
+    std::vector<double> fop_values = {1.0/3, 2.0/3, 1.0};
+    double max_value = 3;
         
     QString from_units;
     QString to_units;
@@ -44,8 +47,11 @@ void TestConverterIntensity::convert_data()
 
     QTest::addColumn<QString>("from_units");
     QTest::addColumn<QString>("to_units");
+    QTest::addColumn<QString>("max_units");
+    
     QTest::addColumn<std::vector<double>>("values");
     QTest::addColumn<std::vector<double>>("x_values");
+    QTest::addColumn<double>("max_value");
     
     QTest::addColumn<std::vector<double>>("expected_values");
     QTest::addColumn<bool>("check_absolute_error");
@@ -116,7 +122,6 @@ void TestConverterIntensity::convert_data()
                     to_power = n2.second + p2.second;
                     prefix_multiplier = pow(10, from_power - to_power);
                     
-                    
                     bool check_absolute_error = (from_power == to_power && from_power == 0) ? 1 : 0;
                     
                     for (auto b1 : BASE_UNITS) {
@@ -133,13 +138,15 @@ void TestConverterIntensity::convert_data()
 
                             from_units = n1.first + p1.first + b1;
                             to_units = n2.first + p2.first + b2;
-
-                            row_name = from_units + " to " + to_units;
                             
                             // The arcsecond/steradian conversion factor in the plugin has low precision, so we lower this for now
                             double eps = (b1 == "MJy/sr" || b2 == "MJy/sr") ? 1e-3 : 1e-5;
 
-                            QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << values << x_values << expected_values << check_absolute_error << eps;
+                            row_name = from_units + " to " + to_units;
+                            QTest::newRow(row_name.toLatin1().data()) << from_units << to_units << from_units << values << x_values << max_value << expected_values << check_absolute_error << eps;
+
+                            row_name = "FOP " + from_units + " to " + to_units;
+                            QTest::newRow(row_name.toLatin1().data()) <<  "Fraction of Peak" << to_units << from_units << fop_values << x_values << max_value << expected_values << check_absolute_error << eps;
 
                         }
                     }
@@ -154,8 +161,10 @@ void TestConverterIntensity::convert()
 {
     QFETCH(QString, from_units);
     QFETCH(QString, to_units);
+    QFETCH(QString, max_units);
     QFETCH(std::vector<double>, values);
     QFETCH(std::vector<double>, x_values);
+    QFETCH(double, max_value);
     QFETCH(std::vector<double>, expected_values);
     QFETCH(bool, check_absolute_error);
     QFETCH(double, eps);
@@ -165,7 +174,7 @@ void TestConverterIntensity::convert()
     
     std::string failure_message;
     
-    ConverterIntensity::convert( values, x_values, from_units, to_units, 3, from_units, BEAM_SOLID_ANGLE, BEAM_AREA );
+    ConverterIntensity::convert( values, x_values, from_units, to_units, max_value, max_units, BEAM_SOLID_ANGLE, BEAM_AREA );
     
     for (size_t i = 0; i < values.size(); i++) {
         error = fabs(values[i] - expected_values[i]);
