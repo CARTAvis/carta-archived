@@ -208,10 +208,11 @@ cd casa
 # svn co -r 105507 https://github.com/casacore/casacore/trunk
 # mv trunk casacore
 ### new git way: total git way + only clone casacore without asap part
-git clone https://open-bitbucket.nrao.edu/scm/casa/casa.git trunk
+git clone --recursive https://github.com/cartavis/casa.git trunk
 cd trunk
-git checkout 77a3c0170c895142883dc1b69c4996f430c9e8ec ## = 5.0.0-mas-193, 20170506
-git submodule update --init casacore
+#git checkout 77a3c0170c895142883dc1b69c4996f430c9e8ec ## = 5.0.0-mas-193, 20170506
+# git checkout tags/5.1.0-mas-40 # 4fd04f0965d27f188264080f9d7f3d70f934835b, 20170725
+# git submodule update --init casacore
 ###
 
 ############################ casacore
@@ -304,8 +305,8 @@ cd ../../code
 #   sed -i 's/.*casa_add_module( casadbus/#&/' CMakeLists.txt
 # fi
 ### new:  for new git way/repo, will improve later. 201705
-curl -O https://raw.githubusercontent.com/grimmer0125/tmp/master/casacodereduce3.diff
-git apply casacodereduce3.diff
+# curl -O https://raw.githubusercontent.com/grimmer0125/tmp/master/casacodereduce201707.diff
+# git apply casacodereduce201707.diff
 ###
 
 mkdir build && cd build
