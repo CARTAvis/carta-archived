@@ -2,7 +2,7 @@
 
 #include <QString>
 #include <QList>
-#include <coordinates/Coordinates/SpectralCoordinate.h>
+#include <vector>
 
 /**
  * Converts intensity units:  Jy/Beam, Kelvin, Fraction of Peak, etc.
@@ -16,7 +16,6 @@ public:
     static const QString JY_ARCSEC;
     static const QString JY_BEAM;
     static const QString JY;
-    static const QString ADU;
     static const QString TIMES_PIXELS;
     static bool isSupportedUnits( const QString& yUnit );
     //Hertz values are needed corresponding to the values for Jy/Beam Kelvin conversions

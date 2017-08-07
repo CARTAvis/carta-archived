@@ -1,5 +1,4 @@
 #include "ConverterIntensity.h"
-#include <plugins/ConversionSpectral/Converter.h>
 #include <math.h>
 #include <QDebug>
 
@@ -9,7 +8,6 @@ const QString ConverterIntensity::JY_SR = "MJy/sr";
 const QString ConverterIntensity::JY_ARCSEC = "Jy/arcsec^2";
 const QString ConverterIntensity::JY = "Jy";
 const QString ConverterIntensity::KELVIN = "Kelvin";
-const QString ConverterIntensity::ADU = "adu";
 const QString ConverterIntensity::TIMES_PIXELS = "*pixels";
 const double ConverterIntensity::SPEED_LIGHT_FACTOR = 0.0000000009;
 const double ConverterIntensity::FREQUENCY_FACTOR = 2 * 0.0000000000000000000000138;
@@ -322,9 +320,6 @@ double ConverterIntensity::convertNonKelvinUnits( double value,
 double ConverterIntensity::convertQuantity( double yValue, double frequencyValue,
         const QString& oldUnits, const QString& newUnits, double beamSolidAngle,
         double beamArea ) {
-
-    casacore::String oldUnitStr = oldUnits.toStdString();
-    casacore::String newUnitStr = newUnits.toStdString();
 
     double convertedYValue = yValue;
     if ( oldUnits != KELVIN && newUnits != KELVIN ) {
