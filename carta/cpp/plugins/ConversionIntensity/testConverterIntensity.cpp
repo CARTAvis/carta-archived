@@ -124,8 +124,8 @@ void TestConverterIntensity::convert_data()
                     
                     bool check_absolute_error = (from_power == to_power && from_power == 0) ? 1 : 0;
                     
-                    for (auto b1 : BASE_UNITS) {
-                        for (auto b2 : BASE_UNITS) {
+                    for (auto& b1 : BASE_UNITS) {
+                        for (auto& b2 : BASE_UNITS) {
                             if (b1 == b2) { // Within same base units
                                 for (int i = 0; i < 3; i++) {
                                     expected_values[i] = values[i] * prefix_multiplier;
