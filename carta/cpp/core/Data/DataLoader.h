@@ -85,6 +85,8 @@ private:
 
     static bool m_registered;
 
+    static QString lastAccessedDir;
+
     class Factory;
 
     const static QString DIR;

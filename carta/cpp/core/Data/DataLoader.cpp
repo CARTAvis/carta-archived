@@ -42,6 +42,7 @@ bool DataLoader::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new DataLoader::Factory());
 
+QString DataLoader::lastAccessedDir = "";
 
 DataLoader::DataLoader( const QString& path, const QString& id ):
     CartaObject( CLASS_NAME, path, id ){
@@ -59,11 +60,14 @@ QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
     }
 
     if ( rootDirName.length() == 0 || dirName == DataLoader::fakeRootDirName){
-        rootDirName = getRootDir(sessionId);
+        if ( lastAccessedDir.length() == 0 ) lastAccessedDir = getRootDir(sessionId);
+        rootDirName = lastAccessedDir;
+        // rootDirName = getRootDir(sessionId);
     }
     else {
         rootDirName = getFile( dirName, sessionId );
     }
+    lastAccessedDir = rootDirName;
     QDir rootDir(rootDirName);
     QJsonObject rootObj;
 
