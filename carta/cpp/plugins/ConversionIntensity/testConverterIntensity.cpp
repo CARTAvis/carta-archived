@@ -65,14 +65,14 @@ void TestConverterIntensity::convert_data()
     lambdas["Kelvin"]["Jy/beam"] = [](double y, double x){ return y * pow(x, 2); };
     lambdas["Jy/beam"]["Kelvin"] = [](double y, double x){return y / pow(x, 2); };
     
-    lambdas["Jy/arcsec^2"]["Jy/beam"] = [](double y, double x){ return y; };
-    lambdas["Jy/beam"]["Jy/arcsec^2"] = [](double y, double x){ return y; };
+    lambdas["Jy/arcsec^2"]["Jy/beam"] = [](double y, double x){ std::ignore = x; return y; };
+    lambdas["Jy/beam"]["Jy/arcsec^2"] = [](double y, double x){ std::ignore = x; return y; };
     
-    lambdas["Jy/arcsec^2"]["MJy/sr"] = [](double y, double x){ return y; };
-    lambdas["MJy/sr"]["Jy/arcsec^2"] = [](double y, double x){ return y; };
+    lambdas["Jy/arcsec^2"]["MJy/sr"] = [](double y, double x){ std::ignore = x; return y; };
+    lambdas["MJy/sr"]["Jy/arcsec^2"] = [](double y, double x){ std::ignore = x; return y; };
     
-    lambdas["MJy/sr"]["Jy/beam"] = [](double y, double x){ return y; };
-    lambdas["Jy/beam"]["MJy/sr"] = [](double y, double x){ return y; };
+    lambdas["MJy/sr"]["Jy/beam"] = [](double y, double x){ std::ignore = x; return y; };
+    lambdas["Jy/beam"]["MJy/sr"] = [](double y, double x){ std::ignore = x; return y; };
     
     lambdas["Jy/arcsec^2"]["Kelvin"] = [](double y, double x){ return y / pow(x, 2); };
     lambdas["Kelvin"]["Jy/arcsec^2"] = [](double y, double x){ return y * pow(x, 2); };
