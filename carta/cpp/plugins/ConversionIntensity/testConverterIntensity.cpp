@@ -148,6 +148,11 @@ void TestConverterIntensity::convert_data()
                             row_name = "FOP " + from_units + " to " + to_units;
                             QTest::newRow(row_name.toLatin1().data()) <<  "Fraction of Peak" << to_units << from_units << fop_values << x_values << max_value << expected_values << check_absolute_error << eps;
 
+                            if (from_units == to_units) { // currently we can only convert *to* FOP using the same units
+                                row_name = from_units + " to FOP " + to_units;
+                                QTest::newRow(row_name.toLatin1().data()) << from_units << "Fraction of Peak" << from_units << values << x_values << max_value << fop_values << check_absolute_error << eps;
+                            }
+
                         }
                     }
                 }
