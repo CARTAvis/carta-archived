@@ -8,6 +8,7 @@ SUBDIRS += Fitter1D
 SUBDIRS += Histogram
 SUBDIRS += WcsPlotter
 SUBDIRS += ConversionSpectral
+SUBDIRS += ConversionSpectral/Test.pro
 SUBDIRS += ConversionIntensity
 SUBDIRS += ConversionIntensity/Test.pro
 SUBDIRS += ImageAnalysis
