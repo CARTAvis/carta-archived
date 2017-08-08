@@ -93,7 +93,7 @@ percentile2pixels(
 template < typename Scalar >
 static
 std::map<double, std::pair<int,Scalar>>
-percentile2pixels_I(
+percentile2pixels_precise(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     int spectralIndex,
     std::vector < double > quant
@@ -192,7 +192,7 @@ percentile2pixels_approximation(
     std::vector<std::pair<int,double>> minMaxIntensities,
     unsigned int dividedNo,
     bool getLocation,
-    std::vector <double> quant
+    std::vector<double> quant
     )
 {
     // basic preconditions

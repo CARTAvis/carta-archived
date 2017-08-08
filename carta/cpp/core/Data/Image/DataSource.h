@@ -210,6 +210,34 @@ private:
             const QSize& outputSize, bool* valid ) const;
 
     /**
+     * Returns the bool and location corresponding to a percentile value.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
+     * @return - a corresponding percentile (bool, location) pair.
+     *           If bool is true, the location cache exists and we can read the cache value.
+     *           If bool is false, the location cache does not exist and returns the default value -1.
+     */
+    std::pair<bool, int> _readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+
+    void _setLocationCache(int location, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+
+    /**
+     * Returns the bool and intensity corresponding to a percentile value.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
+     * @param stokeFrame - the index number of stoke slice
+     * @return - a corresponding percentile (bool, intensity) pair.
+     *           If bool is true, the intensity cache exists and we can read the cache value.
+     *           If bool is false, the intensity cache does not exist and returns the default value -1.
+     */
+    std::pair<bool, double> _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+
+    void _setIntensityCache(double intensity, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+
+    /**
      * Returns the locations and intensities corresponding to a given percentiles.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
@@ -541,6 +569,7 @@ private:
     const static int INDEX_PERCENTILE;
     const static int INDEX_FRAME_LOW;
     const static int INDEX_FRAME_HIGH;
+    const static bool APPROXIMATION_TURN_ON;
     const static unsigned int APPROXIMATION_DIVIDED_NO;
     const static unsigned int APPROXIMATION_ELEMENT_LIMIT;
     const static bool APPROXIMATION_GET_LOCATION;

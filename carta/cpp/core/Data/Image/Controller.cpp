@@ -378,7 +378,7 @@ std::vector<double> Controller::getIntensity( const std::vector<double>& percent
 
 std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
     int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
     std::vector<std::pair<int,double> > intensities = m_stack->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
     return intensities;
 }
@@ -386,7 +386,7 @@ std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( int fra
 
 std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
     int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
     std::vector<double> intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
     return intensities;
 }
