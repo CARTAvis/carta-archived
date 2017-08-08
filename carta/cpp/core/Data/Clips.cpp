@@ -39,7 +39,11 @@ Clips::Clips( const QString& path, const QString& id):
 
 std::vector<double> Clips::_initializeClipValues() const {
     std::vector<double> clips;
+    clips.push_back( 0.9 );
+    clips.push_back( 0.925 );
     clips.push_back( 0.95 );
+    clips.push_back( 0.96 );
+    clips.push_back( 0.97 );
     clips.push_back( 0.98 );
     clips.push_back( 0.99 );
     clips.push_back( 0.995 );
