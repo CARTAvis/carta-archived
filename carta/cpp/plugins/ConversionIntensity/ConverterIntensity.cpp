@@ -96,7 +96,7 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
         if (oldUnits != "Fraction of Peak") { // which would be a no-op
             if (oldUnits != maxUnits) {
                 // TODO: we need better error handling in the plugin
-                qWarning("In conversion to Fraction of Peak, maximum value units don't match intensity units. Result may be incorrect.");
+                qWarning() << "In conversion to Fraction of Peak, maximum value units don't match intensity units. Result may be incorrect.";
             }
             
             // do the conversion anyway for now; that's what the plugin did before
@@ -161,18 +161,19 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
 }
 
 std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
-    int exponent(1);
+    int exponent(0);
     QString baseUnits("");
 
     const QStringList BASE_UNITS = {"Jy/beam", "Jy/arcsec^2", "MJy/sr", "Kelvin"};
     const QMap<QString, int> SI_PREFIX = {{"p", -12}, {"n", -9}, {"u", -6}, {"m", -3}, {"", 0}, {"k", 3}, {"M", 6}, {"G", 9}};
 
     QString baseUnitList = BASE_UNITS.join("|");
+    baseUnitList.replace("^", "\\^");
     QString siPrefixList = QStringList(SI_PREFIX.keys()).join("|");
 
     QRegExp rx("^(10+)?(" + siPrefixList + ")?(" + baseUnitList + ")(\\*pixels)?$");
     int pos = rx.indexIn(units);
-    if (pos > 1) {
+    if (pos > -1) {
         if (rx.cap(1) != "") {
             exponent += std::round(log10(rx.cap(1).toInt()));
         }
@@ -182,6 +183,8 @@ std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
         }
 
         baseUnits = rx.cap(3);
+    } else {
+        qWarning() << "Unable to parse unit string" << units;
     }
 
     return std::make_tuple(exponent, baseUnits);
