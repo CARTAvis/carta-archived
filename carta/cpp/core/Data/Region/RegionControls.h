@@ -197,7 +197,6 @@ private:
 	void _initializeStatics();
 
 	bool _handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& imagePt );
-	bool _handleHover( const Carta::Lib::InputEvents::HoverEvent& ev, const QPointF& imagePt );
 	bool _handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev, const QPointF& imagePt );
 	bool _handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev, const QPointF& imagePt );
 

@@ -119,12 +119,6 @@ public:
 	virtual void handleDragStart( const QPointF & pt );
 
 	/**
-	 * Notification of a hover event.
-	 * @param pt - the current location of the mouse.
-	 */
-	virtual void handleHover( const QPointF& pt );
-
-	/**
 	 * Notification of a click event.
 	 * @param pt - the current location of the mouse.
 	 */
@@ -159,12 +153,6 @@ public:
 	 * @return - true if the shape is being edited; false, otherwise.
 	 */
 	virtual bool isEditMode() const;
-
-	/**
-	 * Returns whether or not the shape is being hovered.
-	 * @return - true if the shape is hovered; false otherwise.
-	 */
-	virtual bool isHovered() const;
 
 	/**
 	 * Returns whether or not the shape is selected.
@@ -210,14 +198,6 @@ public:
 	 * @return - true if the height was successfully set; false, otherwise.
 	 */
 	virtual bool setHeight( double value );
-
-	/**
-	 * Sets whether or not the shape is in a hovered state.
-	 * @param hovered - true if the shape is hovered; false otherwise.
-	 * @return - true if the underlying VG graphics need to be updated; false,
-	 * 	otherwise.
-	 */
-	virtual bool setHovered( bool hovered );
 
 	/**
 	 * Set the underlying model for the region.
@@ -328,7 +308,6 @@ protected:
 
 	const static QString ACTIVE;
 	const static QString CUSTOM_NAME;
-	const static QString HOVERED;
         const static QString COLOR;
 	const static QString REGION_TYPE;
 	const static int SIGNIFICANT_DIGITS;

@@ -4,6 +4,8 @@
 ## java/jre, pgplot, dbus, qt4.
 ## qwt has been removed
 
+echo "execute buildcasa.sh"
+
 if [ -z ${cartawork+x} ]; then
 	export cartawork=`pwd`
 fi
