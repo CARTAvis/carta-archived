@@ -8,7 +8,6 @@
 #include "CartaLib/AxisDisplayInfo.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
-#include "LeastRecentlyUsedCache.h"
 
 #include <memory>
 
@@ -211,14 +210,14 @@ private:
             const QSize& outputSize, bool* valid ) const;
 
     /**
-     * Returns the intensities corresponding to a given percentiles.
+     * Returns the locations and intensities corresponding to a given percentiles.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
      * @return - a list of corresponding (location,intensity) pairs.
      */
-    std::vector<std::pair<int,double> > _getIntensity( int frameLow, int frameHigh,
+    std::vector<std::pair<int,double> > _getLocationAndIntensity( int frameLow, int frameHigh,
             const std::vector<double>& percentiles, int stokeFrame);
 
     /**
@@ -227,10 +226,11 @@ private:
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
-     * @return - a list of corresponding (location,intensity) pairs.
+     * @return - a list of intensity values.
      */
-    std::vector<std::pair<int,double> > _getIntensityCache( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame );
+    std::vector<double> _getIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles, int stokeFrame);
+
 
     /**
      * Returns the color used to draw nan pixels.
@@ -300,8 +300,6 @@ private:
      * the CENTER of the left-bottom-most pixel is 0.0,0.0.
      */
     QString _getPixelValue( double x, double y, const std::vector<int>& frames ) const;
-
-    int _getQuantileCacheIndex( const std::vector<int>& frames ) const;
 
     std::vector<int> _getStokeIndex( const std::vector<int>& frames ) const;
 
@@ -382,8 +380,6 @@ private:
      * Reset the zoom to the original value.
      */
     void _resetZoom();
-
-    void _resizeQuantileCache();
 
     /**
      * Sets a new color map.
@@ -517,19 +513,6 @@ private:
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
-
-    struct QuantileCacheEntry {
-    	double m_minPercentile;
-    	double m_maxPercentile;
-    	std::vector<double> m_clips;
-    };
-
-    /// clip cache to avoid time-consuming operation or recomputing
-    /// unnecessary clips.
-    std::vector<QuantileCacheEntry> m_quantileCache;
-
-    ///Percentile/Intensity cache
-    LeastRecentlyUsedCache m_cachedPercentiles;
 
     /// the rendering service
     std::shared_ptr<Carta::Core::ImageRenderService::Service> m_renderService;

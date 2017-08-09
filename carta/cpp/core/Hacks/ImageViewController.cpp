@@ -6,7 +6,7 @@
 #include "../Globals.h"
 #include "../IConnector.h"
 #include "../PluginManager.h"
-#include "Algorithms/quantileAlgorithms.h"
+#include "Algorithms/percentileAlgorithms.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/GetImageRenderService.h"
 #include "GrayColormap.h"
@@ -493,9 +493,10 @@ ImageViewController::loadFrame( int frame )
     std::vector < double > clips = m_quantileCache[m_currentFrame];
     if ( clips.size() < 2 ) {
         Carta::Lib::NdArray::Double doubleView( view.get(), false );
-        clips = Carta::Core::Algorithms::quantiles2pixels(
+        std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(
             doubleView, { 0.0, 1.0 }
             );
+        clips = {clips_map[0.0], clips_map[1.0]};
         qDebug() << "recomputed clips" << clips;
         m_quantileCache[m_currentFrame] = clips;
     }
