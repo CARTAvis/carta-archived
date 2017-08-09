@@ -569,9 +569,6 @@ private:
     const static int INDEX_PERCENTILE;
     const static int INDEX_FRAME_LOW;
     const static int INDEX_FRAME_HIGH;
-    const static bool APPROXIMATION_TURN_ON;
-    const static unsigned int APPROXIMATION_DIVIDED_NO;
-    const static unsigned int APPROXIMATION_ELEMENT_LIMIT;
     const static bool APPROXIMATION_GET_LOCATION;
 
     DataSource(const DataSource& other);

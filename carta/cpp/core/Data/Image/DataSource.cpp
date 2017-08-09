@@ -2,6 +2,7 @@
 #include "CoordinateSystems.h"
 #include "Data/Colormap/Colormaps.h"
 #include "Globals.h"
+#include "MainConfig.h"
 #include "PluginManager.h"
 #include "GrayColormap.h"
 #include "CartaLib/IImage.h"
@@ -35,9 +36,6 @@ const int DataSource::INDEX_INTENSITY = 1;
 const int DataSource::INDEX_PERCENTILE = 2;
 const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
-const bool DataSource::APPROXIMATION_TURN_ON = true; // set whether to turn on the approximation for percentile calculations
-const unsigned int DataSource::APPROXIMATION_DIVIDED_NO = 1000000; // used to define the pixel bin size = (max-min)/APPROXIMATION_DIVIDED_NO
-const unsigned int DataSource::APPROXIMATION_ELEMENT_LIMIT = 100000000; // set file size limit
 const bool DataSource::APPROXIMATION_GET_LOCATION = false; // set whether to get the location (channel) of the specific pixel value
 
 CoordinateSystems* DataSource::m_coords = nullptr;
@@ -623,6 +621,15 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
             qDebug() << "++++++++ get clip[" << i << "] for the percentile=" << percentiles_from_all_clips[i];
         }
 
+        // get the default setting whether to turn on the approximation algorithm for percentile calculations from "config.json"
+        bool isApproximation = Globals::instance() -> mainConfig() -> isPercentileApproximation();
+        qDebug() << "++++++++ [config.json] percentileApproximation:" << isApproximation;
+
+        // get the default setting from "config.json" to define the pixel bin size = (max-min)/percentApproxDividedNum
+        // for percentile approximation algorithm
+        unsigned int percentApproxDividedNum = Globals::instance() -> mainConfig() -> getPercentApproxDividedNum();
+        qDebug() << "++++++++ [config.json] percentApproxDividedNum:" << percentApproxDividedNum;
+
         // Calculate only the required percentiles
         std::map<double, std::pair<int,double> > clips_map;
 
@@ -632,7 +639,7 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
             qDebug() << "++++++++ [apply] Carta::Core::Algorithms::minMax2pixels() function !!";
             clips_map = Carta::Core::Algorithms::minMax2pixels(doubleView, spectralIndex, percentiles_to_calculate);
 
-        } else if (APPROXIMATION_TURN_ON) {
+        } else if (isApproximation) {
 
             // if percentiles != 0% or 100%, use the approximate algorithm
             qDebug() << "++++++++ [apply] Carta::Core::Algorithms::percentile2pixels_approximation() function !!";
@@ -642,7 +649,7 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
 
             // apply approximate percentile algorithm
             clips_map = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex, minMaxIntensities,
-                    APPROXIMATION_DIVIDED_NO, APPROXIMATION_GET_LOCATION, percentiles_from_all_clips);
+                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_from_all_clips);
 
         } else {
 
@@ -676,7 +683,7 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         }
 
         // if we use the approximation algorithm to get percentiles with respect to pixels values,
-        // we can calculate all Clipping values at one loop.
+        // we can calculate all Clipping values listed on the UI at one loop.
         // In such case, we can set the extra percentiles with respect to pixels values in the other caches.
         // The advantage of this method is that we don't need to use approximation algorithm again if we set
         // the other Clipping values in the UI.
