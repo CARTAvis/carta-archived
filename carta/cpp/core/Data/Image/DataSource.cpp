@@ -433,7 +433,7 @@ std::pair<int, double> DataSource::_readLocationCache(int frameLow, int frameHig
         std::pair<int, double> result;
         bool locationInCache = false;
         int value = -1; // define location (channel)
-        double error = -1; // define intensity error order
+        double error = -1; // define intensity error order, i.e. (max-min)*[error order]
         QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentile);
         QByteArray locationVal, intensityError;
         locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal, intensityError);
