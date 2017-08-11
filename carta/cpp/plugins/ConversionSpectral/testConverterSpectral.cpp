@@ -27,6 +27,9 @@ void TestConverterSpectral::convert_data()
         "m/s", "10m/s", "100m/s", "km/s"
     };
     
+    std::vector<double> values = {1, 2, 3};
+    std::vector<double> expected_values = {0, 0, 0};
+
     QString from_units;
     QString to_units;
 
@@ -54,7 +57,7 @@ void TestConverterSpectral::convert_data()
                                         
                     for (auto& b1 : BASE_UNITS) {
                         for (auto& b2 : BASE_UNITS) {
-
+                            
                             from_units = n1.first + p1.first + b1;
                             to_units = n2.first + p2.first + b2;
                             
@@ -66,7 +69,20 @@ void TestConverterSpectral::convert_data()
                                 continue;
                             }
                             
-                            // ....
+                            double eps = 1e-12;
+                            bool check_absolute_error = (b1 == b2 || from_power == to_power) ? 1 : 0;
+                            
+                            if (b1 == b2) { // Within same base units
+                                for (int i = 0; i < 3; i++) {
+                                    expected_values[i] = values[i] * prefix_multiplier;
+                                }
+                            } else { // Between different base units
+                                // TODO: fill these in
+                                continue;
+                            }
+
+                            row_name = from_units + " to " + to_units;
+                            QTest::newRow(row_name.toLatin1().data()) << from_units << to_units  << values << expected_values << check_absolute_error << eps;
                         }
                     }
                 }
@@ -78,7 +94,31 @@ void TestConverterSpectral::convert_data()
 
 void TestConverterSpectral::convert()
 {
-    QVERIFY(3 == 3);
+    QFETCH(QString, from_units);
+    QFETCH(QString, to_units);
+    QFETCH(std::vector<double>, values);
+    QFETCH(std::vector<double>, expected_values);
+    QFETCH(bool, check_absolute_error);
+    QFETCH(double, eps);
+
+    double error;
+    double percentage_error;
+    
+    QString failure_message;
+    
+    //ConverterIntensity::convert( values, x_values, from_units, to_units, max_value, max_units, BEAM_SOLID_ANGLE, BEAM_AREA );
+    
+    for (size_t i = 0; i < values.size(); i++) {
+        error = fabs(values[i] - expected_values[i]);
+        percentage_error = error * 100 / expected_values[i];
+        failure_message = "Expected: " + QString::number(expected_values[i], 'e', 2) + " Actual: " + QString::number(values[i], 'e', 2) + "Error is " + QString::number(error, 'e', 2) + " (" + QString::number(percentage_error, 'e', 2) + "%)";
+        // Checking the percentile error for all conversions
+        QVERIFY2(percentage_error < eps, failure_message.toLatin1().data());
+        // Check absolute error for some conversions which should not accumulate too much loss of precision
+        if (check_absolute_error) {
+            QVERIFY2(error < eps, failure_message.toLatin1().data());
+        }
+    }
 }
 QTEST_MAIN(TestConverterSpectral)
 #include "testConverterSpectral.moc"
