@@ -38,13 +38,14 @@ public:
     /// if entry does not exist, false is returned
     virtual bool
     readEntry( const QByteArray & key,
-               QByteArray & val ) = 0;
+               QByteArray & val,
+               QByteArray & error ) = 0;
 
     /// set a value of an entry
     virtual void
     setEntry( const QByteArray & key,
               const QByteArray & val,
-              int64_t priority ) = 0;
+              const QByteArray & error ) = 0;
 
     /// Release the shared_ptr before the program quits.
     /// There may be a better way to prevent the segementation fault

@@ -13,6 +13,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <cmath>
+#include <limits>
 
 namespace MainConfig {
 
@@ -50,11 +51,12 @@ void _storePositiveUnsignedInt(const QJsonValue& jsonValue, unsigned int* storeL
     QString errorMsg;
     unsigned int val = ParsedInfo::toUnsignedInt(jsonValue, errorMsg);
     if (errorMsg.isEmpty()) {
-        if (val > 0 && val < 4294967295) {
+        if (val > 0 && val < std::numeric_limits<unsigned int>::max()) {
             *storeLocation = val;
         }
         else {
-            qWarning() << "Error:" << typeDescription << "is out of the range:" << val;
+            qWarning() << "[Error]" << typeDescription << "is out of the range [0,"
+                       << std::numeric_limits<unsigned int>::max() <<"]:" << val;
         }
     }
     else {

@@ -428,51 +428,55 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
-std::pair<bool, int> DataSource::_readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const {
+std::pair<int, double> DataSource::_readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const {
     if (m_diskCache) {
-        std::pair<bool, int> result;
-        int value = -1;
+        std::pair<int, double> result;
         bool locationInCache = false;
+        int value = -1; // define location (channel)
+        double error = -1; // define intensity error order
         QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentile);
-        QByteArray locationVal;
-        locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal);
+        QByteArray locationVal, intensityError;
+        locationInCache = m_diskCache->readEntry(locationKey.toUtf8(), locationVal, intensityError);
         if (locationInCache) {
             value = qb2i(locationVal);
-            //qDebug() << "get location key" << locationKey.toUtf8() << value;
+            error = qb2d(intensityError);
         }
-        result = std::make_pair(locationInCache, value);
+        //qDebug() << "[read location] location=" << value << "intensity error order=" << error;
+        result = std::make_pair(value, error);
         return result;
     }
 }
 
-void DataSource::_setLocationCache(int location, int frameLow, int frameHigh, double percentile, int stokeFrame) const {
+void DataSource::_setLocationCache(int location, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const {
     if (m_diskCache) {
         QString locationKey = QString("%1/%2/%3/%4/%5/location").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentile);
-        m_diskCache->setEntry(locationKey.toUtf8(), i2qb(location), 0);
+        m_diskCache->setEntry(locationKey.toUtf8(), i2qb(location), d2qb(error));
     }
 }
 
-std::pair<bool, double> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const {
+std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const {
     if (m_diskCache) {
-        std::pair<bool, double> result;
-        double value = -1;
+        std::pair<double, double> result;
         bool intensityInCache = false;
+        double value = -1; // define intensity
+        double error = -1; // define intensity error order, i.e. (max-min)*[error order]
         QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentile);
-        QByteArray intensityVal;
-        intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
+        QByteArray intensityVal, intensityError;
+        intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal, intensityError);
         if (intensityInCache) {
             value = qb2d(intensityVal);
-            //qDebug() << "get intensity key" << intensityKey.toUtf8() << value;
+            error = qb2d(intensityError);
         }
-        result = std::make_pair(intensityInCache, value);
+        //qDebug() << "[read intensity] intensity=" << value << "intensity error order=" << error;
+        result = std::make_pair(value, error);
         return result;
     }
 }
 
-void DataSource::_setIntensityCache(double intensity, int frameLow, int frameHigh, double percentile, int stokeFrame) const {
+void DataSource::_setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const {
     if (m_diskCache) {
         QString intensityKey = QString("%1/%2/%3/%4/%5/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentile);
-        m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensity), 0);
+        m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensity), d2qb(error));
     }
 }
 
@@ -480,8 +484,8 @@ std::vector<std::pair<int,double>> DataSource::_getMinMaxIntensity(int frameLow,
     std::vector<double> percentiles {0, 1}; // get the minimum and maximum percentiles: 0 % and 100 %
     int percentileCount = percentiles.size();
     std::vector<std::pair<int, double>> intensities(percentileCount, std::pair<int, double>(-1, 0));
-    std::vector<std::pair<bool, int>> locationCache(percentileCount, std::pair<bool, int>(false, -1));
-    std::vector<std::pair<bool, double>> intensityCache(percentileCount, std::pair<bool, double>(false, -1));
+    std::vector<std::pair<int, double>> locationCache(percentileCount, std::pair<int, double>(-1, -1));
+    std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
     int foundCount = 0;
     std::vector<bool> found(percentileCount, false);
 
@@ -489,13 +493,14 @@ std::vector<std::pair<int,double>> DataSource::_getMinMaxIntensity(int frameLow,
     for (int i = 0; i < percentileCount; i++) {
         locationCache[i] = _readLocationCache(frameLow, frameHigh, percentiles[i], stokeFrame);
         intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame);
-        if (locationCache[i].first && intensityCache[i].first) {
-            intensities[i] = std::make_pair(locationCache[i].second, intensityCache[i].second);
+        if (locationCache[i].second == 0 /* location cache exists and has a zero error order */ &&
+            intensityCache[i].second == 0 /* intensity cache exists and has a zero error order */) {
+            intensities[i] = std::make_pair(locationCache[i].first, intensityCache[i].first);
             foundCount++;
             found[i] = true;
             qDebug() << "++++++++ [find cache] for percentile" << percentiles[i]
-                     << "intensity is" << intensities[i].second
-                     << "and location is" << intensities[i].first << "(channel)";
+                     << ", intensity=" << intensities[i].second << "+/- (max-min)*" << intensityCache[i].second
+                     << ", location=" << intensities[i].first << "(channel)";
         }
     }
 
@@ -534,10 +539,10 @@ std::vector<std::pair<int,double>> DataSource::_getMinMaxIntensity(int frameLow,
                     intensities[i].first += frameLow;
                 }
                 // put calculated values in the disk cache if it exists
+                // the intensity error is zero, because we use iteration algorithm "minMax2pixels()" for the precise percentile calculation
                 if (m_diskCache) {
-                    _setLocationCache(intensities[i].first, frameLow, frameHigh, percentiles[i], stokeFrame);
-                    _setIntensityCache(intensities[i].second, frameLow, frameHigh, percentiles[i], stokeFrame);
-
+                    _setLocationCache(intensities[i].first, 0, frameLow, frameHigh, percentiles[i], stokeFrame);
+                    _setIntensityCache(intensities[i].second, 0, frameLow, frameHigh, percentiles[i], stokeFrame);
                 }
             }
         }
@@ -550,28 +555,51 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         const std::vector<double>& percentiles, int stokeFrame) {
     int percentileCount = percentiles.size();
     std::vector<std::pair<int, double>> intensities(percentileCount, std::pair<int, double>(-1, 0));
-    std::vector<std::pair<bool, int>> locationCache(percentileCount, std::pair<bool, int>(false, -1));
-    std::vector<std::pair<bool, double>> intensityCache(percentileCount, std::pair<bool, double>(false, -1));
+    std::vector<std::pair<int, double>> locationCache(percentileCount, std::pair<int, double>(-1, -1));
+    std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
     int foundCount = 0;
     std::vector<bool> found(percentileCount, false);
-    
+
+    // get the default setting whether to turn on the approximation algorithm for percentile calculations from "config.json"
+    bool isApproximation = Globals::instance() -> mainConfig() -> isPercentileApproximation();
+    qDebug() << "++++++++ [config.json] percentileApproximation:" << isApproximation;
+
+    // get the default setting from "config.json" to define the pixel bin size = (max-min)/percentApproxDividedNum
+    // for percentile approximation algorithm
+    unsigned int percentApproxDividedNum = Globals::instance() -> mainConfig() -> getPercentApproxDividedNum();
+    qDebug() << "++++++++ [config.json] percentApproxDividedNum:" << percentApproxDividedNum;
+
+    double chooseError;
+    if (isApproximation == true) {
+        // if we apply approximation algorithm for percentile to pixel calculation,
+        // then we have a non-zero error bar
+        chooseError = 1 / static_cast<double>(percentApproxDividedNum);
+    } else {
+        // if not, by default we use the absolute precise algorithm for percentile to pixel calculation,
+        // the error bar is zero
+        chooseError = 0;
+    }
+    qDebug() << "++++++++ [config.json] choose error order=" << chooseError;
+
     // If the disk cache exists, try to look up cached intensity and location values
     for (int i = 0; i < percentileCount; i++) {
         locationCache[i] = _readLocationCache(frameLow, frameHigh, percentiles[i], stokeFrame);
         intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame);
-        if (locationCache[i].first && intensityCache[i].first) {
-            intensities[i] = std::make_pair(locationCache[i].second, intensityCache[i].second);
+        if (locationCache[i].second != -1 /* this location cache exists */ &&
+            locationCache[i].second <= chooseError /* already has an intensity error order smaller than the current choice */ &&
+            intensityCache[i].second != -1 /* this intensity cache exists */ &&
+            intensityCache[i].second <= chooseError /* already has an intensity error order smaller than the current choice */ ) {
+            intensities[i] = std::make_pair(locationCache[i].first, intensityCache[i].first);
             foundCount++;
             found[i] = true;
-            qDebug() << "++++++++ [find cache] for percentile" << percentiles[i]
-                     << "intensity is" << intensities[i].second
-                     << "and location is" << intensities[i].first << "(channel)";
+            qDebug() << "++++++++ [find cache for the most precise intensity] for percentile" << percentiles[i]
+                     << ", intensity=" << intensities[i].second << "+/- (max-min)*" << intensityCache[i].second
+                     << ", location=" << intensities[i].first << "(channel)";
         }
     }
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
     if (foundCount < percentileCount) {
-
         qDebug() << "++++++++ Calculating percentile to pixel values..";
 
         // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
@@ -621,14 +649,8 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
             qDebug() << "++++++++ get clip[" << i << "] for the percentile=" << percentiles_from_all_clips[i];
         }
 
-        // get the default setting whether to turn on the approximation algorithm for percentile calculations from "config.json"
-        bool isApproximation = Globals::instance() -> mainConfig() -> isPercentileApproximation();
-        qDebug() << "++++++++ [config.json] percentileApproximation:" << isApproximation;
-
-        // get the default setting from "config.json" to define the pixel bin size = (max-min)/percentApproxDividedNum
-        // for percentile approximation algorithm
-        unsigned int percentApproxDividedNum = Globals::instance() -> mainConfig() -> getPercentApproxDividedNum();
-        qDebug() << "++++++++ [config.json] percentApproxDividedNum:" << percentApproxDividedNum;
+        // define the priority number (error order) for choosing (key, value) from SQLite3
+        double error;
 
         // Calculate only the required percentiles
         std::map<double, std::pair<int,double> > clips_map;
@@ -638,6 +660,9 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
             // if percentiles = 0% or 100%, use the iteration algorithm
             qDebug() << "++++++++ [apply] Carta::Core::Algorithms::minMax2pixels() function !!";
             clips_map = Carta::Core::Algorithms::minMax2pixels(doubleView, spectralIndex, percentiles_to_calculate);
+
+            // set the priority number (error order) to be the first priority
+            error = 0;
 
         } else if (isApproximation) {
 
@@ -651,6 +676,9 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
             clips_map = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex, minMaxIntensities,
                     percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_from_all_clips);
 
+            // set the priority number (error order) to be the inverse of percentApproxDividedNum
+            error = 1 / static_cast<double>(percentApproxDividedNum);
+
         } else {
 
             // if percentiles != 0% or 100%, use the precise algorithm
@@ -658,6 +686,9 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
 
             // apply std::nth_element for precise percentile calculations
             clips_map = Carta::Core::Algorithms::percentile2pixels_precise(doubleView, spectralIndex, percentiles_to_calculate);
+
+            // set the priority number (error order) to be the first priority
+            error = 0;
 
         }
 
@@ -673,12 +704,12 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
                 }
                 // put calculated values in the disk cache if it exists
                 if (m_diskCache) {
-                    _setLocationCache(intensities[i].first, frameLow, frameHigh, percentiles[i], stokeFrame);
-                    _setIntensityCache(intensities[i].second, frameLow, frameHigh, percentiles[i], stokeFrame);
+                    _setLocationCache(intensities[i].first, error, frameLow, frameHigh, percentiles[i], stokeFrame);
+                    _setIntensityCache(intensities[i].second, error, frameLow, frameHigh, percentiles[i], stokeFrame);
                 }
                 qDebug() << "++++++++ [set cache] for percentile" << percentiles[i]
-                         << "intensity is" << intensities[i].second
-                         << "and location is" << intensities[i].first << "(channel)";
+                         << ", intensity=" << intensities[i].second << "+/- (max-min)*" << error
+                         << ", location=" << intensities[i].first << "(channel)";
             }
         }
 
@@ -688,23 +719,20 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         // The advantage of this method is that we don't need to use approximation algorithm again if we set
         // the other Clipping values in the UI.
         int sizeOfClipsMap = clips_map.size();
-        std::vector<std::pair<bool, int>> otherLocationCache(sizeOfClipsMap, std::pair<bool, int>(false, -1));
-        std::vector<std::pair<bool, double>> otherIntensityCache(sizeOfClipsMap, std::pair<bool, double>(false, -1));
         if (sizeOfClipsMap > percentileCount) {
             for (int i = 0; i < sizeOfClipsMap; i++) {
                 for (int j = 0; j < percentileCount; j++) {
                     if (percentiles_from_all_clips[i] != percentiles[j]) {
+                        // set the location of frameLow
+                        if (frameLow >= 0) {
+                            clips_map[percentiles_from_all_clips[i]].first += frameLow;
+                        }
                         if (m_diskCache) {
-                            otherLocationCache[i] = _readLocationCache(frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
-                            // if the location cache for the other percentile does not exist, we set this cache
-                            if (otherLocationCache[i].first == false) {
-                                _setLocationCache(clips_map[percentiles_from_all_clips[i]].first, frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
-                            }
-                            // if the intensity cache for the other percentile does not exist, we set this cache
-                            otherIntensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
-                            if (otherIntensityCache[i].first == false) {
-                                _setIntensityCache(clips_map[percentiles_from_all_clips[i]].second, frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
-                            }
+                            _setLocationCache(clips_map[percentiles_from_all_clips[i]].first, error, frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
+                            _setIntensityCache(clips_map[percentiles_from_all_clips[i]].second, error, frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
+                            qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_from_all_clips[i]
+                                     << ", intensity=" << clips_map[percentiles_from_all_clips[i]].second << "+/- (max-min)*" << error
+                                     << ", location=" << clips_map[percentiles_from_all_clips[i]].first << "(channel)";
                         }
                     }
                 }
@@ -727,8 +755,8 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     // If the disk cache exists, try to look up cached intensity and location values
     for (int i = 0; i < percentileCount; i++) {
         intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame);
-        if (intensityCache[i].first) {
-            intensities[i] = intensityCache[i].second;
+        if (intensityCache[i].second == 0 /* intensity cache exists and has a zero error order */) {
+            intensities[i] = intensityCache[i].first;
             foundCount++;
             found[i] = true;
             qDebug() << "++++++++ [find cache] for percentile" << percentiles[i] << "intensity is" << intensities[i];
@@ -783,8 +811,10 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
                 intensities[i] = clips_map[percentiles[i]];
                 found[i] = true; // for completeness, in case we test this later
                 // put calculated values in the disk cache if it exists
+                // the intensity error is zero, because we use percentile2pixels() --> "std::nth_element" algorithm
+                // for precise percentile calculation
                 if (m_diskCache) {
-                    _setIntensityCache(intensities[i], frameLow, frameHigh, percentiles[i], stokeFrame);
+                    _setIntensityCache(intensities[i], 0, frameLow, frameHigh, percentiles[i], stokeFrame);
                 }
                 qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i];
             }
@@ -1377,18 +1407,29 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
     std::vector<int> mFrames = _fitFramesToImage( frames );
     std::vector<int> stokeIndex = _getStokeIndex( mFrames );
     std::vector<int> channelIndex = _getChannelIndex( mFrames );
+
+    int setChannelIndex;
+    if (channelIndex[1] == -1) {
+        // channelIndex[1] == -1 means there is only one channel in the image file,
+        // in such case we rename the channel index (setChannelIndex) = 0
+        setChannelIndex = 0;
+    } else {
+        setChannelIndex = channelIndex[1];
+    }
+
     std::vector<double> clips;
 
     // If the disk cache exists, try to find the clips in the cache first
     if (m_diskCache) {
-        std::pair<bool, double> minClipInCache(false, -1);
-        std::pair<bool, double> maxClipInCache(false, -1);
-        minClipInCache = _readIntensityCache(channelIndex[1], channelIndex[1], minClipPercentile, stokeIndex[1]);
-        maxClipInCache = _readIntensityCache(channelIndex[1], channelIndex[1], maxClipPercentile, stokeIndex[1]);
+        std::pair<double, double> minClipInCache(-1, -1);
+        std::pair<double, double> maxClipInCache(-1, -1);
+        minClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, minClipPercentile, stokeIndex[1]);
+        maxClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, maxClipPercentile, stokeIndex[1]);
         // if both of caches exist, we get their values
-        if (minClipInCache.first && maxClipInCache.first) {
-            clips.push_back(minClipInCache.second);
-            clips.push_back(maxClipInCache.second);
+        if (minClipInCache.second == 0 /* minimum intensity cache exists and has a zero error order */ &&
+            maxClipInCache.second == 0 /* maximum intensity cache exists and has a zero error order */) {
+            clips.push_back(minClipInCache.first);
+            clips.push_back(maxClipInCache.first);
             if (showMesg == true) qDebug() << "++++++++ [find cache] for clips= [" << clips[0] << "," << clips[1] << "]";
         }
     }
@@ -1415,8 +1456,10 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         // If the disk cache exists, put the calculated clips in it
         if (m_diskCache) {
             // this step is done in DataSource::_getCursorText() first !!
-            _setIntensityCache(clips[0], channelIndex[1], channelIndex[1], minClipPercentile, stokeIndex[1]);
-            _setIntensityCache(clips[1], channelIndex[1], channelIndex[1], maxClipPercentile, stokeIndex[1]);
+            // the intensity error is zero, because we use percentile2pixels() --> "std::nth_element" algorithm
+            // for precise percentile calculation
+            _setIntensityCache(clips[0], 0, setChannelIndex, setChannelIndex, minClipPercentile, stokeIndex[1]);
+            _setIntensityCache(clips[1], 0, setChannelIndex, setChannelIndex, maxClipPercentile, stokeIndex[1]);
             qDebug() << "++++++++ [set cache] for clips= [" << clips[0] << "," << clips[1] << "]";
         }
     }

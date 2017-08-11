@@ -219,9 +219,9 @@ private:
      *           If bool is true, the location cache exists and we can read the cache value.
      *           If bool is false, the location cache does not exist and returns the default value -1.
      */
-    std::pair<bool, int> _readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+    std::pair<int, double> _readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
 
-    void _setLocationCache(int location, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+    void _setLocationCache(int location, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
 
     /**
      * Returns the bool and intensity corresponding to a percentile value.
@@ -233,9 +233,9 @@ private:
      *           If bool is true, the intensity cache exists and we can read the cache value.
      *           If bool is false, the intensity cache does not exist and returns the default value -1.
      */
-    std::pair<bool, double> _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+    std::pair<double, double> _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
 
-    void _setIntensityCache(double intensity, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+    void _setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
 
     /**
      * Returns the locations and intensities corresponding to a given percentiles.
