@@ -35,8 +35,10 @@ echo "step1: define your variables first"
 # export cartawork=$DIR/../../..
 # echo "CARTA working folder is $cartawork"
 
-qt57brew=/usr/local/opt/qt\@5.7
-export qt57brewrealpath=/usr/local/Cellar/qt@5.7/5.7.1
+#qt57brew=/usr/local/opt/qt\@5.7
+qt57brew=/usr/local/opt/qt\@5.9                   #temporarily switching for Qt 5.9
+#export qt57brewrealpath=/usr/local/Cellar/qt@5.7/5.7.1
+export qt57brewrealpath=/usr/local/Cellar/qt/5.9.1  #temporarily switching for Qt 5.9
 export QT5PATH=$qt57brew
 export CARTABUILDHOME=$cartawork/build
 branch=upgradeToNewNamespace #optional
