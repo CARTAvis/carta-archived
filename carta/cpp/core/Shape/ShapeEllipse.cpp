@@ -66,8 +66,8 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
-		//Draw the control points and show the outline if hovered or selected
-		if ( isHovered() || isSelected()){
+		//Draw the control points and show the outline if selected
+		if ( isSelected()){
 			comp.append < vge::SetPen > ( rectPen );
 			comp.append < vge::DrawRect > ( m_shadowRect );
 			comp.append < vge::SetPen > ( pen );
