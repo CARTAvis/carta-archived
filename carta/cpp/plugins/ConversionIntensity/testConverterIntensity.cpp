@@ -7,9 +7,9 @@ const double ARCSECONDS_SQUARED_PER_STERADIAN = pow(180 * 3600 / M_PI, 2);
 //const double ARCSECONDS_SQUARED_PER_STERADIAN = pow(206265, 2); // what is used in the plugin
 const double JY_IN_MJY = 1e6;
 
-std::vector<QString> BASE_UNITS = {"Jy/beam", "Jy/arcsec^2", "MJy/sr", "Kelvin"};
-std::map<QString, int> SI_PREFIX = {{"p", -12}, {"n", -9}, {"u", -6}, {"m", -3}, {"", 0}, {"k", 3}, {"M", 6}, {"G", 9}};
-std::map<QString, int> NUM_PREFIX = {{"", 0}, {"10", 1}, {"100", 2}};
+const std::vector<QString> BASE_UNITS = {"Jy/beam", "Jy/arcsec^2", "MJy/sr", "Kelvin"};
+const std::map<QString, int> SI_PREFIX = {{"p", -12}, {"n", -9}, {"u", -6}, {"m", -3}, {"", 0}, {"k", 3}, {"M", 6}, {"G", 9}};
+const std::map<QString, int> NUM_PREFIX = {{"", 0}, {"10", 1}, {"100", 2}};
 
 // Taken from a sample file; should be consistent
 const double BMAJ = 1.88e-4;
