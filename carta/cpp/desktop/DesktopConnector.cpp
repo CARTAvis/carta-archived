@@ -101,6 +101,8 @@ DesktopConnector::DesktopConnector()
 
 DesktopConnector::~DesktopConnector()
 {
+    m_pWebSocketServer->close();
+	
     if (m_pWebSocketServer != nullptr) {
         delete m_pWebSocketServer;
     }
