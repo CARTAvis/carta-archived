@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  webkitwidgets network widgets xml websockets
+QT      +=  webkitwidgets network widgets xml websockets webchannel
 
 HEADERS += \
     MainWindow.h \
@@ -20,6 +20,14 @@ SOURCES += \
     DesktopConnector.cpp \
     NetworkAccessManager.cpp \
     NetworkReplyFileq.cpp
+
+SOURCES += \
+    websockettransport.cpp \
+    websocketclientwrapper.cpp
+
+HEADERS += \
+    websockettransport.h \
+    websocketclientwrapper.h
 
 RESOURCES = resources.qrc
 

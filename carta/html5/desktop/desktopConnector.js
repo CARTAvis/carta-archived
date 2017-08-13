@@ -21,7 +21,7 @@
 
     /**
      * Numerical constants representing status of the connection.
-     * 
+     *
      * @type {{}}
      */
     connector.CONNECTION_STATUS = {
@@ -58,8 +58,10 @@
     // listen for command results callbacks and always invoke the top callback
     // in the list
     // the command results always arrive in the same order they were sent
-    QtConnector.jsCommandResultsSignal.connect( function( result )
+    if (false) QtConnector.jsCommandResultsSignal.connect( function( result )
     {
+        console.log("grimmer get command response:", result);
+
         try {
             if( m_commandCallbacks.length < 1 ) {
                 console.warn( "Received command results but no callbacks for this!!!" );
@@ -83,8 +85,10 @@
     });
 
     // listen for jsViewUpdatedSignal to render the image
-    QtConnector.jsViewUpdatedSignal.connect( function(viewName, buffer, refreshId)
+    if (false) QtConnector.jsViewUpdatedSignal.connect( function(viewName, buffer, refreshId)
     {
+        console.log("grimmer view update:", viewName, "; buffer:", buffer);
+
         try {
             var view = m_views[viewName];
             if( view == null ) {
@@ -93,7 +97,9 @@
             }
             if ( buffer != null ){
                 buffer.assignToHTMLImageElement( view.m_imgTag );
-                QtConnector.jsViewRefreshedSlot( view.getName(), refreshId );
+                console.log("grimmer send jsViewRefreshedSlot");
+
+                if (false) QtConnector.jsViewRefreshedSlot( view.getName(), refreshId );
                 view._callViewCallbacks();
             }
         }
@@ -120,7 +126,7 @@
 
     /**
      * The View class
-     * 
+     *
      * @param container
      * @param viewName
      * @constructor
@@ -155,7 +161,7 @@
     /**
      * direct callback for mouse moves. We remember the coordinates, and then
      * make sure a timeout is scheduled to actually send the coordinates.
-     * 
+     *
      * @param ev
      */
     View.prototype.mouseMoveCB = function mouseMoveCB(ev) {
@@ -171,7 +177,7 @@
         // if throttling of mouse move events not enabled, send the event
         // directly
         if (this.MouseMoveDelay < 0) {
-            QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
+            if (false) QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
                     this.m_mousePos.y);
         } else {
             // we want to throttle the mouse move events
@@ -195,7 +201,7 @@
         this.m_mousePosSlotScheduled = false;
         // console.log( "calling jsMouseMoveSlot", this.m_viewName,
         // this.m_mousePos.x, this.m_mousePos.y );
-        QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
+        if (false) QtConnector.jsMouseMoveSlot(this.m_viewName, this.m_mousePos.x,
                 this.m_mousePos.y);
     };
 
@@ -211,7 +217,8 @@
         // this.m_imgTag.height = this.m_container.offsetHeight;
         /*console.log("about to call jsUpdateViewSlot", this.m_viewName,
                 this.m_container.offsetWidth, this.m_container.offsetHeight);*/
-        QtConnector.jsUpdateViewSlot(this.m_viewName,
+        console.log("grimmer send command, update size:", this.m_viewName, ";width:", this.m_container.offsetWidth);
+        if (false) QtConnector.jsUpdateViewSlot(this.m_viewName,
                 this.m_container.offsetWidth, this.m_container.offsetHeight);
     };
     View.prototype.getName = function() {
@@ -279,8 +286,10 @@
         }
 
         // listen for changes to the state
-        QtConnector.stateChangedSignal.connect(function(key, val)
+        if (false) QtConnector.stateChangedSignal.connect(function(key, val)
         {
+            console.log("grimmer get stateChangedSignal:", key, ";val:", val);
+
             try {
                 var st = getOrCreateState( key );
                 // save the value
@@ -295,7 +304,7 @@
         });
 
         // let the c++ connector know we are ready
-        QtConnector.jsConnectorReadySlot();
+        if (false) QtConnector.jsConnectorReadySlot();
 
         if (m_connectionCB != null) {
             setZeroTimeout(m_connectionCB);
@@ -355,7 +364,9 @@
                 console.error( "value has weird type: ", value, m_statePtr.path );
                 throw "don't know how to set value";
             }
-            QtConnector.jsSetStateSlot(m_statePtr.path, value);
+
+            console.log("grimmer jsSetStateSlot");
+            if (false) QtConnector.jsSetStateSlot(m_statePtr.path, value);
 
             return m_that;
         };
@@ -400,7 +411,85 @@
             throw new Error("callback must be a function, null, or undefined");
         }
         m_commandCallbacks.push( callback);
-        QtConnector.jsSendCommandSlot( cmd, params);
+
+    //     if ( cmd == "/CartaObjects/DataLoader:isSecurityRestricted")  {
+    //         console.log("grimmer send x command /CartaObjects/DataLoader:isSecurityRestricted");
+    //         // TODO: needed to comment autoClipCmd.setValue( this.m_autoClip ); to prevent Qooxdoo crashing.
+    //         // But even so, the current status is its filebrowser becomes empty but indeed get file list back
+    //         //  return; <- no image shown !!!!!!!!!!
+    //         // return; //x 只comment cpp 那邊也看不到圖 !!!! 只comment cpp 那邊ok!!
+    //     } else if (cmd == "/CartaObjects/c14:registerStack") {
+    //         console.log("grimmer send x command /CartaObjects/c14:registerStack");
+    //         //return; //Stack controls could not parse: <- StackControl. many errors
+    //         // imagecontrol:
+    //         // Could not parse: {"flush":false,"type":"Statistics","index":0,"showStatsImage":true,"showStatsRegion":true,"image":[{"label":"Shape","visible":true},{"label":"Restoring Beam","visible":true},{"label":"Median Restoring Beam","visible":true},{"label":"RA Range","visible":true},{"label":"Dec Range","visible":true},{"label":"Frequency Range","visible":true},{"label":"Velocity Range","visible":true},{"label":"Frequency","visible":true},{"label":"Velocity","visible":true},{"label":"Stokes","visible":true},{"label":"Direction Type","visible":true},{"label":"Brightness Unit","visible":true},{"label":"Frame Count","visible":true},{"label":"Beam Area","visible":true}],"region":[{"label":"Sum","visible":t
+    //         // Colormap could not parse: {"flush":true,"type":"Animator","index":0,"animators":[]}
+     //
+    //         //Problem updating statistic settings: {"flush":true,"type":"Colormap","index":0,"colorMapName":"Gray","reverse":false,"invert":false,"nanDefault":true,"borderDefault":true,"gamma":1.0,"scale1":0.0,"scale2":0.0,"colorMix":{"red":1.0,"green":1.0,"blue":1.0},"imageTransform":"Gamma","dataTransform":"Linear","nanColor":{"red":255,"blue":0,"green":0,"alpha":255},"borderColor":{"red":0,"blue":0,"green":0,"alpha":255},"global":true,"stops":"","significantDigits":6,"tabIndex":0,"imageUnits":"N/A"}
+    //         //
+    //         // return; <- no image shown
+    //         // return;
+    //      } else if (cmd == "/CartaObjects/ViewManager:dataLoaded") {
+     //
+    //      } else if (cmd.indexOf("registerRegionControls") != -1) {
+    //          console.log("grimmer send x command:", cmd, ";params:", params);
+    //          return;
+    //      } else if (cmd.indexOf("registerPreferences") != -1) {//}== "/CartaObjects/c14:registerPreferences") {
+    //          //colormap, histogram, controller都有, 多個 !!!!!!!!!!!!??
+    //          console.log("grimmer send x command:", cmd, ";params:", params);
+     //
+    //          return;
+    //      } else if (cmd.indexOf("registerGridControls") != -1 ){
+    //          console.log("grimmer send x command:", cmd, ";params:", params);
+    //          //  Grid controls could not parse: {"flush":false,"type":"Stack","index":0,"visible":true,"selected":false,"id":"15","name":"group15","mode":"None","layers":[]} error: TypeError: undefined is not an object (evaluating 'controls.grid.showCoordinateSystem')
+    //          return;
+    //      } else if (cmd.indexOf("registerContourControls") != -1 ){
+    //          console.log("grimmer send x command:", cmd, ";params:", params);
+    //          return;
+    //      } else if (cmd.indexOf("setStackSelectAuto") != -1 ){
+    //        // "/CartaObjects/c14:setStackSelectAuto"
+    //        //  "stackAutoSelect:true", cpp: default:true
+    //        console.log("grimmer send x command:", cmd, ";params:", params);
+     //
+    //         //  console.log("grimmer send x command:", cmd);
+    //          return;
+    //      } else if (cmd.indexOf("setPanZoomAll") != -1 ){
+    //          console.log("grimmer send x command:", cmd, ";params:", params);
+    //         return;
+    //    } else if (cmd.indexOf("setCoordinateSystem") != -1 ){ //現在沒有這個. 因為其他的command comment, 所以這個才沒送
+    //      //  console.log("grimmer send x command:", cmd);
+    //      //  return;
+    //      } else if (cmd.indexOf("setFontSize") != -1 ){
+    //  //  console.log("grimmer send x command:", cmd);
+    //         return;
+    //      } else if (cmd.indexOf("setGridLabelFormat") != -1 ){
+    //           //  console.log("grimmer send x command:", cmd);
+    //            return;
+    //      } else if (cmd.indexOf("setLabelDecimals") != -1 ){
+    //             //  console.log("grimmer send x command:", cmd);
+    //              return;
+    //      } else if (cmd.indexOf("setLevelCount") != -1 ){
+    //               //  console.log("grimmer send x command:", cmd);
+    //                return;
+    //      } else if (cmd.indexOf("setLevelMin") != -1 ){
+    //                 //  console.log("grimmer send x command:", cmd);
+    //                  return;
+    //      } else if (cmd.indexOf("setLevelMax") != -1 ){
+    //                   //  console.log("grimmer send x command:", cmd);
+    //                    return;
+    //      } else if (cmd.indexOf("setInterval") != -1 ){
+    //             //  console.log("grimmer send x command:", cmd);
+    //              return;
+    //      }
+
+    // "/CartaObjects/c24:setCoordinateSystem"
+    // "; params:"
+    // "skyCS:J2000"
+
+        // else {
+        console.log("grimmer send command:", cmd, "; params:", params);
+        if (false) QtConnector.jsSendCommandSlot( cmd, params);
+        // }
     };
 
 })();

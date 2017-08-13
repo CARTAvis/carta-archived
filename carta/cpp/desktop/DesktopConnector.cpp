@@ -21,6 +21,9 @@
 #include <thread>
 #include "QtWebSockets/qwebsocketserver.h"
 #include "QtWebSockets/qwebsocket.h"
+#include "websocketclientwrapper.h"
+#include "websockettransport.h"
+#include "qwebchannel.h"
 #include <QBuffer>
 
 /// \brief internal class of DesktopConnector, containing extra information we like
@@ -56,6 +59,7 @@ struct DesktopConnector::ViewInfo
 
 };
 
+// not use now
 // uWebSockets part, comment now, change to use qt's built-in WebSocket
 //TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.
 void DesktopConnector::startWebSocketServer() {
@@ -123,6 +127,31 @@ void DesktopConnector::startWebSocketServer() {
 //    std::cout << "websocket ends running" << std::endl;
 }
 
+
+void DesktopConnector::startWebSocketChannel(){
+
+    int port = 4317;
+
+    // setup the QWebSocketServer
+    m_pWebSocketServer = new QWebSocketServer(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode, this);
+    if (!m_pWebSocketServer->listen(QHostAddress::Any, port)) {
+        qFatal("Failed to open web socket server.");
+        return;
+    }
+
+    qDebug() << "DesktopConnector listening on port" << port;
+
+    // wrap WebSocket clients in QWebChannelAbstractTransport objects
+    m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
+
+    // setup the channel
+    m_channel = new QWebChannel();
+    QObject::connect(m_clientWrapper, &WebSocketClientWrapper::clientConnected,
+                     m_channel, &QWebChannel::connectTo);
+
+    m_channel->registerObject(QStringLiteral("QConnector"), this);
+}
+
 DesktopConnector::DesktopConnector()
 {
     // queued connection to prevent callbacks from firing inside setState
@@ -138,17 +167,23 @@ DesktopConnector::DesktopConnector()
 
     // test2: change to use Qt's buint-in WebSocket
     // https://github.com/GarageGames/Qt/blob/master/qt-5/qtwebsockets/examples/websockets/echoserver/echoserver.cpp
-    m_pWebSocketServer = new QWebSocketServer(QStringLiteral("Echo Server"),
-                                            QWebSocketServer::NonSecureMode, this);
-    m_debug = true;
-    int port = 4317;
-    if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
-        if (m_debug)
-            qDebug() << "DesktopConnector listening on port" << port;
-        connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
-                this, &DesktopConnector::onNewConnection);
-//        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &DesktopConnector::closed);
-    }
+//     m_pWebSocketServer = new QWebSocketServer(QStringLiteral("Echo Server"),
+//                                             QWebSocketServer::NonSecureMode, this);
+//     m_debug = true;
+//     int port = 4317;
+//     if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
+//         if (m_debug)
+//             qDebug() << "DesktopConnector listening on port" << port;
+//         connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
+//                 this, &DesktopConnector::onNewConnection);
+// //        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &DesktopConnector::closed);
+//     }
+
+//test3, Qt's built-in WebSocket + QWebChannel
+    m_pWebSocketServer = nullptr;
+    m_clientWrapper = nullptr;
+    m_channel = nullptr;
+    startWebSocketChannel();
 
 }
 
@@ -156,6 +191,18 @@ DesktopConnector::~DesktopConnector()
 {
     m_pWebSocketServer->close();
     qDeleteAll(m_clients.begin(), m_clients.end());
+
+    if (m_pWebSocketServer != nullptr) {
+        delete m_pWebSocketServer;
+    }
+
+    if (m_clientWrapper != nullptr) {
+        delete m_clientWrapper;
+    }
+
+    if (m_channel != nullptr) {
+        delete m_channel;
+    }
 }
 
 static QWebSocket *test_pClient = nullptr;
@@ -449,43 +496,6 @@ void DesktopConnector::pseudoJsSendCommandSlot(const QString &cmd, const QString
 //    });
 }
 
-void DesktopConnector::jsSendCommandSlot2()
-{
-
-    QString cmd = "/CartaObjects/DataLoader:getData";
-    QString parameter = "path:";
-
-//    /CartaObjects/DataLoader:getData
-//    path:
-
-    int k= 0;
-    int k2= 0;
-
-//    qDebug()<<"cmd:"<<cmd;
-//    qDebug()<<"parameter:"<< parameter;
-//    if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
-//        if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
-//            int kkk =0;
-//        }
-//    }
-
-    // call all registered callbacks and collect results, but asynchronously
-    defer( [cmd, parameter, this ]() {
-        auto & allCallbacks = m_commandCallbackMap[ cmd];
-        QStringList results;
-        for( auto & cb : allCallbacks) {
-            results += cb( cmd, parameter, "1"); // session id fixed to "1"
-        }
-
-        // pass results back to javascript
-        emit jsCommandResultsSignal( results.join("|"));
-
-        if( allCallbacks.size() == 0) {
-            qWarning() << "JS command has no server listener:" << cmd << parameter;
-        }
-    });
-}
-
 void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
 {
 //    /CartaObjects/DataLoader:getData
@@ -501,7 +511,7 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
     }
 
     // call all registered callbacks and collect results, but asynchronously
-    defer( [cmd, parameter, this ]() {
+//    defer( [cmd, parameter, this ]() {
         auto & allCallbacks = m_commandCallbackMap[ cmd];
         QStringList results;
         for( auto & cb : allCallbacks) {
@@ -509,12 +519,12 @@ void DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & par
         }
 
         // pass results back to javascript
-        emit jsCommandResultsSignal( results.join("|"));
+        emit jsCommandResultsSignal( cmd, results.join("|"));
 
         if( allCallbacks.size() == 0) {
             qWarning() << "JS command has no server listener:" << cmd << parameter;
         }
-    });
+//    });
 }
 
 void DesktopConnector::jsConnectorReadySlot()
@@ -589,7 +599,7 @@ void DesktopConnector::refreshViewNow(IView *view)
 
         qDebug()<<"grimmer image11111";
 
-        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+//        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
 //        return;
 
         QImage *finalImage;
@@ -602,12 +612,14 @@ void DesktopConnector::refreshViewNow(IView *view)
            QBuffer buffer(&byteArray);
            finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
            QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
-           if (test_pClient != nullptr) {
-               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
-               test_pClient->flush();
-               qDebug() << "send:"<<sendNumber;
-           }
+           emit jsViewUpdatedSignal( view-> name(), base64Str, viewInfo-> refreshId);
+
+//           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
+//           if (test_pClient != nullptr) {
+//               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
+//               test_pClient->flush();
+//               qDebug() << "send:"<<sendNumber;
+//           }
         } else {
             qDebug() << "grimmer not ready";
         }
@@ -625,7 +637,7 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
-        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+//        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
 //        return;
 
         const QImage *finalImage = &origImage;
@@ -635,12 +647,14 @@ void DesktopConnector::refreshViewNow(IView *view)
            QBuffer buffer(&byteArray);
            finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer. 50 is a little bad
            QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
-           if (test_pClient != nullptr) {
-               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
-               test_pClient->flush();
-               qDebug() << "send:"<<sendNumber;
-           }
+           emit jsViewUpdatedSignal( view-> name(), base64Str,  viewInfo-> refreshId);
+
+//           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
+//           if (test_pClient != nullptr) {
+//               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
+//               test_pClient->flush();
+//               qDebug() << "send:"<<sendNumber;
+//           }
         } else {
             qDebug() << "grimmer not ready";
         }

@@ -19,6 +19,9 @@
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
+QT_FORWARD_DECLARE_CLASS(WebSocketClientWrapper)
+QT_FORWARD_DECLARE_CLASS(QWebChannel)
+
 class MainWindow;
 class IView;
 
@@ -54,7 +57,7 @@ public:
 
 //    void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter);
 
-    void jsSendCommandSlot2();
+//    void jsSendCommandSlot2();
 //    void pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter);
 
     // Qt's built-in WebSocket
@@ -64,6 +67,12 @@ public:
     ~DesktopConnector();
     void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter, QWebSocket *pClient);
 
+
+    void startWebSocketChannel();
+    // QWebSocketServer *m_pWebSocketServer;
+    WebSocketClientWrapper *m_clientWrapper;
+    QWebChannel *m_channel;
+    // ~DesktopConnector();
 public slots:
 
     /// javascript calls this to set a state
@@ -101,9 +110,9 @@ signals:
     void stateChangedSignal( const QString & key, const QString & value);
     /// we emit this signal when command results are ready
     /// javascript listens to it
-    void jsCommandResultsSignal( const QString & results);
+    void jsCommandResultsSignal( const QString & cmd, const QString & results);
     /// emitted by c++ when we want javascript to repaint the view
-    void jsViewUpdatedSignal( const QString & viewName, const QImage & img, qint64 id);
+    void jsViewUpdatedSignal( const QString & viewName, const QString & img, qint64 id);
 
 public:
 
