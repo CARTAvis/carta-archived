@@ -32,7 +32,7 @@ NetworkAccessManager::createRequest(
     }
 
     // all other schemes are handled by the default implementation
-    qDebug() << "Not intercepting" << request.url().toString();
+    // qDebug() << "Not intercepting" << request.url().toString();
     return QNetworkAccessManager::createRequest( op, request, outgoingData );
 }
 }
