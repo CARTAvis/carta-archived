@@ -98,26 +98,26 @@ DesktopPlatform::DesktopPlatform()
 //    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
 
     // create main window
-    m_mainWindow = new MainWindow();
-    m_mainWindow-> resize( 1280, 800);
+//    m_mainWindow = new MainWindow();
+//    m_mainWindow-> resize( 1280, 800);
 
-    // center the main window on the screen
-    QDesktopWidget wid;
-    int screenWidth = wid.screen()->width();
-    int screenHeight = wid.screen()->height();
-    int panelWidth = m_mainWindow->frameGeometry().width();
-    int panelHeight = m_mainWindow->frameGeometry().height();
-    m_mainWindow->setGeometry( (screenWidth/2)-(panelWidth/2), (screenHeight/2)-(panelHeight/2), panelWidth, panelHeight);
+//    // center the main window on the screen
+//    QDesktopWidget wid;
+//    int screenWidth = wid.screen()->width();
+//    int screenHeight = wid.screen()->height();
+//    int panelWidth = m_mainWindow->frameGeometry().width();
+//    int panelHeight = m_mainWindow->frameGeometry().height();
+//    m_mainWindow->setGeometry( (screenWidth/2)-(panelWidth/2), (screenHeight/2)-(panelHeight/2), panelWidth, panelHeight);
 
-    // add platform and connector to JS exports
-//    m_mainWindow->addJSExport( "QtPlatform", this);
-//    m_mainWindow->addJSExport( "QtConnector", m_connector);
+//    // add platform and connector to JS exports
+////    m_mainWindow->addJSExport( "QtPlatform", this);
+////    m_mainWindow->addJSExport( "QtConnector", m_connector);
 
-    // load the url
-//    m_mainWindow->loadUrl( url);
+//    // load the url
+////    m_mainWindow->loadUrl( url);
 
-    // display the window
-    m_mainWindow->show();
+//    // display the window
+//    m_mainWindow->show();
 }
 
 IConnector * DesktopPlatform::connector()
