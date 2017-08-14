@@ -9,7 +9,7 @@
 #include "core/Globals.h"
 
 #include <QtWidgets>
-#include <QWebSettings>
+//#include <QWebSettings>
 #include <QDesktopWidget>
 #include <unistd.h>
 
@@ -93,8 +93,8 @@ DesktopPlatform::DesktopPlatform()
     m_connector = new DesktopConnector();
 
     // enable web inspector
-    QWebSettings::enablePersistentStorage( "/tmp/xyz");
-    QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
+//    QWebSettings::enablePersistentStorage( "/tmp/xyz");
+//    QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
 //    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
 
     // create main window
@@ -110,11 +110,11 @@ DesktopPlatform::DesktopPlatform()
     m_mainWindow->setGeometry( (screenWidth/2)-(panelWidth/2), (screenHeight/2)-(panelHeight/2), panelWidth, panelHeight);
 
     // add platform and connector to JS exports
-    m_mainWindow->addJSExport( "QtPlatform", this);
-    m_mainWindow->addJSExport( "QtConnector", m_connector);
+//    m_mainWindow->addJSExport( "QtPlatform", this);
+//    m_mainWindow->addJSExport( "QtConnector", m_connector);
 
     // load the url
-    m_mainWindow->loadUrl( url);
+//    m_mainWindow->loadUrl( url);
 
     // display the window
     m_mainWindow->show();

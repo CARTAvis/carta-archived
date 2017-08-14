@@ -3,9 +3,9 @@
 
 #include <QMainWindow>
 
-class QWebView;
-class QLineEdit;
-class QWebInspector;
+//class QWebView;
+//class QLineEdit;
+//class QWebInspector;
 
 class MainWindow : public QMainWindow
 {
@@ -17,12 +17,12 @@ public:
     MainWindow();
 
     /// loads the given url
-    void loadUrl(const QUrl & url);
+//    void loadUrl(const QUrl & url);
 
     /// adds the given QObject to javascript exports
     /// these will be exported automatically on page reload
     /// so call this before calling loadUrl()
-    void addJSExport( const QString & name, QObject * objPtr);
+//    void addJSExport( const QString & name, QObject * objPtr);
 
 signals:
 
@@ -32,24 +32,24 @@ protected:
 
 protected slots:
 
-    void adjustLocation();
-    void changeLocation();
-    void adjustTitle();
-    void setProgress(int p);
-    void finishLoading(bool);
-    void showJsConsole();
-    void addToJavaScript();
+    // void adjustLocation();
+    // void changeLocation();
+    // void adjustTitle();
+    // void setProgress(int p);
+    // void finishLoading(bool);
+//    void showJsConsole();
+    // void addToJavaScript();
     void helpUrlGitHubHome();
     void helpUrlGitHubWiki();
     void helpUrlGitHubIssues();
     void cartaLicense();
 
 private:
-    QWebView * m_view = nullptr;
-    QLineEdit * m_locationEdit = nullptr;
+//    QWebView * m_view = nullptr;
+//    QLineEdit * m_locationEdit = nullptr;
     int m_progress;
-    QWebInspector * m_inspector = nullptr; // = nullptr;
-    std::vector< std::pair< QString, QObject *> > m_jsExports;
+//    QWebInspector * m_inspector = nullptr; // = nullptr;
+//    std::vector< std::pair< QString, QObject *> > m_jsExports;
 };
 
 #endif

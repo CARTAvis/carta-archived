@@ -2,11 +2,12 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  webkitwidgets network widgets xml websockets webchannel
+QT      +=  network widgets xml websockets webchannel
+# QT      +=  webkitwidgets
 
 HEADERS += \
     MainWindow.h \
-    CustomWebPage.h \
+#    CustomWebPage.h \
     DesktopPlatform.h \
     DesktopConnector.h \
     NetworkReplyFileq.h \
@@ -14,7 +15,7 @@ HEADERS += \
 
 SOURCES += \
     MainWindow.cpp \
-    CustomWebPage.cpp \
+#    CustomWebPage.cpp \
     DesktopPlatform.cpp \
     desktopMain.cpp \
     DesktopConnector.cpp \
