@@ -641,19 +641,29 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
                 percentiles_to_calculate.push_back(percentiles[i]);
             }
         }
+        if (percentiles_to_calculate.size() != 2) {
+            qWarning() << "the number of percentiles to calculate is not equal to 2 (check cache save procedure)!!";
+        }
 
         // get all clip settings for approximate percentile calculations
         std::shared_ptr<Carta::Data::Clips> m_clips;
         std::vector<double> percentiles_from_all_clips = m_clips -> getAllClips2percentiles();
-        for (int i=0; i<percentiles_from_all_clips.size(); i++) {
-            qDebug() << "++++++++ get clip[" << i << "] for the percentile=" << percentiles_from_all_clips[i];
+
+        // get extra clipping values from UI which is not equal to current clipping ones
+        std::vector<double> percentiles_to_calculate_extra;
+        for (int i = 0; i < percentiles_from_all_clips.size(); i++) {
+            // the same clipping value from different sources are not absolute equal (don't know why) !!
+            // so we need to make the following checks !!
+            if (fabs(percentiles_from_all_clips[i] - percentiles_to_calculate[0]) < 0.000001 ||
+                fabs(percentiles_from_all_clips[i] - percentiles_to_calculate[1]) < 0.000001) continue;
+            percentiles_to_calculate_extra.push_back(percentiles_from_all_clips[i]);
         }
 
         // define the priority number (error order) for choosing (key, value) from SQLite3
         double error;
 
         // Calculate only the required percentiles
-        std::map<double, std::pair<int,double> > clips_map;
+        std::map<double, std::pair<int,double>> clips_map, clips_map_extra;
 
         if (percentiles_to_calculate.size() == 2 && percentiles_to_calculate[0] == 0 && percentiles_to_calculate[1] == 1) {
 
@@ -672,9 +682,13 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
             // get minimum and maximum pixel values from the cache or from the raw data
             std::vector<std::pair<int,double>> minMaxIntensities = _getMinMaxIntensity(frameLow, frameHigh, stokeFrame);
 
-            // apply approximate percentile algorithm
+            // apply approximate percentile algorithm for clipping values
             clips_map = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex, minMaxIntensities,
-                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_from_all_clips);
+                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_to_calculate);
+
+            // apply approximate percentile algorithm for extra clipping values
+            clips_map_extra = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex, minMaxIntensities,
+                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_to_calculate_extra);
 
             // set the priority number (error order) to be the inverse of percentApproxDividedNum
             error = 1 / static_cast<double>(percentApproxDividedNum);
@@ -694,7 +708,7 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
 
         // set return values and cache
         for (int i = 0; i < percentileCount; i++) {
-            if (!found[i]) {                
+            if (!found[i]) {
                 intensities[i].first = clips_map[percentiles[i]].first;
                 intensities[i].second = clips_map[percentiles[i]].second;
                 found[i] = true; // for completeness, in case we test this later
@@ -706,35 +720,30 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
                 if (m_diskCache) {
                     _setLocationCache(intensities[i].first, error, frameLow, frameHigh, percentiles[i], stokeFrame);
                     _setIntensityCache(intensities[i].second, error, frameLow, frameHigh, percentiles[i], stokeFrame);
+                    qDebug() << "++++++++ [set cache] for percentile" << percentiles[i]
+                             << ", intensity=" << intensities[i].second << "+/- (max-min)*" << error
+                             << ", location=" << intensities[i].first << "(channel)";
                 }
-                qDebug() << "++++++++ [set cache] for percentile" << percentiles[i]
-                         << ", intensity=" << intensities[i].second << "+/- (max-min)*" << error
-                         << ", location=" << intensities[i].first << "(channel)";
             }
         }
 
         // if we use the approximation algorithm to get percentiles with respect to pixels values,
         // we can calculate all Clipping values listed on the UI at one loop.
         // In such case, we can set the extra percentiles with respect to pixels values in the other caches.
-        // The advantage of this method is that we don't need to use approximation algorithm again if we set
-        // the other Clipping values in the UI.
-        int sizeOfClipsMap = clips_map.size();
-        if (sizeOfClipsMap > percentileCount) {
-            for (int i = 0; i < sizeOfClipsMap; i++) {
-                for (int j = 0; j < percentileCount; j++) {
-                    if (percentiles_from_all_clips[i] != percentiles[j]) {
-                        // set the location of frameLow
-                        if (frameLow >= 0) {
-                            clips_map[percentiles_from_all_clips[i]].first += frameLow;
-                        }
-                        if (m_diskCache) {
-                            _setLocationCache(clips_map[percentiles_from_all_clips[i]].first, error, frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
-                            _setIntensityCache(clips_map[percentiles_from_all_clips[i]].second, error, frameLow, frameHigh, percentiles_from_all_clips[i], stokeFrame);
-                            qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_from_all_clips[i]
-                                     << ", intensity=" << clips_map[percentiles_from_all_clips[i]].second << "+/- (max-min)*" << error
-                                     << ", location=" << clips_map[percentiles_from_all_clips[i]].first << "(channel)";
-                        }
-                    }
+        // The advantage of this method is that we don't need to use approximation algorithm again if we want
+        // to get another Clipping values in the UI.
+        if (clips_map_extra.size() > 0) {
+            for (int i = 0; i < percentiles_to_calculate_extra.size(); i++) {
+                // set the location of frameLow
+                if (frameLow >= 0) {
+                    clips_map_extra[percentiles_to_calculate_extra[i]].first += frameLow;
+                }
+                if (m_diskCache) {
+                    _setLocationCache(clips_map_extra[percentiles_to_calculate_extra[i]].first, error, frameLow, frameHigh, percentiles_to_calculate_extra[i], stokeFrame);
+                    _setIntensityCache(clips_map_extra[percentiles_to_calculate_extra[i]].second, error, frameLow, frameHigh, percentiles_to_calculate_extra[i], stokeFrame);
+                    qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_extra[i]
+                             << ", intensity=" << clips_map_extra[percentiles_to_calculate_extra[i]].second << "+/- (max-min)*" << error
+                             << ", location=" << clips_map_extra[percentiles_to_calculate_extra[i]].first << "(channel)";
                 }
             }
         }

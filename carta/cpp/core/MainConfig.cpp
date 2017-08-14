@@ -104,15 +104,6 @@ ParsedInfo parse(const QString & filePath)
         info.m_pluginDirectories.append( QDir::cleanPath(raw));
     }
 
-    // extract PCacheSqlite3 plugin directories
-    auto PCacheSqlite3 = json[ "PCacheSqlite3"].toArray().toVariantList();
-    for( auto  dir : PCacheSqlite3) {
-        QString raw = dir.toString();
-        raw.replace( "$(HOME)", QDir::homePath());
-        raw.replace( "$(APPDIR)", QCoreApplication::applicationDirPath());
-        info.m_pluginDirectories.append( QDir::cleanPath(raw));
-    }
-
     _storeBool( json["hacksEnabled"], &info.m_hacksEnabled, "hacks enabled");
     _storeBool( json["developerLayout"], &info.m_developerLayout, "developer layout");
     _storeBool( json["qtDecorations"], &info.m_developerDecorations, "developer decorations");

@@ -186,11 +186,14 @@ PCacheSQlite3Plugin::initialize( const IPlugin::InitInfo & initInfo )
 
     // extract the location of the database from carta.config
     m_dbPath = initInfo.json.value( "dbPath").toString();
+
     if( m_dbPath.isNull()) {
         qCritical() << "No dbPath specified for PCacheSqlite3 plugin!!!";
     }
     else {
         // convert this to absolute path just in case
+        m_dbPath.replace("$(HOME)", QDir::homePath());
+        m_dbPath.replace("$(APPDIR)", QCoreApplication::applicationDirPath());
         m_dbPath = QDir(m_dbPath).absolutePath();
     }
 }
