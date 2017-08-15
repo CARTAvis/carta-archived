@@ -96,6 +96,7 @@ void WebSocketTransport::sendMessage(const QJsonObject &message)
 {
     QJsonDocument doc(message);
     m_socket->sendTextMessage(QString::fromUtf8(doc.toJson(QJsonDocument::Compact)));
+    m_socket->flush();
 }
 
 /*!
