@@ -428,6 +428,15 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
+bool DataSource::_isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const {
+    bool result = false;
+    for (int i = 0; i < comparedValue.size(); i++) {
+        if (fabs(inputValue - comparedValue[i]) < threshold)
+            result = true;
+    }
+    return result;
+}
+
 std::pair<int, double> DataSource::_readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const {
     if (m_diskCache) {
         std::pair<int, double> result;
@@ -654,8 +663,7 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         for (int i = 0; i < percentiles_from_all_clips.size(); i++) {
             // the same clipping value from different sources are not absolute equal (don't know why) !!
             // so we need to make the following checks !!
-            if (fabs(percentiles_from_all_clips[i] - percentiles_to_calculate[0]) < 0.000001 ||
-                fabs(percentiles_from_all_clips[i] - percentiles_to_calculate[1]) < 0.000001) continue;
+            if (_isSameValue(percentiles_from_all_clips[i], percentiles_to_calculate, 1e-6) == true) continue;
             percentiles_to_calculate_extra.push_back(percentiles_from_all_clips[i]);
         }
 
