@@ -209,10 +209,11 @@ private:
     QPointF _getImagePt( const QPointF& screenPt, double zoom, const QPointF& pan,
             const QSize& outputSize, bool* valid ) const;
 
-    /*
-     * check if the "inputValue" is amoung the vector of "comparedValue"
+    /**
+     * check if the "inputValue" is amoung the vector of "comparedValue",
+     * if true, return the original value from "comparedValue"
      */
-    bool _isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const;
+    std::pair<bool, double> _isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const;
 
     /**
      * Returns the bool and location corresponding to a percentile value.

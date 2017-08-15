@@ -17,8 +17,6 @@
 #include "../../Algorithms/cacheUtils.h"
 #include "../Clips.h"
 #include <QDebug>
-#include <sys/time.h>
-#include <numeric>
 #include <QElapsedTimer>
 
 using Carta::Lib::AxisInfo;
@@ -428,11 +426,13 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
-bool DataSource::_isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const {
-    bool result = false;
+std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const {
+    std::pair<bool, double> result = std::make_pair(false, -1);
     for (int i = 0; i < comparedValue.size(); i++) {
-        if (fabs(inputValue - comparedValue[i]) < threshold)
-            result = true;
+        if (fabs(inputValue - comparedValue[i]) < threshold) {
+            result = std::make_pair(true, comparedValue[i]);
+            break;
+        }
     }
     return result;
 }
@@ -659,19 +659,24 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         std::vector<double> percentiles_from_all_clips = m_clips -> getAllClips2percentiles();
 
         // get extra clipping values from UI which is not equal to current clipping ones
-        std::vector<double> percentiles_to_calculate_extra;
+        std::vector<double> percentiles_to_calculate_plus;
+        std::pair<bool, double> parse_percentiles_from_all_clips;
         for (int i = 0; i < percentiles_from_all_clips.size(); i++) {
-            // the same clipping value from different sources are not absolute equal (don't know why) !!
+            // the same clipping value from different sources are not absolute equal !!
             // so we need to make the following checks !!
-            if (_isSameValue(percentiles_from_all_clips[i], percentiles_to_calculate, 1e-6) == true) continue;
-            percentiles_to_calculate_extra.push_back(percentiles_from_all_clips[i]);
+            parse_percentiles_from_all_clips = _isSameValue(percentiles_from_all_clips[i], percentiles_to_calculate, 1e-6);
+            if (parse_percentiles_from_all_clips.first == true) {
+                percentiles_to_calculate_plus.push_back(parse_percentiles_from_all_clips.second);
+            } else {
+                percentiles_to_calculate_plus.push_back(percentiles_from_all_clips[i]);
+            }
         }
 
         // define the priority number (error order) for choosing (key, value) from SQLite3
         double error;
 
         // Calculate only the required percentiles
-        std::map<double, std::pair<int,double>> clips_map, clips_map_extra;
+        std::map<double, std::pair<int,double>> clips_map;
 
         if (percentiles_to_calculate.size() == 2 && percentiles_to_calculate[0] == 0 && percentiles_to_calculate[1] == 1) {
 
@@ -692,11 +697,7 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
 
             // apply approximate percentile algorithm for clipping values
             clips_map = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex, minMaxIntensities,
-                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_to_calculate);
-
-            // apply approximate percentile algorithm for extra clipping values
-            clips_map_extra = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex, minMaxIntensities,
-                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_to_calculate_extra);
+                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_to_calculate_plus);
 
             // set the priority number (error order) to be the inverse of percentApproxDividedNum
             error = 1 / static_cast<double>(percentApproxDividedNum);
@@ -740,18 +741,18 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         // In such case, we can set the extra percentiles with respect to pixels values in the other caches.
         // The advantage of this method is that we don't need to use approximation algorithm again if we want
         // to get another Clipping values in the UI.
-        if (clips_map_extra.size() > 0) {
-            for (int i = 0; i < percentiles_to_calculate_extra.size(); i++) {
+        if (clips_map.size() > percentiles_to_calculate.size()) {
+            for (int i = 0; i < percentiles_to_calculate_plus.size(); i++) {
                 // set the location of frameLow
                 if (frameLow >= 0) {
-                    clips_map_extra[percentiles_to_calculate_extra[i]].first += frameLow;
+                    clips_map[percentiles_to_calculate_plus[i]].first += frameLow;
                 }
                 if (m_diskCache) {
-                    _setLocationCache(clips_map_extra[percentiles_to_calculate_extra[i]].first, error, frameLow, frameHigh, percentiles_to_calculate_extra[i], stokeFrame);
-                    _setIntensityCache(clips_map_extra[percentiles_to_calculate_extra[i]].second, error, frameLow, frameHigh, percentiles_to_calculate_extra[i], stokeFrame);
-                    qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_extra[i]
-                             << ", intensity=" << clips_map_extra[percentiles_to_calculate_extra[i]].second << "+/- (max-min)*" << error
-                             << ", location=" << clips_map_extra[percentiles_to_calculate_extra[i]].first << "(channel)";
+                    _setLocationCache(clips_map[percentiles_to_calculate_plus[i]].first, error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame);
+                    _setIntensityCache(clips_map[percentiles_to_calculate_plus[i]].second, error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame);
+                    qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_plus[i]
+                             << ", intensity=" << clips_map[percentiles_to_calculate_plus[i]].second << "+/- (max-min)*" << error
+                             << ", location=" << clips_map[percentiles_to_calculate_plus[i]].first << "(channel)";
                 }
             }
         }
