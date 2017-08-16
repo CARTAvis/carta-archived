@@ -55,14 +55,13 @@ public:
         if ( ! p_db ) {
             return false;
         }
-        std::string tmpVal, tmpError;
-        auto status = p_db-> Get( p_readOptions, key.constData(), & tmpVal, & tmpError );
+        std::string tmpVal;
+        auto status = p_db-> Get( p_readOptions, key.constData(), & tmpVal );
         if ( ! status.ok() ) {
             //qWarning() << "query read failed:" << status.ToString().c_str();
             return false;
         }
         val = QByteArray( tmpVal.data(), tmpVal.size());
-        error = QByteArray( tmpError.data(), tmpError.size());
         return true;
     } // readEntry
 
@@ -72,8 +71,7 @@ public:
         if( ! p_db) return;
         auto status = p_db-> Put( p_writeOptions,
                     leveldb::Slice( key.constData(), key.size()),
-                    leveldb::Slice( val.constData(), val.size()),
-                    leveldb::Slice( error.constData(), error.size()));
+                    leveldb::Slice( val.constData(), val.size()));
         if ( ! status.ok() ) {
             qWarning() << "query insert failed:" << status.ToString().c_str();
         }

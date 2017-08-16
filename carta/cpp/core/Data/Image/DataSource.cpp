@@ -438,8 +438,8 @@ std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<
 }
 
 std::pair<int, double> DataSource::_readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const {
+    std::pair<int, double> result = std::make_pair(-1, -1);
     if (m_diskCache) {
-        std::pair<int, double> result;
         bool locationInCache = false;
         int value = -1; // define location (channel)
         double error = -1; // define intensity error order, i.e. (max-min)*[error order]
@@ -452,8 +452,8 @@ std::pair<int, double> DataSource::_readLocationCache(int frameLow, int frameHig
         }
         //qDebug() << "[read location] location=" << value << "intensity error order=" << error;
         result = std::make_pair(value, error);
-        return result;
     }
+    return result;
 }
 
 void DataSource::_setLocationCache(int location, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const {
@@ -464,8 +464,8 @@ void DataSource::_setLocationCache(int location, double error, int frameLow, int
 }
 
 std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const {
+    std::pair<double, double> result = std::make_pair(-1, -1);
     if (m_diskCache) {
-        std::pair<double, double> result;
         bool intensityInCache = false;
         double value = -1; // define intensity
         double error = -1; // define intensity error order, i.e. (max-min)*[error order]
@@ -478,8 +478,8 @@ std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int fram
         }
         //qDebug() << "[read intensity] intensity=" << value << "intensity error order=" << error;
         result = std::make_pair(value, error);
-        return result;
     }
+    return result;
 }
 
 void DataSource::_setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const {
