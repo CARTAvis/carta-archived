@@ -17,7 +17,7 @@ void TestConverterSpectral::convert_data()
 {
     // TODO: should be kHz, not KHz -- fix the implementation; see if special handling is necessary
     // TODO: eliminate this entirely after reimplementing
-    const std::set<QString> ALLOWED_UNITS =
+    const std::set<QString> ALLOWED_UNITS = {
         "Hz", "10Hz", "100Hz", "KHz", "10KHz", "100KHz", "MHz", 
         "10MHz", "100MHz", "GHz",
         
@@ -43,6 +43,8 @@ void TestConverterSpectral::convert_data()
     QTest::addColumn<std::vector<double>>("expected_values");
     QTest::addColumn<bool>("check_absolute_error");
     QTest::addColumn<double>("eps");
+
+    QString row_name;
 
     for (auto& p1 : SI_PREFIX) {
         for (auto& n1 : NUM_PREFIX) {
@@ -106,12 +108,16 @@ void TestConverterSpectral::convert()
     
     QString failure_message;
     
-    //ConverterIntensity::convert( values, x_values, from_units, to_units, max_value, max_units, BEAM_SOLID_ANGLE, BEAM_AREA );
+    Converter* converter = Converter::getConverter(from_units, to_units);
+    // Can we just construct this directly?
+    // TODO check casacore source to see if any of the conversions depend on the spectral index
+    casacore::SpectralCoordinate sc;
+    std::vector<double> actual_values = converter->convert((casacore::Vector<double>)values, sc).tovector();
     
-    for (size_t i = 0; i < values.size(); i++) {
-        error = fabs(values[i] - expected_values[i]);
+    for (size_t i = 0; i < actual_values.size(); i++) {
+        error = fabs(actual_values[i] - expected_values[i]);
         percentage_error = error * 100 / expected_values[i];
-        failure_message = "Expected: " + QString::number(expected_values[i], 'e', 2) + " Actual: " + QString::number(values[i], 'e', 2) + "Error is " + QString::number(error, 'e', 2) + " (" + QString::number(percentage_error, 'e', 2) + "%)";
+        failure_message = "Expected: " + QString::number(expected_values[i], 'e', 2) + " Actual: " + QString::number(actual_values[i], 'e', 2) + "Error is " + QString::number(error, 'e', 2) + " (" + QString::number(percentage_error, 'e', 2) + "%)";
         // Checking the percentile error for all conversions
         QVERIFY2(percentage_error < eps, failure_message.toLatin1().data());
         // Check absolute error for some conversions which should not accumulate too much loss of precision
