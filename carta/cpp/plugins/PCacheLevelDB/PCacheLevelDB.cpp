@@ -49,29 +49,31 @@ public:
     } // deleteAll
 
     virtual bool
-    readEntry( const QByteArray & key, QByteArray & val ) override
+    readEntry( const QByteArray & key, QByteArray & val, QByteArray & error ) override
     {
         
         if ( ! p_db ) {
             return false;
         }
-        std::string tmpVal;
-        auto status = p_db-> Get( p_readOptions, key.constData(), & tmpVal );
+        std::string tmpVal, tmpError;
+        auto status = p_db-> Get( p_readOptions, key.constData(), & tmpVal, & tmpError );
         if ( ! status.ok() ) {
             //qWarning() << "query read failed:" << status.ToString().c_str();
             return false;
         }
         val = QByteArray( tmpVal.data(), tmpVal.size());
+        error = QByteArray( tmpError.data(), tmpError.size());
         return true;
     } // readEntry
 
     virtual void
-    setEntry( const QByteArray & key, const QByteArray & val, int64_t priority ) override
+    setEntry( const QByteArray & key, const QByteArray & val, const QByteArray & error ) override
     {
         if( ! p_db) return;
         auto status = p_db-> Put( p_writeOptions,
                     leveldb::Slice( key.constData(), key.size()),
-                    leveldb::Slice( val.constData(), val.size()));
+                    leveldb::Slice( val.constData(), val.size()),
+                    leveldb::Slice( error.constData(), error.size()));
         if ( ! status.ok() ) {
             qWarning() << "query insert failed:" << status.ToString().c_str();
         }

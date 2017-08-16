@@ -47,7 +47,7 @@ void _storePositiveInt( const QJsonValue& jsonValue, int* storeLocation, const Q
 }
 
 namespace {
-void _storePositiveUnsignedInt(const QJsonValue& jsonValue, unsigned int* storeLocation, const QString& typeDescription) {
+void _storeUnsignedInt(const QJsonValue& jsonValue, unsigned int* storeLocation, const QString& typeDescription) {
     QString errorMsg;
     unsigned int val = ParsedInfo::toUnsignedInt(jsonValue, errorMsg);
     if (errorMsg.isEmpty()) {
@@ -111,7 +111,7 @@ ParsedInfo parse(const QString & filePath)
 
     _storePositiveInt( json["histogramBinCountMax"], &info.m_histogramBinCountMax, "histogram bin count max");
     _storePositiveInt( json["contourLevelCountMax"], &info.m_contourLevelCountMax, "contour level count max");
-    _storePositiveUnsignedInt( json["percentApproxDividedNum"], &info.m_percentApproxDividedNum, "define the pixel bin size=(max-min)/m_percentApproxDividedNum");
+    _storeUnsignedInt( json["percentApproxDividedNum"], &info.m_percentApproxDividedNum, "define the pixel bin size=(max-min)/m_percentApproxDividedNum");
 
     return info;
 }

@@ -190,7 +190,7 @@ percentile2pixels_approximation(
     Carta::Lib::NdArray::TypedView <Scalar> & view,
     int spectralIndex,
     std::vector<std::pair<int,double>> minMaxIntensities,
-    unsigned int dividedNo,
+    unsigned int pixelDividedNo,
     bool getLocation,
     std::vector<double> quant
     )
@@ -216,7 +216,6 @@ percentile2pixels_approximation(
     if (spectralIndex != -1) divisor /= dims[spectralIndex];
     qDebug() << "++++++++ raw data size per channel=" << divisor;
 
-    unsigned int pixelDividedNo = dividedNo; // set the number to divide the region between minimum and maximum pixel values
     std::vector<size_t> element(pixelDividedNo+1, 0); // initialize the vector elements as 0
 
     double minIntensity = minMaxIntensities[0].second; // get the minimum intensity
