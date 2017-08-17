@@ -14,12 +14,10 @@ const std::map<QString, int> NUM_PREFIX = {{"", 0}, {"10", 1}, {"100", 2}};
 // Taken from a sample file; should be consistent
 const double BMAJ = 1.88e-4;
 const double BMIN = 1.53e-4;
-const double BPA = 72.5; // check if this is in arcsecs squared
 
 // From plugin code
-const double HPBW_SQUARED = BMAJ * BMIN;
-const double BEAM_SOLID_ANGLE = M_PI * HPBW_SQUARED / (ARCSECONDS_SQUARED_PER_STERADIAN * 4 * log(2)); // constant in plugin is misleadingly named
-const double BEAM_AREA = BPA; // is this right?
+const double BEAM_SOLID_ANGLE = M_PI * BMAJ * BMIN / (ARCSECONDS_SQUARED_PER_STERADIAN * 4 * log(2)); // constant in plugin is misleadingly named
+const double BEAM_AREA = M_PI * BMAJ * BMIN / (4 * log(2)); // beam area is just the beam angle in different units? Why? We can simplify a lot of this.
 
 class TestConverterIntensity: public QObject
 {
