@@ -76,10 +76,12 @@ function installqt() {
 #    sudo su $SUDO_USER -c "brew install qt"
     if sw_vers -productVersion | grep 10.12 ; then
       echo "it is 10.12"
-      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
+#      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
+      sudo su $SUDO_USER -c "brew install https://homebrew.bintray.com/bottles/qt@5.7-5.7.1.sierra.bottle.tar.gz"
     else
       echo "it is 10.11"
-      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.el_capitan.bottle.tar.gz"
+#      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.el_capitan.bottle.tar.gz"
+      sudo su $SUDO_USER -c "brew install https://homebrew.bintray.com/bottles/qt@5.7-5.7.1.sierra.bottle.tar.gz"
     fi
     printDuration
   else
