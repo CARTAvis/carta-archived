@@ -741,8 +741,12 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         // In such case, we can set the extra percentiles with respect to pixels values in the other caches.
         // The advantage of this method is that we don't need to use approximation algorithm again if we want
         // to get another Clipping values in the UI.
+        std::pair<bool, double> check_repetition;
         if (clips_map.size() > percentiles_to_calculate.size()) {
             for (int i = 0; i < percentiles_to_calculate_plus.size(); i++) {
+                // check if the percentile to pixel value to store is already done in previous loop
+                check_repetition = _isSameValue(percentiles_to_calculate_plus[i], percentiles_to_calculate, 1e-6);
+                if (check_repetition.first == true) continue;
                 // set the location of frameLow
                 if (frameLow >= 0) {
                     clips_map[percentiles_to_calculate_plus[i]].first += frameLow;
