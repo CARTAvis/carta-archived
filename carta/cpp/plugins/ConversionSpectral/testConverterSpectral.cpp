@@ -109,8 +109,7 @@ void TestConverterSpectral::convert()
     QString failure_message;
     
     Converter* converter = Converter::getConverter(from_units, to_units);
-    // Can we just construct this directly?
-    // TODO check casacore source to see if any of the conversions depend on the spectral index
+    // TODO this probably needs to be initialised with the right type, etc., which is why it is fetched from the image data.
     casacore::SpectralCoordinate sc;
     std::vector<double> actual_values = converter->convert((casacore::Vector<double>)values, sc).tovector();
     
