@@ -483,6 +483,8 @@ bool Profiler::_generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Reg
 
 void Profiler::_generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
         bool createNew ){
+    Controller* controller = _getControllerSelected();
+    int stokesFrame = controller->getFrame(Carta::Lib::AxisInfo::KnownType::STOKES);
     QString id = CurveData::_generateName( layer, region );
     int curveIndex = _findCurveIndex( id );
     Carta::Lib::ProfileInfo profInfo;
@@ -499,6 +501,7 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Regi
     }
     profInfo.setSpectralUnit( getSpectralUnits() );
     profInfo.setSpectralType( getSpectralType() );
+    profInfo.setStokesFrame( stokesFrame );
     m_renderService->renderProfile(layer, region, profInfo, createNew );
 }
 
@@ -3217,6 +3220,12 @@ void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kno
             }
             m_plotManager->setVLinePosition( values[0] );
         }
+    }
+    else if ( type == Carta::Lib::AxisInfo::KnownType::STOKES ){
+        // This part may be improved in the future
+        // I just clear all and generate a new one to test the correction, but it's waste and stupid.
+        _clearData();
+        profileNew();
     }
 }
 

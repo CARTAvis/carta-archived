@@ -12,6 +12,7 @@
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <images/Regions/WCEllipsoid.h>
 #include <images/Regions/RegionManager.h>
+#include <imageanalysis/ImageAnalysis/ImagePolarimetry.h>
 
 #include <iterator>
 
@@ -84,6 +85,11 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casacore::ImageI
             restUnit = restUnitImage;
         }
     }
+
+    int stokesFrame = profileInfo.getStokesFrame();
+    int stokesAxis = imagePtr->coordinates().polarizationAxisNumber();
+    // qDebug() << stokesFrame << "\n" << stokesAxis << "\n" << imagePtr->ndim() << "\n" << imagePtr->shape().asStdVector();
+
     casacore::Record regionRecord;
     if ( regionInfo ){
     	QString shape = regionInfo->typeName();
@@ -136,7 +142,24 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casacore::ImageI
     casacore::Vector<casacore::Float> jyValues;
     casacore::Vector<casacore::Double> xValues;
     try {
-        std::shared_ptr<casacore::ImageInterface<casacore::Float> >image ( imagePtr->cloneII() );
+
+        // This part is used to verify the result.
+        // casa::ImagePolarimetry polarimage = casa::ImagePolarimetry(*imagePtr->cloneII());
+        // std::shared_ptr<casacore::ImageInterface<casacore::Float> >image(polarimage.stokesQ().cloneII());
+
+        casacore::Slicer slicer(casacore::IPosition(imagePtr->ndim(), 0), imagePtr->shape());
+        if (stokesAxis != -1){
+            casacore::IPosition blc(imagePtr->ndim(), 0);
+            casacore::IPosition trc = imagePtr->shape();
+            blc(stokesAxis) = stokesFrame;
+            trc(stokesAxis) = 1;
+            qWarning() << blc.asStdVector() << "\n" << trc.asStdVector();
+            slicer = casacore::Slicer( blc, trc, Slicer::endIsLength);
+        }
+        std::shared_ptr<casacore::ImageInterface<casacore::Float> >image
+            = make_shared<casacore::SubImage<casacore::Float> > (*imagePtr->cloneII(), slicer, casacore::AxesSpecifier() );
+        qWarning() << image->shape().asStdVector();
+
         casa::PixelValueManipulator<casacore::Float> pvm(image, &regionRecord, "");
         casa::ImageCollapserData::AggregateType funct = _getCombineMethod( profileInfo );
         casacore::MFrequency::Types freqType = _determineRefFrame( image );
