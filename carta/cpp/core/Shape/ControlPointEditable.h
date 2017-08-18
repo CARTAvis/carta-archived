@@ -104,7 +104,7 @@ private:
     std::function < void (bool) > m_cb;
     QPointF m_pos;
     QColor m_fillColor;
-    double m_size = 11;
+    double m_size = 4;
 };
 
 }
