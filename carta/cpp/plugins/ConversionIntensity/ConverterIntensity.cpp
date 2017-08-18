@@ -14,14 +14,22 @@ void ConverterIntensity::convert(
         std::vector<double>& values, const std::vector<double>& hertzValues,
         const QString& oldUnits, const QString& newUnits,
         double maxValue, const QString& maxUnits,
-        double beamAngle, double beamArea ) {
+        double beamArea ) {
+
+    // This is temporary; this whole function will be eliminated, and this will be the caller's responsibility
+    // And it should only be a problem if the conversion is frame-dependent
+    if (hertzValues.size() < values.size()) {
+        qWarning() << "Not enough Hertz values. Aborting.";
+        return;
+    }
 
     std::function<double(double, double)> lambda;
     double multiplier;
 
-    std::tie(lambda, multiplier) = converters(values, hertzValues, oldUnits, newUnits, maxValue, maxUnits, beamAngle, beamArea);
+    std::tie(lambda, multiplier) = converters(values, hertzValues, oldUnits, newUnits, maxValue, maxUnits, beamArea);
 
     for (size_t i = 0; i < values.size(); i++) {
+        // TODO: what if hertz value is zero?
         values[i] = lambda(values[i], hertzValues[i]) * multiplier;
     }
 }
@@ -30,7 +38,7 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
         std::vector<double>& values, const std::vector<double>& hertzValues,
         const QString& oldUnits, const QString& newUnits,
         double maxValue, const QString& maxUnits,
-        double beamAngle, double beamArea ) {
+        double beamArea ) {
 
     double multiplier(1);
     std::function<double(double, double)> lambda = [](double y, double x){ std::ignore = x; return y; };
@@ -60,47 +68,53 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
     
         std::tie(toExponent, toBase) = splitUnits(newUnits);
 
-        multiplier *= pow(10, fromExponent - toExponent);
+        if (((fromBase == "Jy/beam" && toBase != "Jy/beam") || (fromBase != "Jy/beam" && toBase == "Jy/beam")) && !beamArea) {
+            qWarning() << "Could not convert from" << oldUnits << "to" << newUnits << "because beam information is missing.";
+        } else {
+            multiplier *= pow(10, fromExponent - toExponent);
 
-        if (fromBase == "Kelvin" && toBase != "Kelvin") {
-            lambda = [](double y, double x){ return y * pow(x, 2); };
-        } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
-            lambda = [](double y, double x){return y / pow(x, 2); };
-        } // else keep the default lambda
-        
-        // TODO: precision -- optimise the order of terms in the multipliers
+            if (fromBase == "Kelvin" && toBase != "Kelvin") {
+                lambda = [](double y, double x){ return y * pow(x, 2); };
+            } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
+                lambda = [](double y, double x){return y / pow(x, 2); };
+            } // else keep the default lambda
 
-        if (fromBase == "Kelvin") {
-            if (toBase == "Jy/beam") {
-                multiplier *= (2 * BOLTZMANN * beamAngle) / LIGHT_SPEED_FACTOR;
-            } else if (toBase == "Jy/arcsec^2") {
-                multiplier *= (2 * BOLTZMANN * beamAngle) / (beamArea * LIGHT_SPEED_FACTOR);
-            } else if (toBase == "MJy/sr") {
-                multiplier *= (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * beamAngle) / (beamArea * JY_IN_MJY * LIGHT_SPEED_FACTOR);
-            }
-        } else if (fromBase == "Jy/beam") {
-            if (toBase == "Kelvin") {
-                multiplier *= LIGHT_SPEED_FACTOR / (2 * BOLTZMANN * beamAngle);
-            } else if (toBase == "Jy/arcsec^2") {
-                multiplier *= 1 / beamArea;
-            } else if (toBase == "MJy/sr") {
-                multiplier *= ARCSECONDS_SQUARED_PER_STERADIAN / (beamArea * JY_IN_MJY);
-            }
-        } else if (fromBase == "Jy/arcsec^2") {
-            if (toBase == "Kelvin") {
-                multiplier *= (beamArea * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN * beamAngle);
-            } else if (toBase == "Jy/beam") {
-                multiplier *= beamArea;
-            } else if (toBase == "MJy/sr") {
-                multiplier *= ARCSECONDS_SQUARED_PER_STERADIAN / JY_IN_MJY;
-            }
-        } else if (fromBase == "MJy/sr") {
-            if (toBase == "Kelvin") {
-                multiplier *= (beamArea * JY_IN_MJY * LIGHT_SPEED_FACTOR) / (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * beamAngle);
-            } else if (toBase == "Jy/beam") {
-                multiplier *= (beamArea * JY_IN_MJY) / ARCSECONDS_SQUARED_PER_STERADIAN;
-            } else if (toBase == "Jy/arcsec^2") {
-                multiplier *= JY_IN_MJY / ARCSECONDS_SQUARED_PER_STERADIAN;
+            double beamAngle = beamArea / ARCSECONDS_SQUARED_PER_STERADIAN;
+
+            // TODO: precision -- optimise the order of terms in the multipliers?
+
+            if (fromBase == "Kelvin") {
+                if (toBase == "Jy/beam") {
+                    multiplier *= (2 * BOLTZMANN * beamAngle) / LIGHT_SPEED_FACTOR;
+                } else if (toBase == "Jy/arcsec^2") {
+                    multiplier *= (2 * BOLTZMANN ) / (ARCSECONDS_SQUARED_PER_STERADIAN * LIGHT_SPEED_FACTOR);
+                } else if (toBase == "MJy/sr") {
+                    multiplier *= (2 * BOLTZMANN) / (JY_IN_MJY * LIGHT_SPEED_FACTOR);
+                }
+            } else if (fromBase == "Jy/beam") {
+                if (toBase == "Kelvin") {
+                    multiplier *= LIGHT_SPEED_FACTOR / (2 * BOLTZMANN * beamAngle);
+                } else if (toBase == "Jy/arcsec^2") {
+                    multiplier *= 1 / beamArea;
+                } else if (toBase == "MJy/sr") {
+                    multiplier *= 1 / (beamAngle * JY_IN_MJY);
+                }
+            } else if (fromBase == "Jy/arcsec^2") {
+                if (toBase == "Kelvin") {
+                    multiplier *= (ARCSECONDS_SQUARED_PER_STERADIAN * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN);
+                } else if (toBase == "Jy/beam") {
+                    multiplier *= beamArea;
+                } else if (toBase == "MJy/sr") {
+                    multiplier *= ARCSECONDS_SQUARED_PER_STERADIAN / JY_IN_MJY;
+                }
+            } else if (fromBase == "MJy/sr") {
+                if (toBase == "Kelvin") {
+                    multiplier *= (JY_IN_MJY * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN);
+                } else if (toBase == "Jy/beam") {
+                    multiplier *= beamAngle * JY_IN_MJY;
+                } else if (toBase == "Jy/arcsec^2") {
+                    multiplier *= JY_IN_MJY / ARCSECONDS_SQUARED_PER_STERADIAN;
+                }
             }
         }
     }
@@ -111,6 +125,12 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
 std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
     int exponent(0);
     QString baseUnits("");
+
+
+    // simple special case
+    if (units == "K") {
+        return std::make_tuple(0, QString("Kelvin"));
+    }
 
     const QStringList BASE_UNITS = {"Jy/beam", "Jy/arcsec^2", "MJy/sr", "Kelvin"};
     const QMap<QString, int> SI_PREFIX = {{"p", -12}, {"n", -9}, {"u", -6}, {"m", -3}, {"", 0}, {"k", 3}, {"M", 6}, {"G", 9}};

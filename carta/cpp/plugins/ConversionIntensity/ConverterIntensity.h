@@ -26,14 +26,14 @@ public:
     static void convert( std::vector<double>& values, const std::vector<double>& hertzValues,
             const QString& oldUnits, const QString& newUnits,
             double maxValue, const QString& maxUnits,
-            double beamAngle, double beamArea);
+            double beamArea);
 
     // Returns a (lambda, multiplier) tuple for converting a sequence of values from the old to the new units.
     // The lambda is the frame-dependent portion; the multiplier is the frame-independent portion.
     static std::tuple<std::function<double(double, double)>, double> converters( std::vector<double>& values, const std::vector<double>& hertzValues,
             const QString& oldUnits, const QString& newUnits,
             double maxValue, const QString& maxUnits,
-            double beamAngle, double beamArea);
+            double beamArea);
 
     // Split units into a tuple containing an exponent based on the prefix, and the base units.
     static std::tuple<int, QString> splitUnits(const QString& units);

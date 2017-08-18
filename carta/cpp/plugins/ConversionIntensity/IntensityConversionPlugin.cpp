@@ -10,33 +10,18 @@ IntensityConversionPlugin::IntensityConversionPlugin( QObject * parent ) :
 { }
 
 
-void IntensityConversionPlugin::_getBeamInfo( casacore::ImageInfo& information,
-        casacore::Double& beamAngle, casacore::Double& beamArea) const {
-    //Get the major and minor axis beam widths.
+void IntensityConversionPlugin::_getBeamInfo( casacore::ImageInfo& information, casacore::Double& beamArea) const {
+
     casacore::GaussianBeam beam;
-    bool multipleBeams = information.hasMultipleBeams();
-    if ( !multipleBeams ){
+
+    if ( !information.hasMultipleBeams() ){
         beam = information.restoringBeam();
     }
     else {
         beam = information.restoringBeam( 0, -1 );
     }
-    casacore::Quantity majorQuantity = beam.getMajor();
-    casacore::Quantity minorQuantity = beam.getMinor();
-    double arcsecArea = beam.getArea( "arcsec2");
-    beamArea = arcsecArea;
-
-    //Calculate:  PI * (half power width)^2 * ARCSEC^2_SR_CONVERSIONFACTOR / 4 ln 2
-    double halfPowerWidthSquared = (majorQuantity.getValue() * minorQuantity.getValue() );
-    const double ARCSEC2_SR_CONVERSION = 0.0000000000235045;
-    const double PI = 3.1415926535;
-    double solidAngle = PI * halfPowerWidthSquared * ARCSEC2_SR_CONVERSION / (4 * log(2));
-    if ( solidAngle > 0 ){
-        beamAngle = solidAngle;
-    }
-    else {
-        beamAngle = 0;
-    }
+    
+    beamArea = beam.getArea( "arcsec2");
 }
 
 
@@ -58,17 +43,16 @@ IntensityConversionPlugin::handleHook( BaseHook & hookData ){
             CCImageBase * base = dynamic_cast<CCImageBase*>( image.get() );
             if ( base ){
                 casacore::ImageInfo information = base->getImageInfo();
-                casacore::Double beamAngle;
                 casacore::Double beamArea;
-                _getBeamInfo( information, beamAngle, beamArea );
+                _getBeamInfo( information, beamArea );
                 std::vector<double> valsX = hook.paramsPtr->m_inputListX;
                 std::vector<double> valsY = hook.paramsPtr->m_inputListY;
                 double maxValue = hook.paramsPtr->m_maxValueY;
                 QString maxUnits = hook.paramsPtr->m_maxUnit;
                 if ( valsY.size() > 0 ){
-					ConverterIntensity::convert( valsY, valsX,
-							oldUnits, newUnits, maxValue, maxUnits,
-							beamAngle, beamArea );
+                    ConverterIntensity::convert( valsY, valsX,
+                            oldUnits, newUnits, maxValue, maxUnits,
+                            beamArea );
                 }
                 hook.result = valsY;
             }

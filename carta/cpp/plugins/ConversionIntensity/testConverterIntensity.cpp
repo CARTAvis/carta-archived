@@ -4,7 +4,6 @@
 const double BOLTZMANN = 1.38e-23;
 const double LIGHT_SPEED_FACTOR = 9e-10; // WHY?!
 const double ARCSECONDS_SQUARED_PER_STERADIAN = pow(180 * 3600 / M_PI, 2);
-//const double ARCSECONDS_SQUARED_PER_STERADIAN = pow(206265, 2); // what is used in the plugin
 const double JY_IN_MJY = 1e6;
 
 const std::vector<QString> BASE_UNITS = {"Jy/beam", "Jy/arcsec^2", "MJy/sr", "Kelvin"};
@@ -15,9 +14,8 @@ const std::map<QString, int> NUM_PREFIX = {{"", 0}, {"10", 1}, {"100", 2}};
 const double BMAJ = 1.88e-4;
 const double BMIN = 1.53e-4;
 
-// From plugin code
-const double BEAM_SOLID_ANGLE = M_PI * BMAJ * BMIN / (ARCSECONDS_SQUARED_PER_STERADIAN * 4 * log(2)); // constant in plugin is misleadingly named
-const double BEAM_AREA = M_PI * BMAJ * BMIN / (4 * log(2)); // beam area is just the beam angle in different units? Why? We can simplify a lot of this.
+const double BEAM_AREA = M_PI * BMAJ * BMIN / (4 * log(2));
+const double BEAM_SOLID_ANGLE = BEAM_AREA / ARCSECONDS_SQUARED_PER_STERADIAN;
 
 class TestConverterIntensity: public QObject
 {
@@ -90,14 +88,14 @@ void TestConverterIntensity::convert_data()
     multipliers["Jy/arcsec^2"]["MJy/sr"] = ARCSECONDS_SQUARED_PER_STERADIAN / JY_IN_MJY;
     multipliers["MJy/sr"]["Jy/arcsec^2"] = JY_IN_MJY / ARCSECONDS_SQUARED_PER_STERADIAN;
     
-    multipliers["MJy/sr"]["Jy/beam"] = (BEAM_AREA * JY_IN_MJY) / ARCSECONDS_SQUARED_PER_STERADIAN;
-    multipliers["Jy/beam"]["MJy/sr"] = ARCSECONDS_SQUARED_PER_STERADIAN / (BEAM_AREA * JY_IN_MJY);
+    multipliers["MJy/sr"]["Jy/beam"] = BEAM_SOLID_ANGLE * JY_IN_MJY;
+    multipliers["Jy/beam"]["MJy/sr"] = 1 / (BEAM_SOLID_ANGLE * JY_IN_MJY);
     
-    multipliers["Jy/arcsec^2"]["Kelvin"] = (BEAM_AREA * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN * BEAM_SOLID_ANGLE);
-    multipliers["Kelvin"]["Jy/arcsec^2"] = (2 * BOLTZMANN * BEAM_SOLID_ANGLE) / (BEAM_AREA * LIGHT_SPEED_FACTOR);
+    multipliers["Jy/arcsec^2"]["Kelvin"] = (ARCSECONDS_SQUARED_PER_STERADIAN * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN);
+    multipliers["Kelvin"]["Jy/arcsec^2"] = (2 * BOLTZMANN) / (ARCSECONDS_SQUARED_PER_STERADIAN * LIGHT_SPEED_FACTOR);
     
-    multipliers["MJy/sr"]["Kelvin"] = (BEAM_AREA * JY_IN_MJY * LIGHT_SPEED_FACTOR) / (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * BEAM_SOLID_ANGLE);
-    multipliers["Kelvin"]["MJy/sr"] = (ARCSECONDS_SQUARED_PER_STERADIAN * 2 * BOLTZMANN * BEAM_SOLID_ANGLE) / (BEAM_AREA * JY_IN_MJY * LIGHT_SPEED_FACTOR);
+    multipliers["MJy/sr"]["Kelvin"] = (JY_IN_MJY * LIGHT_SPEED_FACTOR) / (2 * BOLTZMANN);
+    multipliers["Kelvin"]["MJy/sr"] = (2 * BOLTZMANN) / (JY_IN_MJY * LIGHT_SPEED_FACTOR);
     
 
     for (auto& p1 : SI_PREFIX) {
@@ -176,7 +174,7 @@ void TestConverterIntensity::convert()
     
     QString failure_message;
     
-    ConverterIntensity::convert( values, x_values, from_units, to_units, max_value, max_units, BEAM_SOLID_ANGLE, BEAM_AREA );
+    ConverterIntensity::convert( values, x_values, from_units, to_units, max_value, max_units, BEAM_AREA );
     
     for (size_t i = 0; i < values.size(); i++) {
         error = fabs(values[i] - expected_values[i]);

@@ -27,8 +27,7 @@ public:
     virtual ~IntensityConversionPlugin();
 
 private:
-    void _getBeamInfo( casacore::ImageInfo& information,
-            casacore::Double& beamAngle, casacore::Double& beamArea) const;
+    void _getBeamInfo( casacore::ImageInfo& information, casacore::Double& beamArea) const;
 
 
 };
