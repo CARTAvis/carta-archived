@@ -60,7 +60,7 @@ su $SUDO_USER <<EOF
 #  echo "it is 10.11"
 #  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.el_capitan.bottle.tar.gz
 #fi
-brew install gcc # Homebrew upgraded to gcc 7.2.0
+brew install gcc@6 # Trying a fixed version of gcc from Homebrew
 EOF
 echo "resume travis-c++"
 mv /usr/local/include/c++_backup /usr/local/include/c++
