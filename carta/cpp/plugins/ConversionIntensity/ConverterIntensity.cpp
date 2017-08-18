@@ -52,6 +52,7 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
         if (oldUnits != "Fraction of Peak") { // which would be a no-op
             if (oldUnits != maxUnits) {
                 // TODO: we need better error handling in the plugin
+                // TODO: raise exceptions in here and handle them in the main plugin
                 qWarning() << "In conversion to Fraction of Peak, maximum value units don't match intensity units. Result may be incorrect.";
             }
             
