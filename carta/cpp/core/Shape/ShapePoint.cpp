@@ -41,8 +41,9 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 
         //Draw crosshairs by calculating distance from center (Pythagorean theorem)
         QPointF center = m_shadowRect.center();
-        double radius = m_shadowRect.width()/2;
-        double diffXY = radius/qSqrt(2);
+        //double radius = m_shadowRect.width()/2;
+	double radius = m_shadowRect.width()/5;
+	double diffXY = radius/qSqrt(2);
         QPointF bottomLeft = QPointF( center.x()-diffXY, center.y()-diffXY );
         QPointF topLeft = QPointF( center.x()-diffXY, center.y()+diffXY );
         QPointF topRight = QPointF( center.x()+diffXY, center.y()+diffXY );
