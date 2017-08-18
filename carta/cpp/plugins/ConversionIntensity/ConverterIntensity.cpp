@@ -16,32 +16,38 @@ void ConverterIntensity::convert(
         double maxValue, const QString& maxUnits,
         double beamArea ) {
 
-    // This is temporary; this whole function will be eliminated, and this will be the caller's responsibility
-    // And it should only be a problem if the conversion is frame-dependent
-    if (hertzValues.size() < values.size()) {
-        qWarning() << "Not enough Hertz values. Aborting.";
-        return;
-    }
-
     std::function<double(double, double)> lambda;
     double multiplier;
+    bool frame_dependent;
 
-    std::tie(lambda, multiplier) = converters(values, hertzValues, oldUnits, newUnits, maxValue, maxUnits, beamArea);
-
-    for (size_t i = 0; i < values.size(); i++) {
-        // TODO: what if hertz value is zero?
-        values[i] = lambda(values[i], hertzValues[i]) * multiplier;
+    std::tie(lambda, multiplier, frame_dependent) = converters(oldUnits, newUnits, maxValue, maxUnits, beamArea);
+    
+    // This is temporary; this whole function will be eliminated, and this will be the caller's responsibility
+    if (frame_dependent){
+        if(hertzValues.size() < values.size()) {
+            qWarning() << "Could not convert from" << oldUnits << "to" << newUnits << "because not enough corresponding Hertz values were provided.";
+            return;
+        }
+        
+        for (size_t i = 0; i < values.size(); i++) {
+            // TODO: what if hertz value is zero and we need to divide by it?
+            values[i] = lambda(values[i], hertzValues[i]) * multiplier;
+        }
+    } else {
+        for (size_t i = 0; i < values.size(); i++) {
+            values[i] = values[i] * multiplier;
+        }
     }
 }
 
-std::tuple<std::function<double(double, double)>, double> ConverterIntensity::converters(
-        std::vector<double>& values, const std::vector<double>& hertzValues,
+std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensity::converters(
         const QString& oldUnits, const QString& newUnits,
         double maxValue, const QString& maxUnits,
         double beamArea ) {
 
     double multiplier(1);
     std::function<double(double, double)> lambda = [](double y, double x){ std::ignore = x; return y; };
+    bool frame_dependent(false);
 
     int fromExponent, toExponent;
     QString fromBase, toBase;
@@ -76,8 +82,10 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
 
             if (fromBase == "Kelvin" && toBase != "Kelvin") {
                 lambda = [](double y, double x){ return y * pow(x, 2); };
+                frame_dependent = true;
             } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
                 lambda = [](double y, double x){return y / pow(x, 2); };
+                frame_dependent = true;
             } // else keep the default lambda
 
             double beamAngle = beamArea / ARCSECONDS_SQUARED_PER_STERADIAN;
@@ -120,7 +128,7 @@ std::tuple<std::function<double(double, double)>, double> ConverterIntensity::co
         }
     }
 
-    return std::make_tuple(lambda, multiplier);
+    return std::make_tuple(lambda, multiplier, frame_dependent);
 }
 
 std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
