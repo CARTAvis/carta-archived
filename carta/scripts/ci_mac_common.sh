@@ -50,7 +50,7 @@ function installgfortran() {
 echo "install gfortran, start to backup travis-c++"
 mv /usr/local/include/c++ /usr/local/include/c++_backup # this folder is from homebrew's gcc49
 su $SUDO_USER <<EOF
-brew install gcc@6
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/3479e6239d3cd6b181229acb026d8424a035d045/Formula/gcc.rb
 EOF
 echo "resume travis-c++"
 mv /usr/local/include/c++_backup /usr/local/include/c++
