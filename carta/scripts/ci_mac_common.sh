@@ -35,10 +35,10 @@ echo "step1: define your variables first"
 # export cartawork=$DIR/../../..
 # echo "CARTA working folder is $cartawork"
 
-qt57brew=/usr/local/opt/qt\@5.7
-#qt57brew=/usr/local/opt/qt\@5.9                   #temporarily switching for Qt 5.9
-export qt57brewrealpath=/usr/local/Cellar/qt@5.7/5.7.1
-#export qt57brewrealpath=/usr/local/Cellar/qt/5.9.1  #temporarily switching for Qt 5.9
+#qt57brew=/usr/local/opt/qt\@5.7
+qt57brew=/usr/local/opt/qt\@5.9                   #temporarily switching for Qt 5.9
+#export qt57brewrealpath=/usr/local/Cellar/qt@5.7/5.7.1
+export qt57brewrealpath=/usr/local/Cellar/qt/5.9.1  #temporarily switching for Qt 5.9
 export QT5PATH=$qt57brew
 export CARTABUILDHOME=$cartawork/build
 branch=upgradeToNewNamespace #optional
@@ -73,16 +73,16 @@ function installqt() {
   if [ "$QT5PATH" == "$qt57brew" ]; then
     echo "start to install homebrew-qt"
     pause
-#    sudo su $SUDO_USER -c "brew install qt"
-    if sw_vers -productVersion | grep 10.12 ; then
-      echo "it is 10.12"
+    sudo su $SUDO_USER -c "brew install qt"
+#    if sw_vers -productVersion | grep 10.12 ; then
+#      echo "it is 10.12"
 #      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.sierra.bottle.tar.gz"
-      sudo su $SUDO_USER -c "brew install https://homebrew.bintray.com/bottles/qt@5.7-5.7.1.sierra.bottle.tar.gz"
-    else
-      echo "it is 10.11"
+#      sudo su $SUDO_USER -c "brew install https://homebrew.bintray.com/bottles/qt@5.7-5.7.1.sierra.bottle.tar.gz"
+#    else
+#      echo "it is 10.11"
 #      sudo su $SUDO_USER -c "brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1/qt.5.7-5.7.1.el_capitan.bottle.tar.gz"
-      sudo su $SUDO_USER -c "brew install https://homebrew.bintray.com/bottles/qt@5.7-5.7.1.sierra.bottle.tar.gz"
-    fi
+#      sudo su $SUDO_USER -c "brew install https://homebrew.bintray.com/bottles/qt@5.7-5.7.1.sierra.bottle.tar.gz"
+#    fi
     printDuration
   else
     echo "you use your own qt version"
