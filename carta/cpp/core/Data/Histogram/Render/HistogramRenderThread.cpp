@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QDataStream>
 #include <QDebug>
+#include <sys/wait.h>
 
 namespace Carta
 {
