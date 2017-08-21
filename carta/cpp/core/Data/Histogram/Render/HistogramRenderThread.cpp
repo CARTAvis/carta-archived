@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QDataStream>
 #include <QDebug>
+#include <sys/wait.h>
 
 namespace Carta
 {
@@ -32,6 +33,7 @@ void HistogramRenderThread::run(){
        dataStream >> m_result;
        file.close();
    }
+   waitpid(m_fileDescriptor, NULL, 0);
 }
 
 void HistogramRenderThread::setFileDescriptor( int fileDescriptor ){
