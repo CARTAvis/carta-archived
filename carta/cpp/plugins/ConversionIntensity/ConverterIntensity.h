@@ -13,14 +13,14 @@ class DivideByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
 public:
     DivideByFrequencySquared(const double multiplier);
 private:
-    double _frameDependent(const double y_val, const double x_val);
+    double _frameDependentConvert(const double y_val, const double x_val) override;
 };
 
 class MultiplyByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
 public:
     MultiplyByFrequencySquared(const double multiplier);
 private:
-    double _frameDependent(const double y_val, const double x_val);
+    double _frameDependentConvert(const double y_val, const double x_val) override;
 };
 
 class ConstantMultiplier : public Carta::Lib::IntensityUnitConverter {

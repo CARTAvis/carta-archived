@@ -3,7 +3,7 @@
 namespace Carta {
 namespace Lib {
     
-IntensityUnitConverter::IntensityUnitConverter(double multiplier, bool frameDependent, QString label) : 
+IntensityUnitConverter::IntensityUnitConverter(const double multiplier, const bool frameDependent, const QString label) : 
     multiplier(multiplier), frameDependent(frameDependent), label(label) {
 }
 

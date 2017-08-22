@@ -174,7 +174,7 @@ void TestConverterIntensity::convert()
     
     QString failure_message;
     
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA);
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter(ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA));
 
     values = converter->convert(values, x_values);
     

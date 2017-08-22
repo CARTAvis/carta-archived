@@ -5,14 +5,14 @@
 DivideByFrequencySquared::DivideByFrequencySquared(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "DIV_BY_HZ_SQ") {
 }
 
-double DivideByFrequencySquared::_frameDependent(const double y_val, const double x_val) {
+double DivideByFrequencySquared::_frameDependentConvert(const double y_val, const double x_val) {
     return y_val / pow(x_val, 2);
 }
 
 MultiplyByFrequencySquared::MultiplyByFrequencySquared(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "MULT_BY_HZ_SQ") {
 }
 
-double MultiplyByFrequencySquared::_frameDependent(const double y_val, const double x_val) {
+double MultiplyByFrequencySquared::_frameDependentConvert(const double y_val, const double x_val) {
     return y_val * pow(x_val, 2);
 }
 
@@ -33,8 +33,8 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
         double beamArea ) {
 
     double multiplier(1);
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter;
-
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+    
     int fromExponent, toExponent;
     QString fromBase, toBase;
 
@@ -108,14 +108,15 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
                 converter = std::make_shared<MultiplyByFrequencySquared>(multiplier);
             } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
                 converter = std::make_shared<DivideByFrequencySquared>(multiplier);
-            } else {
-                converter = std::make_shared<ConstantMultiplier>(multiplier);
             }
 
         }
         
     }
-    
+
+    if (!converter) {
+        converter = std::make_shared<ConstantMultiplier>(multiplier);
+    }
     return converter;
 }
 
