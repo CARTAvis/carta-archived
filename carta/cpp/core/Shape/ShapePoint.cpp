@@ -35,9 +35,9 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon (exterior manipulation region of point)
-	comp.append < vge::SetPen > ( rectPen );
-	comp.append < vge::SetBrush > ( brush );
-	comp.append < vge::DrawEllipse > ( m_shadowRect );
+	//comp.append < vge::SetPen > ( rectPen );
+	//comp.append < vge::SetBrush > ( brush );
+	//comp.append < vge::DrawEllipse > ( m_shadowRect );
 
         //Draw crosshairs by calculating distance from center (Pythagorean theorem)
         QPointF center = m_shadowRect.center();
@@ -56,6 +56,14 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
         comp.append < vge::DrawLine > ( topRight, QPointF( center.x()+innerRadius, center.y()+innerRadius ) );
         comp.append < vge::DrawLine > ( bottomRight, QPointF( center.x()+innerRadius, center.y()-innerRadius ) );
 
+	if ( !isEditMode() ){
+		if ( isSelected()){
+			comp.append < vge::SetPen > ( rectPen );
+			comp.append < vge::SetBrush > ( brush );
+			comp.append < vge::DrawEllipse > ( m_shadowRect );
+		}
+	}
+	
 	return comp.vgList();
 }
 
