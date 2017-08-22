@@ -258,6 +258,8 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
             if ( image ){
                 //First, we need to make sure the x-values are in Hertz.
                 // TODO: move this later and only do it if we need it
+                // TODO: replace this with a call to recalculate / re-fetch the percentiles, passing in the intensity converter
+
                 std::vector<double> hertzValues;
                 auto result = Globals::instance()-> pluginManager()
                                                          -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(image,
@@ -279,38 +281,13 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                 // TODO: why are the max value and max units unused?
                 auto result2 = Globals::instance()-> pluginManager()
                     -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image, oldUnit, newUnit, 1, "" );
-                
-                //std::function<double(double, double)> lambda;
-                //double multiplier;
-                //bool frame_dependent;
-                
-                
+            
                 auto lam2 = [&valuesY, &hertzValues, &converted] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
-                    //std::tie(lambda, multiplier, frame_dependent) = converter;
                     converted = converter->convert(valuesY, hertzValues);
                 };
                 
                 try {
                     result2.forEach( lam2 );
-                    
-                    // TODO: replace this with a call to recalculate / re-fetch the percentiles, passing in the converter
-                    
-                    
-                    //if (frame_dependent){
-                        //if(hertzValues.size() < converted.size()) {
-                            //throw QString("Could not convert from %1 to %2 because not enough corresponding Hertz values were provided.").arg(oldUnit).arg(newUnit);
-                        //}
-                        
-                        //// TODO: this is where we need to recalculate the values or get them from the cache, instead of doing this:
-                        //for (size_t i = 0; i < converted.size(); i++) {
-                            //// TODO: what if hertz value is zero and we need to divide by it?
-                            //converted[i] = lambda(converted[i], hertzValues[i]) * multiplier;
-                        //}
-                    //} else {
-                        //for (size_t i = 0; i < converted.size(); i++) {
-                            //converted[i] = converted[i] * multiplier;
-                        //}
-                    //}
                 }
                 catch( char*& error ){
                     QString errorStr( error );
@@ -320,7 +297,6 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
             }
         }
     }
-    //return convertedIntensity;
     return std::make_pair(converted[0], converted[1]);
 }
 

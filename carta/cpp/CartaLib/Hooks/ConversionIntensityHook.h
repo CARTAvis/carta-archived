@@ -24,7 +24,6 @@ class ConversionIntensityHook : public BaseHook
 
 public:
 
-   //typedef std::tuple<std::function<double(double, double)>, double, bool> ResultType;
    typedef Carta::Lib::IntensityUnitConverter::SharedPtr ResultType;
 
     /**

@@ -346,32 +346,12 @@ void Profiler::_convertDataY( std::vector<double>& converted, const std::vector<
                                      -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(dataSource,
                                              leftUnit, newUnits,
                                              boundsY.second, maxUnit );;
-                                             
-                //std::function<double(double, double)> lambda;
-                //double multiplier;
-                //bool frame_dependent;
-
+                
                 auto lam = [&converted, &hertzVals] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
-                    //std::tie(lambda, multiplier, frame_dependent) = converter;
                     converted = converter->convert(converted, hertzVals);
                 };
                 try {
                     result.forEach( lam );
-                    
-                    //if (frame_dependent){
-                        //if(hertzVals.size() < converted.size()) {
-                            //throw QString("Could not convert from %1 to %2 because not enough corresponding Hertz values were provided.").arg(leftUnit).arg(newUnits);
-                        //}
-                        
-                        //for (size_t i = 0; i < converted.size(); i++) {
-                            //// TODO: what if hertz value is zero and we need to divide by it?
-                            //converted[i] = lambda(converted[i], hertzVals[i]) * multiplier;
-                        //}
-                    //} else {
-                        //for (size_t i = 0; i < converted.size(); i++) {
-                            //converted[i] = converted[i] * multiplier;
-                        //}
-                    //}
                 }
                 catch( char*& error ){
                     QString errorStr( error );

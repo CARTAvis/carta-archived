@@ -173,21 +173,9 @@ void TestConverterIntensity::convert()
     double percentage_error;
     
     QString failure_message;
-        
-    //std::function<double(double, double)> lambda;
-    //double multiplier;
-    //bool frame_dependent;
-
-    //std::tie(lambda, multiplier, frame_dependent) = ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA);
     
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA);
-    
-    //// we don't care about performance and we know there are matching hertz values (for now)
-    //for (size_t i = 0; i < values.size(); i++) {
-        //// TODO: what if hertz value is zero and we need to divide by it?
-        //values[i] = lambda(values[i], x_values[i]) * multiplier;
-    //}
-    
+
     values = converter->convert(values, x_values);
     
     for (size_t i = 0; i < values.size(); i++) {

@@ -27,16 +27,12 @@ const double ConverterIntensity::JY_IN_MJY = 1e6;
 ConverterIntensity::ConverterIntensity() {
 }
 
-//std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensity::converters(
 Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
         const QString& oldUnits, const QString& newUnits,
         double maxValue, const QString& maxUnits,
         double beamArea ) {
 
     double multiplier(1);
-    //std::function<double(double, double)> lambda = [](double y, double x){ std::ignore = x; return y; };
-    //bool frame_dependent(false);
-    //std::unique_ptr<Carta::Lib::IntensityUnitConverter> converter;
     Carta::Lib::IntensityUnitConverter::SharedPtr converter;
 
     int fromExponent, toExponent;
@@ -109,17 +105,10 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
             }
 
             if (fromBase == "Kelvin" && toBase != "Kelvin") {
-                //lambda = [](double y, double x){ return y * pow(x, 2); };
-                //frame_dependent = true;
-                //converter.reset(new MultiplyByFrequencySquared(multiplier));
                 converter = std::make_shared<MultiplyByFrequencySquared>(multiplier);
             } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
-                //lambda = [](double y, double x){return y / pow(x, 2); };
-                //frame_dependent = true;
-                //converter.reset(new DivideByFrequencySquared(multiplier));
                 converter = std::make_shared<DivideByFrequencySquared>(multiplier);
             } else {
-                //converter.reset(new ConstantMultiplier(multiplier));
                 converter = std::make_shared<ConstantMultiplier>(multiplier);
             }
 
@@ -128,7 +117,6 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
     }
     
     return converter;
-    //return std::make_tuple(lambda, multiplier, frame_dependent);
 }
 
 std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
