@@ -124,6 +124,7 @@ std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
     int exponent(0);
     QString baseUnits("");
 
+    qDebug() << "Trying to parse unit string" << units;
 
     // simple special case -- should we have more general handling for K with prefixes?
     if (units == "K") {

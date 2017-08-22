@@ -25,7 +25,8 @@ bool IntensityConversionPlugin::handleHook( BaseHook & hookData ){
             QString oldUnits = hook.paramsPtr->m_oldUnit;
             
             if ( oldUnits.isEmpty() || oldUnits.trimmed().length() == 0 ){
-                return true;
+                qWarning() << "Current units are empty. The intensity conversion plugin cannot proceed.";
+                return false;
             }
             
             CCImageBase * base = dynamic_cast<CCImageBase*>( image.get() );
@@ -50,9 +51,8 @@ bool IntensityConversionPlugin::handleHook( BaseHook & hookData ){
                 // TODO: proper error checking
                 // What happens if an exception is raised inside the plugin?
                 hook.result = ConverterIntensity::converters(oldUnits, newUnits, maxValue, maxUnits, beamArea);
+                return true;
             }
-            
-            return true;
         }
     }
     

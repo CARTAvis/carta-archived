@@ -240,6 +240,8 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
 
 std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, const QString& newUnit,
         double minValue, double maxValue ){
+
+    qDebug() << "Colormap::_convertIntensity trying to convert from" << oldUnit << "to" << newUnit;
     std::vector<double> valuesY = {minValue, maxValue};
 
     // TODO: this will be eliminated
@@ -1002,6 +1004,8 @@ QString Colormap::setImageUnits( const QString& unitsStr ){
     if ( !actualUnits.isEmpty() ){
         QString oldUnits = m_state.getValue<QString>( IMAGE_UNITS );
         if ( oldUnits != actualUnits ){
+            
+            qDebug() << "In Colormap::setImageUnits trying to convert" << oldUnits << "to" << actualUnits;
 
             //Convert intensity values
             std::pair<double,double> values = _convertIntensity( oldUnits, actualUnits );
@@ -1114,6 +1118,8 @@ void Colormap::_updateImageClips(){
         QString imageUnits = controller->getPixelUnits();
         QString curUnits = getImageUnits();
         if ( imageUnits != curUnits ){
+            qDebug() << "In Colormap::_updateImageClips trying to convert" << curUnits << "to" << imageUnits;
+
             //Convert intensity values
             std::pair<double,double> values = _convertIntensity( curUnits, imageUnits );
             minClip = values.first;
@@ -1141,6 +1147,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
               QString imageUnits = controller->getPixelUnits();
               QString curUnits = getImageUnits();
               if ( imageUnits != curUnits ){
+                  qDebug() << "In Colormap::_updateIntensityBounds trying to convert" << imageUnits << "to" << curUnits;
                   std::pair<double,double> values =
                          _convertIntensity( imageUnits, curUnits, minInt, maxInt );
                   minInt = values.first;
