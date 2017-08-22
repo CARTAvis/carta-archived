@@ -23,7 +23,8 @@ class ConversionIntensityHook : public BaseHook
 
 public:
 
-   typedef std::tuple<std::function<double(double, double)>, double, bool> ResultType;
+   //typedef std::tuple<std::function<double(double, double)>, double, bool> ResultType;
+   typedef std::unique_ptr<Carta::Lib::IntensityUnitConverter> ResultType;
 
     /**
      * @brief Params

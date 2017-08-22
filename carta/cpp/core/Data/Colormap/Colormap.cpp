@@ -240,14 +240,14 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
 
 std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, const QString& newUnit,
         double minValue, double maxValue ){
-    std::vector<double> converted(2);
-    converted[0] = minValue;
-    converted[1] = maxValue;
-    //std::pair<double,double> convertedIntensity(converted[0],converted[1]);
+    std::vector<double> valuesY = {minValue, maxValue};
 
-    std::vector<double> valuesX(2);
-    valuesX[0] = m_stateData.getValue<int>( INTENSITY_MIN_INDEX );
-    valuesX[1] = m_stateData.getValue<int>( INTENSITY_MAX_INDEX );
+    std::vector<double> valuesX = {
+        m_stateData.getValue<int>( INTENSITY_MIN_INDEX ),
+        m_stateData.getValue<int>( INTENSITY_MAX_INDEX )
+    };
+    
+    std::vector<double> converted;
 
     Controller* controller = _getControllerSelected();
     if ( controller ){
@@ -256,6 +256,7 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
             std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSource->_getImage();
             if ( image ){
                 //First, we need to make sure the x-values are in Hertz.
+                // TODO: move this later and only do it if we need it
                 std::vector<double> hertzValues;
                 auto result = Globals::instance()-> pluginManager()
                                                          -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(image,
@@ -278,32 +279,37 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                 auto result2 = Globals::instance()-> pluginManager()
                     -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image, oldUnit, newUnit, 1, "" );
                 
-                std::function<double(double, double)> lambda;
-                double multiplier;
-                bool frame_dependent;
+                //std::function<double(double, double)> lambda;
+                //double multiplier;
+                //bool frame_dependent;
                 
-                auto lam2 = [&lambda, &multiplier, &frame_dependent] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
-                    std::tie(lambda, multiplier, frame_dependent) = converter;
+                
+                auto lam2 = [&converter] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                    //std::tie(lambda, multiplier, frame_dependent) = converter;
+                    converted = converter.convert(valuesY, hertzValues);
                 };
                 
                 try {
                     result2.forEach( lam2 );
                     
-                    if (frame_dependent){
-                        if(hertzValues.size() < converted.size()) {
-                            throw QString("Could not convert from %1 to %2 because not enough corresponding Hertz values were provided.").arg(oldUnit).arg(newUnit);
-                        }
+                    // TODO: replace this with a call to recalculate / re-fetch the percentiles, passing in the converter
+                    
+                    
+                    //if (frame_dependent){
+                        //if(hertzValues.size() < converted.size()) {
+                            //throw QString("Could not convert from %1 to %2 because not enough corresponding Hertz values were provided.").arg(oldUnit).arg(newUnit);
+                        //}
                         
-                        // TODO: this is where we need to recalculate the values or get them from the cache, instead of doing this:
-                        for (size_t i = 0; i < converted.size(); i++) {
-                            // TODO: what if hertz value is zero and we need to divide by it?
-                            converted[i] = lambda(converted[i], hertzValues[i]) * multiplier;
-                        }
-                    } else {
-                        for (size_t i = 0; i < converted.size(); i++) {
-                            converted[i] = converted[i] * multiplier;
-                        }
-                    }
+                        //// TODO: this is where we need to recalculate the values or get them from the cache, instead of doing this:
+                        //for (size_t i = 0; i < converted.size(); i++) {
+                            //// TODO: what if hertz value is zero and we need to divide by it?
+                            //converted[i] = lambda(converted[i], hertzValues[i]) * multiplier;
+                        //}
+                    //} else {
+                        //for (size_t i = 0; i < converted.size(); i++) {
+                            //converted[i] = converted[i] * multiplier;
+                        //}
+                    //}
                 }
                 catch( char*& error ){
                     QString errorStr( error );

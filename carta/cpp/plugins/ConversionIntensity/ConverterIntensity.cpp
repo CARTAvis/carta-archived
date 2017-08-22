@@ -2,6 +2,20 @@
 #include <math.h>
 #include <QDebug>
 
+DivideByFrequencySquared::DivideByFrequencySquared(double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "DIV_BY_HZ_SQ") {
+}
+
+double DivideByFrequencySquared::_frameDependent(const double y_val, const double x_val) {
+    return y_val / pow(x_val, 2);
+}
+
+MultiplyByFrequencySquared::MultiplyByFrequencySquared(double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "MULT_BY_HZ_SQ") {
+}
+
+double MultiplyByFrequencySquared::_frameDependent(const double y_val, const double x_val) {
+    return y_val * pow(x_val, 2);
+}
+
 const double ConverterIntensity::BOLTZMANN = 1.38e-23;
 const double ConverterIntensity::LIGHT_SPEED_FACTOR = 9e-10; // includes a unit conversion; find out exactly what this is
 const double ConverterIntensity::ARCSECONDS_SQUARED_PER_STERADIAN = pow(180 * 3600 / M_PI, 2);
@@ -10,14 +24,16 @@ const double ConverterIntensity::JY_IN_MJY = 1e6;
 ConverterIntensity::ConverterIntensity() {
 }
 
-std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensity::converters(
+//std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensity::converters(
+std::unique_ptr<Carta::Lib::IntensityUnitConverter> ConverterIntensity::converters(
         const QString& oldUnits, const QString& newUnits,
         double maxValue, const QString& maxUnits,
         double beamArea ) {
 
     double multiplier(1);
-    std::function<double(double, double)> lambda = [](double y, double x){ std::ignore = x; return y; };
-    bool frame_dependent(false);
+    //std::function<double(double, double)> lambda = [](double y, double x){ std::ignore = x; return y; };
+    //bool frame_dependent(false);
+    std::unique_ptr<Carta::Lib::IntensityUnitConverter> converter;
 
     int fromExponent, toExponent;
     QString fromBase, toBase;
@@ -49,15 +65,7 @@ std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensi
             qWarning() << "Could not convert from" << oldUnits << "to" << newUnits << "because beam information is missing.";
         } else {
             multiplier *= pow(10, fromExponent - toExponent);
-
-            if (fromBase == "Kelvin" && toBase != "Kelvin") {
-                lambda = [](double y, double x){ return y * pow(x, 2); };
-                frame_dependent = true;
-            } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
-                lambda = [](double y, double x){return y / pow(x, 2); };
-                frame_dependent = true;
-            } // else keep the default lambda
-
+            
             double beamAngle = beamArea / ARCSECONDS_SQUARED_PER_STERADIAN;
 
             // TODO: precision -- optimise the order of terms in the multipliers?
@@ -95,10 +103,25 @@ std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensi
                     multiplier *= JY_IN_MJY / ARCSECONDS_SQUARED_PER_STERADIAN;
                 }
             }
-        }
-    }
 
-    return std::make_tuple(lambda, multiplier, frame_dependent);
+            if (fromBase == "Kelvin" && toBase != "Kelvin") {
+                //lambda = [](double y, double x){ return y * pow(x, 2); };
+                //frame_dependent = true;
+                converter.reset(new MultiplyByFrequencySquared(multiplier));
+            } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
+                //lambda = [](double y, double x){return y / pow(x, 2); };
+                //frame_dependent = true;
+                converter.reset(new DivideByFrequencySquared(multiplier));
+            } else {
+                converter.reset(new ConstantMultiplier(multiplier));
+            }
+
+        }
+        
+    }
+    
+    return converter;
+    //return std::make_tuple(lambda, multiplier, frame_dependent);
 }
 
 std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {

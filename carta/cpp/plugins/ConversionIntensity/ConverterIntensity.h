@@ -7,6 +7,23 @@
 #include <QRegExp>
 #include <vector>
 #include <functional>
+#include "CartaLib/IntensityUnitConverter.h"
+
+class DivideByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
+public:
+    DivideByFrequencySquared(double multiplier);
+private:
+    double _frameDependent(const double y_val, const double x_val);
+};
+
+class MultiplyByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
+public:
+    MultiplyByFrequencySquared(double multiplier);
+private:
+    double _frameDependent(const double y_val, const double x_val);
+};
+
+class ConstantMultiplier : public Carta::Lib::IntensityUnitConverter {};
 
 /**
  * Converts intensity units:  Jy/Beam, Kelvin, Fraction of Peak, etc.
@@ -30,7 +47,8 @@ public:
      * - a boolean flag indicating whether the conversion is frame dependent
      * If the flag is false, a no-op function will be returned. 
      */
-    static std::tuple<std::function<double(double, double)>, double, bool> converters(
+    //static std::tuple<std::function<double(double, double)>, double, bool> converters(
+    static std::unique_ptr<Carta::Lib::IntensityUnitConverter> converters(
             const QString& oldUnits, const QString& newUnits,
             double maxValue, const QString& maxUnits,
             double beamArea);
