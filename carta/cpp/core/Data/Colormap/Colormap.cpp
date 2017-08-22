@@ -242,9 +242,10 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
         double minValue, double maxValue ){
     std::vector<double> valuesY = {minValue, maxValue};
 
+    // TODO: this will be eliminated
     std::vector<double> valuesX = {
-        m_stateData.getValue<int>( INTENSITY_MIN_INDEX ),
-        m_stateData.getValue<int>( INTENSITY_MAX_INDEX )
+        (double)m_stateData.getValue<int>( INTENSITY_MIN_INDEX ),
+        (double)m_stateData.getValue<int>( INTENSITY_MAX_INDEX )
     };
     
     std::vector<double> converted;
@@ -284,9 +285,9 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                 //bool frame_dependent;
                 
                 
-                auto lam2 = [&converter] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                auto lam2 = [&valuesY, &hertzValues, &converted] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
                     //std::tie(lambda, multiplier, frame_dependent) = converter;
-                    converted = converter.convert(valuesY, hertzValues);
+                    converted = converter->convert(valuesY, hertzValues);
                 };
                 
                 try {

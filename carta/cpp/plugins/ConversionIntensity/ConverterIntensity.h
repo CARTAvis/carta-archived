@@ -11,19 +11,22 @@
 
 class DivideByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
 public:
-    DivideByFrequencySquared(double multiplier);
+    DivideByFrequencySquared(const double multiplier);
 private:
     double _frameDependent(const double y_val, const double x_val);
 };
 
 class MultiplyByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
 public:
-    MultiplyByFrequencySquared(double multiplier);
+    MultiplyByFrequencySquared(const double multiplier);
 private:
     double _frameDependent(const double y_val, const double x_val);
 };
 
-class ConstantMultiplier : public Carta::Lib::IntensityUnitConverter {};
+class ConstantMultiplier : public Carta::Lib::IntensityUnitConverter {
+public:
+    ConstantMultiplier(const double multiplier);
+};
 
 /**
  * Converts intensity units:  Jy/Beam, Kelvin, Fraction of Peak, etc.
@@ -48,7 +51,7 @@ public:
      * If the flag is false, a no-op function will be returned. 
      */
     //static std::tuple<std::function<double(double, double)>, double, bool> converters(
-    static std::unique_ptr<Carta::Lib::IntensityUnitConverter> converters(
+    static Carta::Lib::IntensityUnitConverter::SharedPtr converters(
             const QString& oldUnits, const QString& newUnits,
             double maxValue, const QString& maxUnits,
             double beamArea);

@@ -7,6 +7,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
+#include "CartaLib/IntensityUnitConverter.h"
 
 namespace Carta
 {
@@ -24,7 +25,7 @@ class ConversionIntensityHook : public BaseHook
 public:
 
    //typedef std::tuple<std::function<double(double, double)>, double, bool> ResultType;
-   typedef std::unique_ptr<Carta::Lib::IntensityUnitConverter> ResultType;
+   typedef Carta::Lib::IntensityUnitConverter::SharedPtr ResultType;
 
     /**
      * @brief Params

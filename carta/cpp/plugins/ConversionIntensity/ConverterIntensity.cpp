@@ -2,18 +2,21 @@
 #include <math.h>
 #include <QDebug>
 
-DivideByFrequencySquared::DivideByFrequencySquared(double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "DIV_BY_HZ_SQ") {
+DivideByFrequencySquared::DivideByFrequencySquared(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "DIV_BY_HZ_SQ") {
 }
 
 double DivideByFrequencySquared::_frameDependent(const double y_val, const double x_val) {
     return y_val / pow(x_val, 2);
 }
 
-MultiplyByFrequencySquared::MultiplyByFrequencySquared(double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "MULT_BY_HZ_SQ") {
+MultiplyByFrequencySquared::MultiplyByFrequencySquared(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "MULT_BY_HZ_SQ") {
 }
 
 double MultiplyByFrequencySquared::_frameDependent(const double y_val, const double x_val) {
     return y_val * pow(x_val, 2);
+}
+
+ConstantMultiplier::ConstantMultiplier(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "NONE") {
 }
 
 const double ConverterIntensity::BOLTZMANN = 1.38e-23;
@@ -25,7 +28,7 @@ ConverterIntensity::ConverterIntensity() {
 }
 
 //std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensity::converters(
-std::unique_ptr<Carta::Lib::IntensityUnitConverter> ConverterIntensity::converters(
+Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
         const QString& oldUnits, const QString& newUnits,
         double maxValue, const QString& maxUnits,
         double beamArea ) {
@@ -33,7 +36,8 @@ std::unique_ptr<Carta::Lib::IntensityUnitConverter> ConverterIntensity::converte
     double multiplier(1);
     //std::function<double(double, double)> lambda = [](double y, double x){ std::ignore = x; return y; };
     //bool frame_dependent(false);
-    std::unique_ptr<Carta::Lib::IntensityUnitConverter> converter;
+    //std::unique_ptr<Carta::Lib::IntensityUnitConverter> converter;
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter;
 
     int fromExponent, toExponent;
     QString fromBase, toBase;
@@ -107,13 +111,16 @@ std::unique_ptr<Carta::Lib::IntensityUnitConverter> ConverterIntensity::converte
             if (fromBase == "Kelvin" && toBase != "Kelvin") {
                 //lambda = [](double y, double x){ return y * pow(x, 2); };
                 //frame_dependent = true;
-                converter.reset(new MultiplyByFrequencySquared(multiplier));
+                //converter.reset(new MultiplyByFrequencySquared(multiplier));
+                converter = std::make_shared<MultiplyByFrequencySquared>(multiplier);
             } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
                 //lambda = [](double y, double x){return y / pow(x, 2); };
                 //frame_dependent = true;
-                converter.reset(new DivideByFrequencySquared(multiplier));
+                //converter.reset(new DivideByFrequencySquared(multiplier));
+                converter = std::make_shared<DivideByFrequencySquared>(multiplier);
             } else {
-                converter.reset(new ConstantMultiplier(multiplier));
+                //converter.reset(new ConstantMultiplier(multiplier));
+                converter = std::make_shared<ConstantMultiplier>(multiplier);
             }
 
         }

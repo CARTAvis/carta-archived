@@ -351,9 +351,9 @@ void Profiler::_convertDataY( std::vector<double>& converted, const std::vector<
                 //double multiplier;
                 //bool frame_dependent;
 
-                auto lam = [&lambda, &multiplier, &frame_dependent] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                auto lam = [&converted, &hertzVals] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
                     //std::tie(lambda, multiplier, frame_dependent) = converter;
-                    converted = converter.convert(converted, hertzVals);
+                    converted = converter->convert(converted, hertzVals);
                 };
                 try {
                     result.forEach( lam );

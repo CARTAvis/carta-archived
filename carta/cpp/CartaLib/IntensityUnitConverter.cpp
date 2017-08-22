@@ -4,7 +4,7 @@ namespace Carta {
 namespace Lib {
     
 IntensityUnitConverter::IntensityUnitConverter(double multiplier, bool frameDependent, QString label) : 
-    _multiplier(multiplier), frameDependent(frameDependent), label(label) {
+    multiplier(multiplier), frameDependent(frameDependent), label(label) {
 }
 
 IntensityUnitConverter::~IntensityUnitConverter() {
@@ -19,9 +19,9 @@ double IntensityUnitConverter::convert(const double y_val, const double x_val) {
     double result;
     
     if (frameDependent) {
-        result = _frameDependentConvert(y_val, x_val) * _multiplier;
+        result = _frameDependentConvert(y_val, x_val) * multiplier;
     } else {
-        result = y_val * _multiplier;
+        result = y_val * multiplier;
     }
     
     return result;
@@ -37,11 +37,11 @@ std::vector<double> IntensityUnitConverter::convert(const std::vector<double> y_
 
         for (size_t i = 0; i < y_vals.size(); i++) {
             // TODO: what if a hertz value is zero?
-            results.push_back(_frameDependentConvert(y_vals[i], x_vals[i]) * _multiplier);
+            results.push_back(_frameDependentConvert(y_vals[i], x_vals[i]) * multiplier);
         }
     } else {
         for (size_t i = 0; i < y_vals.size(); i++) {
-            results.push_back(y_vals[i] * _multiplier);
+            results.push_back(y_vals[i] * multiplier);
         }
     }
     

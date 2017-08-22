@@ -180,7 +180,7 @@ void TestConverterIntensity::convert()
 
     //std::tie(lambda, multiplier, frame_dependent) = ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA);
     
-    std::unique_ptr<Carta::Lib::IntensityUnitConverter> converter = ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA);
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA);
     
     //// we don't care about performance and we know there are matching hertz values (for now)
     //for (size_t i = 0; i < values.size(); i++) {
@@ -188,7 +188,7 @@ void TestConverterIntensity::convert()
         //values[i] = lambda(values[i], x_values[i]) * multiplier;
     //}
     
-    values = converter->convert(values);
+    values = converter->convert(values, x_values);
     
     for (size_t i = 0; i < values.size(); i++) {
         error = fabs(values[i] - expected_values[i]);

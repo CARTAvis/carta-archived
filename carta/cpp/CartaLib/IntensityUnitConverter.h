@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "CartaLib/CartaLib.h"
 #include <QString>
 #include <vector>
 
@@ -17,22 +18,23 @@ namespace Carta {
 namespace Lib {
     
 class IntensityUnitConverter {
+    CLASS_BOILERPLATE( IntensityUnitConverter );
 public:
     /**
      * Constructor.
      */
-    IntensityUnitConverter(double multiplier=1, bool frameDependent=false, QString label="NONE");
+    IntensityUnitConverter(const double multiplier=1, const bool frameDependent=false, const QString label="NONE");
     virtual ~IntensityUnitConverter();
     
-    QString label;
+    double multiplier;
     bool frameDependent;
+    QString label;
     
-    double convert(const double y_val, const double x_val);
-    std::vector<double> convert(const std::vector<double> y_vals, const std::vector<double> x_vals);
+    virtual double convert(const double y_val, const double x_val);
+    virtual std::vector<double> convert(const std::vector<double> y_vals, const std::vector<double> x_vals);
 private:
-    double _frameDependentConvert(const double y_val, const double x_val);
-    double _multiplier;
-}
+    virtual double _frameDependentConvert(const double y_val, const double x_val);
+};
 
 }
 }

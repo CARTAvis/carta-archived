@@ -32,6 +32,8 @@ warning( $$INCLUDEPATH )
 
 DEPENDPATH += $$PWD/../../core
 
+#QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../core\''
+
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
 }
