@@ -50,14 +50,9 @@ function installgfortran() {
 echo "install gfortran, start to backup travis-c++"
 mv /usr/local/include/c++ /usr/local/include/c++_backup # this folder is from homebrew's gcc49
 su $SUDO_USER <<EOF
-## now it is 7.1 we only use its gfortran which is also used by code
-if sw_vers -productVersion | grep 10.12 ; then
-  echo "it is 10.12"
-  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.sierra.bottle.tar.gz
-else
-  echo "it is 10.11"
-  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.el_capitan.bottle.tar.gz
-fi
+
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/3479e6239d3cd6b181229acb026d8424a035d045/Formula/gcc.rb
+
 EOF
 echo "resume travis-c++"
 mv /usr/local/include/c++_backup /usr/local/include/c++
