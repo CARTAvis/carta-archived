@@ -294,6 +294,7 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                             throw QString("Could not convert from %1 to %2 because not enough corresponding Hertz values were provided.").arg(oldUnit).arg(newUnit);
                         }
                         
+                        // TODO: this is where we need to recalculate the values or get them from the cache, instead of doing this:
                         for (size_t i = 0; i < converted.size(); i++) {
                             // TODO: what if hertz value is zero and we need to divide by it?
                             converted[i] = lambda(converted[i], hertzValues[i]) * multiplier;
