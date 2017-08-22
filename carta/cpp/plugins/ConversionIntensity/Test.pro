@@ -32,8 +32,6 @@ warning( $$INCLUDEPATH )
 
 DEPENDPATH += $$PWD/../../core
 
-#QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../core\''
-
 unix:macx {
     PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.dylib
 }
@@ -44,6 +42,7 @@ else{
 unix:!macx {
   QMAKE_RPATHDIR=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
   QMAKE_RPATHDIR+=$${WCSLIBDIR}/lib
+  QMAKE_RPATHDIR+=$ORIGIN/../../CartaLib
 }
 else {
 
