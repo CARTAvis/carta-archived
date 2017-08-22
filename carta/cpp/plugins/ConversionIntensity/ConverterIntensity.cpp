@@ -10,36 +10,6 @@ const double ConverterIntensity::JY_IN_MJY = 1e6;
 ConverterIntensity::ConverterIntensity() {
 }
 
-void ConverterIntensity::convert(
-        std::vector<double>& values, const std::vector<double>& hertzValues,
-        const QString& oldUnits, const QString& newUnits,
-        double maxValue, const QString& maxUnits,
-        double beamArea ) {
-
-    std::function<double(double, double)> lambda;
-    double multiplier;
-    bool frame_dependent;
-
-    std::tie(lambda, multiplier, frame_dependent) = converters(oldUnits, newUnits, maxValue, maxUnits, beamArea);
-    
-    // This is temporary; this whole function will be eliminated, and this will be the caller's responsibility
-    if (frame_dependent){
-        if(hertzValues.size() < values.size()) {
-            qWarning() << "Could not convert from" << oldUnits << "to" << newUnits << "because not enough corresponding Hertz values were provided.";
-            return;
-        }
-        
-        for (size_t i = 0; i < values.size(); i++) {
-            // TODO: what if hertz value is zero and we need to divide by it?
-            values[i] = lambda(values[i], hertzValues[i]) * multiplier;
-        }
-    } else {
-        for (size_t i = 0; i < values.size(); i++) {
-            values[i] = values[i] * multiplier;
-        }
-    }
-}
-
 std::tuple<std::function<double(double, double)>, double, bool> ConverterIntensity::converters(
         const QString& oldUnits, const QString& newUnits,
         double maxValue, const QString& maxUnits,
@@ -136,7 +106,7 @@ std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
     QString baseUnits("");
 
 
-    // simple special case
+    // simple special case -- should we have more general handling for K with prefixes?
     if (units == "K") {
         return std::make_tuple(0, QString("Kelvin"));
     }

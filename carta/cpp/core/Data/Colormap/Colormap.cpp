@@ -243,7 +243,7 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
     std::vector<double> converted(2);
     converted[0] = minValue;
     converted[1] = maxValue;
-    std::pair<double,double> convertedIntensity(converted[0],converted[1]);
+    //std::pair<double,double> convertedIntensity(converted[0],converted[1]);
 
     std::vector<double> valuesX(2);
     valuesX[0] = m_stateData.getValue<int>( INTENSITY_MIN_INDEX );
@@ -273,19 +273,36 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                 }
 
                 //Now we convert the intensity units
+                                                                        
+                // TODO: why are the max value and max units unused?
                 auto result2 = Globals::instance()-> pluginManager()
-                                                                -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image,
-                                                                        oldUnit, newUnit, hertzValues, converted,
-                                                                        1, "" );
-
-                auto lam2 = [&convertedIntensity] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
-                    if ( data.size() == 2 ){
-                        convertedIntensity.first = data[0];
-                        convertedIntensity.second = data[1];
-                    }
+                    -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image, oldUnit, newUnit, 1, "" );
+                
+                std::function<double(double, double)> lambda;
+                double multiplier;
+                bool frame_dependent;
+                
+                auto lam2 = [&lambda, &multiplier, &frame_dependent] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                    std::tie(lambda, multiplier, frame_dependent) = converter;
                 };
+                
                 try {
                     result2.forEach( lam2 );
+                    
+                    if (frame_dependent){
+                        if(hertzValues.size() < converted.size()) {
+                            throw QString("Could not convert from %1 to %2 because not enough corresponding Hertz values were provided.").arg(oldUnit).arg(newUnit);
+                        }
+                        
+                        for (size_t i = 0; i < converted.size(); i++) {
+                            // TODO: what if hertz value is zero and we need to divide by it?
+                            converted[i] = lambda(converted[i], hertzValues[i]) * multiplier;
+                        }
+                    } else {
+                        for (size_t i = 0; i < converted.size(); i++) {
+                            converted[i] = converted[i] * multiplier;
+                        }
+                    }
                 }
                 catch( char*& error ){
                     QString errorStr( error );
@@ -295,7 +312,8 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
             }
         }
     }
-    return convertedIntensity;
+    //return convertedIntensity;
+    return std::make_pair(converted[0], converted[1]);
 }
 
 

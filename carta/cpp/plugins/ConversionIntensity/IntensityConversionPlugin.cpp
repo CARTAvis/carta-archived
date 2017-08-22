@@ -43,18 +43,13 @@ bool IntensityConversionPlugin::handleHook( BaseHook & hookData ){
     
                 casacore::Double beamArea = beam.getArea( "arcsec2");
                 
-                std::vector<double> valsX = hook.paramsPtr->m_inputListX;
-                std::vector<double> valsY = hook.paramsPtr->m_inputListY;
+
                 double maxValue = hook.paramsPtr->m_maxValueY;
                 QString maxUnits = hook.paramsPtr->m_maxUnit;
                 
-                if ( valsY.size() > 0 ){
-                    ConverterIntensity::convert( valsY, valsX,
-                            oldUnits, newUnits, maxValue, maxUnits,
-                            beamArea );
-                }
-                
-                hook.result = valsY;
+                // TODO: proper error checking
+                // What happens if an exception is raised inside the plugin?
+                hook.result = ConverterIntensity::converters(oldUnits, newUnits, maxValue, maxUnits, beamArea);
             }
             
             return true;
