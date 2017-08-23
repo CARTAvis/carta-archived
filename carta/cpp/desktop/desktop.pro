@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      += webenginewidgets network widgets xml websockets webchannel
+QT      += webenginewidgets network widgets xml websockets webchannel webengine
 
 HEADERS += \
     MainWindow.h \

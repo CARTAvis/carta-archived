@@ -4,6 +4,7 @@
 #include "core/MainConfig.h"
 #include <QtWidgets>
 #include <QtNetwork>
+#include <QtWebEngine>
 #include <QtWebEngineWidgets>
 #include <iostream>
 #include <qglobal.h>
@@ -15,6 +16,7 @@ MainWindow::MainWindow( )
     QNetworkProxyFactory::setUseSystemConfiguration(true);
     setUnifiedTitleAndToolBarOnMac(true);
 
+    QtWebEngine::initialize();
     m_view = new QWebEngineView(this);
     connect(m_view, SIGNAL(titleChanged(QString)), SLOT(adjustTitle()));
     connect(m_view, SIGNAL(loadProgress(int)), SLOT(setProgress(int)));
