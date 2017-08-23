@@ -6,7 +6,7 @@ namespace Shape{
 
 const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 0, 255 ) ), 2 );
 const QBrush ShapeBase::shadowBrush = QBrush( QColor( 0, 255, 0 ) );
-const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 0, 255, 0 ) ), 1 );
+const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 0, 255, 0 ) ), 2 );
 
 ShapeBase::ShapeBase( QObject* parent ):
 		QObject( parent ),
