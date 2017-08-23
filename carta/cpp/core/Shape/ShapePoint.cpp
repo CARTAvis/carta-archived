@@ -26,9 +26,7 @@ QSizeF ShapePoint::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
-        // Set pen width 0 for precise presentation of point
-        // Width of zero indicates a cosmetic (i.e. zoom-independent) pen drawn 1px wide
-        pen.setWidth(0);
+        pen.setCosmetic(true);
         pen.setColor(m_color);
         QPen rectPen = outlinePen;
 	rectPen.setCosmetic(true);
@@ -61,6 +59,9 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 			comp.append < vge::SetPen > ( rectPen );
 			comp.append < vge::SetBrush > ( brush );
 			comp.append < vge::DrawEllipse > ( m_shadowRect );
+		}
+		else {
+			comp.append < vge::DrawEllipse > ( m_shadowRect );	
 		}
 	}
 	
