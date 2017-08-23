@@ -86,7 +86,8 @@ int HistogramRenderWorker::computeHist(){
     QDataStream dataStream( &file );
     dataStream << m_result;
     file.close();
-    exit(0);
+    // Please refer the comment in the ProfileRenderWorker.cpp
+    _exit(EXIT_SUCCESS);
     return 0;
 }
 
@@ -95,4 +96,3 @@ HistogramRenderWorker::~HistogramRenderWorker(){
 }
 }
 }
-

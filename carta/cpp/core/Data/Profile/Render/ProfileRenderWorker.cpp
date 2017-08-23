@@ -81,7 +81,9 @@ int ProfileRenderWorker::computeProfile(){
     QDataStream dataStream( &file );
     dataStream << m_result;
     file.close();
-    exit(0);
+    // If using "exit()", this child process will become a zombie process in CARTA
+    // We tried to use "wait()" and "waitpid()" to clean the dead process, but failed.
+    _exit(EXIT_SUCCESS);
     return 0;
 }
 
