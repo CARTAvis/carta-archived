@@ -16,7 +16,7 @@ double MultiplyByFrequencySquared::_frameDependentConvert(const double y_val, co
     return y_val * pow(x_val, 2);
 }
 
-ConstantMultiplier::ConstantMultiplier(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "NONE") {
+ConstantMultiplier::ConstantMultiplier(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, false, "NONE") {
 }
 
 const double ConverterIntensity::BOLTZMANN = 1.38e-23;
@@ -117,6 +117,7 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
     if (!converter) {
         converter = std::make_shared<ConstantMultiplier>(multiplier);
     }
+    
     return converter;
 }
 
@@ -151,6 +152,7 @@ std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
 
         baseUnits = rx.cap(3);
     } else {
+        // TODO: actually raise an exception, catch it in the plugin, and return false
         qWarning() << "Unable to parse unit string" << units;
     }
 
