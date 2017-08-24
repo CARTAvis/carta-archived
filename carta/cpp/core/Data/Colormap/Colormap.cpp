@@ -232,13 +232,13 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     return result;
 }
 
-std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, const QString& newUnit ){
+std::pair<double,double> Colormap::_convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit ){
     double minValue = m_stateData.getValue<double>( INTENSITY_MIN );
     double maxValue = m_stateData.getValue<double>( INTENSITY_MAX );
-    return _convertIntensity( oldUnit, newUnit, minValue, maxValue );
+    return _convertIntensity( success, oldUnit, newUnit, minValue, maxValue );
 }
 
-std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, const QString& newUnit,
+std::pair<double,double> Colormap::_convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit,
         double minValue, double maxValue ){
     std::vector<double> valuesY = {minValue, maxValue};
 
@@ -279,11 +279,17 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
                 //Now we convert the intensity units
                                                                         
                 // TODO: why are the max value and max units unused?
+
+                success = false;
+                
                 auto result2 = Globals::instance()-> pluginManager()
                     -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image, oldUnit, newUnit, 1, "" );
             
-                auto lam2 = [&valuesY, &hertzValues, &converted] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
-                    converted = converter->convert(valuesY, hertzValues);
+                auto lam2 = [&valuesY, &hertzValues, &converted, &success] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                    if (converter) {
+                        converted = converter->convert(valuesY, hertzValues);
+                        success = true;
+                    }
                 };
                 
                 try {
@@ -297,7 +303,10 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
             }
         }
     }
-    return std::make_pair(converted[0], converted[1]);
+    if (success) {
+        return std::make_pair(converted[0], converted[1]);
+    }
+    return std::make_pair(-1, -1);
 }
 
 
@@ -1004,18 +1013,21 @@ QString Colormap::setImageUnits( const QString& unitsStr ){
         if ( oldUnits != actualUnits ){
 
             //Convert intensity values
-            std::pair<double,double> values = _convertIntensity( oldUnits, actualUnits );
+            bool success;
+            std::pair<double,double> values = _convertIntensity( success, oldUnits, actualUnits );
 
-            //Set the units
-            m_state.setValue<QString>( IMAGE_UNITS, actualUnits );
-            m_state.flushState();
+            if (success) {
+                //Set the units
+                m_state.setValue<QString>( IMAGE_UNITS, actualUnits );
+                m_state.flushState();
 
-            //Set the converted values
-            double intMin = Util::roundToDigits( values.first, getSignificantDigits() );
-            m_stateData.setValue<double>( INTENSITY_MIN, intMin );
-            double intMax = Util::roundToDigits( values.second, getSignificantDigits() );
-            m_stateData.setValue<double>( INTENSITY_MAX, intMax );
-            m_stateData.flushState();
+                //Set the converted values
+                double intMin = Util::roundToDigits( values.first, getSignificantDigits() );
+                m_stateData.setValue<double>( INTENSITY_MIN, intMin );
+                double intMax = Util::roundToDigits( values.second, getSignificantDigits() );
+                m_stateData.setValue<double>( INTENSITY_MAX, intMax );
+                m_stateData.flushState();
+            }
         }
     }
     else {
@@ -1115,9 +1127,12 @@ void Colormap::_updateImageClips(){
         QString curUnits = getImageUnits();
         if ( imageUnits != curUnits ){
             //Convert intensity values
-            std::pair<double,double> values = _convertIntensity( curUnits, imageUnits );
-            minClip = values.first;
-            maxClip = values.second;
+            bool success;
+            std::pair<double,double> values = _convertIntensity( success, curUnits, imageUnits );
+            if (success) {
+                minClip = values.first;
+                maxClip = values.second;
+            }
         }
 
         double minClipPercentile = controller->getPercentile( -1, -1, minClip );
@@ -1138,35 +1153,38 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
         //Convert the units if we need to.
         Controller* controller = _getControllerSelected();
         if ( controller ){
-              QString imageUnits = controller->getPixelUnits();
-              QString curUnits = getImageUnits();
-              if ( imageUnits != curUnits ){
-                  std::pair<double,double> values =
-                         _convertIntensity( imageUnits, curUnits, minInt, maxInt );
-                  minInt = values.first;
-                  maxInt = values.second;
-              }
+            QString imageUnits = controller->getPixelUnits();
+            QString curUnits = getImageUnits();
+            if ( imageUnits != curUnits ){
+                bool success;
+                std::pair<double,double> values =
+                     _convertIntensity( success, imageUnits, curUnits, minInt, maxInt );
+                if (success) {
+                    minInt = values.first;
+                    maxInt = values.second;
+                }
+            }
 
-              double minIntensity = Util::roundToDigits( minInt, getSignificantDigits());
-              double maxIntensity = Util::roundToDigits( maxInt, getSignificantDigits());
-              double oldMinIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
-              bool intensityChanged = false;
-              if ( qAbs( oldMinIntensity - minIntensity ) > m_errorMargin ){
-                  intensityChanged = true;
-                  m_stateData.setValue<double>( INTENSITY_MIN, minIntensity );
-                  m_stateData.setValue<int>(INTENSITY_MIN_INDEX, intensities[0].first );
-              }
+            double minIntensity = Util::roundToDigits( minInt, getSignificantDigits());
+            double maxIntensity = Util::roundToDigits( maxInt, getSignificantDigits());
+            double oldMinIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
+            bool intensityChanged = false;
+            if ( qAbs( oldMinIntensity - minIntensity ) > m_errorMargin ){
+                intensityChanged = true;
+                m_stateData.setValue<double>( INTENSITY_MIN, minIntensity );
+                m_stateData.setValue<int>(INTENSITY_MIN_INDEX, intensities[0].first );
+            }
 
-              double oldMaxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
-              if ( qAbs( oldMaxIntensity - maxIntensity ) > m_errorMargin ){
-                  intensityChanged = true;
-                  m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
-                  m_stateData.setValue<int>( INTENSITY_MAX_INDEX, intensities[1].first );
-              }
-              if ( intensityChanged ){
-                  _colorStateChanged();
-                  m_stateData.flushState();
-              }
+            double oldMaxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
+            if ( qAbs( oldMaxIntensity - maxIntensity ) > m_errorMargin ){
+                intensityChanged = true;
+                m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
+                m_stateData.setValue<int>( INTENSITY_MAX_INDEX, intensities[1].first );
+            }
+            if ( intensityChanged ){
+                _colorStateChanged();
+                m_stateData.flushState();
+            }
         }
     }
 }

@@ -62,7 +62,7 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
         std::tie(toExponent, toBase) = splitUnits(newUnits);
 
         if (((fromBase == "Jy/beam" && toBase != "Jy/beam") || (fromBase != "Jy/beam" && toBase == "Jy/beam")) && !beamArea) {
-            qWarning() << "Could not convert from" << oldUnits << "to" << newUnits << "because beam information is missing.";
+            throw QString("Could not convert from %1 to %2 because beam information is missing.").arg(oldUnits).arg(newUnits);
         } else {
             multiplier *= pow(10, fromExponent - toExponent);
             
@@ -125,8 +125,6 @@ std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
     int exponent(0);
     QString baseUnits("");
 
-    qDebug() << "Trying to parse unit string" << units;
-
     // simple special case -- should we have more general handling for K with prefixes?
     if (units == "K") {
         return std::make_tuple(0, QString("Kelvin"));
@@ -152,8 +150,7 @@ std::tuple<int, QString> ConverterIntensity::splitUnits(const QString& units) {
 
         baseUnits = rx.cap(3);
     } else {
-        // TODO: actually raise an exception, catch it in the plugin, and return false
-        qWarning() << "Unable to parse unit string" << units;
+        throw QString("Unable to parse unit string %1.").arg(units);
     }
 
     return std::make_tuple(exponent, baseUnits);

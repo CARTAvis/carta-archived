@@ -277,8 +277,8 @@ private:
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
 
-    std::pair<double,double>  _convertIntensity( const QString& oldUnit, const QString& newUnit );
-    std::pair<double,double> _convertIntensity( const QString& oldUnit, const QString& newUnit,
+    std::pair<double,double>  _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit );
+    std::pair<double,double> _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit,
             double minValue, double maxValue );
 
     Controller* _getControllerSelected() const;

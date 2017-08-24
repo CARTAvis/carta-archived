@@ -48,9 +48,12 @@ bool IntensityConversionPlugin::handleHook( BaseHook & hookData ){
                 double maxValue = hook.paramsPtr->m_maxValueY;
                 QString maxUnits = hook.paramsPtr->m_maxUnit;
                 
-                // TODO: proper error checking
-                // What happens if an exception is raised inside the plugin?
-                hook.result = ConverterIntensity::converters(oldUnits, newUnits, maxValue, maxUnits, beamArea);
+                try {
+                    hook.result = ConverterIntensity::converters(oldUnits, newUnits, maxValue, maxUnits, beamArea);
+                } catch (const QString& error) {
+                    qWarning() << error;
+                    return false;
+                }
                 return true;
             }
         }

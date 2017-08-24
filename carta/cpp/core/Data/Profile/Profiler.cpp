@@ -348,7 +348,9 @@ void Profiler::_convertDataY( std::vector<double>& converted, const std::vector<
                                              boundsY.second, maxUnit );;
                 
                 auto lam = [&converted, &hertzVals] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
-                    converted = converter->convert(converted, hertzVals);
+                    if (converter) {
+                        converted = converter->convert(converted, hertzVals);
+                    }
                 };
                 try {
                     result.forEach( lam );
