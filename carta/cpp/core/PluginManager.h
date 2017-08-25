@@ -155,9 +155,12 @@ public:
         return std::move( helper);
     }
 
-    ~PluginManager() {
-        qDebug() << "~PluginManager is getting called";
-    }
+
+    /// Closing the database of cache before quit
+    /// It had better be executed by other object (such as any unloaded plugin when exitting)
+    void DBClose();
+    ~PluginManager();
+
 
 protected:
 

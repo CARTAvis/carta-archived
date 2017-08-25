@@ -4,8 +4,10 @@
 
 #include "PluginManager.h"
 #include "Algorithms/Graphs/TopoSort.h"
+#include "CartaLib/CartaLib.h"
 #include "CartaLib/HtmlString.h"
 #include "CartaLib/Hooks/LoadPlugin.h"
+#include "CartaLib/Hooks/GetPersistentCache.h"
 #include "Globals.h"
 #include "MainConfig.h"
 #include <QDirIterator>
@@ -40,7 +42,28 @@ recursiveValue( const QJsonObject & obj, const QString & path )
 
 PluginManager::PluginManager()
 {
-//    qDebug() << "Initializing PluginManager...";
+    qDebug() << "Initializing PluginManager...";
+}
+
+PluginManager::~PluginManager() {
+    qDebug() << "~PluginManager is getting called";
+//    DBClose();
+}
+
+void PluginManager::DBClose() {
+
+    std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
+
+    // find the unique shared_ptr of cache and release it by force
+    auto res = prepare < Carta::Lib::Hooks::GetPersistentCache > ().first();
+    if ( res.isNull() || ! res.val() ) {
+        qWarning( "Could not find a disk cache plugin." );
+        m_diskCache = nullptr;
+    }
+    else {
+        m_diskCache = res.val();
+        m_diskCache->Release();
+    }
 }
 
 void

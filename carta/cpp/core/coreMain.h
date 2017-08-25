@@ -5,12 +5,15 @@
  */
 
 #include "core/Viewer.h"
+#include "PluginManager.h"
 #include "core/Hacks/HackViewer.h"
 #include "core/MyQApp.h"
 #include "core/CmdLine.h"
 #include "core/MainConfig.h"
 #include "core/Globals.h"
 #include <QDebug>
+#include "CartaLib/Hooks/Initialize.h"
+
 
 namespace Carta
 {
@@ -109,7 +112,23 @@ coreMainCPP( QString platformString, int argc, char * * argv )
         if ( ! valid ) {
             qFatal( "Could not initialize connector" );
         }
+
         viewer.start();
+
+//        1 session 對到1個 desktopconnector, 在不同thread裡.
+//        都發signal desktopconnector
+//        cpp算完 -> desktopconnector -> 再發signal 到sessionDispatcher -> 再送給js
+//        globals ? 要改一點地方
+//        desktopplatform? check一下
+
+//        viewer? 每個人有自己一份好了
+//        objectmanager, 維持原樣
+         //viewermanger, 每個人有自己一份
+        // plugin -> prepare 已提早
+
+        //TODO create a new thread for a new session
+        int kkk = 5;
+
         if ( hackViewer ) {
             hackViewer-> start();
         }
@@ -118,7 +137,14 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // initialize connector
     connector-> initialize( initCB );
 
-    QObject::connect( &qapp, SIGNAL(aboutToQuit()), &viewer, SLOT(DBClose()));
+    // original placke: viewer.start, move to here
+    // tell all plugins that the core has initialized
+//    globals.pluginManager()-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
+
+//    auto test = globals.pluginManager();
+//    connect( &qapp, SIGNAL(aboutToQuit()), test, SLOT(DBClose()));
+//    /Users/grimmer/cartahome2/CARTAvis/carta/cpp/core/coreMain.h:145:44: error: no viable conversion from 'std::__1::shared_ptr<PluginManager>' to 'const QObject *'
+//        connect( &qapp, SIGNAL(aboutToQuit()), test, SLOT(DBClose()));
 
     // give QT control
     int res = qapp.exec();
