@@ -79,10 +79,10 @@ public:
     QString getAxisUnitsX() const;
 
     /**
-        * Returns the units on the y-axis of the profile.
-        * @return - the profile y-axis units.
-        */
-       QString getAxisUnitsY() const;
+     * Returns the units on the y-axis of the profile.
+     * @return - the profile y-axis units.
+     */
+    QString getAxisUnitsY() const;
 
     /**
      * Return the number of Gaussians to fit to the curve.
