@@ -240,14 +240,12 @@ std::pair<double,double> Colormap::_convertIntensity( bool &success, const QStri
 
 std::pair<double,double> Colormap::_convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit,
         double minValue, double maxValue ){
-    std::vector<double> valuesY = {minValue, maxValue};
-
-    // TODO: this will be eliminated
-    std::vector<double> valuesX = {
-        (double)m_stateData.getValue<int>( INTENSITY_MIN_INDEX ),
-        (double)m_stateData.getValue<int>( INTENSITY_MAX_INDEX )
-    };
+            
+    qDebug() << "+++++++++ In Colormap::_convertIntensity with old units" << oldUnit << "and new units" << newUnit;
     
+    // TODO: replace this with a call to recalculate / re-fetch the percentiles, passing in the intensity converter
+    
+    std::vector<double> valuesY = {minValue, maxValue};
     std::vector<double> converted;
 
     Controller* controller = _getControllerSelected();
@@ -256,40 +254,16 @@ std::pair<double,double> Colormap::_convertIntensity( bool &success, const QStri
         if ( dataSource ){
             std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSource->_getImage();
             if ( image ){
-                //First, we need to make sure the x-values are in Hertz.
-                // TODO: move this later and only do it if we need it
-                // TODO: replace this with a call to recalculate / re-fetch the percentiles, passing in the intensity converter
-
-                std::vector<double> hertzValues;
-                auto result = Globals::instance()-> pluginManager()
-                                                         -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(image,
-                                                                 "", UnitsFrequency::UNIT_HZ, valuesX );
-                auto lam = [&hertzValues] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
-                    hertzValues = data;
-                };
-                try {
-                    result.forEach( lam );
-                }
-                catch( char*& error ){
-                    QString errorStr( error );
-                    ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-                    hr->registerError( errorStr );
-                }
-
-                //Now we convert the intensity units
-                                                                        
                 // TODO: why are the max value and max units unused?
 
                 success = false;
+                Carta::Lib::IntensityUnitConverter::SharedPtr intensity_converter = nullptr;
                 
                 auto result2 = Globals::instance()-> pluginManager()
                     -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image, oldUnit, newUnit, 1, "" );
-            
-                auto lam2 = [&valuesY, &hertzValues, &converted, &success] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
-                    if (converter) {
-                        converted = converter->convert(valuesY, hertzValues);
-                        success = true;
-                    }
+                
+                auto lam2 = [&intensity_converter] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                    intensity_converter = converter;
                 };
                 
                 try {
@@ -299,6 +273,42 @@ std::pair<double,double> Colormap::_convertIntensity( bool &success, const QStri
                     QString errorStr( error );
                     ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
                     hr->registerError( errorStr );
+                }
+                
+                if (intensity_converter) {
+                    std::vector<double> hertzValues;
+                    
+                    if (intensity_converter->frameDependent) {
+                        // we need the Hz values
+                        // this is going to be eliminated / refactored completely
+                        
+                        qDebug() << "This is a frame-dependent conversion, so we need Hz values";
+                    
+                        std::vector<double> valuesX = {
+                            (double)m_stateData.getValue<int>( INTENSITY_MIN_INDEX ),
+                            (double)m_stateData.getValue<int>( INTENSITY_MAX_INDEX )
+                        };
+                        auto result = Globals::instance()-> pluginManager()
+                                                                 -> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(image,
+                                                                         "", UnitsFrequency::UNIT_HZ, valuesX );
+                        auto lam = [&hertzValues] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
+                            hertzValues = data;
+                        };
+                        try {
+                            result.forEach( lam );
+                        }
+                        catch( char*& error ){
+                            QString errorStr( error );
+                            ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                            hr->registerError( errorStr );
+                        }
+                    }
+                    
+                    if (!intensity_converter->frameDependent || hertzValues.size()) {
+                        converted = intensity_converter->convert(valuesY, hertzValues);
+                        success = true;
+                    }
+                    
                 }
             }
         }
