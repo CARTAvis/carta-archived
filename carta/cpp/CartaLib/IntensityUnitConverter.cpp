@@ -3,8 +3,9 @@
 namespace Carta {
 namespace Lib {
     
-IntensityUnitConverter::IntensityUnitConverter(const double multiplier, const bool frameDependent, const QString label) : 
-    multiplier(multiplier), frameDependent(frameDependent), label(label) {
+IntensityUnitConverter::IntensityUnitConverter(const QString fromUnits, const QString toUnits, 
+        const double multiplier, const bool frameDependent, const QString label) : 
+    multiplier(multiplier), frameDependent(frameDependent), label(label), fromUnits(fromUnits), toUnits(toUnits) {
 }
 
 IntensityUnitConverter::~IntensityUnitConverter() {
@@ -27,12 +28,24 @@ double IntensityUnitConverter::convert(const double y_val, const double x_val) {
     return result;
 }
 
+double IntensityUnitConverter::convert(const double y_val) {
+    double result;
+    
+    if (frameDependent) {
+        throw QString("Could not convert intensity value from %1 to %2 because not a corresponding Hertz value was not provided.").arg(fromUnits).arg(toUnits);
+    } else {
+        result = y_val * multiplier;
+    }
+    
+    return result;
+}
+
 std::vector<double> IntensityUnitConverter::convert(const std::vector<double> y_vals, const std::vector<double> x_vals) {
     std::vector<double> results;
     
     if (frameDependent) {
         if(x_vals.size() < y_vals.size()) {
-            throw QString("Could not convert intensity values because not enough corresponding Hertz values were provided.");
+            throw QString("Could not convert intensity values from %1 to %2 because not enough corresponding Hertz values were provided.").arg(fromUnits).arg(toUnits);
         }
 
         for (size_t i = 0; i < y_vals.size(); i++) {

@@ -2,21 +2,24 @@
 #include <math.h>
 #include <QDebug>
 
-DivideByFrequencySquared::DivideByFrequencySquared(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "DIV_BY_HZ_SQ") {
+DivideByFrequencySquared::DivideByFrequencySquared(const QString fromUnits, const QString toUnits, const double multiplier)
+    : Carta::Lib::IntensityUnitConverter(fromUnits, toUnits, multiplier, true, "DIV_BY_HZ_SQ") {
 }
 
 double DivideByFrequencySquared::_frameDependentConvert(const double y_val, const double x_val) {
     return y_val / pow(x_val, 2);
 }
 
-MultiplyByFrequencySquared::MultiplyByFrequencySquared(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, true, "MULT_BY_HZ_SQ") {
+MultiplyByFrequencySquared::MultiplyByFrequencySquared(const QString fromUnits, const QString toUnits, const double multiplier) 
+    : Carta::Lib::IntensityUnitConverter(fromUnits, toUnits, multiplier, true, "MULT_BY_HZ_SQ") {
 }
 
 double MultiplyByFrequencySquared::_frameDependentConvert(const double y_val, const double x_val) {
     return y_val * pow(x_val, 2);
 }
 
-ConstantMultiplier::ConstantMultiplier(const double multiplier) : Carta::Lib::IntensityUnitConverter(multiplier, false, "NONE") {
+ConstantMultiplier::ConstantMultiplier(const QString fromUnits, const QString toUnits, const double multiplier) 
+    : Carta::Lib::IntensityUnitConverter(fromUnits, toUnits, multiplier, false, "NONE") {
 }
 
 const double ConverterIntensity::BOLTZMANN = 1.38e-23;
@@ -36,7 +39,7 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
     
     int fromExponent, toExponent;
-    QString fromBase, toBase;
+    QString fromUnits, toUnits, fromBase, toBase;
 
     if (newUnits == "Fraction of Peak") {
         // Currently the only allowed option for converting *to* FOP is *from* the same units as the maximum value
@@ -48,6 +51,8 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
                 qWarning() << "In conversion to Fraction of Peak, maximum value units don't match intensity units. Result may be incorrect.";
             }
             
+            toUnits = oldUnits + " (Fraction of Peak)";
+            
             // do the conversion anyway for now; that's what the plugin did before
             multiplier /= maxValue;
         }
@@ -55,9 +60,13 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
         if (oldUnits == "Fraction of Peak") {
             multiplier *= maxValue;
             std::tie(fromExponent, fromBase) = splitUnits(maxUnits);
+            fromUnits = maxUnits + " (Fraction of Peak)";
         } else {
             std::tie(fromExponent, fromBase) = splitUnits(oldUnits);
+            fromUnits = oldUnits;
         }
+        
+        toUnits = newUnits;
     
         std::tie(toExponent, toBase) = splitUnits(newUnits);
 
@@ -105,9 +114,9 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
             }
 
             if (fromBase == "Kelvin" && toBase != "Kelvin") {
-                converter = std::make_shared<MultiplyByFrequencySquared>(multiplier);
+                converter = std::make_shared<MultiplyByFrequencySquared>(fromUnits, toUnits, multiplier);
             } else if (toBase == "Kelvin" && fromBase != "Kelvin") {
-                converter = std::make_shared<DivideByFrequencySquared>(multiplier);
+                converter = std::make_shared<DivideByFrequencySquared>(fromUnits, toUnits, multiplier);
             }
 
         }
@@ -115,7 +124,7 @@ Carta::Lib::IntensityUnitConverter::SharedPtr ConverterIntensity::converters(
     }
 
     if (!converter) {
-        converter = std::make_shared<ConstantMultiplier>(multiplier);
+        converter = std::make_shared<ConstantMultiplier>(fromUnits, toUnits, multiplier);
     }
     
     return converter;

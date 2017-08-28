@@ -66,6 +66,7 @@ QString UnitsIntensity::getActualUnits( const QString& unitStr ) const {
 
 
 QString UnitsIntensity::getDefault() const {
+    qDebug() << "================== In UnitsIntensity::getDefault, returning units" << m_defaultUnit;
     return m_defaultUnit;
 }
 
@@ -191,6 +192,7 @@ void UnitsIntensity::setDefaultUnit(QString headerUnit, bool hasbeam, bool spect
     }
 
     m_state.flushState();
+    qDebug() << "================== In UnitsIntensity::getDefault, set units to" << m_defaultUnit;
 }
 
 /**

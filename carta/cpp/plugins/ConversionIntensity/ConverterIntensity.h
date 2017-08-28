@@ -11,21 +11,21 @@
 
 class DivideByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
 public:
-    DivideByFrequencySquared(const double multiplier);
+    DivideByFrequencySquared(const QString fromUnits, const QString toUnits, const double multiplier);
 private:
     double _frameDependentConvert(const double y_val, const double x_val) override;
 };
 
 class MultiplyByFrequencySquared : public Carta::Lib::IntensityUnitConverter {
 public:
-    MultiplyByFrequencySquared(const double multiplier);
+    MultiplyByFrequencySquared(const QString fromUnits, const QString toUnits, const double multiplier);
 private:
     double _frameDependentConvert(const double y_val, const double x_val) override;
 };
 
 class ConstantMultiplier : public Carta::Lib::IntensityUnitConverter {
 public:
-    ConstantMultiplier(const double multiplier);
+    ConstantMultiplier(const QString fromUnits, const QString toUnits, const double multiplier);
 };
 
 /**
@@ -50,7 +50,6 @@ public:
      * - a boolean flag indicating whether the conversion is frame dependent
      * If the flag is false, a no-op function will be returned. 
      */
-    //static std::tuple<std::function<double(double, double)>, double, bool> converters(
     static Carta::Lib::IntensityUnitConverter::SharedPtr converters(
             const QString& oldUnits, const QString& newUnits,
             double maxValue, const QString& maxUnits,

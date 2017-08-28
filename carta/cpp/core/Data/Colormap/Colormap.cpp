@@ -314,6 +314,17 @@ void Colormap::_dataChanged( Controller* controller ){
     if ( controller ){
         double colorMinPercent = controller->getClipPercentileMin();
         double colorMaxPercent = controller->getClipPercentileMax();
+        
+        // Attempt to set correct default / initial units after an image is loaded
+        // This is a bit messy because the dataChanged signal is not only used on image load
+        // It would be good to have a separate signal for that
+        QString current_units = m_state.getValue<QString>(IMAGE_UNITS);
+        QString latest_default_units = m_intensityUnits->getDefault();
+        if (current_units == "N/A" && latest_default_units != "N/A") {
+            qDebug() << "Updating default / initial units to" << latest_default_units << "because an image has been loaded.";
+            m_state.setValue<QString>(IMAGE_UNITS, latest_default_units);
+        }
+        
         _updateIntensityBounds( colorMinPercent, colorMaxPercent );
     }
 }
