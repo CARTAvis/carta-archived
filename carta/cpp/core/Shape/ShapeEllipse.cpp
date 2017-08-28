@@ -132,7 +132,7 @@ bool ShapeEllipse::isPointInside( const QPointF & pt ) const {
 void ShapeEllipse::_moveShadow( const QPointF& pt ){
 	// calculate offset to move the shadow polygon to match the un-edited shape
 	QRectF fixedRect = m_ellipseRegion->outlineBox();
-	QPointF alreadyMoved = m_shadowRect.topLeft() - fixedRect.topLeft();
+	QPointF alreadyMoved = m_shadowRect.center() - fixedRect.center();
 
 	// now move it by the amount of drag
 	QPointF totalDrag = pt - m_dragStart;
