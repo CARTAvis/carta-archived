@@ -1169,7 +1169,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
             if ( imageUnits != curUnits ){
                 bool success;
                 std::pair<double,double> values =
-                     _convertIntensity( success, imageUnits, curUnits, minInt, maxInt );
+                     _convertIntensity( success, curUnits, imageUnits, minInt, maxInt );
                 if (success) {
                     minInt = values.first;
                     maxInt = values.second;
