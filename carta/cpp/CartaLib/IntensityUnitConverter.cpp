@@ -16,6 +16,11 @@ double IntensityUnitConverter::_frameDependentConvert(const double y_val, const 
     return y_val;
 }
 
+double IntensityUnitConverter::_frameDependentConvertInverse(const double y_val, const double x_val) {
+    Q_UNUSED(x_val);
+    return y_val;
+}
+
 double IntensityUnitConverter::convert(const double y_val, const double x_val) {
     double result;
     

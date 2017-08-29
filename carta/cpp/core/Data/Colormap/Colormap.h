@@ -9,6 +9,7 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "Data/LinkableImpl.h"
+#include "CartaLib/IntensityUnitConverter.h"
 
 class ImageView;
 
@@ -277,6 +278,8 @@ private:
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
 
+    Carta::Lib::IntensityUnitConverter::SharedPtr _getIntensityConverter(const QString& oldUnit, const QString& newUnit);
+    
     std::pair<double,double>  _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit );
     std::pair<double,double> _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit,
             double minValue, double maxValue );

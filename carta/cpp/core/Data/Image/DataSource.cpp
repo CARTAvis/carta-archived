@@ -9,6 +9,7 @@
 #include "Data/Colormap/TransformsData.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/GetPersistentCache.h"
+#include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IPCache.h"
 #include "../../ImageRenderService.h"
@@ -646,13 +647,38 @@ QColor DataSource::_getNanColor() const {
     return nanColor;
 }
 
-std::vector<double> DataSource::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const {
+std::vector<double> DataSource::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
     std::vector<double> percentiles(intensities.size());
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL);
+    // TODO: do we need to modify this to take the stokes frame into account, like the percentile -> intensity calculation
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
-        Carta::Lib::NdArray::TypedView<double> view( rawData, false );
-        percentiles = Carta::Core::Algorithms::intensities2percentiles(view, intensities);
+        Carta::Lib::NdArray::Double view( rawData, false );
+
+        // fetch and convert the X values here if necessary
+        // TODO move this to a helper function; we will need it more than once
+        std::vector<double> Xvalues;
+        std::vector<double> hertzValues;
+        
+        if (converter && converter->frameDependent) {
+            if (spectralIndex >= 0) { // multiple frames
+                for (int i = 0; i < view.dims()[spectralIndex]; i++) {
+                    Xvalues.push_back((double)i);
+                }
+            } else { // no spectral axis; only one frame
+                Xvalues = { 0.0 };
+            }
+
+            // convert frame indices to Hz
+            auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(m_image, "", "Hz", Xvalues );
+            auto lam = [&hertzValues] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
+                hertzValues = data;
+            };
+            
+            result.forEach( lam );
+        }
+        
+        percentiles = Carta::Core::Algorithms::intensities2percentiles(view, spectralIndex, intensities, converter, hertzValues);
     }
     return percentiles;
 }

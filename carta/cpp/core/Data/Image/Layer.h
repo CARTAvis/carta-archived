@@ -9,6 +9,7 @@
 #include "CartaLib/IImage.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
+#include "CartaLib/IntensityUnitConverter.h"
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "Data/Image/Render/RenderRequest.h"
 #include "Data/Image/Render/RenderResponse.h"
@@ -337,7 +338,7 @@ protected:
      * @param intensities values for which percentiles are needed.
      * @return the percentiles corresponding to the intensities.
      */
-    virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const = 0;
+    virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const = 0;
 
 
     /**

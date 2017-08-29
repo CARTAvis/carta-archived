@@ -232,6 +232,46 @@ QString Colormap::_commandSetColorMap( const QString& params ){
     return result;
 }
 
+
+Carta::Lib::IntensityUnitConverter::SharedPtr Colormap::_getIntensityConverter(const QString& oldUnit, const QString& newUnit) {
+    Carta::Lib::IntensityUnitConverter::SharedPtr intensity_converter = nullptr;
+
+    if (oldUnit == newUnit) {
+        return intensity_converter;
+    }
+    
+    Controller* controller = _getControllerSelected();
+
+    if ( controller ){
+        std::shared_ptr<DataSource> dataSource = controller->getDataSource();
+
+        if ( dataSource ){
+            std::shared_ptr<Carta::Lib::Image::ImageInterface> image = dataSource->_getImage();
+
+            if ( image ){
+                auto result2 = Globals::instance()-> pluginManager()
+                    -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(image, oldUnit, newUnit, 1, "" );
+                
+                auto lam2 = [&intensity_converter] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                    intensity_converter = converter;
+                };
+                
+                try {
+                    result2.forEach( lam2 );
+                }
+                catch( char*& error ){
+                    QString errorStr( error );
+                    ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
+                    hr->registerError( errorStr );
+                }
+            }
+        }
+    }
+                
+    return intensity_converter;
+}
+
+
 std::pair<double,double> Colormap::_convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit ){
     double minValue = m_stateData.getValue<double>( INTENSITY_MIN );
     double maxValue = m_stateData.getValue<double>( INTENSITY_MAX );
@@ -1146,17 +1186,21 @@ void Colormap::_updateImageClips(){
     if ( controller ){
         QString imageUnits = controller->getPixelUnits();
         QString curUnits = getImageUnits();
-        if ( imageUnits != curUnits ){
-            //Convert intensity values
-            bool success;
-            std::pair<double,double> values = _convertIntensity( success, curUnits, imageUnits );
-            if (success) {
-                minClip = values.first;
-                maxClip = values.second;
-            }
-        }
+        // NB: this is a converter *from* image units *to* the intensity units,
+        // because we apply it in reverse to the intensities, not to the image values
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = _getIntensityConverter(imageUnits, curUnits);
+        
+        //if ( imageUnits != curUnits ){
+            ////Convert intensity values
+            //bool success;
+            //std::pair<double,double> values = _convertIntensity( success, curUnits, imageUnits );
+            //if (success) {
+                //minClip = values.first;
+                //maxClip = values.second;
+            //}
+        //}
 
-        std::vector<double> percentiles = controller->getPercentiles( -1, -1, {minClip, maxClip} );
+        std::vector<double> percentiles = controller->getPercentiles( -1, -1, {minClip, maxClip}, converter );
         qDebug() << "+++++++++ Calculated percentiles from intensities:" << percentiles;
         controller->applyClips( percentiles[0], percentiles[1] );
     }

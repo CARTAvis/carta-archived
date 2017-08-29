@@ -10,6 +10,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/InputEvents.h"
+#include "CartaLib/IntensityUnitConverter.h"
 #include <QString>
 #include <QList>
 #include <QObject>
@@ -271,7 +272,7 @@ public:
      * @param intensities values for which percentiles are needed.
      * @return the percentiles corresponding to the intensities.
      */
-    std::vector<double> getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const;
+    std::vector<double> getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.

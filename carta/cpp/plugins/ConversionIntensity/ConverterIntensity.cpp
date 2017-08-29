@@ -10,12 +10,20 @@ double DivideByFrequencySquared::_frameDependentConvert(const double y_val, cons
     return y_val / pow(x_val, 2);
 }
 
+double DivideByFrequencySquared::_frameDependentConvertInverse(const double y_val, const double x_val) {
+    return y_val * pow(x_val, 2);
+}
+
 MultiplyByFrequencySquared::MultiplyByFrequencySquared(const QString fromUnits, const QString toUnits, const double multiplier) 
     : Carta::Lib::IntensityUnitConverter(fromUnits, toUnits, multiplier, true, "MULT_BY_HZ_SQ") {
 }
 
 double MultiplyByFrequencySquared::_frameDependentConvert(const double y_val, const double x_val) {
     return y_val * pow(x_val, 2);
+}
+
+double MultiplyByFrequencySquared::_frameDependentConvertInverse(const double y_val, const double x_val) {
+    return y_val / pow(x_val, 2);
 }
 
 ConstantMultiplier::ConstantMultiplier(const QString fromUnits, const QString toUnits, const double multiplier) 

@@ -578,11 +578,11 @@ QStringList LayerGroup::_getLayerIds( ) const {
 }
 
 
-std::vector<double> LayerGroup::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const {
+std::vector<double> LayerGroup::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
     std::vector<double> percentiles(intensities.size());
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        percentiles = m_children[dataIndex]->_getPercentiles( frameLow, frameHigh, intensities );
+        percentiles = m_children[dataIndex]->_getPercentiles( frameLow, frameHigh, intensities, converter );
     }
     return percentiles;
 }

@@ -10,6 +10,7 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
+#include "CartaLib/IntensityUnitConverter.h"
 #include <QImage>
 #include <memory>
 #include <set>
@@ -216,7 +217,7 @@ protected:
      * @param intensities values for which percentiles are needed.
      * @return the percentiles corresponding to the intensities.
      */
-     virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const Q_DECL_OVERRIDE;
+     virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
      /**
       * Return the pixel coordinates corresponding to the given world coordinates.

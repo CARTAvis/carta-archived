@@ -397,8 +397,8 @@ QSize Controller::getOutputSize( ) const {
 }
 
 
-std::vector<double> Controller::getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const {
-    return m_stack->_getPercentiles( frameLow, frameHigh, intensities );
+std::vector<double> Controller::getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
+    return m_stack->_getPercentiles( frameLow, frameHigh, intensities, converter );
 }
 
 

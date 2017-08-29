@@ -48,8 +48,8 @@ public:
     virtual double convert(const double y_val, const double x_val);
     virtual double convert(const double y_val);
     virtual std::vector<double> convert(const std::vector<double> y_vals, const std::vector<double> x_vals={});
-private:
     virtual double _frameDependentConvert(const double y_val, const double x_val);
+    virtual double _frameDependentConvertInverse(const double y_val, const double x_val);
 };
 
 }

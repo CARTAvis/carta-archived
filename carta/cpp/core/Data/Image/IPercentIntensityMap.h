@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QString>
+#include "CartaLib/IntensityUnitConverter.h"
 
 
 
@@ -40,7 +41,7 @@ public:
      * @param intensities values for which percentiles are needed.
      * @return the percentiles corresponding to the intensities.
      */
-    virtual std::vector<double> getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const = 0;
+    virtual std::vector<double> getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const = 0;
 
     /**
      * Add a contour set.
