@@ -578,13 +578,13 @@ QStringList LayerGroup::_getLayerIds( ) const {
 }
 
 
-double LayerGroup::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = 0;
+std::vector<double> LayerGroup::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const {
+    std::vector<double> percentiles(intensities.size());
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        percentile = m_children[dataIndex]->_getPercentile( frameLow, frameHigh, intensity );
+        percentiles = m_children[dataIndex]->_getPercentiles( frameLow, frameHigh, intensities );
     }
-    return percentile;
+    return percentiles;
 }
 
 

@@ -1156,9 +1156,9 @@ void Colormap::_updateImageClips(){
             }
         }
 
-        double minClipPercentile = controller->getPercentile( -1, -1, minClip );
-        double maxClipPercentile = controller->getPercentile( -1, -1, maxClip );
-        controller->applyClips( minClipPercentile, maxClipPercentile );
+        std::vector<double> percentiles = controller->getPercentiles( -1, -1, {minClip, maxClip} );
+        qDebug() << "+++++++++ Calculated percentiles from intensities:" << percentiles;
+        controller->applyClips( percentiles[0], percentiles[1] );
     }
 }
 

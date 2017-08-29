@@ -397,9 +397,8 @@ QSize Controller::getOutputSize( ) const {
 }
 
 
-double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = m_stack->_getPercentile( frameLow, frameHigh, intensity );
-    return percentile;
+std::vector<double> Controller::getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const {
+    return m_stack->_getPercentiles( frameLow, frameHigh, intensities );
 }
 
 

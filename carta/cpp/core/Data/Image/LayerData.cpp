@@ -456,12 +456,12 @@ QPointF LayerData::_getPan() const {
 }
 
 
-double LayerData::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = 0;
+std::vector<double> LayerData::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const {
+    std::vector<double> percentiles(intensities.size());
     if ( m_dataSource ){
-        percentile = m_dataSource->_getPercentile( frameLow, frameHigh, intensity );
+        percentiles = m_dataSource->_getPercentiles( frameLow, frameHigh, intensities );
     }
-    return percentile;
+    return percentiles;
 }
 
 

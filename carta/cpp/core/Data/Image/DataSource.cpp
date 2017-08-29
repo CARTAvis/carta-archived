@@ -646,30 +646,15 @@ QColor DataSource::_getNanColor() const {
     return nanColor;
 }
 
-double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = 0;
+std::vector<double> DataSource::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const {
+    std::vector<double> percentiles(intensities.size());
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL);
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
     if ( rawData != nullptr ){
-        u_int64_t totalCount = 0;
-        u_int64_t countBelow = 0;
         Carta::Lib::NdArray::TypedView<double> view( rawData, false );
-        view.forEach([&](const double& val) {
-            if( Q_UNLIKELY( std::isnan(val))){
-                return;
-            }
-            totalCount ++;
-            if( val <= intensity){
-                countBelow++;
-            }
-            return;
-        });
-
-        if ( totalCount > 0 ){
-            percentile = double(countBelow) / totalCount;
-        }
+        percentiles = Carta::Core::Algorithms::intensities2percentiles(view, intensities);
     }
-    return percentile;
+    return percentiles;
 }
 
 QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) const{

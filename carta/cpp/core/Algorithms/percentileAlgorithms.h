@@ -174,6 +174,82 @@ percentile2pixels_I(
     return result;
 }
 
+template < typename Scalar >
+static
+typename std::vector<double>
+intensities2percentiles(
+    Carta::Lib::NdArray::TypedView < Scalar > & view,
+    std::vector < Scalar > intensities
+    )
+{
+    u_int64_t totalCount = 0;
+    std::vector<u_int64_t> countBelow(intensities.size());
+    std::vector<double> percentiles(intensities.size());
+    
+    view.forEach([&](const double& val) {
+        if( Q_UNLIKELY( std::isnan(val))){
+            return;
+        }
+        
+        totalCount++;
+
+        for (size_t i = 0; i < intensities.size(); i++) {
+            if( val <= intensities[i]){
+                countBelow[i]++;
+            }
+        }
+        return;
+    });
+
+    for (size_t i = 0; i < intensities.size(); i++) {
+        if ( totalCount > 0 ){
+            percentiles[i] = double(countBelow[i]) / totalCount;
+        }
+    }
+    
+    return percentiles;
+}
+
+//template < typename Scalar >
+//static
+//typename std::vector<double>
+//intensities2percentiles(
+    //Carta::Lib::NdArray::TypedView < Scalar > & view,
+    //int spectralIndex,
+    //std::vector < Scalar > intensities,
+    //Carta::Lib::IntensityUnitConverter::SharedPtr converter
+    //)
+//{
+    //std::vector<Scalar> divided_intensities;
+    //Scalar target_intensity(0);
+    //std::map<Scalar, double> percentages;
+
+    //for (auto& intensity : intensities) {
+        //divided_intensities.push_back(intensity / converter.multiplier);
+    //}
+    
+    //if (converter->frameDependent) {
+        //vector<double> X_values;
+        
+        //if (spectralIndex > -1) {
+            //for (int i = 0; i < view.dims[spectralIndex]; i++) { // count the frames
+                //X_values.push_back((double)i);
+            //}
+        //} else {
+            //X_values = { 0.0 }; // there is only one frame
+        //}
+
+        
+    //} else {
+        
+    //}
+    //// TODO: divide each target by multiplier
+    //// iterate over data a frame at a time
+    //// apply inverse transformation to target at each step
+    //// where should X values come from?
+    
+//}
+
 
 }
 }

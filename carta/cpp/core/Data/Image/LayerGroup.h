@@ -268,7 +268,7 @@ protected:
      * @param intensity a value for which a percentile is needed.
      * @return the percentile corresponding to the intensity.
      */
-    virtual double _getPercentile( int frameLow, int frameHigh, double intensity ) const Q_DECL_OVERRIDE;
+    virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const Q_DECL_OVERRIDE;
 
 
     /**

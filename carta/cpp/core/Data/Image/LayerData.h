@@ -210,13 +210,13 @@ protected:
 
 
      /**
-      * Return the percentile corresponding to the given intensity.
-      * @param frameLow a lower bound for the frame index or -1 if there is no lower bound.
-      * @param frameHigh an upper bound for the frame index or -1 if there is no upper bound.
-      * @param intensity a value for which a percentile is needed.
-      * @return the percentile corresponding to the intensity.
-      */
-     virtual double _getPercentile( int frameLow, int frameHigh, double intensity ) const Q_DECL_OVERRIDE;
+     * Return percentiles corresponding to the given intensities.
+     * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
+     * @param intensities values for which percentiles are needed.
+     * @return the percentiles corresponding to the intensities.
+     */
+     virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities ) const Q_DECL_OVERRIDE;
 
      /**
       * Return the pixel coordinates corresponding to the given world coordinates.
