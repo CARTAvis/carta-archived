@@ -278,14 +278,18 @@ private:
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
 
-    Carta::Lib::IntensityUnitConverter::SharedPtr _getIntensityConverter(const QString& oldUnit, const QString& newUnit);
+    Carta::Lib::IntensityUnitConverter::SharedPtr _getIntensityConverter(const QString& toUnit);
+
+    std::pair<double,double> _getIntensities(bool &success, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
+    std::pair<double,double> _getIntensities(bool &success, const double minPercent, const double maxPercent,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
     
-    std::pair<double,double>  _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit );
-    std::pair<double,double> _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit,
-            double minValue, double maxValue );
+    //std::pair<double,double>  _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit );
+    //std::pair<double,double> _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit,
+            //double minValue, double maxValue );
 
     Controller* _getControllerSelected() const;
-    std::vector<std::pair<int,double> > _getIntensityForPercents( std::vector<double>& percent ) const;
+    //std::vector<std::pair<int,double> > _getIntensityForPercents( std::vector<double>& percent ) const;
 
     /**
      * Return the server side id of the preferences for this colormap.
@@ -308,8 +312,10 @@ private:
     const static QString IMAGE_UNITS;
     const static QString INTENSITY_MIN;
     const static QString INTENSITY_MAX;
-    const static QString INTENSITY_MIN_INDEX;
-    const static QString INTENSITY_MAX_INDEX;
+    const static QString PERCENT_MIN;
+    const static QString PERCENT_MAX;
+    //const static QString INTENSITY_MIN_INDEX;
+    //const static QString INTENSITY_MAX_INDEX;
     const static QString SIGNIFICANT_DIGITS;
     const static QString TAB_INDEX;
 

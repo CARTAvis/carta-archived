@@ -355,17 +355,6 @@ protected:
     virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
     /**
-     * Returns the location and intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - a list of (location,intensity) pairs.
-     */
-    virtual std::vector<std::pair<int,double> > _getLocationAndIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
-
-    /**
      * Returns the intensity corresponding to a given percentile.
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
@@ -374,7 +363,8 @@ protected:
      * @return - a list of intensity values.
      */
     virtual std::vector<double> _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
+            const std::vector<double>& percentiles, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the units of the pixels.

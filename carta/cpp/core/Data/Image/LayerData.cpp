@@ -378,20 +378,13 @@ QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRe
     return inputRect;
 }
 
-std::vector<std::pair<int,double> > LayerData::_getLocationAndIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
-    std::vector<std::pair<int,double> > intensities;
-    if ( m_dataSource ){
-        intensities = m_dataSource->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
-    }
-    return intensities;
-}
 
 std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
+        const std::vector<double>& percentiles, int stokeFrame,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     std::vector<double> intensities;
     if ( m_dataSource ){
-        intensities = m_dataSource->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+        intensities = m_dataSource->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame, converter );
     }
     return intensities;
 }

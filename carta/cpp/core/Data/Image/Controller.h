@@ -199,29 +199,13 @@ public:
      */
     std::vector<int> getImageDimensions( ) const;
 
-    /**
-     * Returns the locations and intensities corresponding to a given list of percentiles.
-     * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
-     * @return - a list of corresponding (location,intensity) pairs.
-     */
-    std::vector<std::pair<int,double> > getLocationAndIntensity( const std::vector<double>& percentiles ) const;
 
     /**
      * Returns the intensities corresponding to a given list of percentiles.
      * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
      * @return - a list of corresponding intensity values.
      */
-    std::vector<double> getIntensity( const std::vector<double>& percentiles ) const;
-
-    /**
-     * Returns the location and intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentiles - a list of percentiles in [0,1] for which an intensity is desired.
-     * @return - a list of <location,intensity> pairs corresponding to the percentiles.
-     */
-    std::vector<std::pair<int,double> > getLocationAndIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles ) const;
+    std::vector<double> getIntensity( const std::vector<double>& percentiles, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -231,7 +215,8 @@ public:
      * @return - a list of intensity values corresponding to the percentiles.
      */
     std::vector<double> getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles ) const;
+            const std::vector<double>& percentiles,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
