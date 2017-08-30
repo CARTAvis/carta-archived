@@ -87,25 +87,25 @@ public:
 	 * Get the maximum intensity value for the histogram.
 	 * @return - the maximum intensity value for the histogram.
 	 */
-	int getIntensityMax() const;
+	double getIntensityMax() const;
 
 	/**
 	 * Get the minimum intensity value for the histogram.
 	 * @return - the minimum intensity value for the histogram.
 	 */
-	int getIntensityMin() const;
+	double getIntensityMin() const;
 
 	/**
 	 * Return the maximum frequency for the histogram.
 	 * @return - the maximum frequency for the histogram.
 	 */
-	int getFrequencyMax() const;
+	double getFrequencyMax() const;
 
 	/**
 	 * Return the minimum frequency for the histogram.
 	 * @return - the minimum frequency for the histogram.
 	 */
-	int getFrequencyMin() const;
+	double getFrequencyMin() const;
 
 	/**
 	 * Return intensity units.
@@ -155,6 +155,3 @@ private:
 };
 }
 }
-
-
-
