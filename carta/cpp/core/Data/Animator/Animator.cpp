@@ -735,6 +735,10 @@ void Animator::_updateSupportedZAxes( Controller* controller ){
 void Animator::_updateFrame( Controller* controller, Carta::Lib::AxisInfo::KnownType type ){
     if ( controller ){
         int frameIndex = controller->getFrame( type );
+        // check the new spectral frame index
+        if ( type == AxisInfo::KnownType::SPECTRAL ) {
+             qDebug() << "++++++++ [update spectral frame] Index=" << frameIndex;
+        }
         QString animName = AxisMapper::getAnimatorPurpose( type );
         if ( m_animators.contains( animName) ){
             int currentIndex = m_animators[animName]->getFrame();

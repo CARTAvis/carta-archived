@@ -87,7 +87,6 @@ void DrawSynchronizer::setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInt
     m_cec->setInput( rawView );
 }
 
-
 void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours> > & contours ){
     std::vector<double> levels;
     bool drawing = false;
@@ -105,6 +104,10 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
     if ( drawing ){
         m_cec->setLevels( levels );
     }
+}
+
+void DrawSynchronizer::setContourType(QString contourType) {
+    m_cec->setName(contourType);
 }
 
 void DrawSynchronizer::setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){

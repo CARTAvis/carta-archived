@@ -75,7 +75,8 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             var nameContainer = new qx.ui.container.Composite();
             nameContainer.setLayout( new qx.ui.layout.HBox(2));
             nameContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            var nameLabel = new qx.ui.basic.Label( "Name:");
+            //var nameLabel = new qx.ui.basic.Label( "Name:");
+            var nameLabel = new qx.ui.basic.Label( "Contour Type/Sets:");
             nameContainer.add( nameLabel );
             this.m_nameCombo = new skel.boundWidgets.ComboBox( "selectContourSet", "name");
             var defaultItem= [this.m_DEFAULT];
@@ -419,7 +420,17 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 names.push( controls.contourSets[i].name );
             }
             
-                this.m_nameCombo.setComboItems( names );
+                //this.m_nameCombo.setComboItems( names );
+                var sets = ["w/o line combine optimization",
+			    "w/ line combine optimization",
+			    "w/ Gaussian blur 3x3",
+                            "w/ Gaussian blur 5x5",
+                            "w/ Box blur 3x3",
+                            "w/ Box blur 5x5",
+			    "Add set1",
+			    "Add set2",
+			    "Add set3"];
+                this.m_nameCombo.setComboItems( sets );
            
         },
         
@@ -566,7 +577,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
         m_oldMax : null,
         m_oldInterval : null,
         
-        m_DEFAULT : "Default"
-
+        //m_DEFAULT : "Default"
+        m_DEFAULT : "w/o line combine optimization"
     }
 });
