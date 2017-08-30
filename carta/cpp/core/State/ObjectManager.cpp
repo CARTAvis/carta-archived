@@ -35,7 +35,7 @@ QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
 //grimmer:
 //  become non-singleton:Layout", "ViewManager", "DataLoader"
 // internal change data(dangerous): UnitsIntensity
-//  callback(not compatible with new arch): PlotStyles, x DataLoader,
+//  callback(not compatible with new arch): PlotStyles, x DataLoader, layout (setlayoutsize)?
 //     CoordinateSystems, ErrorManager, Preferences, PreferencesSave, Themes
 
 QString CartaObject::addIdToCommand (const QString & command) const {
@@ -178,8 +178,9 @@ CartaObject::removeId (const QString & commandAndId)
 
 IConnector *
 CartaObject::conn() {
-    static IConnector * conn = Globals::instance()-> connector();
+    IConnector * conn = Globals::instance()-> connector();
     return conn;
+
 }
 
 CartaObject::~CartaObject () {

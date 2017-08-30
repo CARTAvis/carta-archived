@@ -30,6 +30,9 @@
 #include <iostream>
 #include <limits>
 
+#include <QThread>
+
+
 #include <rapidjson/document.h>
 
 
@@ -86,9 +89,13 @@ Viewer::Viewer() :
 void
 Viewer::start()
 {
-    qDebug() << "Viewer::start() starting";
 
     auto & globals = * Globals::instance();
+
+
+    QString name = QThread::currentThread()->objectName();
+    qDebug() << "Viewer::start() starting:"<<name;
+
 
 	if ( m_viewManager == nullptr ){
 	    Carta::State::ObjectManager* objectManager = Carta::State::ObjectManager::objectManager();
@@ -99,7 +106,7 @@ Viewer::start()
 	    m_viewManager->reload();
 	}
 
-    if ( m_devView ){
+    if ( m_devView ){       
        m_viewManager->setDeveloperView();
     }
 

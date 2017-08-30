@@ -37,6 +37,8 @@ public:
     /// Show areas under active development.
     void setDeveloperView( );
 
+    std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
+
 signals:
 
 public slots:
@@ -57,7 +59,6 @@ private:
 
     bool m_devView;
 
-    std::shared_ptr<Carta::Data::ViewManager> m_viewManager;
 
 };
 

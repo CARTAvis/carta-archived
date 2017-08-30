@@ -400,6 +400,37 @@ int ViewManager::getImageZoomCount() const {
     return zoomCount;
 }
 
+QString ViewManager::dataLoaded(const QString & params) {
+
+    const QString DATA( "data");
+    std::set<QString> keys = {Util::ID,DATA};
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    bool fileLoaded = false;
+    QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
+    if ( !fileLoaded ){
+        Util::commandPostProcess( result);
+    }
+    return "";
+
+}
+
+QString ViewManager::registerView(const QString & params){
+
+    const QString PLUGIN_ID( "pluginId");
+    const QString INDEX( "index");
+    std::set<QString> keys = {PLUGIN_ID, INDEX};
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    bool validIndex = false;
+    int index = dataValues[INDEX].toInt(&validIndex);
+    QString viewId( "");
+    if ( validIndex ){
+        viewId = getObjectId( dataValues[PLUGIN_ID], index );
+    }
+    else {
+        qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
+    }
+    return viewId;
+}
 
 void ViewManager::_initCallbacks(){
     addCommandCallback( "clearLayout", [=] (const QString & /*cmd*/,
@@ -444,37 +475,37 @@ void ViewManager::_initCallbacks(){
     });
 
     //Callback for adding a data source to a Controller.
-    addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString DATA( "data");
-        std::set<QString> keys = {Util::ID,DATA};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        bool fileLoaded = false;
-        QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
-        if ( !fileLoaded ){
-            Util::commandPostProcess( result);
-        }
-        return "";
-    });
+//    addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+//        const QString DATA( "data");
+//        std::set<QString> keys = {Util::ID,DATA};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        bool fileLoaded = false;
+//        QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
+//        if ( !fileLoaded ){
+//            Util::commandPostProcess( result);
+//        }
+//        return "";
+//    });
 
     //Callback for registering a view.
-    addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        const QString PLUGIN_ID( "pluginId");
-        const QString INDEX( "index");
-        std::set<QString> keys = {PLUGIN_ID, INDEX};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        bool validIndex = false;
-        int index = dataValues[INDEX].toInt(&validIndex);
-        QString viewId( "");
-        if ( validIndex ){
-            viewId = getObjectId( dataValues[PLUGIN_ID], index );
-        }
-        else {
-            qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
-        }
-        return viewId;
-    });
+//    addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+//        const QString PLUGIN_ID( "pluginId");
+//        const QString INDEX( "index");
+//        std::set<QString> keys = {PLUGIN_ID, INDEX};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        bool validIndex = false;
+//        int index = dataValues[INDEX].toInt(&validIndex);
+//        QString viewId( "");
+//        if ( validIndex ){
+//            viewId = getObjectId( dataValues[PLUGIN_ID], index );
+//        }
+//        else {
+//            qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
+//        }
+//        return viewId;
+//    });
 
     //Callback for linking a window with another window
     addCommandCallback( "linkAdd", [=] (const QString & /*cmd*/,

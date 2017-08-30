@@ -8,6 +8,7 @@
 #include "core/SimpleRemoteVGView.h"
 #include "core/State/ObjectManager.h"
 #include "core/Data/DataLoader.h"
+#include "core/Data/ViewManager.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -369,7 +370,7 @@ void DesktopConnector::jsSendCommandSlot(const QString & sessionID, const QStrin
     QString name = QThread::currentThread()->objectName();
     qDebug() << "current thread name:" << name;
     if (name != sessionID) {
-        qDebug()<< "ignore";
+        qDebug()<< "ignore jsSendCommandSlot(";
         return;
     }
 
@@ -384,7 +385,29 @@ void DesktopConnector::jsSendCommandSlot(const QString & sessionID, const QStrin
         emit jsCommandResultsSignal(sessionID, cmd, fileList);
 
 
+    } else if (cmd.contains("ViewManager")) {
+
+        if (cmd == "/CartaObjects/ViewManager:registerView") {
+            int kkk = 5;
+        }
+
+        QStringList myStringList = cmd.split(':');
+        if(myStringList.size()>=2){
+              auto subCommand = myStringList[1]; //registerView
+              if (subCommand == "registerView") {
+                QString result;
+                result = this->viewer.m_viewManager->registerView(parameter);
+                emit jsCommandResultsSignal(sessionID, cmd, result);
+              } else if (subCommand == "dataLoaded") {
+                  QString result;
+                  result = this->viewer.m_viewManager->dataLoaded(parameter);
+                  emit jsCommandResultsSignal(sessionID, cmd, result);
+              }
+        }
+
     } else {
+
+
 
         // call all registered callbacks and collect results, but asynchronously
     //    defer( [cmd, parameter, this ]() {
@@ -439,6 +462,10 @@ DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & vie
 
 void DesktopConnector::refreshViewNow(IView *view)
 {
+
+    QString sessionID = QThread::currentThread()->objectName();
+
+
     static int enterCount =0;
 
     enterCount++;
@@ -499,7 +526,7 @@ void DesktopConnector::refreshViewNow(IView *view)
            QBuffer buffer(&byteArray);
            finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
            QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-           emit jsViewUpdatedSignal( view-> name(), base64Str, viewInfo-> refreshId);
+           emit jsViewUpdatedSignal(sessionID, view-> name(), base64Str, viewInfo-> refreshId);
 
 //           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
 //           if (test_pClient != nullptr) {
@@ -534,7 +561,7 @@ void DesktopConnector::refreshViewNow(IView *view)
            QBuffer buffer(&byteArray);
            finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer. 50 is a little bad
            QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-           emit jsViewUpdatedSignal( view-> name(), base64Str,  viewInfo-> refreshId);
+           emit jsViewUpdatedSignal(sessionID, view-> name(), base64Str,  viewInfo-> refreshId);
 
 //           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
 //           if (test_pClient != nullptr) {
@@ -553,7 +580,7 @@ void DesktopConnector::refreshViewNow(IView *view)
     //http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
 
     // test webSocket case
-    auto sendBackToWSClient = [this](const QImage & img) {
+//    auto sendBackToWSClient = [this](const QImage & img) {
 
     // 1. convert Qimage to jpeg base64 string
 
@@ -561,7 +588,7 @@ void DesktopConnector::refreshViewNow(IView *view)
     // 2.d send
     //test_pClient->sendTextMessage();
 
-    };
+//    };
 
 
 
@@ -580,7 +607,7 @@ void DesktopConnector::startViewerSlot(const QString & sessionID) {
     QString name = QThread::currentThread()->objectName();
     qDebug() << "current thread name:" << name;
     if (name != sessionID) {
-        qDebug()<< "ignore";
+        qDebug()<< "ignore startViewerSlot";
         return;
     }
 
@@ -588,8 +615,16 @@ void DesktopConnector::startViewerSlot(const QString & sessionID) {
 }
 
 
-void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)
+void DesktopConnector::jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height)
 {
+    QString name = QThread::currentThread()->objectName();
+    qDebug() << "current thread name:" << name;
+    if (name != sessionID) {
+        qDebug()<< "ignore jsUpdateViewSlot";
+        return;
+    }
+
+
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
         qWarning() << "Received update for unknown view " << viewName;

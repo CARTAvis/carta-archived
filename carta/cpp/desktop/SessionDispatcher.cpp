@@ -281,13 +281,17 @@ IConnector* SessionDispatcher::getConnectorInMap(const QString & sessionID){
     return nullptr;
 }
 
-//TODO add lock/mutex later
 void SessionDispatcher::setConnectorInMap(const QString & sessionID, IConnector *connector){
     mutex.lock();
     clientList[sessionID] = connector;
     mutex.unlock();
 
 }
+
+void SessionDispatcher::jsViewUpdatedSignalForwardSlot(const QString & sessionID, const QString & viewName, const QString & img, qint64 id){
+    emit jsViewUpdatedSignal(sessionID, viewName, img, id);
+}
+
 
 void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results){
     emit jsCommandResultsSignal(sessionID, cmd, results);
@@ -324,10 +328,22 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
                 SIGNAL(jsSendCommandSignal(const QString &, const QString &, const QString &)),
                 connector,
                 SLOT(jsSendCommandSlot(const QString &, const QString &, const QString &)));
+        connect(this,
+                SIGNAL(jsUpdateViewSignal(const QString &, const QString &, int, int) ),
+                connector,
+                SLOT( jsUpdateViewSlot(const QString &, const QString &, int, int)));
+
+
         connect(connector,
                 SIGNAL(jsCommandResultsSignal(const QString &, const QString &, const QString &)),
                 this,
                 SLOT(jsCommandResultsSignalForwardSlot(const QString &, const QString &, const QString &))
+                );
+
+        connect(connector,
+                SIGNAL(jsViewUpdatedSignal(const QString &,  const QString &, const QString &, qint64)),
+                this,
+                SLOT(jsViewUpdatedSignalForwardSlot(const QString &, const QString &, const QString &, qint64))
                 );
 
         // create a simple thread
@@ -398,21 +414,24 @@ SessionDispatcher::ViewInfo * SessionDispatcher::findViewInfo( const QString & v
 
 
 
-void SessionDispatcher::jsUpdateViewSlot(const QString & viewName, int width, int height)
+void SessionDispatcher::jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height)
 {
-    ViewInfo * viewInfo = findViewInfo( viewName);
-    if( ! viewInfo) {
-        qWarning() << "Received update for unknown view " << viewName;
-        return;
-    }
+    emit jsUpdateViewSignal(sessionID, viewName, width, height);
+    return;
 
-    IView * view = viewInfo-> view;
-    viewInfo-> clientSize = QSize( width, height);
+//    ViewInfo * viewInfo = findViewInfo( viewName);
+//    if( ! viewInfo) {
+//        qWarning() << "Received update for unknown view " << viewName;
+//        return;
+//    }
 
-    defer([this,view,viewInfo](){
-        view-> handleResizeRequest( viewInfo-> clientSize);
-        refreshView( view);
-    });
+//    IView * view = viewInfo-> view;
+//    viewInfo-> clientSize = QSize( width, height);
+
+//    defer([this,view,viewInfo](){
+//        view-> handleResizeRequest( viewInfo-> clientSize);
+//        refreshView( view);
+//    });
 }
 
 void SessionDispatcher::jsViewRefreshedSlot(const QString & viewName, qint64 id)
@@ -605,129 +624,129 @@ Carta::Lib::IRemoteVGView * SessionDispatcher::makeRemoteVGView(QString viewName
 
 void SessionDispatcher::refreshViewNow(IView *view)
 {
-    static int enterCount =0;
+//    static int enterCount =0;
 
-    enterCount++;
+//    enterCount++;
 
-//    if (enterCount>1) {
+////    if (enterCount>1) {
+////        return;
+////    }
+
+
+//    ViewInfo * viewInfo = findViewInfo( view-> name());
+//    if( ! viewInfo) {
+//        // this is an internal error...
+//        qCritical() << "refreshView cannot find this view: " << view-> name();
 //        return;
+//    }
+//    // get the image from view
+//    const QImage & origImage = view-> getBuffer();
+
+//    QSize clientImageSize = viewInfo->clientSize;
+//    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 &&
+//            clientImageSize.width() > 0 && origImage.height() > 0 ) {
+//        qDebug() << "Having to re-scale the image, this is slow" << origImage.size() << viewInfo->clientSize;
+//        // scale the image to fit the client size, in case it wasn't scaled alerady
+//        QImage destImage = origImage.scaled(
+//                               viewInfo->clientSize, Qt::KeepAspectRatio,
+//                               //                Qt::SmoothTransformation);
+//                               Qt::FastTransformation);
+//        // calculate the offset needed to center the image
+//        int xOffset = (viewInfo-> clientSize.width() - destImage.size().width())/2;
+//        int yOffset = (viewInfo-> clientSize.height() - destImage.size().height())/2;
+//        QImage pix( viewInfo->clientSize, QImage::Format_ARGB32_Premultiplied);
+//        pix.fill( qRgba( 0, 0, 0, 0));
+//        QPainter p( & pix);
+//        p.setCompositionMode( QPainter::CompositionMode_Source);
+//        p.drawImage( xOffset, yOffset, destImage );
+
+//        // remember the transformations we did to the image in the viewInfo so that we can
+//        // properly translate mouse events etc
+//        viewInfo-> tx = Carta::Lib::LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
+//                                     0, origImage.width()-1);
+//        viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
+//                                     0, origImage.height()-1);
+
+//        QString nname = view-> name();
+
+//        qDebug()<<"grimmer image11111";
+
+////        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+////        return;
+
+//        QImage *finalImage;
+
+//        finalImage = &pix;
+
+//        if (finalImage) {
+////            image.load("test.png");
+//           QByteArray byteArray;
+//           QBuffer buffer(&byteArray);
+//           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
+//           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+//           emit jsViewUpdatedSignal( view-> name(), base64Str, viewInfo-> refreshId);
+
+////           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
+////           if (test_pClient != nullptr) {
+////               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
+////               test_pClient->flush();
+////               qDebug() << "send:"<<sendNumber;
+////           }
+//        } else {
+//            qDebug() << "grimmer not ready";
+//        }
+
+//    }
+//    else {
+
+//        static int count = 0;
+//        count++;
+
+//        qDebug()<<"grimmer image2222:"<< count;
+
+//        QString nname = view-> name();
+
+//        viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
+//        viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
+
+////        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+////        return;
+
+//        const QImage *finalImage = &origImage;
+//        if (finalImage) {
+////            image.load("test.png");
+//           QByteArray byteArray;
+//           QBuffer buffer(&byteArray);
+//           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer. 50 is a little bad
+//           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+//           emit jsViewUpdatedSignal( view-> name(), base64Str,  viewInfo-> refreshId);
+
+////           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
+////           if (test_pClient != nullptr) {
+////               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
+////               test_pClient->flush();
+////               qDebug() << "send:"<<sendNumber;
+////           }
+//        } else {
+//            qDebug() << "grimmer not ready";
+//        }
+
 //    }
 
 
-    ViewInfo * viewInfo = findViewInfo( view-> name());
-    if( ! viewInfo) {
-        // this is an internal error...
-        qCritical() << "refreshView cannot find this view: " << view-> name();
-        return;
-    }
-    // get the image from view
-    const QImage & origImage = view-> getBuffer();
 
-    QSize clientImageSize = viewInfo->clientSize;
-    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 &&
-            clientImageSize.width() > 0 && origImage.height() > 0 ) {
-        qDebug() << "Having to re-scale the image, this is slow" << origImage.size() << viewInfo->clientSize;
-        // scale the image to fit the client size, in case it wasn't scaled alerady
-        QImage destImage = origImage.scaled(
-                               viewInfo->clientSize, Qt::KeepAspectRatio,
-                               //                Qt::SmoothTransformation);
-                               Qt::FastTransformation);
-        // calculate the offset needed to center the image
-        int xOffset = (viewInfo-> clientSize.width() - destImage.size().width())/2;
-        int yOffset = (viewInfo-> clientSize.height() - destImage.size().height())/2;
-        QImage pix( viewInfo->clientSize, QImage::Format_ARGB32_Premultiplied);
-        pix.fill( qRgba( 0, 0, 0, 0));
-        QPainter p( & pix);
-        p.setCompositionMode( QPainter::CompositionMode_Source);
-        p.drawImage( xOffset, yOffset, destImage );
+//    //http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
 
-        // remember the transformations we did to the image in the viewInfo so that we can
-        // properly translate mouse events etc
-        viewInfo-> tx = Carta::Lib::LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
-                                     0, origImage.width()-1);
-        viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
-                                     0, origImage.height()-1);
+//    // test webSocket case
+//    auto sendBackToWSClient = [this](const QImage & img) {
 
-        QString nname = view-> name();
-
-        qDebug()<<"grimmer image11111";
-
-//        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
-//        return;
-
-        QImage *finalImage;
-
-        finalImage = &pix;
-
-        if (finalImage) {
-//            image.load("test.png");
-           QByteArray byteArray;
-           QBuffer buffer(&byteArray);
-           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
-           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-           emit jsViewUpdatedSignal( view-> name(), base64Str, viewInfo-> refreshId);
-
-//           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
-//           if (test_pClient != nullptr) {
-//               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
-//               test_pClient->flush();
-//               qDebug() << "send:"<<sendNumber;
-//           }
-        } else {
-            qDebug() << "grimmer not ready";
-        }
-
-    }
-    else {
-
-        static int count = 0;
-        count++;
-
-        qDebug()<<"grimmer image2222:"<< count;
-
-        QString nname = view-> name();
-
-        viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
-        viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
-
-//        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
-//        return;
-
-        const QImage *finalImage = &origImage;
-        if (finalImage) {
-//            image.load("test.png");
-           QByteArray byteArray;
-           QBuffer buffer(&byteArray);
-           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer. 50 is a little bad
-           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-           emit jsViewUpdatedSignal( view-> name(), base64Str,  viewInfo-> refreshId);
-
-//           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
-//           if (test_pClient != nullptr) {
-//               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
-//               test_pClient->flush();
-//               qDebug() << "send:"<<sendNumber;
-//           }
-        } else {
-            qDebug() << "grimmer not ready";
-        }
-
-    }
+//    // 1. convert Qimage to jpeg base64 string
 
 
+//    // 2.d send
+//    //test_pClient->sendTextMessage();
 
-    //http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
-
-    // test webSocket case
-    auto sendBackToWSClient = [this](const QImage & img) {
-
-    // 1. convert Qimage to jpeg base64 string
-
-
-    // 2.d send
-    //test_pClient->sendTextMessage();
-
-    };
+//    };
 
 
 

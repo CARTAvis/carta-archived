@@ -84,7 +84,7 @@ public slots:
     void jsConnectorReadySlot();
 
     /// javascript calls this when view is resized
-    void jsUpdateViewSlot( const QString & viewName, int width, int height);
+    void jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height);
 
     /// javascript calls this when the view is refreshed
     void jsViewRefreshedSlot( const QString & viewName, qint64 id);
@@ -116,7 +116,7 @@ signals:
     /// javascript listens to it
     void jsCommandResultsSignal(const QString & sessionID, const QString & cmd, const QString & results);
     /// emitted by c++ when we want javascript to repaint the view
-    void jsViewUpdatedSignal( const QString & viewName, const QString & img, qint64 id);
+    void jsViewUpdatedSignal(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
 
 public:
 

@@ -81,7 +81,7 @@ public slots:
     /// javascript calls this to let us know js connector is ready
     void newSessionCreatedSlot(const QString & sessionID);
     /// javascript calls this when view is resized
-    void jsUpdateViewSlot( const QString & viewName, int width, int height);
+    void jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height);
     /// javascript calls this when the view is refreshed
     void jsViewRefreshedSlot( const QString & viewName, qint64 id);
     /// javascript calls this on mouse move inside a view
@@ -92,6 +92,9 @@ public slots:
     void stateChangedSlot( const QString & key, const QString & value);
 
     void jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results);
+    void jsViewUpdatedSignalForwardSlot(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
+
+
 
     // no use. Qt's built-in WebSocket
 //    void onNewConnection();
@@ -112,12 +115,12 @@ signals:
     /// javascript listens to it
     void jsCommandResultsSignal(const QString & sessionID, const QString & cmd, const QString & results);
     /// emitted by c++ when we want javascript to repaint the view
-    void jsViewUpdatedSignal( const QString & viewName, const QString & img, qint64 id);
+    void jsViewUpdatedSignal(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
 
-    // for new arch
+    // for new arch, forward js->cpp's sessionhDispatcher -> others
     void startViewerSignal(const QString & sessionID);
     void jsSendCommandSignal(const QString & sessionID, const QString &cmd, const QString & parameter);
-
+    void jsUpdateViewSignal(const QString & sessionID, const QString & viewName, int width, int height);
 public:
 
     //** will comment later until the end

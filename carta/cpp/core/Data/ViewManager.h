@@ -177,6 +177,10 @@ public:
      */
     virtual ~ViewManager();
 
+    QString dataLoaded(const QString & params);
+    QString registerView(const QString & params);
+
+
 private slots:
     void _pluginsChanged( const QStringList& names, const QStringList& oldNames );
 
