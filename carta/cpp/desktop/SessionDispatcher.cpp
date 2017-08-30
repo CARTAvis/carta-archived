@@ -2,12 +2,10 @@
  *
  **/
 
-#include "DesktopConnector.h"
+#include "SessionDispatcher.h"
 #include "CartaLib/LinearMap.h"
 #include "core/MyQApp.h"
 #include "core/SimpleRemoteVGView.h"
-#include "core/State/ObjectManager.h"
-#include "core/Data/DataLoader.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -27,14 +25,15 @@
 #include "websockettransport.h"
 #include "qwebchannel.h"
 #include <QBuffer>
-
 #include <QThread>
 
 
-/// \brief internal class of DesktopConnector, containing extra information we like
+#include "DesktopConnector.h"
+
+/// \brief internal class of SessionDispatcher, containing extra information we like
 ///  to remember with each view
 ///
-struct DesktopConnector::ViewInfo
+struct SessionDispatcher::ViewInfo
 {
 
     /// pointer to user supplied IView
@@ -67,7 +66,7 @@ struct DesktopConnector::ViewInfo
 // not use now
 // uWebSockets part, comment now, change to use qt's built-in WebSocket
 //TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.
-void DesktopConnector::startWebSocketServer() {
+// void SessionDispatcher::startWebSocketServer() {
 
 //    std::cout << "websocket starts running" << std::endl;
 //    uWS::Hub h;
@@ -97,7 +96,7 @@ void DesktopConnector::startWebSocketServer() {
 
 ////             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
 
-//            // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
+//            // SessionDispatcher::jsSendCommandSlot(const QString &cmd, const QString & parameter)
 //            //    /CartaObjects/DataLoader:getData
 //            //    path:
 //        } else if (message2.contains("SELECT_FILE_TO_OPEN")) {
@@ -130,10 +129,14 @@ void DesktopConnector::startWebSocketServer() {
 //    h.run(); // will block here
 
 //    std::cout << "websocket ends running" << std::endl;
-}
+// }
+
+//void SessionDispatcher::receiveNewSession(int SessionID){
 
 
-void DesktopConnector::startWebSocketChannel(){
+//}
+
+void SessionDispatcher::startWebSocketChannel(){
 
     int port = 4317;
 
@@ -144,7 +147,7 @@ void DesktopConnector::startWebSocketChannel(){
         return;
     }
 
-    qDebug() << "DesktopConnector listening on port" << port;
+    qDebug() << "SessionDispatcher listening on port" << port;
 
     // wrap WebSocket clients in QWebChannelAbstractTransport objects
     m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
@@ -157,17 +160,17 @@ void DesktopConnector::startWebSocketChannel(){
     m_channel->registerObject(QStringLiteral("QConnector"), this);
 }
 
-DesktopConnector::DesktopConnector()
+SessionDispatcher::SessionDispatcher()
 {
     // queued connection to prevent callbacks from firing inside setState
-    connect( this, & DesktopConnector::stateChangedSignal,
-             this, & DesktopConnector::stateChangedSlot,
-             Qt::QueuedConnection );
-
-    m_callbackNextId = 0;
+    // connect( this, & SessionDispatcher::stateChangedSignal,
+    //          this, & SessionDispatcher::stateChangedSlot,
+    //          Qt::QueuedConnection );
+    //
+    // m_callbackNextId = 0;
 
     // test1: uWebSocket part
-//    std::thread mThread( &DesktopConnector::startWebSocketServer, this );
+//    std::thread mThread( &SessionDispatcher::startWebSocketServer, this );
 //    mThread.detach();
 
     // test2: change to use Qt's buint-in WebSocket
@@ -180,20 +183,19 @@ DesktopConnector::DesktopConnector()
 //         if (m_debug)
 //             qDebug() << "DesktopConnector listening on port" << port;
 //         connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
-//                 this, &DesktopConnector::onNewConnection);
-// //        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &DesktopConnector::closed);
+//                 this, &SessionDispatcher::onNewConnection);
+// //        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &SessionDispatcher::closed);
 //     }
 
 //test3, Qt's built-in WebSocket + QWebChannel
     m_pWebSocketServer = nullptr;
     m_clientWrapper = nullptr;
     m_channel = nullptr;
-    selfThread = nullptr;
-//    startWebSocketChannel();
+    startWebSocketChannel();
 
 }
 
-DesktopConnector::~DesktopConnector()
+SessionDispatcher::~SessionDispatcher()
 {
     m_pWebSocketServer->close();
 //    qDeleteAll(m_clients.begin(), m_clients.end());
@@ -211,12 +213,260 @@ DesktopConnector::~DesktopConnector()
     }
 }
 
-void DesktopConnector::initialize(const InitializeCallback & cb)
+void SessionDispatcher::initialize(const InitializeCallback & cb)
 {
     m_initializeCallback = cb;
 }
 
-void DesktopConnector::setState(const QString& path, const QString & newValue)
+void SessionDispatcher::jsSetStateSlot(const QString & key, const QString & value) {
+    // it's ok to call setState directly, because callbacks will be invoked
+    // from there asynchronously
+    setState( key, value );
+
+    if( CARTA_RUNTIME_CHECKS) {
+        auto iter = m_stateCallbackList.find( key);
+        if( iter == m_stateCallbackList.end()) {
+            qWarning() << "JS setState has no listener" << key << "=" << value;
+        }
+    }
+}
+
+void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
+{
+    // forward commands
+    emit jsSendCommandSignal(sessionID, cmd, parameter);
+    return;
+
+//    /CartaObjects/DataLoader:getData
+//    path:
+
+//    qDebug()<<"cmd:"<<cmd;
+//    qDebug()<<"parameter:"<< parameter;
+//    if (cmd=="/CartaObjects/c14:setZoomLevel") {
+//        int kkk =0;
+//    }
+
+    // call all registered callbacks and collect results, but asynchronously
+//    defer( [cmd, parameter, this ]() {
+//        auto & allCallbacks = m_commandCallbackMap[ cmd];
+//        QStringList results;
+//        for( auto & cb : allCallbacks) {
+//            results += cb( cmd, parameter, "1"); // session id fixed to "1"
+//        }
+
+//        // pass results back to javascript
+//        emit jsCommandResultsSignal( cmd, results.join("|"));
+
+//        if( allCallbacks.size() == 0) {
+//            qWarning() << "JS command has no server listener:" << cmd << parameter;
+//        }
+//    });
+}
+
+//TODO add lock/mutex later
+IConnector* SessionDispatcher::getConnectorInMap(const QString & sessionID){
+
+    mutex.lock();
+    auto iter = clientList.find(sessionID);
+
+    if(iter != clientList.end()) {
+        qDebug()<<"Find Desktopconnector is";
+        auto connector = iter->second;
+        mutex.unlock();
+        return connector;
+    }
+
+    mutex.unlock();
+    qDebug()<<"Do not Find Desktopconnector"<<endl;
+    return nullptr;
+}
+
+//TODO add lock/mutex later
+void SessionDispatcher::setConnectorInMap(const QString & sessionID, IConnector *connector){
+    mutex.lock();
+    clientList[sessionID] = connector;
+    mutex.unlock();
+
+}
+
+void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results){
+    emit jsCommandResultsSignal(sessionID, cmd, results);
+}
+
+void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
+{
+    // at this point it's safe to start using setState as the javascript
+    // connector has registered to listen for the signal
+    qDebug() << "new Client Session !!!!";
+
+    if (getConnectorInMap(sessionID) != nullptr){
+        qDebug()<<"Find, the value is !!!!!";
+        return;
+    }
+
+//    auto iter = clientList.find(sessionID);
+
+//    if(iter != clientList.end()) {
+//        qDebug()<<"Find, the value is";
+//        auto connector = iter->second;
+//    } else {
+        qDebug()<<"Do not Find"<<endl;
+
+//        clientList.insert( std::make_pair(SessionID, new DesktopConnector));
+
+        DesktopConnector *connector =  new DesktopConnector();
+//        IConnector *connector2 = connector;
+//        clientList[sessionID] = connector2;
+        setConnectorInMap(sessionID, connector);
+
+        connect(this, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
+        connect(this,
+                SIGNAL(jsSendCommandSignal(const QString &, const QString &, const QString &)),
+                connector,
+                SLOT(jsSendCommandSlot(const QString &, const QString &, const QString &)));
+        connect(connector,
+                SIGNAL(jsCommandResultsSignal(const QString &, const QString &, const QString &)),
+                this,
+                SLOT(jsCommandResultsSignalForwardSlot(const QString &, const QString &, const QString &))
+                );
+
+        // create a simple thread
+        QThread* newThread = new QThread();
+        connector->selfThread = newThread;
+
+        // let the new thread handle its events
+        connector->moveToThread(newThread);
+        newThread->setObjectName(sessionID);
+
+        // start new thread's event loop
+        newThread->start();
+
+        //trigger signal
+        emit startViewerSignal(sessionID);
+        int k2=0;
+
+//    }
+
+//    int k=0;
+
+    // TODO: Thread 內部可以有收keep alive, 沒有就自己stop機制.
+    // 所以何時需要外部stop, 應該是有ui上面的session list, delete時
+    // 所以map的方法需要access到thread的pointer, 存在 DesktopConnector裡面?
+
+    // x TODO: signal /slot到時應該是block的, 要check, 及想辦法避免lock, defer?
+
+    // time to call the initialize callback
+//    m_initializeCallback(SessionID);
+//    m_initializeCallback(true);
+
+    // 要改5, lock on this map. Also, viewer.start shoudl be on that thread.
+    // x 要改3. viewer 跟此deksconnector都要move到那個thread, 這樣signal/slot跟event loop才是那個thread
+    // x 要改4. 如何讓viewer活著????? 放在 Desktopconnector底下好了
+    // 要改1. 是這裡new出後, 要設定sessionDispatcher跟他們的signal/slot, 1對多怎麼指定? trigger時多帶session id,
+    // desktopconnector各自的slot會去filter. 是用a. thread<-這個好了 or b. 存起來呢?.
+    //
+
+    ////        viewer.start(); 裡面產生viewmanager, objec new出時會去access global的desktopconnector, 註冊callback function
+    /// // 是用 Globals::instance()->connector(); <-要改2.
+    /// //要不要放在map裡這件事, 應該是要, 不然
+    /// //a. 會leak b. 如果有一樣的session上來. 或是
+    /// //b. 收command時要檢查有沒有加過, 也有可能是cpp server restart, 此時會有command上來但沒有紀錄, 要new
+
+    ////        1 session 對到1個 desktopconnector, 在不同thread裡.
+    ////        都發signal到 desktopconnector
+    ////        cpp算完 -> desktopconnector -> 再發signal 到sessionDispatcher -> 再送給js
+    ////        globals ? 要改一點地方
+    ////        desktopplatform? check一下
+
+    ////        viewer? 每個人有自己一份好了
+    ////        objectmanager, 維持原樣
+    //         //viewermanger, 每個人有自己一份
+    //        // plugin -> prepare 已提早
+
+}
+
+SessionDispatcher::ViewInfo * SessionDispatcher::findViewInfo( const QString & viewName)
+{
+    auto viewIter = m_views.find( viewName);
+    if( viewIter == m_views.end()) {
+        qWarning() << "SessionDispatcher::findViewInfo: Unknown view " << viewName;
+        return nullptr;
+    }
+
+    return viewIter-> second;
+}
+
+
+
+void SessionDispatcher::jsUpdateViewSlot(const QString & viewName, int width, int height)
+{
+    ViewInfo * viewInfo = findViewInfo( viewName);
+    if( ! viewInfo) {
+        qWarning() << "Received update for unknown view " << viewName;
+        return;
+    }
+
+    IView * view = viewInfo-> view;
+    viewInfo-> clientSize = QSize( width, height);
+
+    defer([this,view,viewInfo](){
+        view-> handleResizeRequest( viewInfo-> clientSize);
+        refreshView( view);
+    });
+}
+
+void SessionDispatcher::jsViewRefreshedSlot(const QString & viewName, qint64 id)
+{
+    //qDebug() << "jsViewRefreshedSlot()" << viewName << id;
+    ViewInfo * viewInfo = findViewInfo( viewName);
+    if( ! viewInfo) {
+        qCritical() << "Received refresh view signal for unknown view" << viewName;
+        return;
+    }
+    CARTA_ASSERT( viewInfo-> view);
+    viewInfo-> view-> viewRefreshed( id);
+}
+
+void SessionDispatcher::jsMouseMoveSlot(const QString &viewName, int x, int y)
+{
+    ViewInfo * viewInfo = findViewInfo( viewName);
+    if( ! viewInfo) {
+        qWarning() << "Received mouse event for unknown view " << viewName << "\n";
+        return;
+    }
+
+    IView * view = viewInfo-> view;
+
+    // we need to map x,y from screen coordinates to image coordinates
+    int xi = std::round( viewInfo-> tx(x));
+    int yi = std::round( viewInfo-> ty(y));
+
+    // tell the view about the event
+    QMouseEvent ev( QEvent::MouseMove,
+                    QPoint(xi,yi),
+                    Qt::NoButton,
+                    Qt::NoButton,
+                    Qt::NoModifier   );
+    view-> handleMouseEvent( ev);
+}
+
+void SessionDispatcher::stateChangedSlot(const QString & key, const QString & value)
+{
+    // find the list of callbacks for this path
+    auto iter = m_stateCallbackList.find( key);
+
+    // if it does not exist, do nothing
+    if( iter == m_stateCallbackList.end()) {
+        return;
+    }
+
+    // call all registered callbacks for this key
+    iter-> second-> callEveryone( key, value);
+}
+
+//********* will comment the below later
+
+void SessionDispatcher::setState(const QString& path, const QString & newValue)
 {
     // find the path
     auto it = m_state.find( path);
@@ -238,19 +488,19 @@ void DesktopConnector::setState(const QString& path, const QString & newValue)
 }
 
 
-QString DesktopConnector::getState(const QString & path  )
+QString SessionDispatcher::getState(const QString & path  )
 {
     return m_state[ path ];
 }
 
 
-/// Return the location where the state is saved.
-QString DesktopConnector::getStateLocation( const QString& saveName ) const {
+// Return the location where the state is saved.
+QString SessionDispatcher::getStateLocation( const QString& saveName ) const {
 	// \todo Generalize this.
 	return "/tmp/"+saveName+".json";
 }
 
-IConnector::CallbackID DesktopConnector::addCommandCallback(
+IConnector::CallbackID SessionDispatcher::addCommandCallback(
         const QString & cmd,
         const IConnector::CommandCallback & cb)
 {
@@ -258,7 +508,7 @@ IConnector::CallbackID DesktopConnector::addCommandCallback(
     return m_callbackNextId++;
 }
 
-IConnector::CallbackID DesktopConnector::addStateCallback(
+IConnector::CallbackID SessionDispatcher::addStateCallback(
         IConnector::CSR path,
         const IConnector::StateChangedCallback & cb)
 {
@@ -283,7 +533,7 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
 //    return m_stateCallbackList[ path].add( cb);
 }
 
-void DesktopConnector::registerView(IView * view)
+void SessionDispatcher::registerView(IView * view)
 {
     // let the view know it's registered, and give it access to the connector
     view->registration( this);
@@ -303,8 +553,8 @@ void DesktopConnector::registerView(IView * view)
     });
 }
 
-// unregister the view
-void DesktopConnector::unregisterView( const QString& viewName ){
+//unregister the view
+void SessionDispatcher::unregisterView( const QString& viewName ){
     ViewInfo* viewInfo = this->findViewInfo( viewName );
     if ( viewInfo != nullptr ){
 
@@ -313,10 +563,10 @@ void DesktopConnector::unregisterView( const QString& viewName ){
     }
 }
 
-//    static QTime st;
+   static QTime st;
 
-// schedule a view refresh
-qint64 DesktopConnector::refreshView(IView * view)
+//schedule a view refresh
+qint64 SessionDispatcher::refreshView(IView * view)
 {
     // find the corresponding view info
     ViewInfo * viewInfo = findViewInfo( view-> name());
@@ -340,104 +590,20 @@ qint64 DesktopConnector::refreshView(IView * view)
     return viewInfo-> refreshId;
 }
 
-void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
+void SessionDispatcher::removeStateCallback(const IConnector::CallbackID & /*id*/)
 {
     qFatal( "not implemented");
 }
 
 
-Carta::Lib::IRemoteVGView * DesktopConnector::makeRemoteVGView(QString viewName)
+Carta::Lib::IRemoteVGView * SessionDispatcher::makeRemoteVGView(QString viewName)
 {
-    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
+//    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
+    return nullptr;
 }
 
-void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
-    // it's ok to call setState directly, because callbacks will be invoked
-    // from there asynchronously
-    setState( key, value );
 
-    if( CARTA_RUNTIME_CHECKS) {
-        auto iter = m_stateCallbackList.find( key);
-        if( iter == m_stateCallbackList.end()) {
-            qWarning() << "JS setState has no listener" << key << "=" << value;
-        }
-    }
-}
-
-void DesktopConnector::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
-{
-    QString name = QThread::currentThread()->objectName();
-    qDebug() << "current thread name:" << name;
-    if (name != sessionID) {
-        qDebug()<< "ignore";
-        return;
-    }
-
-
-    if (cmd == "/CartaObjects/DataLoader:getData") {
-
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        Carta::Data::DataLoader *m_dataLoader = objMan->createObject<Carta::Data::DataLoader>();
-
-        QString fileList = m_dataLoader->getFileList(parameter);
-
-        emit jsCommandResultsSignal(sessionID, cmd, fileList);
-
-
-    } else {
-
-        // call all registered callbacks and collect results, but asynchronously
-    //    defer( [cmd, parameter, this ]() {
-            auto & allCallbacks = m_commandCallbackMap[ cmd];
-            QStringList results;
-            for( auto & cb : allCallbacks) {
-                results += cb( cmd, parameter, "1"); // session id fixed to "1"
-            }
-
-            // pass results back to javascript
-            emit jsCommandResultsSignal(sessionID, cmd, results.join("|"));
-
-            if( allCallbacks.size() == 0) {
-                qWarning() << "JS command has no server listener:" << cmd << parameter;
-            }
-    //    });
-    }
-//    /CartaObjects/DataLoader:getData
-//    path:
-
-//    qDebug()<<"cmd:"<<cmd;
-//    qDebug()<<"parameter:"<< parameter;
-//    if (cmd=="/CartaObjects/c14:setZoomLevel") {
-//        int kkk =0;
-//    }
-
-
-}
-
-void DesktopConnector::jsConnectorReadySlot()
-{
-    // at this point it's safe to start using setState as the javascript
-    // connector has registered to listen for the signal
-    qDebug() << "JS Connector is ready!!!!";
-
-    // time to call the initialize callback
-    defer( std::bind( m_initializeCallback, true));
-
-//    m_initializeCallback(true);
-}
-
-DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & viewName)
-{
-    auto viewIter = m_views.find( viewName);
-    if( viewIter == m_views.end()) {
-        qWarning() << "DesktopConnector::findViewInfo: Unknown view " << viewName;
-        return nullptr;
-    }
-
-    return viewIter-> second;
-}
-
-void DesktopConnector::refreshViewNow(IView *view)
+void SessionDispatcher::refreshViewNow(IView *view)
 {
     static int enterCount =0;
 
@@ -566,90 +732,4 @@ void DesktopConnector::refreshViewNow(IView *view)
 
 
 
-}
-
-IConnector* DesktopConnector::getConnectorInMap(const QString & sessionID){
-    return nullptr;
-}
-
-void DesktopConnector::setConnectorInMap(const QString & sessionID, IConnector *connector){
-}
-
-void DesktopConnector::startViewerSlot(const QString & sessionID) {
-
-    QString name = QThread::currentThread()->objectName();
-    qDebug() << "current thread name:" << name;
-    if (name != sessionID) {
-        qDebug()<< "ignore";
-        return;
-    }
-
-    viewer.start();
-}
-
-
-void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int height)
-{
-    ViewInfo * viewInfo = findViewInfo( viewName);
-    if( ! viewInfo) {
-        qWarning() << "Received update for unknown view " << viewName;
-        return;
-    }
-
-    IView * view = viewInfo-> view;
-    viewInfo-> clientSize = QSize( width, height);
-
-    defer([this,view,viewInfo](){
-        view-> handleResizeRequest( viewInfo-> clientSize);
-        refreshView( view);
-    });
-}
-
-void DesktopConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
-{
-    //qDebug() << "jsViewRefreshedSlot()" << viewName << id;
-    ViewInfo * viewInfo = findViewInfo( viewName);
-    if( ! viewInfo) {
-        qCritical() << "Received refresh view signal for unknown view" << viewName;
-        return;
-    }
-    CARTA_ASSERT( viewInfo-> view);
-    viewInfo-> view-> viewRefreshed( id);
-}
-
-void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
-{
-    ViewInfo * viewInfo = findViewInfo( viewName);
-    if( ! viewInfo) {
-        qWarning() << "Received mouse event for unknown view " << viewName << "\n";
-        return;
-    }
-
-    IView * view = viewInfo-> view;
-
-    // we need to map x,y from screen coordinates to image coordinates
-    int xi = std::round( viewInfo-> tx(x));
-    int yi = std::round( viewInfo-> ty(y));
-
-    // tell the view about the event
-    QMouseEvent ev( QEvent::MouseMove,
-                    QPoint(xi,yi),
-                    Qt::NoButton,
-                    Qt::NoButton,
-                    Qt::NoModifier   );
-    view-> handleMouseEvent( ev);
-}
-
-void DesktopConnector::stateChangedSlot(const QString & key, const QString & value)
-{
-    // find the list of callbacks for this path
-    auto iter = m_stateCallbackList.find( key);
-
-    // if it does not exist, do nothing
-    if( iter == m_stateCallbackList.end()) {
-        return;
-    }
-
-    // call all registered callbacks for this key
-    iter-> second-> callEveryone( key, value);
 }

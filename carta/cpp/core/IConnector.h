@@ -87,6 +87,10 @@ public:
     virtual Carta::Lib::IRemoteVGView *
     makeRemoteVGView( QString viewName) = 0;
 
+    virtual IConnector* getConnectorInMap(const QString & sessionID) =0;
+
+    virtual void setConnectorInMap(const QString & sessionID, IConnector *connector) = 0;
+
     virtual ~IConnector() {}
 };
 

@@ -14,7 +14,6 @@
 #include <QDebug>
 #include "CartaLib/Hooks/Initialize.h"
 
-
 namespace Carta
 {
 namespace Core
@@ -90,6 +89,7 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // prepare connector
     // =================
     // connector is created via platform, but we put it into globals explicitely here
+    // grimmer: now it is SessionDispatcher
     IConnector * connector = globals.platform()-> connector();
     if ( ! connector ) {
         qFatal( "Could not initialize connector!" );
@@ -107,39 +107,27 @@ coreMainCPP( QString platformString, int argc, char * * argv )
         viewer.setDeveloperView();
     }
 
+//    SessionDispatcher *c = static_cast<SessionDispatcher*>(connector);
     // prepare closure to execute when connector is initialized
-    IConnector::InitializeCallback initCB = [&] ( bool valid ) -> void {
-        if ( ! valid ) {
-            qFatal( "Could not initialize connector" );
-        }
+//    IConnector::InitializeCallback initCB = [&] ( const QString &sessionID) -> void {
+//        if ( ! valid ) {
+//            qFatal( "Could not initialize connector" );
+//        }
+//        c->receiveNewSession(sessionID);
+//        //TODO create a new thread for a new session
+//        int kkk = 5;
 
-        viewer.start();
-
-//        1 session 對到1個 desktopconnector, 在不同thread裡.
-//        都發signal desktopconnector
-//        cpp算完 -> desktopconnector -> 再發signal 到sessionDispatcher -> 再送給js
-//        globals ? 要改一點地方
-//        desktopplatform? check一下
-
-//        viewer? 每個人有自己一份好了
-//        objectmanager, 維持原樣
-         //viewermanger, 每個人有自己一份
-        // plugin -> prepare 已提早
-
-        //TODO create a new thread for a new session
-        int kkk = 5;
-
-        if ( hackViewer ) {
-            hackViewer-> start();
-        }
-    };
+//        if ( hackViewer ) {
+//            hackViewer-> start();
+//        }
+//    };
 
     // initialize connector
-    connector-> initialize( initCB );
+//    connector-> initialize( initCB );
 
     // original placke: viewer.start, move to here
     // tell all plugins that the core has initialized
-//    globals.pluginManager()-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
+    globals.pluginManager()-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
 
 //    auto test = globals.pluginManager();
 //    connect( &qapp, SIGNAL(aboutToQuit()), test, SLOT(DBClose()));

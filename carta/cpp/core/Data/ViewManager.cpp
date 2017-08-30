@@ -74,13 +74,7 @@ bool ViewManager::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME,
                                                    new ViewManager::Factory());
 
-ViewManager::ViewManager( const QString& path, const QString& id)
-    : CartaObject( CLASS_NAME, path, id ),
-      m_layout( nullptr ),
-      m_dataLoader( nullptr ),
-      m_pluginsLoaded( nullptr ),
-      m_snapshots( nullptr ){
-
+void ViewManager::_setupSingletons() {
     Util::findSingletonObject<Clips>();
     Util::findSingletonObject<Colormaps>();
     Util::findSingletonObject<TransformsData>();
@@ -108,9 +102,22 @@ ViewManager::ViewManager( const QString& path, const QString& id)
     Util::findSingletonObject<UnitsIntensity>();
     Util::findSingletonObject<UnitsSpectral>();
     Util::findSingletonObject<UnitsWavelength>();
+
+    _makeDataLoader();
+}
+
+
+ViewManager::ViewManager( const QString& path, const QString& id)
+    : CartaObject( CLASS_NAME, path, id ),
+      m_layout( nullptr ),
+      m_dataLoader( nullptr ),
+      m_pluginsLoaded( nullptr ),
+      m_snapshots( nullptr ){
+
+    _setupSingletons();
+
     _initCallbacks();
     _initializeDefaultState();
-    _makeDataLoader();
 
     QTime time = QTime::currentTime();
     qsrand((uint)time.msec());
@@ -736,7 +743,9 @@ QString ViewManager::_makeController( int index ){
 
 void ViewManager::_makeDataLoader(){
     if ( m_dataLoader == nullptr ){
-        m_dataLoader = Util::findSingletonObject<DataLoader>();
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        m_dataLoader = objMan->createObject<DataLoader>();
+        //m_dataLoader = Util::findSingletonObject<DataLoader>();
     }
 }
 

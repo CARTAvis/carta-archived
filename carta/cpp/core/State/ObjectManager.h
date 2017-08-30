@@ -12,6 +12,7 @@
 #include <QTextStream>
 #include "StateInterface.h"
 #include "../IConnector.h"
+#include <QMutex>
 
 namespace Carta {
     namespace Lib {
@@ -344,8 +345,6 @@ public:
     static const QString STATE_VALUE;
 
 private:
-
-
 
     /// stores a pair< QString, CartaObjectFactory >
     class ClassRegistryEntry {

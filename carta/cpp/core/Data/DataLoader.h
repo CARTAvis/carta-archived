@@ -5,10 +5,11 @@
 
 #pragma once
 
+#include <State/ObjectManager.h>
+
 #include <QDir>
 #include <QJsonArray>
 
-#include <State/ObjectManager.h>
 #include <memory>
 
 namespace Carta {
@@ -18,6 +19,8 @@ namespace Data {
 class DataLoader : public Carta::State::CartaObject {
 
 public:
+
+    QString getFileList(const QString & params);
 
     /**
      * Returns a QString containing a hierarchical listing of data files that can

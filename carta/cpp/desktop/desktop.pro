@@ -10,8 +10,9 @@ HEADERS += \
 #    CustomWebPage.h \
     DesktopPlatform.h \
     DesktopConnector.h \
-    NetworkReplyFileq.h \
-    NetworkAccessManager.h
+    SessionDispatcher.h \
+    # NetworkReplyFileq.h \
+    # NetworkAccessManager.h
 
 SOURCES += \
     MainWindow.cpp \
@@ -19,8 +20,9 @@ SOURCES += \
     DesktopPlatform.cpp \
     desktopMain.cpp \
     DesktopConnector.cpp \
-    NetworkAccessManager.cpp \
-    NetworkReplyFileq.cpp
+    SessionDispatcher.cpp \
+    # NetworkAccessManager.cpp \
+    # NetworkReplyFileq.cpp
 
 SOURCES += \
     websockettransport.cpp \
@@ -33,6 +35,7 @@ HEADERS += \
 RESOURCES = resources.qrc
 
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include
+INCLUDEPATH += ../core
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib

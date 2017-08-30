@@ -6,6 +6,7 @@
 #include "IConnector.h"
 #include "IPlatform.h"
 #include "PluginManager.h"
+#include <QThread>
 
 Globals * Globals::m_instance = nullptr;
 
@@ -78,9 +79,18 @@ Globals::Globals()
 
 IConnector * Globals::connector()
 {
-    Q_ASSERT( m_connector != nullptr);
+//    Q_ASSERT( m_connector != nullptr);
 
-    return m_connector;
+    //20170829 grimmer:modify for new arch
+
+    QString sessionID = QThread::currentThread()->objectName();
+
+    // 把 m_connector 轉成 sessionDispatcher
+//    SessionDispatcher *c = static_cast<SessionDispatcher*>(m_connector);
+
+    IConnector* connector = m_connector->getConnectorInMap(sessionID);
+
+    return connector;
 }
 
 void Globals::setConnector(IConnector *connector)

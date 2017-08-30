@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <cassert>
 #include <set>
+#include <QThread>
 
 using namespace std;
 
@@ -21,15 +22,21 @@ namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
         "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
-        "CoordinateSystems","DataLoader","ErrorManager",
+        "CoordinateSystems","ErrorManager",
         "Gamma","GenerateModes","Fonts",
-        "LabelFormats","Layout","LayerCompositionModes","LineStyles",
+        "LabelFormats","LayerCompositionModes","LineStyles",
          "PlotStyles", "ProfilePlotStyles",
          "Preferences", "PreferencesSave","ProfileStatistics",
          "RegionTypes", "TransformsImage","TransformsData",
          "Themes",
          "UnitsFrequency","UnitsIntensity","UnitsSpectral","UnitsWavelength",
-         "ViewManager"};
+         };
+
+//grimmer:
+//  become non-singleton:Layout", "ViewManager", "DataLoader"
+// internal change data(dangerous): UnitsIntensity
+//  callback(not compatible with new arch): PlotStyles, x DataLoader,
+//     CoordinateSystems, ErrorManager, Preferences, PreferencesSave, Themes
 
 QString CartaObject::addIdToCommand (const QString & command) const {
     QString fullCommand = m_path;
@@ -353,6 +360,27 @@ ObjectManager::initialize()
 ObjectManager *
 ObjectManager::objectManager ()
 {
+    // use this
+//    static std::map<QString, ObjectManager*> managerList;
+//    static QMutex mutex;
+
+//    QString sessionID = QThread::currentThread()->objectName();
+
+//    mutex.lock();
+//    auto iter = managerList.find(sessionID);
+//    if(iter !=  managerList.end()) {
+//        qDebug()<<"Find objectmanager,  the value is";
+//        auto connector = iter->second;
+//        mutex.unlock();
+//        return connector;
+//    }
+
+//    ObjectManager *manager = new ObjectManager();
+//    managerList[sessionID] = manager;
+
+//        mutex.unlock();
+//        return manager;
+
     // Implements a singleton pattern
     static ObjectManager om;
     return &om;

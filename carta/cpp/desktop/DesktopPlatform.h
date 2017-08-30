@@ -9,7 +9,8 @@
 #include <QObject>
 
 class MainWindow;
-class DesktopConnector;
+//class DesktopConnector;
+class SessionDispatcher;
 
 // TODO: do we really need to inherit from QObject?????
 
@@ -46,7 +47,7 @@ protected:
     int m_argc; // = 0;
     char ** m_argv; // = nullptr;
     MainWindow * m_mainWindow; // = nullptr;
-    DesktopConnector * m_connector; // = nullptr;
+    SessionDispatcher * m_connector; // = nullptr;
     QStringList m_initialFileList;
 
 //    MyQApp * m_app;

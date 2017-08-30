@@ -3,7 +3,7 @@
  **/
 
 #include "DesktopPlatform.h"
-#include "DesktopConnector.h"
+#include "SessionDispatcher.h"
 #include "MainWindow.h"
 #include "core/CmdLine.h"
 #include "core/Globals.h"
@@ -90,7 +90,8 @@ DesktopPlatform::DesktopPlatform()
     m_initialFileList = cmdLineInfo.fileList();
 
     // create the connector
-    m_connector = new DesktopConnector();
+//    m_connector = new DesktopConnector();
+    m_connector = new SessionDispatcher();
 
     // enable web inspector
 //    QWebSettings::enablePersistentStorage( "/tmp/xyz");

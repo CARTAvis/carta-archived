@@ -27,7 +27,7 @@ NetworkAccessManager::createRequest(
     if ( ( op == QNetworkAccessManager::GetOperation || op == QNetworkAccessManager::HeadOperation )
          && ( scheme == QLatin1String( "fileq" )
               ) ) {
-        qDebug() << "Intercepting" << request.url().toString();
+//        qDebug() << "Intercepting" << request.url().toString();
         return new NetworkReplyFileq( this, request, op );
     }
 

@@ -1053,7 +1053,11 @@ void Controller::resetZoom(){
 
 QString Controller::saveImage( const QString& fileName ){
     QString result;
-    DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+
+    // DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    DataLoader* dLoader = objMan->createObject<DataLoader>();
+
     bool securityRestricted = dLoader->isSecurityRestricted();
     if ( !securityRestricted ){
         //Check and make sure the directory exists.

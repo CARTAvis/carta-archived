@@ -35,6 +35,7 @@
 
 using namespace rapidjson;
 
+// no one use this
 /// Recursively parse through a directory structure contained in a json value
 static QStringList _parseDirectory( const Value& dir, QString prefix )
 {
@@ -89,16 +90,6 @@ Viewer::start()
 
     auto & globals = * Globals::instance();
 
-    // tell all plugins that the core has initialized
-    globals.pluginManager()-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
-
-	// ask plugins to load the image
-	qDebug() << "======== trying to load image ========";
-	QString fname;
-	if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
-		fname = Globals::instance()-> platform()-> initialFileList() [0];
-	}
-
 	if ( m_viewManager == nullptr ){
 	    Carta::State::ObjectManager* objectManager = Carta::State::ObjectManager::objectManager();
         Carta::Data::ViewManager* vm = objectManager->createObject<Carta::Data::ViewManager> ();
@@ -112,14 +103,20 @@ Viewer::start()
        m_viewManager->setDeveloperView();
     }
 
-    if ( fname.length() > 0 ) {
-        QString controlId = m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, 0);
-        bool successfulLoad = false;
-        QString result = m_viewManager->loadFile( controlId, fname, &successfulLoad );
-        if ( !successfulLoad ){
-            qDebug() << result;
-        }
-    }
+    // ask plugins to load the image
+    qDebug() << "======== trying to load image <- disable========";
+//    QString fname;
+//    if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
+//        fname = Globals::instance()-> platform()-> initialFileList() [0];
+//    }
+//    if ( fname.length() > 0 ) {
+//        QString controlId = m_viewManager->getObjectId( Carta::Data::Controller::PLUGIN_NAME, 0);
+//        bool successfulLoad = false;
+//        QString result = m_viewManager->loadFile( controlId, fname, &successfulLoad );
+//        if ( !successfulLoad ){
+//            qDebug() << result;
+//        }
+//    }
 
     qDebug() << "Viewer has been initialized.";
 }

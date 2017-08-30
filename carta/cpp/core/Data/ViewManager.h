@@ -194,6 +194,8 @@ private:
     void _clearProfilers( int startIndex, int upperBound );
     void _clearStatistics( int startIndex, int upperBound );
 
+    void _setupSingletons();
+
     /**
      * Given the plugin and the index of the plugin among plugins of its type, find the index of the plugin
      * in the QStringList.

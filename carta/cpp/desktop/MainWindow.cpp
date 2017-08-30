@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 //#include "CustomWebPage.h"
-#include "NetworkAccessManager.h"
+// #include "NetworkAccessManager.h"
 #include "core/Globals.h"
 #include "core/MainConfig.h"
 #include <QtWidgets>

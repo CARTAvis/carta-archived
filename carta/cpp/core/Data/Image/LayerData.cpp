@@ -975,7 +975,11 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
 
         //Default is to have the layer name match the file name, unless
         //the user has explicitly set it.
-        DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+        //DataLoader* dLoader = Util::findSingletonObject<DataLoader
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        DataLoader* dLoader = objMan->createObject<DataLoader>();
+
+
         QString shortName = dLoader->getShortName( fileName );
         QString layerName = m_state.getValue<QString>( Util::NAME );
         if ( layerName.isEmpty() || layerName.length() == 0 ){

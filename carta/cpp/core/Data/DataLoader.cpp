@@ -45,7 +45,7 @@ bool DataLoader::m_registered =
 
 DataLoader::DataLoader( const QString& path, const QString& id ):
     CartaObject( CLASS_NAME, path, id ){
-    _initCallbacks();
+    // _initCallbacks();
 }
 
 
@@ -132,27 +132,36 @@ QString DataLoader::getLongName( const QString& shortName, const QString& sessio
     return longName;
 }
 
+QString DataLoader::getFileList(const QString & params){
+
+    std::set<QString> keys = { "path" };
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    QString dir = dataValues[*keys.begin()];
+    QString xml = getData( dir, "1" );
+    return xml;
+}
+
 void DataLoader::_initCallbacks(){
 
     //Callback for returning a list of data files that can be loaded.
-    addCommandCallback( "getData", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & sessionId) -> QString {
-        std::set<QString> keys = { "path" };
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString dir = dataValues[*keys.begin()];
-        QString xml = getData( dir, sessionId );
-        return xml;
-    });
+//    addCommandCallback( "getData", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & sessionId) -> QString {
+//        std::set<QString> keys = { "path" };
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString dir = dataValues[*keys.begin()];
+//        QString xml = getData( dir, sessionId );
+//        return xml;
+//    });
 
-    addCommandCallback( "isSecurityRestricted", [=] (const QString & /*cmd*/,
-                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-            bool securityRestricted = isSecurityRestricted();
-            QString result = "false";
-            if ( securityRestricted ){
-                result = true;
-            }
-            return result;
-        });
+//    addCommandCallback( "isSecurityRestricted", [=] (const QString & /*cmd*/,
+//                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//            bool securityRestricted = isSecurityRestricted();
+//            QString result = "false";
+//            if ( securityRestricted ){
+//                result = true;
+//            }
+//            return result;
+//        });
 }
 
 bool DataLoader::isSecurityRestricted() const {

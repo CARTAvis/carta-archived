@@ -204,7 +204,11 @@ void Layer::_resetState( const Carta::State::StateInterface& restoreState ){
     QString layerName = restoreState.getValue<QString>(Util::NAME);
     QString shortName = layerName;
     if ( !layerName.startsWith( GROUP )){
-        DataLoader* dLoader = Util::findSingletonObject<DataLoader>();
+
+        //DataLoader* dLoader = Util::findSingletonObject<DataLoader
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        DataLoader* dLoader = objMan->createObject<DataLoader>();
+
         shortName = dLoader->getShortName( layerName );
     }
     m_state.setValue<QString>(Util::ID, restoreState.getValue<QString>(Util::ID));
