@@ -996,7 +996,7 @@ QString Colormap::setInvert( bool invert ){
 
 
 QString Colormap::setImageUnits( const QString& unitsStr ){
-    qDebug() << "================ calling Colormap::_getIntensities with" << unitsStr;
+    qDebug() << "================ calling Colormap::setImageUnits with" << unitsStr;
     QString result;
     QString actualUnits = m_intensityUnits->getActualUnits( unitsStr);
     if ( !actualUnits.isEmpty() ){
