@@ -65,6 +65,14 @@ struct DesktopConnector::ViewInfo
 
 };
 
+void DesktopConnector::testStartViewerSlot(const QString & sessionID) {
+
+
+    emit startViewerSignal(sessionID);
+
+}
+
+
 // not use now
 // uWebSockets part, comment now, change to use qt's built-in WebSocket
 //TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.

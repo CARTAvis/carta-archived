@@ -234,7 +234,10 @@ void SessionDispatcher::jsSetStateSlot(const QString & key, const QString & valu
 void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
 {
     // forward commands
-    emit jsSendCommandSignal(sessionID, cmd, parameter);
+    DesktopConnector *connector = static_cast<DesktopConnector*>(getConnectorInMap(sessionID));
+    if (connector != nullptr){
+        emit connector->jsSendCommandSignal(sessionID, cmd, parameter);
+    }
     return;
 
 //    /CartaObjects/DataLoader:getData
@@ -323,12 +326,12 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 //        clientList[sessionID] = connector2;
         setConnectorInMap(sessionID, connector);
 
-        connect(this, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
-        connect(this,
+        connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
+        connect(connector,
                 SIGNAL(jsSendCommandSignal(const QString &, const QString &, const QString &)),
                 connector,
                 SLOT(jsSendCommandSlot(const QString &, const QString &, const QString &)));
-        connect(this,
+        connect(connector,
                 SIGNAL(jsUpdateViewSignal(const QString &, const QString &, int, int) ),
                 connector,
                 SLOT( jsUpdateViewSlot(const QString &, const QString &, int, int)));
@@ -358,7 +361,8 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
         newThread->start();
 
         //trigger signal
-        emit startViewerSignal(sessionID);
+//        emit startViewerSignal(sessionID);
+        emit connector->startViewerSignal(sessionID);
         int k2=0;
 
 //    }
@@ -416,7 +420,13 @@ SessionDispatcher::ViewInfo * SessionDispatcher::findViewInfo( const QString & v
 
 void SessionDispatcher::jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height)
 {
-    emit jsUpdateViewSignal(sessionID, viewName, width, height);
+
+    // forward commands
+    DesktopConnector *connector = static_cast<DesktopConnector*>(getConnectorInMap(sessionID));
+    if (connector != nullptr){
+        emit connector->jsUpdateViewSignal(sessionID, viewName, width, height);
+    }
+
     return;
 
 //    ViewInfo * viewInfo = findViewInfo( viewName);

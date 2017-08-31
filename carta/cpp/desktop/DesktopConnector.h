@@ -72,6 +72,8 @@ public:
 
     Viewer viewer;
     QThread *selfThread;
+    void testStartViewerSlot(const QString & sessionID);
+
 public slots:
 
     /// javascript calls this to set a state
@@ -106,6 +108,10 @@ public slots:
 
 signals:
 
+    //new arch
+    void startViewerSignal(const QString & sessionID);
+    void jsSendCommandSignal(const QString & sessionID, const QString &cmd, const QString & parameter);
+    void jsUpdateViewSignal(const QString & sessionID, const QString & viewName, int width, int height);
 
     /// we emit this signal when state is changed (either by c++ or by javascript)
     /// we listen to this signal, and so does javascript
