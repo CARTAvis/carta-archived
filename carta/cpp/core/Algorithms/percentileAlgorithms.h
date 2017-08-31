@@ -55,10 +55,16 @@ percentile2pixels(
         }
     }
 
+    // if we have a frame-dependent converter and no spectral axis,
+    // we can't do anything because we don't know the channel units
+    if (converter && converter->frameDependent && spectralIndex < 0) {
+        qFatal("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
+    }
+
     // read in all values from the view into memory so that we can do quickselect on it
     std::vector < Scalar > allValues;
 
-    if (converter && converter->frameDependent && spectralIndex >= 0) {
+    if (converter && converter->frameDependent) {
         // we need to apply the frame-dependent conversion to each intensity value before copying it
         // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
 
@@ -117,20 +123,12 @@ percentile2pixels(
         CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
         std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
         result[q] = allValues[x1];
-    }
-
-    // if we have a frame-ependent converter and image with a single frame,
-    // apply the frame-dependent conversion at the end to the final intensities
-    if (converter && converter->frameDependent && spectralIndex < 0) {
-        for (size_t i = 0; i < result.size(); i++) {
-            result[i] = converter->_frameDependentConvert(result[i], hertzValues[0]);
-        }
     }   
 
     CARTA_ASSERT( result.size() == percentiles.size());
 
     return result;
-} // computeClips
+} // percentile2pixels
 
 
 template < typename Scalar >
@@ -144,6 +142,12 @@ intensities2percentiles(
     std::vector<double> hertzValues={}
     )
 {
+    // if we have a frame-dependent converter and no spectral axis,
+    // we can't do anything because we don't know the channel units
+    if (converter && converter->frameDependent && spectralIndex < 0) {
+        qFatal("Cannot find percentiles in these units: the conversion is frame-dependent and there is no spectral axis.");
+    }
+    
     std::vector<Scalar> divided_intensities;
     std::vector<Scalar> target_intensities;
 
@@ -157,48 +161,43 @@ intensities2percentiles(
             divided_intensities.push_back(intensity / converter->multiplier);
         }
 
-        if (converter->frameDependent) { // more complicated loop for frame-dependent conversions
+        if (converter->frameDependent) { // more complicated loop for frame-dependent conversions; need to recalculate target intensities for every frame
             target_intensities.resize(intensities.size());
             
-            if (spectralIndex >= 0) { // need to recalculate target intensities for every frame
-                for (size_t f = 0; f < hertzValues.size(); f++) {
-                    for (size_t i = 0; i < intensities.size(); i++) {
-                        target_intensities[i] = converter->_frameDependentConvertInverse(divided_intensities[i], hertzValues[f]);
-                    }
-
-                    // Create a slice for retrieving a single frame
-                    SliceND frame;
-                    for (size_t d = 0; d < view.dims().size(); d++) {
-                        if ((int)d == spectralIndex) {
-                            frame.index(f);
-                        } else {
-                            frame.next();
-                        }
-                    }
-
-                    // Create a new view for a single frame using this slice
-                    Carta::Lib::NdArray::Double viewSlice( view.rawView()->getView(frame), false ); // create a new view for this slice
-                    
-                    viewSlice.forEach([&](const double& val) { // iterate over the frame
-                        if( Q_UNLIKELY( std::isnan(val))){
-                            return;
-                        }
-                        
-                        totalCount++;
-
-                        for (size_t i = 0; i < intensities.size(); i++) {
-                            if( val <= target_intensities[i]){
-                                countBelow[i]++;
-                            }
-                        }
-                        return;
-                    });
-                }
-            } else { // no spectral axis; only one frame; calculate the target intensities once and wait for generic counting loop at the end
+            for (size_t f = 0; f < hertzValues.size(); f++) {
                 for (size_t i = 0; i < intensities.size(); i++) {
-                    target_intensities[i] = converter->_frameDependentConvertInverse(divided_intensities[i], hertzValues[0]);
+                    target_intensities[i] = converter->_frameDependentConvertInverse(divided_intensities[i], hertzValues[f]);
                 }
+
+                // Create a slice for retrieving a single frame
+                SliceND frame;
+                for (size_t d = 0; d < view.dims().size(); d++) {
+                    if ((int)d == spectralIndex) {
+                        frame.index(f);
+                    } else {
+                        frame.next();
+                    }
+                }
+
+                // Create a new view for a single frame using this slice
+                Carta::Lib::NdArray::Double viewSlice( view.rawView()->getView(frame), false ); // create a new view for this slice
+                
+                viewSlice.forEach([&](const double& val) { // iterate over the frame
+                    if( Q_UNLIKELY( std::isnan(val))){
+                        return;
+                    }
+                    
+                    totalCount++;
+
+                    for (size_t i = 0; i < intensities.size(); i++) {
+                        if( val <= target_intensities[i]){
+                            countBelow[i]++;
+                        }
+                    }
+                    return;
+                });
             }
+
         } else { // not frame-dependent; calculate the target intensities once and wait for generic counting loop at the end
             target_intensities = divided_intensities;
         }
@@ -206,7 +205,7 @@ intensities2percentiles(
         target_intensities = intensities;
     }  
 
-    if (!converter || !converter->frameDependent || spectralIndex < 0) { // generic counting loop
+    if (!converter || !converter->frameDependent) { // generic counting loop
         view.forEach([&](const double& val) {
             if( Q_UNLIKELY( std::isnan(val))){
                 return;

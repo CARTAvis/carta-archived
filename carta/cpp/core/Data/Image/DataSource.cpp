@@ -554,26 +554,25 @@ QColor DataSource::_getNanColor() const {
 }
 
 std::vector<double> DataSource::_getHertzValues(const std::vector<int> dims, const int spectralIndex) const {
-    std::vector<double> Xvalues;
     std::vector<double> hertzValues;
 
-    // TODO TODO TODO currently the plugin will fail if the image has no spectral axis. What to do about this?
-    
     if (spectralIndex >= 0) { // multiple frames
+        std::vector<double> Xvalues;
+        
         for (int i = 0; i < dims[spectralIndex]; i++) {
             Xvalues.push_back((double)i);
         }
-    } else { // no spectral axis; only one frame
-        Xvalues = { 0.0 };
-    }
 
-    // convert frame indices to Hz
-    auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(m_image, "", "Hz", Xvalues );
-    auto lam = [&hertzValues] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
-        hertzValues = data;
-    };
-    
-    result.forEach( lam );
+        // convert frame indices to Hz
+        auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(m_image, "", "Hz", Xvalues );
+        auto lam = [&hertzValues] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
+            hertzValues = data;
+        };
+        
+        result.forEach( lam );
+    } else {
+        qWarning() << "Could not calculate Hertz values. This image has no spectral axis.";
+    }
 
     return hertzValues;
 }

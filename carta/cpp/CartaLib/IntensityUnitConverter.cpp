@@ -8,18 +8,22 @@ IntensityUnitConverter::IntensityUnitConverter(const QString fromUnits, const QS
     multiplier(multiplier), frameDependent(frameDependent), label(label), fromUnits(fromUnits), toUnits(toUnits) {
 }
 
+
 IntensityUnitConverter::~IntensityUnitConverter() {
 }
+
 
 double IntensityUnitConverter::_frameDependentConvert(const double y_val, const double x_val) {
     Q_UNUSED(x_val);
     return y_val;
 }
 
+
 double IntensityUnitConverter::_frameDependentConvertInverse(const double y_val, const double x_val) {
     Q_UNUSED(x_val);
     return y_val;
 }
+
 
 double IntensityUnitConverter::convert(const double y_val, const double x_val) {
     double result;
@@ -33,17 +37,19 @@ double IntensityUnitConverter::convert(const double y_val, const double x_val) {
     return result;
 }
 
+
 double IntensityUnitConverter::convert(const double y_val) {
     double result;
     
     if (frameDependent) {
-        throw QString("Could not convert intensity value from %1 to %2 because not a corresponding Hertz value was not provided.").arg(fromUnits).arg(toUnits);
+        throw QString("Could not convert intensity value from %1 to %2 because a corresponding Hertz value was not provided.").arg(fromUnits).arg(toUnits);
     } else {
         result = y_val * multiplier;
     }
     
     return result;
 }
+
 
 std::vector<double> IntensityUnitConverter::convert(const std::vector<double> y_vals, const std::vector<double> x_vals) {
     std::vector<double> results;
