@@ -77,7 +77,6 @@ void Plot2DHolder::addData(std::vector<std::pair<double,double> > dataVector,
         pData->setId( id );
         pData->setData( dataVector );
         pData->attachToPlot(m_plot);
-        _updateScales();
     }
 }
 
@@ -615,7 +614,19 @@ void Plot2DHolder::setLegendVisible( bool visible ){
 
 void Plot2DHolder::setLogScale(bool logScale){
     m_logScale = logScale;
-    _updateScales();
+    if ( m_logScale ){
+        m_plot->setAxisScaleEngineY( new QwtLogScaleEngine());
+        for ( int i = 0; i < m_datas.size(); i++ ){
+            m_datas[i]->setBaseLine(1.0);
+        }
+    }
+    else {
+        m_plot->setAxisScaleEngineY(new QwtLinearScaleEngine());
+        for ( int i = 0; i < m_datas.size(); i++ ){
+            m_datas[i]->setBaseLine(0.0);
+        }
+    }
+    m_plot->replot();
 }
 
 
@@ -866,51 +877,6 @@ void Plot2DHolder::_updateLegend(){
 }
 
 
-void Plot2DHolder::_updateScales(){
-    int dataCount = m_datas.size();
-    if ( dataCount > 0 ){
-        std::pair<double,double> firstBounds = m_datas[0]->getBoundsY();
-        std::pair<double,double> firstBoundsX = m_datas[0]->getBoundsX();
-        double yMin = firstBounds.first;
-        double yMax = firstBounds.second;
-        double xMin = firstBoundsX.first;
-        double xMax = firstBoundsX.second;
-        for ( int i = 0; i < dataCount; i++ ){
-            std::pair<double,double> plotBounds = m_datas[i]->getBoundsY();
-            if ( plotBounds.first < yMin ){
-                yMin = plotBounds.first;
-            }
-            if ( plotBounds.second > yMax ){
-                yMax = plotBounds.second;
-            }
-            if( m_logScale ){
-                m_datas[i]->setBaseLine(1.0);
-            }
-            else{
-                m_datas[i]->setBaseLine(0.0);
-            }
-            std::pair<double,double> plotBoundsX = m_datas[i]->getBoundsX();
-            if ( plotBoundsX.first < xMin ){
-                xMin = plotBoundsX.first;
-            }
-            if ( plotBoundsX.second > xMax ){
-                xMax = plotBoundsX.second;
-            }
-        }
-        m_plot->setAxisScaleX( xMin, xMax );
-        if ( m_logScale ){
-            m_plot->setAxisScaleEngineY( new QwtLogScaleEngine());
-            m_plot->setAxisScaleY( 1, yMax );
-        }
-        else {
-            m_plot->setAxisScaleEngineY(new QwtLinearScaleEngine());
-            m_plot->setAxisScaleY( yMin, yMax );
-        }
-        m_plot->replot();
-    }
-}
-
-
 Plot2DHolder::~Plot2DHolder(){
     clearData();
     _clearMarkers();
@@ -919,4 +885,3 @@ Plot2DHolder::~Plot2DHolder(){
 }
 }
 }
-
