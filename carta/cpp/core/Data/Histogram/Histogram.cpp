@@ -2161,6 +2161,9 @@ void Histogram::_updateColorSelection(){
 void Histogram::_updatePlots( ){
 	m_plotManager->clearData();
 	int dataCount = m_binDatas.size();
+    // The result is set by setHistogramResult()
+    // The result is computed from casacore::LatticeHistogram (in ImageHistogram.cpp)
+    // The values of bins are the middle points of each interval.
 	for ( int i = 0; i < dataCount; i++ ){
 		Carta::Lib::Hooks::HistogramResult result = m_binDatas[i]->getHistogramResult();
 		m_plotManager->addData( &result );
