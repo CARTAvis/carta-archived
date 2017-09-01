@@ -300,6 +300,10 @@ void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessio
     emit jsCommandResultsSignal(sessionID, cmd, results);
 }
 
+void SessionDispatcher::jsSendKeepAlive(){
+//    qDebug() << "get keepalive packet !!!!";
+}
+
 void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 {
     // at this point it's safe to start using setState as the javascript
@@ -331,6 +335,8 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
                 SIGNAL(jsSendCommandSignal(const QString &, const QString &, const QString &)),
                 connector,
                 SLOT(jsSendCommandSlot(const QString &, const QString &, const QString &)));
+
+        // setup view size
         connect(connector,
                 SIGNAL(jsUpdateViewSignal(const QString &, const QString &, int, int) ),
                 connector,

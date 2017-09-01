@@ -93,8 +93,7 @@ public slots:
 
     void jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results);
     void jsViewUpdatedSignalForwardSlot(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
-
-
+    void jsSendKeepAlive();
 
     // no use. Qt's built-in WebSocket
 //    void onNewConnection();
