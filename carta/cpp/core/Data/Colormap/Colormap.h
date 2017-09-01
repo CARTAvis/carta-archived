@@ -280,7 +280,7 @@ private:
 
     Carta::Lib::IntensityUnitConverter::SharedPtr _getIntensityConverter(const QString& toUnit);
 
-    std::pair<double,double> _getIntensities(bool &success, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
+    std::pair<double,double> _getIntensities(bool &success, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
     std::pair<double,double> _getIntensities(bool &success, const double minPercent, const double maxPercent,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
     

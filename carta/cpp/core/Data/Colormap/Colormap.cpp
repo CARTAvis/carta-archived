@@ -139,8 +139,15 @@ void Colormap::_calculateColorStops(){
             std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipe = dSource->_getPipeline();
             if ( pipe ){
                 QStringList buff;
-                double intensityMin = m_stateData.getValue<double>( INTENSITY_MIN );
-                double intensityMax = m_stateData.getValue<double>( INTENSITY_MAX );
+
+                // This is not actually correct -- the pixel pipeline should be converting the values in the image to the new units before comparing them.
+                // But it's more correct than using the wrong units, which is what was happening before.
+                double intensityMin;
+                double intensityMax;
+                bool success;
+                std::tie(intensityMin, intensityMax) = _getIntensities(success);
+                // we don't have to check success, because we're not doing any conversions
+                
                 pipe->setMinMax( intensityMin, intensityMax );
                 double diff = intensityMax - intensityMin;
                 double delta = diff / 100;
