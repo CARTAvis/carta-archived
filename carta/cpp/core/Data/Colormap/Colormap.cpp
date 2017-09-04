@@ -291,7 +291,6 @@ std::pair<double,double> Colormap::_getIntensities(bool &success, Carta::Lib::In
 }
 
 std::pair<double,double> Colormap::_getIntensities(bool &success, const double minPercent, const double maxPercent, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
-    qDebug() << "================ calling Colormap::_getIntensities with" << minPercent << maxPercent;
     std::vector<double> intensities;
     success = false;
     
@@ -320,7 +319,6 @@ void Colormap::_dataChanged( Controller* controller ){
         QString current_units = m_state.getValue<QString>(IMAGE_UNITS);
         QString latest_default_units = m_intensityUnits->getDefault();
         if (current_units == "N/A" && latest_default_units != "N/A") {
-            qDebug() << "Updating default / initial units to" << latest_default_units << "because an image has been loaded.";
             m_state.setValue<QString>(IMAGE_UNITS, latest_default_units);
         }
         
@@ -1003,7 +1001,6 @@ QString Colormap::setInvert( bool invert ){
 
 
 QString Colormap::setImageUnits( const QString& unitsStr ){
-    qDebug() << "================ calling Colormap::setImageUnits with" << unitsStr;
     QString result;
     QString actualUnits = m_intensityUnits->getActualUnits( unitsStr);
     if ( !actualUnits.isEmpty() ){
@@ -1146,7 +1143,6 @@ void Colormap::_updateImageClips(){
 }
 
 void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
-    qDebug() << "================ calling Colormap::_updateIntensityBounds with" << minPercent << maxPercent;
 
     bool success(false);
     std::pair<double, double> intensities;
@@ -1177,7 +1173,6 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
         }
         
         if ( intensityChanged ){
-            qDebug() << "==================== changing the percentages because the intensity has changed";
             m_stateData.setValue<double>( PERCENT_MIN, minPercent );
             m_stateData.setValue<double>( PERCENT_MAX, maxPercent );
             _colorStateChanged();

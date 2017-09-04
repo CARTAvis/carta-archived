@@ -173,7 +173,6 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
             result = "Maximum intensity percentile invalid [0,1]: "+ QString::number( maxIntensityPercentile);
         }
         if( clipsChangedValue ){
-            qDebug() << "--------- clips have changed enough to warrant an update";
             m_state.flushState();
             _loadViewQueued();
             double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
