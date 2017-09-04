@@ -1469,8 +1469,14 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
 
         // end of timer for computing percentile per frame
         int elapsedTime = timer.elapsed();
+
         if (CARTA_RUNTIME_CHECKS) {
-            qCritical() << "<> Time to get the percentile per frame:" << elapsedTime << "ms";
+            if (elapsedTime > 5) {
+                // only save the elapsed time to log file if it is greater than 5 ms
+                qCritical() << "<> Time to get the percentile per frame:" << elapsedTime << "ms";
+            } else {
+                qDebug() << "++++++++ [percentile per frame] calculating time (for std::nth_element):" << elapsedTime << "ms";
+            }
         }
 
         clips = {clips_map[minClipPercentile], clips_map[maxClipPercentile]};
