@@ -53,10 +53,10 @@ su $SUDO_USER <<EOF
 ## now it is 7.1 we only use its gfortran which is also used by code
 if sw_vers -productVersion | grep 10.12 ; then
   echo "it is 10.12"
-  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.sierra.bottle.tar.gz
+  brew install gcc
 else
   echo "it is 10.11"
-  brew install https://github.com/CARTAvis/homebrew-tap/releases/download/0.1.2/gcc-7.1.0.el_capitan.bottle.tar.gz
+  brew install gcc
 fi
 EOF
 echo "resume travis-c++"
