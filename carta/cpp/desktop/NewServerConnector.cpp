@@ -2,7 +2,7 @@
  *
  **/
 
-#include "DesktopConnector.h"
+#include "NewServerConnector.h"
 #include "CartaLib/LinearMap.h"
 #include "core/MyQApp.h"
 #include "core/SimpleRemoteVGView.h"
@@ -32,10 +32,10 @@
 #include <QThread>
 
 
-/// \brief internal class of DesktopConnector, containing extra information we like
+/// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
 ///
-struct DesktopConnector::ViewInfo
+struct NewServerConnector::ViewInfo
 {
 
     /// pointer to user supplied IView
@@ -65,7 +65,7 @@ struct DesktopConnector::ViewInfo
 
 };
 
-void DesktopConnector::testStartViewerSlot(const QString & sessionID) {
+void NewServerConnector::testStartViewerSlot(const QString & sessionID) {
 
 
     emit startViewerSignal(sessionID);
@@ -76,11 +76,11 @@ void DesktopConnector::testStartViewerSlot(const QString & sessionID) {
 // not use now
 // uWebSockets part, comment now, change to use qt's built-in WebSocket
 //TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.
-void DesktopConnector::startWebSocketServer() {
+void NewServerConnector::startWebSocketServer() {
 
 //    std::cout << "websocket starts running" << std::endl;
 //    uWS::Hub h;
-//    // DesktopConnector *conn = this;
+//    // NewServerConnector *conn = this;
 //    h.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
 //        std::cout << "get something, echo back:" << message << std::endl;
 //        //        ws->send(message, length, opCode);
@@ -106,7 +106,7 @@ void DesktopConnector::startWebSocketServer() {
 
 ////             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
 
-//            // DesktopConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
+//            // NewServerConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
 //            //    /CartaObjects/DataLoader:getData
 //            //    path:
 //        } else if (message2.contains("SELECT_FILE_TO_OPEN")) {
@@ -142,7 +142,7 @@ void DesktopConnector::startWebSocketServer() {
 }
 
 
-void DesktopConnector::startWebSocketChannel(){
+void NewServerConnector::startWebSocketChannel(){
 
     int port = 4317;
 
@@ -153,7 +153,7 @@ void DesktopConnector::startWebSocketChannel(){
         return;
     }
 
-    qDebug() << "DesktopConnector listening on port" << port;
+    qDebug() << "NewServerConnector listening on port" << port;
 
     // wrap WebSocket clients in QWebChannelAbstractTransport objects
     m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
@@ -166,17 +166,17 @@ void DesktopConnector::startWebSocketChannel(){
     m_channel->registerObject(QStringLiteral("QConnector"), this);
 }
 
-DesktopConnector::DesktopConnector()
+NewServerConnector::NewServerConnector()
 {
     // queued connection to prevent callbacks from firing inside setState
-    connect( this, & DesktopConnector::stateChangedSignal,
-             this, & DesktopConnector::stateChangedSlot,
+    connect( this, & NewServerConnector::stateChangedSignal,
+             this, & NewServerConnector::stateChangedSlot,
              Qt::QueuedConnection );
 
     m_callbackNextId = 0;
 
     // test1: uWebSocket part
-//    std::thread mThread( &DesktopConnector::startWebSocketServer, this );
+//    std::thread mThread( &NewServerConnector::startWebSocketServer, this );
 //    mThread.detach();
 
     // test2: change to use Qt's buint-in WebSocket
@@ -187,10 +187,10 @@ DesktopConnector::DesktopConnector()
 //     int port = 4317;
 //     if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
 //         if (m_debug)
-//             qDebug() << "DesktopConnector listening on port" << port;
+//             qDebug() << "NewServerConnector listening on port" << port;
 //         connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
-//                 this, &DesktopConnector::onNewConnection);
-// //        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &DesktopConnector::closed);
+//                 this, &NewServerConnector::onNewConnection);
+// //        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &NewServerConnector::closed);
 //     }
 
 //test3, Qt's built-in WebSocket + QWebChannel
@@ -202,7 +202,7 @@ DesktopConnector::DesktopConnector()
 
 }
 
-DesktopConnector::~DesktopConnector()
+NewServerConnector::~NewServerConnector()
 {
     m_pWebSocketServer->close();
 //    qDeleteAll(m_clients.begin(), m_clients.end());
@@ -220,12 +220,12 @@ DesktopConnector::~DesktopConnector()
     }
 }
 
-void DesktopConnector::initialize(const InitializeCallback & cb)
+void NewServerConnector::initialize(const InitializeCallback & cb)
 {
     m_initializeCallback = cb;
 }
 
-void DesktopConnector::setState(const QString& path, const QString & newValue)
+void NewServerConnector::setState(const QString& path, const QString & newValue)
 {
     // find the path
     auto it = m_state.find( path);
@@ -247,19 +247,19 @@ void DesktopConnector::setState(const QString& path, const QString & newValue)
 }
 
 
-QString DesktopConnector::getState(const QString & path  )
+QString NewServerConnector::getState(const QString & path  )
 {
     return m_state[ path ];
 }
 
 
 /// Return the location where the state is saved.
-QString DesktopConnector::getStateLocation( const QString& saveName ) const {
+QString NewServerConnector::getStateLocation( const QString& saveName ) const {
 	// \todo Generalize this.
 	return "/tmp/"+saveName+".json";
 }
 
-IConnector::CallbackID DesktopConnector::addCommandCallback(
+IConnector::CallbackID NewServerConnector::addCommandCallback(
         const QString & cmd,
         const IConnector::CommandCallback & cb)
 {
@@ -267,7 +267,7 @@ IConnector::CallbackID DesktopConnector::addCommandCallback(
     return m_callbackNextId++;
 }
 
-IConnector::CallbackID DesktopConnector::addStateCallback(
+IConnector::CallbackID NewServerConnector::addStateCallback(
         IConnector::CSR path,
         const IConnector::StateChangedCallback & cb)
 {
@@ -292,7 +292,7 @@ IConnector::CallbackID DesktopConnector::addStateCallback(
 //    return m_stateCallbackList[ path].add( cb);
 }
 
-void DesktopConnector::registerView(IView * view)
+void NewServerConnector::registerView(IView * view)
 {
     // let the view know it's registered, and give it access to the connector
     view->registration( this);
@@ -313,7 +313,7 @@ void DesktopConnector::registerView(IView * view)
 }
 
 // unregister the view
-void DesktopConnector::unregisterView( const QString& viewName ){
+void NewServerConnector::unregisterView( const QString& viewName ){
     ViewInfo* viewInfo = this->findViewInfo( viewName );
     if ( viewInfo != nullptr ){
 
@@ -325,7 +325,7 @@ void DesktopConnector::unregisterView( const QString& viewName ){
 //    static QTime st;
 
 // schedule a view refresh
-qint64 DesktopConnector::refreshView(IView * view)
+qint64 NewServerConnector::refreshView(IView * view)
 {
     // find the corresponding view info
     ViewInfo * viewInfo = findViewInfo( view-> name());
@@ -349,18 +349,18 @@ qint64 DesktopConnector::refreshView(IView * view)
     return viewInfo-> refreshId;
 }
 
-void DesktopConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
+void NewServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
 {
     qFatal( "not implemented");
 }
 
 
-Carta::Lib::IRemoteVGView * DesktopConnector::makeRemoteVGView(QString viewName)
+Carta::Lib::IRemoteVGView * NewServerConnector::makeRemoteVGView(QString viewName)
 {
     return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
 }
 
-void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value) {
+void NewServerConnector::jsSetStateSlot(const QString & key, const QString & value) {
     // it's ok to call setState directly, because callbacks will be invoked
     // from there asynchronously
     setState( key, value );
@@ -373,7 +373,7 @@ void DesktopConnector::jsSetStateSlot(const QString & key, const QString & value
     }
 }
 
-void DesktopConnector::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
+void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
 {
     QString name = QThread::currentThread()->objectName();
     qDebug() << "current thread name:" << name;
@@ -445,7 +445,7 @@ void DesktopConnector::jsSendCommandSlot(const QString & sessionID, const QStrin
 
 }
 
-void DesktopConnector::jsConnectorReadySlot()
+void NewServerConnector::jsConnectorReadySlot()
 {
     // at this point it's safe to start using setState as the javascript
     // connector has registered to listen for the signal
@@ -457,18 +457,18 @@ void DesktopConnector::jsConnectorReadySlot()
 //    m_initializeCallback(true);
 }
 
-DesktopConnector::ViewInfo * DesktopConnector::findViewInfo( const QString & viewName)
+NewServerConnector::ViewInfo * NewServerConnector::findViewInfo( const QString & viewName)
 {
     auto viewIter = m_views.find( viewName);
     if( viewIter == m_views.end()) {
-        qWarning() << "DesktopConnector::findViewInfo: Unknown view " << viewName;
+        qWarning() << "NewServerConnector::findViewInfo: Unknown view " << viewName;
         return nullptr;
     }
 
     return viewIter-> second;
 }
 
-void DesktopConnector::refreshViewNow(IView *view)
+void NewServerConnector::refreshViewNow(IView *view)
 {
 
     QString sessionID = QThread::currentThread()->objectName();
@@ -603,14 +603,14 @@ void DesktopConnector::refreshViewNow(IView *view)
 
 }
 
-IConnector* DesktopConnector::getConnectorInMap(const QString & sessionID){
+IConnector* NewServerConnector::getConnectorInMap(const QString & sessionID){
     return nullptr;
 }
 
-void DesktopConnector::setConnectorInMap(const QString & sessionID, IConnector *connector){
+void NewServerConnector::setConnectorInMap(const QString & sessionID, IConnector *connector){
 }
 
-void DesktopConnector::startViewerSlot(const QString & sessionID) {
+void NewServerConnector::startViewerSlot(const QString & sessionID) {
 
     QString name = QThread::currentThread()->objectName();
     qDebug() << "current thread name:" << name;
@@ -623,7 +623,7 @@ void DesktopConnector::startViewerSlot(const QString & sessionID) {
 }
 
 
-void DesktopConnector::jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height)
+void NewServerConnector::jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height)
 {
     QString name = QThread::currentThread()->objectName();
     qDebug() << "current thread name:" << name;
@@ -648,7 +648,7 @@ void DesktopConnector::jsUpdateViewSlot(const QString & sessionID, const QString
     });
 }
 
-void DesktopConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
+void NewServerConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
 {
     //qDebug() << "jsViewRefreshedSlot()" << viewName << id;
     ViewInfo * viewInfo = findViewInfo( viewName);
@@ -660,7 +660,7 @@ void DesktopConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
     viewInfo-> view-> viewRefreshed( id);
 }
 
-void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
+void NewServerConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
 {
     ViewInfo * viewInfo = findViewInfo( viewName);
     if( ! viewInfo) {
@@ -683,7 +683,7 @@ void DesktopConnector::jsMouseMoveSlot(const QString &viewName, int x, int y)
     view-> handleMouseEvent( ev);
 }
 
-void DesktopConnector::stateChangedSlot(const QString & key, const QString & value)
+void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)
 {
     // find the list of callbacks for this path
     auto iter = m_stateCallbackList.find( key);

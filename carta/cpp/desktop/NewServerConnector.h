@@ -3,8 +3,8 @@
  **/
 
 
-#ifndef DESKTOP_DESKTOPCONNECTOR_H
-#define DESKTOP_DESKTOPCONNECTOR_H
+#ifndef NEW_SERVER_CONNECTOR_H
+#define NEW_SERVER_CONNECTOR_H
 
 #include <QObject>
 #include "core/IConnector.h"
@@ -30,13 +30,13 @@ class IView;
 /// unfortunately it needs to live as it's own class because we need to give it slots...
 //class ViewInfo;
 
-class DesktopConnector : public QObject, public IConnector
+class NewServerConnector : public QObject, public IConnector
 {
     Q_OBJECT
 public:
 
     /// constructor
-    explicit DesktopConnector();
+    explicit NewServerConnector();
 
     // implementation of IConnector interface
     virtual void initialize( const InitializeCallback & cb) override;
@@ -68,7 +68,7 @@ public:
     QWebSocketServer *m_pWebSocketServer;
     WebSocketClientWrapper *m_clientWrapper;
     QWebChannel *m_channel;
-     ~DesktopConnector();
+     ~NewServerConnector();
 
     Viewer viewer;
     QThread *selfThread;
@@ -162,4 +162,4 @@ protected:
 };
 
 
-#endif // DESKTOP_DESKTOPCONNECTOR_H
+#endif // NEW_SERVER_CONNECTOR_H

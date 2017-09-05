@@ -10,7 +10,7 @@
 #include "core/IConnector.h"
 #include "core/CallbackList.h"
 #include "CartaLib/IRemoteVGView.h"
-#include "DesktopConnector.h"
+#include "NewServerConnector.h"
 
 #include <QList>
 #include <QByteArray>

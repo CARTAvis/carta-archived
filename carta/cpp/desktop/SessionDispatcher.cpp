@@ -28,7 +28,7 @@
 #include <QThread>
 
 
-#include "DesktopConnector.h"
+#include "NewServerConnector.h"
 
 /// \brief internal class of SessionDispatcher, containing extra information we like
 ///  to remember with each view
@@ -234,7 +234,7 @@ void SessionDispatcher::jsSetStateSlot(const QString & key, const QString & valu
 void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
 {
     // forward commands
-    DesktopConnector *connector = static_cast<DesktopConnector*>(getConnectorInMap(sessionID));
+    NewServerConnector *connector = static_cast<NewServerConnector*>(getConnectorInMap(sessionID));
     if (connector != nullptr){
         emit connector->jsSendCommandSignal(sessionID, cmd, parameter);
     }
@@ -273,14 +273,14 @@ IConnector* SessionDispatcher::getConnectorInMap(const QString & sessionID){
     auto iter = clientList.find(sessionID);
 
     if(iter != clientList.end()) {
-        qDebug()<<"Find Desktopconnector is";
+        qDebug()<<"Find NewServerConnector.h is";
         auto connector = iter->second;
         mutex.unlock();
         return connector;
     }
 
     mutex.unlock();
-    qDebug()<<"Do not Find Desktopconnector"<<endl;
+    qDebug()<<"Do not Find NewServerConnector.h"<<endl;
     return nullptr;
 }
 
@@ -325,7 +325,7 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 
 //        clientList.insert( std::make_pair(SessionID, new DesktopConnector));
 
-        DesktopConnector *connector =  new DesktopConnector();
+        NewServerConnector *connector =  new NewServerConnector();
 //        IConnector *connector2 = connector;
 //        clientList[sessionID] = connector2;
         setConnectorInMap(sessionID, connector);
@@ -428,7 +428,7 @@ void SessionDispatcher::jsUpdateViewSlot(const QString & sessionID, const QStrin
 {
 
     // forward commands
-    DesktopConnector *connector = static_cast<DesktopConnector*>(getConnectorInMap(sessionID));
+    NewServerConnector *connector = static_cast<NewServerConnector*>(getConnectorInMap(sessionID));
     if (connector != nullptr){
         emit connector->jsUpdateViewSignal(sessionID, viewName, width, height);
     }

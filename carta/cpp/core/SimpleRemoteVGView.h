@@ -13,7 +13,7 @@
 #include <QImage>
 
 class ServerConnector;
-class DesktopConnector;
+class NewServerConnector;
 class IConnector;
 
 namespace Carta
@@ -64,7 +64,7 @@ public slots:
 
 private:
 
-    friend class ::DesktopConnector;
+    friend class ::NewServerConnector;
     friend class ::ServerConnector;
 
     SimpleRemoteVGView( QObject * parent, QString viewName, IConnector * connector );

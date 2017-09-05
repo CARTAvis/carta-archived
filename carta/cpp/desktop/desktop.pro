@@ -9,17 +9,18 @@ HEADERS += \
     MainWindow.h \
 #    CustomWebPage.h \
     DesktopPlatform.h \
-    DesktopConnector.h \
+    NewServerConnector.h \
     SessionDispatcher.h \
     # NetworkReplyFileq.h \
     # NetworkAccessManager.h
+    NewServerConnector.h
 
 SOURCES += \
     MainWindow.cpp \
 #    CustomWebPage.cpp \
     DesktopPlatform.cpp \
     desktopMain.cpp \
-    DesktopConnector.cpp \
+    NewServerConnector.cpp \
     SessionDispatcher.cpp \
     # NetworkAccessManager.cpp \
     # NetworkReplyFileq.cpp
