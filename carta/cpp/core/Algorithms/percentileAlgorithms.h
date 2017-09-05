@@ -21,6 +21,24 @@ namespace Core
 {
 namespace Algorithms
 {
+    
+/// helper function for calculating a slice for a single 2D frame of the image
+static Carta::Lib::NdArray::Double viewSliceForFrame(Carta::Lib::NdArray::Double view, int spectralIndex, int frameIndex) {
+    // Create a slice for retrieving a single frame
+    SliceND frame;
+    for (size_t d = 0; d < view.dims().size(); d++) {
+        if ((int)d == spectralIndex) {
+            frame.index(frameIndex);
+        } else {
+            frame.next();
+        }
+    }
+
+    // Create a new view for a single frame using this slice
+    Carta::Lib::NdArray::Double viewSlice( view.rawView()->getView(frame), false ); // create a new view for this slice
+    return viewSlice;
+}
+
 /// compute requested percentiles
 /// \param view the input dataset
 /// \param percentiles which percentiles to compute
@@ -63,49 +81,36 @@ percentile2pixels(
 
     // read in all values from the view into memory so that we can do quickselect on it
     std::vector < Scalar > allValues;
+    double hertzVal;
+    std::function<void(Scalar)> view_lambda;
 
     if (converter && converter->frameDependent) {
         // we need to apply the frame-dependent conversion to each intensity value before copying it
-        // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
-
-        for (size_t f = 0; f < hertzValues.size(); f++) {
-            // Create a slice for retrieving a single frame
-            SliceND frame;
-            for (size_t d = 0; d < view.dims().size(); d++) {
-                if ((int)d == spectralIndex) {
-                    frame.index(f);
-                } else {
-                    frame.next();
-                }
+        view_lambda = [&allValues, &converter, &hertzVal](const Scalar & val) {
+            if ( std::isfinite( val ) ) {
+                allValues.push_back( converter->_frameDependentConvert(val, hertzVal) );
             }
-
-            // Create a new view for a single frame using this slice
-            Carta::Lib::NdArray::Double viewSlice( view.rawView()->getView(frame), false ); // create a new view for this slice
-
-            double hertzVal = hertzValues[f];
+        };
+        
+        // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
+        for (size_t f = 0; f < hertzValues.size(); f++) {
+            hertzVal = hertzValues[f];
+            
+            Carta::Lib::NdArray::Double viewSlice = viewSliceForFrame(view, spectralIndex, f);
 
             // iterate over the frame
-            viewSlice.forEach(
-                [& allValues, &converter, &hertzVal](const Scalar & val) {
-                    // check if the value from raw data is finite
-                    if ( std::isfinite( val ) ) {
-                        allValues.push_back( converter->_frameDependentConvert(val, hertzVal) );
-                    }
-                }
-            );
+            viewSlice.forEach(view_lambda);
         }
-        
     } else {
-        // we can loop over the flat image
-        view.forEach(
-            [& allValues] ( const Scalar & val ) {
-                // check if the value from raw data is finite
-                if ( std::isfinite( val ) ) {
-                    allValues.push_back( val );
-                }
+        // we don't have to do any conversions in the loop
+        view_lambda = [& allValues] ( const Scalar & val ) {
+            if ( std::isfinite( val ) ) {
+                allValues.push_back( val );
             }
-        );
-
+        };
+        
+        // and we can loop over the flat image
+        view.forEach(view_lambda);
     }
 
     // indicate bad clip if no finite numbers were found
@@ -154,6 +159,23 @@ intensities2percentiles(
     u_int64_t totalCount = 0;
     std::vector<u_int64_t> countBelow(intensities.size());
     std::vector<double> percentiles(intensities.size());
+    
+    // What we do in the loop doesn't change; how we calculate the target intensities changes
+    auto view_lambda = [&totalCount, &target_intensities, &countBelow](const double& val) {
+        if( Q_UNLIKELY( std::isnan(val))){
+            return;
+        }
+        
+        totalCount++;
+
+        for (size_t i = 0; i < target_intensities.size(); i++) {
+            if( val <= target_intensities[i]){
+                countBelow[i]++;
+            }
+        }
+        
+        return;
+    };
 
     if (converter) {
         // Divide the target intensities by the multiplier
@@ -169,58 +191,19 @@ intensities2percentiles(
                     target_intensities[i] = converter->_frameDependentConvertInverse(divided_intensities[i], hertzValues[f]);
                 }
 
-                // Create a slice for retrieving a single frame
-                SliceND frame;
-                for (size_t d = 0; d < view.dims().size(); d++) {
-                    if ((int)d == spectralIndex) {
-                        frame.index(f);
-                    } else {
-                        frame.next();
-                    }
-                }
-
-                // Create a new view for a single frame using this slice
-                Carta::Lib::NdArray::Double viewSlice( view.rawView()->getView(frame), false ); // create a new view for this slice
+                Carta::Lib::NdArray::Double viewSlice = viewSliceForFrame(view, spectralIndex, f);
                 
-                viewSlice.forEach([&](const double& val) { // iterate over the frame
-                    if( Q_UNLIKELY( std::isnan(val))){
-                        return;
-                    }
-                    
-                    totalCount++;
-
-                    for (size_t i = 0; i < intensities.size(); i++) {
-                        if( val <= target_intensities[i]){
-                            countBelow[i]++;
-                        }
-                    }
-                    return;
-                });
+                viewSlice.forEach(view_lambda);
             }
 
-        } else { // not frame-dependent; calculate the target intensities once and wait for generic counting loop at the end
+        } else { // not frame-dependent; calculate the target intensities once; iterate over flat image
             target_intensities = divided_intensities;
+            view.forEach(view_lambda);
         }
-    } else { // no conversion
+    } else { // no conversion; iterate over flat image
         target_intensities = intensities;
-    }  
-
-    if (!converter || !converter->frameDependent) { // generic counting loop
-        view.forEach([&](const double& val) {
-            if( Q_UNLIKELY( std::isnan(val))){
-                return;
-            }
-            
-            totalCount++;
-
-            for (size_t i = 0; i < intensities.size(); i++) {
-                if( val <= target_intensities[i]){
-                    countBelow[i]++;
-                }
-            }
-            return;
-        });
-    }
+        view.forEach(view_lambda);
+    } 
 
     for (size_t i = 0; i < intensities.size(); i++) { // calculate the percentages
         if ( totalCount > 0 ){
