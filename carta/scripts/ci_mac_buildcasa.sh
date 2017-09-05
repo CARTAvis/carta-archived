@@ -35,7 +35,7 @@ function prepare3partyForcasa() {
   pause
   cd $cartawork/CARTAvis-externals/ThirdParty
   ## build libsakura-4.0.2065.
-  git clone https://github.com/grimmer0125/libsakura
+  git clone https://github.com/CARTAvis/libsakura
   curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
   unzip gtest-1.7.0.zip -d libsakura > /dev/null
   cd libsakura
