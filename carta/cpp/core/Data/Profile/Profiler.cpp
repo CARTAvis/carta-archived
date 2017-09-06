@@ -665,21 +665,27 @@ std::pair<double,double> Profiler::_getCurveRangeX() const {
 std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode( Controller* controller) const {
     QString generateMode = m_state.getValue<QString>( GEN_MODE );
     std::vector<std::shared_ptr<Layer> > dataSources;
+    int specCount = 1;
+    int tabCount = 1;
     if ( m_generateModes->isCurrent( generateMode ) ){
         std::shared_ptr<Layer> dataSource = controller->getLayer("");
         if ( dataSource ){
+            specCount = dataSource->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+            tabCount = dataSource->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
+        }
+
+        if ( specCount > 1 || tabCount > 1 ){
             dataSources.push_back( dataSource );
         }
     }
     else if ( m_generateModes->isAll( generateMode ) ){
-        dataSources = controller->getLayers();
-    }
-    else if ( m_generateModes->isAllExcludeSingle( generateMode ) ){
         std::vector<std::shared_ptr<Layer> > dSources = controller->getLayers();
         int dCount = dSources.size();
         for ( int i = 0; i < dCount; i++ ){
-            int specCount = dSources[i]->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
-            if ( specCount > 1 ){
+            specCount = tabCount = 1;
+            specCount = dSources[i]->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+            tabCount = dSources[i]->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
+            if ( specCount > 1 || tabCount > 1 ){
                 dataSources.push_back( dSources[i]);
             }
         }
@@ -787,7 +793,7 @@ std::vector<std::shared_ptr<Region> > Profiler::_getRegionForGenerateMode() cons
     		}
     	}
     }
-    else if ( m_generateModes->isAll( generateMode ) || m_generateModes->isAllExcludeSingle( generateMode ) ){
+    else if ( m_generateModes->isAll( generateMode ) ){
     	if ( regionControls ){
     		regions = regionControls->getRegions();
     	}
