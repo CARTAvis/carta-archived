@@ -97,19 +97,9 @@ percentile2pixels_approximate_manku99(
         qFatal("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
     }
 
-    int totalViewSize(1);
-
-    for (auto & d : view.dims) {
-        totalViewSize *= d;
-    }
-    
-    int lastIndex = totalViewSize - 1;
-
-
     int samplingRate(1);
     int newBufferLevel(0);
     
-    int index(0);
     int finite(0);
     
     std::vector<Scalar> bufferElements;
@@ -122,24 +112,28 @@ percentile2pixels_approximate_manku99(
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+    auto makeNewBuffer = [&buffers, &bufferElements, &samplingRate, &newBufferLevel] () {        
+        buffers[emptyBufferIndices.front()].opNew(bufferElements, samplingRate, newBufferLevel);
+        emptyBufferIndices.pop_front();
+        bufferElements.clear();
+    };
     
     // TODO: process the values here
-    auto process = [&lastIndex, &samplingRate, &index, &finite, &bufferElements, &dist, &mt](const Scalar & val) {
+    auto process = [&samplingRate, &finite, &buffers, &bufferElements, &dist, &mt](const Scalar & val) {
         if ( std::isfinite( val ) ) {
             // TODO: do this only as long as there are empty buffers
-            if (emptyBufferIndices.size()) { // NEW operation
-                // this is simple, but may not be the most efficient approach
+            if (emptyBufferIndices.size()) {
+                // this is horribly slow; should make a temp vector instead
                 // sample current value with a probability of pos % rate / rate
-                if (dist(mt) <= (finite % samplingRate) / samplingRate) {
+                if (samplingRate == 1 || dist(mt) <= (finite % samplingRate + 1) / samplingRate) {
                     bufferElements.push_back(val);
-                }
                 
-                // create new buffer whenever elements reach capacity or end of data has been reached
-                if (bufferElements.size() == bufferCapacity || index == lastIndex) {
-                    buffers[emptyBufferIndices.front()].opNew(bufferElements, samplingRate, newBufferLevel);
-                    
-                    emptyBufferIndices.pop_front();
-                    bufferElements.clear();
+                    // create new buffer whenever elements reach capacity
+                    // we'll do it once at the end to account for a possible partial buffer
+                    if (bufferElements.size() == bufferCapacity) {
+                        makeNewBuffer(); // NEW operation
+                    }
                 }
             } else { // COLLAPSE operation
                 
@@ -147,7 +141,6 @@ percentile2pixels_approximate_manku99(
 
             finite++;
         }
-        index++;
     };
     
     
@@ -182,6 +175,13 @@ percentile2pixels_approximate_manku99(
         // and we can loop over the flat image
         view.forEach(view_lambda);
     }
+
+    // process a possible partial buffer
+    if (bufferElements.size()) {
+        makeNewBuffer();
+    }
+
+    // OUTPUT operation
 
     // Find the quantiles
 
