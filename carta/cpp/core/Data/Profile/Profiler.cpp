@@ -664,16 +664,18 @@ std::pair<double,double> Profiler::_getCurveRangeX() const {
 std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode( Controller* controller) const {
     QString generateMode = m_state.getValue<QString>( GEN_MODE );
     std::vector<std::shared_ptr<Layer> > dataSources;
+    bool isCelestial = false;
     int specCount = 1;
     int tabCount = 1;
     if ( m_generateModes->isCurrent( generateMode ) ){
         std::shared_ptr<Layer> dataSource = controller->getLayer("");
         if ( dataSource ){
+            isCelestial = dataSource->_isOnCelestialPlane();
             specCount = dataSource->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
             tabCount = dataSource->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
         }
 
-        if ( specCount > 1 || tabCount > 1 ){
+        if ( isCelestial && (specCount > 1 || tabCount > 1) ){
             dataSources.push_back( dataSource );
         }
     }
@@ -681,10 +683,12 @@ std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode( Controll
         std::vector<std::shared_ptr<Layer> > dSources = controller->getLayers();
         int dCount = dSources.size();
         for ( int i = 0; i < dCount; i++ ){
+            isCelestial = false;
             specCount = tabCount = 1;
+            isCelestial = dSources[i]->_isOnCelestialPlane();
             specCount = dSources[i]->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
             tabCount = dSources[i]->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
-            if ( specCount > 1 || tabCount > 1 ){
+            if ( isCelestial && (specCount > 1 || tabCount > 1) ){
                 dataSources.push_back( dSources[i]);
             }
         }
@@ -1877,7 +1881,7 @@ QString Profiler::profileNew(){
         	QString regionId = getSelectedRegion();
         	region = regionControls->getRegion( regionId );
         }
-        if ( layer && region ){
+        if ( layer && layer->_isOnCelestialPlane() && region ){
             //Get the name that is stored.  If it matches an existing profile, just set
             //the existing profile active.  Otherwise, generate a new one.
 			Carta::Lib::ProfileInfo profInfo = CurveData::_generateProfileInfo( getRestFrequency(""), getRestUnits(""),

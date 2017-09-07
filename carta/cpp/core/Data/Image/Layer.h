@@ -440,6 +440,12 @@ protected:
      */
     virtual bool _isEmpty() const;
 
+    /**
+     * Returns whether the layer is diaplayed on the celestial (RA-DEC) plane
+     * @param includelinear - true when consider LINEAR-LINEAR plane
+     * as another type of celestial plane.
+     */
+    virtual bool _isOnCelestialPlane( bool includelinear = 1 ) const;
 
     /**
      * Returns true if this data is selected; false otherwise.
@@ -516,7 +522,7 @@ protected:
     virtual QString _setFileName( const QString& fileName, bool* success );
 
     virtual QString _getFileName();
-    
+
     /**
      * Give the layer (a more user-friendly) name.
      * @param id - an identifier for the layer to rename.
