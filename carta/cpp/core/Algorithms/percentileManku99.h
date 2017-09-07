@@ -48,17 +48,11 @@ class Buffer {
     
     ~Buffer();
 
-    template <typename Scalar> void opNew(std::vector<Scalar> elements, int weight, int level) {        
-        this->elements.clear();
-        
-        for (auto& e : elements) {
-            this->elements.push_back(e);
-        }
-
-        state = this->size() == capacity ? State::full : State::partial;
+    template <typename Scalar> void opNew(std::vector<Scalar>& elements, int weight, int level, State state) {        
+        this->elements = std::move(elements);
+        this->state = state;
         this->weight = weight;
         this->level = level;
-
     }
 
     static void opCollapse(std::vector<Buffer> input_buffers) {
@@ -113,10 +107,9 @@ percentile2pixels_approximate_manku99(
     std::mt19937 mt(rd());
     std::uniform_real_distribution<double> dist(0.0, 1.0);
 
-    auto makeNewBuffer = [&buffers, &bufferElements, &samplingRate, &newBufferLevel] () {        
-        buffers[emptyBufferIndices.front()].opNew(bufferElements, samplingRate, newBufferLevel);
+    auto makeNewBuffer = [&buffers, &bufferElements, &samplingRate, &newBufferLevel] (Buffer::State state) {        
+        buffers[emptyBufferIndices.front()].opNew(bufferElements, samplingRate, newBufferLevel, state);
         emptyBufferIndices.pop_front();
-        bufferElements.clear();
     };
     
     // TODO: process the values here
