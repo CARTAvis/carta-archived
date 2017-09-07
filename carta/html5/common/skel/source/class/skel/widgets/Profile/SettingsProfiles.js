@@ -125,7 +125,6 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_regionSelect = new skel.widgets.CustomUI.SelectBox();
             skel.widgets.TestID.addTestId( this.m_regionSelect, "ProfileSelectedRegion" );
             var names = [];
-            names[0] = this.m_NONE;
             this.m_regionSelect.setSelectItems( names );
             this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged", this._sendRegionSelectCmd, this );
             this.m_regionSelect.setToolTipText( "Specify the region used to generate the profile.");
@@ -339,7 +338,9 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setSelectedRegion";
                 var params = "name:"+name;
-                this.m_connector.sendCommand( cmd, params, null );
+                if ( name.length > 0) {
+                    this.m_connector.sendCommand( cmd, params, null );
+                }
             }
         },
 
@@ -555,11 +556,6 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             for ( var i = 0; i < data.length; i++ ){
                 names[i] = data[i].name;
             }
-            //Add in None so that the user can profile the whole plane.
-            names[data.length] = this.m_NONE;
-            if ( names.length == 1 ){
-            	dataIndex = 0;
-            }
             this.m_regionSelect.setSelectItems( names );
             if ( dataIndex >= 0 ){
                 if ( this.m_regionSelectListenId !== null ){
@@ -630,7 +626,6 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         m_removeButton : null,
         m_imageSelect : null,
         m_imageSelectListenId : null,
-        m_NONE : "None",
         m_regionSelectListenId : null,
         m_genSelect : null,
         m_nameSelect : null,

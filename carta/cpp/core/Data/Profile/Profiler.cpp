@@ -59,7 +59,6 @@ const QString Profiler::LEGEND_EXTERNAL = "legendExternal";
 const QString Profiler::LEGEND_SHOW = "legendShow";
 const QString Profiler::LEGEND_LINE = "legendLine";
 const QString Profiler::MANUAL_GUESS = "manualGuess";
-const QString Profiler::NO_REGION = "None";
 const QString Profiler::PLOT_WIDTH = "plotWidth";
 const QString Profiler::PLOT_HEIGHT = "plotHeight";
 const QString Profiler::PLOT_LEFT = "plotLeft";
@@ -909,7 +908,7 @@ void Profiler::_initializeDefaultState(){
     m_stateData.insertArray( CURVES, 0 );
     m_stateData.insertValue<QString>(CURVE_SELECT, "" );
     m_stateData.insertValue<QString>( IMAGE_SELECT, "" );
-    m_stateData.insertValue<QString>( REGION_SELECT, NO_REGION );
+    m_stateData.insertValue<QString>( REGION_SELECT, "" );
     m_stateData.insertValue<double>( ZOOM_MIN, 0 );
     m_stateData.insertValue<double>(ZOOM_MAX, 1);
     m_stateData.insertValue<double>(ZOOM_MIN_PERCENT, 0);
@@ -1878,9 +1877,9 @@ QString Profiler::profileNew(){
         	QString regionId = getSelectedRegion();
         	region = regionControls->getRegion( regionId );
         }
-        if ( layer ){
-			//Get the name that is stored.  If it matches an existing profile, just set
-        	//the existing profile active.  Otherwise, generate a new one.
+        if ( layer && region ){
+            //Get the name that is stored.  If it matches an existing profile, just set
+            //the existing profile active.  Otherwise, generate a new one.
 			Carta::Lib::ProfileInfo profInfo = CurveData::_generateProfileInfo( getRestFrequency(""), getRestUnits(""),
 				getStatistic( ""), getSpectralType(), getSpectralUnits() );
 			int curveCount = m_plotCurves.size();
@@ -2887,20 +2886,15 @@ QString Profiler::setSelectedRegion( const QString& regionName ){
     QString result;
     if ( regionName.trimmed().length() > 0 ){
         bool regionFound = false;
-        if ( regionName == NO_REGION ){
-            regionFound = true;
-        }
-        else {
-            //Make sure this is really an existing image.
-            Controller* selectedController = _getControllerSelected();
-            if ( selectedController ){
-            	std::shared_ptr<RegionControls> regionControls = selectedController->getRegionControls();
-				if ( regionControls ){
-					std::shared_ptr<Region> region = regionControls->getRegion( regionName );
-					if ( region ){
-						regionFound = true;
-					}
-				}
+        //Make sure this is really an existing image.
+        Controller* selectedController = _getControllerSelected();
+        if ( selectedController ){
+            std::shared_ptr<RegionControls> regionControls = selectedController->getRegionControls();
+            if ( regionControls ){
+                std::shared_ptr<Region> region = regionControls->getRegion( regionName );
+                if ( region ){
+                    regionFound = true;
+                }
             }
         }
 
@@ -3538,13 +3532,6 @@ bool Profiler::_updateProfiles( Controller* controller ){
 						break;
 					}
 				}
-				else {
-					QString id = CurveData::_generateName( layers[j], nullptr );
-					if ( id == curveId ){
-						layerFound = true;
-						break;
-					}
-				}
 			}
 			bool activeChanged = m_plotCurves[i]->setActive( layerFound );
 			if ( activeChanged ){
@@ -3560,13 +3547,6 @@ bool Profiler::_updateProfiles( Controller* controller ){
 					if ( curveGenerated ){
 						profileChanged = true;
 					}
-				}
-			}
-			else {
-				//Profile of entire image
-				bool curveGenerated = _generateCurve( layers[i], nullptr );
-				if ( curveGenerated ){
-					profileChanged = true;
 				}
 			}
 		}
