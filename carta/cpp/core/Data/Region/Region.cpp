@@ -137,15 +137,17 @@ void Region::handleDragStart( const QPointF & pt ) {
 	}
 }
 
-void Region::handleHover( const QPointF& pt ){
-	//Only active shapes participate in user events
-	if ( isActive() ){
-		bool hovered = false;
-		if ( m_shape->isPointInside( pt ) ){
-			hovered = true;
-		}
-		setHovered( hovered );
-	}
+bool Region::handleHover( const QPointF& pt ){
+    //Only active shapes participate in user events
+    bool hoverChanged = false;
+    if ( isActive() ){
+        bool hovered = false;
+        if ( m_shape->isPointInside( pt ) ){
+            hovered = true;
+        }
+        hoverChanged = setHovered( hovered );
+    }
+    return hoverChanged;
 }
 
 

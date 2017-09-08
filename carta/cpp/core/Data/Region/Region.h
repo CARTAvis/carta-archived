@@ -122,7 +122,7 @@ public:
 	 * Notification of a hover event.
 	 * @param pt - the current location of the mouse.
 	 */
-	virtual void handleHover( const QPointF& pt );
+	virtual bool handleHover( const QPointF& pt );
 
 	/**
 	 * Notification of a click event.

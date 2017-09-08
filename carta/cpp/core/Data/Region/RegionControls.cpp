@@ -229,26 +229,26 @@ bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev,
 }
 
 bool RegionControls::_handleHover( const Carta::Lib::InputEvents::HoverEvent& ev,
-		const QPointF& imagePt ){
-	bool validHover = false;
-	if ( ev.isValid() ){
-		validHover = true;
-		if ( m_regionEdit ){
-			m_regionEdit->handleHover( imagePt );
-			emit regionsChanged();
-		}
-		else {
-			int regionCount = m_regions.size();
-			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleHover( imagePt );
-			}
-			if ( regionCount > 0 ){
-				emit regionsChanged();
-			}
-		}
-
-	}
-	return validHover;
+        const QPointF& imagePt ){
+    bool validHover = false;
+    if ( ev.isValid() ){
+        validHover = true;
+        if ( m_regionEdit ){
+            m_regionEdit->handleHover( imagePt );
+            emit regionsChanged();
+        }
+        else {
+            bool regionChanged = false;
+            int regionCount = m_regions.size();
+            for ( int i = 0; i < regionCount; i++ ){
+                regionChanged = regionChanged || m_regions[i]->handleHover( imagePt );
+            }
+            if ( regionChanged ){
+                emit regionsChanged();
+            }
+        }
+    }
+    return validHover;
 }
 
 
