@@ -110,7 +110,7 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casacore::ImageI
     		casacore::Vector<casacore::Double> y(1);
     		QRectF box = regionInfo->outlineBox();
     		x[0] = box.center().x();
-    		x[1] = box.center().y();
+    		y[0] = box.center().y();
     		regionRecord = _getRegionRecord( shape, cSys, x, y );
     	}
     	else {
