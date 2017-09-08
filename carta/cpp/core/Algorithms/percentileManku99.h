@@ -24,7 +24,7 @@ class Buffer {
     const int capacity;
     
     /** The state of the buffer */
-    enum class State {empty, partial, full};
+    static enum class State {empty, partial, full};
     
     State state;
     
@@ -40,14 +40,17 @@ class Buffer {
     int level;
     
     /** The elements */
-    
     template <typename Scalar> std::vector<Scalar> elements;
+
+    /** Will be toggled in successive calls of the collapse operation */
+    static bool collapseChoice;
         
     Buffer(capacity) : capacity(capacity), state(State::empty), weight(0), level(0) {
     }
     
     ~Buffer();
 
+    /** NEW operation */
     template <typename Scalar> void opNew(std::vector<Scalar>& elements, int weight, int level, State state) {        
         this->elements = std::move(elements);
         this->state = state;
@@ -55,7 +58,41 @@ class Buffer {
         this->level = level;
     }
 
-    static void opCollapse(std::vector<Buffer> input_buffers) {
+    /** COLLAPSE operation */
+    static void opCollapse(std::vector<Buffer> inputBuffers) {
+        // Weight of collapsed buffer is the sum of the weights of all input buffers
+        double YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer& b){ return b.size() + a; });
+        // Level of collapsed buffer is one more than the level of each input buffer
+        int YLevel = inputBuffers[0].level + 1;
+
+        // Calculate sampling offset from total weight 
+        int offset;
+        if (YWeight % 2) { // odd
+            offset = (YWeight + 1) / 2;
+        } else if (collapseChoice) { // even (alternative 1)
+            offset = YWeight / 2;
+        } else { // even (alternative 2)
+            offset = (YWeight + 2) / 2;
+        }
+
+        collapseChoice = !collapseChoice; // do we need to do something special because it's static?
+
+        // TODO TODO TODO here be dragons
+        //Y_elements = list(itertools.islice(cls.heapq_merge_flat_heap(input_buffers), offset - 1, None, Y_weight))
+        std::vector<Scalar> YElements;
+
+        for (auto & b : inputBuffers) {
+            // weight and level are cosmetic here; is there a performance benefit to not setting them?
+            b.weight = 0;
+            b.state = State::empty;
+            b.level = 0;
+        }
+
+        Buffer & Y = inputBuffers[0];
+        Y.elements = std::move(YElements);
+        Y.weight = YWeight;
+        Y.state = State::full;
+        Y.level = YLevel;
     }
     
     static std::vector<double> opOutput(std::vector<Buffer> input_buffers, std::vector<double> quantiles) {
@@ -125,6 +162,7 @@ percentile2pixels_approximate_manku99(
     std::uniform_int_distribution<> dist(0, samplingRate - 1);
     int ri;
 
+    // TODO this whole thing should probably go in the Buffer class
     auto process = [&](const Scalar & val, const double & hzVal) {
         if (std::isfinite(val)) {
             if (empty.size()) {                    
