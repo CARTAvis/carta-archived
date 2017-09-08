@@ -43,7 +43,7 @@ class Buffer {
     
     template <typename Scalar> std::vector<Scalar> elements;
         
-    Buffer(capacity) : capacity(capacity), state(State::empty), weight(1), level(1) {
+    Buffer(capacity) : capacity(capacity), state(State::empty), weight(0), level(0) {
     }
     
     ~Buffer();
@@ -91,45 +91,69 @@ percentile2pixels_approximate_manku99(
         qFatal("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
     }
 
+    /** for conversion*/
+    double hertzVal;
+    std::function<Scalar(Scalar)> conversion_lambda;
+
     int samplingRate(1);
     int newBufferLevel(0);
     
     int finite(0);
-    
+
+    std::vector<Buffer> buffers;
+    for (size_t i = 0; i < numBuffers; i++) {
+        buffers.push_back(Buffer(bufferCapacity));
+    }
+
+    /** Temporary storage for blocks of data before and after sampling */
+    std::vector<Scalar> elementBlock;
+    std::vector<int> framesForBlock; // we need to keep these so that we can convert after sampling
     std::vector<Scalar> bufferElements;
 
-    std::vector<Buffer> buffers(numBuffers); // TODO does this create new buffer objects?
+    /** Keep track of empty buffers */
+    std::deque<Buffer*> empty; // this is safe because the buffer vector will never change size; buffers are modified in-place
+    for (size_t i = 0; i < buffers.size(); i++) {
+        empty.push_back(&buffers[i]);
+    }
     
-    std::deque<int> emptyBufferIndices(numBuffers);
-    std::iota (std::begin(emptyBufferIndices), std::end(emptyBufferIndices), 0);
+    /** Keep track of full buffers and their levels */
+    std::heap<int> fullLevelHeap; // TODO: need a smallest element heap
+    std::set<int> fullLevelSet;
+    std::map<int, std::vector<Buffer*> > full;
 
+    /** Randomness */
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    std::uniform_int_distribution<> dist(0, samplingRate - 1);
+    int ri;
 
-    auto makeNewBuffer = [&buffers, &bufferElements, &samplingRate, &newBufferLevel] (Buffer::State state) {        
-        buffers[emptyBufferIndices.front()].opNew(bufferElements, samplingRate, newBufferLevel, state);
-        emptyBufferIndices.pop_front();
-    };
-    
-    // TODO: process the values here
-    auto process = [&samplingRate, &finite, &buffers, &bufferElements, &dist, &mt](const Scalar & val) {
+    auto process = [&](const Scalar & val, const int & f) {
         if ( std::isfinite( val ) ) {
-            // TODO: do this only as long as there are empty buffers
-            if (emptyBufferIndices.size()) {
-                // this is horribly slow; should make a temp vector instead
-                // sample current value with a probability of pos % rate / rate
-                if (samplingRate == 1 || dist(mt) <= (finite % samplingRate + 1) / samplingRate) {
-                    bufferElements.push_back(val);
-                
-                    // create new buffer whenever elements reach capacity
-                    // we'll do it once at the end to account for a possible partial buffer
-                    if (bufferElements.size() == bufferCapacity) {
-                        makeNewBuffer(); // NEW operation
+            if (empty.size()) {                    
+                elementBlock.push_back(val);
+                framesForBlock.push_back(f);
+
+                if (elementBlock.size() == samplingRate) {
+                    // select random element from block, do unit conversion and append to elements
+                    ri = dist(mt);
+                    bufferElements.push_back(conversion_lambda(elementBlock[ri], hertzValues[framesForBlock[ri]]));
+                    elementBlock.clear();
+                    framesForBlock.clear();
+                    
+                    // create new buffer whenever elements reach buffer capacity
+                    // we'll do it once more at the end to account for a possible partial buffer
+                    if (bufferElements.size() == bufferCapacity) { // NEW operation
+                        empty.front()->opNew(bufferElements, samplingRate, newBufferLevel, Buffer::State::full);
+                        // TODO update full buffers / levels
+                        empty.pop_front();
                     }
                 }
             } else { // COLLAPSE operation
-                
+                // TODO find buffers to collapse
+                // do the collapse
+                // update empty / full
+                // update height / level / rate
+                // update distribution
             }
 
             finite++;
@@ -138,14 +162,10 @@ percentile2pixels_approximate_manku99(
     
     
     // Enter all the values into buffers
-    
-    double hertzVal;
-    std::function<void(Scalar)> view_lambda;
-    
     if (converter && converter->frameDependent) {
-        // we need to apply the frame-dependent conversion to each intensity value before copying it
-        view_lambda = [&converter, &hertzVal, &process](const Scalar & val) {
-            process(converter->_frameDependentConvert(val, hertzVal));
+        // conversion is needed
+        conversion_lambda = [&converter](const Scalar & val, const double & hzVal) {
+            return converter->_frameDependentConvert(val, hzVal);
         };
         
         // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
@@ -156,22 +176,40 @@ percentile2pixels_approximate_manku99(
             Carta::Lib::NdArray::Double viewSlice = Carta::Core::Algorithms::viewSliceForFrame(view, spectralIndex, f);
 
             // iterate over the frame
-            viewSlice.forEach(view_lambda);
+            viewSlice.forEach([&process] ( const Scalar & val ) {
+                process(val, f);
+            });
         }
         
     } else {
-        // we don't have to do any conversions in the loop
-        view_lambda = [&process] ( const Scalar & val ) {
-            process(val);
+        // conversions are no-ops
+        conversion_lambda = [] ( const Scalar & val, const double & hzVal) {
+            return val;
         };
         
-        // and we can loop over the flat image
-        view.forEach(view_lambda);
+        // we can loop over the flat image
+        view.forEach([&process] ( const Scalar & val ) {
+            process(val, -1);
+        });
     }
 
+    /** Special cases for handling the end of the data */
+    
+    // process a possible partial block
+    if (elementBlock.size()) {
+        // select random element from block, do unit conversion and append to elements
+        ri = dist(mt);
+        // we may not select any element from this incomplete block
+        if (ri < elementBlock.size()){
+            bufferElements.push_back(conversion_lambda(elementBlock[ri], hertzValues[framesForBlock[ri]]));
+        }
+        elementBlock.clear();
+        framesForBlock.clear();
+    }
     // process a possible partial buffer
-    if (bufferElements.size()) {
-        makeNewBuffer();
+    if (bufferElements.size()) {        
+        empty.front()->opNew(bufferElements, samplingRate, newBufferLevel, Buffer::State::partial);
+        empty.pop_front();
     }
 
     // OUTPUT operation
