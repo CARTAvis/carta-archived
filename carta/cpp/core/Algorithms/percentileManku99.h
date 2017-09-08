@@ -115,7 +115,7 @@ percentile2pixels_approximate_manku99(
     }
     
     /** Keep track of full buffers and their levels */
-    std::heap<int> fullLevelHeap; // TODO: need a smallest element heap
+    std::vector<int> fullLevelHeap;
     std::set<int> fullLevelSet;
     std::map<int, std::vector<Buffer*> > full;
 
@@ -126,7 +126,7 @@ percentile2pixels_approximate_manku99(
     int ri;
 
     auto process = [&](const Scalar & val, const double & hzVal) {
-        if ( std::isfinite( val ) ) {
+        if (std::isfinite(val)) {
             if (empty.size()) {                    
                 elementBlock.push_back(val);
                 hzForBlock.push_back(hzVal);
@@ -141,12 +141,23 @@ percentile2pixels_approximate_manku99(
                     // create new buffer whenever elements reach buffer capacity
                     // we'll do it once more at the end to account for a possible partial buffer
                     if (bufferElements.size() == bufferCapacity) { // NEW operation
-                        empty.front()->opNew(bufferElements, samplingRate, newBufferLevel, Buffer::State::full);
-                        // TODO update full buffers / levels
+                        Buffer *& newBuffer = empty.front();
+                        newBuffer->opNew(bufferElements, samplingRate, newBufferLevel, Buffer::State::full);
+                        if (fullLevelSet.find(newBufferLevel) != fullLevelSet.end()) {
+                            // add the level to the set
+                            fullLevelSet.insert(newBufferLevel);
+                            // add the level to the heap
+                            fullLevelHeap.back() = newBufferLevel;
+                            std::push_heap(fullLevelHeap.begin(), fullLevelHeap.end(), std::greater<int>{});
+                        }
+                        // add the buffer to the map of full buffers
+                        full[newBufferLevel].push_back(newBuffer);
+                        // remove buffer from list of empty buffers
                         empty.pop_front();
                     }
                 }
             } else { // COLLAPSE operation
+                // TODO write the collapse implementation in the buffer
                 // TODO find buffers to collapse
                 // do the collapse
                 // update empty / full
