@@ -98,8 +98,6 @@ percentile2pixels_approximate_manku99(
     int samplingRate(1);
     int newBufferLevel(0);
     
-    int finite(0);
-
     std::vector<Buffer> buffers;
     for (size_t i = 0; i < numBuffers; i++) {
         buffers.push_back(Buffer(bufferCapacity));
@@ -107,7 +105,7 @@ percentile2pixels_approximate_manku99(
 
     /** Temporary storage for blocks of data before and after sampling */
     std::vector<Scalar> elementBlock;
-    std::vector<int> framesForBlock; // we need to keep these so that we can convert after sampling
+    std::vector<double> hzForBlock; // we need to keep these so that we can convert after sampling
     std::vector<Scalar> bufferElements;
 
     /** Keep track of empty buffers */
@@ -127,16 +125,16 @@ percentile2pixels_approximate_manku99(
     std::uniform_int_distribution<> dist(0, samplingRate - 1);
     int ri;
 
-    auto process = [&](const Scalar & val, const int & f) {
+    auto process = [&](const Scalar & val, const double & hzVal) {
         if ( std::isfinite( val ) ) {
             if (empty.size()) {                    
                 elementBlock.push_back(val);
-                framesForBlock.push_back(f);
+                hzForBlock.push_back(hzVal);
 
                 if (elementBlock.size() == samplingRate) {
                     // select random element from block, do unit conversion and append to elements
                     ri = dist(mt);
-                    bufferElements.push_back(conversion_lambda(elementBlock[ri], hertzValues[framesForBlock[ri]]));
+                    bufferElements.push_back(conversion_lambda(ri));
                     elementBlock.clear();
                     framesForBlock.clear();
                     
@@ -155,8 +153,6 @@ percentile2pixels_approximate_manku99(
                 // update height / level / rate
                 // update distribution
             }
-
-            finite++;
         }
     };
     
@@ -164,8 +160,8 @@ percentile2pixels_approximate_manku99(
     // Enter all the values into buffers
     if (converter && converter->frameDependent) {
         // conversion is needed
-        conversion_lambda = [&converter](const Scalar & val, const double & hzVal) {
-            return converter->_frameDependentConvert(val, hzVal);
+        conversion_lambda = [&elementBlock, &hzForBlock, &converter] ( const int & ri) {
+            return converter->_frameDependentConvert(elementBlock[ri], hzForBlock[ri]);
         };
         
         // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
@@ -177,14 +173,14 @@ percentile2pixels_approximate_manku99(
 
             // iterate over the frame
             viewSlice.forEach([&process] ( const Scalar & val ) {
-                process(val, f);
+                process(val, hertzVal);
             });
         }
         
     } else {
         // conversions are no-ops
-        conversion_lambda = [] ( const Scalar & val, const double & hzVal) {
-            return val;
+        conversion_lambda = [&elementBlock, &hzForBlock] ( const int & ri) {
+            return elementBlock[ri];
         };
         
         // we can loop over the flat image
@@ -201,7 +197,7 @@ percentile2pixels_approximate_manku99(
         ri = dist(mt);
         // we may not select any element from this incomplete block
         if (ri < elementBlock.size()){
-            bufferElements.push_back(conversion_lambda(elementBlock[ri], hertzValues[framesForBlock[ri]]));
+            bufferElements.push_back(conversion_lambda(ri));
         }
         elementBlock.clear();
         framesForBlock.clear();
