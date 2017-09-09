@@ -79,14 +79,13 @@ Globals::Globals()
 
 IConnector * Globals::connector()
 {
-//    Q_ASSERT( m_connector != nullptr);
 
     //20170829 grimmer:modify for new arch
+    //origin plan: SessionDispatcher *c = static_cast<SessionDispatcher*>(m_connector);
+    // now let SessionDispatcher implements IConnector
 
+    //    Q_ASSERT( m_connector != nullptr);
     QString sessionID = QThread::currentThread()->objectName();
-
-    // 把 m_connector 轉成 sessionDispatcher
-//    SessionDispatcher *c = static_cast<SessionDispatcher*>(m_connector);
 
     IConnector* connector = m_connector->getConnectorInMap(sessionID);
 

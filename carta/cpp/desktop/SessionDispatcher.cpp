@@ -27,114 +27,7 @@
 #include <QBuffer>
 #include <QThread>
 
-
 #include "NewServerConnector.h"
-
-/// \brief internal class of SessionDispatcher, containing extra information we like
-///  to remember with each view
-///
-struct SessionDispatcher::ViewInfo
-{
-
-    /// pointer to user supplied IView
-    /// this is a NON-OWNING pointer
-    IView * view;
-
-    /// last received client size
-    QSize clientSize;
-
-    /// linear maps convert x,y from client to image coordinates
-    Carta::Lib::LinearMap1D tx, ty;
-
-    /// refresh timer for this object
-    QTimer refreshTimer;
-
-    /// refresh ID
-    qint64 refreshId = -1;
-
-    ViewInfo( IView * pview )
-    {
-        view = pview;
-        clientSize = QSize(1,1);
-        refreshTimer.setSingleShot( true);
-        // just long enough that two successive calls will result in only one redraw :)
-        refreshTimer.setInterval( 1000 / 120);
-    }
-
-};
-
-// not use now
-// uWebSockets part, comment now, change to use qt's built-in WebSocket
-//TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.
-// void SessionDispatcher::startWebSocketServer() {
-
-//    std::cout << "websocket starts running" << std::endl;
-//    uWS::Hub h;
-//    // DesktopConnector *conn = this;
-//    h.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
-//        std::cout << "get something, echo back:" << message << std::endl;
-//        //        ws->send(message, length, opCode);
-
-//        char *psz = new char[length];
-//        strncpy(psz, message, length);
-//        QString message2(psz);
-//        delete [] psz;
-
-//        qDebug() << "convert to:"<< message2;
-
-//        if (message2.contains("REQUEST_FILE_LIST")) {
-
-//            // if ( )
-//            QString command = "/CartaObjects/DataLoader:getData";
-//            QString parameter = "path:";
-
-////            QMetaObject::invokeMethod( this, "jsSendCommandSlot2", Qt::QueuedConnection );
-//            //            conn->jsSendCommandSlot(command, parameter);
-
-//            // QMetaObject::invokeMethod(this, "quit",
-//            //               Qt::QueuedConnection);
-
-////             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
-
-//            // SessionDispatcher::jsSendCommandSlot(const QString &cmd, const QString & parameter)
-//            //    /CartaObjects/DataLoader:getData
-//            //    path:
-//        } else if (message2.contains("SELECT_FILE_TO_OPEN")) {
-
-//            QStringList myStringList = message2.split(';');
-//            if(myStringList.size()>=2){
-//              auto fileName = myStringList[1];
-//              qDebug()<< "fileName:" << myStringList[1];
-
-//              QString command = "/CartaObjects/ViewManager:dataLoaded";
-//              QString parameter = "id:/CartaObjects/c14,data:" + fileName;
-
-////              pseudoJsSendCommandSlot(ws, opCode, command, parameter);
-
-////              qDebug()<<"cmd:"<<cmd;
-////              qDebug()<<"parameter:"<< parameter;
-////              if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
-////                  if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
-////                      int kkk =0;
-////                  }
-////              }
-//            }
-
-//                            //            ws->send("hello", 5, opCode);
-//        } else {
-////            ws->send("hello", 5, opCode);
-//        }
-//    });
-//    h.listen(4314);
-//    h.run(); // will block here
-
-//    std::cout << "websocket ends running" << std::endl;
-// }
-
-//void SessionDispatcher::receiveNewSession(int SessionID){
-
-
-//}
 
 void SessionDispatcher::startWebSocketChannel(){
 
@@ -162,32 +55,7 @@ void SessionDispatcher::startWebSocketChannel(){
 
 SessionDispatcher::SessionDispatcher()
 {
-    // queued connection to prevent callbacks from firing inside setState
-    // connect( this, & SessionDispatcher::stateChangedSignal,
-    //          this, & SessionDispatcher::stateChangedSlot,
-    //          Qt::QueuedConnection );
-    //
-    // m_callbackNextId = 0;
-
-    // test1: uWebSocket part
-//    std::thread mThread( &SessionDispatcher::startWebSocketServer, this );
-//    mThread.detach();
-
-    // test2: change to use Qt's buint-in WebSocket
-    // https://github.com/GarageGames/Qt/blob/master/qt-5/qtwebsockets/examples/websockets/echoserver/echoserver.cpp
-//     m_pWebSocketServer = new QWebSocketServer(QStringLiteral("Echo Server"),
-//                                             QWebSocketServer::NonSecureMode, this);
-//     m_debug = true;
-//     int port = 4317;
-//     if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
-//         if (m_debug)
-//             qDebug() << "DesktopConnector listening on port" << port;
-//         connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
-//                 this, &SessionDispatcher::onNewConnection);
-// //        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &SessionDispatcher::closed);
-//     }
-
-//test3, Qt's built-in WebSocket + QWebChannel
+    //Qt's built-in WebSocket + QWebChannel
     m_pWebSocketServer = nullptr;
     m_clientWrapper = nullptr;
     m_channel = nullptr;
@@ -198,7 +66,6 @@ SessionDispatcher::SessionDispatcher()
 SessionDispatcher::~SessionDispatcher()
 {
     m_pWebSocketServer->close();
-//    qDeleteAll(m_clients.begin(), m_clients.end());
 
     if (m_pWebSocketServer != nullptr) {
         delete m_pWebSocketServer;
@@ -213,24 +80,6 @@ SessionDispatcher::~SessionDispatcher()
     }
 }
 
-void SessionDispatcher::initialize(const InitializeCallback & cb)
-{
-    m_initializeCallback = cb;
-}
-
-void SessionDispatcher::jsSetStateSlot(const QString & key, const QString & value) {
-    // it's ok to call setState directly, because callbacks will be invoked
-    // from there asynchronously
-    setState( key, value );
-
-    if( CARTA_RUNTIME_CHECKS) {
-        auto iter = m_stateCallbackList.find( key);
-        if( iter == m_stateCallbackList.end()) {
-            qWarning() << "JS setState has no listener" << key << "=" << value;
-        }
-    }
-}
-
 void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
 {
     // forward commands
@@ -239,34 +88,8 @@ void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QStri
         emit connector->jsSendCommandSignal(sessionID, cmd, parameter);
     }
     return;
-
-//    /CartaObjects/DataLoader:getData
-//    path:
-
-//    qDebug()<<"cmd:"<<cmd;
-//    qDebug()<<"parameter:"<< parameter;
-//    if (cmd=="/CartaObjects/c14:setZoomLevel") {
-//        int kkk =0;
-//    }
-
-    // call all registered callbacks and collect results, but asynchronously
-//    defer( [cmd, parameter, this ]() {
-//        auto & allCallbacks = m_commandCallbackMap[ cmd];
-//        QStringList results;
-//        for( auto & cb : allCallbacks) {
-//            results += cb( cmd, parameter, "1"); // session id fixed to "1"
-//        }
-
-//        // pass results back to javascript
-//        emit jsCommandResultsSignal( cmd, results.join("|"));
-
-//        if( allCallbacks.size() == 0) {
-//            qWarning() << "JS command has no server listener:" << cmd << parameter;
-//        }
-//    });
 }
 
-//TODO add lock/mutex later
 IConnector* SessionDispatcher::getConnectorInMap(const QString & sessionID){
 
     mutex.lock();
@@ -288,7 +111,6 @@ void SessionDispatcher::setConnectorInMap(const QString & sessionID, IConnector 
     mutex.lock();
     clientList[sessionID] = connector;
     mutex.unlock();
-
 }
 
 void SessionDispatcher::jsViewUpdatedSignalForwardSlot(const QString & sessionID, const QString & viewName, const QString & img, qint64 id){
@@ -300,6 +122,7 @@ void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessio
     emit jsCommandResultsSignal(sessionID, cmd, results);
 }
 
+//TODO implement later
 void SessionDispatcher::jsSendKeepAlive(){
 //    qDebug() << "get keepalive packet !!!!";
 }
@@ -338,9 +161,9 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 
         // setup view size
         connect(connector,
-                SIGNAL(jsUpdateViewSignal(const QString &, const QString &, int, int) ),
+                SIGNAL(jsUpdateViewSizeSignal(const QString &, const QString &, int, int) ),
                 connector,
-                SLOT( jsUpdateViewSlot(const QString &, const QString &, int, int)));
+                SLOT( jsUpdateViewSizeSlot(const QString &, const QString &, int, int)));
 
 
         connect(connector,
@@ -357,7 +180,7 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 
         // create a simple thread
         QThread* newThread = new QThread();
-        connector->selfThread = newThread;
+//        connector->selfThread = newThread;
 
         // let the new thread handle its events
         connector->moveToThread(newThread);
@@ -408,221 +231,64 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
     ////        objectmanager, 維持原樣
     //         //viewermanger, 每個人有自己一份
     //        // plugin -> prepare 已提早
-
 }
 
-SessionDispatcher::ViewInfo * SessionDispatcher::findViewInfo( const QString & viewName)
+void SessionDispatcher::jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height)
 {
-    auto viewIter = m_views.find( viewName);
-    if( viewIter == m_views.end()) {
-        qWarning() << "SessionDispatcher::findViewInfo: Unknown view " << viewName;
-        return nullptr;
-    }
-
-    return viewIter-> second;
-}
-
-
-
-void SessionDispatcher::jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height)
-{
-
     // forward commands
     NewServerConnector *connector = static_cast<NewServerConnector*>(getConnectorInMap(sessionID));
     if (connector != nullptr){
-        emit connector->jsUpdateViewSignal(sessionID, viewName, width, height);
+        emit connector->jsUpdateViewSizeSignal(sessionID, viewName, width, height);
     }
 
     return;
-
-//    ViewInfo * viewInfo = findViewInfo( viewName);
-//    if( ! viewInfo) {
-//        qWarning() << "Received update for unknown view " << viewName;
-//        return;
-//    }
-
-//    IView * view = viewInfo-> view;
-//    viewInfo-> clientSize = QSize( width, height);
-
-//    defer([this,view,viewInfo](){
-//        view-> handleResizeRequest( viewInfo-> clientSize);
-//        refreshView( view);
-//    });
-}
-
-void SessionDispatcher::jsViewRefreshedSlot(const QString & viewName, qint64 id)
-{
-    //qDebug() << "jsViewRefreshedSlot()" << viewName << id;
-    ViewInfo * viewInfo = findViewInfo( viewName);
-    if( ! viewInfo) {
-        qCritical() << "Received refresh view signal for unknown view" << viewName;
-        return;
-    }
-    CARTA_ASSERT( viewInfo-> view);
-    viewInfo-> view-> viewRefreshed( id);
-}
-
-void SessionDispatcher::jsMouseMoveSlot(const QString &viewName, int x, int y)
-{
-    ViewInfo * viewInfo = findViewInfo( viewName);
-    if( ! viewInfo) {
-        qWarning() << "Received mouse event for unknown view " << viewName << "\n";
-        return;
-    }
-
-    IView * view = viewInfo-> view;
-
-    // we need to map x,y from screen coordinates to image coordinates
-    int xi = std::round( viewInfo-> tx(x));
-    int yi = std::round( viewInfo-> ty(y));
-
-    // tell the view about the event
-    QMouseEvent ev( QEvent::MouseMove,
-                    QPoint(xi,yi),
-                    Qt::NoButton,
-                    Qt::NoButton,
-                    Qt::NoModifier   );
-    view-> handleMouseEvent( ev);
-}
-
-void SessionDispatcher::stateChangedSlot(const QString & key, const QString & value)
-{
-    // find the list of callbacks for this path
-    auto iter = m_stateCallbackList.find( key);
-
-    // if it does not exist, do nothing
-    if( iter == m_stateCallbackList.end()) {
-        return;
-    }
-
-    // call all registered callbacks for this key
-    iter-> second-> callEveryone( key, value);
 }
 
 //********* will comment the below later
 
-void SessionDispatcher::setState(const QString& path, const QString & newValue)
+void SessionDispatcher::initialize(const InitializeCallback & cb)
 {
-    // find the path
-    auto it = m_state.find( path);
-
-    // if we cannot find it, insert it, together with the new value, and emit a change
-    if( it == m_state.end()) {
-        m_state[path] = newValue;
-        emit stateChangedSignal( path, newValue);
-        return;
-    }
-
-    // if we did find it, but the value is different, set it to new value and emit signal
-    if( it-> second != newValue) {
-        it-> second = newValue;
-        emit stateChangedSignal( path, newValue);
-    }
-
-    // otherwise there was no change to state, so do dothing
 }
 
+void SessionDispatcher::setState(const QString& path, const QString & newValue)
+{
+
+}
 
 QString SessionDispatcher::getState(const QString & path  )
 {
-    return m_state[ path ];
+    return "";
 }
 
-
-// Return the location where the state is saved.
 QString SessionDispatcher::getStateLocation( const QString& saveName ) const {
-	// \todo Generalize this.
-	return "/tmp/"+saveName+".json";
+    return "";
 }
 
 IConnector::CallbackID SessionDispatcher::addCommandCallback(
         const QString & cmd,
         const IConnector::CommandCallback & cb)
 {
-    m_commandCallbackMap[cmd].push_back( cb);
-    return m_callbackNextId++;
+    return 0;
 }
 
 IConnector::CallbackID SessionDispatcher::addStateCallback(
         IConnector::CSR path,
         const IConnector::StateChangedCallback & cb)
 {
-    // find the list of callbacks for this path
-    auto iter = m_stateCallbackList.find( path);
-
-    // if it does not exist, create it
-    if( iter == m_stateCallbackList.end()) {
-//        qDebug() << "Creating callback list for variable " << path;
-        auto res = m_stateCallbackList.insert( std::make_pair(path, new StateCBList));
-        iter = res.first;
-    }
-
-//    iter = m_stateCallbackList.find( path);
-//    if( iter == m_stateCallbackList.end()) {
-////        qDebug() << "What the hell";
-//    }
-
-    // add the calllback
-    return iter-> second-> add( cb);
-
-//    return m_stateCallbackList[ path].add( cb);
+    return 0;
 }
 
 void SessionDispatcher::registerView(IView * view)
 {
-    // let the view know it's registered, and give it access to the connector
-    view->registration( this);
 
-    // insert this view int our list of views
-    ViewInfo * viewInfo = new ViewInfo( view);
-//    viewInfo-> view = view;
-//    viewInfo-> clientSize = QSize(1,1);
-    m_views[ view-> name()] = viewInfo;
-
-    // connect the view's refresh timer to a lambda, which will in turn call
-    // refreshViewNow()
-    // this is instead of using std::bind...
-    connect( & viewInfo->refreshTimer, & QTimer::timeout,
-            [=] () {
-                     refreshViewNow( view);
-    });
 }
 
-//unregister the view
 void SessionDispatcher::unregisterView( const QString& viewName ){
-    ViewInfo* viewInfo = this->findViewInfo( viewName );
-    if ( viewInfo != nullptr ){
-
-        (& viewInfo->refreshTimer)->disconnect();
-        m_views.erase( viewName );
-    }
 }
 
-   static QTime st;
-
-//schedule a view refresh
 qint64 SessionDispatcher::refreshView(IView * view)
 {
-    // find the corresponding view info
-    ViewInfo * viewInfo = findViewInfo( view-> name());
-    if( ! viewInfo) {
-        // this is an internal error...
-        qCritical() << "refreshView cannot find this view: " << view-> name();
-        return -1;
-    }
-
-    // start the timer for this view if it's not already started
-//    if( ! viewInfo-> refreshTimer.isActive()) {
-//        viewInfo-> refreshTimer.start();
-//    }
-//    else {
-//        qDebug() << "########### saved refresh for " << view->name();
-//    }
-
-    refreshViewNow(view);
-
-    viewInfo-> refreshId ++;
-    return viewInfo-> refreshId;
+    return 0;
 }
 
 void SessionDispatcher::removeStateCallback(const IConnector::CallbackID & /*id*/)
@@ -630,141 +296,8 @@ void SessionDispatcher::removeStateCallback(const IConnector::CallbackID & /*id*
     qFatal( "not implemented");
 }
 
-
 Carta::Lib::IRemoteVGView * SessionDispatcher::makeRemoteVGView(QString viewName)
 {
-//    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
     return nullptr;
 }
-
-
-void SessionDispatcher::refreshViewNow(IView *view)
-{
-//    static int enterCount =0;
-
-//    enterCount++;
-
-////    if (enterCount>1) {
-////        return;
-////    }
-
-
-//    ViewInfo * viewInfo = findViewInfo( view-> name());
-//    if( ! viewInfo) {
-//        // this is an internal error...
-//        qCritical() << "refreshView cannot find this view: " << view-> name();
-//        return;
-//    }
-//    // get the image from view
-//    const QImage & origImage = view-> getBuffer();
-
-//    QSize clientImageSize = viewInfo->clientSize;
-//    if( origImage.size() != clientImageSize && clientImageSize.height() > 0 &&
-//            clientImageSize.width() > 0 && origImage.height() > 0 ) {
-//        qDebug() << "Having to re-scale the image, this is slow" << origImage.size() << viewInfo->clientSize;
-//        // scale the image to fit the client size, in case it wasn't scaled alerady
-//        QImage destImage = origImage.scaled(
-//                               viewInfo->clientSize, Qt::KeepAspectRatio,
-//                               //                Qt::SmoothTransformation);
-//                               Qt::FastTransformation);
-//        // calculate the offset needed to center the image
-//        int xOffset = (viewInfo-> clientSize.width() - destImage.size().width())/2;
-//        int yOffset = (viewInfo-> clientSize.height() - destImage.size().height())/2;
-//        QImage pix( viewInfo->clientSize, QImage::Format_ARGB32_Premultiplied);
-//        pix.fill( qRgba( 0, 0, 0, 0));
-//        QPainter p( & pix);
-//        p.setCompositionMode( QPainter::CompositionMode_Source);
-//        p.drawImage( xOffset, yOffset, destImage );
-
-//        // remember the transformations we did to the image in the viewInfo so that we can
-//        // properly translate mouse events etc
-//        viewInfo-> tx = Carta::Lib::LinearMap1D( xOffset, xOffset + destImage.size().width()-1,
-//                                     0, origImage.width()-1);
-//        viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
-//                                     0, origImage.height()-1);
-
-//        QString nname = view-> name();
-
-//        qDebug()<<"grimmer image11111";
-
-////        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
-////        return;
-
-//        QImage *finalImage;
-
-//        finalImage = &pix;
-
-//        if (finalImage) {
-////            image.load("test.png");
-//           QByteArray byteArray;
-//           QBuffer buffer(&byteArray);
-//           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
-//           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-//           emit jsViewUpdatedSignal( view-> name(), base64Str, viewInfo-> refreshId);
-
-////           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
-////           if (test_pClient != nullptr) {
-////               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
-////               test_pClient->flush();
-////               qDebug() << "send:"<<sendNumber;
-////           }
-//        } else {
-//            qDebug() << "grimmer not ready";
-//        }
-
-//    }
-//    else {
-
-//        static int count = 0;
-//        count++;
-
-//        qDebug()<<"grimmer image2222:"<< count;
-
-//        QString nname = view-> name();
-
-//        viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
-//        viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
-
-////        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
-////        return;
-
-//        const QImage *finalImage = &origImage;
-//        if (finalImage) {
-////            image.load("test.png");
-//           QByteArray byteArray;
-//           QBuffer buffer(&byteArray);
-//           finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer. 50 is a little bad
-//           QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
-//           emit jsViewUpdatedSignal( view-> name(), base64Str,  viewInfo-> refreshId);
-
-////           QString jsonStr = "{\"cmd\":\"SELECT_FILE_TO_OPEN\",\"image\":\""+base64Str+"\"}";
-////           if (test_pClient != nullptr) {
-////               qint64 sendNumber = test_pClient->sendTextMessage(jsonStr);
-////               test_pClient->flush();
-////               qDebug() << "send:"<<sendNumber;
-////           }
-//        } else {
-//            qDebug() << "grimmer not ready";
-//        }
-
-//    }
-
-
-
-//    //http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
-
-//    // test webSocket case
-//    auto sendBackToWSClient = [this](const QImage & img) {
-
-//    // 1. convert Qimage to jpeg base64 string
-
-
-//    // 2.d send
-//    //test_pClient->sendTextMessage();
-
-//    };
-
-
-
-
-}
+//*********

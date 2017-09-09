@@ -20,13 +20,6 @@
 #include <functional>
 
 #include <QStringList>
-
-#include <thread>
-#include "QtWebSockets/qwebsocketserver.h"
-#include "QtWebSockets/qwebsocket.h"
-#include "websocketclientwrapper.h"
-#include "websockettransport.h"
-#include "qwebchannel.h"
 #include <QBuffer>
 
 #include <QThread>
@@ -66,104 +59,7 @@ struct NewServerConnector::ViewInfo
 };
 
 void NewServerConnector::testStartViewerSlot(const QString & sessionID) {
-
-
     emit startViewerSignal(sessionID);
-
-}
-
-
-// not use now
-// uWebSockets part, comment now, change to use qt's built-in WebSocket
-//TODO Grimmer: this is for new CARTA, and is using hacked way to workaround passing command/object id/callback issue.
-void NewServerConnector::startWebSocketServer() {
-
-//    std::cout << "websocket starts running" << std::endl;
-//    uWS::Hub h;
-//    // NewServerConnector *conn = this;
-//    h.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char *message, size_t length, uWS::OpCode opCode) {
-//        std::cout << "get something, echo back:" << message << std::endl;
-//        //        ws->send(message, length, opCode);
-
-//        char *psz = new char[length];
-//        strncpy(psz, message, length);
-//        QString message2(psz);
-//        delete [] psz;
-
-//        qDebug() << "convert to:"<< message2;
-
-//        if (message2.contains("REQUEST_FILE_LIST")) {
-
-//            // if ( )
-//            QString command = "/CartaObjects/DataLoader:getData";
-//            QString parameter = "path:";
-
-////            QMetaObject::invokeMethod( this, "jsSendCommandSlot2", Qt::QueuedConnection );
-//            //            conn->jsSendCommandSlot(command, parameter);
-
-//            // QMetaObject::invokeMethod(this, "quit",
-//            //               Qt::QueuedConnection);
-
-////             pseudoJsSendCommandSlot(ws, opCode, command, parameter);
-
-//            // NewServerConnector::jsSendCommandSlot(const QString &cmd, const QString & parameter)
-//            //    /CartaObjects/DataLoader:getData
-//            //    path:
-//        } else if (message2.contains("SELECT_FILE_TO_OPEN")) {
-
-//            QStringList myStringList = message2.split(';');
-//            if(myStringList.size()>=2){
-//              auto fileName = myStringList[1];
-//              qDebug()<< "fileName:" << myStringList[1];
-
-//              QString command = "/CartaObjects/ViewManager:dataLoaded";
-//              QString parameter = "id:/CartaObjects/c14,data:" + fileName;
-
-////              pseudoJsSendCommandSlot(ws, opCode, command, parameter);
-
-////              qDebug()<<"cmd:"<<cmd;
-////              qDebug()<<"parameter:"<< parameter;
-////              if (cmd=="/CartaObjects/ViewManager:dataLoaded") {
-////                  if (parameter=="id:/CartaObjects/c14,data:/Users/grimmer/CARTA/Images/aJ.fits") {
-////                      int kkk =0;
-////                  }
-////              }
-//            }
-
-//                            //            ws->send("hello", 5, opCode);
-//        } else {
-////            ws->send("hello", 5, opCode);
-//        }
-//    });
-//    h.listen(4314);
-//    h.run(); // will block here
-
-//    std::cout << "websocket ends running" << std::endl;
-}
-
-
-void NewServerConnector::startWebSocketChannel(){
-
-    int port = 4317;
-
-    // setup the QWebSocketServer
-    m_pWebSocketServer = new QWebSocketServer(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode, this);
-    if (!m_pWebSocketServer->listen(QHostAddress::Any, port)) {
-        qFatal("Failed to open web socket server.");
-        return;
-    }
-
-    qDebug() << "NewServerConnector listening on port" << port;
-
-    // wrap WebSocket clients in QWebChannelAbstractTransport objects
-    m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
-
-    // setup the channel
-    m_channel = new QWebChannel();
-    QObject::connect(m_clientWrapper, &WebSocketClientWrapper::clientConnected,
-                     m_channel, &QWebChannel::connectTo);
-
-    m_channel->registerObject(QStringLiteral("QConnector"), this);
 }
 
 NewServerConnector::NewServerConnector()
@@ -174,50 +70,10 @@ NewServerConnector::NewServerConnector()
              Qt::QueuedConnection );
 
     m_callbackNextId = 0;
-
-    // test1: uWebSocket part
-//    std::thread mThread( &NewServerConnector::startWebSocketServer, this );
-//    mThread.detach();
-
-    // test2: change to use Qt's buint-in WebSocket
-    // https://github.com/GarageGames/Qt/blob/master/qt-5/qtwebsockets/examples/websockets/echoserver/echoserver.cpp
-//     m_pWebSocketServer = new QWebSocketServer(QStringLiteral("Echo Server"),
-//                                             QWebSocketServer::NonSecureMode, this);
-//     m_debug = true;
-//     int port = 4317;
-//     if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
-//         if (m_debug)
-//             qDebug() << "NewServerConnector listening on port" << port;
-//         connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
-//                 this, &NewServerConnector::onNewConnection);
-// //        connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &NewServerConnector::closed);
-//     }
-
-//test3, Qt's built-in WebSocket + QWebChannel
-    m_pWebSocketServer = nullptr;
-    m_clientWrapper = nullptr;
-    m_channel = nullptr;
-    selfThread = nullptr;
-//    startWebSocketChannel();
-
 }
 
 NewServerConnector::~NewServerConnector()
 {
-    m_pWebSocketServer->close();
-//    qDeleteAll(m_clients.begin(), m_clients.end());
-
-    if (m_pWebSocketServer != nullptr) {
-        delete m_pWebSocketServer;
-    }
-
-    if (m_clientWrapper != nullptr) {
-        delete m_clientWrapper;
-    }
-
-    if (m_channel != nullptr) {
-        delete m_channel;
-    }
 }
 
 void NewServerConnector::initialize(const InitializeCallback & cb)
@@ -395,9 +251,8 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
 
     } else if (cmd.contains("ViewManager")) {
 
-        if (cmd == "/CartaObjects/ViewManager:registerView") {
-            int kkk = 5;
-        }
+//        if (cmd == "/CartaObjects/ViewManager:registerView") {
+//        }
 
         QStringList myStringList = cmd.split(':');
         if(myStringList.size()>=2){
@@ -470,18 +325,15 @@ NewServerConnector::ViewInfo * NewServerConnector::findViewInfo( const QString &
 
 void NewServerConnector::refreshViewNow(IView *view)
 {
+    //ref http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
 
     QString sessionID = QThread::currentThread()->objectName();
 
-
-    static int enterCount =0;
-
-    enterCount++;
-
+//    static int enterCount =0;
+//    enterCount++;
 //    if (enterCount>1) {
 //        return;
 //    }
-
 
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
@@ -582,25 +434,6 @@ void NewServerConnector::refreshViewNow(IView *view)
         }
 
     }
-
-
-
-    //http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
-
-    // test webSocket case
-//    auto sendBackToWSClient = [this](const QImage & img) {
-
-    // 1. convert Qimage to jpeg base64 string
-
-
-    // 2.d send
-    //test_pClient->sendTextMessage();
-
-//    };
-
-
-
-
 }
 
 IConnector* NewServerConnector::getConnectorInMap(const QString & sessionID){
@@ -623,12 +456,12 @@ void NewServerConnector::startViewerSlot(const QString & sessionID) {
 }
 
 
-void NewServerConnector::jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height)
+void NewServerConnector::jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height)
 {
     QString name = QThread::currentThread()->objectName();
     qDebug() << "current thread name:" << name;
     if (name != sessionID) {
-        qDebug()<< "ignore jsUpdateViewSlot";
+        qDebug()<< "ignore jsUpdateViewSizeSlot";
         return;
     }
 

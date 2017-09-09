@@ -107,16 +107,12 @@ coreMainCPP( QString platformString, int argc, char * * argv )
         viewer.setDeveloperView();
     }
 
-//    SessionDispatcher *c = static_cast<SessionDispatcher*>(connector);
     // prepare closure to execute when connector is initialized
 //    IConnector::InitializeCallback initCB = [&] ( const QString &sessionID) -> void {
 //        if ( ! valid ) {
 //            qFatal( "Could not initialize connector" );
 //        }
 //        c->receiveNewSession(sessionID);
-//        //TODO create a new thread for a new session
-//        int kkk = 5;
-
 //        if ( hackViewer ) {
 //            hackViewer-> start();
 //        }
@@ -125,14 +121,9 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // initialize connector
 //    connector-> initialize( initCB );
 
-    // original placke: viewer.start, move to here
+    // original place: viewer.start, move to here
     // tell all plugins that the core has initialized
     globals.pluginManager()-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
-
-//    auto test = globals.pluginManager();
-//    connect( &qapp, SIGNAL(aboutToQuit()), test, SLOT(DBClose()));
-//    /Users/grimmer/cartahome2/CARTAvis/carta/cpp/core/coreMain.h:145:44: error: no viable conversion from 'std::__1::shared_ptr<PluginManager>' to 'const QObject *'
-//        connect( &qapp, SIGNAL(aboutToQuit()), test, SLOT(DBClose()));
 
     // give QT control
     int res = qapp.exec();

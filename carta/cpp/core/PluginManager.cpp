@@ -47,6 +47,7 @@ PluginManager::PluginManager()
 
 PluginManager::~PluginManager() {
     qDebug() << "~PluginManager is getting called";
+    // TODO it seems that calling DBClose does not work, fix it later 
 //    DBClose();
 }
 

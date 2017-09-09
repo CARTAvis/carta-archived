@@ -361,27 +361,6 @@ ObjectManager::initialize()
 ObjectManager *
 ObjectManager::objectManager ()
 {
-    // use this
-//    static std::map<QString, ObjectManager*> managerList;
-//    static QMutex mutex;
-
-//    QString sessionID = QThread::currentThread()->objectName();
-
-//    mutex.lock();
-//    auto iter = managerList.find(sessionID);
-//    if(iter !=  managerList.end()) {
-//        qDebug()<<"Find objectmanager,  the value is";
-//        auto connector = iter->second;
-//        mutex.unlock();
-//        return connector;
-//    }
-
-//    ObjectManager *manager = new ObjectManager();
-//    managerList[sessionID] = manager;
-
-//        mutex.unlock();
-//        return manager;
-
     // Implements a singleton pattern
     static ObjectManager om;
     return &om;

@@ -45,7 +45,6 @@ bool DataLoader::m_registered =
 
 DataLoader::DataLoader( const QString& path, const QString& id ):
     CartaObject( CLASS_NAME, path, id ){
-    // _initCallbacks();
 }
 
 

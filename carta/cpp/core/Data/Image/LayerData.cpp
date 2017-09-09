@@ -979,7 +979,6 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         DataLoader* dLoader = objMan->createObject<DataLoader>();
 
-
         QString shortName = dLoader->getShortName( fileName );
         QString layerName = m_state.getValue<QString>( Util::NAME );
         if ( layerName.isEmpty() || layerName.length() == 0 ){

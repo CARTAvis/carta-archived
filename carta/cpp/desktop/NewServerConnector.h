@@ -12,18 +12,9 @@
 #include "core/Viewer.h"
 #include "CartaLib/IRemoteVGView.h"
 
-//#include <uWS/uWS.h>
-
 #include <QList>
 #include <QByteArray>
 
-QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
-QT_FORWARD_DECLARE_CLASS(QWebSocket)
-
-QT_FORWARD_DECLARE_CLASS(WebSocketClientWrapper)
-QT_FORWARD_DECLARE_CLASS(QWebChannel)
-
-class MainWindow;
 class IView;
 
 /// private info we keep with each view
@@ -52,26 +43,12 @@ public:
     makeRemoteVGView( QString viewName) override;
 
     /// Return the location where the state is saved.
-    virtual QString getStateLocation( const QString& saveName ) const;
+    virtual QString getStateLocation( const QString& saveName ) const override;
 
-    // no use
-    void startWebSocketServer();
-//    void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter);
-//    void jsSendCommandSlot2();
-//    void pseudoJsSendCommandSlot(uWS::WebSocket<uWS::SERVER> *ws, uWS::OpCode opCode,  const QString &cmd, const QString & parameter);
-    // Qt's built-in WebSocket
-//    QList<QWebSocket *> m_clients;
-//    bool m_debug;
-//    void pseudoJsSendCommandSlot(const QString &cmd, const QString & parameter, QWebSocket *pClient);
-
-    void startWebSocketChannel();
-    QWebSocketServer *m_pWebSocketServer;
-    WebSocketClientWrapper *m_clientWrapper;
-    QWebChannel *m_channel;
      ~NewServerConnector();
 
     Viewer viewer;
-    QThread *selfThread;
+    QThread *selfThread; //not really use now, may take effect later 
     void testStartViewerSlot(const QString & sessionID);
 
 public slots:
@@ -86,7 +63,7 @@ public slots:
     void jsConnectorReadySlot();
 
     /// javascript calls this when view is resized
-    void jsUpdateViewSlot(const QString & sessionID, const QString & viewName, int width, int height);
+    void jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height);
 
     /// javascript calls this when the view is refreshed
     void jsViewRefreshedSlot( const QString & viewName, qint64 id);
@@ -100,18 +77,14 @@ public slots:
 
     void startViewerSlot(const QString & sessionID);
 
-    // no use. Qt's built-in WebSocket
-//    void onNewConnection();
-//    void processTextMessage(QString message);
-//    void processBinaryMessage(QByteArray message);
-//    void socketDisconnected();
-
 signals:
+
+    //grimmer: newArch will not use stateChange mechanism anymore
 
     //new arch
     void startViewerSignal(const QString & sessionID);
     void jsSendCommandSignal(const QString & sessionID, const QString &cmd, const QString & parameter);
-    void jsUpdateViewSignal(const QString & sessionID, const QString & viewName, int width, int height);
+    void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
 
     /// we emit this signal when state is changed (either by c++ or by javascript)
     /// we listen to this signal, and so does javascript
@@ -148,9 +121,8 @@ public:
 
     virtual void refreshViewNow(IView *view);
 
-    IConnector* getConnectorInMap(const QString & sessionID);
-
-    void setConnectorInMap(const QString & sessionID, IConnector *connector);
+    IConnector* getConnectorInMap(const QString & sessionID) override;
+    void setConnectorInMap(const QString & sessionID, IConnector *connector) override;
 
     /// @todo move as may of these as possible to protected section
 

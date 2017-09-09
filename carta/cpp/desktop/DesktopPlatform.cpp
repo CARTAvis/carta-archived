@@ -90,7 +90,6 @@ DesktopPlatform::DesktopPlatform()
     m_initialFileList = cmdLineInfo.fileList();
 
     // create the connector
-//    m_connector = new DesktopConnector();
     m_connector = new SessionDispatcher();
 
     // enable web inspector
@@ -111,11 +110,11 @@ DesktopPlatform::DesktopPlatform()
 //    m_mainWindow->setGeometry( (screenWidth/2)-(panelWidth/2), (screenHeight/2)-(panelHeight/2), panelWidth, panelHeight);
 
 //    // add platform and connector to JS exports
-////    m_mainWindow->addJSExport( "QtPlatform", this);
-////    m_mainWindow->addJSExport( "QtConnector", m_connector);
+//    m_mainWindow->addJSExport( "QtPlatform", this);
+//    m_mainWindow->addJSExport( "QtConnector", m_connector);
 
 //    // load the url
-////    m_mainWindow->loadUrl( url);
+//    m_mainWindow->loadUrl( url);
 
 //    // display the window
 //    m_mainWindow->show();
