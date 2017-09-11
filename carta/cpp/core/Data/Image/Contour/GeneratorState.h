@@ -14,6 +14,7 @@ namespace Carta {
 namespace Data {
 
 class ContourGenerateModes;
+class ContourTypes;
 class ContourSpacingModes;
 
 class GeneratorState {
@@ -38,6 +39,12 @@ public:
      * @return - the name of the method used to generate contour levels.
      */
     QString getGenerateMethod() const;
+
+    /**
+     * Returns the name of the method used to generate contour levels.
+     * @return - the name of the method used to generate contour levels.
+     */
+    QString getContourType() const;
 
     /**
      * Returns the maximum contour level.
@@ -107,6 +114,14 @@ public:
     QString setGenerateMethod( const QString& method );
 
     /**
+     * Set the type used to generate contour levels within the set.
+     * @param type - an identifier for a method used to generate contour levels.
+     * @return - an error message if there was a problem setting the type used to
+     *      generate contour levels; an empty string otherwise.
+     */
+    QString setContourType( const QString& type );
+
+    /**
      * Set the type of spacing to use between contour levels (linear, logarithmic, etc).
      * @param method - an identifier for the spacing to use between contour levels.
      * @return - an error message if there was a problem setting the spacing; an empty
@@ -161,6 +176,7 @@ public:
 private:
     const static QString DASHED_NEGATIVE;
     const static QString GENERATE_MODE;
+    const static QString TYPE_MODE;
     const static QString INTERVAL;
     const static QString LEVEL_COUNT;
     const static QString LEVEL_COUNT_MAX;
@@ -186,6 +202,7 @@ private:
 
     Carta::State::StateInterface m_state;
     static ContourGenerateModes* m_generateModes;
+    static ContourTypes* m_contourTypes;
     static ContourSpacingModes* m_spacingModes;
 
 	GeneratorState( const GeneratorState& other);

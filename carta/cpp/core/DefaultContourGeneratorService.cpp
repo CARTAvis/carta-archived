@@ -59,7 +59,7 @@ DefaultContourGeneratorService::timerCB()
     QElapsedTimer timer;
     timer.start();
 
-    qDebug() << "[contour] Type name:" << m_name;
+    //qDebug() << "[contour] Type name: " + m_name;
 
     // run the contour algorithm
     Carta::Lib::Algorithms::ContourConrec cc;

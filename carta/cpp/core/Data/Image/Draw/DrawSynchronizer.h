@@ -52,12 +52,6 @@ public:
     void setContours( const std::set<std::shared_ptr<DataContours> > & contours );
 
     /**
-     * Sets the contour algorithm to apply.
-     * @param contour algorithm name.
-     */
-    void setContourType(QString contourType);
-
-    /**
      * Store graphics for drawing regions in the image.
      * @param regionVGList - graphics for drawing regions.
      */

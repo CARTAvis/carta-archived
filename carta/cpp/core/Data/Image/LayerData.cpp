@@ -85,7 +85,6 @@ LayerData::LayerData(const QString& path, const QString& id) :
 void LayerData::_addContourSet( std::shared_ptr<DataContours> contour ){
     if ( contour ){
         QString targetName = contour->getName();
-        m_drawSync->setContourType(targetName);
         std::shared_ptr<DataContours> contourSet = _getContour( targetName );
         if ( !contourSet ){
             m_dataContours.insert( contour );

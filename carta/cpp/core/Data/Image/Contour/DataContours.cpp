@@ -80,6 +80,10 @@ QString DataContours::getName() const {
     return m_state.getValue<QString>( Util::NAME );
 }
 
+QString DataContours::getContourType() const {
+    return m_generatorState -> getContourType();
+}
+
 std::vector<QPen> DataContours::getPens() const {
     int penCount = m_contours.size();
     std::vector<QPen> pens( penCount );

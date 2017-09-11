@@ -850,10 +850,11 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
     }
 
     Result result;
+    QString notify = "[contour] apply Conrec Algorithm ";
 
-    if (typeName == "w/ line combine optimization") {
+    if (typeName == "Line combiner") {
 
-        qDebug() << "[contour] apply Conrec Algorithm " + typeName + ".";
+        qDebug() << notify + typeName;
 
         Result result1 =
             conrecFaster(
@@ -881,9 +882,9 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
             qDebug() << "contour level=" << i << "compress" << v.size() << "-->" << result.back().size();
         }
 
-    } else if (typeName == "w/ Gaussian blur 3x3") {
+    } else if (typeName == "Gaussian blur 3x3") {
 
-        qDebug() << "[contour] apply Conrec Algorithm " + typeName + ".";
+        qDebug() << notify + typeName;
 
         double kernel[9] = {0.02479795, 0.10787775, 0.02479795,
                             0.10787775, 0.46929721, 0.10787775,
@@ -902,9 +903,9 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
                 sortedRawLevels,
                 kernel);
 
-    } else if (typeName == "w/ Box blur 3x3") {
+    } else if (typeName == "Box blur 3x3") {
 
-        qDebug() << "[contour] apply Conrec Algorithm " + typeName + ".";
+        qDebug() << notify + typeName;
 
         double kernel[9] = {0.111111, 0.111111, 0.111111,
                             0.111111, 0.111112, 0.111111,
@@ -923,9 +924,9 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
                 sortedRawLevels,
                 kernel);
 
-    } else if (typeName == "w/ Gaussian blur 5x5") {
+    } else if (typeName == "Gaussian blur 5x5") {
 
-        qDebug() << "[contour] apply Conrec Algorithm " + typeName + ".";
+        qDebug() << notify + typeName;
 
         double kernel[25] = {0.00178843, 0.01031068, 0.01809162, 0.01031068, 0.00178843,
                              0.01031068, 0.05944323, 0.10430201, 0.05944323, 0.01031068,
@@ -946,9 +947,9 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
                 sortedRawLevels,
                 kernel);
 
-    } else if (typeName == "w/ Box blur 5x5") {
+    } else if (typeName == "Box blur 5x5") {
 
-        qDebug() << "[contour] apply Conrec Algorithm " + typeName + ".";
+        qDebug() << notify + typeName;
 
         double kernel[25] = {0.04, 0.04, 0.04, 0.04, 0.04,
                              0.04, 0.04, 0.04, 0.04, 0.04,
@@ -971,7 +972,7 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
 
     } else {
 
-        qDebug() << "[contour] apply Conrec Algorithm.";
+        qDebug() << notify + "No line combiner";
 
         result =
             conrecFaster(

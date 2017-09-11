@@ -89,6 +89,7 @@ void DrawSynchronizer::setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInt
 
 void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours> > & contours ){
     std::vector<double> levels;
+    QString contourType;
     bool drawing = false;
     m_pens.clear();
     for( std::set< std::shared_ptr<DataContours> >::iterator it = contours.begin();
@@ -99,15 +100,15 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
             m_pens.insert( m_pens.end(), setPens.begin(), setPens.end());
             std::vector<double> setLevels = (*it)->getLevels();
             levels.insert( levels.end(), setLevels.begin(), setLevels.end());
+            // get the contour type (Todo: map different contour types to their specific contour levels)
+            contourType = (*it)->getContourType();
         }
+        //qDebug() << "[contour] contour set name:"<< (*it)->getName() << "contour type:" << (*it)->getContourType();
     }
     if ( drawing ){
+        m_cec->setName(contourType);
         m_cec->setLevels( levels );
     }
-}
-
-void DrawSynchronizer::setContourType(QString contourType) {
-    m_cec->setName(contourType);
 }
 
 void DrawSynchronizer::setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ){

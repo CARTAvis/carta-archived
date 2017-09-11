@@ -1,5 +1,6 @@
 #include "GeneratorState.h"
 #include "ContourGenerateModes.h"
+#include "ContourTypes.h"
 #include "ContourSpacingModes.h"
 #include "Data/Util.h"
 #include "Globals.h"
@@ -13,6 +14,7 @@ namespace Data {
 
 const QString GeneratorState::DASHED_NEGATIVE = "dashedNegative";
 const QString GeneratorState::GENERATE_MODE = "generateMode";
+const QString GeneratorState::TYPE_MODE = "typeMode";
 const QString GeneratorState::INTERVAL = "interval";
 const QString GeneratorState::LEVEL_COUNT = "levelCount";
 const QString GeneratorState::LEVEL_COUNT_MAX = "levelCountMax";
@@ -27,6 +29,7 @@ const int GeneratorState::LEVEL_COUNT_MAX_VALUE = 30;
 const double GeneratorState::ERROR_MARGIN = 0.000001;
 
 ContourGenerateModes* GeneratorState::m_generateModes = nullptr;
+ContourTypes* GeneratorState::m_contourTypes = nullptr;
 ContourSpacingModes* GeneratorState::m_spacingModes = nullptr;
 
 using Carta::State::StateInterface;
@@ -34,13 +37,18 @@ using Carta::State::StateInterface;
 GeneratorState::GeneratorState():
     m_state( "", ""){
     m_state.insertValue<bool>( Carta::State::StateInterface::FLUSH_STATE, false );
-     _initializeSingletons();
+    _initializeSingletons();
     _initializeDefaultState();
 }
 
 QString GeneratorState::getGenerateMethod() const {
     QString method = m_state.getValue<QString>( GENERATE_MODE );
     return method;
+}
+
+QString GeneratorState::getContourType() const {
+    QString type = m_state.getValue<QString>( TYPE_MODE );
+    return type;
 }
 
 int GeneratorState::getLevelCount() const {
@@ -75,6 +83,7 @@ QString GeneratorState::getStateString() const{
 
 void GeneratorState::_initializeDefaultState(){
     m_state.insertValue<QString>(GENERATE_MODE, m_generateModes->getModeDefault());
+    m_state.insertValue<QString>(TYPE_MODE, m_contourTypes->getContourTypeDefault());
     m_state.insertValue<double>(RANGE_MIN, 0 );
     m_state.insertValue<double>(RANGE_MAX, 1 );
     m_state.insertValue<bool>(DASHED_NEGATIVE, false );
@@ -93,8 +102,11 @@ void GeneratorState::_initializeDefaultState(){
 
 void GeneratorState::_initializeSingletons( ){
     //Load the available contour generate modes.
-    if ( m_generateModes  == nullptr){
+    if ( m_generateModes == nullptr){
         m_generateModes = Util::findSingletonObject<ContourGenerateModes>();
+    }
+    if ( m_contourTypes == nullptr){
+        m_contourTypes = Util::findSingletonObject<ContourTypes>();
     }
     if ( m_spacingModes == nullptr ){
         m_spacingModes = Util::findSingletonObject<ContourSpacingModes>();
@@ -131,7 +143,6 @@ void GeneratorState::setDashedNegative( bool useDash ){
     }
 }
 
-
 QString GeneratorState::setGenerateMethod( const QString& method ){
     QString recognizedMethod = m_generateModes->getGenerateMethod( method );
     QString result;
@@ -147,7 +158,20 @@ QString GeneratorState::setGenerateMethod( const QString& method ){
     return result;
 }
 
-
+QString GeneratorState::setContourType( const QString& type ){
+    QString recognizedType = m_contourTypes->getContourType( type );
+    QString result;
+    if ( !recognizedType.isEmpty() ){
+        QString oldType = m_state.getValue<QString>( TYPE_MODE );
+        if ( oldType != recognizedType ){
+            m_state.setValue<QString>( TYPE_MODE, recognizedType );
+        }
+    }
+    else {
+        result = "The contour type, "+type+" is not supported.";
+    }
+    return result;
+}
 
 QString GeneratorState::setSpacing( const QString& method ){
     QString recognizedMethod = m_spacingModes->getSpacingMethod( method );

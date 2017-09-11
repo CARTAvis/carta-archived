@@ -16,18 +16,22 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
     construct : function() {
         this.base(arguments, "Contour Sets", "");
         this._init( );
-        
+
         //Shared variable for method used to generate contour levels.
         if ( typeof mImport !== "undefined"){
         	this.m_connector = mImport( "connector" );
         }
-        
+
         if ( this.m_connector !== null ){
         	var pathDict = skel.widgets.Path.getInstance();
         	this.m_sharedVarGenerateModes = this.m_connector.getSharedVar(pathDict.CONTOUR_GENERATE_MODES);
         	this.m_sharedVarGenerateModes.addCB(this._generateModesChangedCB.bind(this));
         	this._generateModesChangedCB();
-        
+
+          this.m_sharedVarTypeModes = this.m_connector.getSharedVar(pathDict.CONTOUR_TYPE_MODES);
+          this.m_sharedVarTypeModes.addCB(this._typesCB.bind(this));
+          this._typesCB();
+
         	this.m_sharedVarSpacingModes = this.m_connector.getSharedVar( pathDict.CONTOUR_SPACING_MODES );
         	this.m_sharedVarSpacingModes.addCB( this._spacingModesChangedCB.bind(this));
         	this._spacingModesChangedCB();
@@ -35,7 +39,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
     },
 
     members : {
-        
+
         /**
          * Disables/enables widgets when the user changes the method used to generate
          * contours.
@@ -61,22 +65,34 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_limitMaxText.setEnabled( true );
             }
         },
-        
+
         /**
          * Initializes the UI.
          */
         _init : function( ) {
-            
+
             this.setPadding( 0, 0, 0, 0 );
             this.setMargin( 1, 1, 1, 1 );
             this._setLayout(new qx.ui.layout.VBox(2));
-            
+
+            //Type
+            var typeContainer = new qx.ui.container.Composite();
+            typeContainer.setLayout( new qx.ui.layout.VBox(2));
+            var typeItemContainer = new qx.ui.container.Composite();
+            typeItemContainer.setLayout( new qx.ui.layout.HBox(2));
+            var typeItemLabel = new qx.ui.basic.Label( "Smoothness:");
+            this.m_typeItemCombo = new skel.widgets.CustomUI.SelectBox("setContourType", "typeMode");
+            typeItemContainer.add( typeItemLabel );
+            typeItemContainer.add( this.m_typeItemCombo );
+            this.m_typeItemCombo.setToolTipText( "Specify a contour type to generate.");
+            typeContainer.add( typeItemContainer );
+            typeContainer.add( new qx.ui.core.Spacer(), {flex:1});
+
             //Name
             var nameContainer = new qx.ui.container.Composite();
             nameContainer.setLayout( new qx.ui.layout.HBox(2));
             nameContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            //var nameLabel = new qx.ui.basic.Label( "Name:");
-            var nameLabel = new qx.ui.basic.Label( "Contour Type/Sets:");
+            var nameLabel = new qx.ui.basic.Label( "Sets:");
             nameContainer.add( nameLabel );
             this.m_nameCombo = new skel.boundWidgets.ComboBox( "selectContourSet", "name");
             var defaultItem= [this.m_DEFAULT];
@@ -84,7 +100,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             this.m_nameCombo.setToolTipText( "Specify or select the name of the contour set to add and/or delete.");
             nameContainer.add( this.m_nameCombo );
             nameContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            
+
             //Limit count
             var limitCountContainer = new qx.ui.container.Composite();
             limitCountContainer.setLayout( new qx.ui.layout.HBox(2));
@@ -98,7 +114,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             limitCountContainer.add( countLabel );
             limitCountContainer.add( this.m_levelCountSpin );
             limitCountContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            
+
             //Dashed negatives
             var negContainer = new qx.ui.container.Composite();
             negContainer.setLayout( new qx.ui.layout.HBox(2));
@@ -111,7 +127,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             negContainer.add( negLabel );
             negContainer.add( this.m_negativeCheck );
             negContainer.add( new qx.ui.core.Spacer(), {flex:1});
-           
+
             var minMaxContainer = new qx.ui.container.Composite();
             var minMaxLayout = new qx.ui.layout.Grid();
             minMaxLayout.setColumnFlex( 0, 1 );
@@ -135,7 +151,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             minMaxContainer.add( maxLabel, {row:1,column:1});
             minMaxContainer.add( this.m_limitMaxText, {row:1,column:2});
             minMaxContainer.add( new qx.ui.core.Spacer(), {row:0, column:3, rowSpan:2});
-            
+
             //Spacing
             var optionsContainer = new qx.ui.container.Composite();
             optionsContainer.setLayout( new qx.ui.layout.VBox(2));
@@ -146,7 +162,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             this.m_spacingCombo.setToolTipText( "Set the type of spacing to use between contour levels");
             spacingContainer.add( spacingLabel);
             spacingContainer.add( this.m_spacingCombo );
-            
+
             //Spacing Interval
             var intervalContainer = new qx.ui.container.Composite();
             intervalContainer.setLayout( new qx.ui.layout.HBox(2));
@@ -161,12 +177,12 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             intervalContainer.add( intervalLabel );
             intervalContainer.add( this.m_intervalWidget );
             intervalContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            
+
             optionsContainer.add( limitCountContainer );
             optionsContainer.add( spacingContainer );
             optionsContainer.add( intervalContainer );
-            
-          //Generate Methods
+
+            //Generate Methods
             var methodContainer = new qx.ui.container.Composite();
             methodContainer.setLayout( new qx.ui.layout.VBox(2));
             var limitContainer = new qx.ui.container.Composite();
@@ -180,7 +196,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             this.m_limitCombo.setToolTipText( "Specify a mode for generating levels.");
             methodContainer.add( limitContainer );
             methodContainer.add( minMaxContainer );
-            
+
             var butContainer = new qx.ui.container.Composite();
             butContainer.setLayout( new qx.ui.layout.HBox(2));
             butContainer.add( new qx.ui.core.Spacer(), {flex:1});
@@ -195,20 +211,25 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             butContainer.add( this.m_generateButton );
             butContainer.add( this.m_deleteButton );
             butContainer.add( new qx.ui.core.Spacer(), {flex:1});
-            
+
             var settingsContainer = new qx.ui.container.Composite();
             settingsContainer.setLayout( new qx.ui.layout.HBox(2));
             settingsContainer.add( methodContainer );
             settingsContainer.add( optionsContainer );
-            
+
+            var headContainer = new qx.ui.container.Composite();
+            headContainer.setLayout( new qx.ui.layout.HBox(2));
+            headContainer.add( typeContainer );
+            headContainer.add( nameContainer );
+
             this._add( new qx.ui.core.Spacer(), {flex:1});
-            this._add( nameContainer );
-            this._add( negContainer );
+            this._add( headContainer );
             this._add( settingsContainer );
+            this._add( negContainer );
             this._add( butContainer );
             this._add( new qx.ui.core.Spacer(), {flex:1});
         },
-        
+
         /**
          * Callback from the server when the list of available methods used to generate
          * contours changes.
@@ -228,7 +249,27 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 }
             }
         },
-        
+
+        /**
+         * Callback from the server when the list of available types used to generate
+         * contours changes.
+         */
+        _typesCB : function(){
+            if ( this.m_sharedVarTypeModes ){
+                var val = this.m_sharedVarTypeModes.get();
+                if ( val ){
+                    try {
+                        var obj = JSON.parse( val );
+                        this.m_typeItemCombo.setSelectItems( obj.typeModes );
+                    }
+                    catch( err ){
+                        console.log( "Contour generate page could not parse: "+val );
+                        console.log( "Error: "+err );
+                    }
+                }
+            }
+        },
+
         /**
          * Send a command to the server to delete a contour set.
          */
@@ -252,12 +293,12 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             else {
                 this.m_nameCombo.setValue( this.m_DEFAULT );
             }
-            
+
             //Now notify the server of the delete
             if ( this.m_id !== null && this.m_connector !== null ){
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "deleteLevels";
-                
+
                 if ( name !== null ){
                     var params = "name:"+name;
                     this.m_connector.sendCommand( cmd, params, function(){});
@@ -268,7 +309,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 }
             }
         },
-      
+
         /**
          * Send a command to the server add a contour set.
          */
@@ -276,7 +317,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
             if ( this.m_id !== null && this.m_connector !== null ){
-                
+
                 //Before we send a generate command, we make sure that there are not
                 //values in the text fields that have not been sent to the server because
                 //the user did not press enter.
@@ -286,17 +327,18 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 var minValue = this.m_limitMinText.getValue();
                 var maxValue = this.m_limitMaxText.getValue();
                 var interval = this.m_intervalWidget.getValue();
+                var contourType = this.m_typeItemCombo.getValue();
                 if ( name !== null ){
-                    var params = "name:"+name+",min:"+minValue+",max:"+maxValue+",interval:"+interval;
+                    var params = "name:"+name+",min:"+minValue+",max:"+maxValue+",interval:"+interval+",typeMode:"+contourType;
                     this.m_connector.sendCommand( cmd, params, function(){});
                 }
                 else {
-                    
+
                     errorMan.updateErrors( "Warn: Please specify the name of a contour set to generate.");
                 }
             }
         },
-        
+
         /**
          * Send a command to the server specifying spacing between contour levels.
          */
@@ -311,7 +353,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-        
+
         /**
          * Send a command to the server specifying the number of contour levels.
          */
@@ -326,7 +368,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-        
+
         /**
          * Send a command to the server specifying the minimum contour level.
          */
@@ -341,7 +383,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-        
+
         /**
          * Send a command to the server specifying the maximum contour level.
          */
@@ -356,7 +398,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-        
+
         /**
          * Send a command to the server specifying whether or not negative contours
          * should be dashed.
@@ -372,7 +414,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_connector.sendCommand( cmd, params, function(){});
             }
         },
-        
+
         /**
          * Update from the server when the contour controls have changed.
          * @param controls {Object} - information about the contour controls from the server.
@@ -380,6 +422,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
         setControls : function( controls ){
             this._setDashedNegative( controls.dashedNegative );
             this._setGenerateMethod( controls.generateMode );
+            this._setContourType( controls.typeMode );
             this._setLevelCountMax( controls.levelCountMax );
             this._setLevelCount( controls.levelCount );
             this._setSpacingMethod( controls.spacingMode );
@@ -388,7 +431,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
         },
-        
+
         /**
          * Update the names of the contour sets with information from the server.
          * @param controls {Object} - server information about the contour sets.
@@ -396,19 +439,20 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
         setControlsData : function( controls ){
             this._setContourSetName( controls );
         },
-        
+
         /**
          * Set the server side id of this control UI.
-         * @param contourId {String} the server side id of the object that contains 
+         * @param contourId {String} the server side id of the object that contains
          *      data for this control UI.
          */
         setId : function( contourId ){
             this.m_id = contourId;
             this.m_nameCombo.setId( contourId );
             this.m_limitCombo.setId( contourId );
+            this.m_typeItemCombo.setId ( contourId );
             this.m_spacingCombo.setId( contourId );
         },
-        
+
         /**
          * Set a default name for the contour set based on the number of contour
          * sets available.
@@ -419,21 +463,9 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
             for ( var i = 0; i < controls.contourSets.length; i++ ){
                 names.push( controls.contourSets[i].name );
             }
-            
-                //this.m_nameCombo.setComboItems( names );
-                var sets = ["w/o line combine optimization",
-			    "w/ line combine optimization",
-			    "w/ Gaussian blur 3x3",
-                            "w/ Gaussian blur 5x5",
-                            "w/ Box blur 3x3",
-                            "w/ Box blur 5x5",
-			    "Add set1",
-			    "Add set2",
-			    "Add set3"];
-                this.m_nameCombo.setComboItems( sets );
-           
+                this.m_nameCombo.setComboItems( names );
         },
-        
+
         /**
          * Update the UI based on server-side information about whether negative contours
          * should be dashed.
@@ -444,7 +476,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_negativeCheck.setValue( dashed );
             }
         },
-        
+
         /**
          * Update the UI based on server-side information about spacing between contour levels.
          * @param value {Number} - spacing between contour levels.
@@ -456,7 +488,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_oldInterval = value;
             }
         },
-        
+
         /**
          * Update the UI based on server-side information about the method used to generate
          * contours.
@@ -468,7 +500,18 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this._generateMethodChanged();
             }
         },
-        
+
+        /**
+         * Update the UI based on server-side information about the method used to generate
+         * contours.
+         * @param method {String} - an identifier for the method used to generate contours.
+         */
+        _setContourType : function( type ){
+            if ( this.m_typeItemCombo.getValue() != type ){
+                this.m_typeItemCombo.setSelectValue( type, false );
+            }
+        },
+
         /**
          * Update the UI based on server-side information about the number of
          * contour levels.
@@ -480,7 +523,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_levelCountSpin.setValue( count );
             }
         },
-        
+
         /**
          * Update the UI based on server-side information about the maximum number of
          * contour levels that can be specified.
@@ -491,7 +534,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_levelCountSpin.setMaximum( max );
             }
         },
-        
+
         /**
          * Update the UI based on server-side information about the minimum and
          * maximum contour level.
@@ -508,7 +551,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_oldMax = max;
             }
         },
-        
+
         /**
          * Update the UI based on server-side information about how spacing should
          * be distributed between contour levels.
@@ -519,7 +562,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_spacingCombo.setSelectValue( method, false );
             }
         },
-        
+
         /**
          * Spacing method between contour levels has changed; update the UI.
          */
@@ -535,7 +578,7 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 this.m_limitMaxText.setToolTipText( "Enter a maximum intensity.");
             }
         },
-        
+
         /**
          * Callback from the server when the available spacing methods between contour levels
          * have changed.
@@ -555,29 +598,30 @@ qx.Class.define("skel.widgets.Image.Contour.GeneratorPage", {
                 }
             }
         },
-        
+
         m_id : null,
         m_connector : null,
-        
+
         m_controls : null,
         m_deleteButton : null,
         m_intervalWidget : null,
         m_levelCountSpin : null,
         m_limitCombo : null,
+        m_typeItemCombo : null,
         m_limitMinText : null,
         m_limitMaxText : null,
         m_nameCombo : null,
         m_negativeCheck : null,
         m_sharedVarGenerateModes : null,
+        m_sharedVarTypeModes : null,
         m_sharedVarSpacingModes : null,
         m_spacingCombo : null,
         m_generateButton : null,
-        
+
         m_oldMin : null,
         m_oldMax : null,
         m_oldInterval : null,
-        
-        //m_DEFAULT : "Default"
-        m_DEFAULT : "w/o line combine optimization"
+
+        m_DEFAULT : "Set1"
     }
 });
