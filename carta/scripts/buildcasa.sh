@@ -4,6 +4,8 @@
 ## java/jre, pgplot, dbus, qt4.
 ## qwt has been removed
 
+echo "execute buildcasa.sh"
+
 if [ -z ${cartawork+x} ]; then
 	export cartawork=`pwd`
 fi
@@ -133,7 +135,7 @@ else
     ## Use our own modified version,
     ## since the original source code will not be compiled OK by gcc 5.4, gcc 4.8 seem neither
     cd $cartawork/CARTAvis-externals/ThirdParty
-    git clone https://github.com/grimmer0125/libsakura
+    git clone https://github.com/CARTAvis/libsakura
 
     curl -o gtest-1.7.0.zip -L https://github.com/google/googletest/archive/release-1.7.0.zip
     unzip gtest-1.7.0.zip -d libsakura > /dev/null

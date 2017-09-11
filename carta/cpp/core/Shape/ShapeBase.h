@@ -106,12 +106,6 @@ public:
 	bool isEditMode() const;
 
 	/**
-	 * Returns whether or not the shape is being hovered.
-	 * @return - true if the shape is hovered; false otherwise.
-	 */
-	bool isHovered() const;
-
-	/**
 	 * Returns whether or not the point is inside the shape or not.
 	 * @return - true if the point is inside the shape; false otherwise.
 	 */
@@ -158,14 +152,6 @@ public:
 	void setEditMode( bool editMode );
 
 	/**
-	 * Sets whether or not the shape is in a hovered state.
-	 * @param hovered - true if the shape is hovered; false otherwise.
-	 */
-	/// Default is to return false. Reimplement if the shape needs to be redrawn as
-	/// a result of changing hover state.
-	virtual void setHovered( bool value );
-
-	/**
 	 * Set a model for the shape.
 	 * @param json - the shape model (corner points, center, etc).
 	 */
@@ -204,7 +190,6 @@ private:
 	bool m_active = true;
 	bool m_deletable = false;
 	bool m_editMode = false;
-	bool m_hovered = false;
 	QString m_cursor;
 	bool m_selected = false;
 	void * m_userData = nullptr;

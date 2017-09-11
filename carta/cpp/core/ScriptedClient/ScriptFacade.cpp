@@ -1303,12 +1303,10 @@ QStringList ScriptFacade::getIntensity( const QString& controlId, int frameLow,
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            std::vector<double> percentiles(1);
-            percentiles[0] = percentile;
-            std::vector<std::pair<int,double> > intensities = controller->getIntensity(
-                    frameLow, frameHigh, percentiles );
-            if ( intensities.size() == 1 && intensities[0].first >= 0 ){
-                resultList = QStringList( QString::number( intensities[0].second ) );
+            std::vector<double> intensities = controller->getIntensity(
+                    frameLow, frameHigh, {percentile} );
+            if ( intensities.size() == 1 ){
+                resultList = QStringList( QString::number( intensities[0] ) );
             }
             else {
                 resultList = _logErrorMessage( ERROR, "Could not get intensity for the specified parameters." );

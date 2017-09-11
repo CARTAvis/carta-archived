@@ -26,7 +26,7 @@ class Colormaps::Factory : public Carta::State::CartaObjectFactory {
     public:
 
         Factory():
-            CartaObjectFactory( CLASS_NAME ){};
+            CartaObjectFactory( CLASS_NAME ){}
 
         Carta::State::CartaObject * create (const QString & path, const QString & id)
         {

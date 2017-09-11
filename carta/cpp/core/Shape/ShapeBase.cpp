@@ -107,10 +107,6 @@ bool ShapeBase::isEditMode() const {
 	return m_editMode;
 }
 
-bool ShapeBase::isHovered() const{
-	return m_hovered;
-}
-
 bool ShapeBase::isPointInside( const QPointF & pt ) const {
 	Q_UNUSED( pt );
 	return false;
@@ -137,14 +133,6 @@ void ShapeBase::setEditMode( bool editMode ){
 	m_editMode = editMode;
 	if ( oldEditMode != editMode ) {
 		editModeChanged();
-	}
-}
-
-void ShapeBase::setHovered( bool value ){
-	m_hovered = value;
-	int controlCount = m_controlPoints.size();
-	for ( int i = 0; i < controlCount; i++ ){
-		m_controlPoints[i]->setActive( value );
 	}
 }
 
