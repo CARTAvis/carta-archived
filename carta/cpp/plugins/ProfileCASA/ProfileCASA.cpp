@@ -244,7 +244,7 @@ casacore::ImageRegion* ProfileCASA::_getEllipsoid(const casacore::CoordinateSyst
 				casacore::Vector<casacore::Double> qCenter(2);
 				qCenter[0] = center[0].getValue();
 				qCenter[1] = center[1].getValue();
-				const casacore::String angleUnits( "deg");
+				const casacore::String angleUnits( "rad");
 				casacore::MDirection mdcenter( casacore::Quantum<casacore::Vector<casacore::Double> >(qCenter,angleUnits), type );
 
 				casacore::Vector<casacore::Double> blc_pix_x(2);
@@ -268,7 +268,7 @@ casacore::ImageRegion* ProfileCASA::_getEllipsoid(const casacore::CoordinateSyst
 					casacore::Vector<casacore::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
 					pixax(0) = dirPixelAxis[0];
 					pixax(1) = dirPixelAxis[1];
-					casacore::WCEllipsoid ellipsoid( center, radius, casacore::IPosition(dirPixelAxis), cSys);
+					casacore::WCEllipsoid ellipsoid( center, radius, casacore::IPosition(pixax), cSys);
 					imageRegion = new casacore::ImageRegion( ellipsoid );
 				}
 			}
