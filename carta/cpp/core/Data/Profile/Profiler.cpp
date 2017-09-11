@@ -2020,18 +2020,20 @@ void Profiler::_removeUnsupportedCurves(){
 			std::shared_ptr<Layer> layer = m_plotCurves[i]->getLayer();
 			QString layerName = layer->_getLayerName();
 			std::shared_ptr<Layer> existingLayer = controller->getLayer(layerName );
-			if ( existingLayer ){
-				//Check if region is still supported.
-				if ( regionControls ){
-					std::shared_ptr<Region> region = m_plotCurves[i]->getRegion();
-					if ( region ){
-						QString regionName = region->getRegionName();
-						std::shared_ptr<Region> existingRegion = regionControls->getRegion( regionName );
-						if (!existingRegion ){
-							removeIndices.push_back( i );
-						}
-					}
-				}
+            // Here we suppose that every curve is generated with a region.
+            std::shared_ptr<Region> region = m_plotCurves[i]->getRegion();
+            QString regionName = region->getRegionName();
+            std::shared_ptr<Region> existingRegion = regionControls->getRegion( regionName );
+            if ( existingLayer && existingRegion ){
+                // This part is a temporary solution to sync the curve with an updated region.
+                // Remove the old one and generate a new one later.
+                // The root problem is that the shared ptr of region saved in m_plotCurves
+                // is updated before the curve. The curve cannot be found correctly to replace
+                // in _profileRendered().
+                QString curveName = m_plotCurves[i]->getName();
+                if ( curveName != CurveData::_generateName( existingLayer, existingRegion) ){
+                    removeIndices.push_back( i );
+                }
 			}
 			else {
 				removeIndices.push_back( i );
