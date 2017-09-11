@@ -10,6 +10,7 @@
 #include "percentileAlgorithms.h"
 #include <vector>
 #include <random>
+#include <limits>
  
 namespace Carta
 {
@@ -18,6 +19,7 @@ namespace Core
 namespace Algorithms
 {
 
+template <typename Scalar>
 class Buffer {
     
     /** The capacity of the buffer */
@@ -40,7 +42,7 @@ class Buffer {
     int level;
     
     /** The elements */
-    template <typename Scalar> std::vector<Scalar> elements;
+    std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > elements;
 
     /** Will be toggled in successive calls of the collapse operation */
     static bool collapseChoice;
@@ -51,11 +53,73 @@ class Buffer {
     ~Buffer();
 
     /** NEW operation */
-    template <typename Scalar> void opNew(std::vector<Scalar>& elements, int weight, int level, State state) {        
+    void opNew(std::vector<Scalar>& elements, int weight, int level, State state) {        
         this->elements = std::move(elements);
         this->state = state;
         this->weight = weight;
         this->level = level;
+    }
+
+    /** Weighted buffer merge */
+    static std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > merge(std::vector<Buffer> inputBuffers, int start, int step) {
+
+        // buffers which have elements left
+        std::vector<Buffer*> remainingBuffers;
+        for (auto& b : inputBuffers) {
+            remainingBuffers.push_back(&b);
+        }
+
+        // the index of the buffer with the overall lowest next value
+        int minBufferIndex;
+        // the overall lowest next value
+        Scalar minNextVal(std::numeric_limits<Scalar>::infinity());
+        // the corresponding buffer weight
+        int weight;
+
+        // the position within the virtual expanded list of elements
+        int pos(0);
+        // the next index to be sampled from the expanded list of elements
+        int nextIndex(start);
+        // the maximum size of the merged sampled list of elements 
+        int bufferCapacity = inputBuffers[0].capacity;
+        // the destination for the sampled, merged elements
+        std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > mergedElements;
+
+        // while the destination element buffer isn't full
+        while (mergedElements.size() < bufferCapacity) {
+            // find the buffer with the lowest overall next value
+            for (size_t i = 0; i < remainingBuffers.size(); i++) {
+                if (remainingBuffers[i]->elements.top() < minNextVal) {
+                    minBufferIndex = i;
+                    // peek at the value here
+                    minNextVal = remainingBuffers[i]->elements.top();
+                    weight = remainingBuffers[i]->weight;
+                }
+            }
+
+            // actually pop the value here
+            minNextVal = remainingBuffers[minBufferIndex]->elements.pop();
+
+            // if the buffer is now empty, remove it from the list of non-empty buffers
+            // it doesn't matter if any elements are left in some of the buffers after the merge
+            // because we're going to overwrite them in the NEW operation afterwards
+            if (!remainingBuffers[minBufferIndex]->elements.size()) {
+                remainingBuffers.erase(remainingBuffers.begin() + minBufferIndex);
+            }
+
+            // I'm sure there's a cleaner way to do this
+            // if any samples fall within the next [weight] elements of the expanded list, use this value for those samples
+            for (size_t p = pos; p < pos + weight; p++) {
+                if (p == nextIndex) {
+                    mergedElements.push(minNextVal);
+                    nextIndex += step;
+                }
+            }
+            // actually advance our position in the expanded list
+            pos += weight;
+        }
+
+        return mergedElements;
     }
 
     /** COLLAPSE operation */
@@ -77,11 +141,10 @@ class Buffer {
 
         collapseChoice = !collapseChoice; // do we need to do something special because it's static?
 
-        // TODO TODO TODO here be dragons
-        //Y_elements = list(itertools.islice(cls.heapq_merge_flat_heap(input_buffers), offset - 1, None, Y_weight))
-        std::vector<Scalar> YElements;
+        // perform the weighted merge
+        std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > YElements = merge(inputBuffers, offset - 1, Y_weight);
 
-        for (auto & b : inputBuffers) {
+        for (auto& b : inputBuffers) {
             // weight and level are cosmetic here; is there a performance benefit to not setting them?
             b.weight = 0;
             b.state = State::empty;
@@ -143,12 +206,12 @@ percentile2pixels_approximate_manku99(
     /** Temporary storage for blocks of data before and after sampling */
     std::vector<Scalar> elementBlock;
     std::vector<double> hzForBlock; // we need to keep these so that we can convert after sampling
-    std::vector<Scalar> bufferElements;
+    std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > bufferElements;
 
     /** Keep track of empty buffers */
     std::deque<Buffer*> empty; // this is safe because the buffer vector will never change size; buffers are modified in-place
-    for (size_t i = 0; i < buffers.size(); i++) {
-        empty.push_back(&buffers[i]);
+    for (auto& b : buffers) { // is this correct?
+        empty.push_back(&b);
     }
     
     /** Keep track of full buffers and their levels */
@@ -170,9 +233,9 @@ percentile2pixels_approximate_manku99(
                 hzForBlock.push_back(hzVal);
 
                 if (elementBlock.size() == samplingRate) {
-                    // select random element from block, do unit conversion and append to elements
+                    // select random element from block, do unit conversion and push to elements
                     ri = dist(mt);
-                    bufferElements.push_back(conversion_lambda(ri));
+                    bufferElements.push(conversion_lambda(ri));
                     elementBlock.clear();
                     framesForBlock.clear();
                     
@@ -189,13 +252,12 @@ percentile2pixels_approximate_manku99(
                             std::push_heap(fullLevelHeap.begin(), fullLevelHeap.end(), std::greater<int>{});
                         }
                         // add the buffer to the map of full buffers
-                        full[newBufferLevel].push_back(newBuffer);
+                        full[newBufferLevel].push_back(&newBuffer);
                         // remove buffer from list of empty buffers
                         empty.pop_front();
                     }
                 }
             } else { // COLLAPSE operation
-                // TODO write the collapse implementation in the buffer
                 // TODO find buffers to collapse
                 // do the collapse
                 // update empty / full
@@ -246,7 +308,7 @@ percentile2pixels_approximate_manku99(
         ri = dist(mt);
         // we may not select any element from this incomplete block
         if (ri < elementBlock.size()){
-            bufferElements.push_back(conversion_lambda(ri));
+            bufferElements.push(conversion_lambda(ri));
         }
         elementBlock.clear();
         framesForBlock.clear();
