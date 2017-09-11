@@ -37,7 +37,7 @@ bool Point::isPointInsideUnion( const RegionPointV & pts ) const {
 
 QRectF Point::outlineBox() const {
 	QRectF box;
-	const int SMALL_SIZE = 11;
+	const int SMALL_SIZE = 10;
 	double topLeftX = m_point.x() - SMALL_SIZE / 2;
 	double topLeftY = m_point.y() - SMALL_SIZE / 2;
 	box.setX( topLeftX );
