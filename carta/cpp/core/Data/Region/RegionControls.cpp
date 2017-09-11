@@ -509,15 +509,13 @@ void RegionControls::refreshState(){
 
 
 void RegionControls::_regionSelectionChanged( const QString& id ){
-	if ( !isAutoSelect() ){
-		int regionIndex = _findRegionIndex( id );
-		if ( regionIndex >= 0 ){
-			if ( m_regions[regionIndex]->isSelected() ){
-				setIndexCurrent( regionIndex );
-			}
-		}
-	}
-	_saveStateRegions();
+    int regionIndex = _findRegionIndex( id );
+    if ( regionIndex >= 0 ){
+        if ( m_regions[regionIndex]->isSelected() ){
+            setIndexCurrent( regionIndex );
+        }
+    }
+    _saveStateRegions();
 }
 
 void RegionControls::_regionShapeChanged( ){
