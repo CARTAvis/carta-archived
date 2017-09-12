@@ -10,5 +10,8 @@
             "dbPath": "/tmp/pcache.sqlite"
         }
     },
-    "qtDecorations" : "true"
+    "qtDecorations" : "true",
+    "percentileApproximation" : "true",
+    "percentApproxDividedNum" : 1000000
 }
+

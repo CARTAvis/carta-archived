@@ -13,6 +13,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <cmath>
+#include <limits>
 
 namespace MainConfig {
 
@@ -41,6 +42,25 @@ void _storePositiveInt( const QJsonValue& jsonValue, int* storeLocation, const Q
     }
     else {
         qWarning()<<"Error setting "<<typeDescription<<": "<<errorMsg;
+    }
+}
+}
+
+namespace {
+void _storeUnsignedInt(const QJsonValue& jsonValue, unsigned int* storeLocation, const QString& typeDescription) {
+    QString errorMsg;
+    unsigned int val = ParsedInfo::toUnsignedInt(jsonValue, errorMsg);
+    if (errorMsg.isEmpty()) {
+        if (val > 0 && val < std::numeric_limits<unsigned int>::max()) {
+            *storeLocation = val;
+        }
+        else {
+            qWarning() << "[Error]" << typeDescription << "is out of the range [0,"
+                       << std::numeric_limits<unsigned int>::max() <<"]:" << val;
+        }
+    }
+    else {
+        qWarning() << "Error setting:" << typeDescription << ":" << errorMsg;
     }
 }
 }
@@ -87,9 +107,11 @@ ParsedInfo parse(const QString & filePath)
     _storeBool( json["hacksEnabled"], &info.m_hacksEnabled, "hacks enabled");
     _storeBool( json["developerLayout"], &info.m_developerLayout, "developer layout");
     _storeBool( json["qtDecorations"], &info.m_developerDecorations, "developer decorations");
+    _storeBool( json["percentileApproximation"], &info.m_percentileApproximation, "whether to use approximation method for percentile calculation");
 
     _storePositiveInt( json["histogramBinCountMax"], &info.m_histogramBinCountMax, "histogram bin count max");
     _storePositiveInt( json["contourLevelCountMax"], &info.m_contourLevelCountMax, "contour level count max");
+    _storeUnsignedInt( json["percentApproxDividedNum"], &info.m_percentApproxDividedNum, "define the pixel bin size=(max-min)/m_percentApproxDividedNum");
 
     return info;
 }
@@ -109,6 +131,9 @@ bool ParsedInfo::isDeveloperDecorations() const {
     return m_developerDecorations;
 }
 
+bool ParsedInfo::isPercentileApproximation() const {
+    return m_percentileApproximation;
+}
 
 bool ParsedInfo::isDeveloperLayout() const {
     return m_developerLayout;
@@ -120,6 +145,10 @@ int ParsedInfo::getContourLevelCountMax() const {
 
 int ParsedInfo::getHistogramBinCountMax() const {
     return m_histogramBinCountMax;
+}
+
+unsigned int ParsedInfo::getPercentApproxDividedNum() const {
+    return m_percentApproxDividedNum;
 }
 
 const QJsonObject &ParsedInfo::json() const
@@ -166,6 +195,32 @@ int ParsedInfo::toInt( const QJsonValue& jsonValue, QString& errorMsg ){
     }
     else if ( !jsonValue.isUndefined() && !jsonValue.isNull() ){
         errorMsg = "Not a valid integer.";
+    }
+    return val;
+}
+
+unsigned int ParsedInfo::toUnsignedInt( const QJsonValue& jsonValue, QString& errorMsg ){
+    unsigned int val = -1;
+    if ( jsonValue.isString() ){
+        QString valStr = jsonValue.toString();
+        bool validInt = false;
+        val = valStr.toUInt( &validInt );
+        if ( !validInt ){
+            errorMsg = "Invalid integer type:"+valStr;
+        }
+    }
+    else if ( jsonValue.isDouble() ){
+        double doubleVal = jsonValue.toDouble();
+        double integerPart;
+        if ( std::modf( doubleVal, &integerPart) == 0 ){
+            val = static_cast<unsigned int>( integerPart );
+        }
+        else {
+            errorMsg = "Number must be an unsigned integer: "+ QString::number( doubleVal );
+        }
+    }
+    else if ( !jsonValue.isUndefined() && !jsonValue.isNull() ){
+        errorMsg = "Not a valid unsigned integer.";
     }
     return val;
 }

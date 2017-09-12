@@ -262,7 +262,7 @@ signals:
     void colorMapChanged();
 
 private slots:
-    void _updateIntensityBounds( double minIntensity, double maxIntensity );
+    void _updateIntensityBounds(double minIntensity, double maxIntensity , bool autoClip);
     void _colorStateChanged();
     void _dataChanged( Controller* controller );
     /**
