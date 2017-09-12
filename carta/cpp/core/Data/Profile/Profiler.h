@@ -157,6 +157,12 @@ public:
     QString getStatistic( const QString& curveName ) const;
 
     /**
+     * Return the current frame of stokes
+     * @return - the current frame of stokes
+     */
+    int getStokesFrame() const;
+
+    /**
      * Returns the upper limit of the zoom range on the x-axis.
      * @return - the upper limit of the zoom range on the x-axis.
      */

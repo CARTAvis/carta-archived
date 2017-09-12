@@ -153,12 +153,12 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casacore::ImageI
             casacore::IPosition trc = imagePtr->shape();
             blc(stokesAxis) = stokesFrame;
             trc(stokesAxis) = 1;
-            qWarning() << blc.asStdVector() << "\n" << trc.asStdVector();
+            // qWarning() << blc.asStdVector() << "\n" << trc.asStdVector();
             slicer = casacore::Slicer( blc, trc, Slicer::endIsLength);
         }
         std::shared_ptr<casacore::ImageInterface<casacore::Float> >image
             = make_shared<casacore::SubImage<casacore::Float> > (*imagePtr->cloneII(), slicer, casacore::AxesSpecifier() );
-        qWarning() << image->shape().asStdVector();
+        // qWarning() << image->shape().asStdVector();
 
         casa::PixelValueManipulator<casacore::Float> pvm(image, &regionRecord, "");
         casa::ImageCollapserData::AggregateType funct = _getCombineMethod( profileInfo );

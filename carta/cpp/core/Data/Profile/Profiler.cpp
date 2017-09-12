@@ -482,8 +482,6 @@ bool Profiler::_generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Reg
 
 void Profiler::_generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
         bool createNew ){
-    Controller* controller = _getControllerSelected();
-    int stokesFrame = controller->getFrame(Carta::Lib::AxisInfo::KnownType::STOKES);
     QString id = CurveData::_generateName( layer, region );
     int curveIndex = _findCurveIndex( id );
     Carta::Lib::ProfileInfo profInfo;
@@ -500,7 +498,7 @@ void Profiler::_generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Regi
     }
     profInfo.setSpectralUnit( getSpectralUnits() );
     profInfo.setSpectralType( getSpectralType() );
-    profInfo.setStokesFrame( stokesFrame );
+    profInfo.setStokesFrame( getStokesFrame() );
     m_renderService->renderProfile(layer, region, profInfo, createNew );
 }
 
@@ -866,6 +864,12 @@ QString Profiler::getStatistic( const QString& curveName ) const {
 			stat = m_state.getValue<QString>( CurveData::STATISTIC );
 		}
 		return stat;
+}
+
+int Profiler::getStokesFrame() const {
+    Controller* controller = _getControllerSelected();
+    int stokesFrame = controller->getFrame(Carta::Lib::AxisInfo::KnownType::STOKES);
+    return stokesFrame;
 }
 
 QString Profiler::_getUnitType( const QString& unitStr ){
@@ -1884,9 +1888,16 @@ QString Profiler::profileNew(){
         if ( layer && layer->_isOnCelestialPlane() && region ){
             //Get the name that is stored.  If it matches an existing profile, just set
             //the existing profile active.  Otherwise, generate a new one.
-			Carta::Lib::ProfileInfo profInfo = CurveData::_generateProfileInfo( getRestFrequency(""), getRestUnits(""),
-				getStatistic( ""), getSpectralType(), getSpectralUnits() );
-			int curveCount = m_plotCurves.size();
+            Carta::Lib::ProfileInfo profInfo;
+            profInfo.setRestFrequency( getRestFrequency( ""));
+            QString stat = getStatistic( "" );
+            Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
+            profInfo.setAggregateType( aggType );
+            profInfo.setRestUnit( getRestUnits("") );
+            profInfo.setSpectralUnit( getSpectralUnits() );
+            profInfo.setSpectralType( getSpectralType() );
+            profInfo.setStokesFrame( getStokesFrame() );
+            int curveCount = m_plotCurves.size();
 			int curveIndex = -1;
 			for ( int i = 0; i < curveCount; i++ ){
 				bool match = m_plotCurves[i]->isMatch( layer, region, profInfo );
@@ -1962,6 +1973,7 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
                 QString restUnit = result.getRestUnits();
                 profileCurve->setRestQuantity( restRounded, restUnit );
                 profileCurve->setSpectralInfo( getSpectralType(), getSpectralUnits() );
+                profileCurve->setStokesFrame( getStokesFrame() );
                 _assignColor( profileCurve );
                 if ( curveIndex < 0 ){
                     m_plotCurves.append( profileCurve );
