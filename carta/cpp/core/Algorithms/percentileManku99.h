@@ -310,9 +310,7 @@ percentile2pixels_approximate_manku99(
                 if (height >= sampleAfter) {
                     newBufferLevel = height - sampleAfter + 1;
                     samplingRate = pow(2, newBufferLevel);
-                    // TODO this may be unnecessarily complicated
-                    decltype(dist.param()) new_range (0, samplingRate - 1);
-                    dist.param(new_range);
+                    dist = std::uniform_int_distribution<>(0, samplingRate - 1);
                 }
             }
         }
