@@ -56,6 +56,18 @@ public:
      */
     bool isDeveloperDecorations() const;
 
+    /**
+     * Returns whether CARTA should use approximation method
+     * for percentile calculation, if the percentile is not equal to 0 or 1.
+     */
+    bool isPercentileApproximation() const;
+
+    /**
+     * Returns the value used to divide the range of pixel value: (max - min),
+     * so the pixel bin size used for percentile approximation is (max - min) / getPercentApproxDividedNum.
+     */
+    unsigned int getPercentApproxDividedNum() const;
+
     /// the whole config file as json
     const QJsonObject & json() const;
 
@@ -78,7 +90,16 @@ public:
      *      error doing the conversion.
      */
     static int toInt( const QJsonValue& jsonValue, QString& errorMsg );
-    
+
+    /**
+     * Converts a jsonValue to an unsigned integer.
+     * @param jsonValue - the value to convert.
+     * @param errorMsg - a place holder for setting an error message if the
+     *      passed in value cannot be converted.
+     * @return - the corresponding unsigned integer; default is 1000000 if there is an
+     *      error doing the conversion.
+     */
+    static unsigned int toUnsignedInt( const QJsonValue& jsonValue, QString& errorMsg );
     
     /**
      * Allows modification of the JSON object by tests.
@@ -90,9 +111,11 @@ protected:
     QStringList m_pluginDirectories;
     bool m_hacksEnabled = false;
     bool m_developerDecorations = false;
+    bool m_percentileApproximation = false;
     bool m_developerLayout = false;
     int m_histogramBinCountMax = -1;
     int m_contourLevelCountMax = -1;
+    unsigned int m_percentApproxDividedNum = 1000000;
 
     QJsonObject m_json;
 
