@@ -68,7 +68,7 @@ DefaultContourGeneratorService::timerCB()
     auto rawContours = cc.compute(m_rawView.get(), m_name);
 
     // stop the timer and print out the elapsed time
-    qCritical() << "<> [contour] Spending time for calculating contours:" << timer.elapsed() << "ms";
+    qDebug() << "++++++++ [contour] Spending time for calculating contours:" << timer.elapsed() << "ms";
 
     // build the result
     Result result;

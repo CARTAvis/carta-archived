@@ -850,7 +850,7 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
     }
 
     Result result;
-    QString notify = "[contour] apply Conrec Algorithm ";
+    QString notify = "[contour] apply Conrec Algorithm with ";
 
     if (typeName == "Line combiner") {
 
