@@ -85,7 +85,7 @@ private:
 
     static bool m_registered;
 
-    static QString lastAccessedDir;
+    QString lastAccessedDir = "";
 
     class Factory;
 
