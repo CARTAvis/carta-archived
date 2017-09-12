@@ -43,7 +43,7 @@ percentile2pixels(
     std::vector < double > quant
     )
 {
-    qDebug() << "computeClips" << view.dims();
+    //qDebug() << "++++++++ raw data shape for computing percentile per frame is" << view.dims();
 
     // basic preconditions
     if ( CARTA_RUNTIME_CHECKS ) {
@@ -85,14 +85,15 @@ percentile2pixels(
     return result;
 } // computeClips
 
+
 ///
-///
-///
+/// compute the percentile and return pixel values
+/// with respect to their spectral channels
 ///
 template < typename Scalar >
 static
 std::map<double, std::pair<int,Scalar>>
-percentile2pixels_I(
+percentile2pixels_precise(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     int spectralIndex,
     std::vector < double > quant
@@ -107,20 +108,17 @@ percentile2pixels_I(
     }
 
     // read in all values from the view into memory so that we can do quickselect on it
-    int index = 0;
+    size_t index = 0;
     std::vector<std::pair<int,Scalar>> allValues;
     std::map<double, std::pair<int,Scalar>> result;
 
     std::vector<int> dims = view.dims();
-    qDebug() << "++++++++ raw data shape for calculating percentile is"<< dims;
+    size_t total_size = 1;
+    for (int i = 0; i < dims.size(); i++) total_size *= dims[i];
+    qDebug() << "++++++++ raw data totalsize=" << total_size << "pixel elements, for raw data shape" << dims;
 
-    int total_size = std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<int>());
-    qDebug() << "++++++++ raw data totalsize=" << total_size;
-
-    int divisor = total_size;
-    if (spectralIndex != -1) {
-        divisor /= dims[spectralIndex];
-    }
+    size_t divisor = total_size;
+    if (spectralIndex != -1) divisor /= dims[spectralIndex];
     qDebug() << "++++++++ raw data size per channel=" << divisor;
 
     // Preallocate space to avoid running out of memory unnecessarily through dynamic allocation
@@ -142,7 +140,10 @@ percentile2pixels_I(
     qDebug() << "++++++++ raw data index number=" << index;
 
     // end of timer for loading the raw data
-    qCritical() << "<> Time to load the raw data:" << timer.elapsed() << "milliseconds";
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to load the raw data:" << elapsedTime << "ms";
+    }
 
     // indicate bad clip if no finite numbers were found
     if ( allValues.size() == 0 ) {
@@ -166,9 +167,233 @@ percentile2pixels_I(
         std::nth_element( allValues.begin(), allValues.begin()+x1, allValues.end(), compareIntensityTuples );
 
         // end of timer for getting the nth_element from the raw data
-        qCritical() << "<> Time to get the nth_element from the raw data:" << timer2.elapsed() << "milliseconds";
+        int elapsedTime2 = timer2.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Time to get std::nth_element=" << q << "from raw data:" << elapsedTime2 << "ms";
+        }
 
         result[q] = std::make_pair(allValues[x1].first/divisor, allValues[x1].second);
+    }
+
+    return result;
+}
+
+
+///
+/// C.C. Chiang: compute the approximation of percentile and return
+///              pixel values (w or w/o their spectral channels)
+///
+template < typename Scalar >
+static
+std::map<double, std::pair<int,Scalar>>
+percentile2pixels_approximation(
+    Carta::Lib::NdArray::TypedView <Scalar> & view,
+    int spectralIndex,
+    std::vector<std::pair<int,double>> minMaxIntensities,
+    unsigned int pixelDividedNo,
+    bool getLocation,
+    std::vector<double> quant
+    )
+{
+    // basic preconditions
+    if ( CARTA_RUNTIME_CHECKS ) {
+        for ( auto q : quant ) {
+            CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
+            Q_UNUSED(q);
+        }
+    }
+
+    size_t index = 0; // define raw data index
+    size_t indexOfFinite = 0; // define raw data index with finite value
+    std::map<double, std::pair<int,Scalar>> result; // define the output results
+
+    std::vector<int> dims = view.dims();
+    size_t total_size = 1;
+    for (int i = 0; i < dims.size(); i++) total_size *= dims[i];
+    qDebug() << "++++++++ raw data totalsize=" << total_size << "pixel elements, for raw data shape" << dims;
+
+    size_t divisor = total_size;
+    if (spectralIndex != -1) divisor /= dims[spectralIndex];
+    qDebug() << "++++++++ raw data size per channel=" << divisor;
+
+    std::vector<size_t> element(pixelDividedNo+1, 0); // initialize the vector elements as 0
+
+    double minIntensity = minMaxIntensities[0].second; // get the minimum intensity
+    double maxIntensity =  minMaxIntensities[1].second; // get the maximum intensity
+    double intensityRange = fabs(maxIntensity - minIntensity); // calculate the intensity range of the raw data
+    unsigned int pixelIndex; // the index of vector element
+
+    // start timer for computing approximate percentiles
+    QElapsedTimer timer;
+    timer.start();
+
+    // convert pixel values from raw data to 1-D histogram and save it in a vector
+    view.forEach(
+        [&index, &indexOfFinite, &element, &pixelDividedNo, &pixelIndex, &minIntensity, &intensityRange] (const Scalar &val) {
+            if (std::isfinite(val)) {
+                pixelIndex = static_cast<unsigned int>(round(pixelDividedNo*(val-minIntensity)/intensityRange));
+                element[pixelIndex]++;
+                indexOfFinite++;
+            }
+            index++;
+        }
+    );
+    qDebug() << "++++++++ raw data number=" << index << ", finite raw data number=" << indexOfFinite;
+
+    // indicate bad clip if no finite numbers were found
+    if ( index == 0 ) {
+        qFatal( "The size of raw data is zero !!" );
+    }
+
+    int sizeOfQuant = quant.size();
+    size_t accumulateEvent = 0;
+    size_t stopNo[sizeOfQuant];
+    std::vector<bool> flag(sizeOfQuant, false);
+    double pixelValue[sizeOfQuant];
+    double pixelValueError = intensityRange/pixelDividedNo;
+    std::vector<size_t> pixelValueLocation(sizeOfQuant, 0);
+    std::vector<unsigned int> count(sizeOfQuant, 0);
+
+    // get accumulation numbers for histogram with respect to specific percentiles
+    for (int j = 0; j < sizeOfQuant; j++) {
+        stopNo[j] = quant[j] * indexOfFinite;
+    }
+
+    // convert histogram accumulation numbers to pixel values
+    for (unsigned int i = 0; i < pixelDividedNo+1; i++) {
+        accumulateEvent += element[i];
+        for (int j = 0; j < sizeOfQuant; j++) {
+            if (accumulateEvent > stopNo[j] && flag[j] == false) {
+                pixelValue[j] = (intensityRange * i / pixelDividedNo) + minIntensity;
+                flag[j] = true;
+            }
+        }
+    }
+
+    // this step (get location) will spend more time, so by default it is *false*.
+    // we may skip this step if it would not affect the colormap setting.
+    if (getLocation == true) {
+        // get location index with respect to the approximate pixel value
+        int quantIndex;
+        size_t locationIndex = 0;
+        view.forEach(
+            [&pixelValue, &pixelValueLocation, &quantIndex, &sizeOfQuant, &count, &locationIndex, &pixelValueError] (const Scalar &val) {
+                // check if the value from raw data is finite
+                if (std::isfinite(val)) {
+                    for (quantIndex = 0; quantIndex < sizeOfQuant; quantIndex++) {
+                        if (fabs(val-pixelValue[quantIndex]) <= 2.0*pixelValueError) {
+                            pixelValueLocation[quantIndex] = locationIndex;
+                            count[quantIndex]++;
+                        }
+                    }
+                }
+                locationIndex++;
+            }
+        );
+        for (int j = 0; j < sizeOfQuant; j++) {
+            qDebug() << "++++++++ for percentile=" << quant[j]
+                     << "location=" << pixelValueLocation[j]/divisor << "(channel)" << "candidates within error bar=" << count[j];
+        }
+    }
+
+    // print out and save the results
+    for (int j = 0; j < sizeOfQuant; j++) {
+        qDebug() << "++++++++ for percentile=" << quant[j] << "intensity=" << pixelValue[j] << "+/-" << pixelValueError;
+        result[quant[j]] = std::make_pair(pixelValueLocation[j]/divisor, pixelValue[j]);
+    }
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get the approximate value:" << elapsedTime << "ms";
+    }
+
+    return result;
+}
+
+
+///
+/// C.C. Chiang: compute the minimum and maximum pixel values
+///              with respect to their spectral channels
+///
+template < typename Scalar >
+static
+std::map<double, std::pair<int,Scalar>>
+minMax2pixels(
+    Carta::Lib::NdArray::TypedView < Scalar > & view,
+    int spectralIndex,
+    std::vector < double > quant
+    )
+{
+    // basic preconditions
+    if ( CARTA_RUNTIME_CHECKS ) {
+        for ( auto q : quant ) {
+            CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
+            Q_UNUSED(q);
+        }
+    }
+
+    size_t index = 0;
+    size_t indexOfFinite = 0;
+    std::map<double, std::pair<int,Scalar>> result;
+    double minPixel = 0.0;
+    double maxPixel = 0.0;
+    size_t indexOfMinPixel = 0;
+    size_t indexOfMaxPixel = 0;
+
+    std::vector<int> dims = view.dims();
+    size_t total_size = 1;
+    for (int i = 0; i < dims.size(); i++) total_size *= dims[i];
+    qDebug() << "++++++++ raw data size:" << total_size << "pixel elements, for raw data shape" << dims;
+
+    size_t divisor = total_size;
+    if (spectralIndex != -1) divisor /= dims[spectralIndex];
+    qDebug() << "++++++++ raw data size per channel=" << divisor;
+
+    // start timer for scanning the raw data
+    QElapsedTimer timer;
+    timer.start();
+
+    // scan the raw data from the view to get the minimum and maximum pixel values
+    // with respect to their spectral channels
+    view.forEach(
+        [&index, &indexOfFinite, &minPixel, &maxPixel, &indexOfMinPixel, &indexOfMaxPixel] ( const Scalar &val ) {
+            // check if the value from raw data is finite
+            if ( std::isfinite( val ) ) {
+                if (indexOfFinite == 0) {
+                    minPixel = val;
+                    maxPixel = val;
+                } else {
+                    if (val < minPixel) {
+                        minPixel = val;
+                        indexOfMinPixel = index;
+                    }
+                    if (val > maxPixel) {
+                        maxPixel = val;
+                        indexOfMaxPixel = index;
+                    }
+                }
+                indexOfFinite++;
+            }
+            index++;
+        }
+    );
+    qDebug() << "++++++++ raw data index number=" << index << ", raw data finite index number=" << indexOfFinite;
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to scan the raw data:" << elapsedTime << "ms";
+    }
+
+    // check if the data size is zero
+    if (index == 0) {
+        qFatal( "The size of raw data is zero !!" );
+    }
+
+    for ( double q : quant ) {
+        if (q==0) result[q] = std::make_pair(indexOfMinPixel/divisor, minPixel);
+        if (q==1) result[q] = std::make_pair(indexOfMaxPixel/divisor, maxPixel);
     }
 
     return result;

@@ -739,6 +739,11 @@ void Animator::_updateFrame( Controller* controller, Carta::Lib::AxisInfo::Known
         if ( type == AxisInfo::KnownType::SPECTRAL ) {
              qDebug() << "++++++++ [update spectral frame] Index=" << frameIndex;
         }
+        // check the new stoke frame index and update it for percentile/colormap settings
+        if ( type == AxisInfo::KnownType::STOKES ) {
+            qDebug() << "++++++++ update the stoke frame index=" << frameIndex;
+            controller -> recallClipValue();
+        }
         QString animName = AxisMapper::getAnimatorPurpose( type );
         if ( m_animators.contains( animName) ){
             int currentIndex = m_animators[animName]->getFrame();

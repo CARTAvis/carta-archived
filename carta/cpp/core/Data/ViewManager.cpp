@@ -43,10 +43,9 @@
 #include "Data/Units/UnitsWavelength.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
-
-#include <QDir>
 #include <QTime>
 #include <QDebug>
+#include <QElapsedTimer>
 
 namespace Carta {
 
@@ -56,7 +55,7 @@ class ViewManager::Factory : public Carta::State::CartaObjectFactory {
 
 public:
     Factory():
-        CartaObjectFactory( "ViewManager" ){};
+        CartaObjectFactory( "ViewManager" ){}
     Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new ViewManager (path, id);
@@ -445,7 +444,27 @@ void ViewManager::_initCallbacks(){
         std::set<QString> keys = {Util::ID,DATA};
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         bool fileLoaded = false;
+
+        // get the loading file name
+        QString fileName = dataValues[DATA].split("/").last();
+
+        // get the timer for the function "loadFile(...)"
+        QElapsedTimer timer;
+        timer.start();
+
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Start loading" << fileName << "!";
+        }
+
+        // execute the function "loadFile(...)"
         QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
+
+        // set the output stype of log lines
+        int elapsedTime = timer.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Total loading time for" << fileName << ":" << elapsedTime << "ms";
+        }
+
         if ( !fileLoaded ){
             Util::commandPostProcess( result);
         }
