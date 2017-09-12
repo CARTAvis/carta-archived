@@ -61,12 +61,12 @@ class Buffer {
     }
 
     /** Weighted buffer merge */
-    static std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > merge(std::vector<Buffer> inputBuffers, int start, int step) {
+    static std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > merge(std::vector<Buffer*> inputBuffers, int start, int step) {
 
         // buffers which have elements left
         std::vector<Buffer*> remainingBuffers;
         for (auto& b : inputBuffers) {
-            remainingBuffers.push_back(&b);
+            remainingBuffers.push_back(b);
         }
 
         // the index of the buffer with the overall lowest next value
@@ -81,7 +81,7 @@ class Buffer {
         // the next index to be sampled from the expanded list of elements
         int nextIndex(start);
         // the maximum size of the merged sampled list of elements 
-        int bufferCapacity = inputBuffers[0].capacity;
+        int bufferCapacity = inputBuffers[0]->capacity;
         // the destination for the sampled, merged elements
         std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > mergedElements;
 
@@ -123,11 +123,11 @@ class Buffer {
     }
 
     /** COLLAPSE operation */
-    static void opCollapse(std::vector<Buffer> inputBuffers) {
+    static void opCollapse(std::vector<Buffer*> inputBuffers) {
         // Weight of collapsed buffer is the sum of the weights of all input buffers
-        double YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer& b){ return b.size() + a; });
+        double YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer*& b){ return b->size() + a; });
         // Level of collapsed buffer is one more than the level of each input buffer
-        int YLevel = inputBuffers[0].level + 1;
+        int YLevel = inputBuffers[0]->level + 1;
 
         // Calculate sampling offset from total weight 
         int offset;
@@ -146,19 +146,21 @@ class Buffer {
 
         for (auto& b : inputBuffers) {
             // weight and level are cosmetic here; is there a performance benefit to not setting them?
-            b.weight = 0;
-            b.state = State::empty;
-            b.level = 0;
+            b->weight = 0;
+            b->state = State::empty;
+            b->level = 0;
         }
 
-        Buffer & Y = inputBuffers[0];
-        Y.elements = std::move(YElements);
-        Y.weight = YWeight;
-        Y.state = State::full;
-        Y.level = YLevel;
+        Buffer*& Y = inputBuffers[0];
+        Y->elements = std::move(YElements);
+        Y->weight = YWeight;
+        Y->state = State::full;
+        Y->level = YLevel;
     }
     
-    static std::vector<double> opOutput(std::vector<Buffer> input_buffers, std::vector<double> quantiles) {
+
+    /** OUTPUT operation */
+    static std::vector<double> opOutput(std::vector<Buffer*> input_buffers, std::vector<double> quantiles) {
     }
 }
 
@@ -197,6 +199,7 @@ percentile2pixels_approximate_manku99(
 
     int samplingRate(1);
     int newBufferLevel(0);
+    int height(0)
     
     std::vector<Buffer> buffers;
     for (size_t i = 0; i < numBuffers; i++) {
@@ -215,9 +218,15 @@ percentile2pixels_approximate_manku99(
     }
     
     /** Keep track of full buffers and their levels */
-    std::vector<int> fullLevelHeap;
+    std::priority_queue<int, std::vector<int>, std::greater<int> > fullLevelHeap;
     std::set<int> fullLevelSet;
     std::map<int, std::vector<Buffer*> > full;
+    
+    int lowestFullLevel;
+    std::vector<Buffer*> lowest;
+    
+    int secondLowestFullLevel;
+    std::vector<Buffer*> secondLowest;
 
     /** Randomness */
     std::random_device rd;
@@ -248,21 +257,63 @@ percentile2pixels_approximate_manku99(
                             // add the level to the set
                             fullLevelSet.insert(newBufferLevel);
                             // add the level to the heap
-                            fullLevelHeap.back() = newBufferLevel;
-                            std::push_heap(fullLevelHeap.begin(), fullLevelHeap.end(), std::greater<int>{});
+                            fullLevelHeap.push(newBufferLevel);
                         }
                         // add the buffer to the map of full buffers
-                        full[newBufferLevel].push_back(&newBuffer);
+                        full[newBufferLevel].push_back(newBuffer);
                         // remove buffer from list of empty buffers
                         empty.pop_front();
                     }
                 }
             } else { // COLLAPSE operation
-                // TODO find buffers to collapse
-                // do the collapse
-                // update empty / full
-                // update height / level / rate
-                // update distribution
+                // Find full buffers with the lowest level
+                lowestFullLevel = fullLevelHeap.pop();
+                fullLevelSet.erase(lowestFullLevel);
+                lowest = full[lowestFullLevel];
+                full.erase(lowestFullLevel);
+
+                // If there is only one,
+                if (lowest.size() == 1) {
+                    // add the next lowest buffer(s)
+                    secondLowestFullLevel = fullLevelHeap.pop();
+                    fullLevelSet.erase(secondLowestFullLevel);
+                    secondLowest = full[secondLowestFullLevel];
+                    full.erase(secondLowestFullLevel);
+                    // and promote the lowest buffer
+                    lowest[0]->level = secondLowestFullLevel;
+                    secondLowest.push_back(lowest[0]);
+                    lowest = std::move(secondLowest);
+                }
+
+                // perform the collapse
+                Buffer::opCollapse(lowest);
+
+                // all buffers after the first are now empty
+                for (size_t i = 1; i < lowest.size(); i++) {
+                    empty.push_back(lowest[i]);
+                }
+                
+                // the first buffer is full and one level higher
+                if (fullLevelSet.find(lowest[0]->level) != fullLevelSet.end()) {
+                    // add the level to the set
+                    fullLevelSet.insert(lowest[0]->level);
+                    // add the level to the heap
+                    fullLevelHeap.push(lowest[0]->level);
+                }
+                // add the buffer to the map of full buffers
+                full[lowest[0]->level].push_back(lowest[0]);
+                
+                // update tree height
+                height = max(height, lowest[0]->level);
+
+                // update new buffer level, sampling rate and random distribution
+                if (height >= sampleAfter) {
+                    newBufferLevel = height - sampleAfter + 1;
+                    samplingRate = pow(2, newBufferLevel);
+                    // TODO this may be unnecessarily complicated
+                    decltype(dist.param()) new_range (0, samplingRate - 1);
+                    dist.param(new_range);
+                }
             }
         }
     };
@@ -301,6 +352,8 @@ percentile2pixels_approximate_manku99(
     }
 
     /** Special cases for handling the end of the data */
+
+    Buffer* partial;
     
     // process a possible partial block
     if (elementBlock.size()) {
@@ -316,10 +369,27 @@ percentile2pixels_approximate_manku99(
     // process a possible partial buffer
     if (bufferElements.size()) {        
         empty.front()->opNew(bufferElements, samplingRate, newBufferLevel, Buffer::State::partial);
+        partial = empty.front();
         empty.pop_front();
     }
 
     // OUTPUT operation
+
+    // find the non-empty buffers
+    
+    std::vector<Buffer*> nonEmptyBuffers;
+
+    while (!fullLevelHeap.empty()) {
+        nonEmptyBuffers.push_back(fullLevelHeap.pop());
+    }
+
+    // partial buffer goes at the end
+    if (partial) {
+        nonEmptyBuffers.push_back(partial);
+    }
+
+    // get the final output buffer
+    std::vector<double> output = Buffer::opOutput(nonEmptyBuffers);
 
     // Find the quantiles
 
