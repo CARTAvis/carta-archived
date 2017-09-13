@@ -4,9 +4,9 @@ namespace Carta {
 
 namespace Shape{
 
-const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 106, 0 ) ), 3 );
-const QBrush ShapeBase::shadowBrush = QBrush( QColor( 255, 106, 0 ) );
-const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 102, 153, 204 ) ), 2 );
+const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 0, 255 ) ), 2 );
+const QBrush ShapeBase::shadowBrush = QBrush( QColor( 0, 255, 0 ) );
+const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 0, 255, 0 ) ), 2 );
 
 ShapeBase::ShapeBase( QObject* parent ):
 		QObject( parent ),

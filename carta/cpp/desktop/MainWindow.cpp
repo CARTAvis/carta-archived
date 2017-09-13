@@ -67,7 +67,8 @@ MainWindow::MainWindow( )
     helpMenu->addAction(tr("GitHub Home"), this, SLOT(helpUrlGitHubHome()));
     helpMenu->addAction(tr("GitHub Wiki"), this, SLOT(helpUrlGitHubWiki()));
     helpMenu->addAction(tr("GitHub Issues"), this, SLOT(helpUrlGitHubIssues()));
-
+    helpMenu->addAction(tr("Helpdesk"), this, SLOT(helpUrlHelpdesk()));
+    
     setCentralWidget(m_view);
     setUnifiedTitleAndToolBarOnMac(true);
 
@@ -165,6 +166,11 @@ void MainWindow::helpUrlGitHubWiki()
 void MainWindow::helpUrlGitHubIssues()
 {
     QDesktopServices::openUrl(QUrl("https://github.com/CARTAvis/carta/issues", QUrl::TolerantMode));
+}
+
+void MainWindow::helpUrlHelpdesk()
+{
+    QDesktopServices::openUrl(QUrl("mailto:carta_helpdesk@asiaa.sinica.edu.tw", QUrl::TolerantMode));
 }
 
 void MainWindow::cartaLicense()

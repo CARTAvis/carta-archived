@@ -28,14 +28,20 @@ QSizeF ControlPointEditable::getSize() const {
 
 Carta::Lib::VectorGraphics::VGList ControlPointEditable::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
+	QPen pen = outlinePen;
+	pen.setCosmetic(true);
 	QRectF rect( m_pos.x() - m_size / 2, m_pos.y() - m_size / 2, m_size, m_size );
 	QColor color = m_fillColor;
 	if ( isSelected() ) {
-		comp.append < vge::FillRect > ( rect, color );
+		//comp.append < vge::FillRect > ( rect, color );
+		comp.append < vge::SetPen > ( pen );
+		comp.append < vge::DrawRect > ( rect );
 	}
 	else {
 		color.setAlpha( 128 );
-		comp.append < vge::FillRect > ( rect, color );
+		//comp.append < vge::FillRect > ( rect, color );
+		comp.append < vge::SetPen > ( pen );
+		comp.append < vge::DrawRect > ( rect );
 	}
 	return comp.vgList();
 }
