@@ -125,7 +125,7 @@ class Buffer {
     }
 
     /** COLLAPSE operation */
-    static void opCollapse(std::vector<Buffer*> inputBuffers) {
+    static void opCollapse(std::vector<Buffer*> & inputBuffers) {
         // Weight of collapsed buffer is the sum of the weights of all input buffers
         double YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer*& b){ return b->weight + a; });
         // Level of collapsed buffer is one more than the level of each input buffer
