@@ -553,7 +553,7 @@ void Histogram::_initializeCallbacks(){
             double logMaxCount = qLn( maxBinCount ) / qLn(10);
             double percentage  = (binCount*1.0) / maxBinCount;
             double percentLogMax = percentage * logMaxCount;
-            int scaledBinCount = static_cast<int>( qPow(10, percentLogMax) );
+            int scaledBinCount = round( qPow(10, percentLogMax) );
             result = setBinCount( scaledBinCount );
         }
         else {
@@ -2059,7 +2059,7 @@ int Histogram::_toBinCount( double width ) const {
     double totalRange = maxRange-minRange;
     int count = m_state.getValue<int>(BIN_COUNT);
     // Use proper decimal to examine the error
-    if ( width > 0 && qAbs(totalRange/count-width) > m_errorMargin*pow(10, (int)log10(width)+1)){
+    if ( width > 0 && qAbs(totalRange/count-width) > m_errorMargin*pow(10, ceil(log10(width)))){
         count = qCeil( qAbs( maxRange - minRange)  / width);
     }
     return count;
