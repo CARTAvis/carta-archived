@@ -741,7 +741,7 @@ void Animator::_updateFrame( Controller* controller, Carta::Lib::AxisInfo::Known
         }
         // check the new stoke frame index and update it for percentile/colormap settings
         if ( type == AxisInfo::KnownType::STOKES ) {
-            qDebug() << "++++++++ update the stoke frame index=" << frameIndex;
+            qDebug() << "++++++++ [update stoke frame] Index=" << frameIndex;
             controller -> recallClipValue();
         }
         QString animName = AxisMapper::getAnimatorPurpose( type );
