@@ -87,7 +87,7 @@ void GeneratorState::_initializeDefaultState(){
     m_state.insertValue<double>(RANGE_MIN, 0 );
     m_state.insertValue<double>(RANGE_MAX, 1 );
     m_state.insertValue<bool>(DASHED_NEGATIVE, false );
-    m_state.insertValue<int>(LEVEL_COUNT, 3 );
+    m_state.insertValue<int>(LEVEL_COUNT, 9 );
     int contourLevelCountMax = Globals::instance()->mainConfig()->getContourLevelCountMax();
     if ( contourLevelCountMax > 0 ){
        m_state.insertValue<int>(LEVEL_COUNT_MAX, contourLevelCountMax );
