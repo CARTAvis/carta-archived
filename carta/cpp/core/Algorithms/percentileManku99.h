@@ -11,6 +11,7 @@
 #include <vector>
 #include <random>
 #include <limits>
+#include <functional>
  
 namespace Carta
 {
@@ -18,6 +19,8 @@ namespace Core
 {
 namespace Algorithms
 {
+
+template<class T> using min_heap = priority_queue<T, std::vector<T>, std::greater<T> >;
 
 template <typename Scalar>
 class Buffer {
@@ -42,7 +45,7 @@ class Buffer {
     int level;
     
     /** The elements */
-    std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > elements;
+    min_heap<Scalar> elements;
 
     /** Will be toggled in successive calls of the collapse operation */
     static bool collapseChoice;
@@ -61,7 +64,12 @@ class Buffer {
     }
 
     /** Weighted buffer merge */
-    static std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > merge(std::vector<Buffer*> inputBuffers, int start, int step) {
+    static void merge(
+        std::vector<Buffer*> inputBuffers, int start,
+        std::function<bool()> stopIterationLambda,
+        std::function<int(int)> nextIndexLambda,
+        std::function<void(int, Scalar)> processValueLambda
+    ) {
 
         // buffers which have elements left
         std::vector<Buffer*> remainingBuffers;
@@ -80,13 +88,9 @@ class Buffer {
         int pos(0);
         // the next index to be sampled from the expanded list of elements
         int nextIndex(start);
-        // the maximum size of the merged sampled list of elements 
-        int bufferCapacity = inputBuffers[0]->capacity;
-        // the destination for the sampled, merged elements
-        std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > mergedElements;
 
         // while the destination element buffer isn't full
-        while (mergedElements.size() < bufferCapacity) {
+        while (!stopIterationLambda()) {
             // find the buffer with the lowest overall next value
             for (size_t i = 0; i < remainingBuffers.size(); i++) {
                 if (remainingBuffers[i]->elements.top() < minNextVal) {
@@ -111,21 +115,19 @@ class Buffer {
             // if any samples fall within the next [weight] elements of the expanded list, use this value for those samples
             for (size_t p = pos; p < pos + weight; p++) {
                 if (p == nextIndex) {
-                    mergedElements.push(minNextVal);
-                    nextIndex += step;
+                    processValueLambda(nextIndex, minNextVal);
+                    nextIndex = nextIndexLambda(nextIndex);
                 }
             }
             // actually advance our position in the expanded list
             pos += weight;
         }
-
-        return mergedElements;
     }
 
     /** COLLAPSE operation */
     static void opCollapse(std::vector<Buffer*> inputBuffers) {
         // Weight of collapsed buffer is the sum of the weights of all input buffers
-        double YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer*& b){ return b->size() + a; });
+        double YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer*& b){ return b->weight + a; });
         // Level of collapsed buffer is one more than the level of each input buffer
         int YLevel = inputBuffers[0]->level + 1;
 
@@ -141,8 +143,25 @@ class Buffer {
 
         collapseChoice = !collapseChoice; // do we need to do something special because it's static?
 
+        // the maximum size of the merged sampled list of elements 
+        int bufferCapacity = inputBuffers[0]->capacity;
+        // the destination for the sampled, merged elements
+        min_heap<Scalar> YElements;
+
+        auto stopIterationLambda [&bufferCapacity, &YElements] () {
+            return (YElements.size() < bufferCapacity);
+        };
+
+        auto nextIndexLambda [&Y_weight] (int lastIndex) {
+            return lastIndex + Y_weight;
+        };
+
+        auto processValueLambda [&YElements] (int index, Scalar value) {
+            YElements.push(value);
+        };
+
         // perform the weighted merge
-        std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > YElements = merge(inputBuffers, offset - 1, Y_weight);
+        merge(inputBuffers, offset - 1, stopIterationLambda, nextIndexLambda, processValueLambda);
 
         for (auto& b : inputBuffers) {
             // weight and level are cosmetic here; is there a performance benefit to not setting them?
@@ -160,7 +179,37 @@ class Buffer {
     
 
     /** OUTPUT operation */
-    static std::vector<double> opOutput(std::vector<Buffer*> input_buffers, std::vector<double> quantiles) {
+    static std::map<double, Scalar> opOutput(std::vector<Buffer*> inputBuffers, const std::vector<double> quantiles) {
+        // kW is the sum of the weight x actual size of all input buffers
+        double kW = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer*& b){ return (b->size() * b->weight) + a; });
+
+        min_heap<int> indices;
+        std::map<int, double> quantileForIndex;
+        
+        for (auto & phi : quantiles) {
+            int index = ceil(phi * kW) - 1;
+            indices.push(ceil(index);
+            quantileForIndex[index] = phi;
+        }
+
+        auto stopIterationLambda [&indices] () {
+            return indices.empty();
+        };
+
+        auto nextIndexLambda [&indices] (int lastIndex) {
+            return indices.pop();
+        };
+
+        std::map<double, Scalar> values;
+
+        auto processValueLambda [&quantileForIndex, &values] (int index, Scalar value) {
+            values[quantileForIndex[index]] = value;
+        };
+        
+        // perform the weighted merge
+        merge(inputBuffers, 0, stopIterationLambda, nextIndexLambda, processValueLambda);
+
+        return values;
     }
 }
 
@@ -209,7 +258,7 @@ percentile2pixels_approximate_manku99(
     /** Temporary storage for blocks of data before and after sampling */
     std::vector<Scalar> elementBlock;
     std::vector<double> hzForBlock; // we need to keep these so that we can convert after sampling
-    std::priority_queue<Scalar, std::vector<Scalar>, std::greater<Scalar> > bufferElements;
+    min_heap<Scalar> bufferElements;
 
     /** Keep track of empty buffers */
     std::deque<Buffer*> empty; // this is safe because the buffer vector will never change size; buffers are modified in-place
@@ -218,7 +267,7 @@ percentile2pixels_approximate_manku99(
     }
     
     /** Keep track of full buffers and their levels */
-    std::priority_queue<int, std::vector<int>, std::greater<int> > fullLevelHeap;
+    min_heap<int> fullLevelHeap;
     std::set<int> fullLevelSet;
     std::map<int, std::vector<Buffer*> > full;
     
@@ -316,7 +365,6 @@ percentile2pixels_approximate_manku99(
         }
     };
     
-    
     // Enter all the values into buffers
     if (converter && converter->frameDependent) {
         // conversion is needed
@@ -386,14 +434,9 @@ percentile2pixels_approximate_manku99(
         nonEmptyBuffers.push_back(partial);
     }
 
-    // get the final output buffer
-    std::vector<double> output = Buffer::opOutput(nonEmptyBuffers);
+    // call output to find the quantiles
 
-    // Find the quantiles
-
-    std::map < double, Scalar > result;
-
-    // TODO
+    std::map <double, Scalar> result = Buffer::opOutput(nonEmptyBuffers, percentiles);
 
     CARTA_ASSERT( result.size() == percentiles.size());
 
