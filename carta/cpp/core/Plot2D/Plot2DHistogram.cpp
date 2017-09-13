@@ -115,7 +115,11 @@ void Plot2DHistogram::setData ( std::vector<std::pair<double,double> > dataVecto
     m_maxValueX = -1;
     m_minValueX = std::numeric_limits<double>::max();
     m_data.clear();
-    double binHalfWidth = (dataVector[2].first - dataVector[1].first)/2.0;
+    // use a fake bin width to plot when bin count equals 1
+    double binHalfWidth = 1.0;
+    if ( dataVector.size() > 1 ){
+        binHalfWidth = (dataVector[1].first - dataVector[0].first)/2.0;
+    }
     for ( int i = 0; i < dataCount; i++ ){
         //Only add in nonzero counts
         if ( dataVector[i].second > 0 ){
@@ -145,4 +149,3 @@ Plot2DHistogram::~Plot2DHistogram(){
 
 }
 }
-	
