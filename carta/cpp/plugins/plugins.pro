@@ -32,7 +32,3 @@ unix:macx {
 else{
   SUBDIRS += PCacheLevelDB
 }
-
-# adrianna's render plugin
-
-SUBDIRS += hpcImgRender
