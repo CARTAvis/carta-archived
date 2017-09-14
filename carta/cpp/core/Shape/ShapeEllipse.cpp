@@ -171,16 +171,11 @@ void ShapeEllipse::_updateEllipseFromShadow(){
 	m_shadowRect = m_shadowRect.normalized();
 	double width = m_shadowRect.width();
 	double height = m_shadowRect.height();
-	if ( width < height ){
-		m_ellipseRegion->setRadiusMajor( height / 2 );
-		m_ellipseRegion->setRadiusMinor( width / 2 );
-		m_ellipseRegion->setAngle( 0 );
-	}
-	else {
-		m_ellipseRegion->setRadiusMajor( width / 2 );
-		m_ellipseRegion->setRadiusMinor( height / 2 );
-		m_ellipseRegion->setAngle( 90 );
-	}
+
+	m_ellipseRegion->setRadiusMajor( width / 2 );
+	m_ellipseRegion->setRadiusMinor( height / 2 );
+	m_ellipseRegion->setAngle( 0 );
+
 	m_ellipseRegion->setCenter( m_shadowRect.center() );
 }
 
