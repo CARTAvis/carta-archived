@@ -177,7 +177,7 @@ void MainWindow::helpReleaseNote()
 
 void MainWindow::helpManual()
 {
-    QDesktopServices::openUrl(QUrl("http://www.asiaa.sinica.edu.tw/~kswang/carta_doc/html/index.html", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://cartavis.github.io/manual/", QUrl::TolerantMode));
 }
 
 void MainWindow::helpUrlHelpdesk()
