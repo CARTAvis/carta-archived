@@ -41,4 +41,3 @@ SUBDIRS += hpcImgRender
 
 SUBDIRS += tester1
 SUBDIRS += clock1
-SUBDIRS += blurpy
