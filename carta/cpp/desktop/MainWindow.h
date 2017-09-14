@@ -43,6 +43,7 @@ protected slots:
     void helpUrlGitHubWiki();
     void helpUrlGitHubIssues();
     void helpReleaseNote();
+    void helpManual();
     void helpUrlHelpdesk();
     void cartaLicense();
 

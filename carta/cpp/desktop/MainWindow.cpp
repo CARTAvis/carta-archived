@@ -67,7 +67,8 @@ MainWindow::MainWindow( )
     helpMenu->addAction(tr("GitHub Home"), this, SLOT(helpUrlGitHubHome()));
     helpMenu->addAction(tr("GitHub Wiki"), this, SLOT(helpUrlGitHubWiki()));
     helpMenu->addAction(tr("GitHub Issues"), this, SLOT(helpUrlGitHubIssues()));
-    helpMenu->addAction(tr("Release Notes"), this, SLOT(helpReleaseNote()));
+    helpMenu->addAction(tr("Release"), this, SLOT(helpReleaseNote()));
+    helpMenu->addAction(tr("Manual"), this, SLOT(helpManual()));
     helpMenu->addAction(tr("Helpdesk"), this, SLOT(helpUrlHelpdesk()));
     
     setCentralWidget(m_view);
@@ -172,6 +173,11 @@ void MainWindow::helpUrlGitHubIssues()
 void MainWindow::helpReleaseNote()
 {
     QDesktopServices::openUrl(QUrl("https://github.com/CARTAvis/carta/releases", QUrl::TolerantMode));
+}
+
+void MainWindow::helpManual()
+{
+    QDesktopServices::openUrl(QUrl("http://www.asiaa.sinica.edu.tw/~kswang/carta_doc/html/index.html", QUrl::TolerantMode));
 }
 
 void MainWindow::helpUrlHelpdesk()
