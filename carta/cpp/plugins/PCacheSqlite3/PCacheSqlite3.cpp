@@ -192,8 +192,8 @@ PCacheSQlite3Plugin::initialize( const IPlugin::InitInfo & initInfo )
     }
     else {
         // convert this to absolute path just in case
-        m_dbPath.replace("$(HOME)", QDir::homePath());
-        m_dbPath.replace("$(APPDIR)", QCoreApplication::applicationDirPath());
+        m_dbPath.replace("$(HOME)", QDir::homePath()); // get user's home directory
+        m_dbPath.replace("$(APPDIR)", QCoreApplication::applicationDirPath()); // get the directory of CARTA Application
         m_dbPath = QDir(m_dbPath).absolutePath();
     }
 }

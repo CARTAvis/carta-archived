@@ -7,7 +7,7 @@
     "disabledPlugins" : ["tester1", "clock1", "blurpy"],
     "plugins": {
         "PCacheSqlite3" : {
-            "dbPath": "/tmp/pcache.sqlite"
+            "dbPath": "$(HOME)/CARTA/cache/pcache.sqlite"
         }
     },
     "qtDecorations" : "true",
