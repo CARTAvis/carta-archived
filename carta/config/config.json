@@ -4,7 +4,7 @@
         "$(APPDIR)/../plugins",
         "$(APPDIR)/../../../../plugins"
     ],
-    "disabledPlugins" : ["tester1", "clock1", "blurpy"],
+    "disabledPlugins" : [""],
     "plugins": {
         "PCacheSqlite3" : {
             "dbPath": "/tmp/pcache.sqlite"
@@ -14,4 +14,3 @@
     "percentileApproximation" : "true",
     "percentApproxDividedNum" : 1000000
 }
-
