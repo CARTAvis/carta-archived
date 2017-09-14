@@ -39,5 +39,4 @@ SUBDIRS += hpcImgRender
 
 # experimental plugins:
 
-SUBDIRS += tester1
 SUBDIRS += clock1
