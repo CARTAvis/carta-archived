@@ -36,7 +36,3 @@ else{
 # adrianna's render plugin
 
 SUBDIRS += hpcImgRender
-
-# experimental plugins:
-
-SUBDIRS += clock1
