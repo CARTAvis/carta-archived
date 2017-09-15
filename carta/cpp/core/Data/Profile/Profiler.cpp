@@ -1882,39 +1882,46 @@ QString Profiler::profileNew(){
         std::shared_ptr<Region> region( nullptr );
         std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
         if ( regionControls ){
-        	QString regionId = getSelectedRegion();
-        	region = regionControls->getRegion( regionId );
+            QString regionId = getSelectedRegion();
+            region = regionControls->getRegion( regionId );
         }
         if ( layer && layer->_isOnCelestialPlane() && region ){
-            //Get the name that is stored.  If it matches an existing profile, just set
-            //the existing profile active.  Otherwise, generate a new one.
-            Carta::Lib::ProfileInfo profInfo;
-            profInfo.setRestFrequency( getRestFrequency( ""));
-            QString stat = getStatistic( "" );
-            Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
-            profInfo.setAggregateType( aggType );
-            profInfo.setRestUnit( getRestUnits("") );
-            profInfo.setSpectralUnit( getSpectralUnits() );
-            profInfo.setSpectralType( getSpectralType() );
-            profInfo.setStokesFrame( getStokesFrame() );
-            int curveCount = m_plotCurves.size();
-			int curveIndex = -1;
-			for ( int i = 0; i < curveCount; i++ ){
-				bool match = m_plotCurves[i]->isMatch( layer, region, profInfo );
-				if ( match ){
-					curveIndex = i;
-					break;
-				}
-			}
-			if ( curveIndex >= 0 ){
-				m_plotCurves[curveIndex]->setActive( true );
-			}
-			else {
-				_generateData( layer, region, true );
-			}
+            int specCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+            int tabCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
+            if ( specCount > 1 || tabCount > 1 ){
+                //Get the name that is stored.  If it matches an existing profile, just set
+                //the existing profile active.  Otherwise, generate a new one.
+                Carta::Lib::ProfileInfo profInfo;
+                profInfo.setRestFrequency( getRestFrequency( ""));
+                QString stat = getStatistic( "" );
+                Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
+                profInfo.setAggregateType( aggType );
+                profInfo.setRestUnit( getRestUnits("") );
+                profInfo.setSpectralUnit( getSpectralUnits() );
+                profInfo.setSpectralType( getSpectralType() );
+                profInfo.setStokesFrame( getStokesFrame() );
+                int curveCount = m_plotCurves.size();
+                int curveIndex = -1;
+                for ( int i = 0; i < curveCount; i++ ){
+                    bool match = m_plotCurves[i]->isMatch( layer, region, profInfo );
+                    if ( match ){
+                        curveIndex = i;
+                        break;
+                    }
+                }
+                if ( curveIndex >= 0 ){
+                    m_plotCurves[curveIndex]->setActive( true );
+                }
+                else {
+                    _generateData( layer, region, true );
+                }
+            }
+            else {
+                result = "The layer does not have a spectral-like axis.";
+            }
         }
         else {
-        	result = "Cannot render without a layer";
+        	result = "Cannot render without a layer or a region.";
         }
     }
     else {
