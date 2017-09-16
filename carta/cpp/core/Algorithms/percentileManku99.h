@@ -9,6 +9,8 @@
 #include "CartaLib/IntensityUnitConverter.h"
 #include "percentileAlgorithms.h"
 #include <vector>
+#include <queue>
+#include <set>
 #include <random>
 #include <limits>
 #include <functional>
@@ -20,7 +22,7 @@ namespace Core
 namespace Algorithms
 {
 
-template<class T> using min_heap = priority_queue<T, std::vector<T>, std::greater<T> >;
+template<class T> using min_heap = std::priority_queue<T, std::vector<T>, std::greater<T> >;
 
 template <typename Scalar>
 class Buffer {
@@ -29,12 +31,12 @@ class Buffer {
     const int capacity;
     
     /** The state of the buffer */
-    static enum class State {empty, partial, full};
+    enum class State {empty, partial, full};
     
     State state;
     
     /** The actual current size of the buffer */
-    const int size() {
+    int size() {
         return elements.size();
     }
 
@@ -50,7 +52,7 @@ class Buffer {
     /** Will be toggled in successive calls of the collapse operation */
     static bool collapseChoice;
         
-    Buffer(capacity) : capacity(capacity), state(State::empty), weight(0), level(0) {
+    Buffer(const int capacity) : capacity(capacity), state(State::empty), weight(0), level(0) {
     }
     
     ~Buffer();
@@ -127,7 +129,7 @@ class Buffer {
     /** COLLAPSE operation */
     static void opCollapse(std::vector<Buffer*> & inputBuffers) {
         // Weight of collapsed buffer is the sum of the weights of all input buffers
-        double YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer*& b){ return b->weight + a; });
+        int YWeight = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](int a, const Buffer*& b){ return b->weight + a; });
         // Level of collapsed buffer is one more than the level of each input buffer
         int YLevel = inputBuffers[0]->level + 1;
 
@@ -148,15 +150,15 @@ class Buffer {
         // the destination for the sampled, merged elements
         min_heap<Scalar> YElements;
 
-        auto stopIterationLambda [&bufferCapacity, &YElements] () {
+        auto stopIterationLambda = [&bufferCapacity, &YElements] () {
             return (YElements.size() < bufferCapacity);
         };
 
-        auto nextIndexLambda [&Y_weight] (int lastIndex) {
-            return lastIndex + Y_weight;
+        auto nextIndexLambda = [&YWeight] (int lastIndex) {
+            return lastIndex + YWeight;
         };
 
-        auto processValueLambda [&YElements] (int index, Scalar value) {
+        auto processValueLambda = [&YElements] (int index, Scalar value) {
             YElements.push(value);
         };
 
@@ -181,28 +183,28 @@ class Buffer {
     /** OUTPUT operation */
     static std::map<double, Scalar> opOutput(std::vector<Buffer*> inputBuffers, const std::vector<double> quantiles) {
         // kW is the sum of the weight x actual size of all input buffers
-        double kW = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](double a, const Buffer*& b){ return (b->size() * b->weight) + a; });
+        int kW = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](int a, const Buffer*& b){ return (b->size() * b->weight) + a; });
 
         min_heap<int> indices;
         std::map<int, double> quantileForIndex;
         
         for (auto & phi : quantiles) {
             int index = ceil(phi * kW) - 1;
-            indices.push(ceil(index);
+            indices.push(index);
             quantileForIndex[index] = phi;
         }
 
-        auto stopIterationLambda [&indices] () {
+        auto stopIterationLambda = [&indices] () {
             return indices.empty();
         };
 
-        auto nextIndexLambda [&indices] (int lastIndex) {
+        auto nextIndexLambda = [&indices] (int lastIndex) {
             return indices.pop();
         };
 
         std::map<double, Scalar> values;
 
-        auto processValueLambda [&quantileForIndex, &values] (int index, Scalar value) {
+        auto processValueLambda = [&quantileForIndex, &values] (int index, Scalar value) {
             values[quantileForIndex[index]] = value;
         };
         
@@ -211,7 +213,7 @@ class Buffer {
 
         return values;
     }
-}
+};
 
 template < typename Scalar >
 static
@@ -248,11 +250,11 @@ percentile2pixels_approximate_manku99(
 
     int samplingRate(1);
     int newBufferLevel(0);
-    int height(0)
+    int height(0);
     
-    std::vector<Buffer> buffers;
+    std::vector<Buffer<Scalar> > buffers;
     for (size_t i = 0; i < numBuffers; i++) {
-        buffers.push_back(Buffer(bufferCapacity));
+        buffers.push_back(Buffer<Scalar>(bufferCapacity));
     }
 
     /** Temporary storage for blocks of data before and after sampling */
@@ -261,7 +263,7 @@ percentile2pixels_approximate_manku99(
     min_heap<Scalar> bufferElements;
 
     /** Keep track of empty buffers */
-    std::deque<Buffer*> empty; // this is safe because the buffer vector will never change size; buffers are modified in-place
+    std::deque<Buffer<Scalar>*> empty; // this is safe because the buffer vector will never change size; buffers are modified in-place
     for (auto& b : buffers) { // is this correct?
         empty.push_back(&b);
     }
@@ -269,13 +271,13 @@ percentile2pixels_approximate_manku99(
     /** Keep track of full buffers and their levels */
     min_heap<int> fullLevelHeap;
     std::set<int> fullLevelSet;
-    std::map<int, std::vector<Buffer*> > full;
+    std::map<int, std::vector<Buffer<Scalar>*> > full;
     
     int lowestFullLevel;
-    std::vector<Buffer*> lowest;
+    std::vector<Buffer<Scalar>*> lowest;
     
     int secondLowestFullLevel;
-    std::vector<Buffer*> secondLowest;
+    std::vector<Buffer<Scalar>*> secondLowest;
 
     /** Randomness */
     std::random_device rd;
@@ -295,13 +297,13 @@ percentile2pixels_approximate_manku99(
                     ri = dist(mt);
                     bufferElements.push(conversion_lambda(ri));
                     elementBlock.clear();
-                    framesForBlock.clear();
+                    hzForBlock.clear();
                     
                     // create new buffer whenever elements reach buffer capacity
                     // we'll do it once more at the end to account for a possible partial buffer
                     if (bufferElements.size() == bufferCapacity) { // NEW operation
-                        Buffer *& newBuffer = empty.front();
-                        newBuffer->opNew(bufferElements, samplingRate, newBufferLevel, Buffer::State::full);
+                        Buffer<Scalar> *& newBuffer = empty.front();
+                        newBuffer->opNew(bufferElements, samplingRate, newBufferLevel, Buffer<Scalar>::State::full);
                         if (fullLevelSet.find(newBufferLevel) != fullLevelSet.end()) {
                             // add the level to the set
                             fullLevelSet.insert(newBufferLevel);
@@ -335,7 +337,7 @@ percentile2pixels_approximate_manku99(
                 }
 
                 // perform the collapse
-                Buffer::opCollapse(lowest);
+                Buffer<Scalar>::opCollapse(lowest);
 
                 // all buffers after the first are now empty
                 for (size_t i = 1; i < lowest.size(); i++) {
@@ -380,7 +382,7 @@ percentile2pixels_approximate_manku99(
             Carta::Lib::NdArray::Double viewSlice = Carta::Core::Algorithms::viewSliceForFrame(view, spectralIndex, f);
 
             // iterate over the frame
-            viewSlice.forEach([&process] ( const Scalar & val ) {
+            viewSlice.forEach([&process, &hertzVal] ( const Scalar & val ) {
                 process(val, hertzVal);
             });
         }
@@ -399,7 +401,7 @@ percentile2pixels_approximate_manku99(
 
     /** Special cases for handling the end of the data */
 
-    Buffer* partial;
+    Buffer<Scalar>* partial;
     
     // process a possible partial block
     if (elementBlock.size()) {
@@ -410,11 +412,11 @@ percentile2pixels_approximate_manku99(
             bufferElements.push(conversion_lambda(ri));
         }
         elementBlock.clear();
-        framesForBlock.clear();
+        hzForBlock.clear();
     }
     // process a possible partial buffer
     if (bufferElements.size()) {        
-        empty.front()->opNew(bufferElements, samplingRate, newBufferLevel, Buffer::State::partial);
+        empty.front()->opNew(bufferElements, samplingRate, newBufferLevel, Buffer<Scalar>::State::partial);
         partial = empty.front();
         empty.pop_front();
     }
@@ -423,7 +425,7 @@ percentile2pixels_approximate_manku99(
 
     // find the non-empty buffers
     
-    std::vector<Buffer*> nonEmptyBuffers;
+    std::vector<Buffer<Scalar>*> nonEmptyBuffers;
 
     while (!fullLevelHeap.empty()) {
         nonEmptyBuffers.push_back(fullLevelHeap.pop());
@@ -436,7 +438,7 @@ percentile2pixels_approximate_manku99(
 
     // call output to find the quantiles
 
-    std::map <double, Scalar> result = Buffer::opOutput(nonEmptyBuffers, percentiles);
+    std::map <double, Scalar> result = Buffer<Scalar>::opOutput(nonEmptyBuffers, percentiles);
 
     CARTA_ASSERT( result.size() == percentiles.size());
 
