@@ -59,16 +59,17 @@ DefaultContourGeneratorService::timerCB()
     QElapsedTimer timer;
     timer.start();
 
-    //qDebug() << "[contour] Type name: " + m_name;
-
     // run the contour algorithm
     Carta::Lib::Algorithms::ContourConrec cc;
 
     cc.setLevels(m_levels);
     auto rawContours = cc.compute(m_rawView.get(), m_name);
 
-    // stop the timer and print out the elapsed time
-    qDebug() << "++++++++ [contour] Spending time for calculating contours:" << timer.elapsed() << "ms";
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        // stop the timer and print out the elapsed time
+        qDebug() << "++++++++ [contour] Spending time for calculating contours:" << elapsedTime << "ms";
+    }
 
     // build the result
     Result result;
