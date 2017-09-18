@@ -281,12 +281,9 @@ conrecFaster(
 #undef ysect
 } // conrecFaster
 
-    ///
-    ///
-    ///
-    ///
+
     static Carta::Lib::Algorithms::ContourConrec::Result
-    conrecFaster_gaussianBlur3(
+    conrecFaster_Blur3(
         Carta::Lib::NdArray::RawViewInterface * view,
         int ilb,
         int iub,
@@ -374,9 +371,9 @@ conrecFaster(
         };
         double temp1, temp2;
 
-        for ( j = jlb+1 ; j < jub-2 ; j++ ) {
+        for ( j = jlb+1 ; j < jub-1 ; j++ ) {
             updateRows(); // update the row number: n + 4
-            for ( i = ilb+1 ; i < iub-2 ; i++ ) {
+            for ( i = ilb+1 ; i < iub-1 ; i++ ) {
                 temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
                 temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
                 dmin = std::min( temp1, temp2 );
@@ -528,15 +525,11 @@ conrecFaster(
 
     #undef xsect
     #undef ysect
-    } // conrecFaster_gaussianBlur3
+    } // conrecFaster_Blur3
 
 
-    ///
-    ///
-    ///
-    ///
     static Carta::Lib::Algorithms::ContourConrec::Result
-    conrecFaster_gaussianBlur5(
+    conrecFaster_Blur5(
         Carta::Lib::NdArray::RawViewInterface * view,
         int ilb,
         int iub,
@@ -634,9 +627,9 @@ conrecFaster(
         };
         double temp1, temp2;
 
-        for ( j = jlb+2 ; j < jub-3 ; j++ ) {
+        for ( j = jlb+2 ; j < jub-2 ; j++ ) {
             updateRows(); // update the row number: n + 6
-            for ( i = ilb+2 ; i < iub-3 ; i++ ) {
+            for ( i = ilb+2 ; i < iub-2 ; i++ ) {
                 temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
                 temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
                 dmin = std::min( temp1, temp2 );
@@ -788,7 +781,7 @@ conrecFaster(
 
     #undef xsect
     #undef ysect
-    } // conrecFaster_gaussianBlur5
+    } // conrecFaster_Blur5
 
 
 namespace Carta
@@ -891,7 +884,7 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
                             0.02479795, 0.10787775, 0.02479795};
 
         result =
-            conrecFaster_gaussianBlur3(
+            conrecFaster_Blur3(
                 view,
                 0,
                 m_nCols - 1,
@@ -912,7 +905,7 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
                             0.111111, 0.111111, 0.111111};
 
         result =
-            conrecFaster_gaussianBlur3(
+            conrecFaster_Blur3(
                 view,
                 0,
                 m_nCols - 1,
@@ -935,7 +928,7 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
                              0.00178843, 0.01031068, 0.01809162, 0.01031068, 0.00178843};
 
         result =
-            conrecFaster_gaussianBlur5(
+            conrecFaster_Blur5(
                 view,
                 0,
                 m_nCols - 1,
@@ -958,7 +951,7 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
                              0.04, 0.04, 0.04, 0.04, 0.04};
 
         result =
-            conrecFaster_gaussianBlur5(
+            conrecFaster_Blur5(
                 view,
                 0,
                 m_nCols - 1,
