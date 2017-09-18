@@ -107,7 +107,6 @@ conrecFaster(
 
     int m1, m2, m3, case_value;
     double dmin, dmax, x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-    int i, j, k, m;
     double h[5];
     int sh[5];
     double xh[5], yh[5];
@@ -121,15 +120,14 @@ conrecFaster(
         { { 0, 3, 4 }, { 1, 3, 1 }, { 4, 3, 0 } },
         { { 9, 6, 7 }, { 5, 2, 0 }, { 8, 0, 0 } }
     };
-    double temp1, temp2;
 
     // original code went from bottom to top, not sure why
     //    for ( j = ( jub - 1 ) ; j >= jlb ; j-- ) {
-    for ( j = jlb ; j < jub ; j++ ) {
+    for ( int j = jlb ; j < jub ; j++ ) {
         updateRows();
-        for ( i = ilb ; i < iub ; i++ ) {
-            temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
-            temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
+        for ( int i = ilb ; i < iub ; i++ ) {
+            double temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
+            double temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
             dmin = std::min( temp1, temp2 );
             // early abort if one of the values is not finite
             if ( ! std::isfinite( dmin ) ) {
@@ -141,11 +139,11 @@ conrecFaster(
             if ( dmax < z[0] || dmin > z[nc - 1] ) {
                 continue;
             }
-            for ( k = 0 ; k < nc ; k++ ) {
+            for ( int k = 0 ; k < nc ; k++ ) {
                 if ( z[k] < dmin || z[k] > dmax ) {
                     continue;
                 }
-                for ( m = 4 ; m >= 0 ; m-- ) {
+                for ( int m = 4 ; m >= 0 ; m-- ) {
                     if ( m > 0 ) {
                         h[m] = acc( i + im[m - 1], j + jm[m - 1] ) - z[k];
                         xh[m] = xCoords[i + im[m - 1]];
@@ -190,7 +188,7 @@ conrecFaster(
                       vertex 1 +-------------------+ vertex 2
                 */
                 /* Scan each triangle in the box */
-                for ( m = 1 ; m <= 4 ; m++ ) {
+                for ( int m = 1 ; m <= 4 ; m++ ) {
                     m1 = m;
                     m2 = 0;
                     if ( m != 4 ) {
@@ -355,7 +353,6 @@ conrecFaster(
 
         int m1, m2, m3, case_value;
         double dmin, dmax, x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-        int i, j, k, m;
         double h[5];
         int sh[5];
         double xh[5], yh[5];
@@ -369,13 +366,12 @@ conrecFaster(
             { { 0, 3, 4 }, { 1, 3, 1 }, { 4, 3, 0 } },
             { { 9, 6, 7 }, { 5, 2, 0 }, { 8, 0, 0 } }
         };
-        double temp1, temp2;
 
-        for ( j = jlb+1 ; j < jub-1 ; j++ ) {
+        for ( int j = jlb+1 ; j < jub-1 ; j++ ) {
             updateRows(); // update the row number: n + 4
-            for ( i = ilb+1 ; i < iub-1 ; i++ ) {
-                temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
-                temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
+            for ( int i = ilb+1 ; i < iub-1 ; i++ ) {
+                double temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
+                double temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
                 dmin = std::min( temp1, temp2 );
                 // early abort if one of the values is not finite
                 if ( ! std::isfinite( dmin ) ) {
@@ -387,11 +383,11 @@ conrecFaster(
                 if ( dmax < z[0] || dmin > z[nc - 1] ) {
                     continue;
                 }
-                for ( k = 0 ; k < nc ; k++ ) {
+                for ( int k = 0 ; k < nc ; k++ ) {
                     if ( z[k] < dmin || z[k] > dmax ) {
                         continue;
                     }
-                    for ( m = 4 ; m >= 0 ; m-- ) {
+                    for ( int m = 4 ; m >= 0 ; m-- ) {
                         if ( m > 0 ) {
                             h[m] = acc( i + im[m - 1], j + jm[m - 1] ) - z[k];
                             xh[m] = xCoords[i + im[m - 1]];
@@ -436,7 +432,7 @@ conrecFaster(
                           vertex 1 +-------------------+ vertex 2
                     */
                     /* Scan each triangle in the box */
-                    for ( m = 1 ; m <= 4 ; m++ ) {
+                    for ( int m = 1 ; m <= 4 ; m++ ) {
                         m1 = m;
                         m2 = 0;
                         if ( m != 4 ) {
@@ -589,9 +585,7 @@ conrecFaster(
 
         // to keep the data accessor easy, we use this lambda, and hope the compiler
         // optimizes it into an inline expression... :)
-        //int tmpRow;
         auto acc = [&] ( int col, int row ) {
-            //tmpRow = row;
             row -= nextRowToReadIn - 6;
             return rows[row-2][col-2]*kernel[0] + rows[row-2][col-1]*kernel[1] + rows[row-2][col+0]*kernel[2] + rows[row-2][col+1]*kernel[3] + rows[row-2][col+2]*kernel[4] +
                    rows[row-1][col-2]*kernel[5] + rows[row-1][col-1]*kernel[6] + rows[row-1][col+0]*kernel[7] + rows[row-1][col+1]*kernel[8] + rows[row-1][col+2]*kernel[9] +
@@ -611,7 +605,6 @@ conrecFaster(
 
         int m1, m2, m3, case_value;
         double dmin, dmax, x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-        int i, j, k, m;
         double h[5];
         int sh[5];
         double xh[5], yh[5];
@@ -625,13 +618,12 @@ conrecFaster(
             { { 0, 3, 4 }, { 1, 3, 1 }, { 4, 3, 0 } },
             { { 9, 6, 7 }, { 5, 2, 0 }, { 8, 0, 0 } }
         };
-        double temp1, temp2;
 
-        for ( j = jlb+2 ; j < jub-2 ; j++ ) {
+        for ( int j = jlb+2 ; j < jub-2 ; j++ ) {
             updateRows(); // update the row number: n + 6
-            for ( i = ilb+2 ; i < iub-2 ; i++ ) {
-                temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
-                temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
+            for ( int i = ilb+2 ; i < iub-2 ; i++ ) {
+                double temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
+                double temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
                 dmin = std::min( temp1, temp2 );
                 // early abort if one of the values is not finite
                 if ( ! std::isfinite( dmin ) ) {
@@ -643,11 +635,11 @@ conrecFaster(
                 if ( dmax < z[0] || dmin > z[nc - 1] ) {
                     continue;
                 }
-                for ( k = 0 ; k < nc ; k++ ) {
+                for ( int k = 0 ; k < nc ; k++ ) {
                     if ( z[k] < dmin || z[k] > dmax ) {
                         continue;
                     }
-                    for ( m = 4 ; m >= 0 ; m-- ) {
+                    for ( int m = 4 ; m >= 0 ; m-- ) {
                         if ( m > 0 ) {
                             h[m] = acc( i + im[m - 1], j + jm[m - 1] ) - z[k];
                             xh[m] = xCoords[i + im[m - 1]];
@@ -692,7 +684,7 @@ conrecFaster(
                           vertex 1 +-------------------+ vertex 2
                     */
                     /* Scan each triangle in the box */
-                    for ( m = 1 ; m <= 4 ; m++ ) {
+                    for ( int m = 1 ; m <= 4 ; m++ ) {
                         m1 = m;
                         m2 = 0;
                         if ( m != 4 ) {
