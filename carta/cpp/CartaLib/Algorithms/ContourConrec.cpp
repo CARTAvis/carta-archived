@@ -106,7 +106,7 @@ conrecFaster(
 #define ysect( p1, p2 ) ( h[p2] * yh[p1] - h[p1] * yh[p2] ) / ( h[p2] - h[p1] )
 
     int m1, m2, m3, case_value;
-    double dmin, dmax, x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
     double h[5];
     int sh[5];
     double xh[5], yh[5];
@@ -128,14 +128,14 @@ conrecFaster(
         for ( int i = ilb ; i < iub ; i++ ) {
             double temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
             double temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
-            dmin = std::min( temp1, temp2 );
+            double dmin = std::min( temp1, temp2 );
             // early abort if one of the values is not finite
             if ( ! std::isfinite( dmin ) ) {
                 continue;
             }
             temp1 = std::max( acc( i, j ), acc( i, j + 1 ) );
             temp2 = std::max( acc( i + 1, j ), acc( i + 1, j + 1 ) );
-            dmax = std::max( temp1, temp2 );
+            double dmax = std::max( temp1, temp2 );
             if ( dmax < z[0] || dmin > z[nc - 1] ) {
                 continue;
             }
@@ -352,7 +352,7 @@ conrecFaster(
     #define ysect( p1, p2 ) ( h[p2] * yh[p1] - h[p1] * yh[p2] ) / ( h[p2] - h[p1] )
 
         int m1, m2, m3, case_value;
-        double dmin, dmax, x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
         double h[5];
         int sh[5];
         double xh[5], yh[5];
@@ -372,14 +372,14 @@ conrecFaster(
             for ( int i = ilb+1 ; i < iub-1 ; i++ ) {
                 double temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
                 double temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
-                dmin = std::min( temp1, temp2 );
+                double dmin = std::min( temp1, temp2 );
                 // early abort if one of the values is not finite
                 if ( ! std::isfinite( dmin ) ) {
                     continue;
                 }
                 temp1 = std::max( acc( i, j ), acc( i, j + 1 ) );
                 temp2 = std::max( acc( i + 1, j ), acc( i + 1, j + 1 ) );
-                dmax = std::max( temp1, temp2 );
+                double dmax = std::max( temp1, temp2 );
                 if ( dmax < z[0] || dmin > z[nc - 1] ) {
                     continue;
                 }
@@ -604,7 +604,7 @@ conrecFaster(
     #define ysect( p1, p2 ) ( h[p2] * yh[p1] - h[p1] * yh[p2] ) / ( h[p2] - h[p1] )
 
         int m1, m2, m3, case_value;
-        double dmin, dmax, x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
         double h[5];
         int sh[5];
         double xh[5], yh[5];
@@ -624,14 +624,14 @@ conrecFaster(
             for ( int i = ilb+2 ; i < iub-2 ; i++ ) {
                 double temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
                 double temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
-                dmin = std::min( temp1, temp2 );
+                double dmin = std::min( temp1, temp2 );
                 // early abort if one of the values is not finite
                 if ( ! std::isfinite( dmin ) ) {
                     continue;
                 }
                 temp1 = std::max( acc( i, j ), acc( i, j + 1 ) );
                 temp2 = std::max( acc( i + 1, j ), acc( i + 1, j + 1 ) );
-                dmax = std::max( temp1, temp2 );
+                double dmax = std::max( temp1, temp2 );
                 if ( dmax < z[0] || dmin > z[nc - 1] ) {
                     continue;
                 }
