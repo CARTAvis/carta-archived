@@ -10,8 +10,7 @@ SUBDIRS = \
     plugins \
     Tests \
     testCache \
-    testRegion \
-    testQuantiles
+    testRegion
 
 isEmpty(NOSERVER) {
 	SUBDIRS +=server

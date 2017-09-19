@@ -3,7 +3,9 @@
 }
 
 QT      +=  core
-HEADERS += catch.h
+HEADERS += \
+    catch.h \
+    TestRawView.h
 
 SOURCES += \
     TopoSortTest.cpp \
@@ -11,7 +13,8 @@ SOURCES += \
     SliceTester.cpp \
     StateTester.cpp \
     pixelPipelineTest.cpp \
-    LineCombinerTest.cpp
+    LineCombinerTest.cpp \
+    quantileTest.cpp
 
 #CONFIG += precompile_header
 #PRECOMPILED_HEADER = catch.h
