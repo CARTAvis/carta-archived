@@ -16,18 +16,18 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
     construct : function( ) {
         this.base(arguments, "Profiles", "");
         this._init();
-        
+
         //Initiate connector.
         if ( typeof mImport !== "undefined"){
              this.m_connector = mImport("connector");
-                 
+
              var path = skel.widgets.Path.getInstance();
 
              //Profile statistics
              this.m_sharedVarStats = this.m_connector.getSharedVar(path.PROFILE_STATISTICS);
              this.m_sharedVarStats.addCB(this._statsChangedCB.bind(this));
              this._statsChangedCB();
-             
+
              //Generate modes
              this.m_sharedVarModes = this.m_connector.getSharedVar(path.PROFILE_GEN_MODES);
              this.m_sharedVarModes.addCB(this._genModesChangedCB.bind(this));
@@ -36,7 +36,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
     },
 
     members : {
-        
+
         /**
          * Callback for a change in the list of available images and regions on the
          * server.
@@ -56,9 +56,9 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 }
             }
         },
-        
-        
-        
+
+
+
         /**
          * Update from the server.
          * @param curveUpdate {Object} - information from the server about the profile
@@ -74,26 +74,26 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this._updateSelectionRegion( curveUpdate.regionSelect );
             }
         },
-        
-        
-       
-        
+
+
+
+
         /**
          * Initializes the UI.
          */
         _init : function( ) {
             var widgetLayout = new qx.ui.layout.HBox(1);
             this._setLayout(widgetLayout);
-            
+
             var overallContainer = new qx.ui.container.Composite();
             overallContainer.setLayout( new qx.ui.layout.VBox(1));
-            
+
             //Custom Name
             var nameContainer = new qx.ui.container.Composite();
             nameContainer.setLayout( new qx.ui.layout.HBox(1));
             this.m_nameSelect = new qx.ui.form.ComboBox();
             this.m_nameSelect.addListener( "changeValue", this._nameChangedCB, this );
-            skel.widgets.TestID.addTestId( this.m_nameSelect, "profileNameSelect" ); 
+            skel.widgets.TestID.addTestId( this.m_nameSelect, "profileNameSelect" );
             this.m_nameSelect.setToolTipText( "Specify a custom name for the profile.");
             var nameLabel = new qx.ui.basic.Label( "Name:");
             nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
@@ -101,7 +101,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             nameContainer.add( this.m_nameSelect, {flex:5} );
             nameContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             overallContainer.add( nameContainer );
-            
+
             //Initialize image selection
             var imageLabel = new qx.ui.basic.Label( "Image:");
             this.m_imageSelect = new skel.widgets.CustomUI.SelectBox();
@@ -119,23 +119,22 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             selectContainer.setLayout( gridLayout );
             selectContainer.add( imageLabel, {row:0, column:0} );
             selectContainer.add( this.m_imageSelect, {row:0, column:1} );
-            
+
             //Initialize region selection
             var regionLabel = new qx.ui.basic.Label( "Region:");
             this.m_regionSelect = new skel.widgets.CustomUI.SelectBox();
             skel.widgets.TestID.addTestId( this.m_regionSelect, "ProfileSelectedRegion" );
             var names = [];
-            names[0] = this.m_NONE;
             this.m_regionSelect.setSelectItems( names );
             this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged", this._sendRegionSelectCmd, this );
             this.m_regionSelect.setToolTipText( "Specify the region used to generate the profile.");
             selectContainer.add( regionLabel, {row:0, column:2} );
             selectContainer.add( this.m_regionSelect, {row:0, column:3} );
-            
+
             //Initialize rest frequency
             this.m_restWidget = new skel.widgets.Profile.SettingsProfilesRest("","");
             selectContainer.add( this.m_restWidget, {row:1, column:0, colSpan:2, rowSpan:2} );
-            
+
             //Initialize the statistic
             var statLabel = new qx.ui.basic.Label( "Statistic:");
             this.m_statSelect = new skel.widgets.CustomUI.SelectBox();
@@ -144,33 +143,33 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_statSelect.setToolTipText( "Specify the method used to generate the profile.");
             selectContainer.add( statLabel, {row:1, column:2});
             selectContainer.add( this.m_statSelect, {row:1, column:3});
-            
+
             this.m_autoCheck = new qx.ui.form.CheckBox();
             skel.widgets.TestID.addTestId( this.m_autoCheck, "profileAutoGenerate");
             this.m_autoCheck.setToolTipText( "Automatically generate profiles.");
             this.m_autoListenId = this.m_autoCheck.addListener( "changeValue", this._sendAutoGenerateCmd, this );
-            
+
             this.m_genSelect = new skel.widgets.CustomUI.SelectBox();
-            skel.widgets.TestID.addTestId( this.m_genSelect, "profileGenerateMode" ); 
+            skel.widgets.TestID.addTestId( this.m_genSelect, "profileGenerateMode" );
             this.m_genSelect.setToolTipText( "Specify which images should be profiled by default when they are loaded.")
             this.m_genSelect.addListener( "selectChanged", this._genModeChangedCB, this );
-            var genLabel = new qx.ui.basic.Label( "Auto Generate:");  
-            
+            var genLabel = new qx.ui.basic.Label( "Auto Generate:");
+
             var genContainer = new qx.ui.container.Composite();
             genContainer.setLayout( new qx.ui.layout.HBox(1) );
             genContainer.add( this.m_autoCheck );
             genContainer.add( genLabel );
             genContainer.add( this.m_genSelect );
             selectContainer.add( genContainer, {row:2, column:2, colSpan:2} );
-            
+
             overallContainer.add( selectContainer );
-            
+
             var butContainer = this._initButtons();
             overallContainer.add( butContainer );
-            
+
             this._add( overallContainer );
         },
-        
+
         /**
          * Initialize the buttons responsible for managing profiles.
          */
@@ -183,7 +182,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_addButton.setToolTipText( "Create a new profile using default settings.");
             this.m_addButton.addListener( "execute", this._sendNewCmd, this );
             this.m_removeButton = new qx.ui.form.Button( "Remove");
-            skel.widgets.TestID.addTestId( this.m_removeButton, "profileRemoveButton" ); 
+            skel.widgets.TestID.addTestId( this.m_removeButton, "profileRemoveButton" );
             this.m_removeButton.setToolTipText( "Delete the selected profile.");
             this.m_removeButton.addListener( "execute",this._sendRemoveCmd, this );
             butContainer.add( new qx.ui.core.Spacer(1), {flex:0.25});
@@ -192,7 +191,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             butContainer.add( new qx.ui.core.Spacer(1), {flex:1});
             return butContainer;
         },
-        
+
         /**
          * Server update when available methods of generating profiles changes.
          */
@@ -212,7 +211,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 }
             }
         },
-        
+
         /**
          * Callback for when the profile generation mode changes in the UI.
          */
@@ -225,18 +224,18 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
-        
+
         /**
          * Return the id of the controller object.
          */
         _getControlId : function(){
             var path = skel.widgets.Path.getInstance();
             var cmd = this.m_id + path.SEP_COMMAND + "registerController";
-         
+
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._setControlId(this) );
         },
-        
+
         /**
          * Return the id of the region controller.
          */
@@ -246,7 +245,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             var params = "";
             this.m_connector.sendCommand( cmd, params, this._setRegionId(this) );
         },
-        
+
         /**
          * Callback for when a profile name changes through the UI.
          */
@@ -272,19 +271,19 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this._sendRenameCmd();
             }
         },
-        
+
         /**
          * Update the UI based on new preference settings on the server.
          * @param prefUpdate {Object} - server preference settings.
          */
         prefUpdate : function( prefUpdate ){
-        	this.m_restWidget.update(prefUpdate.restFrequency, 
+        	this.m_restWidget.update(prefUpdate.restFrequency,
         			prefUpdate.restFrequencyUnits, prefUpdate.restUnits);
             this.m_genSelect.setSelectValue( prefUpdate.genMode );
             this.m_statSelect.setSelectValue( prefUpdate.stat );
             this._updateAutoGenerate( prefUpdate.autoGenerate );
         },
-        
+
         /**
          * Update the list of regions available for profiles.
          */
@@ -303,7 +302,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 }
             }
         },
-        
+
         /**
          * Notify the server as to whether profiles should be automatically generated.
          */
@@ -316,7 +315,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_connector.sendCommand( cmd, params, null );
         	}
         },
-        
+
         /**
          * Send a command to the server indicating an image was selected.
          */
@@ -329,7 +328,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
-        
+
         /**
          * Send a command to the server indicating a region was selected.
          */
@@ -339,10 +338,12 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 var path = skel.widgets.Path.getInstance();
                 var cmd = this.m_id + path.SEP_COMMAND + "setSelectedRegion";
                 var params = "name:"+name;
-                this.m_connector.sendCommand( cmd, params, null );
+                if ( name.length > 0) {
+                    this.m_connector.sendCommand( cmd, params, null );
+                }
             }
         },
-        
+
         /**
          * Notify the server the user has renamed a profile.
          */
@@ -356,7 +357,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
-        
+
         /**
          * Send a command to the server to generate a new profile.
          */
@@ -368,8 +369,8 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
-        
-        
+
+
         /**
          * Send a command to the server to remove the current profile.
          */
@@ -382,7 +383,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
-        
+
         /**
          * Send a command to the server to change the method used to summarize
          * profile points.
@@ -397,10 +398,10 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_connector.sendCommand( cmd, params, null );
             }
         },
-        
-      
-        
-       
+
+
+
+
         /**
          * Callback containing information about the server-side object containing control
          * information.
@@ -411,10 +412,10 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 object.m_sharedVarControl = object.m_connector.getSharedVar(id);
                 object.m_sharedVarControl.addCB(object._controlDataChangedCB.bind(object));
                 object._controlDataChangedCB();
-               
+
             }
         },
-              
+
         /**
          * Callback containing information about the server-side object containing region
          * information.
@@ -430,7 +431,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             	}
             }
         },
-        
+
         /**
          * Set the server side id of the object managing profile information.
          * @param id {String} the server side id of the managing profiles.
@@ -441,7 +442,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this._getControlId();
             this._getRegionId();
         },
-        
+
         /**
          * Server update when available methods of generating profiles changes.
          */
@@ -461,7 +462,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 }
             }
         },
-        
+
         /**
          * Update whether or not profiles should be automatically generated based on
          * server-side values.
@@ -478,10 +479,10 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_imageSelect.setEnabled( !val );
             this.m_genSelect.setEnabled( val );
             this.m_regionSelect.setEnabled( !val );
-            this.m_autoListenId = this.m_autoCheck.addListener( "changeValue", 
+            this.m_autoListenId = this.m_autoCheck.addListener( "changeValue",
                     this._sendAutoGenerateCmd, this );
         },
-        
+
         /**
          * Update the names of profile curves based on server information.
          */
@@ -513,7 +514,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 console.log( "Err: "+err);
             }
         },
-        
+
         /**
          * Update the names of the images used to generate profile curves based
          * on server information.
@@ -529,7 +530,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                     dataIndex = i;
                 }
             }
-            
+
             this.m_imageSelect.setSelectItems( names );
             //If we can retain the user's previous selection, do so.  Otherwise,
             //try to use the data selection.
@@ -539,11 +540,11 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                     this.m_imageSelect.removeListenerById( this.m_imageSelectListenId );
                 }
                 this.m_imageSelect.setSelectValue( data[dataIndex].name );
-                this.m_imageSelectListenId = this.m_imageSelect.addListener( "selectChanged", 
+                this.m_imageSelectListenId = this.m_imageSelect.addListener( "selectChanged",
                         this._sendImageSelectCmd, this );
             }
         },
-        
+
         /**
          * Update the names of the available regions based on server-side values.
          * @param data {Array} - a list of regions that have been loaded.
@@ -555,22 +556,18 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             for ( var i = 0; i < data.length; i++ ){
                 names[i] = data[i].name;
             }
-            //Add in None so that the user can profile the whole plane.
-            names[data.length] = this.m_NONE;
-            if ( names.length == 1 ){
-            	dataIndex = 0;
-            }
             this.m_regionSelect.setSelectItems( names );
             if ( dataIndex >= 0 ){
                 if ( this.m_regionSelectListenId !== null ){
                     this.m_regionSelect.removeListenerById( this.m_regionSelectListenId );
                 }
                 this.m_regionSelect.setSelectValue( names[dataIndex] );
-                this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged", 
+                this._sendRegionSelectCmd();
+                this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged",
                         this._sendRegionSelectCmd, this );
             }
         },
-        
+
         /**
          * Update the controls based on the selected profile curve.
          * @param selectIndex {Number} - the index of the selected curve.
@@ -593,7 +590,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                }
            }
         },
-        
+
         /**
          * Update the image that was selected.
          * @param selectName {String} - an identifier for the selected image.
@@ -603,10 +600,10 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_imageSelect.removeListenerById( this.m_imageSelectListenId );
             }
             this.m_imageSelect.setSelectValue( selectName );
-            this.m_imageSelectListenId = this.m_imageSelect.addListener( "selectChanged", 
+            this.m_imageSelectListenId = this.m_imageSelect.addListener( "selectChanged",
                     this._sendImageSelectCmd, this );
         },
-        
+
         /**
          * Update the region that was selected.
          * @param selectName {String} - an identifier for the selected region.
@@ -616,10 +613,11 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_regionSelect.removeListenerById( this.m_regionSelectListenId );
             }
             this.m_regionSelect.setSelectValue( selectName );
-            this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged", 
+            this._sendRegionSelectCmd();
+            this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged",
                     this._sendRegionSelectCmd, this );
         },
-        
+
         m_id : null,
         m_selectIndex : null,
         m_addButton : null,
@@ -628,7 +626,6 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
         m_removeButton : null,
         m_imageSelect : null,
         m_imageSelectListenId : null,
-        m_NONE : "None",
         m_regionSelectListenId : null,
         m_genSelect : null,
         m_nameSelect : null,

@@ -686,6 +686,23 @@ bool LayerData::_isContourDraw() const {
     return contourDraw;
 }
 
+bool LayerData::_isOnCelestialPlane( bool includelinear ) const {
+    auto xType = _getAxisXType();
+    auto yType = _getAxisYType();
+    bool isRADECPlane = false;
+    bool isDualLiPlane = false;
+    // check the plane.
+    if ( xType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON || xType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
+        if ( yType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON || yType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
+            isRADECPlane = true;
+        }
+    }
+    if (xType == Carta::Lib::AxisInfo::KnownType::LINEAR && yType == Carta::Lib::AxisInfo::KnownType::LINEAR ){
+        isDualLiPlane = true;
+    }
+    return ( isRADECPlane||( isDualLiPlane && includelinear ) );
+}
+
 bool LayerData::_isLoadable( const std::vector<int>& frames ) const {
 	bool loadable = false;
 	if ( m_dataSource ){

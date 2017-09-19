@@ -228,6 +228,7 @@ bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev,
 	return validDrag;
 }
 
+
 bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev,
 		const QPointF& imagePt ){
 	bool validTap = false;
@@ -483,15 +484,13 @@ void RegionControls::refreshState(){
 
 
 void RegionControls::_regionSelectionChanged( const QString& id ){
-	if ( !isAutoSelect() ){
-		int regionIndex = _findRegionIndex( id );
-		if ( regionIndex >= 0 ){
-			if ( m_regions[regionIndex]->isSelected() ){
-				setIndexCurrent( regionIndex );
-			}
-		}
-	}
-	_saveStateRegions();
+    int regionIndex = _findRegionIndex( id );
+    if ( regionIndex >= 0 ){
+        if ( m_regions[regionIndex]->isSelected() ){
+            setIndexCurrent( regionIndex );
+        }
+    }
+    _saveStateRegions();
 }
 
 void RegionControls::_regionShapeChanged( ){
