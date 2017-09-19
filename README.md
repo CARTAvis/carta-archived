@@ -194,6 +194,7 @@ This file file serves as your book's preface, a great place to describe your boo
 | Python \(included for CentOS 6\) | 2.7 | [link \(Python license\)](https://www.python.org/download/releases/2.7/license/) |
 | NumPy \(Included for CentOS 6\) |  | BSD |
 | Matplotlib \(Included for CentOS 6\) |  | [link \(Matplotlib license\)](https://matplotlib.org/devel/license.html) |
+| Cython \(Included for CentOS 6\) | | Apache |
 
 # Dynamic/Shared Library search notes for runtime and packaging
 
