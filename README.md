@@ -174,7 +174,7 @@ Ref: https://github.com/CARTAvis/carta/wiki/build#use-qt-creator-to-build-and-de
 
 Use this repo, https://github.com/cartavis/deploytask.
 
-### Third Party Libraries
+# Third Party Libraries
 
 This file file serves as your book's preface, a great place to describe your book's content and ideas.
 
