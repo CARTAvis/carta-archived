@@ -76,7 +76,7 @@ public:
             qWarning() << "query insert failed:" << status.ToString().c_str();
         }
 
-        Q_UNUSED( priority);
+        //Q_UNUSED( priority);
         // \todo we'll have to embed  priority into the value, e.g. first 8 bytes?
     } // setEntry
 
