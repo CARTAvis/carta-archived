@@ -10,20 +10,20 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
     
     Carta::Lib::NdArray::RawViewInterface * rawView = new TestRawView<double>(data, dims);
     Carta::Lib::NdArray::Double doubleView(rawView, false);
-
-    qDebug() << "view dims" << doubleView.dims();
-    
+        
     const std::vector<double> percentiles = {0, 0.01, 0.1, 0.9, 0.99, 1};
 
     SECTION( "Exact algorithm") {
-        Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles);
+        std::map <double, double> intensities = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles);
+        qDebug() << intensities;
         //REQUIRE( ??? );
     }
 
-    //SECTION( "Manku 99 algorithm") {
-        //Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles);
+    SECTION( "Manku 99 algorithm") {
+        std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles);
+        qDebug() << intensities;
         //REQUIRE( ??? );
-    //}
+    }
 
     delete rawView;
 }
