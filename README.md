@@ -75,9 +75,13 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ (some files here)
 3. Contact ASIAA members to get some.
 
-### (optional) setup config.json to overwrite the default embedded setting
+### requirement 4: check if the foldler using by dbPath exist. 
 
-Paste the following data to be the content of `~/.cartavis/config.json`
+The default location is `$(HOME)/CARTA/cache/pcache.sqlite` so create `$(HOME)/CARTA/cache` if it does not exist.
+
+### (optional) modify config.json to overwrite the default embedded setting
+
+Create/Modify the following data to be the content of `~/.cartavis/config.json`
 
 ```
 {
@@ -95,7 +99,7 @@ Paste the following data to be the content of `~/.cartavis/config.json`
 }
 ```
 
-`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac.
+`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac. 
 
 You can browse more detailed instruction about these parameters from here,
 http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
