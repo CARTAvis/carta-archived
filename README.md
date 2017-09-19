@@ -19,9 +19,8 @@ Introduction to build, run and deploy Desktop ver. of CARTA Viewer on Mac and Li
 
 Development platform:
 1. CentOS 7 (7.3.1611 tested)
-2. Ubuntu 14.04
-3. Ubuntu 16.04
-4. Mac 10.11, 10.12
+2. Ubuntu 14.04, Ubuntu 16.04 and Ubuntu 17.04
+3. Mac 10.11, 10.12
 
 Supported deployment platform:
 1. CentOS 6, 7
@@ -46,8 +45,8 @@ cd `your-carta-work`,, execute `./CARTAvis/carta/scripts/setupcartavis.sh`.
 
 It is optional. You do not need to setup this and can use CARTA smoothly. But not sure if `snaptshot` function of CARTA will work OK without setup this.
 
-There are two things you need to know first. 
-1. The folder structure and why you need to choose a `your-carta-work`, take a look here, https://github.com/CARTAvis/carta/wiki/build#step2---choose-your-working-space-folder-of-carta-and-clone-source-code-of-carta. 
+There are two things you need to know first.
+1. The folder structure and why you need to choose a `your-carta-work`, take a look here, https://github.com/CARTAvis/carta/wiki/build#step2---choose-your-working-space-folder-of-carta-and-clone-source-code-of-carta.
 
 2. Due to the history issue, so you should rename this git project folder from `carta` to `CARTAvis`. Therefore you can executee `git clone https://github.com/CARTAvis/carta.git CARTAvis`.
 
@@ -90,10 +89,9 @@ Paste the following data to be the content of `~/.cartavis/config.json`
     "disabledPlugins" : ["tester1", "clock1", "blurpy"],
     "plugins": {
         "PCacheSqlite3" : {
-            "dbPath": "/tmp/pcache.sqlite"
+            "dbPath": "$(HOME)/CARTA/cache/pcache.sqlite"
         }
-    },
-    "qtDecorations" : "true"
+    }
 }
 ```
 
@@ -127,7 +125,7 @@ http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.
 
     2. On Mac, you can use Qt Creator build **without setting 1-1, 1-3 thing by (LD_LIBRARY_PATH)**. In Qt Creator, there is a default enabled setting which will automatically add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH (Mac, work), add build library search path to LD_LIBRARY_PATH (Linux, not work, don't know why).
 
-    3. On Mac, you need to setup below thing (will improve later), you can copy them as `Custom Process Setup` in Qt Creator's or a shell script
+    3. On Mac, you need to setup below thing, you can copy them as a shell script. [Caution: the below script is setup when build folder is choosed in CARTAvis]
     ```
     cd $CARTAWORKHOME/CARTAvis
     export CARTABUILDHOME=`pwd`
@@ -170,9 +168,7 @@ Some of optional parameters:
 
 ## Run and Debug by Qt Creator
 
-On Mac: Work In Progress. (The needed setting is done in https://github.com/cartavis/carta#use-qt-creator-to-build-and-debug-will-complement-this-part-later.
-
-On Linux: Work In Progress.
+Ref: https://github.com/CARTAvis/carta/wiki/build#use-qt-creator-to-build-and-debug-will-complement-this-part-later
 
 # Deployment: Prepare distributable and packaged installer/zip
 
