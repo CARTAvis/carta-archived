@@ -103,7 +103,7 @@ http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.
 
 ## Run by command line
 
-1. Current CARTA needs to execute the following command every time to find correct **dynamic/shared Library** before running CARTA. Will improve later by using `rpath`. It seems that we don't setup for libCARTA.so and libcore.so.
+1. Current CARTA needs to execute the following command every time to find correct **dynamic/shared Library** before running CARTA. Will improve later by using `rpath`.
 
     1. setup LD_LIBRARY_PATH on Mac/Linux
 
@@ -174,19 +174,26 @@ Ref: https://github.com/CARTAvis/carta/wiki/build#use-qt-creator-to-build-and-de
 
 Use this repo, https://github.com/cartavis/deploytask.
 
-### Some notes:
+### Third Party Libraries
 
-1. Observation about build Size (on Mac), before packaging:
+This file file serves as your book's preface, a great place to describe your book's content and ideas.
 
-```
-553M    Carta.app   (without default image)
-            qooxdoo (in Resources) ~ 133 MB
-            QT (in Frameworks) with a size of ~ 300M
-            casa libraries (in Frameworks) with ~ 60 M
-            other libraries ~ 20M.  
-744M    build folder (Carta.app +others) + CARTA source code +  third-party libs(+ possible source code)
-1.5G    prebuilt casacore/casacode + possible source code
-```
+| Third-party Libraries | Version | license |
+| :--- | :--- | :--- |
+| ast | 8.4.0 | LGPLv3 |
+| casacore | 2.3+ | GPLv2 |
+| casa | 5.0.0+ | GPLv2 |
+| CFITSIO | 3.39 | [link \(NASA license\)](https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/f_user/node9.html) |
+| qooxdoo | 3.5.1 | MIT |
+| Qwt | 6.1.2 | [link \(Qwt license\)](http://qwt.sourceforge.net/qwtlicense.html) |
+| RapidJSON | 1.02 | MIT |
+| WCSLIB | 5.15 | LGPLv3 |
+| GSL | 2.3 | GPLv3 |
+| flex | 2.5.37 | [link \(flex license\)](https://raw.githubusercontent.com/westes/flex/master/COPYING) |
+| Qt | 5.3+ | LGPLv3 |
+| Python \(included for CentOS 6\) | 2.7 | [link \(Python license\)](https://www.python.org/download/releases/2.7/license/) |
+| NumPy \(Included for CentOS 6\) |  | BSD |
+| Matplotlib \(Included for CentOS 6\) |  | [link \(Matplotlib license\)](https://matplotlib.org/devel/license.html) |
 
 # Dynamic/Shared Library search notes for runtime and packaging
 
@@ -204,15 +211,6 @@ CirclCI (docker): https://circleci.com/gh/CARTAvis/carta
 
 Travis CI (Mac): https://travis-ci.org/CARTAvis/carta/.
 Mac auto build repo: https://goo.gl/3pRsjs.
-
-# TODO list
-
-https://github.com/CARTAvis/carta/wiki/todo
-
-### AppendixA:
-
-CARTA third party libs list:
-https://docs.google.com/spreadsheets/d/1SpwEZM2n6xDGBEd6Nisn0s8KbBQG-DtoXUcFONzXXtY/edit#gid=0
 
 Introduction to build Server ver. of CARTA Viewer on Linux
 =======
