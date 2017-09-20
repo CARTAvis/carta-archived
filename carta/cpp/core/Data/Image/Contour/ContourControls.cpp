@@ -1,5 +1,6 @@
 #include "ContourControls.h"
 #include "ContourGenerateModes.h"
+#include "ContourTypes.h"
 #include "ContourSpacingModes.h"
 #include "GeneratorState.h"
 #include "DataContours.h"
@@ -57,7 +58,7 @@ ContourControls::ContourControls( const QString& path, const QString& id):
 
 
 void ContourControls::_addContourSet( const std::vector<double>& levels,
-        const QString& contourSetName ){
+        const QString& contourSetName, const QString& contourType ){
     int count = levels.size();
     bool levelChanged = false;
     if ( count > 0 ){
@@ -80,13 +81,14 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
             dataContours->setName( contourSetName );
             std::shared_ptr<DataContours> dContours(dataContours );
             m_dataContours.insert( dContours );
+            dataContours->setContours( contours );
+            dataContours->_updateGeneratorState( m_generatorState );
             m_percentIntensityMap->addContourSet( dContours );
-
+        } else {
+            //Reset the contours
+            dataContours->setContours( contours );
+            dataContours->_updateGeneratorState( m_generatorState );
         }
-
-        //Reset the contours
-        dataContours->setContours( contours );
-        dataContours->_updateGeneratorState( m_generatorState );
 
         _updateContourSetState();
     }
@@ -132,15 +134,16 @@ QString ContourControls::generateContourSet( const QString& contourSetName ){
     QString setName = contourSetName.trimmed();
     if ( setName.length() > 0 ){
         QString generateMethod = m_generatorState->getGenerateMethod();
+        QString contourType = m_generatorState->getContourType();
         std::set<Contour> contours;
         if ( generateMethod == ContourGenerateModes::MODE_RANGE ){
-             result = _generateRange( setName );
+             result = _generateRange( setName, contourType );
         }
         else if ( generateMethod == ContourGenerateModes::MODE_MINIMUM ){
-            result = _generateMinimum( setName );
+            result = _generateMinimum( setName, contourType );
         }
         else if ( generateMethod == ContourGenerateModes::MODE_PERCENTILE ){
-            result = _generatePercentile( setName );
+            result = _generatePercentile( setName, contourType );
         }
         else {
             result = "Unsupported contour generation mode: "+generateMethod;
@@ -152,12 +155,12 @@ QString ContourControls::generateContourSet( const QString& contourSetName ){
     return result;
 }
 
-QString ContourControls::_generateRange( const QString& contourSetName ){
+QString ContourControls::_generateRange( const QString& contourSetName, const QString& contourType ){
     QString result;
     double maxLevel = m_generatorState->getRangeMax();
     std::vector<double> levels = _getLevelsMinMax(maxLevel, result );
     if ( result.isEmpty() && levels.size() > 0 ){
-        _addContourSet( levels, contourSetName );
+        _addContourSet( levels, contourSetName, contourType );
     }
     else if ( levels.size() == 0 ){
         result = "A countour set could not be generated with the given input parameters.";
@@ -166,7 +169,7 @@ QString ContourControls::_generateRange( const QString& contourSetName ){
 }
 
 
-QString ContourControls::_generateMinimum( const QString& contourSetName ){
+QString ContourControls::_generateMinimum( const QString& contourSetName, const QString& contourType ){
     QString result;
     double minLevel = m_generatorState->getRangeMin();
     double step = m_generatorState->getSpacingInterval();
@@ -174,7 +177,7 @@ QString ContourControls::_generateMinimum( const QString& contourSetName ){
     double maxLevel = minLevel + step * (count - 1);
     std::vector<double> levels = _getLevelsMinMax( maxLevel, result );
     if ( result.isEmpty() && levels.size() > 0 ){
-        _addContourSet( levels, contourSetName );
+        _addContourSet( levels, contourSetName, contourType );
     }
     else if ( levels.size() == 0 ){
         result = "A contour set with the given input parameters could not be generated.";
@@ -182,7 +185,7 @@ QString ContourControls::_generateMinimum( const QString& contourSetName ){
     return result;
 }
 
-QString ContourControls::_generatePercentile( const QString& contourSetName ){
+QString ContourControls::_generatePercentile( const QString& contourSetName, const QString& contourType ){
     QString result;
     if ( m_percentIntensityMap != nullptr ){
         double minLevel = m_generatorState->getRangeMin();
@@ -206,7 +209,7 @@ QString ContourControls::_generatePercentile( const QString& contourSetName ){
                 if ( intensities.size() == 0 ){
                    result = "Could not generate contour based on percentiles";
                 } else {
-                    _addContourSet( intensities, contourSetName );
+                    _addContourSet( intensities, contourSetName, contourType );
                 }
             }
         }
@@ -307,10 +310,10 @@ void ContourControls::_initializeCallbacks(){
     addCommandCallback( "generateLevels", [=] (const QString & /*cmd*/,
                     const QString & params, const QString & /*sessionId*/) -> QString {
             std::set<QString> keys = {Util::NAME, GeneratorState::INTERVAL,
-                    GeneratorState::LEVEL_MIN, GeneratorState::LEVEL_MAX};
+                    GeneratorState::LEVEL_MIN, GeneratorState::LEVEL_MAX,
+                    GeneratorState::TYPE_MODE};
             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
             QString contourSetName = dataValues[Util::NAME];
-
             //Make sure any new interval, level min and level max value is valid
             //before adding the contour.
             QString result;
@@ -440,6 +443,17 @@ void ContourControls::_initializeCallbacks(){
         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         QString method = dataValues[*keys.begin()];
         QString result = setGenerateMethod( method );
+        Util::commandPostProcess( result );
+        return result;
+    });
+
+    //Set the type for generating contour levels.
+    addCommandCallback( "setContourType", [=] (const QString & /*cmd*/,
+                const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {"typeMode"};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString type = dataValues[*keys.begin()];
+        QString result = setContourType( type );
         Util::commandPostProcess( result );
         return result;
     });
@@ -617,7 +631,6 @@ void ContourControls::_initializeCallbacks(){
 
 }
 
-
 bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
     bool duplicateSet = false;
     for ( std::set<std::shared_ptr<DataContours> >::iterator it = m_dataContours.begin();
@@ -629,7 +642,6 @@ bool ContourControls::_isDuplicate( const QString& contourSetName ) const {
     }
     return duplicateSet;
 }
-
 
 void ContourControls::selectContourSet( const QString& name ){
    DataContours* dataContours = _getContour( name );
@@ -707,10 +719,13 @@ void ContourControls::_setDrawContours( std::shared_ptr<DataContours> contours )
     }
 }
 
-
-
 QString ContourControls::setGenerateMethod( const QString& method ){
     QString result = m_generatorState->setGenerateMethod( method );
+    return result;
+}
+
+QString ContourControls::setContourType( const QString& type ){
+    QString result = m_generatorState->setContourType( type );
     return result;
 }
 
