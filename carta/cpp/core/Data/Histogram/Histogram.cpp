@@ -524,7 +524,7 @@ void Histogram::_initializeDefaultState(){
     m_state.insertValue<bool>(GRAPH_COLORED, false );
     m_state.insertValue<QString>(PLANE_MODE, PLANE_MODE_ALL );
     m_state.insertValue<QString>(FREQUENCY_UNIT, m_channelUnits->getDefaultUnit());
-    m_state.insertValue<bool>(SIZE_ALL_RESTRICT, true );
+    m_state.insertValue<bool>(SIZE_ALL_RESTRICT, false );
     m_state.insertValue<int>(RESTRICT_SIZE_MAX, 1000000 );
     m_state.insertValue<QString>(FOOT_PRINT, FOOT_PRINT_IMAGE );
     m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
