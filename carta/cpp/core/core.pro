@@ -137,7 +137,6 @@ HEADERS += \
     Plot2D/Plot2DHolder.h \
     Plot2D/Plot2DProfile.h \
     Plot2D/Plot2DTextMarker.h \
-    ProfileExtractor.h \
     Shape/ControlPoint.h \
     Shape/ControlPointEditable.h \
     Shape/ShapeBase.h \
@@ -162,6 +161,7 @@ HEADERS += \
     Hacks/WcsGridOptionsController.h \
     Hacks/SharedState.h \
     Hacks/ContourEditorController.h \
+    Hacks/ProfileExtractor.h \
     DummyGridRenderer.h \
     coreMain.h \
     SimpleRemoteVGView.h \
@@ -290,7 +290,6 @@ SOURCES += \
     Plot2D/Plot2DProfile.cpp \
     Plot2D/Plot2DSelection.cpp \
     Plot2D/Plot2DTextMarker.cpp \
-    ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     Shape/ControlPoint.cpp \
@@ -316,6 +315,7 @@ SOURCES += \
     Hacks/WcsGridOptionsController.cpp \
     Hacks/SharedState.cpp \
     Hacks/ContourEditorController.cpp \
+    Hacks/ProfileExtractor.cpp \
     DummyGridRenderer.cpp \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \
