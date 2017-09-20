@@ -770,7 +770,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame) {
     int percentileCount = percentiles.size();
     std::vector<double> intensities(percentileCount, double(0));
-    std::vector<std::pair<bool, double>> intensityCache(percentileCount, std::pair<bool, double> (false, -1));
+    std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
     int foundCount = 0;
     std::vector<bool> found(percentileCount, false);
     
@@ -781,7 +781,8 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
             intensities[i] = intensityCache[i].first;
             foundCount++;
             found[i] = true;
-            qDebug() << "++++++++ [find cache] for percentile" << percentiles[i] << "intensity is" << intensities[i];
+            qDebug() << "++++++++ [find cache] for percentile" << percentiles[i] << ", intensity=" << intensities[i]
+                     << "+/- (max-min)*" << intensityCache[i].second;
         }
     }
 
