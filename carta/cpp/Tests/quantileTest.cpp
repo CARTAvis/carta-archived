@@ -10,7 +10,8 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
     std::default_random_engine gen;
 
     std::vector<int> dims = {200, 200, 10};
-    std::vector<double> data(200 * 200 * 10);
+    int size = std::accumulate (begin(dims), end(dims), 1, [](int a, int& b){ return b*a; });
+    std::vector<double> data(size);
     std::generate(data.begin(), data.end(), [&]() { return dist(gen); });
     
     Carta::Lib::NdArray::RawViewInterface * rawView = new TestRawView<double>(data, dims);
