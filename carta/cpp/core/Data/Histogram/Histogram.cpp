@@ -505,6 +505,8 @@ void Histogram::_initializeDefaultState(){
 
     //Preferences - not image specific
     const int DEFAULT_BIN_COUNT = 25;
+    // Make the value consistent with the default setting of qwt.
+    const int DEFAULT_BIN_WIDTH = 40;
     m_state.insertValue<int>(BIN_COUNT, DEFAULT_BIN_COUNT );
     //Decide if the user has decided to override the maximum bin count.
     int histMaxBinCount = Globals::instance()->mainConfig()->getHistogramBinCountMax();
@@ -513,8 +515,7 @@ void Histogram::_initializeDefaultState(){
     }
 
     m_state.insertValue<int>(BIN_COUNT_MAX, histMaxBinCount );
-    double binWidth = _toBinWidth(DEFAULT_BIN_COUNT);
-    m_state.insertValue<double>(BIN_WIDTH, binWidth );
+    m_state.insertValue<double>(BIN_WIDTH, DEFAULT_BIN_WIDTH );
     m_state.insertValue<bool>(CLIP_APPLY, false );
     m_state.insertValue<bool>(CLIP_BUFFER, false);
     QString defaultStyle = m_graphStyles->getDefault();
@@ -552,7 +553,7 @@ void Histogram::_initializeCallbacks(){
             double logMaxCount = qLn( maxBinCount ) / qLn(10);
             double percentage  = (binCount*1.0) / maxBinCount;
             double percentLogMax = percentage * logMaxCount;
-            int scaledBinCount = static_cast<int>( qPow(10, percentLogMax) );
+            int scaledBinCount = round( qPow(10, percentLogMax) );
             result = setBinCount( scaledBinCount );
         }
         else {
@@ -1026,7 +1027,7 @@ void Histogram::_loadData( Controller* controller ){
         return;
     }
 
-    int binCount = m_state.getValue<int>(BIN_COUNT)+1;
+    int binCount = m_state.getValue<int>(BIN_COUNT);
     double minFrequency = -1;
     double maxFrequency = -1;
     QString rangeUnits = m_state.getValue<QString>(FREQUENCY_UNIT );
@@ -1988,6 +1989,8 @@ QString Histogram::setSignificantDigits( int digits ){
 }
 
 void Histogram::_setErrorMargin(){
+    // TODO: the error margin set here is not consistent with the definition
+    // of significant digits. It should be modified later.
     int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS );
     m_errorMargin = 1.0/qPow(10,significantDigits);
 }
@@ -2053,8 +2056,10 @@ double Histogram::_toBinWidth( int count ) const {
 int Histogram::_toBinCount( double width ) const {
     double minRange = m_stateData.getValue<double>(CLIP_MIN );
     double maxRange = m_stateData.getValue<double>(CLIP_MAX);
-    int count = 0;
-    if ( width > 0 ){
+    double totalRange = maxRange-minRange;
+    int count = m_state.getValue<int>(BIN_COUNT);
+    // Use proper decimal to examine the error
+    if ( width > 0 && qAbs(totalRange/count-width) > m_errorMargin*pow(10, ceil(log10(width)))){
         count = qCeil( qAbs( maxRange - minRange)  / width);
     }
     return count;
@@ -2161,6 +2166,9 @@ void Histogram::_updateColorSelection(){
 void Histogram::_updatePlots( ){
 	m_plotManager->clearData();
 	int dataCount = m_binDatas.size();
+    // The result is set by setHistogramResult()
+    // The result is computed from casacore::LatticeHistogram (in ImageHistogram.cpp)
+    // The values of bins are the middle points of each interval.
 	for ( int i = 0; i < dataCount; i++ ){
 		Carta::Lib::Hooks::HistogramResult result = m_binDatas[i]->getHistogramResult();
 		m_plotManager->addData( &result );

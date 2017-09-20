@@ -182,7 +182,7 @@ Histogram1::handleHook( BaseHook & hookData )
         	imageRegion = ImageRegionGenerator::makeRegion( casaImage, regionBase );
         }
         m_histogram->setRegion( imageRegion, regionId  );
-        m_histogram-> setBinCount( hook.paramsPtr->binCount );
+        m_histogram->setBinCount( hook.paramsPtr->binCount );
 
         double frequencyMin = hook.paramsPtr->minFrequency;
         double frequencyMax = hook.paramsPtr->maxFrequency;
