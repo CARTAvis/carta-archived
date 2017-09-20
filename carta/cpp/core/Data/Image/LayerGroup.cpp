@@ -454,9 +454,9 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_g
     //Return the images in stack order.
     int startIndex = _getIndexCurrent();
     for ( int i = 0; i < dataCount; i++ ){
-        int dIndex = (startIndex + i) % dataCount;
-        if ( dIndex > -1 && m_children[dIndex]->_isVisible() ){
-            images.push_back( m_children[dIndex]->_getImage());
+        // int dIndex = (startIndex + i) % dataCount;
+        if ( m_children[i]->_isVisible() ){
+            images.push_back( m_children[i]->_getImage());
         }
     }
     return images;
