@@ -149,8 +149,8 @@ QString Histogram::addLink( CartaObject*  target){
                                		this, SLOT(_createHistogram(Controller*)));
                 connect( controller,SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
                         this, SLOT(_updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
-                connect(controller, SIGNAL(clipsChanged(double,double)),
-                        this, SLOT(_updateColorClips(double,double)));
+                connect(controller, SIGNAL(clipsChanged(double,double,bool)),
+                        this, SLOT(_updateColorClips(double,double,bool)));
                 m_controllerLinked = true;
                 _createHistogram( controller );
             }
@@ -265,7 +265,8 @@ void Histogram::_createHistogram( Controller* controller){
 
         double colorMinPercent = controller->getClipPercentileMin();
         double colorMaxPercent = controller->getClipPercentileMax();
-        _updateColorClips( colorMinPercent, colorMaxPercent );
+        bool autoClip = controller->getAutoClip();
+        _updateColorClips( colorMinPercent, colorMaxPercent, autoClip );
 
 
         m_stateData.flushState();
@@ -2136,7 +2137,7 @@ void Histogram::updateColorMap(){
 }
 
 
-void Histogram::_updateColorClips( double colorMinPercent, double colorMaxPercent ){
+void Histogram::_updateColorClips(double colorMinPercent, double colorMaxPercent, bool autoClip){
     if ( colorMinPercent < colorMaxPercent ){
         double normMin = colorMinPercent * 100;
         double normMax = colorMaxPercent * 100;
@@ -2145,6 +2146,7 @@ void Histogram::_updateColorClips( double colorMinPercent, double colorMaxPercen
         double colorMin = m_stateData.getValue<double>(COLOR_MIN);
         double colorMax = m_stateData.getValue<double>(COLOR_MAX);
         emit colorIntensityBoundsChanged( colorMin, colorMax );
+        qDebug() << "++++++++ [Histogram] autoClip=" << autoClip;
         m_stateData.flushState();
     }
 }
