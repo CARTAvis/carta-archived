@@ -28,14 +28,6 @@ template<class T> using min_heap = std::priority_queue<T, std::vector<T>, std::g
 template <typename Scalar>
 class Buffer {
 public:
-    /** The capacity of the buffer */
-    const size_t capacity;
-    
-    /** The state of the buffer */
-    enum class State {empty, partial, full};
-    
-    State state;
-    
     /** The actual current size of the buffer */
     size_t size() const {
         return elements.size();
@@ -49,34 +41,74 @@ public:
     
     /** The elements */
     min_heap<Scalar> elements;
-        
-    Buffer(const size_t capacity) : capacity(capacity), state(State::empty), weight(0), level(0) {
+
+    // TODO: we can probably just remove this
+    Buffer() : weight(0), level(0) {
     }
 };
 
-// TODO split out the inline definitions; put them in the .cpp
+// TODO split out the inline definitions
 template <typename Scalar>
 class Manku99Algorithm {
 public:
-    Manku99Algorithm(const size_t capacity) : bufferCapacity(capacity), samplingRate(1), newBufferLevel(0), height(0), dist(0, 0) {
+    Manku99Algorithm(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter) : numBuffers(numBuffers),
+        bufferCapacity(bufferCapacity), sampleAfter(sampleAfter),
+        samplingRate(1), newBufferLevel(0), height(0)
+    {
 
         for (size_t i = 0; i < numBuffers; i++) {
-            buffers.push_back(Buffer<Scalar>(bufferCapacity));
+            buffers.push_back(Buffer<Scalar>());
         }
 
         for (auto& b : buffers) {
             empty.push_back(&b);
         }
 
-        //dist = std::uniform_int_distribution<>(0, samplingRate - 1);
+        mt = std::mt19937(rd());
+        dist = std::uniform_int_distribution<>(0, samplingRate - 1);
+        
+        if (converter && converter->frameDependent) {
+            blockPushLambda = [this] (const Scalar val, const double hzVal) {
+                this->elementBlock.push_back(val);
+                this->hzForBlock.push_back(hzVal);
+            };
+            
+            convertedValueLambda = [this, &converter] (const size_t & ri) {
+                return converter->_frameDependentConvert(this->elementBlock[ri], this->hzForBlock[ri]);
+            };
+            
+            blockClearLambda = [this] () {
+                this->elementBlock.clear();
+                this->hzForBlock.clear();
+            };
+        } else {
+            blockPushLambda = [this] (const Scalar val, const double hzVal) {
+                Q_UNUSED(hzVal);
+                this->elementBlock.push_back(val);
+            };
+            
+            convertedValueLambda = [this] ( const size_t & ri) {
+                return this->elementBlock[ri];
+            };
+            
+            blockClearLambda = [this] () {
+                this->elementBlock.clear();
+            };
+        }
     }
 
     /** NEW operation */
-    void opNew(Buffer<Scalar>* buffer, min_heap<Scalar>& elements, size_t weight, size_t level, State state) {
-        buffer->elements = std::move(elements);
-        buffer->state = state;
-        buffer->weight = weight;
-        buffer->level = level;
+    Buffer<Scalar>* opNew() {
+        Buffer<Scalar>* buffer = empty.front();
+        
+        buffer->elements = std::move(bufferElements);
+        buffer->weight = samplingRate;
+        buffer->level = newBufferLevel;
+        
+        empty.pop_front();
+        
+        return buffer;
     }
 
     /** Weighted buffer merge */
@@ -162,15 +194,13 @@ public:
             offset = (YWeight + 2) / 2;
         }
 
-        collapseChoice = !collapseChoice; // do we need to do something special because it's static?
+        collapseChoice = !collapseChoice;
 
-        // the maximum size of the merged sampled list of elements 
-        size_t bufferCapacity = inputBuffers[0]->capacity;
         // the destination for the sampled, merged elements
         min_heap<Scalar> YElements;
 
-        auto stopIterationLambda = [&bufferCapacity, &YElements] () {
-            return (YElements.size() >= bufferCapacity);
+        auto stopIterationLambda = [this, &YElements] () {
+            return (YElements.size() >= this->bufferCapacity);
         };
 
         auto nextIndexLambda = [&YWeight] (size_t lastIndex) {
@@ -188,22 +218,127 @@ public:
         for (auto& b : inputBuffers) {
             // weight and level are cosmetic here; is there a performance benefit to not setting them?
             b->weight = 0;
-            b->state = State::empty;
             b->level = 0;
         }
 
         Buffer<Scalar>*& Y = inputBuffers[0];
         Y->elements = std::move(YElements);
         Y->weight = YWeight;
-        Y->state = State::full;
         Y->level = YLevel;
     }
-    
+
+    void addFullBuffer(Buffer<Scalar> *& fullBuffer) {
+        size_t& level = fullBuffer->level;
+        if (fullLevelSet.find(level) == fullLevelSet.end()) {
+            // add the level to the set
+            fullLevelSet.insert(level);
+            // add the level to the heap
+            fullLevelHeap.push(level);
+        }
+        // add the buffer to the map of full buffers
+        full[newBufferLevel].push_back(fullBuffer);
+    }
+
+    std::vector<Buffer<Scalar>*> getLowest() {
+        size_t lowestFullLevel = fullLevelHeap.top();
+        fullLevelHeap.pop();
+        fullLevelSet.erase(lowestFullLevel);
+        
+        std::vector<Buffer<Scalar>*> lowest = full[lowestFullLevel];
+        full.erase(lowestFullLevel);
+        return lowest;
+    }
+
+    /** Process a value */
+    void process(const Scalar & val, const double & hzVal) {
+        if (empty.size()) {
+            blockPushLambda(val, hzVal);
+            
+            if (elementBlock.size() == samplingRate) {
+                // select random element from block, do unit conversion and push to elements
+                ri = dist(mt);
+                bufferElements.push(convertedValueLambda(ri));
+                blockClearLambda();
+                
+                // create new buffer whenever elements reach buffer capacity
+                // we'll do it once more at the end to account for a possible partial buffer
+                if (bufferElements.size() == bufferCapacity) { // NEW operation
+                    Buffer<Scalar>* newBuffer = opNew();
+                    addFullBuffer(newBuffer);
+                }
+            }
+        } else { // COLLAPSE operation
+            // Find full buffers with the lowest level
+            std::vector<Buffer<Scalar>*> lowest = getLowest();
+            
+            // If there is only one,
+            if (lowest.size() == 1) {
+                // add the next lowest buffer(s) and promote the lowest buffer
+                std::vector<Buffer<Scalar>*> secondLowest = getLowest();
+                lowest[0]->level = secondLowest[0]->level;
+                secondLowest.push_back(lowest[0]);
+                lowest = std::move(secondLowest);
+            }
+
+            // perform the collapse
+            opCollapse(lowest);
+
+            // all buffers after the first are now empty
+            for (size_t i = 1; i < lowest.size(); i++) {
+                empty.push_back(lowest[i]);
+            }
+
+            // the first buffer is full
+            addFullBuffer(lowest[0]);
+            
+            // update tree height
+            height = std::max(height, lowest[0]->level);
+            
+            // update new buffer level, sampling rate and random distribution
+            if (height >= sampleAfter) {
+                newBufferLevel = height - sampleAfter + 1;
+                samplingRate = pow(2, newBufferLevel);
+                dist = std::uniform_int_distribution<>(0, samplingRate - 1);
+            }
+        }
+    }
 
     /** OUTPUT operation */
-    std::map<double, Scalar> opOutput(std::vector<Buffer<Scalar>*> inputBuffers, const std::vector<double> quantiles) {
+    std::map<double, Scalar> opOutput(const std::vector<double> quantiles) {
+        // process a possible partial block
+        if (elementBlock.size()) {
+            // select random element from block, do unit conversion and append to elements
+            ri = dist(mt);
+            // we may not select any element from this incomplete block
+            if (ri < elementBlock.size()){
+                bufferElements.push(convertedValueLambda(ri));
+            }
+            elementBlock.clear();
+            hzForBlock.clear();
+        }
+        
+        // process a possible partial buffer
+        Buffer<Scalar>* partial;
+
+        if (bufferElements.size()) {        
+            partial = opNew();
+        }
+
+        // Final set of buffers to be used in output operation
+        std::vector<Buffer<Scalar>*> nonEmptyBuffers;
+        
+        while (!fullLevelHeap.empty()) {
+            std::vector<Buffer<Scalar>*> lowest = getLowest();
+            nonEmptyBuffers.insert(nonEmptyBuffers.end(), lowest.begin(), lowest.end());
+        }
+
+        // partial buffer goes at the end
+        if (partial) {
+            nonEmptyBuffers.push_back(partial);
+        }
+
         // kW is the sum of the weight x actual size of all input buffers
-        size_t kW = std::accumulate (begin(inputBuffers), end(inputBuffers), 0, [](size_t a, Buffer<Scalar>*& b){ return (b->size() * b->weight) + a; });
+        size_t kW = std::accumulate (begin(nonEmptyBuffers), end(nonEmptyBuffers), 0, [](size_t a, Buffer<Scalar>*& b){ return (b->size() * b->weight) + a; });
 
         // Quantiles close together may have the same index
         // We need to eliminate the duplicates to avoid breaking the merge algorithm
@@ -249,101 +384,16 @@ public:
         // perform the weighted merge
         size_t startIndex = indices.top();
         indices.pop();
-        merge(inputBuffers, startIndex, stopIterationLambda, nextIndexLambda, processValueLambda);
+        merge(nonEmptyBuffers, startIndex, stopIterationLambda, nextIndexLambda, processValueLambda);
 
         return values;
     }
 
-    /** Process a value */
-    void process(const Scalar & val, const double & hzVal) {
-        if (std::isfinite(val)) {
-            if (empty.size()) {                    
-                elementBlock.push_back(val);
-                hzForBlock.push_back(hzVal);
-                
-
-                if (elementBlock.size() == samplingRate) {
-                    // select random element from block, do unit conversion and push to elements
-                    ri = dist(mt);
-                    bufferElements.push(conversion_lambda(ri));
-                    elementBlock.clear();
-                    hzForBlock.clear();
-                    
-                    // create new buffer whenever elements reach buffer capacity
-                    // we'll do it once more at the end to account for a possible partial buffer
-                    if (bufferElements.size() == bufferCapacity) { // NEW operation
-                        Buffer<Scalar> *& newBuffer = empty.front();
-                        algorithm->opNew(newBuffer, bufferElements, samplingRate, newBufferLevel, Buffer<Scalar>::State::full);
-                        if (fullLevelSet.find(newBufferLevel) == fullLevelSet.end()) {
-                            // add the level to the set
-                            fullLevelSet.insert(newBufferLevel);
-                            // add the level to the heap
-                            fullLevelHeap.push(newBufferLevel);
-                        }
-                        // add the buffer to the map of full buffers
-                        full[newBufferLevel].push_back(newBuffer);
-                        // remove buffer from list of empty buffers
-                        empty.pop_front();
-                    }
-                }
-            } else { // COLLAPSE operation
-                // Find full buffers with the lowest level
-                lowestFullLevel = fullLevelHeap.top();
-                fullLevelHeap.pop();
-                fullLevelSet.erase(lowestFullLevel);
-                lowest = full[lowestFullLevel];
-                full.erase(lowestFullLevel);
-                
-                // If there is only one,
-                if (lowest.size() == 1) {
-                    // add the next lowest buffer(s)
-                    secondLowestFullLevel = fullLevelHeap.top();
-                    fullLevelHeap.pop();
-                    fullLevelSet.erase(secondLowestFullLevel);
-                    secondLowest = full[secondLowestFullLevel];
-                    full.erase(secondLowestFullLevel);
-                    // and promote the lowest buffer
-                    lowest[0]->level = secondLowestFullLevel;
-                    secondLowest.push_back(lowest[0]);
-                    lowest = std::move(secondLowest);
-                }
-
-                // perform the collapse
-                algorithm->opCollapse(lowest);
-
-                // all buffers after the first are now empty
-                for (size_t i = 1; i < lowest.size(); i++) {
-                    empty.push_back(lowest[i]);
-                }
-                                
-                // the first buffer is full and one level higher
-                if (fullLevelSet.find(lowest[0]->level) == fullLevelSet.end()) {
-                    // add the level to the set
-                    fullLevelSet.insert(lowest[0]->level);
-                    // add the level to the heap
-                    fullLevelHeap.push(lowest[0]->level);
-                }
-                // add the buffer to the map of full buffers
-                full[lowest[0]->level].push_back(lowest[0]);
-                
-                // update tree height
-                height = std::max(height, lowest[0]->level);
-                
-                // update new buffer level, sampling rate and random distribution
-                if (height >= sampleAfter) {
-                    newBufferLevel = height - sampleAfter + 1;
-                    samplingRate = pow(2, newBufferLevel);
-                    dist = std::uniform_int_distribution<>(0, samplingRate - 1);
-                }
-            }
-        }
-    }
-
-    // TODO: make a setter for this instead of exposing it?
-    std::function<Scalar(Scalar)> conversion_lambda;
-
 private:
+    const size_t numBuffers;
     const size_t bufferCapacity;
+    const size_t sampleAfter;
+    
     size_t samplingRate;
     size_t newBufferLevel;
     size_t height;
@@ -354,26 +404,25 @@ private:
     std::vector<double> hzForBlock; // we need to keep these so that we can convert after sampling
     min_heap<Scalar> bufferElements;
 
+    /** For unit conversion */
+    std::function<void(Scalar, double)> blockPushLambda;
+    std::function<Scalar(size_t)> convertedValueLambda;
+    std::function<void()> blockClearLambda;
+
     /** Keep track of empty buffers */
-    std::deque<Buffer<Scalar>*> empty; // this is safe because the buffer vector will never change size; buffers are modified in-place
+    std::deque<Buffer<Scalar>*> empty;
 
     /** Keep track of full buffers and their levels */
     min_heap<size_t> fullLevelHeap;
     std::set<size_t> fullLevelSet;
     std::map<size_t, std::vector<Buffer<Scalar>*> > full;
-    
-    size_t lowestFullLevel;
-    std::vector<Buffer<Scalar>*> lowest;
-    
-    size_t secondLowestFullLevel;
-    std::vector<Buffer<Scalar>*> secondLowest;
 
     /** Randomness */
     std::random_device rd;
-    std::mt19937 mt(rd());
+    std::mt19937 mt;
     std::uniform_int_distribution<> dist;
     size_t ri;
-}
+};
 
 template < typename Scalar >
 static
@@ -405,213 +454,39 @@ percentile2pixels_approximate_manku99(
         qFatal("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
     }
 
-    /** for conversion*/
     double hertzVal;
 
-    Manku99Algorithm<Scalar> algorithm(bufferCapacity);
-
-    // TODO all of this should go in the algorithm class
-
-    //size_t samplingRate(1);
-    //size_t newBufferLevel(0);
-    //size_t height(0);
-    
-    //std::vector<Buffer<Scalar> > buffers;
-    //for (size_t i = 0; i < numBuffers; i++) {
-        //buffers.push_back(Buffer<Scalar>(bufferCapacity));
-    //}
-
-    ///** Temporary storage for blocks of data before and after sampling */
-    //std::vector<Scalar> elementBlock;
-    //std::vector<double> hzForBlock; // we need to keep these so that we can convert after sampling
-    //min_heap<Scalar> bufferElements;
-
-    ///** Keep track of empty buffers */
-    //std::deque<Buffer<Scalar>*> empty; // this is safe because the buffer vector will never change size; buffers are modified in-place
-    //for (auto& b : buffers) { // is this correct?
-        //empty.push_back(&b);
-    //}
-    
-    ///** Keep track of full buffers and their levels */
-    //min_heap<size_t> fullLevelHeap;
-    //std::set<size_t> fullLevelSet;
-    //std::map<size_t, std::vector<Buffer<Scalar>*> > full;
-    
-    //size_t lowestFullLevel;
-    //std::vector<Buffer<Scalar>*> lowest;
-    
-    //size_t secondLowestFullLevel;
-    //std::vector<Buffer<Scalar>*> secondLowest;
-
-    ///** Randomness */
-    //std::random_device rd;
-    //std::mt19937 mt(rd());
-    //std::uniform_int_distribution<> dist(0, samplingRate - 1);
-    //size_t ri;
-
-    //auto process = [&](const Scalar & val, const double & hzVal) {
-        //if (std::isfinite(val)) {
-            //if (empty.size()) {                    
-                //elementBlock.push_back(val);
-                //hzForBlock.push_back(hzVal);
-                
-
-                //if (elementBlock.size() == samplingRate) {
-                    //// select random element from block, do unit conversion and push to elements
-                    //ri = dist(mt);
-                    //bufferElements.push(conversion_lambda(ri));
-                    //elementBlock.clear();
-                    //hzForBlock.clear();
-                    
-                    //// create new buffer whenever elements reach buffer capacity
-                    //// we'll do it once more at the end to account for a possible partial buffer
-                    //if (bufferElements.size() == bufferCapacity) { // NEW operation
-                        //Buffer<Scalar> *& newBuffer = empty.front();
-                        //algorithm->opNew(newBuffer, bufferElements, samplingRate, newBufferLevel, Buffer<Scalar>::State::full);
-                        //if (fullLevelSet.find(newBufferLevel) == fullLevelSet.end()) {
-                            //// add the level to the set
-                            //fullLevelSet.insert(newBufferLevel);
-                            //// add the level to the heap
-                            //fullLevelHeap.push(newBufferLevel);
-                        //}
-                        //// add the buffer to the map of full buffers
-                        //full[newBufferLevel].push_back(newBuffer);
-                        //// remove buffer from list of empty buffers
-                        //empty.pop_front();
-                    //}
-                //}
-            //} else { // COLLAPSE operation
-                //// Find full buffers with the lowest level
-                //lowestFullLevel = fullLevelHeap.top();
-                //fullLevelHeap.pop();
-                //fullLevelSet.erase(lowestFullLevel);
-                //lowest = full[lowestFullLevel];
-                //full.erase(lowestFullLevel);
-                
-                //// If there is only one,
-                //if (lowest.size() == 1) {
-                    //// add the next lowest buffer(s)
-                    //secondLowestFullLevel = fullLevelHeap.top();
-                    //fullLevelHeap.pop();
-                    //fullLevelSet.erase(secondLowestFullLevel);
-                    //secondLowest = full[secondLowestFullLevel];
-                    //full.erase(secondLowestFullLevel);
-                    //// and promote the lowest buffer
-                    //lowest[0]->level = secondLowestFullLevel;
-                    //secondLowest.push_back(lowest[0]);
-                    //lowest = std::move(secondLowest);
-                //}
-
-                //// perform the collapse
-                //algorithm->opCollapse(lowest);
-
-                //// all buffers after the first are now empty
-                //for (size_t i = 1; i < lowest.size(); i++) {
-                    //empty.push_back(lowest[i]);
-                //}
-                                
-                //// the first buffer is full and one level higher
-                //if (fullLevelSet.find(lowest[0]->level) == fullLevelSet.end()) {
-                    //// add the level to the set
-                    //fullLevelSet.insert(lowest[0]->level);
-                    //// add the level to the heap
-                    //fullLevelHeap.push(lowest[0]->level);
-                //}
-                //// add the buffer to the map of full buffers
-                //full[lowest[0]->level].push_back(lowest[0]);
-                
-                //// update tree height
-                //height = std::max(height, lowest[0]->level);
-                
-                //// update new buffer level, sampling rate and random distribution
-                //if (height >= sampleAfter) {
-                    //newBufferLevel = height - sampleAfter + 1;
-                    //samplingRate = pow(2, newBufferLevel);
-                    //dist = std::uniform_int_distribution<>(0, samplingRate - 1);
-                //}
-            //}
-        //}
-    //};
+    Manku99Algorithm<Scalar> algorithm(numBuffers, bufferCapacity, sampleAfter, converter);
     
     // Enter all the values into buffers
     if (converter && converter->frameDependent) {
-        // conversion is needed
-        algorithm.conversion_lambda = [&elementBlock, &hzForBlock, &converter] ( const size_t & ri) {
-            return converter->_frameDependentConvert(elementBlock[ri], hzForBlock[ri]);
-        };
-        
         // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
 
         for (size_t f = 0; f < hertzValues.size(); f++) {
             hertzVal = hertzValues[f];
-            
             Carta::Lib::NdArray::Double viewSlice = Carta::Core::Algorithms::viewSliceForFrame(view, spectralIndex, f);
 
             // iterate over the frame
-            viewSlice.forEach([&process, &hertzVal] ( const Scalar & val ) {
-                algorithm.process(val, hertzVal);
+            viewSlice.forEach([&algorithm, &hertzVal] ( const Scalar & val ) {
+                if (std::isfinite(val)) {
+                    algorithm.process(val, hertzVal);
+                }
             });
         }
-        
     } else {
-        // conversions are no-ops
-        algorithm.conversion_lambda = [&elementBlock, &hzForBlock] ( const size_t & ri) {
-            return elementBlock[ri];
-        };
-
-        auto view_lambda = [&process] ( const Scalar & val ) {
-            algorithm.process(val, -1);
+        auto view_lambda = [&algorithm] ( const Scalar & val ) {
+            if (std::isfinite(val)) {
+                algorithm.process(val, -1);
+            }
         };
         
         // we can loop over the flat image
-        
         view.forEach(view_lambda);
     }
 
-    /** Special cases for handling the end of the data */
+    // call output to handle the end of the data and find the quantiles
 
-    Buffer<Scalar>* partial;
-    
-    // process a possible partial block
-    if (elementBlock.size()) {
-        // select random element from block, do unit conversion and append to elements
-        ri = dist(mt);
-        // we may not select any element from this incomplete block
-        if (ri < elementBlock.size()){
-            bufferElements.push(conversion_lambda(ri));
-        }
-        elementBlock.clear();
-        hzForBlock.clear();
-    }
-    // process a possible partial buffer
-    if (bufferElements.size()) {        
-        empty.front()->opNew(bufferElements, samplingRate, newBufferLevel, Buffer<Scalar>::State::partial);
-        partial = empty.front();
-        empty.pop_front();
-    }
-
-    // OUTPUT operation
-
-    // find the non-empty buffers
-    
-    std::vector<Buffer<Scalar>*> nonEmptyBuffers;
-    
-    while (!fullLevelHeap.empty()) {
-        lowestFullLevel = fullLevelHeap.top();
-        fullLevelHeap.pop();
-        fullLevelSet.erase(lowestFullLevel);
-        nonEmptyBuffers.insert(nonEmptyBuffers.end(), full[lowestFullLevel].begin(), full[lowestFullLevel].end());
-        full.erase(lowestFullLevel);
-    }
-
-    // partial buffer goes at the end
-    if (partial) {
-        nonEmptyBuffers.push_back(partial);
-    }
-
-    // call output to find the quantiles
-
-    std::map <double, Scalar> result = algorithm->opOutput(nonEmptyBuffers, percentiles);
+    std::map <double, Scalar> result = algorithm.opOutput(percentiles);
 
     CARTA_ASSERT( result.size() == percentiles.size());
 
