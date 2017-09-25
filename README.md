@@ -200,6 +200,7 @@ This file file serves as your book's preface, a great place to describe your boo
 | NumPy \(Included for CentOS 6\) |  | BSD |
 | Matplotlib \(Included for CentOS 6\) |  | [link \(Matplotlib license\)](https://matplotlib.org/devel/license.html) |
 | Cython \(Included for CentOS 6\) | | Apache |
+| libstdc++ \(Included for CentOS 6\) | 4.8.1+ | [GCC Runtime Exception](https://www.gnu.org/licenses/gcc-exception-3.1-faq.html) |
 
 # Dynamic/Shared Library search notes for runtime and packaging
 
