@@ -218,9 +218,9 @@ void Histogram::applyClips(){
                controller->applyClips( minPercentile, maxPercentile );
            }
        }
-       double colorMin = m_stateData.getValue<double>( COLOR_MIN );
-       double colorMax = m_stateData.getValue<double>( COLOR_MAX );
-       emit colorIntensityBoundsChanged( colorMin, colorMax );
+       //double colorMin = m_stateData.getValue<double>( COLOR_MIN );
+       //double colorMax = m_stateData.getValue<double>( COLOR_MAX );
+       //emit colorIntensityBoundsChanged( colorMin, colorMax, false );
    }
 }
 
@@ -2143,9 +2143,9 @@ void Histogram::_updateColorClips(double colorMinPercent, double colorMaxPercent
         double normMax = colorMaxPercent * 100;
         setColorMinPercent( normMin, false );
         setColorMaxPercent( normMax, false );
-        double colorMin = m_stateData.getValue<double>(COLOR_MIN);
-        double colorMax = m_stateData.getValue<double>(COLOR_MAX);
-        emit colorIntensityBoundsChanged( colorMin, colorMax );
+        //double colorMin = m_stateData.getValue<double>(COLOR_MIN);
+        //double colorMax = m_stateData.getValue<double>(COLOR_MAX);
+        //emit colorIntensityBoundsChanged( colorMin, colorMax, autoClip );
         qDebug() << "++++++++ [Histogram] autoClip=" << autoClip;
         m_stateData.flushState();
     }

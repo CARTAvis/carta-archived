@@ -355,8 +355,8 @@ public:
 	virtual ~Histogram();
 	const static QString CLASS_NAME;
 
-	signals:
-	void colorIntensityBoundsChanged( double minIntensity, double maxIntensity );
+    signals:
+    //void colorIntensityBoundsChanged( double minIntensity, double maxIntensity, bool autoClip );
 
 	public slots:
 	/**

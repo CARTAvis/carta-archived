@@ -95,7 +95,7 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
             if ( objAdded ){
                 connect( this, SIGNAL(colorMapChanged()), hist, SLOT( updateColorMap()));
                 hist->updateColorMap();
-                //connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double)), this, SLOT(_updateIntensityBounds( double, double )));
+                //connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double,bool)), this, SLOT(_updateIntensityBounds(double,double,bool)));
             }
         }
         else {
