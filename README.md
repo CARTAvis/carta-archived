@@ -75,7 +75,7 @@ You can also chooose fits file in this git project folder, `your-carta-work/CART
 2. https://svn.cv.nrao.edu/svn/casa-data/trunk/demo/ (some files here)
 3. Contact ASIAA members to get some.
 
-### requirement 4: check if the foldler using by dbPath exist. 
+### requirement 4: check if the foldler using by dbPath exist.
 
 The default location is `$(HOME)/CARTA/cache/pcache.sqlite` so create `$(HOME)/CARTA/cache` if it does not exist.
 
@@ -99,7 +99,7 @@ Create/Modify the following data to be the content of `~/.cartavis/config.json`
 }
 ```
 
-`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac. 
+`$(APPDIR)/../plugins` is for Linux. `"$(APPDIR)/../../../../plugins"` is for Mac.
 
 You can browse more detailed instruction about these parameters from here,
 http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.html#appendix-e-carta-config-file
@@ -158,7 +158,7 @@ http://cartaserver.ddns.net/docs/html/developer/contribute/Writinganimageplugin.
     for f in `find . -name "*.dylib"`; do install_name_tool -change libwcs.5.15.dylib  $CARTABUILDHOME/ThirdParty/wcslib/lib/libwcs.5.15.dylib $f; echo $f; done
     ```
 
-2. execute `ulimit -n 2000` before running Carta
+2. execute `ulimit -n 2000` before running CARTA
 3. To run `CARTA` binary with parameters, at least should append `html file path`, example:
 
 ```
@@ -184,17 +184,18 @@ This file file serves as your book's preface, a great place to describe your boo
 
 | Third-party Libraries | Version | license |
 | :--- | :--- | :--- |
-| ast | 8.4.0 | LGPLv3 |
 | casacore | 2.3+ | GPLv2 |
 | casa | 5.0.0+ | GPLv2 |
-| CFITSIO | 3.39 | [link \(NASA license\)](https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/f_user/node9.html) |
-| qooxdoo | 3.5.1 | MIT |
-| Qwt | 6.1.2 | [link \(Qwt license\)](http://qwt.sourceforge.net/qwtlicense.html) |
-| RapidJSON | 1.02 | MIT |
+| ast | 8.4.0 | LGPLv3 |
+| gfortran |  4.8+ | GPLv3 |
 | WCSLIB | 5.15 | LGPLv3 |
+| CFITSIO | 3.39 | [link \(NASA license\)](https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/f_user/node9.html) |
 | GSL | 2.3 | GPLv3 |
 | flex | 2.5.37 | [link \(flex license\)](https://raw.githubusercontent.com/westes/flex/master/COPYING) |
+| RapidJSON | 1.02 | MIT |
+| qooxdoo | 3.5.1 | MIT |
 | Qt | 5.3+ | LGPLv3 |
+| Qwt | 6.1.2 | [link \(Qwt license\)](http://qwt.sourceforge.net/qwtlicense.html) |
 | Python \(included for CentOS 6\) | 2.7 | [link \(Python license\)](https://www.python.org/download/releases/2.7/license/) |
 | NumPy \(Included for CentOS 6\) |  | BSD |
 | Matplotlib \(Included for CentOS 6\) |  | [link \(Matplotlib license\)](https://matplotlib.org/devel/license.html) |
