@@ -147,6 +147,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_autoCheck = new qx.ui.form.CheckBox();
             skel.widgets.TestID.addTestId( this.m_autoCheck, "profileAutoGenerate");
             this.m_autoCheck.setToolTipText( "Automatically generate profiles.");
+            this.m_autoCheck.setEnabled( false );
             this.m_autoListenId = this.m_autoCheck.addListener( "changeValue", this._sendAutoGenerateCmd, this );
 
             this.m_genSelect = new skel.widgets.CustomUI.SelectBox();
