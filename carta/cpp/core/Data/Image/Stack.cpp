@@ -328,7 +328,7 @@ QString Stack::_getStateString() const{
     _saveChildren( copyState, false );
     copyState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
     int selectCount = m_selects.size();
-    const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
+    // const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
     for ( int i = 0; i < selectCount; i++ ){
         QString axisName = AxisMapper::getPurpose( static_cast<AxisInfo::KnownType>(i) );
         copyState.insertValue<QString>( axisName, m_selects[i]->getStateString());
@@ -542,7 +542,7 @@ void Stack::_resetStack( const Carta::State::StateInterface& restoreState ){
     int selectCount = m_selects.size();
     for ( int i = 0; i < selectCount; i++ ){
         AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
-        const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
+        // const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
         QString axisPurpose = AxisMapper::getPurpose( axisType );
         QString axisState = restoreState.getValue<QString>( axisPurpose );
         m_selects[i]->resetState( axisState );
