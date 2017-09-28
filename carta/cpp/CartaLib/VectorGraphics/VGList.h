@@ -710,11 +710,11 @@ public:
     VGList();
 
     /// copy constructor
-    VGList( const VGList & other ) = default;
+    VGList( const VGList & ) = default;
 
     /// assignment operator
     VGList &
-    operator= ( const VGList & other ) = default;
+    operator= ( const VGList & ) = default;
 
     ~VGList();
 
