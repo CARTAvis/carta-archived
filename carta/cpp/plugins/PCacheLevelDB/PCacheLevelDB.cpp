@@ -69,6 +69,8 @@ public:
     virtual void
     setEntry( const QByteArray & key, const QByteArray & val, const QByteArray & error ) override
     {
+        Q_UNUSED( error );
+
         if( ! p_db) return;
         auto status = p_db-> Put( p_writeOptions,
                     leveldb::Slice( key.constData(), key.size()),

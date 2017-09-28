@@ -483,7 +483,7 @@ void Layout::setLayoutAnalysis(){
     QStringList oldNames = getPluginList();
     _makeRoot();
 
-    LayoutNode* rightTop = NodeFactory::makeComposite( false );
+    // LayoutNode* rightTop = NodeFactory::makeComposite( false );
 
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
     LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
