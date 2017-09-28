@@ -428,9 +428,9 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 
 std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const {
     std::pair<bool, double> result = std::make_pair(false, -1);
-    for (int i = 0; i < comparedValue.size(); i++) {
-        if (fabs(inputValue - comparedValue[i]) < threshold) {
-            result = std::make_pair(true, comparedValue[i]);
+    for ( auto iter : comparedValue ) {
+        if (fabs(inputValue - iter) < threshold) {
+            result = std::make_pair(true, iter);
             break;
         }
     }
@@ -640,7 +640,7 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         // check the raw data size
         std::vector<int> dataDims = doubleView.dims();
         size_t dataSize = 1;
-        for (int i = 0; i < dataDims.size(); i++) dataSize *= dataDims[i];
+        for ( auto dim : dataDims ) dataSize *= dim;
         qDebug() << "++++++++ check the raw data size:" << dataSize << "pixel elements, for raw data shape" << dataDims;
 
         // Make a list of the percentiles which have to be calculated
@@ -661,14 +661,14 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         // get extra clipping values from UI which is not equal to current clipping ones
         std::vector<double> percentiles_to_calculate_plus;
         std::pair<bool, double> parse_percentiles_from_all_clips;
-        for (int i = 0; i < percentiles_from_all_clips.size(); i++) {
+        for ( auto percentile : percentiles_from_all_clips ) {
             // the same clipping value from different sources are not absolute equal !!
             // so we need to make the following checks !!
-            parse_percentiles_from_all_clips = _isSameValue(percentiles_from_all_clips[i], percentiles_to_calculate, 1e-6);
-            if (parse_percentiles_from_all_clips.first == true) {
-                percentiles_to_calculate_plus.push_back(parse_percentiles_from_all_clips.second);
+            parse_percentiles_from_all_clips = _isSameValue( percentile, percentiles_to_calculate, 1e-6);
+            if ( parse_percentiles_from_all_clips.first == true ) {
+                percentiles_to_calculate_plus.push_back( parse_percentiles_from_all_clips.second );
             } else {
-                percentiles_to_calculate_plus.push_back(percentiles_from_all_clips[i]);
+                percentiles_to_calculate_plus.push_back( percentile );
             }
         }
 
@@ -743,20 +743,20 @@ std::vector<std::pair<int,double> > DataSource::_getLocationAndIntensity(int fra
         // to get another Clipping values in the UI.
         std::pair<bool, double> check_repetition;
         if (clips_map.size() > percentiles_to_calculate.size()) {
-            for (int i = 0; i < percentiles_to_calculate_plus.size(); i++) {
+            for ( auto percentile : percentiles_to_calculate_plus ) {
                 // check if the percentile to pixel value to store is already done in previous loop
-                check_repetition = _isSameValue(percentiles_to_calculate_plus[i], percentiles_to_calculate, 1e-6);
+                check_repetition = _isSameValue( percentile, percentiles_to_calculate, 1e-6);
                 if (check_repetition.first == true) continue;
                 // set the location of frameLow
                 if (frameLow >= 0) {
-                    clips_map[percentiles_to_calculate_plus[i]].first += frameLow;
+                    clips_map[percentile].first += frameLow;
                 }
                 if (m_diskCache) {
-                    _setLocationCache(clips_map[percentiles_to_calculate_plus[i]].first, error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame);
-                    _setIntensityCache(clips_map[percentiles_to_calculate_plus[i]].second, error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame);
-                    qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_plus[i]
-                             << ", intensity=" << clips_map[percentiles_to_calculate_plus[i]].second << "+/- (max-min)*" << error
-                             << ", location=" << clips_map[percentiles_to_calculate_plus[i]].first << "(channel)";
+                    _setLocationCache(clips_map[percentile].first, error, frameLow, frameHigh, percentile, stokeFrame);
+                    _setIntensityCache(clips_map[percentile].second, error, frameLow, frameHigh, percentile, stokeFrame);
+                    qDebug() << "++++++++ [set extra cache] for percentile" << percentile
+                             << ", intensity=" << clips_map[percentile].second << "+/- (max-min)*" << error
+                             << ", location=" << clips_map[percentile].first << "(channel)";
                 }
             }
         }
@@ -773,7 +773,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
     int foundCount = 0;
     std::vector<bool> found(percentileCount, false);
-    
+
     // If the disk cache exists, try to look up cached intensity and location values
     for (int i = 0; i < percentileCount; i++) {
         intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame);
@@ -830,7 +830,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles_to_calculate);
 
         for (int i = 0; i < percentileCount; i++) {
-            if (!found[i]) {                
+            if (!found[i]) {
                 intensities[i] = clips_map[percentiles[i]];
                 found[i] = true; // for completeness, in case we test this later
                 // put calculated values in the disk cache if it exists
