@@ -67,12 +67,12 @@ protected:
          * Add a contour set.
          * @param contour - the contour set to add.
          */
-    virtual void _addContourSet( std::shared_ptr<DataContours> contour );
+    virtual void _addContourSet( std::shared_ptr<DataContours> contour ) Q_DECL_OVERRIDE;
 
     /**
         * Remove the color map.
         */
-       virtual void _clearColorMap();
+       virtual void _clearColorMap() Q_DECL_OVERRIDE;
 
     /**
      * Respond to a change in display axes.
@@ -286,7 +286,7 @@ protected:
      * Return the zoom factor for this image.
      * @return the zoom multiplier.
      */
-    virtual double _getZoom() const;
+    virtual double _getZoom() const Q_DECL_OVERRIDE;
 
 
     virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
@@ -324,7 +324,7 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
-    virtual QString _getFileName();
+    virtual QString _getFileName() Q_DECL_OVERRIDE;
 
     /**
      * Attempts to load an image file.
@@ -421,7 +421,7 @@ protected:
      * Reset the layer contours.
      * @param restoreeState - the new layer state.
      */
-    virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
+    virtual void _resetStateContours(const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
 
     /**
      * Group or ungroup any child layers.
@@ -438,9 +438,9 @@ protected:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    virtual bool _setMaskAlpha( const QString& id, int alphaAmount );
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount ) Q_DECL_OVERRIDE;
 
-    virtual void _setMaskAlphaDefault();
+    virtual void _setMaskAlphaDefault() Q_DECL_OVERRIDE;
 
     /**
      * Set the color to use for the mask.
@@ -452,9 +452,9 @@ protected:
      * @return - true if the mask color was changed; false otherwise.
      */
     virtual bool _setMaskColor( const QString& id, int redAmount,
-            int greenAmount, int blueAmount );
+            int greenAmount, int blueAmount ) Q_DECL_OVERRIDE;
 
-    virtual void _setMaskColorDefault();
+    virtual void _setMaskColorDefault() Q_DECL_OVERRIDE;
 
 
     /**
@@ -469,8 +469,8 @@ protected:
      * @param regionVGList - graphics for drawing the current regions.
      */
     virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
-    virtual void _setSupportAlpha( bool supportAlpha );
-    virtual void _setSupportColor( bool supportColor );
+    virtual void _setSupportAlpha( bool supportAlpha ) Q_DECL_OVERRIDE;
+    virtual void _setSupportColor( bool supportColor ) Q_DECL_OVERRIDE;
 
     /**
      * Set the zoom factor for this image.

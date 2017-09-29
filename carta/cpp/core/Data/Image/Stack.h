@@ -50,7 +50,7 @@ protected:
 
     virtual bool _addGroup( ) Q_DECL_OVERRIDE;
     virtual bool _closeData( const QString& id ) Q_DECL_OVERRIDE;
-    virtual int _getIndexCurrent( ) const;
+    virtual int _getIndexCurrent( ) const Q_DECL_OVERRIDE;
 
     virtual QStringList _getLayerIds( ) const Q_DECL_OVERRIDE;
 
@@ -69,7 +69,7 @@ protected:
     virtual bool _setSelected( QStringList& names ) Q_DECL_OVERRIDE;
 
 
-    virtual bool _setVisible( const QString& id, bool visible );
+    virtual bool _setVisible( const QString& id, bool visible ) Q_DECL_OVERRIDE;
 
 private slots:
 
@@ -161,7 +161,7 @@ private:
     void _saveState( bool flush = true );
 
     bool _setCompositionMode( const QString& id, const QString& compositionMode,
-               QString& errorMsg );
+               QString& errorMsg ) Q_DECL_OVERRIDE;
     void _setFrameAxis(int value, Carta::Lib::AxisInfo::KnownType axisType);
     QString _setFrameImage( int val );
 

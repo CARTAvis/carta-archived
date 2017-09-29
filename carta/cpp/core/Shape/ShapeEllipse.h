@@ -34,13 +34,13 @@ public:
      * Return the center of the ellipse.
      * @return - the center of the ellipse.
      */
-    virtual QPointF getCenter() const;
+    virtual QPointF getCenter() const override;
 
     /**
      * Return the size of the bounding box containing the ellipse.
      * @return - the size of the bounding box containing the ellipse.
      */
-    virtual QSizeF getSize() const;
+    virtual QSizeF getSize() const override;
 
     /**
      * Return the vector graphics for the shape.

@@ -36,13 +36,13 @@ public:
      * Return the location of the point.
      * @return - the location of the point.
      */
-    QPointF getCenter() const;
+    QPointF getCenter() const override;
 
     /**
      * Return the size of the point.
      * @return - the size of the point.
      */
-    QSizeF getSize() const;
+    QSizeF getSize() const override;
 
     /**
      * Returns the graphics for drawing the control point.

@@ -209,14 +209,14 @@ public:
      * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
      * @return - a list of corresponding (location,intensity) pairs.
      */
-    std::vector<std::pair<int,double> > getLocationAndIntensity( const std::vector<double>& percentiles ) const;
+    std::vector<std::pair<int,double> > getLocationAndIntensity( const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the intensities corresponding to a given list of percentiles.
      * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
      * @return - a list of corresponding intensity values.
      */
-    std::vector<double> getIntensity( const std::vector<double>& percentiles ) const;
+    std::vector<double> getIntensity( const std::vector<double>& percentiles ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the location and intensity corresponding to a given percentile.
@@ -277,7 +277,7 @@ public:
      * @param intensity a value for which a percentile is needed.
      * @return the percentile corresponding to the intensity.
      */
-    double getPercentile( int frameLow, int frameHigh, double intensity ) const;
+    double getPercentile( int frameLow, int frameHigh, double intensity ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
@@ -408,7 +408,7 @@ public:
      * Restore the state from a string representation.
      * @param state- a json representation of state.
      */
-    void resetState( const QString& state );
+    void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Reset the images that are loaded and other data associated state.

@@ -121,7 +121,7 @@ public:
 	 * Returns a string indicating the type.
 	 * @return - a string indicating the type.
 	 */
-	QString typeName() const;
+	QString typeName() const override;
 
 	/**
 	 * Return vector graphics for the ellipse.

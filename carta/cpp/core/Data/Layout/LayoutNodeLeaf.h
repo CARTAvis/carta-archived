@@ -34,7 +34,7 @@ public:
      * Return a string representation of the node.
      * @return - a string representation of the node.
      */
-    virtual QString toString() const;
+    virtual QString toString() const Q_DECL_OVERRIDE;
     virtual ~LayoutNodeLeaf();
 
     const static QString CLASS_NAME;

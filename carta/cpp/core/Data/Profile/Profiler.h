@@ -589,7 +589,7 @@ public:
 
 protected:
     //Callback for moving the frame.
-    virtual void timerEvent( QTimerEvent* event );
+    virtual void timerEvent( QTimerEvent* event ) Q_DECL_OVERRIDE;
 
 private slots:
     void _cursorUpdate( double x, double y );
