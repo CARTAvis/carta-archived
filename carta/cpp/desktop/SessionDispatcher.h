@@ -7,6 +7,7 @@
 #define SESSION_DISPATCHER_H
 
 #include <QObject>
+#include <qmutex.h>
 #include "NewServerConnector.h"
 
 #include "core/IConnector.h"
