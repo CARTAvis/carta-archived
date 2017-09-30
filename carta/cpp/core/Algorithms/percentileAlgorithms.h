@@ -114,7 +114,7 @@ percentile2pixels_precise(
 
     std::vector<int> dims = view.dims();
     size_t total_size = 1;
-    for (int i = 0; i < dims.size(); i++) total_size *= dims[i];
+    for ( auto d : dims ) total_size *= d;
     qDebug() << "++++++++ raw data totalsize=" << total_size << "pixel elements, for raw data shape" << dims;
 
     size_t divisor = total_size;
@@ -209,7 +209,7 @@ percentile2pixels_approximation(
 
     std::vector<int> dims = view.dims();
     size_t total_size = 1;
-    for (int i = 0; i < dims.size(); i++) total_size *= dims[i];
+    for ( auto d : dims ) total_size *= d;
     qDebug() << "++++++++ raw data totalsize=" << total_size << "pixel elements, for raw data shape" << dims;
 
     size_t divisor = total_size;
@@ -343,7 +343,7 @@ minMax2pixels(
 
     std::vector<int> dims = view.dims();
     size_t total_size = 1;
-    for (int i = 0; i < dims.size(); i++) total_size *= dims[i];
+    for ( auto d : dims) total_size *= d;
     qDebug() << "++++++++ raw data size:" << total_size << "pixel elements, for raw data shape" << dims;
 
     size_t divisor = total_size;

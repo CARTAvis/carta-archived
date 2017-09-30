@@ -79,7 +79,7 @@ const QString Profiler::ZOOM_MIN = "zoomMin";
 const QString Profiler::ZOOM_MAX = "zoomMax";
 const QString Profiler::ZOOM_MIN_PERCENT = "zoomMinPercent";
 const QString Profiler::ZOOM_MAX_PERCENT = "zoomMaxPercent";
-const int Profiler::ERROR_MARGIN = 0.000001;
+const double Profiler::ERROR_MARGIN = 0.000001;
 
 
 class Profiler::Factory : public Carta::State::CartaObjectFactory {
