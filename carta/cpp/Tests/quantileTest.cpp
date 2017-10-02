@@ -6,6 +6,24 @@
 
 #include "CartaLib/Slice.h"
 
+class TestRawViewSliceStub
+    : public TestRawView<double>
+{
+public:
+    virtual RawViewInterface *
+    getView(const SliceND & sliceInfo) override {
+        // this is hardcoded for this test case only
+        // it implements exactly one kind of slice, which is what is needed by the quantile algorithm
+        // i.e. one frame, and we assume that the image is 3D and the 3rd dimension is the spectral axis
+        // this is also not particularly efficient and should not be used for large test data
+        SliceND::ApplyResult ar = sliceInfo.apply( dims);
+        size_t frame = ar.dims()[2].start;
+        
+        std::vector<double> frame_data;
+        // fill; return new
+    }
+};
+
 TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
     
     std::uniform_real_distribution<double> dist(0, 100);
@@ -39,31 +57,31 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
         }
     }
     
-    SECTION("testing frame slice implementation") {
-        SliceND frame;
-        int spectralIndex = 2;
-        int frameIndex = 5;
+    //SECTION("testing frame slice implementation") {
+        //SliceND frame;
+        //int spectralIndex = 2;
+        //int frameIndex = 5;
         
-        for (size_t d = 0; d < dims.size(); d++) {
-            if ((int)d == spectralIndex) {
-                frame.index(frameIndex);
-            } else {
-                frame.next();
-            }
-        }
+        //for (size_t d = 0; d < dims.size(); d++) {
+            //if ((int)d == spectralIndex) {
+                //frame.index(frameIndex);
+            //} else {
+                //frame.next();
+            //}
+        //}
         
-        //qDebug() << frame.slice(0).isNull();
-        //qDebug() << frame.slice(1).isNull();
-        //qDebug() << frame.slice(2).isNull();
+        //qDebug() << frame.slice(0).start();
+        //qDebug() << frame.slice(1).start();
+        //qDebug() << frame.slice(2).start();
         
-        SliceND::ApplyResult ar = frame.apply( dims);
+        //SliceND::ApplyResult ar = frame.apply( dims);
         
-        qDebug() << ar.toStr();
-        qDebug() << ar.dims()[0].toStr();
-        qDebug() << ar.dims()[1].toStr();
-        qDebug() << ar.dims()[2].toStr();
-        qDebug() << ar.dims()[2].start;
-    }
+        //qDebug() << ar.toStr();
+        //qDebug() << ar.dims()[0].toStr();
+        //qDebug() << ar.dims()[1].toStr();
+        //qDebug() << ar.dims()[2].toStr();
+        //qDebug() << ar.dims()[2].start;
+    //}
 
     delete rawView;
 }
