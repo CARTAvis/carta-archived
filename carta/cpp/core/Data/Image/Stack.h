@@ -33,6 +33,16 @@ Q_OBJECT
 
 public:
 
+    using LayerGroup::_setLayersGrouped;
+    using LayerGroup::_displayAxesChanged;
+    using LayerGroup::_getCursorText;
+    using LayerGroup::_getStateString;
+    using LayerGroup::_gridChanged;
+    using LayerGroup::_resetPan;
+    using LayerGroup::_resetZoom;
+    using LayerGroup::_setMaskAlpha;
+    using LayerGroup::_setMaskColor;
+    using LayerGroup::_setPan;
 
     static const QString CLASS_NAME;
     virtual ~Stack();

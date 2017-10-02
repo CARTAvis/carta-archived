@@ -36,7 +36,7 @@ public:
     virtual QString getPlugin( const QString& locationId ) const Q_DECL_OVERRIDE;
 
     virtual QStringList getPluginList() const Q_DECL_OVERRIDE;
-    virtual QString getStateString() const Q_DECL_OVERRIDE;
+    virtual QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const Q_DECL_OVERRIDE;
     virtual bool isComposite() const Q_DECL_OVERRIDE;
 
     void releaseChild( const QString& key ) Q_DECL_OVERRIDE;

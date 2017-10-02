@@ -49,7 +49,7 @@ int LayoutNode::getHeight() const {
     return m_state.getValue<int>( Util::HEIGHT );
 }
 
-QString LayoutNode::getStateString() const {
+QString LayoutNode::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
     return m_state.toString();
 }
 
