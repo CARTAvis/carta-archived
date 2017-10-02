@@ -71,7 +71,7 @@ void DesktopConnector::startWebSocketChannel(){
         return;
     }
 
-    qDebug() << "DesktopConnector listening on port" << port;
+    qDebug() << "DesktopConnector start listening on port" << port;
 
     // wrap WebSocket clients in QWebChannelAbstractTransport objects
     m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
@@ -102,7 +102,7 @@ DesktopConnector::DesktopConnector()
 DesktopConnector::~DesktopConnector()
 {
     m_pWebSocketServer->close();
-	
+
     if (m_pWebSocketServer != nullptr) {
         delete m_pWebSocketServer;
     }
@@ -217,8 +217,6 @@ void DesktopConnector::unregisterView( const QString& viewName ){
         m_views.erase( viewName );
     }
 }
-
-//    static QTime st;
 
 // schedule a view refresh
 qint64 DesktopConnector::refreshView(IView * view)
