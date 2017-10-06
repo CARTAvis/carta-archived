@@ -706,6 +706,24 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+
+    addCommandCallback( "newzoom", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        bool error = false;
+        auto vals = Util::string2VectorDouble( params, &error );
+        if ( vals.size() > 2 ) {
+//            double centerX = vals[0];
+//            double centerY = vals[1];
+            double z = vals[0];
+
+            // updateZoom( centerX, centerY, z );
+
+            // original it is used by Python Client, use for new CARTA zoom in/out temporarily
+            setZoomLevel(z);
+        }
+        return "";
+    });
+
     addCommandCallback( "setPanAndZoomLevel", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
         bool error = false;
