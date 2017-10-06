@@ -711,7 +711,7 @@ void Controller::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) ->QString {
         bool error = false;
         auto vals = Util::string2VectorDouble( params, &error );
-        if ( vals.size() > 2 ) {
+        if ( vals.size() > 0 ) {
 //            double centerX = vals[0];
 //            double centerY = vals[1];
             double z = vals[0];
