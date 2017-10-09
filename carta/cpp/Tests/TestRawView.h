@@ -102,7 +102,6 @@ public:
         qFatal( "not implemented" );
     }
 
-protected:
     std::vector<PType> data;
     VI m_viewDims;
     Carta::Lib::Image::PixelType m_pixelType;
