@@ -78,6 +78,7 @@ private:
     min_heap<Scalar> bufferElements;
 
     /** For unit conversion */
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter;
     std::function<void(Scalar, double)> blockPushLambda;
     std::function<Scalar(size_t)> convertedValueLambda;
     std::function<void()> blockClearLambda;
@@ -139,14 +140,16 @@ Manku99Algorithm<Scalar>::Manku99Algorithm(const size_t numBuffers, const size_t
     mt = std::mt19937(rd());
     dist = std::uniform_int_distribution<>(0, samplingRate - 1);
     
+    this->converter = converter;
+    
     if (converter && converter->frameDependent) {
         blockPushLambda = [this] (const Scalar val, const double hzVal) {
             this->elementBlock.push_back(val);
             this->hzForBlock.push_back(hzVal);
         };
         
-        convertedValueLambda = [this, &converter] (const size_t & ri) {
-            return converter->_frameDependentConvert(this->elementBlock[ri], this->hzForBlock[ri]);
+        convertedValueLambda = [this] (const size_t & ri) {
+            return this->converter->_frameDependentConvert(this->elementBlock[ri], this->hzForBlock[ri]);
         };
         
         blockClearLambda = [this] () {
@@ -507,7 +510,7 @@ percentile2pixels_approximate_manku99(
         for (size_t f = 0; f < hertzValues.size(); f++) {
             hertzVal = hertzValues[f];
             Carta::Lib::NdArray::Double viewSlice = Carta::Core::Algorithms::viewSliceForFrame(view, spectralIndex, f);
-
+            
             // iterate over the frame
             viewSlice.forEach([&algorithm, &hertzVal] ( const Scalar & val ) {
                 if (std::isfinite(val)) {
