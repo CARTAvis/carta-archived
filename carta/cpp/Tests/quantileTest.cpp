@@ -49,7 +49,6 @@ public:
     }
 
     double _frameDependentConvert(const double y_val, const double x_val) override {
-        qDebug() << "got parameters" << y_val << x_val << "returning" << (y_val / pow(x_val, 2));
         return y_val / pow(x_val, 2);
     }
 
