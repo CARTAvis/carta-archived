@@ -6,6 +6,8 @@
 
 #include "CartaLib/Slice.h"
 
+/** Dummy view with basic slice support */
+
 class TestRawViewSliceStub
     : public TestRawView<double>
 {
@@ -38,23 +40,43 @@ public:
     }
 };
 
+/** Dummy converters */
+
+class FrameDependentConverter : public Carta::Lib::IntensityUnitConverter {
+public:
+    FrameDependentConverter() 
+        : Carta::Lib::IntensityUnitConverter("DUMMY_FROM", "DUMMY_TO", 2, true, "DUMMY_DEPENDENT_CONVERSION") {
+    }
+
+    double _frameDependentConvert(const double y_val, const double x_val) {
+        return y_val / pow(x_val, 2);
+    }
+
+    double _frameDependentConvertInverse(const double y_val, const double x_val) {
+        return y_val * pow(x_val, 2);
+    }
+};
+
+class FrameIndependentConverter : public Carta::Lib::IntensityUnitConverter {
+public:
+    FrameIndependentConverter() 
+        : Carta::Lib::IntensityUnitConverter("DUMMY_FROM", "DUMMY_TO", 2, false, "NONE") {
+    }
+};
+
+
 TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
-    
-    //std::uniform_real_distribution<double> dist(0, 100);
-    //std::default_random_engine gen;
 
     std::vector<int> dims = {200, 200, 10};
     int size = std::accumulate (begin(dims), end(dims), 1, [](int a, int& b){ return b*a; });
     std::vector<double> data(size);
     
     std::iota(data.begin(), data.end(), 1); // we start at 1 because we can't calculate a percentile error if the expected value is 0
-    std::shuffle(data.begin(), data.end(), std::mt19937{std::random_device{}()});
+    // shuffle randomly because ordered data breaks the Manku algorithm
+    // but don't seed the generator, to make the shuffle deterministic for the frame-dependent conversion test
+    std::shuffle(data.begin(), data.end(), std::mt19937{});
     
-    // TODO: add a seed to make this deterministic
-    // TODO: or replace by randomly shuffled known values
-    //std::generate(data.begin(), data.end(), [&]() { return dist(gen); });
-    
-    Carta::Lib::NdArray::RawViewInterface * rawView = new TestRawView<double>(data, dims);
+    Carta::Lib::NdArray::RawViewInterface * rawView = new TestRawViewSliceStub(data, dims);
     Carta::Lib::NdArray::Double doubleView(rawView, false);
         
     const std::vector<double> percentiles = {0, 0.01, 0.1, 0.9, 0.99, 1};
@@ -67,14 +89,43 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
         {0.99, 396000},
         {1, 400000}
     };
+
+    std::map <double, double> exactSolutionFrameDependent = {
+        {0, 0.015625},
+        {0.01, 103.3},
+        {0.1, 1035.14},
+        {0.9, 80052},
+        {0.99, 360171},
+        {1, 399994}
+    };
         
+    std::vector<double> dummyHzValues(10);
+    std::iota(dummyHzValues.begin(), dummyHzValues.end(), 1); // start with 1 because we divide by these in the dummy converter
+    int spectralIndex = 2;
+
     SECTION( "Exact algorithm, no conversion") {
         std::map <double, double> intensities = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles);
         REQUIRE(intensities.size() == percentiles.size());
         REQUIRE(intensities == exactSolution);
-        for (auto& kv : intensities) {
-            qDebug() << kv.first << ":" << kv.second;
+    }
+        
+    SECTION( "Exact algorithm, frame-dependent conversion") {
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = std::make_shared<FrameDependentConverter>();
+        
+        std::map <double, double> intensities = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
+        REQUIRE(intensities.size() == percentiles.size());
+        for (auto& p : percentiles) {
+            REQUIRE(abs(exactSolutionFrameDependent[p] - intensities[p]) < 1e-10);
         }
+    }
+        
+    SECTION( "Exact algorithm, frame-independent conversion") {
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = std::make_shared<FrameIndependentConverter>();
+
+        std::map <double, double> intensities = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
+        REQUIRE(intensities.size() == percentiles.size());
+        // This should remain unchanged; the constant multiplier is not applied within the quantile function
+        REQUIRE(intensities == exactSolution);
     }
 
     SECTION( "Manku 99 algorithm, no conversion") {
@@ -82,8 +133,35 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
         REQUIRE(intensities.size() == percentiles.size());
         for (auto& p : percentiles) {
             int error = abs(exactSolution[p] - intensities[p]);
-            double percentageError = 100 * error / size;
-            qDebug() << error << percentageError;
+            double fractionalError = (double)error / size;
+            //qDebug() << error << fractionalError;
+            REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
+        }
+    }
+
+    SECTION( "Manku 99 algorithm, frame-dependent conversion") {
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = std::make_shared<FrameDependentConverter>();
+        
+        std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter, dummyHzValues); // segfault! Woo!
+        REQUIRE(intensities.size() == percentiles.size());
+        for (auto& p : percentiles) {
+            int error = abs(exactSolutionFrameDependent[p] - intensities[p]);
+            double fractionalError = (double)error / size;
+            //qDebug() << error << fractionalError;
+            REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
+        }
+    }
+
+    SECTION( "Manku 99 algorithm, frame-independent conversion") {
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = std::make_shared<FrameIndependentConverter>();
+        
+        std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter);
+        REQUIRE(intensities.size() == percentiles.size());
+        for (auto& p : percentiles) {
+            int error = abs(exactSolution[p] - intensities[p]);
+            double fractionalError = (double)error / size;
+            //qDebug() << error << fractionalError;
+            REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
         }
     }
     
