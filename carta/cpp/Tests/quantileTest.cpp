@@ -49,6 +49,7 @@ public:
     }
 
     double _frameDependentConvert(const double y_val, const double x_val) override {
+        qDebug() << "got parameters" << y_val << x_val << "returning" << (y_val / pow(x_val, 2));
         return y_val / pow(x_val, 2);
     }
 
@@ -140,10 +141,13 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
     }
 
     // This is terrible. Why? Ordered data?
+    // Probably; the algorithm is weighted towards earlier data.
+    // How to fix this in the test?
+    // Add a scaling factor to the data after scrambling.
     SECTION( "Manku 99 algorithm, frame-dependent conversion") {
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = std::make_shared<FrameDependentConverter>();
         
-        std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter, dummyHzValues); // segfault! Woo!
+        std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
         REQUIRE(intensities.size() == percentiles.size());
         for (auto& p : percentiles) {
             int error = abs(exactSolutionFrameDependent[p] - intensities[p]);
