@@ -46,7 +46,8 @@ const double kernel_gaussian5[25] =
 
 static Carta::Lib::Algorithms::ContourConrec::Result
 conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, int jlb, int jub,
-        const VD & xCoords, const VD & yCoords, int nc, VD z, const ContourConrec::ContourMode mode=ContourConrec::ContourMode::ORIGINAL){
+        const VD & xCoords, const VD & yCoords, int nc, VD z,
+        const ContourConrec::ContourMode mode=ContourConrec::ContourMode::ORIGINAL){
 
     int ghost = 0; // The useless edge width when foing filter.
     const double kernal_default[1] = {1.0};
@@ -144,16 +145,11 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
 #define xsect( p1, p2 ) ( h[p2] * xh[p1] - h[p1] * xh[p2] ) / ( h[p2] - h[p1] )
 #define ysect( p1, p2 ) ( h[p2] * yh[p1] - h[p1] * yh[p2] ) / ( h[p2] - h[p1] )
 
-    int m1, m2, m3, case_value;
+    int m1, m2, m3, case_value, sh[5];
     double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-    double h[5];
-    int sh[5];
-    double xh[5], yh[5];
-    int im[4] = {
-        0, 1, 1, 0
-    }, jm[4] = {
-        0, 0, 1, 1
-    };
+    double h[5], xh[5], yh[5];
+    int im[4] = { 0, 1, 1, 0},
+        jm[4] = { 0, 0, 1, 1};
     int castab[3][3][3] = {
         { { 0, 0, 8 }, { 0, 2, 5 }, { 7, 6, 9 } },
         { { 0, 3, 4 }, { 1, 3, 1 }, { 4, 3, 0 } },
@@ -392,18 +388,9 @@ ContourConrec::compute(NdArray::RawViewInterface * view, QString typeName)
         mode = ContourConrec::ContourMode::BOXBLUR_5;
     }
 
-    result =
-        conrecFaster(
-            view,
-            0,
-            m_nCols - 1,
-            0,
-            m_nRows - 1,
-            xcoords,
-            ycoords,
-            m_levels.size(),
-            sortedRawLevels,
-            mode );
+    result = conrecFaster( view, 0, m_nCols - 1, 0, m_nRows - 1,
+                xcoords, ycoords, m_levels.size(), sortedRawLevels,
+                mode );
 
     if (typeName == "Line combiner") {
 
