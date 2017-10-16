@@ -25,6 +25,18 @@ const double kernel_gaussian5[25] =
   0.01031068, 0.05944323, 0.10430201, 0.05944323, 0.01031068,
   0.00178843, 0.01031068, 0.01809162, 0.01031068, 0.00178843};
 
+const double kernel_box3[9] =
+{ 1.0/9.0, 1.0/9.0, 1.0/9.0,
+  1.0/9.0, 1.0/9.0, 1.0/9.0,
+  1.0/9.0, 1.0/9.0, 1.0/9.0};
+
+const double kernel_box5[25] =
+{ 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0,
+  1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0,
+  1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0,
+  1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0,
+  1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0};
+
 /*
  * The code below is modified version of Paul Bourke's algorithm:
  *
@@ -49,10 +61,9 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
         const VD & xCoords, const VD & yCoords, int nc, VD z,
         const ContourConrec::ContourMode mode=ContourConrec::ContourMode::ORIGINAL){
 
-    int ghost = 0; // The useless edge width when foing filter.
+    int ghost = 0; // The useless edge width when doing filter.
     const double kernal_default[1] = {1.0};
     const double *kernel = &kernal_default[0];
-    bool average = false;
     switch (mode) {
         case ContourConrec::ContourMode::GAUSSIANBLUR_3:
             ghost = 1;
@@ -64,11 +75,11 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
             break;
         case ContourConrec::ContourMode::BOXBLUR_3:
             ghost = 1;
-            average = true;
+            kernel = &kernel_box3[0];
             break;
         case ContourConrec::ContourMode::BOXBLUR_5:
             ghost = 2;
-            average = true;
+            kernel = &kernel_box5[0];
             break;
         default:
             break;
@@ -78,14 +89,14 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
     // int nRows = jub - jlb + 1;
     int nCols = iub - ilb - (2*ghost) + 1;
     int prepareCols = iub - ilb + 1;
-    int prepareRows = 2 + 2*ghost;
+    int prepareRows = 2*ghost + 1;
     double * rows[2] { nullptr, nullptr };
     std::vector < double > row1( nCols ), row2( nCols );
     rows[0] = & row1[0];
     rows[1] = & row2[0];
     int nextRowToReadIn = 0;
 
-    auto prepareData = [&]() -> void {
+    auto updateRows = [&]() -> void {
         CARTA_ASSERT( nextRowToReadIn < view-> dims()[1] );
 
         SliceND rowSlice;
@@ -93,8 +104,15 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
         auto rawRowView = view-> getView( rowSlice );
         nextRowToReadIn++;
 
+        // make a double view of this raw row view
         Carta::Lib::NdArray::Double dview( rawRowView, true );
         VD prepareArea( prepareCols*prepareRows );
+
+        // shift the row up
+        // note: we could avoid this memory copy if we swapped row[] pointers instead,
+        // and alternately read in the data into row1,row2..., for a miniscule performance
+        // gain and lot more complicated algorithm
+        row1 = row2;
 
         // Prepare Data for possible filter
         int t = 0;
@@ -104,37 +122,23 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
 
         // Do the filter
         for ( int i=0; i<nCols; i++){
-            row1[i] = 0;
             row2[i] = 0;
             int elems = (2*ghost+1)*(2*ghost+1);
             for ( int e=0; e<elems; e++){
                 int row = e/(2*ghost+1);
                 int col = e%(2*ghost+1);
-                int index1 =  row   *prepareCols + col + i;
-                int index2 = (row+1)*prepareCols + col + i;
-                double coeff = ( average ? 1.0 : kernel[e]);
-                row1[i] += coeff*prepareArea[index1];
-                row2[i] += coeff*prepareArea[index2];
-            }
-            if (average){
-                row1[i] /= elems;
-                row2[i] /= elems;
+                int index =  row   *prepareCols + col + i;
+                row2[i] += kernel[e]*prepareArea[index];
             }
         }
     };
+    updateRows();
 
 //    NdArray::Double doubleView( view, false );
 //    auto acc = [& doubleView] ( int col, int row ) {
 //        return doubleView.get( { col, row }
 //                               );
 //    };
-
-    // to keep the data accessor easy, we use this lambda, and hope the compiler
-    // optimizes it into an inline expression... :)
-    auto acc = [&] ( int col, int row ) {
-        row -= nextRowToReadIn - 1;
-        return rows[row][col];
-    };
 
     Carta::Lib::Algorithms::ContourConrec::Result result;
     if ( nc < 1 ) {
@@ -159,17 +163,17 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
     // original code went from bottom to top, not sure why
     //    for ( j = ( jub - 1 ) ; j >= jlb ; j-- ) {
     for ( int j = jlb ; j < jub-2*ghost ; j++ ) {
-        prepareData();
+        updateRows();
         for ( int i = ilb ; i < iub-2*ghost ; i++ ) {
-            double temp1 = std::min( acc( i, j ), acc( i, j + 1 ) );
-            double temp2 = std::min( acc( i + 1, j ), acc( i + 1, j + 1 ) );
+            double temp1 = std::min( rows[0][i]  , rows[1][i]   );
+            double temp2 = std::min( rows[0][i+1], rows[1][i+1] );
             double dmin = std::min( temp1, temp2 );
             // early abort if one of the values is not finite
             if ( ! std::isfinite( dmin ) ) {
                 continue;
             }
-            temp1 = std::max( acc( i, j ), acc( i, j + 1 ) );
-            temp2 = std::max( acc( i + 1, j ), acc( i + 1, j + 1 ) );
+            temp1 = std::max( rows[0][i]  , rows[1][i]   );
+            temp2 = std::max( rows[0][i+1], rows[1][i+1] );
             double dmax = std::max( temp1, temp2 );
             if ( dmax < z[0] || dmin > z[nc - 1] ) {
                 continue;
@@ -180,7 +184,8 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
                 }
                 for ( int m = 4 ; m >= 0 ; m-- ) {
                     if ( m > 0 ) {
-                        h[m] = acc( i + im[m - 1], j + jm[m - 1] ) - z[k];
+                        int ii = i + im[m-1], jj = jm[m-1];
+                        h[m] = rows[jj][ii] - z[k];
                         xh[m] = xCoords[i + ghost + im[m - 1]];
                         yh[m] = yCoords[j + ghost + jm[m - 1]];
                     }
