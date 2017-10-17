@@ -51,7 +51,7 @@ echo "install gfortran, start to backup travis-c++"
 mv /usr/local/include/c++ /usr/local/include/c++_backup # this folder is from homebrew's gcc49
 su $SUDO_USER <<EOF
 echo "attempted fix for the Homebrew Ruby 2.3 error"
-brew update
+brew update 
 brew install gcc
 brew update
 EOF
