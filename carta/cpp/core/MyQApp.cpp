@@ -13,7 +13,7 @@ MyQApp::MyQApp( int & argc, char * * argv ) :
     QApplication( argc, argv )
 {
     setApplicationName( "carta" );
-    setApplicationVersion( "0.0.1" );
+    setApplicationVersion( "0.9" );
 }
 
 #if CARTA_RUNTIME_CHECKS > 0
