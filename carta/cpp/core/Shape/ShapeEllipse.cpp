@@ -66,8 +66,8 @@ Carta::Lib::VectorGraphics::VGList ShapeEllipse::getVGList() const {
 
 	//Only draw the rest if we are not creating the region.
 	if ( !isEditMode() ){
-		//Draw the control points and show the outline if hovered or selected
-		if ( isHovered() || isSelected()){
+		//Draw the control points and show the outline if selected
+		if ( isSelected()){
 			comp.append < vge::SetPen > ( rectPen );
 			comp.append < vge::DrawRect > ( m_shadowRect );
 			comp.append < vge::SetPen > ( pen );
@@ -132,7 +132,7 @@ bool ShapeEllipse::isPointInside( const QPointF & pt ) const {
 void ShapeEllipse::_moveShadow( const QPointF& pt ){
 	// calculate offset to move the shadow polygon to match the un-edited shape
 	QRectF fixedRect = m_ellipseRegion->outlineBox();
-	QPointF alreadyMoved = m_shadowRect.topLeft() - fixedRect.topLeft();
+	QPointF alreadyMoved = m_shadowRect.center() - fixedRect.center();
 
 	// now move it by the amount of drag
 	QPointF totalDrag = pt - m_dragStart;
@@ -171,16 +171,11 @@ void ShapeEllipse::_updateEllipseFromShadow(){
 	m_shadowRect = m_shadowRect.normalized();
 	double width = m_shadowRect.width();
 	double height = m_shadowRect.height();
-	if ( width < height ){
-		m_ellipseRegion->setRadiusMajor( height / 2 );
-		m_ellipseRegion->setRadiusMinor( width / 2 );
-		m_ellipseRegion->setAngle( 0 );
-	}
-	else {
-		m_ellipseRegion->setRadiusMajor( width / 2 );
-		m_ellipseRegion->setRadiusMinor( height / 2 );
-		m_ellipseRegion->setAngle( 90 );
-	}
+
+	m_ellipseRegion->setRadiusMajor( width / 2 );
+	m_ellipseRegion->setRadiusMinor( height / 2 );
+	m_ellipseRegion->setAngle( 0 );
+
 	m_ellipseRegion->setCenter( m_shadowRect.center() );
 }
 

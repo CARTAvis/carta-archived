@@ -20,6 +20,10 @@ double ProfileInfo::getRestFrequency() const {
     return m_restFrequency;
 }
 
+int ProfileInfo::getStokesFrame() const{
+    return m_stokesFrame;
+}
+
 QString ProfileInfo::getRestUnit() const {
     return m_restUnit;
 }
@@ -40,7 +44,9 @@ bool ProfileInfo::operator==( const ProfileInfo& rhs ) const {
                 if ( m_spectralUnit == rhs.m_spectralUnit ){
                     const double ERROR_MARGIN = 0.000001;
                     if ( fabs( m_restFrequency - rhs.m_restFrequency ) < ERROR_MARGIN ){
-                        equalProfiles = true;
+                        if ( m_stokesFrame == rhs.m_stokesFrame ){
+                            equalProfiles = true;
+                        }
                     }
                 }
             }
@@ -72,6 +78,10 @@ void ProfileInfo::setSpectralType( const QString& specType ){
 
 void ProfileInfo::setSpectralUnit( const QString& specUnit ){
     m_spectralUnit = specUnit;
+}
+
+void ProfileInfo::setStokesFrame( const int frame ){
+    m_stokesFrame = frame;
 }
 
 ProfileInfo::~ProfileInfo(){

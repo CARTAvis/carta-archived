@@ -41,6 +41,7 @@ const QString CurveData::REST_UNIT_FREQ = "restUnitFreq";
 const QString CurveData::REST_UNIT_WAVE = "restUnitWave";
 const QString CurveData::SPECTRAL_TYPE = "spectralType";
 const QString CurveData::SPECTRAL_UNIT = "spectralUnit";
+const QString CurveData::STOKES_FRAME = "stokesFrame";
 
 
 class CurveData::Factory : public Carta::State::CartaObjectFactory {
@@ -373,26 +374,23 @@ QString CurveData::getSpectralUnit() const {
 	return m_state.getValue<QString>( SPECTRAL_UNIT );
 }
 
-Carta::Lib::ProfileInfo CurveData::_generateProfileInfo( double restFrequency, const QString& restUnit,
-	const QString& statistic, const QString& spectralType, const QString& spectralUnit ){
-	 Carta::Lib::ProfileInfo profInfo;
-	    profInfo.setRestFrequency( restFrequency );
-	    profInfo.setRestUnit( restUnit );
-	    Carta::Lib::ProfileInfo::AggregateType agType = m_stats ->getTypeFor( statistic );
-	    profInfo.setAggregateType( agType );
-	    profInfo.setSpectralUnit( spectralUnit );
-	    profInfo.setSpectralType( spectralType );
-	    return profInfo;
-}
-
 Carta::Lib::ProfileInfo CurveData::getProfileInfo() const {
     double restFreq = getRestFrequency();
     QString restUnits = getRestUnits();
     QString stat = getStatistic();
     QString spectralUnit = getSpectralUnit();
     QString spectralType = getSpectralType();
-    Carta::Lib::ProfileInfo profInfo = _generateProfileInfo( restFreq, restUnits, stat,
-    		spectralType, spectralUnit );
+    int stokesFrame = getStokesFrame();
+    Carta::Lib::ProfileInfo profInfo;
+
+    profInfo.setRestFrequency( restFreq );
+    profInfo.setRestUnit( restUnits );
+    Carta::Lib::ProfileInfo::AggregateType agType = m_stats ->getTypeFor( stat );
+    profInfo.setAggregateType( agType );
+    profInfo.setSpectralUnit( spectralUnit );
+    profInfo.setSpectralType( spectralType );
+    profInfo.setStokesFrame( stokesFrame );
+
     return profInfo;
 }
 
@@ -423,6 +421,10 @@ QString CurveData::getStateString() const{
 
 QString CurveData::getStatistic() const {
     return m_state.getValue<QString>( STATISTIC );
+}
+
+int CurveData::getStokesFrame() const {
+    return m_state.getValue<int>( STOKES_FRAME );
 }
 
 std::vector<double> CurveData::getValuesX() const {
@@ -467,6 +469,7 @@ void CurveData::_initializeDefaultState(){
     m_state.insertValue<QString>(REST_UNIT_WAVE, m_wavelengthUnits->getDefault());
     m_state.insertValue<QString>(SPECTRAL_TYPE, "");
     m_state.insertValue<QString>(SPECTRAL_UNIT, "");
+    m_state.insertValue<int>(STOKES_FRAME, -1);
 
     m_state.insertValue<bool>(FIT_SELECT, true );
     m_stateFit.insertObject( FIT );
@@ -512,7 +515,7 @@ bool CurveData::isMatch( std::shared_ptr<Layer> layer, std::shared_ptr<Region> r
     bool match = false;
     if ( layer && m_layer ){
     	if ( layer->_getLayerName() == m_layer->_getLayerName()){
-			if ( (!region && !m_region) || (m_region && region && m_region->getRegionName()== region->getRegionName()) ){
+            if ( (!region && !m_region) || this->getName() == _generateName( layer, region) ){
 				Carta::Lib::ProfileInfo profInfo = getProfileInfo();
 				if ( profInfo == otherProfInfo ){
 					match = true;
@@ -802,6 +805,10 @@ QString CurveData::setStatistic( const QString& stat ){
         result = "Unrecognized profile statistic: "+stat;
     }
     return result;
+}
+
+void CurveData::setStokesFrame( const int frame ){
+    m_state.setValue<int>( STOKES_FRAME, frame);
 }
 
 CurveData::~CurveData(){

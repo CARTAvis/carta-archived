@@ -33,7 +33,6 @@ Plot::Plot( QWidget* parent):
     m_visible = false;
 
     setCanvasBackground( Qt::white );
-    setAxisAutoScale( m_axisLocationY, false );
     setAutoReplot( false );
 }
 
@@ -364,4 +363,3 @@ Plot::~Plot(){
 
 }
 }
-	

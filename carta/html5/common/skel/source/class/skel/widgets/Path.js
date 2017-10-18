@@ -13,6 +13,7 @@ qx.Class.define("skel.widgets.Path", {
         this.CLIPS = this.BASE_PATH + "Clips";
         this.COLORMAPS = this.BASE_PATH + "Colormaps";
         this.CONTOUR_GENERATE_MODES = this.BASE_PATH + "ContourGenerateModes";
+        this.CONTOUR_TYPE_MODES = this.BASE_PATH + "ContourTypes";
         this.CONTOUR_LINE_STYLES = this.BASE_PATH + "ContourStyles";
         this.CONTOUR_SPACING_MODES = this.BASE_PATH + "ContourSpacingModes";
         this.COORDINATE_SYSTEMS = this.BASE_PATH + "CoordinateSystems";
@@ -68,6 +69,7 @@ qx.Class.define("skel.widgets.Path", {
         COLORMAP_PLUGIN : "Colormap",
         COLORMAPS : "",
         CONTOUR_GENERATE_MODES : "",
+        CONTOUR_TYPE_MODES : "",
         CONTOUR_LINE_STYLES : "",
         CONTOUR_SPACING_MODES : "",
         COORDINATE_SYSTEMS : "",

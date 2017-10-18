@@ -5,6 +5,7 @@
 #include "DefaultContourGeneratorService.h"
 #include "CartaLib/Algorithms/ContourConrec.h"
 #include <utility>
+#include <QElapsedTimer>
 
 namespace Carta
 {
@@ -16,6 +17,12 @@ DefaultContourGeneratorService::DefaultContourGeneratorService( QObject * parent
     m_timer.setInterval( 1 );
     m_timer.setSingleShot( true );
     connect( & m_timer, & QTimer::timeout, this, & Me::timerCB );
+}
+
+void
+DefaultContourGeneratorService::setName( const QString & name )
+{
+    m_name = name;
 }
 
 void
@@ -48,10 +55,21 @@ DefaultContourGeneratorService::start( Lib::IContourGeneratorService::JobId jobI
 void
 DefaultContourGeneratorService::timerCB()
 {
+    // add timer
+    QElapsedTimer timer;
+    timer.start();
+
     // run the contour algorithm
     Carta::Lib::Algorithms::ContourConrec cc;
-    cc.setLevels( m_levels);
-    auto rawContours = cc.compute( m_rawView.get() );
+
+    cc.setLevels(m_levels);
+    auto rawContours = cc.compute(m_rawView.get(), m_name);
+
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        // stop the timer and print out the elapsed time
+        qDebug() << "++++++++ [contour] Spending time for calculating contours:" << elapsedTime << "ms";
+    }
 
     // build the result
     Result result;

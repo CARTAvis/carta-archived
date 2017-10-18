@@ -214,6 +214,164 @@ intensities2percentiles(
     return percentiles;
 }
 
+///
+/// C.C. Chiang: compute the approximation of percentile and return
+///              pixel values (w or w/o their spectral channels)
+///
+// TODO make converter-aware
+
+template < typename Scalar >
+static
+std::map<double, Scalar>
+percentile2pixels_approximation(
+    Carta::Lib::NdArray::TypedView <Scalar> & view,
+    int spectralIndex,
+    std::vector<double> minMaxIntensities,
+    unsigned int pixelDividedNo,
+    std::vector<double> quant
+    )
+{
+    // basic preconditions
+    if ( CARTA_RUNTIME_CHECKS ) {
+        for ( auto q : quant ) {
+            CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
+            Q_UNUSED(q);
+        }
+    }
+
+    std::map<double, Scalar> result; // define the output results
+
+    std::vector<size_t> element(pixelDividedNo+1, 0); // initialize the vector elements as 0
+
+    double minIntensity = minMaxIntensities[0]; // get the minimum intensity
+    double maxIntensity =  minMaxIntensities[1]; // get the maximum intensity
+    double intensityRange = fabs(maxIntensity - minIntensity); // calculate the intensity range of the raw data
+    unsigned int pixelIndex; // the index of vector element
+
+    // start timer for computing approximate percentiles
+    QElapsedTimer timer;
+    timer.start();
+
+    // convert pixel values from raw data to 1-D histogram and save it in a vector
+    view.forEach(
+        [&element, &pixelDividedNo, &pixelIndex, &minIntensity, &intensityRange] (const Scalar &val) {
+            if (std::isfinite(val)) {
+                pixelIndex = static_cast<unsigned int>(round(pixelDividedNo*(val-minIntensity)/intensityRange));
+                element[pixelIndex]++;
+            }
+        }
+    );
+    
+    // total number of finite values
+    size_t indexOfFinite = std::accumulate(element.begin(), element.end(), 0);
+    
+    qDebug() << ", finite raw data number=" << indexOfFinite;
+
+    // indicate bad clip if no finite numbers were found
+    if ( indexOfFinite == 0 ) {
+        qFatal( "The size of finite raw data is zero !!" );
+    }
+
+    int sizeOfQuant = quant.size();
+    size_t accumulateEvent = 0;
+    size_t stopNo[sizeOfQuant];
+    std::vector<bool> flag(sizeOfQuant, false);
+    double pixelValue[sizeOfQuant];
+    double pixelValueError = intensityRange/pixelDividedNo;
+
+    // get accumulation numbers for histogram with respect to specific percentiles
+    for (int j = 0; j < sizeOfQuant; j++) {
+        stopNo[j] = quant[j] * indexOfFinite;
+    }
+
+    // convert histogram accumulation numbers to pixel values
+    for (unsigned int i = 0; i < pixelDividedNo+1; i++) {
+        accumulateEvent += element[i];
+        for (int j = 0; j < sizeOfQuant; j++) {
+            if (accumulateEvent > stopNo[j] && flag[j] == false) {
+                pixelValue[j] = (intensityRange * i / pixelDividedNo) + minIntensity;
+                flag[j] = true;
+            }
+        }
+    }
+
+    // print out and save the results
+    for (int j = 0; j < sizeOfQuant; j++) {
+        qDebug() << "++++++++ for percentile=" << quant[j] << "intensity=" << pixelValue[j] << "+/-" << pixelValueError;
+        result[quant[j]] = pixelValue[j];
+    }
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get the approximate value:" << elapsedTime << "ms";
+    }
+
+    return result;
+}
+
+
+///
+/// C.C. Chiang: compute the minimum and maximum pixel values
+///              with respect to their spectral channels
+///
+// TODO make converter-aware
+template < typename Scalar >
+static
+std::map<double, Scalar>
+minMax2pixels(
+    Carta::Lib::NdArray::TypedView < Scalar > & view,
+    int spectralIndex,
+    std::vector < double > quant
+    )
+{
+    // basic preconditions
+    if ( CARTA_RUNTIME_CHECKS ) {
+        for ( auto q : quant ) {
+            CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
+            Q_UNUSED(q);
+        }
+    }
+
+    std::map<double, Scalar> result;
+    Scalar minPixel = std::numeric_limits<Scalar>.max();
+    Scalar maxPixel = std::numeric_limits<Scalar>.lowest();
+
+    // start timer for scanning the raw data
+    QElapsedTimer timer;
+    timer.start();
+
+    // scan the raw data from the view to get the minimum and maximum pixel values
+    // with respect to their spectral channels
+    view.forEach(
+        [&minPixel, &maxPixel] ( const Scalar &val ) {
+            if ( std::isfinite( val ) ) {
+                minPixel = std::min(minPixel, val);
+                maxPixel = std::max(maxPixel, val);
+            }
+        }
+    );
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to scan the raw data:" << elapsedTime << "ms";
+    }
+
+    //// is there a sufficiently good reason to count the values?
+    //// We may be able to use currentPos() to check if we iterated over anything.
+    //if (index == 0) {
+        //qFatal( "The size of raw data is zero !!" );
+    //}
+
+    for ( double q : quant ) {
+        if (q==0) result[q] = minPixel;
+        if (q==1) result[q] = maxPixel;
+    }
+
+    return result;
+}
+
 
 }
 }

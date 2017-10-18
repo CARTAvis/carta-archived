@@ -188,10 +188,10 @@ else
 	cd $cartawork/CARTAvis-externals/ThirdParty
 	# yum:1.15. so carta keeps building it from source code.
 	# casa's cmake needs yum version to pass the check but it will use /usr/local in high priority when building
-	curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.1.tar.gz
-	tar xvfz gsl-2.1.tar.gz > /dev/null
-	mv gsl-2.1 gsl-2.1-src
-	cd gsl-2.1-src
+	curl -O -L http://ftp.gnu.org/gnu/gsl/gsl-2.3.tar.gz
+	tar xvfz gsl-2.3.tar.gz > /dev/null
+	mv gsl-2.3 gsl-2.3-src
+	cd gsl-2.3-src
 	./configure
 	make
 	sudo make install

@@ -20,7 +20,7 @@
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include <QtCore/qmath.h>
 #include <set>
-
+#include <QElapsedTimer>
 #include <QDebug>
 
 namespace Carta {
@@ -35,8 +35,6 @@ const QString Colormap::INTENSITY_MIN = "intensityMin";
 const QString Colormap::INTENSITY_MAX = "intensityMax";
 const QString Colormap::PERCENT_MIN = "percentMin";
 const QString Colormap::PERCENT_MAX = "percentMax";
-//const QString Colormap::INTENSITY_MIN_INDEX = "intensityMinIndex";
-//const QString Colormap::INTENSITY_MAX_INDEX = "intensityMaxIndex";
 const QString Colormap::TAB_INDEX = "tabIndex";
 
 
@@ -84,7 +82,7 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
         if ( objAdded ){
             connect( target, SIGNAL(colorChanged(Controller*)), this, SLOT(_setColorStates(Controller*)));
             _setColorStates( target );
-            connect( target, SIGNAL(clipsChanged(double,double)), this, SLOT(_updateIntensityBounds(double,double)));
+            connect( target, SIGNAL(clipsChanged(double,double,bool)), this, SLOT(_updateIntensityBounds(double,double,bool)));
             connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT( _dataChanged(Controller*)));
             _dataChanged( target );
 
@@ -307,9 +305,9 @@ std::pair<double,double> Colormap::_getIntensities(bool &success, const double m
     return std::make_pair(-1, -1);
 }
 
-
 void Colormap::_dataChanged( Controller* controller ){
     if ( controller ){
+        bool autoClip = controller->getAutoClip();
         double colorMinPercent = controller->getClipPercentileMin();
         double colorMaxPercent = controller->getClipPercentileMax();
         
@@ -322,11 +320,9 @@ void Colormap::_dataChanged( Controller* controller ){
             m_state.setValue<QString>(IMAGE_UNITS, latest_default_units);
         }
         
-        _updateIntensityBounds( colorMinPercent, colorMaxPercent );
+        _updateIntensityBounds( colorMinPercent, colorMaxPercent, autoClip );
     }
 }
-
-
 
 Controller* Colormap::_getControllerSelected() const {
     //We are only supporting one linked controller.
@@ -393,8 +389,7 @@ void Colormap::_initializeDefaultState(){
     m_stateData.insertValue<double>( INTENSITY_MAX, 1 );
     m_stateData.insertValue<double>( PERCENT_MIN, 0 );
     m_stateData.insertValue<double>( PERCENT_MAX, 1 );
-    //m_stateData.insertValue<int>( INTENSITY_MIN_INDEX, 0 );
-    //m_stateData.insertValue<int>( INTENSITY_MAX_INDEX, 0 );
+
     m_stateData.flushState();
 
     //Mouse
@@ -1142,7 +1137,7 @@ void Colormap::_updateImageClips(){
     }
 }
 
-void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
+void Colormap::_updateIntensityBounds( double minPercent, double maxPercent, bool autoClip ){
 
     bool success(false);
     std::pair<double, double> intensities;
@@ -1172,7 +1167,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
             m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
         }
         
-        if ( intensityChanged ){
+        if ( intensityChanged || autoClip == false ){
             m_stateData.setValue<double>( PERCENT_MIN, minPercent );
             m_stateData.setValue<double>( PERCENT_MAX, maxPercent );
             _colorStateChanged();

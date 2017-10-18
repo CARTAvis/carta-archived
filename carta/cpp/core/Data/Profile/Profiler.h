@@ -79,10 +79,10 @@ public:
     QString getAxisUnitsX() const;
 
     /**
-        * Returns the units on the y-axis of the profile.
-        * @return - the profile y-axis units.
-        */
-       QString getAxisUnitsY() const;
+     * Returns the units on the y-axis of the profile.
+     * @return - the profile y-axis units.
+     */
+    QString getAxisUnitsY() const;
 
     /**
      * Return the number of Gaussians to fit to the curve.
@@ -155,6 +155,12 @@ public:
      * @return - the aggregation statistic used to compute the profile.
      */
     QString getStatistic( const QString& curveName ) const;
+
+    /**
+     * Return the current frame of stokes
+     * @return - the current frame of stokes
+     */
+    int getStokesFrame() const;
 
     /**
      * Returns the upper limit of the zoom range on the x-axis.

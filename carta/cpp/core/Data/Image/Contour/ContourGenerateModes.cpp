@@ -19,7 +19,7 @@ class ContourGenerateModes::Factory : public Carta::State::CartaObjectFactory {
     public:
 
         Factory():
-            CartaObjectFactory( CLASS_NAME ){};
+            CartaObjectFactory( CLASS_NAME ){}
 
         Carta::State::CartaObject * create (const QString & path, const QString & id)
         {
@@ -30,7 +30,6 @@ class ContourGenerateModes::Factory : public Carta::State::CartaObjectFactory {
 
 bool ContourGenerateModes::m_registered =
         Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new ContourGenerateModes::Factory());
-
 
 ContourGenerateModes::ContourGenerateModes( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ){

@@ -85,6 +85,14 @@ public:
     QString setGenerateMethod( const QString& method );
 
     /**
+     * Set the type used to generate contour levels within the set.
+     * @param method - an identifier for a method used to generate contour levels.
+     * @return - an error message if there was a problem setting the method used to
+     *      generate contour levels; an empty string otherwise.
+     */
+    QString setContourType( const QString& type );
+
+    /**
      * Set the type of spacing to use between contour levels (linear, logarithmic, etc).
      * @param method - an identifier for the spacing to use between contour levels.
      * @return - an error message if there was a problem setting the spacing; an empty
@@ -189,11 +197,11 @@ private:
     const static QString LEVEL_LIST;
     const static QString LEVEL_SEPARATOR;
 
-    void _addContourSet( const std::vector<double>& levels, const QString& contourSetName );
+    void _addContourSet(const std::vector<double>& levels, const QString& contourSetName, const QString &contourType);
 
-    QString _generateRange( const QString& contourSetName);
-    QString _generateMinimum( const QString& contourSetName );
-    QString _generatePercentile( const QString& contourSetName );
+    QString _generateRange(const QString& contourSetName, const QString &contourType);
+    QString _generateMinimum(const QString& contourSetName, const QString &contourType);
+    QString _generatePercentile(const QString& contourSetName, const QString &contourType);
 
     DataContours* _getContour( const QString& setName );
     std::vector<double> _getLevels( double minLevel, double maxLevel ) const;

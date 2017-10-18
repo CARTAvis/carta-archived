@@ -2,6 +2,7 @@
 #include "CoordinateSystems.h"
 #include "Data/Colormap/Colormaps.h"
 #include "Globals.h"
+#include "MainConfig.h"
 #include "PluginManager.h"
 #include "GrayColormap.h"
 #include "CartaLib/IImage.h"
@@ -15,9 +16,10 @@
 #include "../../ImageRenderService.h"
 #include "../../Algorithms/percentileAlgorithms.h"
 #include "../../Algorithms/cacheUtils.h"
+#include "../Clips.h"
 #include <QDebug>
-#include <sys/time.h>
-#include <numeric>
+#include <QElapsedTimer>
+
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 
@@ -33,6 +35,7 @@ const int DataSource::INDEX_INTENSITY = 1;
 const int DataSource::INDEX_PERCENTILE = 2;
 const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
+const bool DataSource::APPROXIMATION_GET_LOCATION = false; // set whether to get the location (channel) of the specific pixel value
 
 CoordinateSystems* DataSource::m_coords = nullptr;
 
@@ -247,7 +250,7 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
         if (isAutoClip == true) {
             std::vector<int> mFrames = _fitFramesToImage( frames );
             std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view ( _getRawData( mFrames ) );
-            std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames);
+            std::vector<double> intensity = _getQuantileIntensityCache(view, minPercent, maxPercent, frames, false);
 
             // set print out values with rounded intensities
             QString sci_intensityMin = QString::number(intensity[0], 'E', 3);
@@ -365,9 +368,6 @@ QString DataSource::_getPixelValue( double x, double y, const std::vector<int>& 
     return pixelValue;
 }
 
-
-
-
 int DataSource::_getFrameCount( AxisInfo::KnownType type ) const {
     int frameCount = 1;
     if ( m_image ){
@@ -382,8 +382,6 @@ int DataSource::_getFrameCount( AxisInfo::KnownType type ) const {
     return frameCount;
 }
 
-
-
 int DataSource::_getDimension( int coordIndex ) const {
     int dim = -1;
     if ( 0 <= coordIndex && coordIndex < _getDimensions()){
@@ -391,7 +389,6 @@ int DataSource::_getDimension( int coordIndex ) const {
     }
     return dim;
 }
-
 
 int DataSource::_getDimensions() const {
     int imageSize = 0;
@@ -430,43 +427,370 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
+
+std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const {
+    std::pair<bool, double> result = std::make_pair(false, -1);
+    for (int i = 0; i < comparedValue.size(); i++) {
+        if (fabs(inputValue - comparedValue[i]) < threshold) {
+            result = std::make_pair(true, comparedValue[i]);
+            break;
+        }
+    }
+    return result;
+}
+
+std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const {
+    std::pair<double, double> result = std::make_pair(-1, -1);
+    if (m_diskCache) {
+        bool intensityInCache = false;
+        double value = -1; // define intensity
+        double error = -1; // define intensity error order, i.e. (max-min)*[error order]
+        QString intensityKey = QString("%1/%2/%3/%4/%5/%6/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentile).arg(transformation_label);
+        QByteArray intensityVal, intensityError;
+        intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal, intensityError);
+        if (intensityInCache) {
+            value = qb2d(intensityVal);
+            error = qb2d(intensityError);
+        }
+        //qDebug() << "[read intensity] intensity=" << value << "intensity error order=" << error;
+        result = std::make_pair(value, error);
+    }
+    return result;
+}
+
+// TODO: have to add the transformation label
+void DataSource::_setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const {
+    if (m_diskCache) {
+        QString intensityKey = QString("%1/%2/%3/%4/%5/%6/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentile).arg(transformation_label);
+        m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensity), d2qb(error));
+    }
+}
+
+// TODO: have to make this converter-aware
+std::vector<std::pair<int,double>> DataSource::_getMinMaxIntensity(int frameLow, int frameHigh, int stokeFrame, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    std::vector<double> percentiles {0, 1}; // get the minimum and maximum percentiles: 0 % and 100 %
+    int percentileCount = percentiles.size();
+    std::vector<double> intensities(percentileCount, -1);
+    std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
+    int foundCount = 0;
+    std::vector<bool> found(percentileCount, false);
+    QString transformation_label = converter ? converter->label : "NONE";
+
+    // If the disk cache exists, try to look up cached intensity and location values
+    for (int i = 0; i < percentileCount; i++) {
+        intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
+        if (intensityCache[i].second == 0 /* intensity cache exists and has a zero error order */) {
+            intensities[i] = intensityCache[i].first;
+            // We only cache statistics for each distinct frame-dependent calculation
+            // But we need to apply any constant multipliers
+            if (converter) {
+                intensities[i] = intensities[i] * converter->multiplier;
+            }
+            foundCount++;
+            found[i] = true;
+            qDebug() << "++++++++ [find cache] for percentile" << percentiles[i]
+                     << ", intensity=" << intensities[i] << "+/- (max-min)*" << intensityCache[i].second;
+        }
+    }
+
+    // If they are not found in the cache, we have to look for the raw data!
+    if (foundCount < percentileCount) {
+        qCritical() << "Can not find the minimum and maximum intensities fram cache !! We need to look for the raw data !!";
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
+
+        if (rawData == nullptr) {
+            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+            return intensities;
+        }
+
+        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+        Carta::Lib::NdArray::Double doubleView(view.get(), false);
+        std::vector<double> percentiles_to_calculate;
+
+        for (int i = 0; i < percentileCount; i++) {
+            if (!found[i]) {
+                percentiles_to_calculate.push_back(percentiles[i]);
+            }
+        }
+
+        // Calculate only the required percentiles
+        std::map<double, double> clips_map = Carta::Core::Algorithms::minMax2pixels(doubleView, spectralIndex, percentiles_to_calculate);
+
+        for (int i = 0; i < percentileCount; i++) {
+            if (!found[i]) {
+                intensities[i] = clips_map[percentiles[i]];
+                found[i] = true; // for completeness, in case we test this later
+
+                // put calculated values in the disk cache if it exists
+                // the intensity error is zero, because we use iteration algorithm "minMax2pixels()" for the precise percentile calculation
+                if (m_diskCache) {
+                    _setIntensityCache(intensities[i].second, 0, frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
+                }
+                
+                // apply any constant multiplier *after* caching the frame-dependent portion of the calculation
+                if (converter) {
+                    intensities[i] = intensities[i] * converter->multiplier;
+                }
+            }
+        }
+    }
+    return intensities;
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+// TODO: we need to merge two versions of this function
+// TODO: so remove the location stuff first, and then merge?
+
+// 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
+std::vector<std::pair<int,double> > DataSource::_getIntensity(int frameLow, int frameHigh,
+        const std::vector<double>& percentiles, int stokeFrame) {
+    int percentileCount = percentiles.size();
+    std::vector<double> intensities(percentileCount, 0);
+    std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
+    int foundCount = 0;
+    std::vector<bool> found(percentileCount, false);
+
+    // get the default setting whether to turn on the approximation algorithm for percentile calculations from "config.json"
+    bool isApproximation = Globals::instance() -> mainConfig() -> isPercentileApproximation();
+    qDebug() << "++++++++ [config.json] percentileApproximation:" << isApproximation;
+
+    // get the default setting from "config.json" to define the pixel bin size = (max-min)/percentApproxDividedNum
+    // for percentile approximation algorithm
+    unsigned int percentApproxDividedNum = Globals::instance() -> mainConfig() -> getPercentApproxDividedNum();
+    qDebug() << "++++++++ [config.json] percentApproxDividedNum:" << percentApproxDividedNum;
+
+    double chooseError;
+    if (isApproximation == true) {
+        // if we apply approximation algorithm for percentile to pixel calculation,
+        // then we have a non-zero error bar
+        chooseError = 1 / static_cast<double>(percentApproxDividedNum);
+    } else {
+        // if not, by default we use the absolute precise algorithm for percentile to pixel calculation,
+        // the error bar is zero
+        chooseError = 0;
+    }
+    qDebug() << "++++++++ [config.json] choose error order=" << chooseError;
+
+    // If the disk cache exists, try to look up cached intensity and location values
+    for (int i = 0; i < percentileCount; i++) {
+        intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame);
+        if (intensityCache[i].second != -1 /* this intensity cache exists */ &&
+            intensityCache[i].second <= chooseError /* already has an intensity error order smaller than the current choice */ ) {
+            intensities[i] = intensityCache[i];
+            foundCount++;
+            found[i] = true;
+            qDebug() << "++++++++ [find cache for the most precise intensity] for percentile" << percentiles[i]
+                     << ", intensity=" << intensities[i].second << "+/- (max-min)*" << intensityCache[i].second
+                     << ", location=" << intensities[i].first << "(channel)";
+        }
+    }
+
+    //Not all percentiles were in the cache.  We are going to have to look some up.
+    if (foundCount < percentileCount) {
+        qDebug() << "++++++++ Calculating percentile to pixel values..";
+
+        // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+        qDebug() << "++++++++ Spectral Index No. is " << spectralIndex << "; Stoke Index No. is " << stokeIndex;
+
+        // get raw data (for all stokes if any) in order to sort the raw data set by selection algorithm
+        // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+
+        // get raw data (for the specific stoke) in order to sort the raw data set by selection algorithm
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
+        qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
+        qDebug() << "++++++++ set the Stoke Index for Percentile=" << stokeFrame
+                 << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+
+        if (rawData == nullptr) {
+            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+            return intensities;
+        }
+
+        // load raw data through "Carta::Lib::NdArray::RawViewInterface" shared pointer
+        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+
+        // get raw data as double variables
+        // please refer to IImage.h:186  TypedView( RawViewInterface * rawView, bool keepOwnership = false )
+        Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+        // check the raw data size
+        std::vector<int> dataDims = doubleView.dims();
+        size_t dataSize = 1;
+        for (int i = 0; i < dataDims.size(); i++) dataSize *= dataDims[i];
+        qDebug() << "++++++++ check the raw data size:" << dataSize << "pixel elements, for raw data shape" << dataDims;
+
+        // Make a list of the percentiles which have to be calculated
+        std::vector<double> percentiles_to_calculate;
+        for (int i = 0; i < percentileCount; i++) {
+            if (!found[i]) {
+                percentiles_to_calculate.push_back(percentiles[i]);
+            }
+        }
+        if (percentiles_to_calculate.size() != 2) {
+            qWarning() << "the number of percentiles to calculate is not equal to 2 (check cache save procedure)!!";
+        }
+
+        // get all clip settings for approximate percentile calculations
+        std::shared_ptr<Carta::Data::Clips> m_clips;
+        std::vector<double> percentiles_from_all_clips = m_clips -> getAllClips2percentiles();
+
+        // get extra clipping values from UI which is not equal to current clipping ones
+        std::vector<double> percentiles_to_calculate_plus;
+        std::pair<bool, double> parse_percentiles_from_all_clips;
+        for (int i = 0; i < percentiles_from_all_clips.size(); i++) {
+            // the same clipping value from different sources are not absolute equal !!
+            // so we need to make the following checks !!
+            parse_percentiles_from_all_clips = _isSameValue(percentiles_from_all_clips[i], percentiles_to_calculate, 1e-6);
+            if (parse_percentiles_from_all_clips.first == true) {
+                percentiles_to_calculate_plus.push_back(parse_percentiles_from_all_clips.second);
+            } else {
+                percentiles_to_calculate_plus.push_back(percentiles_from_all_clips[i]);
+            }
+        }
+
+        // define the priority number (error order) for choosing (key, value) from SQLite3
+        double error;
+
+        // Calculate only the required percentiles
+        std::map<double, double> clips_map;
+
+        if (percentiles_to_calculate.size() == 2 && percentiles_to_calculate[0] == 0 && percentiles_to_calculate[1] == 1) {
+
+            // if percentiles = 0% or 100%, use the iteration algorithm
+            qDebug() << "++++++++ [apply] Carta::Core::Algorithms::minMax2pixels() function !!";
+            clips_map = Carta::Core::Algorithms::minMax2pixels(doubleView, spectralIndex, percentiles_to_calculate);
+
+            // set the priority number (error order) to be the first priority
+            error = 0;
+
+        } else if (isApproximation) {
+
+            // if percentiles != 0% or 100%, use the approximate algorithm
+            qDebug() << "++++++++ [apply] Carta::Core::Algorithms::percentile2pixels_approximation() function !!";
+
+            // get minimum and maximum pixel values from the cache or from the raw data
+            std::vector<std::pair<int,double>> minMaxIntensities = _getMinMaxIntensity(frameLow, frameHigh, stokeFrame);
+
+            // apply approximate percentile algorithm for clipping values
+            clips_map = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex, minMaxIntensities,
+                    percentApproxDividedNum, APPROXIMATION_GET_LOCATION, percentiles_to_calculate_plus);
+
+            // set the priority number (error order) to be the inverse of percentApproxDividedNum
+            error = 1 / static_cast<double>(percentApproxDividedNum);
+
+        } else {
+
+            // if percentiles != 0% or 100%, use the precise algorithm
+            qDebug() << "++++++++ [apply] Carta::Core::Algorithms::percentile2pixels_precise() function !!";
+
+            // apply std::nth_element for precise percentile calculations
+            clips_map = Carta::Core::Algorithms::percentile2pixels_precise(doubleView, spectralIndex, percentiles_to_calculate);
+
+            // set the priority number (error order) to be the first priority
+            error = 0;
+
+        }
+
+        // set return values and cache
+        for (int i = 0; i < percentileCount; i++) {
+            if (!found[i]) {
+                intensities[i].first = clips_map[percentiles[i]].first;
+                intensities[i].second = clips_map[percentiles[i]].second;
+                found[i] = true; // for completeness, in case we test this later
+                // set the location of frameLow
+                if (frameLow >= 0) {
+                    intensities[i].first += frameLow;
+                }
+                // put calculated values in the disk cache if it exists
+                if (m_diskCache) {
+                    _setLocationCache(intensities[i].first, error, frameLow, frameHigh, percentiles[i], stokeFrame);
+                    _setIntensityCache(intensities[i].second, error, frameLow, frameHigh, percentiles[i], stokeFrame);
+                    qDebug() << "++++++++ [set cache] for percentile" << percentiles[i]
+                             << ", intensity=" << intensities[i].second << "+/- (max-min)*" << error
+                             << ", location=" << intensities[i].first << "(channel)";
+                }
+            }
+        }
+
+        // if we use the approximation algorithm to get percentiles with respect to pixels values,
+        // we can calculate all Clipping values listed on the UI at one loop.
+        // In such case, we can set the extra percentiles with respect to pixels values in the other caches.
+        // The advantage of this method is that we don't need to use approximation algorithm again if we want
+        // to get another Clipping values in the UI.
+        std::pair<bool, double> check_repetition;
+        if (clips_map.size() > percentiles_to_calculate.size()) {
+            for (int i = 0; i < percentiles_to_calculate_plus.size(); i++) {
+                // check if the percentile to pixel value to store is already done in previous loop
+                check_repetition = _isSameValue(percentiles_to_calculate_plus[i], percentiles_to_calculate, 1e-6);
+                if (check_repetition.first == true) continue;
+                // set the location of frameLow
+                if (frameLow >= 0) {
+                    clips_map[percentiles_to_calculate_plus[i]].first += frameLow;
+                }
+                if (m_diskCache) {
+                    _setLocationCache(clips_map[percentiles_to_calculate_plus[i]].first, error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame);
+                    _setIntensityCache(clips_map[percentiles_to_calculate_plus[i]].second, error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame);
+                    qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_plus[i]
+                             << ", intensity=" << clips_map[percentiles_to_calculate_plus[i]].second << "+/- (max-min)*" << error
+                             << ", location=" << clips_map[percentiles_to_calculate_plus[i]].first << "(channel)";
+                }
+            }
+        }
+
+    }
+    return intensities;
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
 // 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
 std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
-    qDebug() << "++++++++++++++++++++ inside DataSource::_getIntensity";
-
     int percentileCount = percentiles.size();
     std::vector<double> intensities(percentileCount, double(0));
-    
+    std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
     int foundCount = 0;
     std::vector<bool> found(percentileCount, false);
     
     // If the disk cache exists, try to look up cached intensity and location values
-    if (m_diskCache) {
-        QString transformation_label = converter ? converter->label : "NONE";
-        for (int i = 0; i < percentileCount; i++) {
-            QString intensityKey = QString("%1/%2/%3/%4/%5/%6/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]).arg(transformation_label);
-            QByteArray intensityVal;
-            bool intensityInCache = m_diskCache->readEntry(intensityKey.toUtf8(), intensityVal);
-            qDebug() << "++++++++ intensity key is" << intensityKey.toUtf8();
 
-            if (intensityInCache) {
-                qDebug() << "++++++++ found intensity in disk cache";
-                intensities[i] = qb2d(intensityVal);
-                // We only cache statistics for each distinct frame-dependent calculation
-                // But we need to apply any constant multipliers
-                if (converter) {
-                    intensities[i] = intensities[i] * converter->multiplier;
-                }
-                foundCount++;
-                found[i] = true;
+    QString transformation_label = converter ? converter->label : "NONE";
+    
+    for (int i = 0; i < percentileCount; i++) {
+        intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
+        
+        if (intensityCache[i].second == 0 /* intensity cache exists and has a zero error order */) {
+            intensities[i] = intensityCache[i].first;
+            // We only cache statistics for each distinct frame-dependent calculation
+            // But we need to apply any constant multipliers
+            if (converter) {
+                intensities[i] = intensities[i] * converter->multiplier;
             }
-            
-            qDebug() << "++++++++ For percentile" << percentiles[i]
-                     << "intensity is" << intensities[i];
+            foundCount++;
+            found[i] = true;
+            qDebug() << "++++++++ [find cache] for percentile" << percentiles[i] << ", intensity=" << intensities[i]
+                 << "+/- (max-min)*" << intensityCache[i].second;
         }
+        
+        qDebug() << "++++++++ For percentile" << percentiles[i]
+                 << "intensity is" << intensities[i];
     }
 
     //Not all percentiles were in the cache.  We are going to have to look some up.
@@ -501,7 +825,6 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         Carta::Lib::NdArray::Double doubleView(view.get(), false);
 
         // Make a list of the percentiles which have to be calculated
-
         std::vector<double> percentiles_to_calculate;
 
         for (int i = 0; i < percentileCount; i++) {
@@ -511,7 +834,6 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         }
 
         // Calculate only the required percentiles
-
         std::vector<double> hertzValues;
         
         if (converter && converter->frameDependent) {
@@ -521,32 +843,34 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles_to_calculate, spectralIndex, converter, hertzValues);
 
         for (int i = 0; i < percentileCount; i++) {
-
             if (!found[i]) {                
                 intensities[i] = clips_map[percentiles[i]];
                 found[i] = true; // for completeness, in case we test this later
-
                 // put calculated values in the disk cache if it exists
+                // the intensity error is zero, because we use percentile2pixels() --> "std::nth_element" algorithm
+                // for precise percentile calculation
 
-                if (m_diskCache) {
-                    QString transformation_label = converter ? converter->label : "NONE";
-                    QString intensityKey = QString("%1/%2/%3/%4/%5/%6/intensity").arg(m_fileName).arg(frameLow).arg(frameHigh).arg(stokeFrame).arg(percentiles[i]).arg(transformation_label);
-                    m_diskCache->setEntry(intensityKey.toUtf8(), d2qb(intensities[i]), 0);
-                }
-
+                _setIntensityCache(intensities[i], 0, frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
+                
                 // apply any constant multiplier *after* caching the frame-dependent portion of the calculation
                 if (converter) {
                     intensities[i] = intensities[i] * converter->multiplier;
                 }
                 
-                qDebug() << "++++++++ For percentile" << percentiles[i]
-                         << "intensity is" << intensities[i];
+                qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i];
+
             }
         }
     }
-    
     return intensities;
 }
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 
 QColor DataSource::_getNanColor() const {
     QColor nanColor = m_renderService->getNanColor();
@@ -721,7 +1045,6 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
 
                 // get the number of slice (e.q. channel) in this dimension
                 int sliceSize = m_image->dims()[i];
-
                 SliceND& slice = frameSlice.next();
 
                 // If it is the target axis..
@@ -732,6 +1055,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                        slice.start( frameStart );
                        slice.end( frameEnd + 1);
                    } else {
+                       qDebug() << "++++++++ for spectral axis index=" << i << ", the total slice size is" << sliceSize;
                        slice.start(0);
                        slice.end( sliceSize);
                    }
@@ -743,6 +1067,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                     slice.start( stokeSliceIndex );
                     slice.end( stokeSliceIndex + 1 );
                 } else {
+
                     // Or the entire range
                     qDebug() << "++++++++ the total number of channel is" << sliceSize;
                     slice.start( 0 );
@@ -1145,66 +1470,76 @@ void DataSource::_setGamma( double gamma ){
 
 // TODO: this function should be eliminated; it's a duplicate of _getIntensity
 std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
-        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames) {
-
+        double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames, bool showMesg) {
     std::vector<int> mFrames = _fitFramesToImage( frames );
     std::vector<int> stokeIndex = _getStokeIndex( mFrames );
     std::vector<int> channelIndex = _getChannelIndex( mFrames );
 
-    // 2017/05/23   C.C. Chiang: check if these are the right frame, stoke and percentile values
-    // TODO making this compatible with _getIntensity cache keys, but not unit-aware 
-    QString minClipKey = QString("%1/%2/%3/%4/%5/NONE/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(minClipPercentile);
-    QString maxClipKey = QString("%1/%2/%3/%4/%5/NONE/intensity").arg(m_fileName).arg(channelIndex[1]).arg(channelIndex[1]).arg(stokeIndex[1]).arg(maxClipPercentile);
 
-    qDebug() << "++++++++ minClipKey" << minClipKey.toUtf8();
-    qDebug() << "++++++++ maxClipKey" << maxClipKey.toUtf8();
-    qDebug() << "++++++++ Stoke Index is" << stokeIndex[1] << ", Channel Index is" << channelIndex[1];
+    int setChannelIndex;
+    if (channelIndex[1] == -1) {
+        // channelIndex[1] == -1 means there is only one channel in the image file,
+        // in such case we rename the channel index (setChannelIndex) = 0
+        setChannelIndex = 0;
+    } else {
+        setChannelIndex = channelIndex[1];
+    }
 
     std::vector<double> clips;
 
     // If the disk cache exists, try to find the clips in the cache first
-    if (m_diskCache) {
-        bool minClipInCache(0);
-        bool maxClipInCache(0);
-
-        QByteArray minClipVal;
-        QByteArray maxClipVal;
-
-        minClipInCache = m_diskCache->readEntry(minClipKey.toUtf8(), minClipVal);
-        maxClipInCache = m_diskCache->readEntry(maxClipKey.toUtf8(), maxClipVal);
-
-        if (minClipInCache && maxClipInCache) {
-            clips.push_back(qb2d(minClipVal));
-            clips.push_back(qb2d(maxClipVal));
-            qDebug() << "++++++++ got clips from cache";
-        }
+    std::pair<double, double> minClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, minClipPercentile, stokeIndex[1], "NONE");
+    std::pair<double, double> maxClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, maxClipPercentile, stokeIndex[1], "NONE");
+    // if both of caches exist, we get their values
+    if (minClipInCache.second == 0 /* minimum intensity cache exists and has a zero error order */ &&
+        maxClipInCache.second == 0 /* maximum intensity cache exists and has a zero error order */) {
+        clips.push_back(minClipInCache.first);
+        clips.push_back(maxClipInCache.first);
+        if (showMesg == true) qDebug() << "++++++++ [find cache] for clips= [" << clips[0] << "," << clips[1] << "]";
     }
+
 
     // If the clips were not found in the cache, calculate them
     if (clips.size() < 2) {
         Carta::Lib::NdArray::Double doubleView( view.get(), false );
-        std::vector<double> percentiles = {minClipPercentile, maxClipPercentile};
-        std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles);
+
+        // start the timer for computing percentile per frame
+        QElapsedTimer timer;
+        timer.start();
+
+        // calculate pixel values with respect to percentiles per frame
+        std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, { minClipPercentile, maxClipPercentile });
+
+        // end of timer for computing percentile per frame
+        int elapsedTime = timer.elapsed();
+
+        if (CARTA_RUNTIME_CHECKS) {
+            if (elapsedTime > 5) {
+                // only save the elapsed time to log file if it is greater than 5 ms
+                qCritical() << "<> Time to get the percentile per frame:" << elapsedTime << "ms";
+            } else {
+                qDebug() << "++++++++ [percentile per frame] calculating time (for std::nth_element):" << elapsedTime << "ms";
+            }
+        }
+
         clips = {clips_map[minClipPercentile], clips_map[maxClipPercentile]};
 
         // If the disk cache exists, put the calculated clips in it
-        if (m_diskCache) {
-            m_diskCache->setEntry( minClipKey.toUtf8(), d2qb(clips[0]), 0);
-            m_diskCache->setEntry( maxClipKey.toUtf8(), d2qb(clips[1]), 0);
+        // this step is done in DataSource::_getCursorText() first !!
+        // the intensity error is zero, because we use percentile2pixels() --> "std::nth_element" algorithm
+        // for precise percentile calculation
+        _setIntensityCache(clips[0], 0, setChannelIndex, setChannelIndex, minClipPercentile, stokeIndex[1], "NONE");
+        _setIntensityCache(clips[1], 0, setChannelIndex, setChannelIndex, maxClipPercentile, stokeIndex[1], "NONE");
+        qDebug() << "++++++++ [set cache] for clips= [" << clips[0] << "," << clips[1] << "]";
 
-            qDebug() << "++++++++ calculated clips and put in cache";
-        }
-
-        qDebug() << "++++++++ clips are" << clips[0] << "and" << clips[1];
     }
-    
     return clips;
 }
 
 void DataSource::_updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
         double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames ){
     // get quantile intensity cache
-    std::vector<double> clips = _getQuantileIntensityCache(view, minClipPercentile, maxClipPercentile, frames);
+    std::vector<double> clips = _getQuantileIntensityCache(view, minClipPercentile, maxClipPercentile, frames, true);
     m_pixelPipeline-> setMinMax( clips[0], clips[1] );
     m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId());
 }

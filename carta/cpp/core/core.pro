@@ -56,6 +56,7 @@ HEADERS += \
     Data/Image/Contour/Contour.h \
     Data/Image/Contour/ContourControls.h \
     Data/Image/Contour/ContourGenerateModes.h \
+    Data/Image/Contour/ContourTypes.h \
     Data/Image/Contour/ContourSpacingModes.h \
     Data/Image/Contour/ContourStyles.h \
     Data/Image/Contour/DataContours.h \
@@ -137,7 +138,6 @@ HEADERS += \
     Plot2D/Plot2DHolder.h \
     Plot2D/Plot2DProfile.h \
     Plot2D/Plot2DTextMarker.h \
-    ProfileExtractor.h \
     Shape/ControlPoint.h \
     Shape/ControlPointEditable.h \
     Shape/ShapeBase.h \
@@ -162,6 +162,7 @@ HEADERS += \
     Hacks/WcsGridOptionsController.h \
     Hacks/SharedState.h \
     Hacks/ContourEditorController.h \
+    Hacks/ProfileExtractor.h \
     DummyGridRenderer.h \
     coreMain.h \
     SimpleRemoteVGView.h \
@@ -201,6 +202,7 @@ SOURCES += \
     Data/Image/Contour/Contour.cpp \
     Data/Image/Contour/ContourControls.cpp \
     Data/Image/Contour/ContourGenerateModes.cpp \
+    Data/Image/Contour/ContourTypes.cpp \
     Data/Image/Contour/ContourSpacingModes.cpp \
     Data/Image/Contour/ContourStyles.cpp \
     Data/Image/Contour/DataContours.cpp \
@@ -290,7 +292,6 @@ SOURCES += \
     Plot2D/Plot2DProfile.cpp \
     Plot2D/Plot2DSelection.cpp \
     Plot2D/Plot2DTextMarker.cpp \
-    ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     Shape/ControlPoint.cpp \
@@ -316,6 +317,7 @@ SOURCES += \
     Hacks/WcsGridOptionsController.cpp \
     Hacks/SharedState.cpp \
     Hacks/ContourEditorController.cpp \
+    Hacks/ProfileExtractor.cpp \
     DummyGridRenderer.cpp \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \

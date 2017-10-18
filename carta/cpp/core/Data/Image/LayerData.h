@@ -379,15 +379,22 @@ protected:
     virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
     /**
-         * Returns true if at least one contour set should be drawn; false otherwise.
-         * @return - true if there is at least one contour set to draw; false otherwise.
-         */
+     * Returns true if at least one contour set should be drawn; false otherwise.
+     * @return - true if there is at least one contour set to draw; false otherwise.
+     */
     virtual bool _isContourDraw() const Q_DECL_OVERRIDE;
 
     /**
-         * Remove the contour set from this layer.
-         * @param contourSet - the contour set to remove from the layer.
-         */
+     * Returns whether the layer is diaplayed on the celestial (RA-DEC) plane
+     * @param includelinear - true when consider LINEAR-LINEAR plane
+     * as another type of celestial plane.
+     */
+    virtual bool _isOnCelestialPlane( bool includelinear=1 ) const Q_DECL_OVERRIDE;
+
+    /**
+     * Remove the contour set from this layer.
+     * @param contourSet - the contour set to remove from the layer.
+     */
     virtual void _removeContourSet( std::shared_ptr<DataContours> contourSet ) Q_DECL_OVERRIDE;
 
     /**

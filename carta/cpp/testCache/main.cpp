@@ -38,8 +38,8 @@ static std::vector < double >
 readProfile( int x, int y )
 {
     QString key = QString( "%1/%2" ).arg( x ).arg( y );
-    QByteArray val;
-    if ( ! pcache-> readEntry( key.toUtf8(), val ) ) {
+    QByteArray val, error;
+    if ( ! pcache-> readEntry( key.toUtf8(), val, error ) ) {
         return { };
     }
     if ( val.size() != int (sizeof( double ) * imDepth) ) {
@@ -57,8 +57,8 @@ populateCache()
 
     int startx = 0;
 
-    QByteArray buff;
-    if ( pcache-> readEntry( "lastx", buff ) ) {
+    QByteArray buff, error;
+    if ( pcache-> readEntry( "lastx", buff, error ) ) {
         QString str = buff;
         bool ok;
         int x = str.toInt( & ok );
@@ -93,8 +93,8 @@ readCache()
             std::vector < double > arr = genProfile( x, y );
             QString keyString = QString( "%1/%2" ).arg( x ).arg( y );
 
-            QByteArray ba;
-            if ( ! pcache-> readEntry( keyString.toUtf8(), ba ) ) {
+            QByteArray ba, error;
+            if ( ! pcache-> readEntry( keyString.toUtf8(), ba, error ) ) {
                 qCritical() << "Failed to read" << x << y;
                 continue;
             }
@@ -114,8 +114,8 @@ testCache()
 
     {
         pcache-> setEntry( "hello", "world", 0 );
-        QByteArray val;
-        if ( pcache-> readEntry( "hello", val ) ) {
+        QByteArray val, error;
+        if ( pcache-> readEntry( "hello", val, error ) ) {
             qDebug() << "hello=" << val;
         }
         else {
@@ -130,8 +130,8 @@ testCache()
     readCache();
 
     QByteArray key = "hello";
-    QByteArray val;
-    if ( pcache-> readEntry( key, val ) ) {
+    QByteArray val, error;
+    if ( pcache-> readEntry( key, val, error ) ) {
         qDebug() << "db already had value" << val;
     }
     else {
