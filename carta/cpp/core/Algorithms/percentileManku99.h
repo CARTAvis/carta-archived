@@ -216,7 +216,7 @@ void Manku99Algorithm<Scalar>::merge(
     while (!stopIterationLambda()) {
         // find the buffer with the lowest overall next value
         
-        minNextVal = std::numeric_limits<Scalar>::infinity();
+        minNextVal = std::numeric_limits<Scalar>::max();
             
         for (size_t i = 0; i < remainingBuffers.size(); i++) {
             if (remainingBuffers[i]->elements.top() < minNextVal) {
