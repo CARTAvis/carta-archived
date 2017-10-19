@@ -90,8 +90,10 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
     int nCols = iub - ilb - (2*ghost) + 1;
     int prepareCols = iub - ilb + 1;
     int prepareRows = 2*ghost + 1;
+    int area = prepareCols*prepareRows;
     double * rows[2] { nullptr, nullptr };
-    std::vector < double > row1( nCols ), row2( nCols );
+    std::vector < double > row1( nCols ), row2( nCols ),
+                           prepareArea( area );
     rows[0] = & row1[0];
     rows[1] = & row2[0];
     int nextRowToReadIn = 0;
@@ -100,13 +102,12 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
         CARTA_ASSERT( nextRowToReadIn < view-> dims()[1] );
 
         SliceND rowSlice;
-        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + prepareRows );
+        int update = ( nextRowToReadIn > 0 ? 1 : prepareRows );
+        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
         auto rawRowView = view-> getView( rowSlice );
-        nextRowToReadIn++;
 
         // make a double view of this raw row view
         Carta::Lib::NdArray::Double dview( rawRowView, true );
-        VD prepareArea( prepareCols*prepareRows );
 
         // shift the row up
         // note: we could avoid this memory copy if we swapped row[] pointers instead,
@@ -115,9 +116,11 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
         row1 = row2;
 
         // Prepare Data for possible filter
-        int t = 0;
+        int t = nextRowToReadIn*prepareCols;
         dview.forEach( [&] ( const double & val ) {
-            prepareArea[t++] = val;
+            // To improve the performance, the prepareArea also update only one row
+            // by computing the module
+            prepareArea[(t++)%area] = val;
         });
 
         // Do the filter
@@ -125,12 +128,14 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
             row2[i] = 0;
             int elems = (2*ghost+1)*(2*ghost+1);
             for ( int e=0; e<elems; e++){
-                int row = e/(2*ghost+1);
+                int row = e/(2*ghost+1) + nextRowToReadIn;
                 int col = e%(2*ghost+1);
-                int index =  row   *prepareCols + col + i;
+                int index = (row*prepareCols + col + i) % area;
                 row2[i] += kernel[e]*prepareArea[index];
             }
         }
+
+        nextRowToReadIn++;
     };
     updateRows();
 
