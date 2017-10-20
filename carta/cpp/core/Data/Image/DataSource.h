@@ -237,7 +237,7 @@ private:
      * @param stokeFrame - the index number of stoke slice
      * @return - minimum and maximum intensities.
      */
-    std::vector<std::pair<int,double>> _getMinMaxIntensity(int frameLow, int frameHigh, int stokeFrame, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
+    //std::vector<std::pair<int,double>> _getMinMaxIntensity(int frameLow, int frameHigh, int stokeFrame, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     /**
      * Returns the intensities corresponding to a given percentiles.
