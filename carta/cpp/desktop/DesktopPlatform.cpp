@@ -4,7 +4,7 @@
 
 #include "DesktopPlatform.h"
 #include "SessionDispatcher.h"
-#include "MainWindow.h"
+// #include "MainWindow.h"
 #include "core/CmdLine.h"
 #include "core/Globals.h"
 
@@ -69,7 +69,7 @@ DesktopPlatform::DesktopPlatform()
 {
     // install a custom message handler
     qInstallMessageHandler( qtMessageHandler);
-    
+
     // figure out which url to use to load the html5 component
     // by default it's the locally compiled filesystem, but we let the developer
     // override it for debugging purposes
@@ -127,7 +127,7 @@ IConnector * DesktopPlatform::connector()
 
 void DesktopPlatform::goFullScreen()
 {
-    m_mainWindow->showFullScreen();
+    // m_mainWindow->showFullScreen();
 }
 
 

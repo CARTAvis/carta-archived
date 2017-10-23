@@ -6,7 +6,6 @@ QT      +=  network widgets xml websockets webchannel
 # QT      +=  webkitwidgets
 
 HEADERS += \
-    MainWindow.h \
 #    CustomWebPage.h \
     DesktopPlatform.h \
     NewServerConnector.h \
@@ -16,7 +15,6 @@ HEADERS += \
     NewServerConnector.h
 
 SOURCES += \
-    MainWindow.cpp \
 #    CustomWebPage.cpp \
     DesktopPlatform.cpp \
     desktopMain.cpp \
@@ -81,5 +79,3 @@ QMAKE_EXTRA_COMPILERS += preprocess
 #LIBS += -L/usr/local/opt/openssl/lib
 #LIBS += -L/usr/local/opt/libuv/lib
 #LIBS += -L/usr/local/lib
-
-QT       += websockets
