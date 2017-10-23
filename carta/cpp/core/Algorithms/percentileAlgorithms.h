@@ -57,7 +57,7 @@ static Carta::Lib::NdArray::Double viewSliceForFrame(Carta::Lib::NdArray::Double
 template < typename Scalar >
 static
 typename std::map < double, Scalar >
-percentile2pixels_precise(
+percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector < double > percentiles,
     int spectralIndex=-1,
@@ -380,8 +380,8 @@ minMax2pixels(
     }
 
     std::map<double, Scalar> result;
-    Scalar minPixel = std::numeric_limits<Scalar>.max();
-    Scalar maxPixel = std::numeric_limits<Scalar>.lowest();
+    Scalar minPixel = std::numeric_limits<Scalar>::max();
+    Scalar maxPixel = std::numeric_limits<Scalar>::lowest();
 
     double hertzVal;
     double convertedVal; // cache the conversion so that we don't do it twice

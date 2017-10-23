@@ -429,7 +429,7 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 
 std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const {
     std::pair<bool, double> result = std::make_pair(false, -1);
-    for (int i = 0; i < comparedValue.size(); i++) {
+    for (size_t i = 0; i < comparedValue.size(); i++) {
         if (fabs(inputValue - comparedValue[i]) < threshold) {
             result = std::make_pair(true, comparedValue[i]);
             break;
@@ -438,6 +438,7 @@ std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<
     return result;
 }
 
+// TODO: create a helper struct for this with named value anf error members to make the code more legible.
 std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const {
     std::pair<double, double> result = std::make_pair(-1, -1);
     if (m_diskCache) {
@@ -641,7 +642,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         // check the raw data size
         std::vector<int> dataDims = doubleView.dims();
         size_t dataSize = 1;
-        for (int i = 0; i < dataDims.size(); i++) dataSize *= dataDims[i];
+        for (size_t i = 0; i < dataDims.size(); i++) dataSize *= dataDims[i];
         qDebug() << "++++++++ check the raw data size:" << dataSize << "pixel elements, for raw data shape" << dataDims;
 
         // Make a list of the percentiles which have to be calculated
@@ -667,7 +668,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         // TODO: put this all within the approximation conditional below
         std::vector<double> percentiles_to_calculate_plus;
         std::pair<bool, double> parse_percentiles_from_all_clips;
-        for (int i = 0; i < percentiles_from_all_clips.size(); i++) {
+        for (size_t i = 0; i < percentiles_from_all_clips.size(); i++) {
             // the same clipping value from different sources are not absolute equal !!
             // so we need to make the following checks !!
             parse_percentiles_from_all_clips = _isSameValue(percentiles_from_all_clips[i], percentiles_to_calculate, 1e-6);
@@ -715,7 +716,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
             // TODO: why is it necessary to have a whole duplicate function for this? We can just call this function recursively.
             //std::vector<double> minMaxIntensities = _getMinMaxIntensity(frameLow, frameHigh, stokeFrame);
             // This should call the block above
-            std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, {0, 1}, stokeFrame);
+            std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
 
             // apply approximate percentile algorithm for clipping values
             clips_map = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, minMaxIntensities,
@@ -727,10 +728,10 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         } else {
 
             // if percentiles != 0% or 100%, use the precise algorithm
-            qDebug() << "++++++++ [apply] Carta::Core::Algorithms::percentile2pixels_precise() function !!";
+            qDebug() << "++++++++ [apply] Carta::Core::Algorithms::percentile2pixels() function !!";
 
             // apply std::nth_element for precise percentile calculations
-            clips_map = Carta::Core::Algorithms::percentile2pixels_precise(doubleView, percentiles_to_calculate, spectralIndex, converter, hertzValues);
+            clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles_to_calculate, spectralIndex, converter, hertzValues);
 
             // set the priority number (error order) to be the first priority
             error = 0;
@@ -766,13 +767,13 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         // TODO: put this all within the approximation conditional above
         std::pair<bool, double> check_repetition;
         if (clips_map.size() > percentiles_to_calculate.size()) {
-            for (int i = 0; i < percentiles_to_calculate_plus.size(); i++) {
+            for (size_t i = 0; i < percentiles_to_calculate_plus.size(); i++) {
                 // check if the percentile to pixel value to store is already done in previous loop
                 check_repetition = _isSameValue(percentiles_to_calculate_plus[i], percentiles_to_calculate, 1e-6);
                 if (check_repetition.first == true) continue;
-                _setIntensityCache(clips_map[percentiles_to_calculate_plus[i]].second, error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame);
+                _setIntensityCache(clips_map[percentiles_to_calculate_plus[i]], error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame, transformation_label);
                 qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_plus[i]
-                         << ", intensity=" << clips_map[percentiles_to_calculate_plus[i]].second << "+/- (max-min)*" << error;
+                         << ", intensity=" << clips_map[percentiles_to_calculate_plus[i]] << "+/- (max-min)*" << error;
             }
         }
 
@@ -787,113 +788,113 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-// 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
-std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame,
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
-
-    int percentileCount = percentiles.size();
-    std::vector<double> intensities(percentileCount, double(0));
-    std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
-    int foundCount = 0;
-    std::vector<bool> found(percentileCount, false);
-    
-    // If the disk cache exists, try to look up cached intensity and location values
-
-    QString transformation_label = converter ? converter->label : "NONE";
-
-    for (int i = 0; i < percentileCount; i++) {
-        intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
-        
-        if (intensityCache[i].second == 0 /* intensity cache exists and has a zero error order */) {
-            intensities[i] = intensityCache[i].first;
-            // We only cache statistics for each distinct frame-dependent calculation
-            // But we need to apply any constant multipliers
-            if (converter) {
-                intensities[i] = intensities[i] * converter->multiplier;
-            }
-            foundCount++;
-            found[i] = true;
-            qDebug() << "++++++++ [find cache] for percentile" << percentiles[i] << ", intensity=" << intensities[i]
-                 << "+/- (max-min)*" << intensityCache[i].second;
-        }
-        
-        qDebug() << "++++++++ For percentile" << percentiles[i]
-                 << "intensity is" << intensities[i];
-    }
-
-    //Not all percentiles were in the cache.  We are going to have to look some up.
-    if (foundCount < percentileCount) {
-
-        qDebug() << "++++++++ Calculating percentile to pixel values..";
-
-        // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
-        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
-        qDebug() << "++++++++ Spectral Index No. is " << spectralIndex << "; Stoke Index No. is " << stokeIndex;
-
-        // get raw data (for all stokes if any) in order to sort the raw data set by selection algorithm
-        // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
-
-        // get raw data (for the specific stoke) in order to sort the raw data set by selection algorithm
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
-        qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
-        qDebug() << "++++++++ set the Stoke Index for Percentile=" << stokeFrame
-                 << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
-
-        if (rawData == nullptr) {
-            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
-            return intensities;
-        }
-
-        // load raw data through "Carta::Lib::NdArray::RawViewInterface" shared pointer
-        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
-
-        // get raw data as double variables
-        // please refer to IImage.h:186  TypedView( RawViewInterface * rawView, bool keepOwnership = false )
-        Carta::Lib::NdArray::Double doubleView(view.get(), false);
-
-        // Make a list of the percentiles which have to be calculated
-        std::vector<double> percentiles_to_calculate;
-
-        for (int i = 0; i < percentileCount; i++) {
-            if (!found[i]) {
-                percentiles_to_calculate.push_back(percentiles[i]);
-            }
-        }
-
-        // Find Hz values if they are required for the unit transformation
-        std::vector<double> hertzValues;
-        
-        if (converter && converter->frameDependent) {
-            hertzValues = _getHertzValues(doubleView.dims(), spectralIndex);
-        }
-        
-        // Calculate only the required percentiles
-        std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels_precise(doubleView, percentiles_to_calculate, spectralIndex, converter, hertzValues);
-
-        for (int i = 0; i < percentileCount; i++) {
-            if (!found[i]) {                
-                intensities[i] = clips_map[percentiles[i]];
-                found[i] = true; // for completeness, in case we test this later
-                // put calculated values in the disk cache if it exists
-                // the intensity error is zero, because we use percentile2pixels() --> "std::nth_element" algorithm
-                // for precise percentile calculation
-
-                _setIntensityCache(intensities[i], 0, frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
-                
-                // apply any constant multiplier *after* caching the frame-dependent portion of the calculation
-                if (converter) {
-                    intensities[i] = intensities[i] * converter->multiplier;
-                }
-                
-                qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i];
-
-            }
-        }
-    }
-    return intensities;
-}
+// // 2017/05/16    C.C. Chiang: Modify this function that it can get the intensity (pixel) for different stokes (I, Q, U and V)
+// std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
+//         const std::vector<double>& percentiles, int stokeFrame,
+//         Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
+// 
+//     int percentileCount = percentiles.size();
+//     std::vector<double> intensities(percentileCount, double(0));
+//     std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
+//     int foundCount = 0;
+//     std::vector<bool> found(percentileCount, false);
+//     
+//     // If the disk cache exists, try to look up cached intensity and location values
+// 
+//     QString transformation_label = converter ? converter->label : "NONE";
+// 
+//     for (int i = 0; i < percentileCount; i++) {
+//         intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
+//         
+//         if (intensityCache[i].second == 0 /* intensity cache exists and has a zero error order */) {
+//             intensities[i] = intensityCache[i].first;
+//             // We only cache statistics for each distinct frame-dependent calculation
+//             // But we need to apply any constant multipliers
+//             if (converter) {
+//                 intensities[i] = intensities[i] * converter->multiplier;
+//             }
+//             foundCount++;
+//             found[i] = true;
+//             qDebug() << "++++++++ [find cache] for percentile" << percentiles[i] << ", intensity=" << intensities[i]
+//                  << "+/- (max-min)*" << intensityCache[i].second;
+//         }
+//         
+//         qDebug() << "++++++++ For percentile" << percentiles[i]
+//                  << "intensity is" << intensities[i];
+//     }
+// 
+//     //Not all percentiles were in the cache.  We are going to have to look some up.
+//     if (foundCount < percentileCount) {
+// 
+//         qDebug() << "++++++++ Calculating percentile to pixel values..";
+// 
+//         // the SPECTRAL index is the last index of image dimension, which is corresponding to the channel-axis
+//         int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+//         int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+//         qDebug() << "++++++++ Spectral Index No. is " << spectralIndex << "; Stoke Index No. is " << stokeIndex;
+// 
+//         // get raw data (for all stokes if any) in order to sort the raw data set by selection algorithm
+//         // Carta::Lib::NdArray::RawViewInterface* rawData = _getRawData( frameLow, frameHigh, spectralIndex );
+// 
+//         // get raw data (for the specific stoke) in order to sort the raw data set by selection algorithm
+//         Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
+//         qDebug() << "++++++++ frameLow=" << frameLow << ", frameHigh=" << frameHigh;
+//         qDebug() << "++++++++ set the Stoke Index for Percentile=" << stokeFrame
+//                  << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+// 
+//         if (rawData == nullptr) {
+//             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+//             return intensities;
+//         }
+// 
+//         // load raw data through "Carta::Lib::NdArray::RawViewInterface" shared pointer
+//         std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+// 
+//         // get raw data as double variables
+//         // please refer to IImage.h:186  TypedView( RawViewInterface * rawView, bool keepOwnership = false )
+//         Carta::Lib::NdArray::Double doubleView(view.get(), false);
+// 
+//         // Make a list of the percentiles which have to be calculated
+//         std::vector<double> percentiles_to_calculate;
+// 
+//         for (int i = 0; i < percentileCount; i++) {
+//             if (!found[i]) {
+//                 percentiles_to_calculate.push_back(percentiles[i]);
+//             }
+//         }
+// 
+//         // Find Hz values if they are required for the unit transformation
+//         std::vector<double> hertzValues;
+//         
+//         if (converter && converter->frameDependent) {
+//             hertzValues = _getHertzValues(doubleView.dims(), spectralIndex);
+//         }
+//         
+//         // Calculate only the required percentiles
+//         std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles_to_calculate, spectralIndex, converter, hertzValues);
+// 
+//         for (int i = 0; i < percentileCount; i++) {
+//             if (!found[i]) {                
+//                 intensities[i] = clips_map[percentiles[i]];
+//                 found[i] = true; // for completeness, in case we test this later
+//                 // put calculated values in the disk cache if it exists
+//                 // the intensity error is zero, because we use percentile2pixels() --> "std::nth_element" algorithm
+//                 // for precise percentile calculation
+// 
+//                 _setIntensityCache(intensities[i], 0, frameLow, frameHigh, percentiles[i], stokeFrame, transformation_label);
+//                 
+//                 // apply any constant multiplier *after* caching the frame-dependent portion of the calculation
+//                 if (converter) {
+//                     intensities[i] = intensities[i] * converter->multiplier;
+//                 }
+//                 
+//                 qDebug() << "++++++++ For percentile" << percentiles[i] << "intensity is" << intensities[i];
+// 
+//             }
+//         }
+//     }
+//     return intensities;
+// }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
