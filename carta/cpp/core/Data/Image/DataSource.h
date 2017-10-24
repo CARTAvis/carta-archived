@@ -230,14 +230,6 @@ private:
 
     void _setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const;
 
-    /**
-     * Returns the locations and intensities corresponding to a given percentiles.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - minimum and maximum intensities.
-     */
-    //std::vector<std::pair<int,double>> _getMinMaxIntensity(int frameLow, int frameHigh, int stokeFrame, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     /**
      * Returns the intensities corresponding to a given percentiles.
