@@ -414,6 +414,24 @@ QString ViewManager::dataLoaded(const QString & params) {
 
 }
 
+QString ViewManager::getDefaultHistogramID(const QString & params){
+
+    const QString PLUGIN_ID( "pluginId");
+    const QString INDEX( "index");
+    std::set<QString> keys = {PLUGIN_ID, INDEX};
+    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    bool validIndex = false;
+    int index = dataValues[INDEX].toInt(&validIndex);
+    QString viewId( "");
+    if ( validIndex ){
+        viewId = getObjectId( dataValues[PLUGIN_ID], index );
+    }
+    else {
+        qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
+    }
+    return viewId;
+}
+
 QString ViewManager::registerView(const QString & params){
 
     const QString PLUGIN_ID( "pluginId");
@@ -1157,11 +1175,13 @@ void ViewManager::setDefaultLayoutView(bool cleanPluginList) {
         _makeLayout();
     }
     if ( !m_layout->isLayoutDefault()){
-        _clearHistograms( 0, m_histograms.size() );
+        // setup 1 for new CARTA's experiment
+        _clearHistograms( 1, m_histograms.size() );
         _clearAnimators( 1, m_animators.size() );
         _clearColormaps( 1, m_colormaps.size() );
         _clearStatistics( 1, m_statistics.size());
-        _clearProfilers( 0, m_profilers.size() );
+        // setup 1 for new CARTA's experiment
+        _clearProfilers( 1, m_profilers.size() );
         _clearControllers( 1, m_controllers.size() );
 
         m_layout->setLayoutDefault(cleanPluginList);
@@ -1171,8 +1191,13 @@ void ViewManager::setDefaultLayoutView(bool cleanPluginList) {
         m_colormaps[0]->addLink( m_controllers[0]);
         m_statistics[0]->addLink( m_controllers[0]);
 
-        // m_histograms[0]->addLink( m_controllers[0]);
-        // m_colormaps[0]->addLink( m_histograms[0]);
+        // add this for new CARTA's experiment
+        m_profilers[0]->addLink( m_controllers[0]);
+
+        // add this for new CARTA's experiment
+        m_histograms[0]->addLink( m_controllers[0]);
+        m_colormaps[0]->addLink( m_histograms[0]);
+
         _refreshState();
     }
 
@@ -1217,7 +1242,7 @@ void ViewManager::setHistogramAnalysisView(){
         _makeLayout();
     }
     if ( !m_layout->isLayoutHistogramAnalysis()){
-        _clearHistograms( 0, m_histograms.size() );
+        _clearHistograms( 1, m_histograms.size() );
         _clearAnimators( 1, m_animators.size() );
         _clearColormaps( 1, m_colormaps.size() );
         _clearStatistics( 1, m_statistics.size());

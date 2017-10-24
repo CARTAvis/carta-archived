@@ -179,6 +179,7 @@ public:
 
     QString dataLoaded(const QString & params);
     QString registerView(const QString & params);
+    QString getDefaultHistogramID(const QString & params);
 
 
 private slots:

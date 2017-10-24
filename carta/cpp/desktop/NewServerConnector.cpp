@@ -265,7 +265,12 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
                   QString result;
                   result = this->viewer.m_viewManager->dataLoaded(parameter);
                   emit jsCommandResultsSignal(sessionID, cmd, result);
+              } else if (subCommand == "getDefaultHistogramID") {
+                  QString result;
+                  result = this->viewer.m_viewManager->getDefaultHistogramID(parameter);
+                  emit jsCommandResultsSignal(sessionID, cmd, result);
               }
+
         }
 
     } else {

@@ -454,8 +454,16 @@ void Layout::setLayoutDefault(bool cleanPluginList) {
 
     LayoutNode* statLeaf = NodeFactory::makeLeaf( Statistics::CLASS_NAME );
     rightTop->setChildFirst( statLeaf );
-    LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
-    rightTop->setChildSecond( hiddenLeaf );
+
+    // LayoutNode* hiddenLeaf = NodeFactory::makeLeaf( NodeFactory::HIDDEN );
+    LayoutNode* profilerHistogramBottom = NodeFactory::makeComposite( false );
+
+    //Profiler and histogram
+    LayoutNode* profilerLeaf = NodeFactory::makeLeaf( Histogram::CLASS_NAME  );
+    profilerHistogramBottom->setChildFirst( profilerLeaf  );
+    LayoutNode* histogramLeaf = NodeFactory::makeLeaf( Profiler::CLASS_NAME );
+    profilerHistogramBottom->setChildSecond( histogramLeaf );
+    rightTop->setChildSecond( profilerHistogramBottom );
 
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
     LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );
