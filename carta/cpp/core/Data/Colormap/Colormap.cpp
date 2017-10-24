@@ -1149,6 +1149,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent, boo
         qWarning() << "Could not update intensity bounds:" << error;
     }
 
+    // TODO currently this and probably other functions fail completely if the image units are blank. Is this a regression?
     if ( success ){
         double minIntensity = Util::roundToDigits( intensities.first, getSignificantDigits());
         double maxIntensity = Util::roundToDigits( intensities.second, getSignificantDigits());
