@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  webkitwidgets network widgets xml
+QT      +=  network widgets xml
 
 HEADERS +=
 
@@ -26,6 +26,6 @@ unix:macx {
 }
 else{
     QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
-    LIBS +=-L$$QWT_ROOT/lib -lqwt 
+    LIBS +=-L$$QWT_ROOT/lib -lqwt
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.so
 }

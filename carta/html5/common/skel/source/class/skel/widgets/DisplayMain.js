@@ -23,8 +23,8 @@ qx.Class.define("skel.widgets.DisplayMain",
             var bounds = this.getBounds();
             this.m_height = bounds.height;
             this.m_width = bounds.width;
+            // this._resetLayoutCB();
 
-            this._resetLayoutCB();
             this.addListener("resize", function() {
                 // this._resizeContent();
                 var bounds = this.getBounds();
@@ -190,7 +190,9 @@ qx.Class.define("skel.widgets.DisplayMain",
                         qx.event.message.Bus.dispatch( new qx.event.message.Message( "nodeFound", childInfo));
                     }
                 }, this );
+                
                 this.m_pane.initSharedVar();
+
                 qx.event.message.Bus.subscribe("drawModeChanged", this._drawModeChanged, this);
                 qx.event.message.Bus.subscribe("windowSelected",
                     function(message) {

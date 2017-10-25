@@ -11,6 +11,12 @@
 #include "core/CallbackList.h"
 #include "CartaLib/IRemoteVGView.h"
 
+QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
+QT_FORWARD_DECLARE_CLASS(QWebSocket)
+
+QT_FORWARD_DECLARE_CLASS(WebSocketClientWrapper)
+QT_FORWARD_DECLARE_CLASS(QWebChannel)
+
 class MainWindow;
 class IView;
 
@@ -42,6 +48,12 @@ public:
     /// Return the location where the state is saved.
     virtual QString getStateLocation( const QString& saveName ) const;
 
+    void startWebSocketChannel();
+    QWebSocketServer *m_pWebSocketServer;
+    WebSocketClientWrapper *m_clientWrapper;
+    QWebChannel *m_channel;
+    ~DesktopConnector();
+
 public slots:
 
     /// javascript calls this to set a state
@@ -72,7 +84,7 @@ signals:
     /// javascript listens to it
     void jsCommandResultsSignal( const QString & results);
     /// emitted by c++ when we want javascript to repaint the view
-    void jsViewUpdatedSignal( const QString & viewName, const QImage & img, qint64 id);
+    void jsViewUpdatedSignal( const QString & viewName, const QString & img, qint64 id);
 
 public:
 

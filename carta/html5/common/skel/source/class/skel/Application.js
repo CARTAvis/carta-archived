@@ -11,6 +11,8 @@
 /* global qx, console, mImport */
 /* jshint strict: false */
 
+console.log("Application.js");
+
 /**
  * This is the main application class
  *

@@ -16,6 +16,16 @@
 #include <QCoreApplication>
 #include <functional>
 
+#include "QtWebSockets/qwebsocketserver.h"
+#include "QtWebSockets/qwebsocket.h"
+#include "websocketclientwrapper.h"
+#include "websockettransport.h"
+#include "qwebchannel.h"
+#include <QBuffer>
+
+#include <QDesktopServices>
+#include <QUrl>
+
 ///
 /// \brief internal class of DesktopConnector, containing extra information we like
 ///  to remember with each view
@@ -50,6 +60,30 @@ struct DesktopConnector::ViewInfo
 
 };
 
+void DesktopConnector::startWebSocketChannel(){
+
+    int port = 4318;
+
+    // setup the QWebSocketServer
+    m_pWebSocketServer = new QWebSocketServer(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode, this);
+    if (!m_pWebSocketServer->listen(QHostAddress::Any, port)) {
+        qFatal("Failed to open web socket server.");
+        return;
+    }
+
+    qDebug() << "DesktopConnector start listening on port" << port;
+
+    // wrap WebSocket clients in QWebChannelAbstractTransport objects
+    m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
+
+    // setup the channel
+    m_channel = new QWebChannel();
+    QObject::connect(m_clientWrapper, &WebSocketClientWrapper::clientConnected,
+                     m_channel, &QWebChannel::connectTo);
+
+    m_channel->registerObject(QStringLiteral("QtConnector"), this);
+}
+
 DesktopConnector::DesktopConnector()
 {
     // queued connection to prevent callbacks from firing inside setState
@@ -58,6 +92,28 @@ DesktopConnector::DesktopConnector()
              Qt::QueuedConnection );
 
     m_callbackNextId = 0;
+
+    m_pWebSocketServer = nullptr;
+    m_clientWrapper = nullptr;
+    m_channel = nullptr;
+    startWebSocketChannel();
+}
+
+DesktopConnector::~DesktopConnector()
+{
+    m_pWebSocketServer->close();
+
+    if (m_pWebSocketServer != nullptr) {
+        delete m_pWebSocketServer;
+    }
+
+    if (m_clientWrapper != nullptr) {
+        delete m_clientWrapper;
+    }
+
+    if (m_channel != nullptr) {
+        delete m_channel;
+    }
 }
 
 void DesktopConnector::initialize(const InitializeCallback & cb)
@@ -161,8 +217,6 @@ void DesktopConnector::unregisterView( const QString& viewName ){
         m_views.erase( viewName );
     }
 }
-
-//    static QTime st;
 
 // schedule a view refresh
 qint64 DesktopConnector::refreshView(IView * view)
@@ -291,13 +345,26 @@ void DesktopConnector::refreshViewNow(IView *view)
         viewInfo-> ty = Carta::Lib::LinearMap1D( yOffset, yOffset + destImage.size().height()-1,
                                      0, origImage.height()-1);
 
-        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+        // emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
+        QImage *finalImage = &pix;
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
+        QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+        emit jsViewUpdatedSignal( view-> name(), base64Str, viewInfo-> refreshId);
     }
     else {
         viewInfo-> tx = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
         viewInfo-> ty = Carta::Lib::LinearMap1D( 0, 1, 0, 1);
 
-        emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+        // emit jsViewUpdatedSignal( view-> name(), origImage, viewInfo-> refreshId);
+
+        const QImage *finalImage = &origImage;
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        finalImage->save(&buffer, "JPEG", 90); // writes the image in PNG format inside the buffer
+        QString base64Str = QString::fromLatin1(byteArray.toBase64().data());
+        emit jsViewUpdatedSignal( view-> name(), base64Str,  viewInfo-> refreshId);
     }
 }
 
