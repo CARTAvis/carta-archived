@@ -106,7 +106,6 @@ ParsedInfo parse(const QString & filePath)
 
     _storeBool( json["hacksEnabled"], &info.m_hacksEnabled, "hacks enabled");
     _storeBool( json["developerLayout"], &info.m_developerLayout, "developer layout");
-    _storeBool( json["qtDecorations"], &info.m_developerDecorations, "developer decorations");
     _storeBool( json["percentileApproximation"], &info.m_percentileApproximation, "whether to use approximation method for percentile calculation");
 
     _storePositiveInt( json["histogramBinCountMax"], &info.m_histogramBinCountMax, "histogram bin count max");
@@ -125,10 +124,6 @@ bool ParsedInfo::hacksEnabled() const
 {
     qDebug() << "Hacks enabled retuning "<<m_hacksEnabled;
     return m_hacksEnabled;
-}
-
-bool ParsedInfo::isDeveloperDecorations() const {
-    return m_developerDecorations;
 }
 
 bool ParsedInfo::isPercentileApproximation() const {
