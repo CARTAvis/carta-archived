@@ -440,7 +440,6 @@ std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<
 
 // TODO: create a helper struct for this with named value anf error members to make the code more legible.
 std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const {
-    qDebug() << "++++++++++++++++ in _readIntensityCache looking for percentile" << percentile;
     std::pair<double, double> result = std::make_pair(-1, -1);
     if (m_diskCache) {
         bool intensityInCache = false;
@@ -452,12 +451,10 @@ std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int fram
         if (intensityInCache) {
             value = qb2d(intensityVal);
             error = qb2d(intensityError);
-            qDebug() << "intensity in cache; got value" << value << "and error" << error;
         }
         //qDebug() << "[read intensity] intensity=" << value << "intensity error order=" << error;
         result = std::make_pair(value, error);
     }
-    qDebug() << "going to return (val, err) =" << result.first << result.second;
     return result;
 }
 
@@ -578,28 +575,6 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
             qWarning() << "the number of percentiles to calculate is not equal to 2 (check cache save procedure)!!";
         }
 
-        // get all clip settings for approximate percentile calculations
-        std::shared_ptr<Carta::Data::Clips> m_clips;
-        std::vector<double> percentiles_from_all_clips = m_clips -> getAllClips2percentiles();
-
-        // get extra clipping values from UI which is not equal to current clipping ones
-		// TODO: we check before caching these at the end, but we don't check if they are cached now.
-        // TODO: this logic could be clearer
-        // TODO: put this all within the approximation conditional below
-        std::vector<double> percentiles_to_calculate_plus;
-        std::pair<bool, double> parse_percentiles_from_all_clips;
-        for (size_t i = 0; i < percentiles_from_all_clips.size(); i++) {
-            // the same clipping value from different sources are not absolute equal !!
-            // so we need to make the following checks !!
-            parse_percentiles_from_all_clips = _isSameValue(percentiles_from_all_clips[i], percentiles_to_calculate, 1e-6);
-            if (parse_percentiles_from_all_clips.first == true) {
-                // TODO: why do we add the same value repeatedly?
-                percentiles_to_calculate_plus.push_back(parse_percentiles_from_all_clips.second);
-            } else {
-                percentiles_to_calculate_plus.push_back(percentiles_from_all_clips[i]);
-            }
-        }
-
         // define the priority number (error order) for choosing (key, value) from SQLite3
         double error;
         
@@ -628,13 +603,46 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
             error = 0;
 
         } else if (isApproximation) {
-
             // if percentiles != 0% or 100%, use the approximate algorithm
             qDebug() << "++++++++ [apply] Carta::Core::Algorithms::percentile2pixels_approximation() function !!";
+            
+            // get all clip settings for approximate percentile calculations
+            std::shared_ptr<Carta::Data::Clips> m_clips;
+            std::vector<double> percentiles_from_all_clips = m_clips -> getAllClips2percentiles();
+
+            // get extra clipping values from UI which is not equal to current clipping ones
+            // TODO: we check before caching these at the end, but we don't check if they are cached now.
+            // TODO: this logic could be clearer
+            // TODO: make a separate vector; combine the two vectors before passing them in; use the separate vector to find extra values to cache below
+            // TODO: can use a much simpler function to check for approximate membership in the original vector
+            std::vector<double> percentiles_to_calculate_plus;
+            
+            for (auto& p : percentiles_to_calculate) {
+                percentiles_to_calculate_plus.push_back(p);
+            }
+            
+            std::pair<bool, double> parse_percentiles_from_all_clips;
+            
+            for (auto& p : percentiles_from_all_clips) {
+                // the same clipping value from different sources are not absolute equal !!
+                // so we need to make the following checks !!
+                parse_percentiles_from_all_clips = _isSameValue(p, percentiles_to_calculate, 1e-6);
+                if (parse_percentiles_from_all_clips.first == true) {
+                    // TODO: why do we add the same value repeatedly?
+//                     percentiles_to_calculate_plus.push_back(parse_percentiles_from_all_clips.second);
+                    continue; // we already added this
+                } else {
+                    percentiles_to_calculate_plus.push_back(p);
+                }
+            }
+            
+            std::sort(percentiles_to_calculate_plus.begin(), percentiles_to_calculate_plus.end());
+        
+            for (auto& p : percentiles_to_calculate_plus) {
+                qDebug() << p;
+            }
 
             // get minimum and maximum pixel values from the cache or from the raw data
-            // TODO: why is it necessary to have a whole duplicate function for this? We can just call this function recursively.
-            //std::vector<double> minMaxIntensities = _getMinMaxIntensity(frameLow, frameHigh, stokeFrame);
             // This should call the block above
             std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
 
@@ -644,6 +652,24 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
 
             // set the priority number (error order) to be the inverse of percentApproxDividedNum
             error = 1 / static_cast<double>(percentApproxDividedNum);
+            
+            // if we use the approximation algorithm to get percentiles with respect to pixels values,
+            // we can calculate all Clipping values listed on the UI at one loop.
+            // In such case, we can set the extra percentiles with respect to pixels values in the other caches.
+            // The advantage of this method is that we don't need to use approximation algorithm again if we want
+            // to get another Clipping values in the UI.
+            // TODO: this logic could be clearer
+            std::pair<bool, double> check_repetition;
+            if (clips_map.size() > percentiles_to_calculate.size()) {
+                for (size_t i = 0; i < percentiles_to_calculate_plus.size(); i++) {
+                    // check if the percentile to pixel value to store is already done in previous loop
+                    check_repetition = _isSameValue(percentiles_to_calculate_plus[i], percentiles_to_calculate, 1e-6);
+                    if (check_repetition.first == true) continue;
+                    _setIntensityCache(clips_map[percentiles_to_calculate_plus[i]], error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame, transformation_label);
+                    qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_plus[i]
+                            << ", intensity=" << clips_map[percentiles_to_calculate_plus[i]] << "+/- (max-min)*" << error;
+                }
+            }
 
         } else {
 
@@ -675,25 +701,6 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
                 qDebug() << "++++++++ [set cache] for percentile" << percentiles[i]
                          << ", intensity=" << intensities[i] << "+/- (max-min)*" << error;
 
-            }
-        }
-
-        // if we use the approximation algorithm to get percentiles with respect to pixels values,
-        // we can calculate all Clipping values listed on the UI at one loop.
-        // In such case, we can set the extra percentiles with respect to pixels values in the other caches.
-        // The advantage of this method is that we don't need to use approximation algorithm again if we want
-        // to get another Clipping values in the UI.
-        // TODO: this logic could be clearer
-        // TODO: put this all within the approximation conditional above
-        std::pair<bool, double> check_repetition;
-        if (clips_map.size() > percentiles_to_calculate.size()) {
-            for (size_t i = 0; i < percentiles_to_calculate_plus.size(); i++) {
-                // check if the percentile to pixel value to store is already done in previous loop
-                check_repetition = _isSameValue(percentiles_to_calculate_plus[i], percentiles_to_calculate, 1e-6);
-                if (check_repetition.first == true) continue;
-                _setIntensityCache(clips_map[percentiles_to_calculate_plus[i]], error, frameLow, frameHigh, percentiles_to_calculate_plus[i], stokeFrame, transformation_label);
-                qDebug() << "++++++++ [set extra cache] for percentile" << percentiles_to_calculate_plus[i]
-                         << ", intensity=" << clips_map[percentiles_to_calculate_plus[i]] << "+/- (max-min)*" << error;
             }
         }
 
