@@ -115,7 +115,7 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
         std::map <double, double> intensities = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
         REQUIRE(intensities.size() == percentiles.size());
         for (auto& p : percentiles) {
-            REQUIRE(abs(exactSolutionFrameDependent[p] - intensities[p]) < 1e-10);
+            REQUIRE(fabs(exactSolutionFrameDependent[p] - intensities[p]) < 1e-10);
         }
     }
         
@@ -132,7 +132,7 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
         std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles);
         REQUIRE(intensities.size() == percentiles.size());
         for (auto& p : percentiles) {
-            int error = abs(exactSolution[p] - intensities[p]);
+            int error = fabs(exactSolution[p] - intensities[p]);
             double fractionalError = (double)error / size;
             //qDebug() << error << fractionalError;
             REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
@@ -149,7 +149,7 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
         std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
         REQUIRE(intensities.size() == percentiles.size());
         for (auto& p : percentiles) {
-            int error = abs(exactSolutionFrameDependent[p] - intensities[p]);
+            int error = fabs(exactSolutionFrameDependent[p] - intensities[p]);
             double fractionalError = (double)error / size;
             qDebug() << exactSolutionFrameDependent[p] << intensities[p] << error << fractionalError;
             //REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
@@ -162,7 +162,7 @@ TEST_CASE( "Quantile algorithm test", "[quantile]" ) {
         std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
         REQUIRE(intensities.size() == percentiles.size());
         for (auto& p : percentiles) {
-            int error = abs(exactSolution[p] - intensities[p]);
+            int error = fabs(exactSolution[p] - intensities[p]);
             double fractionalError = (double)error / size;
             //qDebug() << error << fractionalError;
             REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
