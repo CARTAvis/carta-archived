@@ -163,7 +163,7 @@ jobs:
         - sudo rm -rf $HOME/build/CARTAvis/build
         - chmod 755 ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_buildcarta.sh
-        - if [ ! -f "$HOME/build/CARTAvis/build/CARTA.app/Contents/MacOS/CARTA" ]; then echo "CARTA build failed"; travis_terminate 1; fi
+        - if [ ! -f "$HOME/build/CARTAvis/build/cpp/desktop/CARTA.app/Contents/MacOS/CARTA" ]; then echo "CARTA build failed"; travis_terminate 1; fi
         # - npm install
         - echo "in before cache in stage3"
         - du -sh $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty
