@@ -147,7 +147,6 @@ QStringList Controller::getFileList(){
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
-    qDebug() << "--------- inside Controller::applyClips";
     QString result;
     bool clipsChangedValue = false;
     if ( minIntensityPercentile < maxIntensityPercentile ){

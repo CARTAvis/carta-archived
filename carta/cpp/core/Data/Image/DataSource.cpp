@@ -440,6 +440,7 @@ std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<
 
 // TODO: create a helper struct for this with named value anf error members to make the code more legible.
 std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const {
+    qDebug() << "++++++++++++++++ in _readIntensityCache looking for percentile" << percentile;
     std::pair<double, double> result = std::make_pair(-1, -1);
     if (m_diskCache) {
         bool intensityInCache = false;
@@ -451,10 +452,12 @@ std::pair<double, double> DataSource::_readIntensityCache(int frameLow, int fram
         if (intensityInCache) {
             value = qb2d(intensityVal);
             error = qb2d(intensityError);
+            qDebug() << "intensity in cache; got value" << value << "and error" << error;
         }
         //qDebug() << "[read intensity] intensity=" << value << "intensity error order=" << error;
         result = std::make_pair(value, error);
     }
+    qDebug() << "going to return (val, err) =" << result.first << result.second;
     return result;
 }
 

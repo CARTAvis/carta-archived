@@ -242,10 +242,17 @@ QString Colormap::_commandSetColorMap( const QString& params ){
 
 Carta::Lib::IntensityUnitConverter::SharedPtr Colormap::_getIntensityConverter(const QString& toUnit) {
     Carta::Lib::IntensityUnitConverter::SharedPtr intensity_converter = nullptr;
+
     Controller* controller = _getControllerSelected();
 
     if ( controller ){
         QString fromUnit = controller->getPixelUnits();
+        
+        // This allows clips and intensity bounds to be changed without a converter if the image has unknown units
+        if (fromUnit == "N/A" || toUnit == "N/A") {
+            qWarning() << "Image units are unknown. Returning null intensity converter.";
+            return intensity_converter;
+        }
 
         std::shared_ptr<DataSource> dataSource = controller->getDataSource();
 
@@ -263,22 +270,20 @@ Carta::Lib::IntensityUnitConverter::SharedPtr Colormap::_getIntensityConverter(c
                 result2.forEach( lam2 );
 
                 if (!intensity_converter) {
-                    throw QString("Cannot convert intensity between %1 and %2. This conversion is not supported.").arg(fromUnit).arg(toUnit);
+                    throw QString("Cannot find converter to convert intensity between %1 and %2. This conversion is not supported.").arg(fromUnit).arg(toUnit);
                 }
 
                 if (intensity_converter->frameDependent) {
                     int spectralIndex = Util::getAxisIndex( image, Carta::Lib::AxisInfo::KnownType::SPECTRAL);
                     
                     if (spectralIndex < 0) {
-                        throw QString("Cannot convert intensity between %1 and %2. Image has no spectral axis.").arg(fromUnit).arg(toUnit);
+                        throw QString("Cannot find converter to convert intensity between %1 and %2. Image has no spectral axis.").arg(fromUnit).arg(toUnit);
                     }
                 }
             }
         }
     }
 
-
-                
     return intensity_converter;
 }
 
@@ -1001,7 +1006,8 @@ QString Colormap::setImageUnits( const QString& unitsStr ){
     if ( !actualUnits.isEmpty() ){
         QString oldUnits = m_state.getValue<QString>( IMAGE_UNITS );
         if ( oldUnits != actualUnits ){
-            // We will need to convert the recalculated intensities from pixel units to the new units
+            // We will need to recalculate the current intensity min and max from the percentage min and max in the new units
+            // So we need a converter from the pixel units to the *new* image units
             bool success(false);
             std::pair<double, double> values;
             
@@ -1118,16 +1124,14 @@ QString Colormap::setTabIndex( int index ){
 void Colormap::_updateImageClips(){
     double minClip = m_stateData.getValue<double>( INTENSITY_MIN );
     double maxClip = m_stateData.getValue<double>( INTENSITY_MAX );
-    //Change intensity values back to image units.
+    
     Controller* controller = _getControllerSelected();
+    
     if ( controller ){
-        QString imageUnits = controller->getPixelUnits();
-        QString curUnits = getImageUnits();
-
         try {
-            // NB: this is a converter *from* image units *to* the intensity units,
+            // NB: this is a converter *from* to pixel units *to* the image units, not the other way around,
             // because we apply it in reverse to the intensities, not to the image values
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter = _getIntensityConverter(curUnits);
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter = _getIntensityConverter(getImageUnits());
             std::vector<double> percentiles = controller->getPercentiles( -1, -1, {minClip, maxClip}, converter );
             controller->applyClips( percentiles[0], percentiles[1] );
         } catch (const QString & error) {
@@ -1149,7 +1153,6 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent, boo
         qWarning() << "Could not update intensity bounds:" << error;
     }
 
-    // TODO currently this and probably other functions fail completely if the image units are blank. Is this a regression?
     if ( success ){
         double minIntensity = Util::roundToDigits( intensities.first, getSignificantDigits());
         double maxIntensity = Util::roundToDigits( intensities.second, getSignificantDigits());
