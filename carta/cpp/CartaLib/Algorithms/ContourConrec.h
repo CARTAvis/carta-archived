@@ -36,7 +36,7 @@ public:
 
     /// compute and return the sorted vertices
     Result
-    compute( NdArray::RawViewInterface * );
+    compute( NdArray::RawViewInterface *, QString typeName );
 
 private:
 

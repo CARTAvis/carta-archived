@@ -67,7 +67,10 @@ MainWindow::MainWindow( )
     helpMenu->addAction(tr("GitHub Home"), this, SLOT(helpUrlGitHubHome()));
     helpMenu->addAction(tr("GitHub Wiki"), this, SLOT(helpUrlGitHubWiki()));
     helpMenu->addAction(tr("GitHub Issues"), this, SLOT(helpUrlGitHubIssues()));
-
+    helpMenu->addAction(tr("Release"), this, SLOT(helpReleaseNote()));
+    helpMenu->addAction(tr("Manual"), this, SLOT(helpManual()));
+    helpMenu->addAction(tr("Helpdesk"), this, SLOT(helpUrlHelpdesk()));
+    
     setCentralWidget(m_view);
     setUnifiedTitleAndToolBarOnMac(true);
 
@@ -167,6 +170,21 @@ void MainWindow::helpUrlGitHubIssues()
     QDesktopServices::openUrl(QUrl("https://github.com/CARTAvis/carta/issues", QUrl::TolerantMode));
 }
 
+void MainWindow::helpReleaseNote()
+{
+    QDesktopServices::openUrl(QUrl("https://github.com/CARTAvis/carta/releases", QUrl::TolerantMode));
+}
+
+void MainWindow::helpManual()
+{
+    QDesktopServices::openUrl(QUrl("https://cartavis.github.io/manual/", QUrl::TolerantMode));
+}
+
+void MainWindow::helpUrlHelpdesk()
+{
+    QDesktopServices::openUrl(QUrl("mailto:carta_helpdesk@asiaa.sinica.edu.tw", QUrl::TolerantMode));
+}
+
 void MainWindow::cartaLicense()
 {
     QMessageBox::about(this, tr("Copyright and License"),
@@ -180,5 +198,7 @@ void MainWindow::cartaLicense()
                     GNU General Public License for more details.</p>\
                     <p>You should have received a copy of the GNU General Public License \
                     along with this program.  If not, see \
-                    <a href='http://www.gnu.org/licenses/'>http://www.gnu.org/licenses/<a>.</p>"));
+                    <a href='http://www.gnu.org/licenses/'>http://www.gnu.org/licenses/<a>.</p> \
+                    <p>Third party list: <a href='https://github.com/cartavis/carta#third-party-libraries'>\
+                    https://github.com/cartavis/carta#third-party-libraries<a>.</p>"));
 }

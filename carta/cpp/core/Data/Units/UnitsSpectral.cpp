@@ -63,6 +63,9 @@ QString UnitsSpectral::getActualUnits( const QString& unitStr ) const {
 
 QString UnitsSpectral::getDefault() const {
     return NAME_CHANNEL;
+    // TODO: The default unit had better change to use RADIO_VELOCITY
+    // It looks that casa::PixelValueManipulator cannot directly use "km/s" to calculate.
+    // return NAME_VELOCITY_RADIO + "(" + UNIT_KMS + ")";
 }
 
 

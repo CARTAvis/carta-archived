@@ -49,8 +49,8 @@ void Contour::_initializeSingletons( ){
 
 void Contour::_initializeState(){
     m_state.insertValue<int>( Util::RED, 0 );
-    m_state.insertValue<int>( Util::BLUE, 0 );
-    m_state.insertValue<int>( Util::GREEN, 0 );
+    m_state.insertValue<int>( Util::BLUE, 255 );
+    m_state.insertValue<int>( Util::GREEN, 255 );
     m_state.insertValue<int>( Util::ALPHA, 255 );
     m_state.insertValue<double>(Util::WIDTH, 1 );
     m_state.insertValue<double>( LEVEL, 0 );

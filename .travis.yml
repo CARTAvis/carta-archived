@@ -198,8 +198,8 @@ jobs:
         - mv carta CARTAvis
         - chmod 755 ./CARTAvis/carta/scripts/ci_mac_packaging.sh
         - sudo -E ./CARTAvis/carta/scripts/ci_mac_packaging.sh
-        - git clone https://github.com/grimmer0125/testgdrive.git
-        - if [ -e "$HOME/build/CARTAvis/build/Carta.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/build/Carta.dmg ./testgdrive/;cd testgdrive;npm install;npm start;else echo "no dmg there"; fi
+        - git clone https://github.com/CARTAvis/gdrive_uploader.git
+        - if [ -e "$HOME/build/CARTAvis/build/Carta.dmg" ]; then echo "dmg exist"; mv $HOME/build/CARTAvis/build/Carta.dmg ./gdrive_uploader/;cd gdrive_uploader;npm install;npm start;else echo "no dmg there"; fi
         - sudo rm -rf $HOME/build/CARTAvis/CARTAvis-externals/ThirdParty/qooxdoo-3.5.1-sdk
         - sudo rm -rf $HOME/build/CARTAvis/build
 

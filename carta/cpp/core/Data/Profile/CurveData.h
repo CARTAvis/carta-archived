@@ -234,6 +234,12 @@ public:
     QString getStatistic() const;
 
     /**
+     * Return the frame of stokes
+     * @return - the frame of stokes
+     */
+    int getStokesFrame() const;
+
+    /**
      * Get the curve x-coordinates.
      * @return - the curve x-coordinate values.
      */
@@ -475,6 +481,12 @@ public:
     QString setStatistic( const QString& stat );
 
     /**
+     * Set the frame of stokes to be one of I, Q, U, V
+     * @param frame - the frame displayed on the image panel
+     */
+    void setStokesFrame( const int frame );
+
+    /**
      * Set the layer that was used to generate the curve.
      * @param layer - the layer that was used to generate the curve.
      */
@@ -505,6 +517,7 @@ private:
     const static QString REST_UNIT_WAVE;
     const static QString SPECTRAL_TYPE;
     const static QString SPECTRAL_UNIT;
+    const static QString STOKES_FRAME;
 
     double _calculateRelativeError( double minValue, double maxValue ) const;
     void _calculateRelativeErrors( double& errorX, double& errorY ) const;
@@ -512,8 +525,6 @@ private:
             int significantDigits, double errorMargin );
     static QString _generateName( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
     QString _generatePeakLabel( int index, const QString& xUnit, const QString& yUnit ) const;
-    static Carta::Lib::ProfileInfo _generateProfileInfo( double restFrequency, const QString& restUnit,
-    	const QString& statistic, const QString& spectralType, const QString& spectralUnit );
     void _initializeDefaultState();
     void _initializeStatics();
     bool _isPointSource() const;

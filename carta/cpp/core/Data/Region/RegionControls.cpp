@@ -228,29 +228,6 @@ bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev,
 	return validDrag;
 }
 
-bool RegionControls::_handleHover( const Carta::Lib::InputEvents::HoverEvent& ev,
-		const QPointF& imagePt ){
-	bool validHover = false;
-	if ( ev.isValid() ){
-		validHover = true;
-		if ( m_regionEdit ){
-			m_regionEdit->handleHover( imagePt );
-			emit regionsChanged();
-		}
-		else {
-			int regionCount = m_regions.size();
-			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleHover( imagePt );
-			}
-			if ( regionCount > 0 ){
-				emit regionsChanged();
-			}
-		}
-
-	}
-	return validHover;
-}
-
 
 bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev,
 		const QPointF& imagePt ){
@@ -486,20 +463,18 @@ bool RegionControls::isAutoSelect() const {
 }
 
 void RegionControls::_onInputEvent(InputEvent & ev, const QPointF& imagePt ){
-	if ( !_handleHover( Carta::Lib::InputEvents::HoverEvent( ev ), imagePt ) ) {
-		if ( !_handleTapDouble( Carta::Lib::InputEvents::DoubleTapEvent( ev ), imagePt ) ) {
-			if ( !_handleTouch( Carta::Lib::InputEvents::TouchEvent( ev ), imagePt ) ){
-				if( !_handleDrag( Carta::Lib::InputEvents::Drag2Event(ev), imagePt) ){
-					//qWarning() << "RegionControls:: unhandled event: "<<ev.type();
-				}
-			}
-		}
-		else {
-			//Note that we are doing this so if we are editing a polygon region and
-			//closing it with a double click, the image will not also be panned.
-			ev.setConsumed();
-		}
-	}
+        if ( !_handleTapDouble( Carta::Lib::InputEvents::DoubleTapEvent( ev ), imagePt ) ) {
+        	if ( !_handleTouch( Carta::Lib::InputEvents::TouchEvent( ev ), imagePt ) ){
+                	if( !_handleDrag( Carta::Lib::InputEvents::Drag2Event(ev), imagePt) ){
+                        	//qWarning() << "RegionControls:: unhandled event: "<<ev.type();
+                        }
+                }
+        }
+        else {
+        	//Note that we are doing this so if we are editing a polygon region and
+	       	//closing it with a double click, the image will not also be panned.
+        	ev.setConsumed();
+        }
 }
 
 void RegionControls::refreshState(){
@@ -509,15 +484,13 @@ void RegionControls::refreshState(){
 
 
 void RegionControls::_regionSelectionChanged( const QString& id ){
-	if ( !isAutoSelect() ){
-		int regionIndex = _findRegionIndex( id );
-		if ( regionIndex >= 0 ){
-			if ( m_regions[regionIndex]->isSelected() ){
-				setIndexCurrent( regionIndex );
-			}
-		}
-	}
-	_saveStateRegions();
+    int regionIndex = _findRegionIndex( id );
+    if ( regionIndex >= 0 ){
+        if ( m_regions[regionIndex]->isSelected() ){
+            setIndexCurrent( regionIndex );
+        }
+    }
+    _saveStateRegions();
 }
 
 void RegionControls::_regionShapeChanged( ){

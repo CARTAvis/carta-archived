@@ -42,11 +42,11 @@ QString HistogramRenderRequest::getFileName() const {
 	return m_fileName;
 }
 
-int HistogramRenderRequest::getFrequencyMax() const {
+double HistogramRenderRequest::getFrequencyMax() const {
 	return m_maxFrequency;
 }
 
-int HistogramRenderRequest::getFrequencyMin() const {
+double HistogramRenderRequest::getFrequencyMin() const {
 	return m_minFrequency;
 }
 
@@ -65,14 +65,14 @@ std::shared_ptr<Carta::Lib::Image::ImageInterface> HistogramRenderRequest::getIm
 	return m_image;
 }
 
-int HistogramRenderRequest::getIntensityMax() const {
+double HistogramRenderRequest::getIntensityMax() const {
 	return m_maxIntensity;
 }
 
 
-	int HistogramRenderRequest::getIntensityMin() const {
-		return m_minIntensity;
-	}
+double HistogramRenderRequest::getIntensityMin() const {
+	return m_minIntensity;
+}
 
 
 QString HistogramRenderRequest::getRangeUnits() const {
@@ -102,4 +102,3 @@ HistogramRenderRequest::~HistogramRenderRequest(){
 }
 }
 }
-

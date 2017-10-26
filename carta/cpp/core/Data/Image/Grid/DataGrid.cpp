@@ -580,9 +580,10 @@ bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     int oldCount = m_state.getArraySize( SUPPORTED_AXES );
     m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
 
+    int axisIndex = 0;
     for( int i=0; i<axisCount; i++ ){
         QString name = supportedAxes[i].longLabel().plain();
-        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
+        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, axisIndex );
         QString oldName;
         if ( i < oldCount ){
             oldName = m_state.getValue<QString>( lookup );
@@ -597,8 +598,13 @@ bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
             //    _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
             //}
             axisTypesChanged = true;
+            if ( AxisMapper::getType(name)==Carta::Lib::AxisInfo::KnownType::STOKES ){
+                m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
+                continue;
+            }
             m_state.setValue<QString>( lookup, name );
         }
+        axisIndex++;
     }
 
     if ( axisTypesChanged ){

@@ -4,9 +4,9 @@ namespace Carta {
 
 namespace Shape{
 
-const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 106, 0 ) ), 3 );
-const QBrush ShapeBase::shadowBrush = QBrush( QColor( 255, 106, 0 ) );
-const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 102, 153, 204 ) ), 2 );
+const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 0, 255 ) ), 2 );
+const QBrush ShapeBase::shadowBrush = QBrush( QColor( 0, 255, 0 ) );
+const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 0, 255, 0 ) ), 2 );
 
 ShapeBase::ShapeBase( QObject* parent ):
 		QObject( parent ),
@@ -107,10 +107,6 @@ bool ShapeBase::isEditMode() const {
 	return m_editMode;
 }
 
-bool ShapeBase::isHovered() const{
-	return m_hovered;
-}
-
 bool ShapeBase::isPointInside( const QPointF & pt ) const {
 	Q_UNUSED( pt );
 	return false;
@@ -137,14 +133,6 @@ void ShapeBase::setEditMode( bool editMode ){
 	m_editMode = editMode;
 	if ( oldEditMode != editMode ) {
 		editModeChanged();
-	}
-}
-
-void ShapeBase::setHovered( bool value ){
-	m_hovered = value;
-	int controlCount = m_controlPoints.size();
-	for ( int i = 0; i < controlCount; i++ ){
-		m_controlPoints[i]->setActive( value );
 	}
 }
 

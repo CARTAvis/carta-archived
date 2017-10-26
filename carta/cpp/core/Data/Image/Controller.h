@@ -125,6 +125,12 @@ public:
     Carta::Lib::KnownSkyCS getCoordinateSystem() const;
 
     /**
+     * Return the auto clip.
+     * @return the auto clip.
+     */
+    bool getAutoClip() const;
+
+    /**
      * Return the minimum clip percentile.
      * @return the minimum clip percentile.
      */
@@ -445,6 +451,12 @@ public:
     QString setClipValue( double clipValue );
 
     /**
+     * @brief recall the clip value and update the percentile/colormap settings
+     * in order to update the stoke information that triggered from animation panel
+     */
+    void recallClipValue();
+
+    /**
      * Set whether or not to apply a composition mode to the image.
      * @param compMode - the type of composition mode to apply.
      * @return an error message if there was a problem recognizing the composition mode.
@@ -578,7 +590,7 @@ signals:
      * @param minPercentile - the new minimum clip percentile.
      * @param maxPercentile - the new maximum clip percentile.
      */
-    void clipsChanged( double minPercentile, double maxPercentile );
+    void clipsChanged( double minPercentile, double maxPercentile, bool autoClip );
 
     /**
      * Notification that one or more color map(s) have changed.

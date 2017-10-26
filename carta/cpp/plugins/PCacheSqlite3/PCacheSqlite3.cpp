@@ -46,13 +46,16 @@ public:
     } // deleteAll
 
     virtual bool
-    readEntry( const QByteArray & key, QByteArray & val ) override
+    readEntry( const QByteArray & key, QByteArray & val, QByteArray & error ) override
     {
         if ( ! m_db.isOpen() ) {
             return false;
         }
         QSqlQuery query( m_db );
-        query.prepare( "SELECT val FROM db WHERE key = :key" );
+        //query.prepare( "SELECT val FROM db WHERE key = :key" );
+
+        // choose "val" and "error" with the minimum "error" for the specific "key"
+        query.prepare( "SELECT val,error FROM db WHERE key = :key ORDER BY error ASC LIMIT 1" );
         query.bindValue( ":key", key );
 
         if ( ! query.exec() ) {
@@ -61,24 +64,29 @@ public:
         }
         if ( query.next() ) {
             val = query.value( 0 ).toByteArray();
+            error = query.value( 1 ).toByteArray();
             return true;
         }
         return false;
     } // readEntry
 
     virtual void
-    setEntry( const QByteArray & key, const QByteArray & val, int64_t priority ) override
+    setEntry( const QByteArray & key, const QByteArray & val, const QByteArray & error ) override
     {
         if ( ! m_db.isOpen() ) {
             return;
         }
 
-        Q_UNUSED( priority );
+        //Q_UNUSED( priority );
         QSqlQuery query( m_db );
-        query.prepare( "INSERT OR REPLACE INTO db (key, val) VALUES ( :key, :val)" );
+        //query.prepare( "INSERT OR REPLACE INTO db (key, val) VALUES ( :key, :val )" );
+
+        // add a new value "error" in the row
+        query.prepare( "INSERT INTO db (key, val, error) VALUES (:key, :val, :error)" );
 
         query.bindValue( ":key", key );
         query.bindValue( ":val", val );
+        query.bindValue( ":error", error );
 
         if ( ! query.exec() ) {
             qWarning() << "Insert query failed:" << query.lastError().text();
@@ -122,7 +130,10 @@ private:
 
         QSqlQuery query( m_db );
 
-        query.prepare( "CREATE TABLE IF NOT EXISTS db (key TEXT PRIMARY KEY, val BLOB)" );
+        //query.prepare( "CREATE TABLE IF NOT EXISTS db (key TEXT PRIMARY KEY, val BLOB)" );
+
+        // allow to insert rows with the same "key TEXT" but may have different errors
+        query.prepare( "CREATE TABLE IF NOT EXISTS db (key TEXT, val BLOB, error BLOB)" );
 
         if ( ! query.exec() ) {
             qCritical() << "Create table query failed:" << query.lastError().text();
@@ -175,11 +186,14 @@ PCacheSQlite3Plugin::initialize( const IPlugin::InitInfo & initInfo )
 
     // extract the location of the database from carta.config
     m_dbPath = initInfo.json.value( "dbPath").toString();
+
     if( m_dbPath.isNull()) {
         qCritical() << "No dbPath specified for PCacheSqlite3 plugin!!!";
     }
     else {
         // convert this to absolute path just in case
+        m_dbPath.replace("$(HOME)", QDir::homePath()); // get user's home directory
+        m_dbPath.replace("$(APPDIR)", QCoreApplication::applicationDirPath()); // get the directory of CARTA Application
         m_dbPath = QDir(m_dbPath).absolutePath();
     }
 }

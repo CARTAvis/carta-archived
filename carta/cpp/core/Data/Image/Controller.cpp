@@ -147,7 +147,6 @@ QStringList Controller::getFileList(){
 }
 
 QString Controller::applyClips( double minIntensityPercentile, double maxIntensityPercentile ){
-    qDebug() << "--------- inside Controller::applyClips";
     QString result;
     bool clipsChangedValue = false;
     if ( minIntensityPercentile < maxIntensityPercentile ){
@@ -175,9 +174,10 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
         if( clipsChangedValue ){
             m_state.flushState();
             _loadViewQueued();
+            bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
             double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
             double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
-            emit clipsChanged( minPercent, maxPercent );
+            emit clipsChanged( minPercent, maxPercent, autoClip );
         }
     }
     else {
@@ -257,6 +257,11 @@ std::set<AxisInfo::KnownType> Controller::_getAxesHidden() const {
 QPointF Controller::getCenterPixel() const {
     QPointF center = m_stack->_getCenterPixel();
     return center;
+}
+
+bool Controller::getAutoClip() const {
+    bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
+    return autoClip;
 }
 
 double Controller::getClipPercentileMax() const {
@@ -1099,6 +1104,9 @@ void Controller::setAutoClip( bool autoClip ){
         m_state.setValue<bool>( AUTO_CLIP, autoClip );
         m_state.flushState();
     }
+    // before rendering we need to flush the state in Colormap::_updateIntensityBounds()
+    // if autoClip is changed from true to false !!
+    if ( autoClip != oldAutoClip && autoClip == false) recallClipValue();
 }
 
 
@@ -1132,6 +1140,14 @@ QString Controller::setClipValue( double clipVal  ) {
         result = "Clip value must be in [0,1].";
     }
     return result;
+}
+
+
+void Controller::recallClipValue() {
+    bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
+    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+    emit clipsChanged( minPercent, maxPercent, autoClip );
 }
 
 

@@ -263,7 +263,7 @@ signals:
     void colorMapChanged();
 
 private slots:
-    void _updateIntensityBounds( double minIntensity, double maxIntensity );
+    void _updateIntensityBounds(double minIntensity, double maxIntensity , bool autoClip);
     void _colorStateChanged();
     void _dataChanged( Controller* controller );
     /**
@@ -283,13 +283,8 @@ private:
     std::pair<double,double> _getIntensities(bool &success, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
     std::pair<double,double> _getIntensities(bool &success, const double minPercent, const double maxPercent,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
-    
-    //std::pair<double,double>  _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit );
-    //std::pair<double,double> _convertIntensity( bool &success, const QString& oldUnit, const QString& newUnit,
-            //double minValue, double maxValue );
 
     Controller* _getControllerSelected() const;
-    //std::vector<std::pair<int,double> > _getIntensityForPercents( std::vector<double>& percent ) const;
 
     /**
      * Return the server side id of the preferences for this colormap.
@@ -314,8 +309,7 @@ private:
     const static QString INTENSITY_MAX;
     const static QString PERCENT_MIN;
     const static QString PERCENT_MAX;
-    //const static QString INTENSITY_MIN_INDEX;
-    //const static QString INTENSITY_MAX_INDEX;
+
     const static QString SIGNIFICANT_DIGITS;
     const static QString TAB_INDEX;
 

@@ -49,7 +49,7 @@ public:
     } // deleteAll
 
     virtual bool
-    readEntry( const QByteArray & key, QByteArray & val ) override
+    readEntry( const QByteArray & key, QByteArray & val, QByteArray & error ) override
     {
         
         if ( ! p_db ) {
@@ -66,7 +66,7 @@ public:
     } // readEntry
 
     virtual void
-    setEntry( const QByteArray & key, const QByteArray & val, int64_t priority ) override
+    setEntry( const QByteArray & key, const QByteArray & val, const QByteArray & error ) override
     {
         if( ! p_db) return;
         auto status = p_db-> Put( p_writeOptions,
@@ -76,7 +76,7 @@ public:
             qWarning() << "query insert failed:" << status.ToString().c_str();
         }
 
-        Q_UNUSED( priority);
+        //Q_UNUSED( priority);
         // \todo we'll have to embed  priority into the value, e.g. first 8 bytes?
     } // setEntry
 
