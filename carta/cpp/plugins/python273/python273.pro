@@ -3,11 +3,12 @@
 }
 
 INCLUDEPATH += /usr/include/python2.7
+INCLUDEPATH += /usr/local/include/python2.7
 unix:macx{
  	INCLUDEPATH += /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/numpy/core/include
 }
 
-LIBS += -lpython2.7
+LIBS += -lpython2.7 -lutil
 INCLUDEPATH += $$PROJECT_ROOT
 DEPENDPATH += $$PROJECT_ROOT
 
@@ -58,7 +59,7 @@ cythoncpp.input = CYTHONSOURCES
 cythoncpp.output = ${QMAKE_FILE_BASE}.cpp
 #cythoncpp.commands = python $$_PRO_FILE_PWD_/setup.py build_ext --inplace
 #cythoncpp.commands = python setup.py build_ext --inplace
-cythoncpp.commands = python -m cython --cplus -f pluginBridge.pyx
+cythoncpp.commands = python2.7 -m cython --cplus -f pluginBridge.pyx
 cythoncpp.variable_out = SOURCES
 cythoncpp.name = cython Sources ${QMAKE_FILE_IN}
 cythoncpp.CONFIG += target_predeps
