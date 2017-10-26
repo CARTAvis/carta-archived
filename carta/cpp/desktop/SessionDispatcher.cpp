@@ -118,8 +118,8 @@ void SessionDispatcher::jsViewUpdatedSignalForwardSlot(const QString & sessionID
 }
 
 
-void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results){
-    emit jsCommandResultsSignal(sessionID, cmd, results);
+void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results, const QString & subIdentifier){
+    emit jsCommandResultsSignal(sessionID, cmd, results, subIdentifier);
 }
 
 //TODO implement later
@@ -167,9 +167,9 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 
 
         connect(connector,
-                SIGNAL(jsCommandResultsSignal(const QString &, const QString &, const QString &)),
+                SIGNAL(jsCommandResultsSignal(const QString &, const QString &, const QString &, const QString &)),
                 this,
-                SLOT(jsCommandResultsSignalForwardSlot(const QString &, const QString &, const QString &))
+                SLOT(jsCommandResultsSignalForwardSlot(const QString &, const QString &, const QString &, const QString &))
                 );
 
         connect(connector,

@@ -74,7 +74,7 @@ public slots:
     /// this is the callback for stateChangedSignal
 //    void stateChangedSlot( const QString & key, const QString & value);
 
-    void jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results);
+    void jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results, const QString & subIdentifier);
     void jsViewUpdatedSignalForwardSlot(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
     void jsSendKeepAlive();
 
@@ -96,7 +96,7 @@ signals:
 
     /// we emit this signal when command results are ready
     /// javascript listens to it
-    void jsCommandResultsSignal(const QString & sessionID, const QString & cmd, const QString & results);
+    void jsCommandResultsSignal(const QString & sessionID, const QString & cmd, const QString & results, const QString & subIdentifier);
 
     /// emitted by c++ when we want javascript to repaint the view
     void jsViewUpdatedSignal(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
