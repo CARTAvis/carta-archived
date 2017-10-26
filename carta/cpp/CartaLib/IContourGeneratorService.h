@@ -92,6 +92,10 @@ public:
 //    typedef std::vector < std::vector < QPolygonF > > Result;
     typedef ContourSet Result;
 
+    /// request name for which to generate the contours
+    virtual void
+    setName( const QString & name ) = 0;
+
     /// request levels for which to generate the contours
     virtual void
     setLevels( const std::vector < double > & levels ) = 0;

@@ -20,7 +20,7 @@
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include <QtCore/qmath.h>
 #include <set>
-
+#include <QElapsedTimer>
 #include <QDebug>
 
 namespace Carta {
@@ -82,7 +82,7 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
         if ( objAdded ){
             connect( target, SIGNAL(colorChanged(Controller*)), this, SLOT(_setColorStates(Controller*)));
             _setColorStates( target );
-            connect( target, SIGNAL(clipsChanged(double,double)), this, SLOT(_updateIntensityBounds(double,double)));
+            connect( target, SIGNAL(clipsChanged(double,double,bool)), this, SLOT(_updateIntensityBounds(double,double,bool)));
             connect( target, SIGNAL(dataChanged(Controller*)), this, SLOT( _dataChanged(Controller*)));
             _dataChanged( target );
 
@@ -298,16 +298,14 @@ std::pair<double,double> Colormap::_convertIntensity( const QString& oldUnit, co
     return convertedIntensity;
 }
 
-
 void Colormap::_dataChanged( Controller* controller ){
     if ( controller ){
+        bool autoClip = controller->getAutoClip();
         double colorMinPercent = controller->getClipPercentileMin();
         double colorMaxPercent = controller->getClipPercentileMax();
-        _updateIntensityBounds( colorMinPercent, colorMaxPercent );
+        _updateIntensityBounds( colorMinPercent, colorMaxPercent, autoClip );
     }
 }
-
-
 
 Controller* Colormap::_getControllerSelected() const {
     //We are only supporting one linked controller.
@@ -329,13 +327,26 @@ QString Colormap::getImageUnits() const {
 }
 
 std::vector<std::pair<int,double> > Colormap::_getIntensityForPercents( std::vector<double>& percents ) const {
-
     std::vector<std::pair<int,double>> values;
     Controller* controller = _getControllerSelected();
     if ( controller != nullptr ){
-        std::pair<int,int> bounds(-1,-1);
+
+        // start the timer for percentile calculation
+        QElapsedTimer timer;
+        timer.start();
+
         // show colormap for Percentile mode
-        values = controller->getIntensity( -1, -1, percents );
+        values = controller->getLocationAndIntensity( -1, -1, percents );
+
+        // end of timer for calculating the percentile
+        int elapsedTime = timer.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            // only show the elapsed time while it is greater than 10 ms
+            if (elapsedTime > 10) {
+                qCritical() << "<> Time to get the percentile:" << elapsedTime << "ms";
+            }
+        }
+
         // show colormap for Quantile mode
         // TODO: need to modify _updateIntensityBounds() as well !!
         // values = controller->getIntensity( percents );
@@ -1124,7 +1135,7 @@ void Colormap::_updateImageClips(){
     }
 }
 
-void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
+void Colormap::_updateIntensityBounds( double minPercent, double maxPercent, bool autoClip ){
     std::vector<double> percentiles(2);
     percentiles[0] = minPercent;
     percentiles[1] = maxPercent;
@@ -1161,7 +1172,8 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent ){
                   m_stateData.setValue<double>( INTENSITY_MAX, maxIntensity );
                   m_stateData.setValue<int>( INTENSITY_MAX_INDEX, intensities[1].first );
               }
-              if ( intensityChanged ){
+
+              if ( intensityChanged || autoClip == false ){
                   _colorStateChanged();
                   m_stateData.flushState();
               }

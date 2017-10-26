@@ -42,6 +42,9 @@ protected slots:
     void helpUrlGitHubHome();
     void helpUrlGitHubWiki();
     void helpUrlGitHubIssues();
+    void helpReleaseNote();
+    void helpManual();
+    void helpUrlHelpdesk();
     void cartaLicense();
 
 private:

@@ -37,17 +37,25 @@ Clips::Clips( const QString& path, const QString& id):
     _initializeDefaultState();
 }
 
-void Clips::_initializeDefaultState(){
-
-    // get all colormaps provided by core
-    std::vector <double> clips;
+std::vector<double> Clips::_initializeClipValues() const {
+    std::vector<double> clips;
+    clips.push_back( 0.9 );
+    clips.push_back( 0.925 );
     clips.push_back( 0.95 );
+    clips.push_back( 0.96 );
+    clips.push_back( 0.97 );
     clips.push_back( 0.98 );
     clips.push_back( 0.99 );
     clips.push_back( 0.995 );
     clips.push_back( 0.999 );
     clips.push_back( 1 );
+    return clips;
+}
 
+void Clips::_initializeDefaultState(){
+
+    // get all colormaps provided by core
+    std::vector<double> clips = _initializeClipValues();
 
     int clipCount = clips.size();
     m_state.insertValue<int>( CLIP_COUNT, clipCount );
@@ -57,6 +65,23 @@ void Clips::_initializeDefaultState(){
         m_state.setValue<double>(arrayIndexStr, clips[i] );
     }
     m_state.flushState();
+}
+
+std::vector<double> Clips::getAllClips2percentiles() const {
+    std::vector<double> clipValues = _initializeClipValues();
+    int sizeOfClipValues = clipValues.size();
+    std::vector<double> percentiles;
+    double min, max = 0;
+    for (int i = 0; i < sizeOfClipValues; i++) {
+        if (clipValues[i] > 0 && clipValues[i] < 1) {
+            min = (1 - clipValues[i]) / 2;
+            max = 1 - min;
+            percentiles.push_back(min);
+            percentiles.push_back(max);
+        }
+    }
+    std::sort(percentiles.begin(), percentiles.end());
+    return percentiles;
 }
 
 double Clips::getClip( int index ) const {

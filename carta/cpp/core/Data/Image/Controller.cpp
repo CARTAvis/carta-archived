@@ -174,9 +174,10 @@ QString Controller::applyClips( double minIntensityPercentile, double maxIntensi
         if( clipsChangedValue ){
             m_state.flushState();
             _loadViewQueued();
+            bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
             double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
             double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
-            emit clipsChanged( minPercent, maxPercent );
+            emit clipsChanged( minPercent, maxPercent, autoClip );
         }
     }
     else {
@@ -256,6 +257,11 @@ std::set<AxisInfo::KnownType> Controller::_getAxesHidden() const {
 QPointF Controller::getCenterPixel() const {
     QPointF center = m_stack->_getCenterPixel();
     return center;
+}
+
+bool Controller::getAutoClip() const {
+    bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
+    return autoClip;
 }
 
 double Controller::getClipPercentileMax() const {
@@ -356,22 +362,40 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-std::vector<std::pair<int,double> > Controller::getIntensity( const std::vector<double>& percentiles ) const{
+std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( const std::vector<double>& percentiles ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    std::vector<std::pair<int,double> > result = getIntensity( currentFrame, currentFrame, percentiles );
+    std::vector<std::pair<int,double> > result = getLocationAndIntensity( currentFrame, currentFrame, percentiles );
     return result;
 }
 
-std::vector<std::pair<int,double> > Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+
+std::vector<double> Controller::getIntensity( const std::vector<double>& percentiles ) const{
+    int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
+    std::vector<double> result = getIntensity( currentFrame, currentFrame, percentiles );
+    return result;
+}
+
+
+std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
     int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
-    std::vector<std::pair<int,double> > intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<std::pair<int,double> > intensities = m_stack->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
     return intensities;
 }
+
+
+std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+    int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<double> intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+    return intensities;
+}
+
 
 QRectF Controller::_getInputRectangle(  ) const {
     return m_stack->_getInputRectangle( );
 }
+
 
 QSize Controller::getOutputSize( ) const {
     QSize result = m_stack->_getOutputSize();
@@ -1118,6 +1142,9 @@ void Controller::setAutoClip( bool autoClip ){
         m_state.setValue<bool>( AUTO_CLIP, autoClip );
         m_state.flushState();
     }
+    // before rendering we need to flush the state in Colormap::_updateIntensityBounds()
+    // if autoClip is changed from true to false !!
+    if ( autoClip != oldAutoClip && autoClip == false) recallClipValue();
 }
 
 
@@ -1151,6 +1178,14 @@ QString Controller::setClipValue( double clipVal  ) {
         result = "Clip value must be in [0,1].";
     }
     return result;
+}
+
+
+void Controller::recallClipValue() {
+    bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
+    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+    emit clipsChanged( minPercent, maxPercent, autoClip );
 }
 
 

@@ -9,6 +9,7 @@
 #include "Data/Image/Grid/Fonts.h"
 #include "Data/Image/Grid/LabelFormats.h"
 #include "Data/Image/Contour/ContourGenerateModes.h"
+#include "Data/Image/Contour/ContourTypes.h"
 #include "Data/Image/Contour/ContourSpacingModes.h"
 #include "Data/Image/Contour/ContourStyles.h"
 #include "Data/Image/ImageContext.h"
@@ -42,10 +43,9 @@
 #include "Data/Units/UnitsWavelength.h"
 #include "Data/Util.h"
 #include "State/UtilState.h"
-
-#include <QDir>
 #include <QTime>
 #include <QDebug>
+#include <QElapsedTimer>
 
 namespace Carta {
 
@@ -55,7 +55,7 @@ class ViewManager::Factory : public Carta::State::CartaObjectFactory {
 
 public:
     Factory():
-        CartaObjectFactory( "ViewManager" ){};
+        CartaObjectFactory( "ViewManager" ){}
     Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
         return new ViewManager (path, id);
@@ -90,6 +90,7 @@ void ViewManager::_setupSingletons() {
     Util::findSingletonObject<CoordinateSystems>();
     Util::findSingletonObject<Themes>();
     Util::findSingletonObject<ContourGenerateModes>();
+    Util::findSingletonObject<ContourTypes>();
     Util::findSingletonObject<ContourSpacingModes>();
     Util::findSingletonObject<ContourStyles>();
     Util::findSingletonObject<LayerCompositionModes>();
@@ -406,7 +407,27 @@ QString ViewManager::dataLoaded(const QString & params) {
     std::set<QString> keys = {Util::ID,DATA};
     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
     bool fileLoaded = false;
+
+    // get the loading file name
+    QString fileName = dataValues[DATA].split("/").last();
+
+    // get the timer for the function "loadFile(...)"
+    QElapsedTimer timer;
+    timer.start();
+
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Start loading" << fileName << "!";
+    }
+
+    // execute the function "loadFile(...)"
     QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
+
+    // set the output stype of log lines
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Total loading time for" << fileName << ":" << elapsedTime << "ms";
+    }
+
     if ( !fileLoaded ){
         Util::commandPostProcess( result);
     }
@@ -493,18 +514,38 @@ void ViewManager::_initCallbacks(){
     });
 
     //Callback for adding a data source to a Controller.
-//    addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
-//            const QString & params, const QString & /*sessionId*/) -> QString {
-//        const QString DATA( "data");
-//        std::set<QString> keys = {Util::ID,DATA};
-//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-//        bool fileLoaded = false;
-//        QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
-//        if ( !fileLoaded ){
-//            Util::commandPostProcess( result);
-//        }
-//        return "";
-//    });
+    // addCommandCallback( "dataLoaded", [=] (const QString & /*cmd*/,
+    //         const QString & params, const QString & /*sessionId*/) -> QString {
+    //     const QString DATA( "data");
+    //     std::set<QString> keys = {Util::ID,DATA};
+    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //     bool fileLoaded = false;
+
+    //     // get the loading file name
+    //     QString fileName = dataValues[DATA].split("/").last();
+
+    //     // get the timer for the function "loadFile(...)"
+    //     QElapsedTimer timer;
+    //     timer.start();
+
+    //     if (CARTA_RUNTIME_CHECKS) {
+    //         qCritical() << "<> Start loading" << fileName << "!";
+    //     }
+
+    //     // execute the function "loadFile(...)"
+    //     QString result = loadFile( dataValues[Util::ID], dataValues[DATA],&fileLoaded);
+
+    //     // set the output stype of log lines
+    //     int elapsedTime = timer.elapsed();
+    //     if (CARTA_RUNTIME_CHECKS) {
+    //         qCritical() << "<> Total loading time for" << fileName << ":" << elapsedTime << "ms";
+    //     }
+
+    //     if ( !fileLoaded ){
+    //         Util::commandPostProcess( result);
+    //     }
+    //     return "";
+    // });
 
     //Callback for registering a view.
 //    addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
@@ -1438,6 +1479,8 @@ ViewManager::~ViewManager(){
     obj =  Util::findSingletonObject<Themes>();
     delete obj;
     obj =  Util::findSingletonObject<ContourGenerateModes>();
+    delete obj;
+    obj =  Util::findSingletonObject<ContourTypes>();
     delete obj;
     obj =  Util::findSingletonObject<ContourSpacingModes>();
     delete obj;

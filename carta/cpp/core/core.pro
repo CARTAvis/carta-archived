@@ -56,6 +56,7 @@ HEADERS += \
     Data/Image/Contour/Contour.h \
     Data/Image/Contour/ContourControls.h \
     Data/Image/Contour/ContourGenerateModes.h \
+    Data/Image/Contour/ContourTypes.h \
     Data/Image/Contour/ContourSpacingModes.h \
     Data/Image/Contour/ContourStyles.h \
     Data/Image/Contour/DataContours.h \
@@ -76,8 +77,6 @@ HEADERS += \
     Data/Image/ImageZoom.h \
     Data/Image/IPercentIntensityMap.h \
     Data/Image/LayerCompositionModes.h \
-    Data/Image/LeastRecentlyUsedCache.h \
-    Data/Image/LeastRecentlyUsedCacheEntry.h \
     Data/Image/Render/RenderRequest.h \
     Data/Image/Render/RenderResponse.h \
     Data/Image/Save/SaveService.h \
@@ -139,7 +138,6 @@ HEADERS += \
     Plot2D/Plot2DHolder.h \
     Plot2D/Plot2DProfile.h \
     Plot2D/Plot2DTextMarker.h \
-    ProfileExtractor.h \
     Shape/ControlPoint.h \
     Shape/ControlPointEditable.h \
     Shape/ShapeBase.h \
@@ -149,7 +147,7 @@ HEADERS += \
     Shape/ShapeRectangle.h \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
-    Algorithms/quantileAlgorithms.h \
+    Algorithms/percentileAlgorithms.h \
     ScriptedClient/Listener.h \
     ScriptedClient/ScriptedCommandInterpreter.h \
     ScriptedClient/VarLengthMessage.h \
@@ -164,6 +162,7 @@ HEADERS += \
     Hacks/WcsGridOptionsController.h \
     Hacks/SharedState.h \
     Hacks/ContourEditorController.h \
+    Hacks/ProfileExtractor.h \
     DummyGridRenderer.h \
     coreMain.h \
     SimpleRemoteVGView.h \
@@ -203,6 +202,7 @@ SOURCES += \
     Data/Image/Contour/Contour.cpp \
     Data/Image/Contour/ContourControls.cpp \
     Data/Image/Contour/ContourGenerateModes.cpp \
+    Data/Image/Contour/ContourTypes.cpp \
     Data/Image/Contour/ContourSpacingModes.cpp \
     Data/Image/Contour/ContourStyles.cpp \
     Data/Image/Contour/DataContours.cpp \
@@ -222,8 +222,6 @@ SOURCES += \
     Data/Image/ImageContext.cpp \
     Data/Image/ImageZoom.cpp \
     Data/Image/LayerCompositionModes.cpp \
-    Data/Image/LeastRecentlyUsedCache.cpp \
-    Data/Image/LeastRecentlyUsedCacheEntry.cpp \
     Data/Image/Render/RenderRequest.cpp \
     Data/Image/Render/RenderResponse.cpp \
     Data/Image/Save/SaveService.cpp \
@@ -294,7 +292,6 @@ SOURCES += \
     Plot2D/Plot2DProfile.cpp \
     Plot2D/Plot2DSelection.cpp \
     Plot2D/Plot2DTextMarker.cpp \
-    ProfileExtractor.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     Shape/ControlPoint.cpp \
@@ -305,7 +302,7 @@ SOURCES += \
     Shape/ShapePolygon.cpp \
     Shape/ShapeRectangle.cpp \
     ImageRenderService.cpp \
-    Algorithms/quantileAlgorithms.cpp \
+    Algorithms/percentileAlgorithms.cpp \
     ScriptedClient/Listener.cpp \
     ScriptedClient/ScriptedCommandInterpreter.cpp \
     ScriptedClient/VarLengthMessage.cpp \
@@ -320,6 +317,7 @@ SOURCES += \
     Hacks/WcsGridOptionsController.cpp \
     Hacks/SharedState.cpp \
     Hacks/ContourEditorController.cpp \
+    Hacks/ProfileExtractor.cpp \
     DummyGridRenderer.cpp \
     coreMain.cpp \
     SimpleRemoteVGView.cpp \
@@ -341,6 +339,8 @@ INCLUDEPATH += $$absolute_path(../../../ThirdParty/rapidjson/include)
 
 #INCLUDEPATH += ../../../ThirdParty/qwt/include
 #LIBS += -L../../../ThirdParty/qwt/lib -lqwt
+
+QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''
 
 QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 INCLUDEPATH += $$QWT_ROOT/include

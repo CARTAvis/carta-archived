@@ -10,7 +10,7 @@
 
 qx.Class.define("skel.widgets.Image.Stack.StackTree", {
     extend : qx.ui.core.Widget,
-    
+
     /**
      * Constructor.
      */
@@ -21,15 +21,15 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
         }
         this._init();
     },
-    
+
     events : {
         "treeReordered" : "qx.event.type.Data",
         "treeSelection" : "qx.event.type.Data"
     },
-    
-    members : { 
-       
-        
+
+    members : {
+
+
         /**
          * Add child nodes to the passed in root folder.
          * @param root {skel.widgets.Image.Stack.TreeGroup} - the parent node.
@@ -54,14 +54,14 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                     this._addChildren( treeItem, itemArray[i].layers, selections, nodes );
                     treeItem.setOpen( true );
                 }
-               
+
                 if ( itemArray[i].selected ){
                     selections.push( treeItem );
                 }
                 nodes.push( itemArray[i].name );
             }
         },
-        
+
         /**
          * Returns a list of tree nodes that should be selected.
          * @param root {Object} - the current tree node.
@@ -77,7 +77,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                 nodeSelections.push( root );
             }
         },
-        
+
         /**
          * Returns the id of the first selected tree item.
          * @return {String} - the id of the first selected tree item.
@@ -90,7 +90,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return id;
         },
-        
+
         /**
          * Returns the name of the first selected tree node or an empty string.
          * @return {String} - the name of the first selected tree node.
@@ -103,8 +103,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return name;
         },
-        
-        
+
+
         /**
          * Returns the identifiers of the selected tree nodes.
          * @return {Array} - a list containing the identifiers of the selected tree nodes.
@@ -118,7 +118,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return paths;
         },
-        
+
         /**
          * Returns the settings of the first selected tree node.
          * @return {Object} - the settings of the first selected tree node.
@@ -131,7 +131,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return settings;
         },
-        
+
         /**
          * Return a list of the names of tree nodes.
          * @param itemArray {Object} - an object containing tree nodes.
@@ -145,7 +145,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                 newNodes.push( itemArray[i].name );
             }
         },
-        
+
         /**
          * Return tree nodes with matching names that are children of the passed
          * in node.
@@ -164,7 +164,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                 }
             }
         },
-        
+
         /**
          * Return the list of tree nodes that should be selected.
          * @param itemArray {Array} - a list of labels for the nodes that should be
@@ -182,9 +182,9 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                 }
             }
         },
-        
-      
-        
+
+
+
         /**
          * Initialize the UI for the file tree and the directory/file text
          * fields.
@@ -195,16 +195,16 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             this.m_treeSelectId = this.m_tree.addListener( "changeSelection", this._notifySelection, this );
             this.m_tree.setSelectionMode( "multi");
             this.m_tree.setWidth(250);
-            
+
             //Initialize the tree item controls
             this.m_treeItemControls = new skel.widgets.Image.Stack.TreeItemControls();
-            
+
             //Add everything.
             this._setLayout( new qx.ui.layout.VBox(1));
             this._add( this.m_tree, {flex:1} );
             this._add( this.m_treeItemControls );
         },
-        
+
         /**
          * Returns true if all selected tree nodes support RGB.
          * @return {boolean} - true if all selected tree nodes support RGB;
@@ -224,7 +224,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return colorSupport;
         },
-        
+
         /**
          * Returns true if all selected tree nodes are groups.
          * @return {boolean} - true if all selected tree nodes are groups;
@@ -245,7 +245,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return group;
         },
-        
+
         /**
          * Returns true if the ability to move nodes up and down in the stack should be
          * enabled; false otherwise.
@@ -253,20 +253,22 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
          */
         isUpDownEnabled : function(){
             var stackNode = false;
-            var children = this.m_tree.getRoot().getChildren();
-            if ( children.length > 1 ){
-                var widgets = this.m_tree.getSelection();
-                for ( var i = 0; i < widgets.length; i++ ){
-                    var treeItem = this.m_tree.getTreeItem( widgets[i] );
-                    if ( 0 == treeItem.getLevel() ){
-                        stackNode = true;
-                        break;
+            if ( this.m_tree.getRoot() ){
+                var children = this.m_tree.getRoot().getChildren();
+                if ( children.length > 1 ){
+                    var widgets = this.m_tree.getSelection();
+                    for ( var i = 0; i < widgets.length; i++ ){
+                        var treeItem = this.m_tree.getTreeItem( widgets[i] );
+                        if ( 0 == treeItem.getLevel() ){
+                            stackNode = true;
+                            break;
+                        }
                     }
                 }
             }
             return stackNode;
         },
-        
+
         /**
          * Returns true if the selected tree nodes are siblings.
          * @return {boolean} - true if the selected tree nodes are siblings;
@@ -291,7 +293,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return siblings;
         },
-        
+
         /**
          * Returns true if there is a difference in labels of the tree nodes between
          * the current tree and the ones passed in from the server.
@@ -301,13 +303,13 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             //get the new nodes based on server data.
             var newNodes = [];
             this._getTreeNodes( dataTree, newNodes );
-            
+
             //get the old nodes displayed by the tree.
             var oldNodes = [];
             if ( this.m_treeData != null ){
                 this._getTreeNodes( this.m_treeData, oldNodes );
             }
-            
+
             //Decide if the lists of nodes are the same.
             var changed = true;
             if ( oldNodes.length == newNodes.length ){
@@ -323,7 +325,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             return changed;
         },
-        
+
         /**
          * Notify listeners that the selected tree node(s) have changed.
          */
@@ -333,8 +335,8 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             };
             this.fireDataEvent( "treeSelection", data );
         },
-        
-        
+
+
         /**
          * Update the UI with new tree information from the server.
          */
@@ -349,7 +351,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             var oldSelects = this.m_tree.getSelection();
             this._setTreeSelections( selections );
         },
-        
+
         /**
          * Set whether or not the nodes in the tree should be automatically selected or not.
          * @param auto {boolean} - true if they are automatically selected; false if the user
@@ -359,7 +361,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             this.m_tree.setEnabled( !auto );
             this._updateGroupControls();
         },
-        
+
         /**
          * Set the server-side id of the object managing the stack.
          * @param id {String} - the server-side id of the object managing the stack.
@@ -367,7 +369,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
         setId : function( id ){
             this.m_treeItemControls.setId( id );
         },
-        
+
         /**
          * Update the UI with a list of the tree nodes (widgets) that should be
          * selected.
@@ -377,7 +379,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             this.m_tree.setSelection( selections );
             this._updateGroupControls();
         },
-        
+
         /**
          * Update the controls that determine stack movement and grouping of layers.
          */
@@ -393,7 +395,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             }
             this.m_treeItemControls._treeItemSelected( group, siblings, stackNodeSelected );
         },
-        
+
         /**
          * Update the nodes of the tree that are selected based on server-side
          * information.
@@ -421,7 +423,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             else {
                 selectionsChanged = true;
             }
-           
+
             if ( selectionsChanged ){
                 var nodeSelections = [];
                 this._getTreeNodesMatching( this.m_tree.getRoot(), nodeSelections, selections );
@@ -433,9 +435,9 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                 this.fireDataEvent( "treeSelection", data );
             }
         },
-        
-    
-        
+
+
+
         /**
          * Update tree node settings (such as color) based on information from
          * the server.
@@ -449,7 +451,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                 }
                 //see if any of the treeItems have the same id.
                 for ( var j = 0; j < treeItems.length; j++ ){
-                    
+
                     if ( treeItems[j].getId() == dataTree[i].id ){
                        //Update the treeItems.
                        treeItems[j].setVisible( dataTree[i].visible );
@@ -457,11 +459,11 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
                        break;
                     }
                 }
-               
+
             }
         },
 
-        
+
         /**
          * Updates the file tree based on directory information from the server.
          * @param dataTree {String} representing available data files in a
@@ -482,7 +484,7 @@ qx.Class.define("skel.widgets.Image.Stack.StackTree", {
             var errorMan = skel.widgets.ErrorHandler.getInstance();
             errorMan.clearErrors();
         },
-        
+
         m_connector : null,
         m_controller : null,
         m_jsonObj : null,

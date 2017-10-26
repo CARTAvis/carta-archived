@@ -13,6 +13,53 @@
 #include "core/Globals.h"
 #include <QDebug>
 #include "CartaLib/Hooks/Initialize.h"
+#include <QDir>
+#include <QTime>
+
+// custmoize the style of print out messages
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+    QDateTime dateTime(QDateTime::currentDateTime());
+    QString timeStr(dateTime.toString("dd-MM-yyyy HH:mm:ss"));
+
+    // set the output of log file "carta.log" at the user's home directory
+    QFile outFile(QDir::homePath() + "/carta.log");
+
+    // set the size of output log file "carta.log" is 5 MB.
+    // if log file is excess the limitation, remove it and reload the new message.
+    int setFileSizeLimit = 5000000; // unit: bytes (1K = 1000B, 1M = 1000K)
+    if (outFile.size() > setFileSizeLimit) {
+        outFile.remove();
+    }
+
+    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream stream(&outFile);
+
+    QByteArray localMsg = msg.toLocal8Bit();
+    QString criticalMsg = localMsg.constData();
+
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stderr, "Debug: %s\n", localMsg.constData());
+        break;
+    //case QtInfoMsg: // it is interduced after Qt 5.5
+    //    fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+    //    break;
+    case QtWarningMsg:
+        fprintf(stderr, "\033[1m\033[36mWarning: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtCriticalMsg:
+         if (criticalMsg[0] == '<' && criticalMsg[1] == '>') {
+            fprintf(stderr, "\033[1m\033[34mInfo: %s \033[0m\n", localMsg.constData());
+            stream << timeStr << " " << localMsg.constData() << endl;
+        } else {
+            fprintf(stderr, "\033[1m\033[35mCritical: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), context.file, context.line, context.function);
+        }
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "\033[1m\033[31mFatal: %s (%s:%u, %s)\033[0m\n", localMsg.constData(), context.file, context.line, context.function);
+        abort();
+    }
+}
 
 namespace Carta
 {
@@ -124,6 +171,11 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     // original place: viewer.start, move to here
     // tell all plugins that the core has initialized
     globals.pluginManager()-> prepare < Carta::Lib::Hooks::Initialize > ().executeAll();
+
+    if (CARTA_RUNTIME_CHECKS) {
+        // custmoize the style of print out messages
+        qInstallMessageHandler(myMessageOutput);
+    }
 
     // give QT control
     int res = qapp.exec();

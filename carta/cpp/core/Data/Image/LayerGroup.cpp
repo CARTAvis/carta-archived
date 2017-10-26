@@ -454,9 +454,9 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_g
     //Return the images in stack order.
     int startIndex = _getIndexCurrent();
     for ( int i = 0; i < dataCount; i++ ){
-        int dIndex = (startIndex + i) % dataCount;
-        if ( dIndex > -1 && m_children[dIndex]->_isVisible() ){
-            images.push_back( m_children[dIndex]->_getImage());
+        // int dIndex = (startIndex + i) % dataCount;
+        if ( m_children[i]->_isVisible() ){
+            images.push_back( m_children[i]->_getImage());
         }
     }
     return images;
@@ -489,9 +489,20 @@ QRectF LayerGroup::_getInputRect( const QSize& size ) const {
     return rect;
 }
 
-std::vector<std::pair<int,double> > LayerGroup::_getIntensity( int frameLow, int frameHigh,
+std::vector<std::pair<int,double> > LayerGroup::_getLocationAndIntensity( int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame ) const{
     std::vector<std::pair<int,double> > results;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        results = m_children[dataIndex]->_getLocationAndIntensity( frameLow, frameHigh,
+                percentiles, stokeFrame );
+    }
+    return results;
+}
+
+std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
+        const std::vector<double>& percentiles, int stokeFrame ) const{
+    std::vector<double> results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,

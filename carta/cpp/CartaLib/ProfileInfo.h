@@ -40,6 +40,12 @@ public:
     double getRestFrequency() const;
 
     /**
+     * Return the stokes frame in the image.
+     * @return - the stokes frame in the image.
+     */
+    int getStokesFrame() const;
+
+    /**
      * Return the rest frequency unit.
      * @return - the rest frequency unit.
      */
@@ -107,11 +113,20 @@ public:
      */
     void setSpectralUnit( const QString& unit );
 
+    /**
+     * Set the frame of stokes to be one of I, Q, U, V
+     * @param frame - the frame displayed on the image panel
+     * notice this parameter cannot contrlled by profiler setting
+     * it is synced with the value of animator by controller
+     */
+    void setStokesFrame( const int frame );
+
     virtual ~ProfileInfo();
 
 protected:
     AggregateType m_aggregateType;
     double m_restFrequency;
+    int m_stokesFrame;
     QString m_restUnit;
     QString m_spectralUnit;
     QString m_spectralType;

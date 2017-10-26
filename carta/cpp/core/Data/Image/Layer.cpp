@@ -152,6 +152,10 @@ bool Layer::_isEmpty() const {
     return false;
 }
 
+bool Layer::_isOnCelestialPlane( bool ) const {
+    return false;
+}
+
 bool Layer::_isLoadable( const std::vector<int>& /*frames*/ ) const {
 	return false;
 }

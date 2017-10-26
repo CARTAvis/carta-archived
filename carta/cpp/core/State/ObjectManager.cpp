@@ -21,7 +21,7 @@ namespace Carta {
 namespace State {
 
 QList<QString> CartaObjectFactory::globalIds = {"ChannelUnits",
-        "Clips", "Colormaps","ContourGenerateModes","ContourSpacingModes","ContourStyles",
+        "Clips", "Colormaps","ContourGenerateModes", "ContourTypes", "ContourSpacingModes","ContourStyles",
         "CoordinateSystems","ErrorManager",
         "Gamma","GenerateModes","Fonts",
         "LabelFormats","LayerCompositionModes","LineStyles",

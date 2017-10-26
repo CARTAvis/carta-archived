@@ -378,15 +378,23 @@ QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRe
     return inputRect;
 }
 
-std::vector<std::pair<int,double> > LayerData::_getIntensity( int frameLow, int frameHigh,
+std::vector<std::pair<int,double> > LayerData::_getLocationAndIntensity( int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame ) const{
     std::vector<std::pair<int,double> > intensities;
+    if ( m_dataSource ){
+        intensities = m_dataSource->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+    }
+    return intensities;
+}
+
+std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
+        const std::vector<double>& percentiles, int stokeFrame ) const{
+    std::vector<double> intensities;
     if ( m_dataSource ){
         intensities = m_dataSource->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
     }
     return intensities;
 }
-
 
 float LayerData::_getMaskAlpha() const {
     QString key = Carta::State::UtilState::getLookup( MASK, Util::ALPHA );
@@ -676,6 +684,23 @@ bool LayerData::_isContourDraw() const {
         }
     }
     return contourDraw;
+}
+
+bool LayerData::_isOnCelestialPlane( bool includelinear ) const {
+    auto xType = _getAxisXType();
+    auto yType = _getAxisYType();
+    bool isRADECPlane = false;
+    bool isDualLiPlane = false;
+    // check the plane.
+    if ( xType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON || xType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
+        if ( yType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LON || yType == Carta::Lib::AxisInfo::KnownType::DIRECTION_LAT ){
+            isRADECPlane = true;
+        }
+    }
+    if (xType == Carta::Lib::AxisInfo::KnownType::LINEAR && yType == Carta::Lib::AxisInfo::KnownType::LINEAR ){
+        isDualLiPlane = true;
+    }
+    return ( isRADECPlane||( isDualLiPlane && includelinear ) );
 }
 
 bool LayerData::_isLoadable( const std::vector<int>& frames ) const {

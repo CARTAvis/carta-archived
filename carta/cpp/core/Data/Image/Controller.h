@@ -124,6 +124,12 @@ public:
     Carta::Lib::KnownSkyCS getCoordinateSystem() const;
 
     /**
+     * Return the auto clip.
+     * @return the auto clip.
+     */
+    bool getAutoClip() const;
+
+    /**
      * Return the minimum clip percentile.
      * @return the minimum clip percentile.
      */
@@ -199,21 +205,37 @@ public:
     std::vector<int> getImageDimensions( ) const;
 
     /**
-     * Returns the intensities corresponding to a given list of percentiles.
-     * @param percentiles - a list of numbers in [0,1] for which an intensities are desired.
+     * Returns the locations and intensities corresponding to a given list of percentiles.
+     * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
      * @return - a list of corresponding (location,intensity) pairs.
      */
-    std::vector<std::pair<int,double> > getIntensity( const std::vector<double>& percentiles ) const;
+    std::vector<std::pair<int,double> > getLocationAndIntensity( const std::vector<double>& percentiles ) const;
+
+    /**
+     * Returns the intensities corresponding to a given list of percentiles.
+     * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
+     * @return - a list of corresponding intensity values.
+     */
+    std::vector<double> getIntensity( const std::vector<double>& percentiles ) const;
+
+    /**
+     * Returns the location and intensity corresponding to a given percentile.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param percentiles - a list of percentiles in [0,1] for which an intensity is desired.
+     * @return - a list of <location,intensity> pairs corresponding to the percentiles.
+     */
+    std::vector<std::pair<int,double> > getLocationAndIntensity( int frameLow, int frameHigh,
+            const std::vector<double>& percentiles ) const;
 
     /**
      * Returns the intensity corresponding to a given percentile.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of percentiles in [0,1] for which an intensity is desired.
-     * @return - a list of the corresponding <location,intensity> pairs corresponding to the
-     *   percentiles.
+     * @return - a list of intensity values corresponding to the percentiles.
      */
-    std::vector<std::pair<int,double> > getIntensity( int frameLow, int frameHigh,
+    std::vector<double> getIntensity( int frameLow, int frameHigh,
             const std::vector<double>& percentiles ) const;
 
     /**
@@ -443,6 +465,12 @@ public:
     QString setClipValue( double clipValue );
 
     /**
+     * @brief recall the clip value and update the percentile/colormap settings
+     * in order to update the stoke information that triggered from animation panel
+     */
+    void recallClipValue();
+
+    /**
      * Set whether or not to apply a composition mode to the image.
      * @param compMode - the type of composition mode to apply.
      * @return an error message if there was a problem recognizing the composition mode.
@@ -576,7 +604,7 @@ signals:
      * @param minPercentile - the new minimum clip percentile.
      * @param maxPercentile - the new maximum clip percentile.
      */
-    void clipsChanged( double minPercentile, double maxPercentile );
+    void clipsChanged( double minPercentile, double maxPercentile, bool autoClip );
 
     /**
      * Notification that one or more color map(s) have changed.

@@ -25,6 +25,13 @@ public:
     double getClip( int index ) const;
 
     /**
+     * Returns all clip values associated with the sorted percentile.
+     * @param non.
+     * @return all clips associated with the sorted percentiles from small to large.
+     */
+    std::vector<double> getAllClips2percentiles() const;
+
+    /**
      * Returns the index of the corresponding clip value or -1 if there is no such clip value.
      * @param clipValue a QString containing a clip amount.
      * @return the index of the corresponding clip value if one exists or -1 otherwise.
@@ -36,6 +43,9 @@ public:
     virtual ~Clips();
 
 private:
+
+    // set clip values in UI
+    std::vector<double> _initializeClipValues() const;
 
     void _initializeDefaultState();
 

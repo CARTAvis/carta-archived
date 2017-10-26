@@ -26,18 +26,16 @@ QSizeF ShapePoint::getSize() const {
 Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
 	Carta::Lib::VectorGraphics::VGComposer comp;
 	QPen pen = shadowPen;
-        // Set pen width 0 for precise presentation of point
-        // Width of zero indicates a cosmetic (i.e. zoom-independent) pen drawn 1px wide
-        pen.setWidth(0);
+        pen.setCosmetic(true);
         pen.setColor(m_color);
         QPen rectPen = outlinePen;
 	rectPen.setCosmetic(true);
 	QBrush brush = Qt::NoBrush;
 
 	//Draw the basic polygon (exterior manipulation region of point)
-	comp.append < vge::SetPen > ( rectPen );
-	comp.append < vge::SetBrush > ( brush );
-	comp.append < vge::DrawEllipse > ( m_shadowRect );
+	//comp.append < vge::SetPen > ( rectPen );
+	//comp.append < vge::SetBrush > ( brush );
+	//comp.append < vge::DrawEllipse > ( m_shadowRect );
 
         //Draw crosshairs by calculating distance from center (Pythagorean theorem)
         QPointF center = m_shadowRect.center();
@@ -56,6 +54,17 @@ Carta::Lib::VectorGraphics::VGList ShapePoint::getVGList() const {
         comp.append < vge::DrawLine > ( topRight, QPointF( center.x()+innerRadius, center.y()+innerRadius ) );
         comp.append < vge::DrawLine > ( bottomRight, QPointF( center.x()+innerRadius, center.y()-innerRadius ) );
 
+	if ( !isEditMode() ){
+		if ( isSelected()){
+			comp.append < vge::SetPen > ( rectPen );
+			comp.append < vge::SetBrush > ( brush );
+			comp.append < vge::DrawEllipse > ( m_shadowRect );
+		}
+		else {
+			comp.append < vge::DrawEllipse > ( m_shadowRect );	
+		}
+	}
+	
 	return comp.vgList();
 }
 

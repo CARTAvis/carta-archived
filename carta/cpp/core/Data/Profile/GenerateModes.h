@@ -58,7 +58,7 @@ public:
      * @return - whether or not the identifier indicates profiles of all images
      *      should be generated except for those whose profiles would be a single point.
      */
-    bool isAllExcludeSingle( const QString& mode ) const;
+    // bool isAllExcludeSingle( const QString& mode ) const;
 
     const static QString CLASS_NAME;
     const static QString GEN_LIST;
