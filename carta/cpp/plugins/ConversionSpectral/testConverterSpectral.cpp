@@ -1,5 +1,6 @@
 #include "Converter.h"
 #include <QtTest/QtTest>
+#include <set>
 
 const std::vector<QString> BASE_UNITS = {"Hz", "m", "m/s"};
 const std::map<QString, int> SI_PREFIX = {{"p", -12}, {"n", -9}, {"u", -6}, {"m", -3}, {"", 0}, {"k", 3}, {"M", 6}, {"G", 9}};
