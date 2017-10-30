@@ -7,6 +7,7 @@
 #include "CartaLib/CartaLib.h"
 
 #include <QDebug>
+#include <QJsonArray>
 
 namespace Carta {
 
@@ -455,6 +456,56 @@ void Animator::_initializeCallbacks(){
             QString animatorId = removeAnimator( dataValues[*keys.begin()] );
             return animatorId;
         });
+
+    addCommandCallback( "queryAnimatorTypes", [=] (const QString & /*cmd*/,
+                    const QString & params, const QString & /*sessionId*/) -> QString {
+
+            QJsonArray array;
+
+            int animationCount = m_animators.size();
+            int animVisibleCount = _getAnimatorTypeVisibleCount();
+//            m_state.resizeArray( AnimatorType::ANIMATIONS, animVisibleCount, StateInterface::PreserveNone );
+            QList<QString> keys = m_animators.keys();
+            int j = 0;
+            for ( int i = 0; i < animationCount; i++ ){
+                qDebug()<<"try to get animatortypes";
+                if ( !m_animators[keys[i]]->isRemoved()){
+                    QJsonObject jsonObj;
+                    QString arrayPath = UtilState::getLookup(AnimatorType::ANIMATIONS, QString::number(j));
+                    QString typePath = UtilState::getLookup( arrayPath, Util::TYPE );
+                    jsonObj.insert("type", keys[i]); //typePath
+                    //m_state.insertValue<QString>( typePath, keys[i] );
+                    QString visiblePath = UtilState::getLookup( arrayPath, Util::VISIBLE );
+                    jsonObj.insert("visible", m_animators[keys[i]]->isVisible()); //visiblePath
+
+                    //m_state.insertValue<bool>( visiblePath, m_animators[keys[i]]->isVisible() );
+                    j++;
+                    array << jsonObj;
+                }
+            }
+            m_state.flushState();
+
+
+            //QString animId = "-1";
+
+//            jsonObj.insert("A","aaa");
+//            array << jsonObj;
+            //array << obj2;
+            //https://stackoverflow.com/questions/25411339/how-i-can-add-more-than-one-qjsonobject-to-a-qjsondocument
+            // QJsonDocument(array).toJson(QJsonDocument::Compact);
+            QJsonDocument doc(array); //toJson(QJsonDocument::Compact);
+
+            QString strJson(doc.toJson());
+            qDebug()<<"send back animatortypes";
+            qDebug()<<strJson.toStdString().data();
+
+//            animators/0/type
+//            animators/0/visible
+
+            return strJson;
+        });
+
+
 }
 
 

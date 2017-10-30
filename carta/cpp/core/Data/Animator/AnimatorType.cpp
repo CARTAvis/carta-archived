@@ -204,6 +204,18 @@ void AnimatorType::_initializeCommands(){
             Util::commandPostProcess( result );
             return result;
         });
+
+    addCommandCallback( "getSelecitonData", [=] (const QString & /*cmd*/,
+                                            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        //TODO use something other than getStateString
+        if ( m_select != nullptr ){
+            qDebug()<<"getSelecitonData" << m_select->getStateString();
+            return m_select->getStateString();
+        }
+
+        return "";
+    });
 }
 
 bool AnimatorType::isRemoved() const {
