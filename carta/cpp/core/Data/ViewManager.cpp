@@ -435,24 +435,6 @@ QString ViewManager::dataLoaded(const QString & params) {
 
 }
 
-QString ViewManager::getDefaultHistogramID(const QString & params){
-
-    const QString PLUGIN_ID( "pluginId");
-    const QString INDEX( "index");
-    std::set<QString> keys = {PLUGIN_ID, INDEX};
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    bool validIndex = false;
-    int index = dataValues[INDEX].toInt(&validIndex);
-    QString viewId( "");
-    if ( validIndex ){
-        viewId = getObjectId( dataValues[PLUGIN_ID], index );
-    }
-    else {
-        qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
-    }
-    return viewId;
-}
-
 QString ViewManager::registerView(const QString & params){
 
     const QString PLUGIN_ID( "pluginId");
