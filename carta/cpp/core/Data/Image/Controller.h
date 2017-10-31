@@ -571,13 +571,14 @@ public:
     void updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId );
 
     /**
-     * Update the zoom settings.
+     * Update the pan and zoom settings.
      * @param centerX the screen x-coordinate where the zoom was centered.
      * @param centerY the screen y-coordinate where the zoom was centered.
      * @param z either positive or negative depending on the desired zoom direction.
      */
-    void updateZoom( double centerX, double centerY, double z );
+    void updatePanZoom( double centerX, double centerY, double zoomFactor);
 
+    void updateZoom(double zoomFactor);
 
     virtual ~Controller();
 

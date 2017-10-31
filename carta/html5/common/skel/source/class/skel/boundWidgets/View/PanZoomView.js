@@ -65,7 +65,7 @@ qx.Class.define( "skel.boundWidgets.View.PanZoomView", {
                 "" + pt.x + " " + pt.y + " " + wheelFactor);
         },
 
-        // new command for mouse wheel zooom event, for 1 image, 
+        // unused. new command for mouse wheel zooom event, for 1 image, 
         sendPanZoomLevel : function(pt, level, id) {
 
             var path = skel.widgets.Path.getInstance();

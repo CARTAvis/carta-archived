@@ -725,7 +725,7 @@ void Controller::_initializeCallbacks(){
             double centerX = vals[0];
             double centerY = vals[1];
             double z = vals[2];
-            updateZoom( centerX, centerY, z );
+            updatePanZoom( centerX, centerY, z );
         }
         return "";
     });
@@ -741,13 +741,15 @@ void Controller::_initializeCallbacks(){
             double z = vals[0];
 
             // updateZoom( centerX, centerY, z );
+            updateZoom(z);
 
             // original it is used by Python Client, use for new CARTA zoom in/out temporarily
-            setZoomLevel(z);
+            // setZoomLevel(z);
         }
         return "";
     });
 
+    // unused 
     addCommandCallback( "setPanAndZoomLevel", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
         bool error = false;
@@ -1456,9 +1458,16 @@ void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zo
     emit zoomChanged();
 }
 
-void Controller::updateZoom( double centerX, double centerY, double zoomFactor ){
+void Controller::updatePanZoom( double centerX, double centerY, double zoomFactor ){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
     m_stack->_updatePanZoom( centerX, centerY, zoomFactor, zoomPanAll, -1, -1);
+    emit contextChanged();
+    emit zoomChanged();
+}
+
+void Controller::updateZoom(double zoomFactor){
+    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+    m_stack->updateZoom( zoomFactor, zoomPanAll, -1, -1);
     emit contextChanged();
     emit zoomChanged();
 }

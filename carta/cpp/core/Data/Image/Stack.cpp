@@ -792,28 +792,28 @@ bool Stack::_setVisible( const QString& id, bool visible ){
     return layerFound;
 }
 
-void Stack::_setZoomLevelForLayerId(double zoomFactor, double layerId) {
+void Stack::_setZoomLevelForLayerId(double zoomLevel, double layerId) {
     int dataCount = m_children.size();
     for ( int i = 0; i < dataCount; i++ ){
         if (m_children[i]->_getLayerId() == QString::number(layerId)){
-            m_children[i]->_setZoom( zoomFactor );
+            m_children[i]->_setZoom( zoomLevel );
             break;
         }
     }
     emit viewLoad();
 }
 
-void Stack::_setZoomLevel( double zoomFactor, bool zoomPanAll ){
+void Stack::_setZoomLevel( double zoomLevel, bool zoomPanAll ){
     if ( zoomPanAll ){
         int dataCount = m_children.size();
         for ( int i = 0; i < dataCount; i++ ){
-            m_children[i]->_setZoom( zoomFactor );
+            m_children[i]->_setZoom(  zoomLevel );
         }
     }
     else {
         int dataIndex = _getIndexCurrent();
         if ( dataIndex >= 0 ){
-            m_children[dataIndex]->_setZoom( zoomFactor );
+            m_children[dataIndex]->_setZoom( zoomLevel );
         }
     }
     emit viewLoad();
@@ -863,6 +863,47 @@ void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor, b
         }
     }
     emit viewLoad();
+}
+
+
+void Stack::updateZoom(double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId){
+    if ( zoomPanAll ){
+        for (std::shared_ptr<Layer> data : m_children ){
+            _updateZoom( zoomFactor, data, zoomLevel );
+        }
+    }
+    else {
+
+        int dataCount = m_children.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            if (m_children[i]->_getLayerId() == QString::number(layerId)){
+                _updateZoom( zoomFactor, m_children[i], zoomLevel );
+                break;
+            }
+        }
+    }
+    emit viewLoad();
+}
+
+void Stack::_updateZoom(double zoomFactor,
+         std::shared_ptr<Layer> data, double zoomLevel){
+
+    //Set the zoom
+    double newZoom = 1;
+
+    if (zoomLevel >=0) {
+        newZoom = zoomLevel;
+    } else {
+        double oldZoom = data->_getZoom();
+        if ( zoomFactor < 0 ) {
+            newZoom = oldZoom / 0.9;
+        }
+        else {
+            newZoom = oldZoom * 0.9;
+        }
+    }
+
+    data->_setZoom( newZoom );
 }
 
 void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor,
