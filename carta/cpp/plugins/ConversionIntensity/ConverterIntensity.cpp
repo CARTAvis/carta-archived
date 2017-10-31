@@ -1,6 +1,7 @@
 #include "ConverterIntensity.h"
 #include <math.h>
 #include <QDebug>
+#include <cmath>
 
 DivideByFrequencySquared::DivideByFrequencySquared(const QString fromUnits, const QString toUnits, const double multiplier)
     : Carta::Lib::IntensityUnitConverter(fromUnits, toUnits, multiplier, true, "DIV_BY_HZ_SQ") {
