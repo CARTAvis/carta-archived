@@ -247,12 +247,6 @@ Carta::Lib::IntensityUnitConverter::SharedPtr Colormap::_getIntensityConverter(c
 
     if ( controller ){
         QString fromUnit = controller->getPixelUnits();
-        
-        // This allows clips and intensity bounds to be changed without a converter if the image has unknown units
-        if (fromUnit == "N/A" || toUnit == "N/A") {
-            qWarning() << "Image units are unknown. Returning null intensity converter.";
-            return intensity_converter;
-        }
 
         std::shared_ptr<DataSource> dataSource = controller->getDataSource();
 
@@ -268,16 +262,20 @@ Carta::Lib::IntensityUnitConverter::SharedPtr Colormap::_getIntensityConverter(c
                 };
                 
                 result2.forEach( lam2 );
+                
+                // If units are unknown, or the conversion is not supported, or the conversion depends on Hz values but there is no spectral axis, we return a null converter and continue, so that we can still change the clipping values for the raw data.
 
                 if (!intensity_converter) {
-                    throw QString("Cannot find converter to convert intensity between %1 and %2. This conversion is not supported.").arg(fromUnit).arg(toUnit);
+                    qWarning() << "Cannot find converter to convert intensity between" << fromUnit << "and" << toUnit <<" -- this conversion is not supported. Returning a null converter and ignoring unit conversions.";
+                    return intensity_converter;
                 }
 
                 if (intensity_converter->frameDependent) {
                     int spectralIndex = Util::getAxisIndex( image, Carta::Lib::AxisInfo::KnownType::SPECTRAL);
                     
-                    if (spectralIndex < 0) {
-                        throw QString("Cannot find converter to convert intensity between %1 and %2. Image has no spectral axis.").arg(fromUnit).arg(toUnit);
+                    if (spectralIndex < 0) {                        
+                        qWarning() << "Cannot find converter to convert intensity between" << fromUnit << "and" << toUnit <<" -- the image has no spectral axis. Returning a null converter and ignoring unit conversions.";
+                        intensity_converter = nullptr;
                     }
                 }
             }
