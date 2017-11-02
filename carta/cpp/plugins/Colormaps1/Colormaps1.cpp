@@ -295,7 +295,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "Spectral-test",
+            "Spectral",
             PWLinear().add( 0, 0.61960784313725492 ).add( 0.1, 0.83529411764705885 )
                       .add( 0.2, 0.95686274509803926 ).add( 0.3, 0.99215686274509807 )
                       .add( 0.4, 0.99607843137254903 ).add( 0.5, 1.0 )
@@ -318,7 +318,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "coolwarm-test",
+            "coolwarm",
             PWLinear().add(0.0, 0.2298057).add(0.03125, 0.26623388)
                       .add(0.0625, 0.30386891).add(0.09375, 0.342804478)
                       .add(0.125, 0.38301334).add(0.15625, 0.424369608)
@@ -374,7 +374,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "Set1-test",
+            "Set1",
             PWLinear().add( 0, 0.89411764705882357 ).add( 1.0/8, 0.21568627450980393 )
                       .add( 2.0/8, 0.30196078431372547 ).add( 3.0/8, 0.59607843137254901 )
                       .add( 4.0/8, 1.0 ).add( 5.0/8, 1.0 )
@@ -398,7 +398,7 @@ Colormap1::getColormaps()
     // use this function for "gnuplot2-test" instead
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "gnuplot2-test",
+            "gnuplot2",
             PWLinear().add( 0.25, 0 ).add( 0.57, 1 ),
             PWLinear().add( 0.42, 0 ).add( 0.92, 1 ),
             PWLinear().add( 0.0, 0 ).add( 0.25, 1 )
@@ -408,7 +408,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "jet-test",
+            "jet",
             PWLinear().add( 0., 0 ).add( 0.35, 0 )
                       .add( 0.66, 1 ).add( 0.89, 1 )
                       .add( 1, 0.5 ),
@@ -422,7 +422,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "Reds-test",
+            "Reds",
             PWLinear().add( 0, 1.0 ).add( 1.0/8, 0.99607843137254903 )
                       .add( 2.0/8, 0.9882352941176471 ).add( 3.0/8, 0.9882352941176471 )
                       .add( 4.0/8, 0.98431372549019602 ).add( 5.0/8, 0.93725490196078431 )
@@ -442,7 +442,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "gist_stern-test",
+            "gist_stern",
             PWLinear().add( 0.0 , 0.0 ).add( 0.0547, 1.0 )
                       .add( 0.25, 0.027 ).add( 0.25, 0.25 )
                       .add( 1.0, 1.0 ),
@@ -453,7 +453,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "Blues-test",
+            "Blues",
             PWLinear().add( 0.0, 0.96862745098039216 ).add( 1.0/8, 0.87058823529411766 )
                       .add( 2.0/8, 0.77647058823529413 ).add( 3.0/8, 0.61960784313725492 )
                       .add( 4.0/8, 0.41960784313725491 ).add( 5.0/8, 0.25882352941176473 )
@@ -473,7 +473,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "terrain-test",
+            "terrain",
             PWLinear().add( 0.0, 0.2 ).add( 0.15, 0.0 )
                       .add( 0.25, 0.0 ).add( 0.5, 1.0 )
                       .add( 0.75, 0.5 ).add( 1.0, 1.0 ),
@@ -485,11 +485,11 @@ Colormap1::getColormaps()
                       .add( 0.75, 0.33 ).add( 1.0, 1.0 )
             ) );
 
-    res.emplace_back( Impl::continuousFunc( "gnuplot-test" ) );
+    res.emplace_back( Impl::continuousFunc( "gnuplot" ) );
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "hot-test",
+            "hot",
             PWLinear().add( 0.0, 0.0416 ).add( 0.365079, 1.0 )
                       .add( 1.0, 1.0 ),
             PWLinear().add( 0.0, 0.0 ).add( 0.365079, 0.0 )
@@ -501,7 +501,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "Greens-test",
+            "Greens",
             PWLinear().add( 0.0, 0.96862745098039216 ).add( 1.0/8, 0.89803921568627454 )
                       .add( 2.0/8, 0.7803921568627451 ).add( 3.0/8, 0.63137254901960782 )
                       .add( 4.0/8, 0.45490196078431372 ).add( 5.0/8, 0.25490196078431371 )
@@ -521,7 +521,7 @@ Colormap1::getColormaps()
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
-            "nipy_spectral-test",
+            "nipy_spectral",
             PWLinear().add(0.0, 0.0).add(0.05, 0.4667)
                       .add(0.10, 0.5333).add(0.15, 0.0)
                       .add(0.20, 0.0).add(0.25, 0.0)

@@ -4,13 +4,13 @@
         "$(APPDIR)/../plugins",
         "$(APPDIR)/../../../../plugins"
     ],
-    "disabledPlugins" : [""],
+    "disabledPlugins" : ["ColormapsPy", "python273"],
     "plugins": {
         "PCacheSqlite3" : {
             "dbPath": "$(HOME)/CARTA/cache/pcache.sqlite"
         }
     },
-    "qtDecorations" : "true",
     "percentileApproximation" : "true",
     "percentApproxDividedNum" : 1000000
 }
+
