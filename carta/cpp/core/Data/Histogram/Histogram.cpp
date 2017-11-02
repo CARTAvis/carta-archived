@@ -2178,6 +2178,8 @@ void Histogram::_updatePlots( ){
 	m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
 	m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
 	m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
+    bool isColored = getColored();
+    if (isColored) updateColorMap();
 	m_plotManager->updatePlot();
 }
 
