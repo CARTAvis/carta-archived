@@ -57,7 +57,7 @@ public slots:
     void jsSetStateSlot( const QString & key, const QString & value);
 
     /// javascript calls this to send a command
-    void jsSendCommandSlot(const QString & sessionID, const QString & cmd, const QString & parameter);
+    void jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & parameter);
 
     /// javascript calls this to let us know js connector is ready
     void jsConnectorReadySlot();
@@ -83,7 +83,7 @@ signals:
 
     //new arch
     void startViewerSignal(const QString & sessionID);
-    void jsSendCommandSignal(const QString & sessionID, const QString &cmd, const QString & parameter);
+    void jsSendCommandSignal(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter);
     void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
 
     /// we emit this signal when state is changed (either by c++ or by javascript)
@@ -93,7 +93,7 @@ signals:
     void stateChangedSignal( const QString & key, const QString & value);
     /// we emit this signal when command results are ready
     /// javascript listens to it
-    void jsCommandResultsSignal(const QString & sessionID, const QString & cmd, const QString & results, const QString & subIdentifier);
+    void jsCommandResultsSignal(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & results, const QString & subIdentifier);
     /// emitted by c++ when we want javascript to repaint the view
     void jsViewUpdatedSignal(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
 

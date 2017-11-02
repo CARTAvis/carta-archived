@@ -80,12 +80,12 @@ SessionDispatcher::~SessionDispatcher()
     }
 }
 
-void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
+void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter)
 {
     // forward commands
     NewServerConnector *connector = static_cast<NewServerConnector*>(getConnectorInMap(sessionID));
     if (connector != nullptr){
-        emit connector->jsSendCommandSignal(sessionID, cmd, parameter);
+        emit connector->jsSendCommandSignal(sessionID, senderSession, cmd, parameter);
     }
     return;
 }
@@ -118,8 +118,8 @@ void SessionDispatcher::jsViewUpdatedSignalForwardSlot(const QString & sessionID
 }
 
 
-void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & cmd, const QString & results, const QString & subIdentifier){
-    emit jsCommandResultsSignal(sessionID, cmd, results, subIdentifier);
+void SessionDispatcher::jsCommandResultsSignalForwardSlot(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & results, const QString & subIdentifier){
+    emit jsCommandResultsSignal(sessionID, senderSession, cmd, results, subIdentifier);
 }
 
 //TODO implement later
@@ -155,9 +155,9 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 
         connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
         connect(connector,
-                SIGNAL(jsSendCommandSignal(const QString &, const QString &, const QString &)),
+                SIGNAL(jsSendCommandSignal(const QString &, const QString &, const QString &, const QString &)),
                 connector,
-                SLOT(jsSendCommandSlot(const QString &, const QString &, const QString &)));
+                SLOT(jsSendCommandSlot(const QString &, const QString &, const QString &, const QString &)));
 
         // setup view size
         connect(connector,
@@ -167,9 +167,9 @@ void SessionDispatcher::newSessionCreatedSlot(const QString & sessionID)
 
 
         connect(connector,
-                SIGNAL(jsCommandResultsSignal(const QString &, const QString &, const QString &, const QString &)),
+                SIGNAL(jsCommandResultsSignal(const QString &, const QString &, const QString &, const QString &, const QString &)),
                 this,
-                SLOT(jsCommandResultsSignalForwardSlot(const QString &, const QString &, const QString &, const QString &))
+                SLOT(jsCommandResultsSignalForwardSlot(const QString &, const QString &, const QString &, const QString &, const QString &))
                 );
 
         connect(connector,

@@ -229,7 +229,7 @@ void NewServerConnector::jsSetStateSlot(const QString & key, const QString & val
     }
 }
 
-void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QString &cmd, const QString & parameter)
+void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter)
 {
     QString name = QThread::currentThread()->objectName();
     qDebug() << "current thread name:" << name;
@@ -246,7 +246,7 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
 
         QString fileList = m_dataLoader->getFileList(parameter);
 
-        emit jsCommandResultsSignal(sessionID, cmd, fileList, parameter);
+        emit jsCommandResultsSignal(sessionID, senderSession, cmd, fileList, parameter);
 
 
     } else if (cmd.contains("ViewManager")) {
@@ -260,11 +260,11 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
               if (subCommand == "registerView") {
                 QString result;
                 result = this->viewer.m_viewManager->registerView(parameter);
-                emit jsCommandResultsSignal(sessionID, cmd, result, parameter);
+                emit jsCommandResultsSignal(sessionID, senderSession,  cmd, result, parameter);
               } else if (subCommand == "dataLoaded") {
                   QString result;
                   result = this->viewer.m_viewManager->dataLoaded(parameter);
-                  emit jsCommandResultsSignal(sessionID, cmd, result, parameter);
+                  emit jsCommandResultsSignal(sessionID, senderSession, cmd, result, parameter);
               }
 
         }
@@ -282,7 +282,7 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
             }
 
             // pass results back to javascript
-            emit jsCommandResultsSignal(sessionID, cmd, results.join("|"), parameter);
+            emit jsCommandResultsSignal(sessionID, senderSession, cmd, results.join("|"), parameter);
 
             if( allCallbacks.size() == 0) {
                 qWarning() << "JS command has no server listener:" << cmd << parameter;
