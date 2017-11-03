@@ -112,7 +112,7 @@ MyColormapFunc::MyColormapFunc( QString name, PWLinear & red, PWLinear & green, 
 /// Green, D. A., 2011, Bulletin of the Astronomical Society of India, Vol.39, p.289
 /// ================================================================================
 static Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr
-cubeHelix( QString name, double start, double rots, double hue, double gamma )
+cubeHelix( double start, double rots, double hue, double gamma )
 {
     Carta::Lib::PWLinear red, green, blue;
 
@@ -150,6 +150,18 @@ cubeHelix( QString name, double start, double rots, double hue, double gamma )
         green.add( fract, g );
         blue.add( fract, b );
     }
+    QString start_str = QString::number(start);
+    QString rots_str = QString::number(rots);
+    QString hue_str = QString::number(hue);
+    QString gamma_str = QString::number(gamma);
+    QString comma = QChar(0x0375);
+    QString left_parenthesis = QChar(0x0028);
+    QString right_parenthesis = QChar(0x0029);
+    QString name = "CubeHelix" + left_parenthesis
+            + start_str + comma
+            + rots_str + comma
+            + hue_str + comma
+            + gamma_str + right_parenthesis;
     return std::make_shared < MyColormapFunc > ( name, red, green, blue );
 } // cubeHelix
 
@@ -288,10 +300,6 @@ Colormap1::getColormaps()
             PWLinear().add( 0, 0 ).add( 0.5, 1 ).add( 1, 0 ),
             PWLinear().add( 0, 1 ).add( 0.5, 0 )
             ) );
-
-    res.emplace_back( Impl::cubeHelix( "CubeHelix1", 0.5, - 1.5, 1.5, 1.0 ) );
-
-    res.emplace_back( Impl::cubeHelix( "CubeHelix2", 0.5, - 1.5, 1.0, 0.8 ) );
 
     res.emplace_back(
         std::make_shared < Impl::MyColormapFunc > (
@@ -556,6 +564,26 @@ Colormap1::getColormaps()
                       .add(0.90, 0.0).add(0.95, 0.0)
                       .add(1.0, 0.80)
             ) );
+
+    //
+    // for examples of Dave Green's `cubehelix' colour scheme
+    // one can refer to the webpage http://www.mrao.cam.ac.uk/~dag/CUBEHELIX/cubewedges.html
+    //
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.5, 1.5, 1.0 ) ); // origonal 1
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.5, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.5, 1.0, 0.8 ) ); // original 2
+    res.emplace_back( Impl::cubeHelix( 1.5, -1.5, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 2.5, -1.5, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.5, 0.5, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.5, 1.3, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -2.5, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -2.0, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.0, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -0.5, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, 1.5, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, 0.0, 1.0, 1.0 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.5, 1.0, 0.5 ) );
+    res.emplace_back( Impl::cubeHelix( 0.5, -1.5, 1.0, 1.5 ) );
 
     return res;
 } // getColormaps
