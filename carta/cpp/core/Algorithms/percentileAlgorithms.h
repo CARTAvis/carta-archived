@@ -90,12 +90,6 @@ percentile2pixels(
 
     if (converter && converter->frameDependent) {
         // we need to apply the frame-dependent conversion to each intensity value before copying it
-        view_lambda = [&allValues, &converter, &hertzVal](const Scalar & val) {
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( converter->_frameDependentConvert(val, hertzVal) );
-            }
-        };
-        
         // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
         for (size_t f = 0; f < hertzValues.size(); f++) {
             hertzVal = hertzValues[f];
