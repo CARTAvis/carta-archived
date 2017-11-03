@@ -1,0 +1,11 @@
+{
+    "api"        : "1",
+    "name"       : "PercentileManku99Plugin",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Provides an approximate calculation of image percentile values using the algorithm described in 'Random Sampling Techniques for Space Efficient Online Computation of Order Statistics of Large Datasets' (Manku et al., 1999)."
+    ],
+    "about"      : "Calculates approximate percentile values.",
+    "depends"    : [ ]
+}

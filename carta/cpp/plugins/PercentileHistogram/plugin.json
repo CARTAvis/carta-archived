@@ -1,0 +1,11 @@
+{
+    "api"        : "1",
+    "name"       : "PercentileHistogramPlugin",
+    "version"    : "1",
+    "type"       : "C++",
+    "description": [
+        "Provides an approximate calculation of image percentile values using a histogram."
+    ],
+    "about"      : "Calculates approximate percentile values.",
+    "depends"    : [ ]
+}
