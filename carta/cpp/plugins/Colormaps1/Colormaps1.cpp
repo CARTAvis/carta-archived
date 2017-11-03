@@ -119,7 +119,7 @@ cubeHelix( double start, double rots, double hue, double gamma )
     int nlev = 1000;
     for ( int i = 0 ; i < nlev ; i++ ) {
         double fract = double (i) / nlev;
-        double angle = 2 * M_PI * ( start / 3 + 1 + rots + fract );
+        double angle = 2.0 * M_PI * ( start / 3.0 + 1.0 + rots * fract );
         fract = pow( fract, gamma );
 
         double amp = hue * fract * ( 1 - fract ) / 2.0;
