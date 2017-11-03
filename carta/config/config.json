@@ -4,7 +4,7 @@
         "$(APPDIR)/../plugins",
         "$(APPDIR)/../../../../plugins"
     ],
-    "disabledPlugins" : ["ColormapsPy", "python273"],
+    "disabledPlugins" : [],
     "plugins": {
         "PCacheSqlite3" : {
             "dbPath": "$(HOME)/CARTA/cache/pcache.sqlite"
