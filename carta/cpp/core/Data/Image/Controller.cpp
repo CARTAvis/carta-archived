@@ -362,32 +362,17 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( const std::vector<double>& percentiles ) const{
+std::vector<double> Controller::getIntensity( const std::vector<double>& percentiles, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    std::vector<std::pair<int,double> > result = getLocationAndIntensity( currentFrame, currentFrame, percentiles );
+    std::vector<double> result = getIntensity( currentFrame, currentFrame, percentiles, converter );
     return result;
 }
 
 
-std::vector<double> Controller::getIntensity( const std::vector<double>& percentiles ) const{
-    int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    std::vector<double> result = getIntensity( currentFrame, currentFrame, percentiles );
-    return result;
-}
-
-
-std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
-    std::vector<std::pair<int,double> > intensities = m_stack->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
-    return intensities;
-}
-
-
-std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
-    int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
-    std::vector<double> intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<double> intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame, converter );
     return intensities;
 }
 
@@ -403,9 +388,8 @@ QSize Controller::getOutputSize( ) const {
 }
 
 
-double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = m_stack->_getPercentile( frameLow, frameHigh, intensity );
-    return percentile;
+std::vector<double> Controller::getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
+    return m_stack->_getPercentiles( frameLow, frameHigh, intensities, converter );
 }
 
 
