@@ -31,7 +31,7 @@ void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<cas
     if ( fieldCount == 0 ){
         return;
     }
-    std::shared_ptr<const casacore::ImageInterface<casacore::Float> > imagePtr( image->cloneII() );
+    //std::shared_ptr<const casacore::ImageInterface<casacore::Float> > imagePtr( image->cloneII() );
 
     casacore::CoordinateSystem cs = image->coordinates();
     casacore::Vector<casacore::Int> displayAxes = cs.directionAxesNumbers();
@@ -45,7 +45,7 @@ void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<cas
             trcq[i].setValue( shape[i] );
         }
         else {
-            blcq[i].setValue( slice[i] );
+            //blcq[i].setValue( slice[i] );
             trcq[i].setValue( slice[i] );
         }
     }
@@ -55,7 +55,7 @@ void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<cas
     std::shared_ptr<casacore::SubImage<casacore::Float> > boxImage( new casacore::SubImage<Float>(*image, *imgBox ) );
 
     casa::ImageStatsCalculator calc( boxImage, &region, "", true);
-    calc.setList(False);
+    calc.setList(false);
     Record result = calc.calculate();
     const casacore::String blcKey( "blc");
     const casacore::String trcKey( "trc");
