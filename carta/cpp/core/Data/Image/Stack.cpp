@@ -337,6 +337,11 @@ QString Stack::_getStateString() const{
     return stateStr;
 }
 
+QString Stack::getStateString() const{
+    QString result = m_state.toString();
+    return result;
+}
+
 void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyAll ){
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){

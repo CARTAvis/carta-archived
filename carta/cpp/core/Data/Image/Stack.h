@@ -34,13 +34,18 @@ Q_OBJECT
 public:
 
 
-    static const QString CLASS_NAME;
-    virtual ~Stack();
+    /**
+     * Returns a json string representing data selections.
+     * @return a Json string representing data selections.
+     */
+    QString getStateString() const;
+        static const QString CLASS_NAME;
+        virtual ~Stack();
 
 
 signals:
 
-	void inputEvent( InputEvent ev );
+	  void inputEvent( InputEvent ev );
 
     /// Return the result of SaveFullImage() after the image has been rendered
     /// and a save attempt made.

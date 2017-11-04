@@ -749,6 +749,18 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+    addCommandCallback( "getStackData", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+
+        if ( m_stack != nullptr ){
+            qDebug()<<"getStackData:" << m_stack->getStateString();
+            QString ttt= m_stack->getStateString();
+            return m_stack->getStateString();
+        }
+
+        return "";
+    });
+
     // unused 
     addCommandCallback( "setPanAndZoomLevel", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
