@@ -44,6 +44,10 @@ public:
     bool renderProfile(std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
             const Carta::Lib::ProfileInfo& profInfo, bool createNew );
 
+    bool waitThreadFinish();
+    
+    Lib::Hooks::ProfileResult getResult();
+
     /**
      * Destructor.
      */

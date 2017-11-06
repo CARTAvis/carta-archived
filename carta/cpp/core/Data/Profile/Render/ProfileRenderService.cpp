@@ -80,6 +80,19 @@ void ProfileRenderService::_postResult(  ){
     }
 }
 
+bool ProfileRenderService::waitThreadFinish(){
+    if (!m_renderThread){
+        qDebug() << "There is no thread for rendering profile.";
+    }
+    else {
+        qDebug() << "Waiting for the qthread computing profile";
+    }
+    return ( m_renderThread ? m_renderThread->wait() : false );
+}
+
+Lib::Hooks::ProfileResult ProfileRenderService::getResult(){
+    return m_renderThread->getResult();
+}
 
 ProfileRenderService::~ProfileRenderService(){
     delete m_worker;
