@@ -50,7 +50,11 @@ void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<cas
         }
     }
 
+    // This is for "rectangle" or "Point" type regions
     casacore::WCBox box( blcq, trcq, cs, casacore::Vector<casacore::Int>());
+
+    // TODO: for "ellipse" or "polygon" type regions, we have to apply "casacore::WCEllipsoid" or "casacore::WCPolygon" classes !!
+
     casacore::ImageRegion* imgBox = new casacore::ImageRegion( box );
     std::shared_ptr<casacore::SubImage<casacore::Float> > boxImage( new casacore::SubImage<Float>(*image, *imgBox ) );
 
@@ -83,9 +87,13 @@ void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<cas
         QString blcVal = _vectorToString( blcArray );
         casacore::Vector<int> trcArray = result.asArrayInt( trcKey );
         QString trcVal = _vectorToString( trcArray );
-        QString idVal = regionType + ":" + blcVal;
-        if ( blcVal != trcVal ){
-            idVal = idVal + " x " + trcVal;
+        QString idVal = regionType + ":";
+        if ( regionType == "Point" ) {
+            idVal = idVal + blcVal;
+        } else {
+            if ( blcVal != trcVal ){
+            idVal = idVal + blcVal + " x " + trcVal;
+            }
         }
         Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Name );
         info.setValue( idVal );
