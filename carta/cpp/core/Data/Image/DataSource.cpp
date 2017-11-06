@@ -15,7 +15,7 @@
 #include "CartaLib/IPCache.h"
 #include "../../ImageRenderService.h"
 #include "../../Algorithms/percentileAlgorithms.h"
-#include "../../Algorithms/percentileManku99.h"
+// #include "../../Algorithms/percentileManku99.h"
 #include "../../Algorithms/cacheUtils.h"
 #include "../Clips.h"
 #include <QDebug>
