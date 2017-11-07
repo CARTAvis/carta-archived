@@ -463,8 +463,17 @@ std::map<double, Scalar> Manku99Algorithm<Scalar>::opOutput(const std::vector<do
 template <typename Scalar>
 class PercentileManku99 : public Carta::Lib::IPercentilesToPixels {
 public:
-    PercentileManku99(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter);
+    PercentileManku99(
+        const int spectralIndex=-1,
+        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        const std::vector<double> hertzValues,
+        const size_t numBuffers, 
+        const size_t bufferCapacity, 
+        const size_t sampleAfter
+    );
+    
     ~PercentileManku99();
+    
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <double> percentiles,
@@ -472,6 +481,7 @@ public:
         Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
         std::vector<double> hertzValues={}
     ) override;
+
 private:
     const size_t numBuffers;
     const size_t bufferCapacity;
@@ -479,16 +489,20 @@ private:
 };
 
 // TODO: error is completely wrong; work out what it actually is
-PercentileManku99::PercentileManku99(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter) : IPercentilesToPixels(0.5, "Manku99 approximation") : numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
+PercentileManku99::PercentileManku99(
+        const int spectralIndex=-1,
+        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        const std::vector<double> hertzValues,
+        const size_t numBuffers, 
+        const size_t bufferCapacity, 
+        const size_t sampleAfter
+) : IPercentilesToPixels(spectralIndex, converter, hertzValues, 0.5, "Manku99 approximation") : numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
 }
 
 template <typename Scalar>
 PercentileManku99::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    std::vector <double> percentiles,
-    int spectralIndex=-1,
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
-    std::vector<double> hertzValues={}
+    std::vector <double> percentiles
 ) {
     // basic preconditions
     if ( CARTA_RUNTIME_CHECKS ) {

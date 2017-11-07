@@ -10,8 +10,6 @@
 #include <QString>
 #include <vector>
 
-// TODO TODO TODO hertz values, converter and spectral index (?) should be calculated once and cached on the object?
-
 namespace Carta {
 namespace Lib {
 
@@ -40,7 +38,14 @@ public:
     /**
      * Constructor.
      */
-    IPercentilesToPixels(const double error, const QString label);
+    IPercentilesToPixels(
+        const int spectralIndex=-1,
+        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        const std::vector<double> hertzValues,
+        const double error,
+        const QString label
+    );
+    
     virtual ~IPercentilesToPixels();
     
     /** The error margin for the returned values. In future this may be deprecated in favour of independent per-value error margins, if necessary. */
@@ -51,11 +56,13 @@ public:
     
     virtual std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
-        std::vector <double> percentiles,
-        int spectralIndex=-1,
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
-        std::vector<double> hertzValues={}
+        std::vector <double> percentiles
     );
+
+private:
+    const int spectralIndex=-1;
+    const Carta::Lib::IntensityUnitConverter::SharedPtr converter;
+    const std::vector<double> hertzValues;
 };
 
 
@@ -66,7 +73,13 @@ public:
     /**
      * Constructor.
      */
-    IPixelsToPercentiles();
+    IPixelsToPercentiles(
+        const int spectralIndex=-1,
+        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        const std::vector<double> hertzValues,
+        const double error,
+        const QString label
+    );
     virtual ~IPixelsToPercentiles();
     
     /** The error margin for the returned values. In future this may be deprecated in favour of independent per-value error margins, if necessary. */
@@ -77,11 +90,13 @@ public:
     
     virtual std::vector<double> pixels2percentiles(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
-        std::vector <Scalar> pixels,
-        int spectralIndex=-1,
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
-        std::vector<double> hertzValues={}
+        std::vector <Scalar> pixels
     );
+
+private:
+    const int spectralIndex=-1;
+    const Carta::Lib::IntensityUnitConverter::SharedPtr converter;
+    const std::vector<double> hertzValues;
 };
 
 }
