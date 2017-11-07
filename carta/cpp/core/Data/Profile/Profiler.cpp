@@ -3553,63 +3553,68 @@ void Profiler::_updatePlotData(){
 bool Profiler::_updateProfiles( Controller* controller ){
     bool profileChanged = false;
 
-    if ( isAutoGenerate() ){
-        //Go through the old profiles and set inactive any whose regions&layers are not in
-        //the prescribed list.
-        // _removeUnsupportedCurves();
-        int curveCount = m_plotCurves.size();
-        std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
-        std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
-        int dataCount = layers.size();
-        int regionCount = regions.size();
-        bool curveStatusChange = false;
-        for ( int i = 0; i < curveCount; i++ ){
-            QString curveId = m_plotCurves[i]->getName();
-            bool layerFound = false;
-            for ( int j = 0; j < dataCount; j++ ){
-                if ( regionCount > 0 ){
-                    for ( int k = 0; k < regionCount; k++ ){
-                        QString id = CurveData::_generateName( layers[j], regions[k] );
-                        if ( id == curveId ){
-                            layerFound = true;
-                            break;
-                        }
-                    }
-                    if ( layerFound ){
-                        break;
-                    }
-                }
-            }
-            bool activeChanged = m_plotCurves[i]->setActive( layerFound );
-            if ( activeChanged ){
-                curveStatusChange = true;
-            }
-        }
+    // if ( isAutoGenerate() ){
+    //     //Go through the old profiles and set inactive any whose regions&layers are not in
+    //     //the prescribed list.
+    //     // _removeUnsupportedCurves();
+    //     int curveCount = m_plotCurves.size();
+    //     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
+    //     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
+    //     int dataCount = layers.size();
+    //     int regionCount = regions.size();
+    //     bool curveStatusChange = false;
+    //     for ( int i = 0; i < curveCount; i++ ){
+    //         QString curveId = m_plotCurves[i]->getName();
+    //         bool layerFound = false;
+    //         for ( int j = 0; j < dataCount; j++ ){
+    //             if ( regionCount > 0 ){
+    //                 for ( int k = 0; k < regionCount; k++ ){
+    //                     QString id = CurveData::_generateName( layers[j], regions[k] );
+    //                     if ( id == curveId ){
+    //                         layerFound = true;
+    //                         break;
+    //                     }
+    //                 }
+    //                 if ( layerFound ){
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //         bool activeChanged = m_plotCurves[i]->setActive( layerFound );
+    //         if ( activeChanged ){
+    //             curveStatusChange = true;
+    //         }
+    //     }
 
-        //Make profiles for any new data that has been loaded.
-        for ( int i = 0; i < dataCount; i++ ) {
-            if ( regionCount > 0 ){
-                for ( int j = 0; j < regionCount; j++ ){
-                    bool curveGenerated = _generateCurve( layers[i], regions[j] );
-                    if ( curveGenerated ){
-                        profileChanged = true;
-                    }
-                }
-            }
-            else {
-                //Profile of entire image
-                bool curveGenerated = _generateCurve( layers[i], nullptr );
-                if ( curveGenerated ){
-                    profileChanged = true;
-                }
-            }
-        }
+    //     //Make profiles for any new data that has been loaded.
+    //     for ( int i = 0; i < dataCount; i++ ) {
+    //         if ( regionCount > 0 ){
+    //             for ( int j = 0; j < regionCount; j++ ){
+    //                 bool curveGenerated = _generateCurve( layers[i], regions[j] );
+    //                 if ( curveGenerated ){
+    //                     profileChanged = true;
+    //                 }
+    //             }
+    //         }
+    //         else {
+    //             //Profile of entire image
+    //             bool curveGenerated = _generateCurve( layers[i], nullptr );
+    //             if ( curveGenerated ){
+    //                 profileChanged = true;
+    //             }
+    //         }
+    //     }
 
-        _saveCurveState();
-        if ( curveStatusChange && !profileChanged ){
-            _updateSelectedCurve();
-        }
-    }
+    //     _saveCurveState();
+    //     if ( curveStatusChange && !profileChanged ){
+    //         _updateSelectedCurve();
+    //     }
+    // }
+
+    m_plotCurves.clear();
+    std::shared_ptr<Layer> currentLayer = controller->getLayer("");
+    profileChanged = _generateCurve( currentLayer, nullptr );
+
     return profileChanged;
 }
 
