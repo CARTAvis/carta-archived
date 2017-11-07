@@ -530,23 +530,23 @@ void ViewManager::_initCallbacks(){
     // });
 
     //Callback for registering a view.
-//    addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
-//            const QString & params, const QString & /*sessionId*/) -> QString {
-//        const QString PLUGIN_ID( "pluginId");
-//        const QString INDEX( "index");
-//        std::set<QString> keys = {PLUGIN_ID, INDEX};
-//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-//        bool validIndex = false;
-//        int index = dataValues[INDEX].toInt(&validIndex);
-//        QString viewId( "");
-//        if ( validIndex ){
-//            viewId = getObjectId( dataValues[PLUGIN_ID], index );
-//        }
-//        else {
-//            qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
-//        }
-//        return viewId;
-//    });
+    addCommandCallback( "registerView", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        const QString PLUGIN_ID( "pluginId");
+        const QString INDEX( "index");
+        std::set<QString> keys = {PLUGIN_ID, INDEX};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        bool validIndex = false;
+        int index = dataValues[INDEX].toInt(&validIndex);
+        QString viewId( "");
+        if ( validIndex ){
+            viewId = getObjectId( dataValues[PLUGIN_ID], index );
+        }
+        else {
+            qWarning()<< "Register view: invalid index: "+dataValues[PLUGIN_ID];
+        }
+        return viewId;
+    });
 
     //Callback for linking a window with another window
     addCommandCallback( "linkAdd", [=] (const QString & /*cmd*/,

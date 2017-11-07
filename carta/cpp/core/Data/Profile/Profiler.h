@@ -730,6 +730,8 @@ private:
     //For right now we are supporting only one linked controller.
     bool m_controllerLinked;
 
+    QJsonObject m_profileData;
+
     Profiler( const QString& path, const QString& id );
     class Factory;
 
