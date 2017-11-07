@@ -44,14 +44,14 @@ void PercentileHistogramPlugin::initialize( const IPlugin::InitInfo & initInfo )
     qDebug() << "PercentileHistogramPlugin initializing...";
     QJsonDocument doc( initInfo.json );
     qDebug() << doc.toJson();
-
-    // extract the location of the database from carta.config
-    QString numberOfBinsStr = initInfo.json.value( "numberOfBins");
     
-    bool valid;
-    m_numberOfBins = numberOfBinsStr.toInt(valid)
-    
-    if( !valid || m_numberOfBins <= 0) {
+    try {
+        m_numberOfBins = initInfo.json.value( "numberOfBins").toInt();
+    } catch (const QString& error) {
+        qCritical() << "No valid numberOfBins value specified for percentile histogram plugin.";
+    }
+        
+    if( m_numberOfBins <= 0) {
         qCritical() << "No valid numberOfBins value specified for percentile histogram plugin. Must be a positive integer.";
     }
 }

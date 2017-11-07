@@ -23,6 +23,10 @@ public:
     virtual std::vector < HookId > getInitialHookList() override;
     virtual ~PercentileManku99Plugin();
 
-private:
+    virtual void initialize( const InitInfo & initInfo ) override;
 
+private:
+    int m_numBuffers;
+    int m_bufferCapacity;
+    int m_sampleAfter;
 };
