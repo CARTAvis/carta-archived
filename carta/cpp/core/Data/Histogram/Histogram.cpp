@@ -10,7 +10,7 @@
 #include "Data/Error/ErrorManager.h"
 #include "Data/Util.h"
 #include "Data/Plotter/Plot2DManager.h"
-#include "Plot2D/Plot2DGenerator.h"
+// #include "Plot2D/Plot2DGenerator.h"
 #include "Data/Histogram/BinData.h"
 #include "Data/Histogram/PlotStyles.h"
 #include "Data/Preferences/PreferencesSave.h"
@@ -93,7 +93,7 @@ bool Histogram::m_registered =
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
-using Carta::Plot2D::Plot2DGenerator;
+// using Carta::Plot2D::Plot2DGenerator;
 
 Histogram::Histogram( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
@@ -111,9 +111,9 @@ Histogram::Histogram( const QString& path, const QString& id):
             SIGNAL(histogramResult(const Carta::Lib::Hooks::HistogramResult& )),
             this,
             SLOT(_histogramRendered(const Carta::Lib::Hooks::HistogramResult& )));
-    Plot2DGenerator* gen = new Plot2DGenerator();
-    gen->setHistogram( true, 0 );
-    m_plotManager->setPlotGenerator( gen );
+    // Plot2DGenerator* gen = new Plot2DGenerator();
+    // gen->setHistogram( true, 0 );
+    // m_plotManager->setPlotGenerator( gen );
     m_plotManager->setTitleAxisY( "Count(pixels)" );
     m_plotManager->setTitleAxisX( "Intensity" );
     connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));
