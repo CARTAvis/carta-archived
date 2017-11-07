@@ -23,6 +23,9 @@ public:
     virtual std::vector < HookId > getInitialHookList() override;
     virtual ~PercentileHistogramPlugin();
 
+    virtual void initialize( const InitInfo & initInfo ) override;
+
 private:
+    int m_numberOfBins;
 
 };

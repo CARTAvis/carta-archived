@@ -21,10 +21,8 @@ bool PercentileHistogramPlugin::handleHook( BaseHook & hookData ){
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = hook.paramsPtr->m_converter;
         std::vector<double> hertzValues = hook.paramsPtr->m_hertzValues;
         std::vector<double> minMaxIntensities = hook.paramsPtr->m_minMaxIntensities;
-        
-//         numberOfBins = ???? // TODO this comes from the plugin config, but rename it first
-        
-        hook.result = PercentileHistogram(spectralIndex, converter, hertzValues, minMaxIntensities, numberOfBins);
+                
+        hook.result = PercentileHistogram(spectralIndex, converter, hertzValues, minMaxIntensities, m_numberOfBins);
         
         return true;
     }
@@ -39,5 +37,22 @@ std::vector < HookId > PercentileHistogramPlugin::getInitialHookList() {
         Carta::Lib::Hooks::Initialize::staticId,
         Carta::Lib::Hooks::PixelToPercentileHook::staticId
     };
+}
+
+void PercentileHistogramPlugin::initialize( const IPlugin::InitInfo & initInfo )
+{
+    qDebug() << "PercentileHistogramPlugin initializing...";
+    QJsonDocument doc( initInfo.json );
+    qDebug() << doc.toJson();
+
+    // extract the location of the database from carta.config
+    QString numberOfBinsStr = initInfo.json.value( "numberOfBins");
+    
+    bool valid;
+    m_numberOfBins = numberOfBinsStr.toInt(valid)
+    
+    if( !valid || m_numberOfBins <= 0) {
+        qCritical() << "No valid numberOfBins value specified for percentile histogram plugin. Must be a positive integer.";
+    }
 }
 
