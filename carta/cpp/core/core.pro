@@ -127,17 +127,17 @@ HEADERS += \
     Data/ViewPlugins.h \
     GrayColormap.h \
     ImageRenderService.h \
-    Plot2D/Plot.h \
-    Plot2D/Plot2DGenerator.h \
-    Plot2D/Plot2DRangeMarker.h \
-    Plot2D/Plot2DSelection.h \
-    Plot2D/Plot2D.h \
-    Plot2D/Plot2DLine.h \
-    Plot2D/Plot2DLineHorizontal.h \
-    Plot2D/Plot2DHistogram.h \
-    Plot2D/Plot2DHolder.h \
-    Plot2D/Plot2DProfile.h \
-    Plot2D/Plot2DTextMarker.h \
+#    Plot2D/Plot.h \
+#    Plot2D/Plot2DGenerator.h \
+#    Plot2D/Plot2DRangeMarker.h \
+#    Plot2D/Plot2DSelection.h \
+#    Plot2D/Plot2D.h \
+#    Plot2D/Plot2DLine.h \
+#    Plot2D/Plot2DLineHorizontal.h \
+#    Plot2D/Plot2DHistogram.h \
+#    Plot2D/Plot2DHolder.h \
+#    Plot2D/Plot2DProfile.h \
+#    Plot2D/Plot2DTextMarker.h \
     Shape/ControlPoint.h \
     Shape/ControlPointEditable.h \
     Shape/ShapeBase.h \
@@ -281,17 +281,17 @@ SOURCES += \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
     GrayColormap.cpp \
-    Plot2D/Plot.cpp \
-    Plot2D/Plot2DGenerator.cpp \
-    Plot2D/Plot2DRangeMarker.cpp \
-    Plot2D/Plot2D.cpp \
-    Plot2D/Plot2DLine.cpp \
-    Plot2D/Plot2DLineHorizontal.cpp \
-    Plot2D/Plot2DHistogram.cpp \
-    Plot2D/Plot2DHolder.cpp \
-    Plot2D/Plot2DProfile.cpp \
-    Plot2D/Plot2DSelection.cpp \
-    Plot2D/Plot2DTextMarker.cpp \
+#    Plot2D/Plot.cpp \
+#    Plot2D/Plot2DGenerator.cpp \
+#    Plot2D/Plot2DRangeMarker.cpp \
+#    Plot2D/Plot2D.cpp \
+#    Plot2D/Plot2DLine.cpp \
+#    Plot2D/Plot2DLineHorizontal.cpp \
+#    Plot2D/Plot2DHistogram.cpp \
+#    Plot2D/Plot2DHolder.cpp \
+#    Plot2D/Plot2DProfile.cpp \
+#    Plot2D/Plot2DSelection.cpp \
+#    Plot2D/Plot2DTextMarker.cpp \
     ScriptedClient/ScriptedCommandListener.cpp \
     ScriptedClient/ScriptFacade.cpp \
     Shape/ControlPoint.cpp \
@@ -342,15 +342,17 @@ INCLUDEPATH += $$absolute_path(../../../ThirdParty/rapidjson/include)
 
 QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''
 
-QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
-INCLUDEPATH += $$QWT_ROOT/include
+#QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
+#INCLUDEPATH += $$QWT_ROOT/include
 unix:macx {
-	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
-	LIBS +=-L../CartaLib -lCartaLib -framework qwt
+#	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
+#	LIBS +=-L../CartaLib -lCartaLib -framework qwt
+        LIBS +=-L../CartaLib -lCartaLib
 }
 else {
-	QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
-	LIBS +=-L../CartaLib -lCartaLib -L$$QWT_ROOT/lib -lqwt
+#        QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
+#        LIBS +=-L../CartaLib -lCartaLib -L$$QWT_ROOT/lib -lqwt
+        LIBS +=-L../CartaLib -lCartaLib
 }
 
 DEPENDPATH += $$PROJECT_ROOT/CartaLib

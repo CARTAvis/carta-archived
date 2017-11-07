@@ -30,9 +30,9 @@ class ImageView;
 
 
 namespace Carta {
-namespace Plot2D {
-class Plot2DGenerator;
-}
+// namespace Plot2D {
+// class Plot2DGenerator;
+// }
 
 namespace Data {
 

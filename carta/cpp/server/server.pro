@@ -52,5 +52,5 @@ unix: PRE_TARGETDEPS += $$OUT_PWD/../CartaLib/libCartaLib.so
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
 QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../core\''
 
-QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
-QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
+#QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
+#QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''

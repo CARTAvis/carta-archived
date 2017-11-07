@@ -24,9 +24,9 @@ class CustomizablePixelPipeline;
 class ImageView;
 
 namespace Carta {
-namespace Plot2D {
-class Plot2DGenerator;
-}
+// namespace Plot2D {
+// class Plot2DGenerator;
+// }
 
 namespace Data {
 
@@ -344,7 +344,7 @@ public:
      * Set the type of data that will be generated for the plot.
      * @param gen - the generator for the plot data.
      */
-    void setPlotGenerator( Carta::Plot2D::Plot2DGenerator* gen );
+    // void setPlotGenerator( Carta::Plot2D::Plot2DGenerator* gen );
 
     /**
      * Set the zoom range for the plot.
@@ -493,7 +493,7 @@ private:
     std::shared_ptr<ImageView> m_view = nullptr;
 
 
-    Carta::Plot2D::Plot2DGenerator* m_plotGenerator;
+    // Carta::Plot2D::Plot2DGenerator* m_plotGenerator;
 
     //Separate state for mouse events since they get updated rapidly and not
     //everyone wants to listen to them.

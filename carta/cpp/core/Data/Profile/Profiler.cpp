@@ -22,7 +22,7 @@
 #include "Data/Units/UnitsIntensity.h"
 #include "Data/Units/UnitsSpectral.h"
 #include "Data/Units/UnitsWavelength.h"
-#include "Plot2D/Plot2DGenerator.h"
+// #include "Plot2D/Plot2DGenerator.h"
 #include "CartaLib/Hooks/Plot2DResult.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
@@ -106,7 +106,7 @@ QList<QColor> Profiler::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cya
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
-using Carta::Plot2D::Plot2DGenerator;
+// using Carta::Plot2D::Plot2DGenerator;
 
 Profiler::Profiler( const QString& path, const QString& id):
             CartaObject( CLASS_NAME, path, id ),
@@ -145,7 +145,7 @@ Profiler::Profiler( const QString& path, const QString& id):
     LegendLocations* legObj = objMan->createObject<LegendLocations>();
     m_legendLocations.reset( legObj );
 
-    m_plotManager->setPlotGenerator( new Plot2DGenerator() );
+    // m_plotManager->setPlotGenerator( new Plot2DGenerator() );
     m_plotManager->setTitleAxisY( "" );
     connect( m_plotManager.get(), SIGNAL(userSelection()), this, SLOT(_zoomToSelection()));
     connect( m_plotManager.get(), SIGNAL(userSelectionColor()), this, SLOT(_movieFrame()));
