@@ -11,6 +11,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/GetPersistentCache.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
+#include "CartaLib/Hooks/PixelToPercentileHook.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IPCache.h"
 #include "../../ImageRenderService.h"
@@ -479,6 +480,21 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     std::vector<bool> found(percentileCount, false);
     
     QString transformation_label = converter ? converter->label : "NONE";
+    
+    // TODO: later consider caching this object and reusing it
+    Carta::Lib::IPercentilesToPixels::SharedPtr approximateCalculator;
+    
+    // Is there a cleaner way to pass in the min / max without having to calculate it unnecessarily up-front?
+    // Pass in a lambda? Pass in the whole data source?
+//     auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::PixelToPercentileHook>(m_image, ????? );
+//     
+//     auto lam = [&approximateCalculator] ( const Carta::Lib::Hooks::PixelToPercentileHook::ResultType &data ) {
+//         if (!approximateCalculator || data->error < approximateCalculator->error) {
+//             approximateCalculator = data;
+//         }
+//     };
+//     
+//     result.forEach( lam );
 
     // TODO: approximate algorithm(s) should be delegated to plugins; this function should know nothing about their implementation.
     // TODO: plugins should return the error order for each value as well as the value
