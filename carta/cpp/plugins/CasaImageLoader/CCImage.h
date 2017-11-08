@@ -17,6 +17,8 @@
 #include <memory>
 #include <set>
 
+#include "CartaLib/UtilCASA.h"
+
 /// helper base class so that we can easily determine if this is a an image
 /// interface created by this plugin if we ever want to down-cast it...
 class CCImageBase
@@ -188,9 +190,12 @@ public:
     static CCImage::SharedPtr
     create( casacore::ImageInterface < PType > * casaImage )
     {
+
         // create an image interface instance and populate it with various
         // values from casacore::ImageInterface
         CCImage::SharedPtr img = std::make_shared < CCImage < PType > > ();
+        casa_mutex.lock();
+
         img-> m_pixelType = Carta::Lib::Image::CType2PixelType < PType >::type;
         img-> m_dims      = casaImage-> shape().asStdVector();
         img-> m_casaII    = casaImage;
@@ -203,6 +208,7 @@ public:
         // make our own copy of the coordinate system using 'clone'
         std::shared_ptr<casacore::CoordinateSystem> casaCS(
                     static_cast<casacore::CoordinateSystem *> (casaImage->coordinates().clone()));
+        casa_mutex.unlock();
 
         // construct a meta data instance
         img-> m_meta = std::make_shared < CCMetaDataInterface > ( htmlTitle, casaCS );

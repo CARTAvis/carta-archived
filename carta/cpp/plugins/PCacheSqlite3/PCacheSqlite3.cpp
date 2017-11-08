@@ -4,6 +4,11 @@
 #include <QtSql>
 #include <QDir>
 
+//class QMutex;
+#include <qmutex.h>
+
+static QMutex sql_mutex;
+
 typedef Carta::Lib::Hooks::GetPersistentCache GetPersistentCacheHook;
 
 ///
@@ -12,6 +17,8 @@ typedef Carta::Lib::Hooks::GetPersistentCache GetPersistentCacheHook;
 class SqLitePCache : public Carta::Lib::IPCache
 {
 public:
+
+
 
     virtual uint64_t
     maxStorage() override
@@ -48,7 +55,9 @@ public:
     virtual bool
     readEntry( const QByteArray & key, QByteArray & val, QByteArray & error ) override
     {
+        sql_mutex.lock();
         if ( ! m_db.isOpen() ) {
+             sql_mutex.unlock();
             return false;
         }
         QSqlQuery query( m_db );
@@ -60,20 +69,27 @@ public:
 
         if ( ! query.exec() ) {
             qWarning() << "Select query failed.";
+            sql_mutex.unlock();
             return false;
         }
         if ( query.next() ) {
             val = query.value( 0 ).toByteArray();
             error = query.value( 1 ).toByteArray();
+            sql_mutex.unlock();
             return true;
         }
+        sql_mutex.unlock();
+
         return false;
     } // readEntry
 
     virtual void
     setEntry( const QByteArray & key, const QByteArray & val, const QByteArray & error ) override
     {
+        sql_mutex.lock();
+
         if ( ! m_db.isOpen() ) {
+            sql_mutex.unlock();
             return;
         }
 
@@ -91,18 +107,22 @@ public:
         if ( ! query.exec() ) {
             qWarning() << "Insert query failed:" << query.lastError().text();
         }
+        sql_mutex.unlock();
+
     } // setEntry
 
     static
     Carta::Lib::IPCache::SharedPtr
     getCacheSingleton( QString dirPath)
     {
+        sql_mutex.lock();
         if ( m_cachePtr ) {
             qCritical() << "PCacheSQlite3Plugin::Calling GetPersistentCacheHook multiple times!!!";
         }
         else {
             m_cachePtr.reset( new SqLitePCache( dirPath) );
         }
+        sql_mutex.unlock();
         return m_cachePtr;
     }
 

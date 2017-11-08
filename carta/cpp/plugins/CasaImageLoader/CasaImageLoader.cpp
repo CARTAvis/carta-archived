@@ -18,6 +18,9 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "CartaLib/UtilCASA.h"
+QMutex casa_mutex;
+
 CasaImageLoader::CasaImageLoader(QObject *parent) :
     QObject(parent)
 {
@@ -27,18 +30,22 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
 {
     qDebug() << "CasaImageLoader plugin is handling hook #" << hookData.hookId();
     if( hookData.is<Carta::Lib::Hooks::Initialize>()) {
+        qDebug() << "CasaImageLoader plugin 1";
         // Register FITS and Miriad image types
         casacore::FITSImage::registerOpenFunction();
         casacore::MIRIADImage::registerOpenFunction();
+        qDebug() << "CasaImageLoader plugin 1-2";
         return true;
     }
 
     else if( hookData.is<Carta::Lib::Hooks::LoadAstroImage>()) {
+        qDebug() << "CasaImageLoader plugin 2";
         Carta::Lib::Hooks::LoadAstroImage & hook
                 = static_cast<Carta::Lib::Hooks::LoadAstroImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
         hook.result = loadImage( fname);
         // return true if result is not null
+        qDebug() << "CasaImageLoader plugin 2-2";
         return hook.result != nullptr;
     }
 
@@ -80,16 +87,27 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     // get the image type
     casacore::ImageOpener::ImageTypes filetype = casacore::ImageOpener::imageType(fname.toStdString());
 
+    qDebug() << "CasaImageLoader plugin trying to load image 2 ";
     // load image
     casacore::LatticeBase * lat = nullptr;
     if(filetype == casacore::ImageOpener::ImageTypes::AIPSPP)
     {
+        casa_mutex.lock();
         lat = casacore::ImageOpener::openPagedImage ( fname.toStdString());
+        casa_mutex.unlock();
+
         qDebug() << "\t-opened as paged image";
     }
     else if(filetype != casacore::ImageOpener::ImageTypes::UNKNOWN)
     {
+        qDebug() << "CasaImageLoader plugin trying to load image 3 ";
+
+        casa_mutex.lock();
         lat = casacore::ImageOpener::openImage ( fname.toStdString());
+        casa_mutex.unlock();
+
+        qDebug() << "CasaImageLoader plugin trying to load image 4 ";
+
         if(filetype == casacore::ImageOpener::ImageTypes::FITS)
         {
             qDebug() << "\t-opened as FITS image";
@@ -116,6 +134,8 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
 
     }
 
+    qDebug() << "CasaImageLoader plugin trying to load image 5 ";
+
     lat->reopen();
     qDebug() << "lat=" << lat;
     auto shape = lat->shape();
@@ -140,6 +160,8 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     //compile, for example.
     //if( ! res) res = tryCast<int64_t>(lat);
 
+    qDebug() << "CasaImageLoader plugin trying to load image 6 ";
+
     // if we were successful, return the result
     if( res) {
         return res;
@@ -157,9 +179,9 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
         img = new casacore::ImageExpr<casacore::Float> ( le, expr );
         qDebug() << "\t-LEL conversion successful";
         return CCImage<float>::create( img);
-    } catch ( ... ) {} 
+    } catch ( ... ) {}
 */
-    
+
 
     // indicate failure
     qWarning() << "Unsupported lattice type:" << lat-> dataType();

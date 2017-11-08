@@ -6,6 +6,8 @@
 #include <casacore/coordinates/Coordinates.h>
 #include <casacore/measures/Measures/Stokes.h>
 #include <QDebug>
+// #include "UtilCASA.h"
+#include "CartaLib/UtilCASA.h"
 
 #ifdef DONT_COMPILE
 #define CARTA_DEBUG_THIS_FILE 0
@@ -127,7 +129,9 @@ CCCoordinateFormatter *
 CCCoordinateFormatter::clone() const
 {
     CCCoordinateFormatter * res = new CCCoordinateFormatter( * this );
+    casa_mutex.lock();
     res->m_casaCS.reset( new casacore::CoordinateSystem( * m_casaCS ) );
+    casa_mutex.unlock();
     return res;
 }
 
@@ -150,12 +154,18 @@ CCCoordinateFormatter::formatFromPixelCoordinate( const CoordinateFormatterInter
     // convert freq to radio velocity
     int NumberofSpectralAxis = -1;
     casacore::Quantum<casacore::Double> velocity;
+    casa_mutex.lock();
     if(m_casaCS->hasSpectralAxis())
     {
+
         NumberofSpectralAxis = m_casaCS->spectralAxisNumber();
         casacore::SpectralCoordinate casaSpeSystem = m_casaCS->spectralCoordinate();
+
         casaSpeSystem.pixelToVelocity(velocity,pixel(NumberofSpectralAxis));
+
     }
+    casa_mutex.unlock();
+
 
 
     // format each axis
@@ -264,7 +274,11 @@ CCCoordinateFormatter::skyCS()
         return KnownSkyCS::Unknown;
     }
     int which = m_casaCS->directionCoordinateNumber();
+
+    casa_mutex.lock();
     const casacore::DirectionCoordinate & dirCoord = m_casaCS->directionCoordinate( which );
+    casa_mutex.unlock();
+
     casacore::MDirection::Types dirType = dirCoord.directionType( true );
     switch ( dirType )
     {
@@ -297,6 +311,8 @@ CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
     if ( scs == KnownSkyCS::Unknown ) {
         return * this;
     }
+
+    casa_mutex.lock();
 
     // find out where the direction world coordinate lives
     int which = m_casaCS->directionCoordinateNumber();
@@ -341,8 +357,12 @@ CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
     dirCoordCopy.setReferenceConversion( mdir );
     if ( ! m_casaCS->replaceCoordinate( dirCoordCopy, which ) ) {
         qWarning() << "Could not set wcs because replaceCoordinate() failed";
+        casa_mutex.unlock();
+
         return * this;
     }
+    casa_mutex.unlock();
+
 
     // now we need to adjust axisinfos, formatting and precision
     setSkyFormatting( SkyFormatting::Default );
