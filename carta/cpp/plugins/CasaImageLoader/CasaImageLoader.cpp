@@ -17,9 +17,7 @@
 #include <memory>
 #include <algorithm>
 #include <cstdint>
-
 #include "CartaLib/UtilCASA.h"
-QMutex casa_mutex;
 
 CasaImageLoader::CasaImageLoader(QObject *parent) :
     QObject(parent)

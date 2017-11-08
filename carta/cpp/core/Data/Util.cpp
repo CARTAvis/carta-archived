@@ -4,6 +4,8 @@
 #include "CartaLib/IImage.h"
 #include <QDebug>
 #include <cmath>
+#include "CartaLib/UtilCASA.h"
+QMutex casa_mutex(QMutex::Recursive);
 
 namespace Carta {
 
@@ -54,8 +56,12 @@ int Util::getAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image
         Carta::Lib::AxisInfo::KnownType axisType ){
     int index = -1;
     if ( image ){
+
+        casa_mutex.lock();
         std::shared_ptr<CoordinateFormatterInterface> cf(
                                image-> metaData()-> coordinateFormatter()-> clone() );
+        casa_mutex.unlock();
+
         int axisCount = cf->nAxes();
         for ( int i = 0; i < axisCount; i++ ){
             Carta::Lib::AxisInfo axisInfo = cf->axisInfo( i );

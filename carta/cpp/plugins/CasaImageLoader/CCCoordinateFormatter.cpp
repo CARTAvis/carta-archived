@@ -129,9 +129,9 @@ CCCoordinateFormatter *
 CCCoordinateFormatter::clone() const
 {
     CCCoordinateFormatter * res = new CCCoordinateFormatter( * this );
-    casa_mutex.lock();
+//    casa_mutex.lock();
     res->m_casaCS.reset( new casacore::CoordinateSystem( * m_casaCS ) );
-    casa_mutex.unlock();
+//    casa_mutex.unlock();
     return res;
 }
 
@@ -436,6 +436,8 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
     int coord; // this is the world coordinate
     int coord2; // this is the index within world coordinate (0 for all but latitude)
 
+    casa_mutex.lock();
+
     m_casaCS->findPixelAxis( coord, coord2, pixelAxis );
 
     //qDebug() << pixelAxis << "-->" << coord << "," << coord2;
@@ -567,6 +569,8 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         // this should never happen that casacore didn't find world coordinates for
         // the given axis... but let's not panic and just leave it a default value
     }
+    casa_mutex.unlock();
+
 } // parseCasaCSi
 
 QString
