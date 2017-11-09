@@ -36,20 +36,11 @@ public:
                 int spectralIndex,
                 Carta::Lib::IntensityUnitConverter::SharedPtr converter,
                 std::vector<double> hertzValues,
-                std::vector<double> minMaxIntensities
             ) {
                 m_image = image;
-                m_spectralIndex = spectralIndex;
-                m_converter = converter;
-                m_hertzValues = hertzValues;
-                m_minMaxIntensities = minMaxIntensities;
             }
 
             std::shared_ptr<Image::ImageInterface> m_image;
-            int m_spectralIndex;
-            Carta::Lib::IntensityUnitConverter::SharedPtr m_converter;
-            std::vector<double> m_hertzValues;
-            std::vector<double> m_minMaxIntensities;
         };
 
     /**

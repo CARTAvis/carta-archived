@@ -464,9 +464,6 @@ template <typename Scalar>
 class PercentileManku99 : public Carta::Lib::IPercentilesToPixels {
 public:
     PercentileManku99(
-        const int spectralIndex=-1,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues,
         const size_t numBuffers, 
         const size_t bufferCapacity, 
         const size_t sampleAfter
@@ -477,9 +474,9 @@ public:
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <double> percentiles,
-        int spectralIndex=-1,
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
-        std::vector<double> hertzValues={}
+        int spectralIndex,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        std::vector<double> hertzValues
     ) override;
 
 private:
@@ -489,20 +486,16 @@ private:
 };
 
 // TODO: error is completely wrong; work out what it actually is
-PercentileManku99::PercentileManku99(
-        const int spectralIndex=-1,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues,
-        const size_t numBuffers, 
-        const size_t bufferCapacity, 
-        const size_t sampleAfter
-) : IPercentilesToPixels(spectralIndex, converter, hertzValues, 0.5, "Manku99 approximation") : numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
+PercentileManku99::PercentileManku99(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter) : IPercentilesToPixels(0.5, "Manku99 approximation", true) : numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
 }
 
 template <typename Scalar>
 PercentileManku99::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector <double> percentiles
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
 ) {
     // basic preconditions
     if ( CARTA_RUNTIME_CHECKS ) {

@@ -16,43 +16,34 @@
 template <typename Scalar>
 class PercentileHistogram : public Carta::Lib::IPercentilesToPixels {
 public:
-    PercentileHistogram(
-        const int spectralIndex=-1,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues,
-        const std::vector<double> minMaxIntensities, 
-        const unsigned int numberOfBins
-    );
+    PercentileHistogram(const unsigned int numberOfBins);
     
     ~PercentileHistogram();
-    
+        
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <double> percentiles,
-        int spectralIndex=-1,
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
-        std::vector<double> hertzValues={}
+        int spectralIndex,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        std::vector<double> hertzValues
     ) override;
     
 private:
-    const std::vector<double> minMaxIntensities;
     const unsigned int numberOfBins;
 };
 
 
-PercentileHistogram::PercentileHistogram(
-        const int spectralIndex=-1,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues,
-        const std::vector<double> minMaxIntensities,
-        const unsigned int numberOfBins
-) : IPercentilesToPixels(spectralIndex, converter, hertzValues, 1/numberOfBins, "Histogram approximation") : minMaxIntensities(minMaxIntensities), numberOfBins(numberOfBins) {
+PercentileHistogram::PercentileHistogram(const unsigned int numberOfBins) : IPercentilesToPixels(1/numberOfBins, "Histogram approximation", true, true) : numberOfBins(numberOfBins) {
 }
+
 
 template <typename Scalar>
 PercentileHistogram::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    std::vector <double> percentiles
+    std::vector <double> percentiles,
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
 ) {
     // basic preconditions
     if ( CARTA_RUNTIME_CHECKS ) {

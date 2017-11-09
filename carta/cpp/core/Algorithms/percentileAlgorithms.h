@@ -27,67 +27,52 @@ namespace Algorithms
 template <typename Scalar>
 class PercentilesToPixels : public Carta::Lib::IPercentilesToPixels {
 public:
-    PercentilesToPixels(
-        const int spectralIndex=-1,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues
-    );
+    PercentilesToPixels();
     ~PercentilesToPixels();
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <double> percentiles
+        int spectralIndex,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        std::vector<double> hertzValues
     ) override;
 };
 
 template <typename Scalar>
 class PixelsToPercentiles : public Carta::Lib::IPixelsToPercentiles {
 public:
-    PixelsToPercentiles(
-        const int spectralIndex=-1,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues
-    );
+    PixelsToPercentiles();
     ~PixelsToPercentiles();
     std::vector<double> pixels2percentiles(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
-        std::vector <Scalar> pixels
+        std::vector <Scalar> pixels,
+        int spectralIndex,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        std::vector<double> hertzValues
     ) override;
 };
 
 template <typename Scalar>
 class MinMaxPercentiles : public Carta::Lib::IPercentilesToPixels {
 public:
-    PercentilesToPixels(
-        const int spectralIndex=-1,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues
-    );
+    PercentilesToPixels();
     ~PercentilesToPixels();
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
-        std::vector <double> percentiles
+        std::vector <double> percentiles,
+        const int spectralIndex,
+        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        const std::vector<double> hertzValues
     ) override;
 };
 
-PercentilesToPixels::PercentilesToPixels(
-    const int spectralIndex=-1,
-    const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-    const std::vector<double> hertzValues
-) : IPercentilesToPixels(spectralIndex, converter, hertzValues, 0, "Exact percentile algorithm") {
+PercentilesToPixels::PercentilesToPixels() : IPercentilesToPixels(0, "Exact percentile algorithm") {
 }
 
-PixelsToPercentiles::PixelsToPercentiles(
-    const int spectralIndex=-1,
-    const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-    const std::vector<double> hertzValues
-) : IPixelsToPercentiles(spectralIndex, converter, hertzValues, 0, "Exact reverse percentile algorithm") {
+PixelsToPercentiles::PixelsToPercentiles() : IPixelsToPercentiles(0, "Exact reverse percentile algorithm") {
 }
 
-MinMaxPercentiles::MinMaxPercentiles(
-    const int spectralIndex=-1,
-    const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-    const std::vector<double> hertzValues
-) : IPercentilesToPixels(spectralIndex, converter, hertzValues, 0, "Exact min/max percentile algorithm") {
+MinMaxPercentiles::MinMaxPercentiles() : IPercentilesToPixels(0, "Exact min/max percentile algorithm") {
 }
 
 /// compute requested percentiles
@@ -110,6 +95,9 @@ std::map < double, Scalar >
 PercentilesToPixels::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector < double > percentiles,
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
 )
 {
     // basic preconditions
@@ -193,7 +181,10 @@ template < typename Scalar >
 std::vector<double>
 PixelsToPercentiles::pixels2percentiles(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    std::vector < Scalar > intensities
+    std::vector < Scalar > intensities,
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
 )
 {
     // if we have a frame-dependent converter and no spectral axis,
@@ -274,7 +265,10 @@ template < typename Scalar >
 std::map<double, Scalar>
 MinMaxPercentiles::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    std::vector < double > percentiles
+    std::vector < double > percentiles,
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
 )
 {
     // basic preconditions

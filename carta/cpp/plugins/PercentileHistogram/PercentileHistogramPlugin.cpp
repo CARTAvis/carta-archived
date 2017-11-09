@@ -17,12 +17,8 @@ bool PercentileHistogramPlugin::handleHook( BaseHook & hookData ){
         
         // TODO this is currently unused, but we should use it to pick a plugin (maybe)
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = hook.paramsPtr->m_image;
-        int spectralIndex = hook.paramsPtr->m_spectralIndex;
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter = hook.paramsPtr->m_converter;
-        std::vector<double> hertzValues = hook.paramsPtr->m_hertzValues;
-        std::vector<double> minMaxIntensities = hook.paramsPtr->m_minMaxIntensities;
                 
-        hook.result = PercentileHistogram(spectralIndex, converter, hertzValues, minMaxIntensities, m_numberOfBins);
+        hook.result = PercentileHistogram(m_numberOfBins);
         
         return true;
     }

@@ -56,18 +56,6 @@ public:
      */
     bool isDeveloperDecorations() const;
 
-    /**
-     * Returns whether CARTA should use approximation method
-     * for percentile calculation, if the percentile is not equal to 0 or 1.
-     */
-    bool isPercentileApproximation() const;
-
-    /**
-     * Returns the value used to divide the range of pixel value: (max - min),
-     * so the pixel bin size used for percentile approximation is (max - min) / getPercentApproxDividedNum.
-     */
-    unsigned int getPercentApproxDividedNum() const;
-
     /// the whole config file as json
     const QJsonObject & json() const;
 
@@ -111,11 +99,9 @@ protected:
     QStringList m_pluginDirectories;
     bool m_hacksEnabled = false;
     bool m_developerDecorations = false;
-    bool m_percentileApproximation = false;
     bool m_developerLayout = false;
     int m_histogramBinCountMax = -1;
     int m_contourLevelCountMax = -1;
-    unsigned int m_percentApproxDividedNum = 1000000;
 
     QJsonObject m_json;
 

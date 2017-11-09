@@ -211,24 +211,18 @@ private:
             const QSize& outputSize, bool* valid ) const;
 
     /**
-     * check if the "inputValue" is amoung the vector of "comparedValue",
-     * if true, return the original value from "comparedValue"
-     */
-    std::pair<bool, double> _isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const;
-
-    /**
-     * Returns the bool and intensity corresponding to a percentile value.
+     * Returns the intensity and error corresponding to a percentile value.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
-     * @return - a corresponding percentile (bool, intensity) pair.
-     *           If bool is true, the intensity cache exists and we can read the cache value.
-     *           If bool is false, the intensity cache does not exist and returns the default value -1.
+     * @param transformationLabel - a string identifier for the per-frame unit conversion used in the calculation
+     * @return - a pointer to an IntensityValue object,
+     * or a null pointer if the percentile is not in the cache
      */
-    std::pair<double, double> _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const;
+    Carta::Lib::IntensityValue * _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const;
 
-    void _setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformation_label) const;
+    void _setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const;
 
 
     /**
@@ -237,6 +231,7 @@ private:
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
+     * @param transformationLabel - a string identifier for the per-frame unit conversion used in the calculation
      * @return - a list of intensity values.
      */
     std::vector<double> _getIntensity( int frameLow, int frameHigh,
@@ -535,6 +530,8 @@ private:
     
     // disk cache
     std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
+    // wrapper class
+    std::shared_ptr<Carta::Lib::IntensityCacheHelper> m_diskCacheHelper;
     
     //Indices of the display axes.
     int m_axisIndexX;

@@ -17,11 +17,8 @@ bool PercentileManku99Plugin::handleHook( BaseHook & hookData ){
         
         // TODO this is currently unused, but we should use it to pick a plugin (maybe)
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = hook.paramsPtr->m_image;
-        int spectralIndex = hook.paramsPtr->m_spectralIndex;
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter = hook.paramsPtr->m_converter;
-        std::vector<double> hertzValues = hook.paramsPtr->m_hertzValues;
                 
-        hook.result = PercentileManku99(spectralIndex, converter, hertzValues, m_numBuffers, m_bufferCapacity, m_sampleAfter);
+        hook.result = PercentileManku99(m_numBuffers, m_bufferCapacity, m_sampleAfter);
         
         return true;
     }

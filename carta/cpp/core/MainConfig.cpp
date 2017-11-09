@@ -131,10 +131,6 @@ bool ParsedInfo::isDeveloperDecorations() const {
     return m_developerDecorations;
 }
 
-bool ParsedInfo::isPercentileApproximation() const {
-    return m_percentileApproximation;
-}
-
 bool ParsedInfo::isDeveloperLayout() const {
     return m_developerLayout;
 }
@@ -145,10 +141,6 @@ int ParsedInfo::getContourLevelCountMax() const {
 
 int ParsedInfo::getHistogramBinCountMax() const {
     return m_histogramBinCountMax;
-}
-
-unsigned int ParsedInfo::getPercentApproxDividedNum() const {
-    return m_percentApproxDividedNum;
 }
 
 const QJsonObject &ParsedInfo::json() const
