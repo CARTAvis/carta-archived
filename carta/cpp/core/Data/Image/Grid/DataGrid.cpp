@@ -259,7 +259,7 @@ void DataGrid::_initializeDefaultState(){
     //Transparency seems to go from 0 to 1
     //Spacing goes from 0.250 to 3
 
-    m_state.insertValue<bool>( SHOW_AXIS, true );
+    m_state.insertValue<bool>( SHOW_AXIS, false );
     m_state.insertValue<bool>( SHOW_GRID_LINES, false );
     m_state.insertValue<bool>( SHOW_TICKS, true );
     m_state.insertValue<bool>( SHOW_INTERNAL_LABELS, false );
