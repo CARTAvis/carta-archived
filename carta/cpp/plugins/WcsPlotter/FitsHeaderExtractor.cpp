@@ -17,6 +17,8 @@
 #include <casacore/coordinates/Coordinates/LinearCoordinate.h>
 #include <casacore/images/Images/ImageInterface.h>
 
+#include "CartaLib/UtilCASA.h"
+
 void FitsLine::_parse(QString &key, QString &value, QString &comment) {
     // key is the first 8 characters (trimmed)
     key = _raw.left(8).trimmed();
@@ -162,6 +164,8 @@ FitsHeaderExtractor::_CasaFitsConverter( casacore::LatticeBase * lbase )
     String originStr = String();
     String errorString;
     ImageFITSHeaderInfo fhi;
+
+    casa_mutex.lock();
     bool isok = ImageFITSConverter::ImageHeaderToFITS (errorString, fhi, image,
                                                        preferVelocity, opticalVelocity,
                                                        BITPIX, minPix, maxPix,
@@ -170,6 +174,7 @@ FitsHeaderExtractor::_CasaFitsConverter( casacore::LatticeBase * lbase )
                                                        airWavelength,
                                                        primHead, allowAppend,
                                                        originStr, history);
+    casa_mutex.unlock();
 
     if(!isok)
     {
