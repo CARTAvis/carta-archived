@@ -14,7 +14,7 @@ qx.Class.define("skel.Command.Data.CommandData", {
      * Constructor.
      */
     construct : function( ) {
-        this.base( arguments, "Data" );
+        this.base( arguments, "File" );
         this.m_global = false;
         this.setEnabled( false );
         this.m_cmds = [];
