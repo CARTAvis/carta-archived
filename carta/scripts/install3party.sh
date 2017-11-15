@@ -173,7 +173,7 @@ cd ..
 echo "build ast"
 cd $cartawork/CARTAvis-externals/ThirdParty
 ## ast: carta only, static linking with CARTA
-curl -O -L http://www.starlink.ac.uk/download/ast/ast-8.4.0.tar.gz
+curl -O -L https://github.com/Starlink/ast/releases/download/v8.4.0/ast-8.4.0.tar.gz
 tar xvfz ast-8.4.0.tar.gz > /dev/null
 mv ast-8.4.0 ast-8.4.0-src
 cd ast-8.4.0-src

@@ -10,7 +10,6 @@
             "dbPath": "$(HOME)/CARTA/cache/pcache.sqlite"
         }
     },
-    "qtDecorations" : "true",
     "percentileApproximation" : "true",
     "percentApproxDividedNum" : 1000000
 }

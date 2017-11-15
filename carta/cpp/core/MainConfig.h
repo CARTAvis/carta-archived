@@ -50,13 +50,6 @@ public:
     bool isDeveloperLayout() const;
 
     /**
-     * Returns whether CARTA should come up with decorations such
-     * as the Debug console enabled on the desktop version.
-     * @return true - for developer debug widgets enabled; false otherwise.
-     */
-    bool isDeveloperDecorations() const;
-
-    /**
      * Returns whether CARTA should use approximation method
      * for percentile calculation, if the percentile is not equal to 0 or 1.
      */
@@ -110,7 +103,6 @@ protected:
 
     QStringList m_pluginDirectories;
     bool m_hacksEnabled = false;
-    bool m_developerDecorations = false;
     bool m_percentileApproximation = false;
     bool m_developerLayout = false;
     int m_histogramBinCountMax = -1;

@@ -57,7 +57,8 @@ SOURCES += \
     Regions/CoordinateSystemFormatter.cpp \
     Regions/Ellipse.cpp \
     Regions/Point.cpp \
-    Regions/Rectangle.cpp
+    Regions/Rectangle.cpp \
+    IntensityUnitConverter.cpp
 
 HEADERS += \
     CartaLib.h\
@@ -119,7 +120,8 @@ HEADERS += \
     Regions/Ellipse.h \
     Regions/Point.h \
     Regions/Rectangle.h \
-    IPCache.h
+    IPCache.h \
+    IntensityUnitConverter.h
 
 unix {
     target.path = /usr/lib
