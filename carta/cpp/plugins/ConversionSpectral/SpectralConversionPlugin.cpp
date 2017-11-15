@@ -22,6 +22,7 @@ SpectralConversionPlugin::handleHook( BaseHook & hookData ){
     else if ( hookData.is < Carta::Lib::Hooks::ConversionSpectralHook > () ) {
         Carta::Lib::Hooks::ConversionSpectralHook & hook
             = static_cast < Carta::Lib::Hooks::ConversionSpectralHook & > ( hookData );
+        bool success = false;
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = hook.paramsPtr->m_dataSource;
         if ( image ){
             QString newUnits = hook.paramsPtr->m_newUnit;
@@ -61,17 +62,20 @@ SpectralConversionPlugin::handleHook( BaseHook & hookData ){
                                 }
                             }
                             hook.result = resultValues;
+                            success = true;
                         }
                         else {
-                            //qDebug() << "Not converting spectral units, no spectral coordinate";
+                            qWarning() << "Not converting spectral units, no spectral coordinate";
                         }
                     }
                 }
                 delete converter;
+            } else {
+                qWarning() << "Cannot find a converter from" << oldUnits << "to" << newUnits;
             }
         }
 
-        return true;
+        return success;
     }
     qWarning() << "Spectral conversion doesn't know how to handle this hook";
     return false;

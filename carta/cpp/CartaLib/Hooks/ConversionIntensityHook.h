@@ -7,6 +7,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
+#include "CartaLib/IntensityUnitConverter.h"
 
 namespace Carta
 {
@@ -23,7 +24,7 @@ class ConversionIntensityHook : public BaseHook
 
 public:
 
-   typedef std::vector<double> ResultType;
+   typedef Carta::Lib::IntensityUnitConverter::SharedPtr ResultType;
 
     /**
      * @brief Params
@@ -32,20 +33,15 @@ public:
 
             Params( std::shared_ptr<Image::ImageInterface> dataSource,
                     const QString& oldUnit, const QString& newUnit,
-                    std::vector<double> inputXValues, std::vector<double> inputYValues,
                     double maxYValue, const QString& maxUnit){
                 m_dataSource = dataSource;
                 m_oldUnit = oldUnit;
                 m_newUnit = newUnit;
                 m_maxUnit = maxUnit;
                 m_maxValueY = maxYValue;
-                m_inputListX = inputXValues;
-                m_inputListY = inputYValues;
             }
 
             std::shared_ptr<Image::ImageInterface> m_dataSource;
-            std::vector<double> m_inputListX;
-            std::vector<double> m_inputListY;
             QString m_newUnit;
             QString m_oldUnit;
             QString m_maxUnit;

@@ -94,47 +94,57 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
     {
         QRegExp rule("[Mmu]?Jy/pixel");
         units.append( headerUnit );
-        if (m_hasbeam)
-        {
-            units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
-        }
-        units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
-        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
+        //if (m_hasbeam)
+        //{
+            //units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        //}
+        //units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
+        //units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
+		//if (m_spectralAxisAvailable){
+            //units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
+        //}
     }
     else if ( headerUnit.contains(QRegExp("[Mmu]?Jy/beam")) )
     {
         QRegExp rule("[Mmu]?Jy/beam");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
-        units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
-        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
+        if (m_hasbeam)
+        {
+            //units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+            units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
+            units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
+            if (m_spectralAxisAvailable){
+                units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
+            }
+        }
     }
     else if ( headerUnit.contains(QRegExp("[Mmu]?Jy/arcsec^2")) )
     {
         QRegExp rule("[Mmu]?Jy/arcsec^2");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+        //units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
         if (m_hasbeam)
         {
             units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
         }
         units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
-        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
+        if (m_spectralAxisAvailable){
+            units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
+        }
     }
     else if ( headerUnit.contains(QRegExp("[Mmu]?Jy/sr")) )
     {
         QRegExp rule("[Mmu]?Jy/sr");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+        //units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
         if (m_hasbeam)
         {
             units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
         }
         units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
-
+        if (m_spectralAxisAvailable){
+            units.append( QString(headerUnit).replace(rule, NAME_KELVIN) );
+        }
     }
     else if (headerUnit.contains(QRegExp("[Mmu]?Jy")) )
     {
@@ -144,23 +154,25 @@ QStringList UnitsIntensity::_transTable(QString headerUnit)
     {
         QRegExp rule("[Mmu]?K");
         units.append( headerUnit );
-        units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
-        if (m_hasbeam)
-        {
-            units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+        if (m_spectralAxisAvailable){
+            //units.append( QString(headerUnit).replace(rule, NAME_JYPIXEL) );
+            if (m_hasbeam)
+            {
+                units.append( QString(headerUnit).replace(rule, NAME_JYBEAM) );
+            }
+            units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
+            units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
         }
-        units.append( QString(headerUnit).replace(rule, NAME_JYARCSEC) );
-        units.append( QString(headerUnit).replace(rule, NAME_JYSR) );
     }
     else if (headerUnit.contains(QRegExp("km/s")) )
     {
         units.append( headerUnit );
-        units.append( QString("m/s") );
+        //units.append( QString("m/s") );
     }
     else if (headerUnit.contains(QRegExp("m/s")) )
     {
         units.append( headerUnit );
-        units.append( QString("km/s") );
+        //units.append( QString("km/s") );
     }
     else if (headerUnit.size() != 0)
     {
@@ -206,6 +218,7 @@ void UnitsIntensity::resetUnits( Carta::Lib::ProfileInfo::AggregateType stat ){
 		units.append( NAME_JYARCSEC + PIXELS );
 		if ( m_spectralAxisAvailable ){
 			units.append( NAME_KELVIN + PIXELS );
+            // Is this right? Should this be outside the if?
 			m_defaultUnit = NAME_JYBEAM + PIXELS;
 		}
 	}
