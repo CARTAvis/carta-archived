@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [ ! -d "DIRECTORY" ]; then
+DIRECTORY="CARTA-Image-Samples"
+
+if [ ! -d "$DIRECTORY" ]; then
     git clone https://github.com/markccchiang/CARTA-Image-Samples.git
 fi
 
