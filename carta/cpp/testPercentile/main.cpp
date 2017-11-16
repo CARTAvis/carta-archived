@@ -23,6 +23,12 @@
 
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/Initialize.h"
+
+// get unit conversion headers
+#include "CartaLib/Hooks/ConversionSpectralHook.h"
+#include "CartaLib/Hooks/ConversionIntensityHook.h"
+#include "../plugins/ConversionIntensity/ConverterIntensity.h"
+
 #include "CartaLib/Regions/CoordinateSystemFormatter.h"
 #include <QDebug>
 #include <cmath>
@@ -115,6 +121,31 @@ Carta::Lib::NdArray::RawViewInterface* getRawData(std::shared_ptr<Carta::Lib::Im
     return rawData;
 }
 
+std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image,
+                                   std::vector<int> dims, int spectralIndex) {
+    std::vector<double> hertzValues;
+
+    if (spectralIndex >= 0) { // multiple frames
+        std::vector<double> Xvalues;
+
+        for (int i = 0; i < dims[spectralIndex]; i++) {
+            Xvalues.push_back((double)i);
+        }
+
+        // convert frame indices to Hz
+        auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::ConversionSpectralHook>(m_image, "", "Hz", Xvalues );
+        auto lam = [&hertzValues] ( const Carta::Lib::Hooks::ConversionSpectralHook::ResultType &data ) {
+            hertzValues = data;
+        };
+
+        result.forEach( lam );
+    } else {
+        qWarning() << "Could not calculate Hertz values. This image has no spectral axis.";
+    }
+
+    return hertzValues;
+}
+
 static void testPercentile(QString imageFname) {
     auto pm = Globals::instance()->pluginManager();
 
@@ -143,13 +174,23 @@ static void testPercentile(QString imageFname) {
     //get the index of spectral axis
     int spectralIndex = getAxisIndex(astroImage, AxisInfo::KnownType::SPECTRAL);
 
+    // TODO: set a unit converter for tests
+    //Carta::Lib::IntensityUnitConverter::SharedPtr converter(ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA));
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr;
+
+    // get Hertz values
+    std::vector<double> hertzValues={};
+    if (converter && converter->frameDependent) {
+        hertzValues = getHertzValues(astroImage, doubleView.dims(), spectralIndex);
+    }
+
     // calculate Min and Max percentiles: new way
-    std::map<double, std::pair<int, double>> clips_MinMax1 = Carta::Core::Algorithms::minMax2pixels(doubleView, spectralIndex, {0, 1});
-    double intensity_min_new = clips_MinMax1[0].second;
-    double intensity_max_new = clips_MinMax1[1].second;
+    std::map<double, double> clips_MinMax1 = Carta::Core::Algorithms::minMax2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
+    double intensity_min_new = clips_MinMax1[0];
+    double intensity_max_new = clips_MinMax1[1];
 
     // calculate Min and Max percentiles: original way
-    std::map<double, double> clips_MinMax2 = Carta::Core::Algorithms::percentile2pixels(doubleView, {0, 1});
+    std::map<double, double> clips_MinMax2 = Carta::Core::Algorithms::percentile2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
     double intensity_min_original = clips_MinMax2[0];
     double intensity_max_original = clips_MinMax2[1];
 
@@ -157,8 +198,8 @@ static void testPercentile(QString imageFname) {
     double intensity_range = fabs(intensity_max_new-intensity_min_new);
 
     // calculate precise percentiles to intensities
-    std::map<double, std::pair<int, double>>
-            clips_map1 = Carta::Core::Algorithms::percentile2pixels_precise(doubleView, spectralIndex, percentile);
+    std::map<double, double>
+            clips_map1 = Carta::Core::Algorithms::percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
 
     // check the difference of Min/Max intensity with new and original algorithms
     qCritical() << "\n############################### START CHECKING #################################";
@@ -176,9 +217,9 @@ static void testPercentile(QString imageFname) {
     // calculate approximate percentiles to intensities
     int bin_number_size = bin_number.size();
     for (int j = 0; j < bin_number_size; j++) {
-        std::map<double, std::pair<int, double>>
-                clips_map2 = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView, spectralIndex,
-                        {clips_MinMax1[0], clips_MinMax1[1]}, bin_number[j], false, percentile);
+        std::map<double, double>
+                clips_map2 = Carta::Core::Algorithms::percentile2pixels_approximation(doubleView,
+                        {clips_MinMax1[0], clips_MinMax1[1]}, bin_number[j], percentile, spectralIndex, converter, hertzValues);
 
         // expected intensity error
         double expected_error = 100/bin_number[j]; // represented as %
@@ -188,8 +229,8 @@ static void testPercentile(QString imageFname) {
         qCritical() << "--------------------------------------------------------------------------------";
         qCritical() << "For bin numbers:" << bin_number[j];
         for (int i = 0; i < percentile_number; i++) {
-            double intensity_precise = clips_map1[percentile[i]].second;
-            double intensity_approximation = clips_map2[percentile[i]].second;
+            double intensity_precise = clips_map1[percentile[i]];
+            double intensity_approximation = clips_map2[percentile[i]];
             double error = 100*fabs(intensity_approximation - intensity_precise)/intensity_range; // represented as %
             if (error <= expected_error) {
                 qCritical() << "[PASS] for percentile" << 100*percentile[i] << "(%), intensity error =" << error << "<=" << expected_error << "(%)";
