@@ -13,12 +13,29 @@ RESOURCES =
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
+
 DEPENDPATH += $$PROJECT_ROOT/core
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
 
 QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../core\''
 
 QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
+
+# Copies the given files to the destination directory
+defineTest(copyToDestdir) {
+    files = $$PWD/$$1
+
+    for(FILE, files) {
+        QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$FILE) $$quote($$OUT_PWD)
+    }
+
+    message("pwd= $$PWD")
+
+    export(QMAKE_POST_LINK)
+}
+
+copyToDestdir(example.sh)
+
 unix:macx {
     QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
     LIBS +=-framework qwt
