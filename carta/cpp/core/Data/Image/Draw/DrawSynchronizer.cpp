@@ -88,7 +88,9 @@ void DrawSynchronizer::setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInt
 }
 
 void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours> > & contours ){
-    std::vector<double> levels;
+    //std::vector<double> levels;
+    std::vector<std::vector<double>> levelsVector;
+    QStringList contourTypesVector;
     QString contourType;
     bool drawing = false;
     m_pens.clear();
@@ -99,15 +101,19 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
             std::vector<QPen> setPens = (*it)->getPens();
             m_pens.insert( m_pens.end(), setPens.begin(), setPens.end());
             std::vector<double> setLevels = (*it)->getLevels();
-            levels.insert( levels.end(), setLevels.begin(), setLevels.end());
-            // get the contour type (Todo: map different contour types to their specific contour levels)
+            //levels.insert( levels.end(), setLevels.begin(), setLevels.end());
+            levelsVector.push_back(setLevels);
             contourType = (*it)->getContourType();
+            contourTypesVector.push_back(contourType);
         }
         //qDebug() << "[contour] contour set name:"<< (*it)->getName() << "contour type:" << (*it)->getContourType();
     }
     if ( drawing ){
-        m_cec->setName(contourType);
-        m_cec->setLevels( levels );
+        //m_cec->setContourType(contourType);
+        m_cec->setContourTypesVector(contourTypesVector);
+        //m_cec->setLevels(levels);
+        m_cec->setLevelsVector(levelsVector);
+
     }
 }
 
