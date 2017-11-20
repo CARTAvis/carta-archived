@@ -97,6 +97,7 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
     rows[0] = & row1[0];
     rows[1] = & row2[0];
     int nextRowToReadIn = 0;
+    int nextFilterStart = 0;
 
     auto updateRows = [&]() -> void {
         CARTA_ASSERT( nextRowToReadIn < view-> dims()[1] );
@@ -128,14 +129,15 @@ conrecFaster( Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, in
             row2[i] = 0;
             int elems = (2*ghost+1)*(2*ghost+1);
             for ( int e=0; e<elems; e++){
-                int row = e/(2*ghost+1) + nextRowToReadIn;
+                int row = e/(2*ghost+1) + nextFilterStart;
                 int col = e%(2*ghost+1);
                 int index = (row*prepareCols + col + i) % area;
                 row2[i] += kernel[e]*prepareArea[index];
             }
         }
 
-        nextRowToReadIn++;
+        nextRowToReadIn += update;
+        nextFilterStart ++;
     };
     updateRows();
 
