@@ -704,7 +704,8 @@ void Controller::_initializeCallbacks(){
     	else {
     		qDebug() << "Input event doc not an object";
     	}
-    	return "";
+        return m_stateMouse.toString();
+    	// return "";
     });
 
     addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
