@@ -12,11 +12,13 @@
 #include <QColor>
 #include <QObject>
 #include <QTimer>
+#include "AstGridPlotter.h"
+
 
 namespace WcsPlotterPluginNS
 {
 
-class AstGridPlotter;
+//class AstGridPlotter;
 
 /// implementation of Carta::Lib::IWcsGridRenderService APIs
 class AstWcsGridRenderService : public Carta::Lib::IWcsGridRenderService
@@ -86,10 +88,15 @@ public:
     virtual void
     setTicksVisible( bool flag ) override;
 
+public slots:
+    void plotResultsSlot();
+
 private slots:
 
     // internal slot - does the actual rendering
     void renderNow();
+
+
 
     // part of a hack to simulate delayed signal
 //    void
@@ -99,6 +106,10 @@ private slots:
 //    dbgSlot();
 
 private:
+
+    WcsPlotterPluginNS::AstGridPlotter sgp;
+//    AstGridPlotter sgp;
+
 
     //Generate FITS Header for Ast Library
     QString _getFitsHeaderforAst(QStringList &fitsHeader);

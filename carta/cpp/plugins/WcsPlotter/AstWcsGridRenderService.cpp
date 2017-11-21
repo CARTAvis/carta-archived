@@ -2,14 +2,14 @@
  *
  **/
 
-#include "AstGridPlotter.h"
+//#include "AstGridPlotter.h"
+
 #include "AstWcsGridRenderService.h"
 #include "FitsHeaderExtractor.h"
 #include "CartaLib/LinearMap.h"
 #include <QPainter>
 #include <QTime>
 #include <set>
-
 
 typedef Carta::Lib::LinearMap1D LinMap;
 namespace VG = Carta::Lib::VectorGraphics; // love c++11
@@ -227,7 +227,7 @@ AstWcsGridRenderService::renderNow()
 
     // draw the grid
     // =============================
-    AstGridPlotter sgp;
+//    AstGridPlotter sgp;
 
 //    for ( const QPen & pen : m().pens ) {
 //        sgp.pens().push_back( pen );
@@ -328,21 +328,38 @@ AstWcsGridRenderService::renderNow()
     // grid density
     sgp.setDensityModifier( m_gridDensity );
 
+    connect(&sgp, SIGNAL(startPlotSignal()), &sgp, SLOT(startPlotSlot()));
 
+//    connect(&sgp,
+//            SIGNAL(plotResultSignal(bool ok)),
+//            this,
+//            SLOT(plotResultsSlot(bool ok))
+//            );
+    connect(&sgp,
+            SIGNAL(plotResultSignal()),
+            this,
+            SLOT(plotResultsSlot())
+            );
 
-    // do the actual plot
-    bool plotSuccess = sgp.plot();
-//    qDebug() << "plotSuccess=" << plotSuccess;
-//    qDebug() << "plotError=" << sgp.getError();
-    if( ! plotSuccess) {
-        qWarning() << "Grid rendering error:" << sgp.getError();
+    sgp.moveToThread(&AstGridPlotter::astThread);
+
+    if(AstGridPlotter::astThread.isRunning()==false) {
+        qDebug() <<"start ast thread";
+        AstGridPlotter::astThread.setObjectName("astThread");
+
+        AstGridPlotter::astThread.start();
     }
 
-    //qDebug() << "Grid rendered in " << t.elapsed() / 1000.0 << "s";
+    // do the actual plot
+    emit sgp.startPlotSignal();
+
+} // startRendering
+
+void AstWcsGridRenderService::plotResultsSlot(){
 
     // Report the result.
     emit done( m_vgc.vgList(), m().lastSubmittedJobId );
-} // startRendering
+}
 
 QString AstWcsGridRenderService::_setDisplayLabelOptionforAst()
 {

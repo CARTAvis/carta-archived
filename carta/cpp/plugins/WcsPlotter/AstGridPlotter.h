@@ -21,6 +21,9 @@
 #include <QRectF>
 #include <QStringList>
 #include <QFont>
+#include <QObject>
+
+#include <QThread>
 
 class QImage;
 class AstFrame;
@@ -31,8 +34,10 @@ namespace WcsPlotterPluginNS
 ///
 /// Renders a wcs grid to a vector graphics composer using starlink's AST library.
 ///
-class AstGridPlotter
+class AstGridPlotter: public QObject
 {
+    Q_OBJECT
+
 public:
 
     /// short type alias
@@ -95,8 +100,17 @@ public:
     plot();
 
     /// return the error message
-    QString
-    getError();
+    QString getError();
+
+    static QThread astThread;
+//    static int test;
+
+signals:
+    void startPlotSignal();
+    void plotResultSignal();
+
+public slots:
+    void startPlotSlot();
 
 protected:
 
@@ -185,4 +199,6 @@ private:
     AstFrameSet* _make2dFrameCelestialExclude( AstFrameSet* frameSet );
 
 };
+
+
 }
