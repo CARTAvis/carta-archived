@@ -36,6 +36,9 @@ public:
     setLevelsVector( const std::vector < std::vector < double > > & levelsVector ) override;
 
     virtual void
+    setHasDifferentContourTypes( const bool & hasDifferentContourTypes ) override;
+
+    virtual void
     setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView ) override;
 
     virtual JobId
@@ -53,6 +56,7 @@ private:
     std::vector < std::vector < double > > m_levelsVector;
     QString m_contourType;
     QStringList m_contourTypesVector;
+    bool m_hasDifferentContourTypes = false;
     JobId m_lastJobId = - 1;
     Carta::Lib::NdArray::RawViewInterface::SharedPtr m_rawView = nullptr;
     QTimer m_timer;

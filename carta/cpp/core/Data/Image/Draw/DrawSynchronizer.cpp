@@ -88,11 +88,13 @@ void DrawSynchronizer::setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInt
 }
 
 void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours> > & contours ){
-    //std::vector<double> levels;
+    std::vector<double> levels;
     std::vector<std::vector<double>> levelsVector;
     QStringList contourTypesVector;
     QString contourType;
     bool drawing = false;
+    bool hasDifferentContourType = false;
+    QString tmpContourType1, tmpContourType2;
     m_pens.clear();
     for( std::set< std::shared_ptr<DataContours> >::iterator it = contours.begin();
             it != contours.end(); it++ ){
@@ -101,19 +103,30 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
             std::vector<QPen> setPens = (*it)->getPens();
             m_pens.insert( m_pens.end(), setPens.begin(), setPens.end());
             std::vector<double> setLevels = (*it)->getLevels();
-            //levels.insert( levels.end(), setLevels.begin(), setLevels.end());
+            levels.insert( levels.end(), setLevels.begin(), setLevels.end());
             levelsVector.push_back(setLevels);
             contourType = (*it)->getContourType();
             contourTypesVector.push_back(contourType);
         }
         //qDebug() << "[contour] contour set name:"<< (*it)->getName() << "contour type:" << (*it)->getContourType();
     }
-    if ( drawing ){
-        //m_cec->setContourType(contourType);
+    if (contourTypesVector.size() > 1) {
+        for (int i = 0; i < contourTypesVector.size(); i++) {
+            tmpContourType1 = tmpContourType2;
+            tmpContourType2 = contourTypesVector[i];
+            if (i > 0 && tmpContourType1 != tmpContourType2) {
+                hasDifferentContourType = true;
+                break;
+            }
+        }
+    }
+    m_cec->setHasDifferentContourTypes(hasDifferentContourType);
+    if (drawing && hasDifferentContourType){
         m_cec->setContourTypesVector(contourTypesVector);
-        //m_cec->setLevels(levels);
         m_cec->setLevelsVector(levelsVector);
-
+    } else if (drawing) {
+        m_cec->setContourType(contourType);
+        m_cec->setLevels(levels);
     }
 }
 

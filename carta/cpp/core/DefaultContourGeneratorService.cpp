@@ -44,6 +44,12 @@ DefaultContourGeneratorService::setLevelsVector( const std::vector < std::vector
 }
 
 void
+DefaultContourGeneratorService::setHasDifferentContourTypes(const bool & hasDifferentContourTypes )
+{
+    m_hasDifferentContourTypes = hasDifferentContourTypes;
+}
+
+void
 DefaultContourGeneratorService::setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView )
 {
     m_rawView = rawView;
@@ -71,22 +77,33 @@ DefaultContourGeneratorService::timerCB()
     QElapsedTimer timer;
     timer.start();
 
-    // run the contour algorithm
-    //Carta::Lib::Algorithms::ContourConrec cc;
-
-    //cc.setLevels(m_levels);
-    //auto rawContours = cc.compute(m_rawView.get(), m_name);
-
-    // build the result for different contour types
+    // set the output result
     Result result;
-    for (int i = 0; i < m_contourTypesVector.size(); i++) {
-        Carta::Lib::Algorithms::ContourConrec cc;
-        cc.setLevels(m_levelsVector[i]);
-        auto rawContours = cc.compute(m_rawView.get(), m_contourTypesVector[i]);
-        for (size_t j = 0 ; j < m_levelsVector[i].size() ; ++ j) {
-            Carta::Lib::Contour contour( m_levelsVector[i][j], rawContours[j]);
-            result.add( contour);
+
+    // run the contour algorithm
+    if (m_hasDifferentContourTypes) {
+        // build the result for different contour types
+        qDebug() << "++++++++ [contour] build the result for different contour types";
+        for (int i = 0; i < m_contourTypesVector.size(); i++) {
+            Carta::Lib::Algorithms::ContourConrec cc;
+            cc.setLevels(m_levelsVector[i]);
+            auto rawContours = cc.compute(m_rawView.get(), m_contourTypesVector[i]);
+            for (size_t j = 0; j < m_levelsVector[i].size(); ++ j) {
+                Carta::Lib::Contour contour( m_levelsVector[i][j], rawContours[j]);
+                result.add(contour);
+            }
         }
+    } else {
+        // build the result for a single contour type
+        qDebug() << "++++++++ [contour] build the result for a single contour type";
+        Carta::Lib::Algorithms::ContourConrec cc;
+        cc.setLevels(m_levels);
+        auto rawContours = cc.compute(m_rawView.get(), m_contourType);
+        for(size_t i = 0; i < m_levels.size(); ++ i) {
+            Carta::Lib::Contour contour( m_levels[i], rawContours[i]);
+            result.add(contour);
+        }
+
     }
 
     int elapsedTime = timer.elapsed();
@@ -94,13 +111,6 @@ DefaultContourGeneratorService::timerCB()
         // stop the timer and print out the elapsed time
         qDebug() << "++++++++ [contour] Spending time for calculating contours:" << elapsedTime << "ms";
     }
-
-    // build the result
-    //Result result;
-    //for( size_t i = 0 ; i < m_levels.size() ; ++ i) {
-    //    Carta::Lib::Contour contour( m_levels[i], rawContours[i]);
-    //    result.add( contour);
-    //}
 
     emit done( result, m_lastJobId );
 }

@@ -108,6 +108,10 @@ public:
     virtual void
     setLevelsVector( const std::vector < std::vector < double > > & levelsVector ) = 0;
 
+    /// set if contours contain different types
+    virtual void
+    setHasDifferentContourTypes (const bool & hasDifferentContourTypes) = 0;
+
     /// set the input on which to generate the contours
     virtual void
     setInput( NdArray::RawViewInterface::SharedPtr rawView ) = 0;
