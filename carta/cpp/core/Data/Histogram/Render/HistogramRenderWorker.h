@@ -44,7 +44,7 @@ public:
      * @return - the file descriptor for the pipe that can be used to read the
      *      histogram data.
      */
-    int computeHist();
+    Carta::Lib::Hooks::HistogramResult computeHist();
 
     /**
      * Destructor.

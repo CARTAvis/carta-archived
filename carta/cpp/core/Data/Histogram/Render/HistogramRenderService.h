@@ -58,7 +58,7 @@ signals:
 
 private slots:
 
-    void _postResult( );
+    void _postResult(Carta::Lib::Hooks::HistogramResult result);
 
 private:
     void _scheduleRender( const HistogramRenderRequest& request );
