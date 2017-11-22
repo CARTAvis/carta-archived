@@ -3613,7 +3613,9 @@ bool Profiler::_updateProfiles( Controller* controller ){
 
     m_plotCurves.clear();
     std::shared_ptr<Layer> currentLayer = controller->getLayer("");
-    profileChanged = _generateCurve( currentLayer, nullptr );
+    std::shared_ptr<Region> currentRegion = controller->getRegionControls()->getRegion("");
+//    profileChanged = _generateCurve( currentLayer, nullptr );
+    profileChanged = _generateCurve( currentLayer, currentRegion );
 
     return profileChanged;
 }
