@@ -485,22 +485,11 @@ void Animator::_initializeCallbacks(){
             }
             m_state.flushState();
 
-
-            //QString animId = "-1";
-
-//            jsonObj.insert("A","aaa");
-//            array << jsonObj;
-            //array << obj2;
             //https://stackoverflow.com/questions/25411339/how-i-can-add-more-than-one-qjsonobject-to-a-qjsondocument
-            // QJsonDocument(array).toJson(QJsonDocument::Compact);
-            QJsonDocument doc(array); //toJson(QJsonDocument::Compact);
+            QJsonDocument doc(array);
 
             QString strJson(doc.toJson());
-            qDebug()<<"send back animatortypes";
             qDebug()<<strJson.toStdString().data();
-
-//            animators/0/type
-//            animators/0/visible
 
             return strJson;
         });

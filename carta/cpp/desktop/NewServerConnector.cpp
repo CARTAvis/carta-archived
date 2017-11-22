@@ -232,12 +232,10 @@ void NewServerConnector::jsSetStateSlot(const QString & key, const QString & val
 void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter)
 {
     QString name = QThread::currentThread()->objectName();
-    qDebug() << "current thread name:" << name;
+    // qDebug() << "current thread name:" << name;
     if (name != sessionID) {
-        qDebug()<< "ignore jsSendCommandSlot(";
         return;
     }
-
 
     if (cmd == "/CartaObjects/DataLoader:getData") {
 
@@ -248,15 +246,11 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
 
         emit jsCommandResultsSignal(sessionID, senderSession, cmd, fileList, parameter);
 
-
     } else if (cmd.contains("ViewManager")) {
-
-//        if (cmd == "/CartaObjects/ViewManager:registerView") {
-//        }
 
         QStringList myStringList = cmd.split(':');
         if(myStringList.size()>=2){
-              auto subCommand = myStringList[1]; //registerView
+              auto subCommand = myStringList[1];
               if (subCommand == "registerView") {
                 QString result;
                 result = this->viewer.m_viewManager->registerView(parameter);
@@ -266,39 +260,23 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
                   result = this->viewer.m_viewManager->dataLoaded(parameter);
                   emit jsCommandResultsSignal(sessionID, senderSession, cmd, result, parameter);
               }
-
         }
 
     } else {
 
+        auto & allCallbacks = m_commandCallbackMap[ cmd];
+        QStringList results;
+        for( auto & cb : allCallbacks) {
+            results += cb( cmd, parameter, "1"); // session id fixed to "1"
+        }
 
+        // pass results back to javascript
+        emit jsCommandResultsSignal(sessionID, senderSession, cmd, results.join("|"), parameter);
 
-        // call all registered callbacks and collect results, but asynchronously
-    //    defer( [cmd, parameter, this ]() {
-            auto & allCallbacks = m_commandCallbackMap[ cmd];
-            QStringList results;
-            for( auto & cb : allCallbacks) {
-                results += cb( cmd, parameter, "1"); // session id fixed to "1"
-            }
-
-            // pass results back to javascript
-            emit jsCommandResultsSignal(sessionID, senderSession, cmd, results.join("|"), parameter);
-
-            if( allCallbacks.size() == 0) {
-                qWarning() << "JS command has no server listener:" << cmd << parameter;
-            }
-    //    });
+        if( allCallbacks.size() == 0) {
+            qWarning() << "JS command has no server listener:" << cmd << parameter;
+        }
     }
-//    /CartaObjects/DataLoader:getData
-//    path:
-
-//    qDebug()<<"cmd:"<<cmd;
-//    qDebug()<<"parameter:"<< parameter;
-//    if (cmd=="/CartaObjects/c14:setZoomLevel") {
-//        int kkk =0;
-//    }
-
-
 }
 
 void NewServerConnector::jsConnectorReadySlot()
@@ -326,15 +304,7 @@ NewServerConnector::ViewInfo * NewServerConnector::findViewInfo( const QString &
 
 void NewServerConnector::refreshViewNow(IView *view)
 {
-    //ref http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
-
     QString sessionID = QThread::currentThread()->objectName();
-
-//    static int enterCount =0;
-//    enterCount++;
-//    if (enterCount>1) {
-//        return;
-//    }
 
     ViewInfo * viewInfo = findViewInfo( view-> name());
     if( ! viewInfo) {
@@ -372,8 +342,6 @@ void NewServerConnector::refreshViewNow(IView *view)
 
         QString nname = view-> name();
 
-        qDebug()<<"grimmer image11111";
-
 //        emit jsViewUpdatedSignal( view-> name(), pix, viewInfo-> refreshId);
 //        return;
 
@@ -396,16 +364,11 @@ void NewServerConnector::refreshViewNow(IView *view)
 //               qDebug() << "send:"<<sendNumber;
 //           }
         } else {
-            qDebug() << "grimmer not ready";
+            qDebug() << "refreshViewNow not ready1";
         }
 
     }
     else {
-
-        static int count = 0;
-        count++;
-
-        qDebug()<<"grimmer image2222:"<< count;
 
         QString nname = view-> name();
 
@@ -447,7 +410,7 @@ void NewServerConnector::setConnectorInMap(const QString & sessionID, IConnector
 void NewServerConnector::startViewerSlot(const QString & sessionID) {
 
     QString name = QThread::currentThread()->objectName();
-    qDebug() << "current thread name:" << name;
+    // qDebug() << "current thread name:" << name;
     if (name != sessionID) {
         qDebug()<< "ignore startViewerSlot";
         return;
@@ -460,7 +423,7 @@ void NewServerConnector::startViewerSlot(const QString & sessionID) {
 void NewServerConnector::jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height)
 {
     QString name = QThread::currentThread()->objectName();
-    qDebug() << "current thread name:" << name;
+    // qDebug() << "current thread name:" << name;
     if (name != sessionID) {
         qDebug()<< "ignore jsUpdateViewSizeSlot";
         return;
