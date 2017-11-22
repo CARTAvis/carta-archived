@@ -36,29 +36,30 @@ bool ProfileRenderWorker::setParameters(std::shared_ptr<Carta::Lib::Image::Image
 }
 
 
-int ProfileRenderWorker::computeProfile(){
+Lib::Hooks::ProfileResult ProfileRenderWorker::computeProfile(){
     //Note:  we compute the Profile in a separate process because casacore tables
     //cannot be accessed by different threads at the same time.
-    int ProfilePipes [2];
-    if (pipe (ProfilePipes)){
-        qDebug() << "*** ProfileRenderWorker::run: pipe creation failed: " << strerror (errno);
-        return -1;
-    }
+//    int ProfilePipes [2];
+//    if (pipe (ProfilePipes)){
+//        qDebug() << "*** ProfileRenderWorker::run: pipe creation failed: " << strerror (errno);
+//        return -1;
+//    }
 
-    int pid = fork ();
-    if (pid == -1){
-        // Failure
-        qDebug() << "*** ProfileRenderWorker::run: fork failed: " << strerror (errno);
-        return -1;
+//    int pid = fork ();
+//    if (pid == -1){
+//        // Failure
+//        qDebug() << "*** ProfileRenderWorker::run: fork failed: " << strerror (errno);
+//        return -1;
 
-    }
-    else if (pid != 0){
-        // The original process comes here.
-        close (ProfilePipes [1]); // close write end of the pipe
-        return ProfilePipes [0]; // return the read end of the pipe
-    }
-
+//    }
+//    else if (pid != 0){
+//        // The original process comes here.
+//        close (ProfilePipes [1]); // close write end of the pipe
+//        return ProfilePipes [0]; // return the read end of the pipe
+//    }
     // We're our own process
+
+
     auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::ProfileHook>(m_dataSource, m_regionInfo,
                                   m_profileInfo);
@@ -73,18 +74,19 @@ int ProfileRenderWorker::computeProfile(){
         m_result.setError( QString(error) );
     }
 
-    QFile file;
-    if ( !file.open( ProfilePipes[1], QIODevice::WriteOnly, QFileDevice::AutoCloseHandle ) ){
-        qDebug() << "Could not write Profile results";
-        return 0;
-    }
-    QDataStream dataStream( &file );
-    dataStream << m_result;
-    file.close();
-    // If using "exit()", this child process will become a zombie process in CARTA
-    // We tried to use "wait()" and "waitpid()" to clean the dead process, but failed.
-    _exit(EXIT_SUCCESS);
-    return 0;
+//    QFile file;
+//    if ( !file.open( ProfilePipes[1], QIODevice::WriteOnly, QFileDevice::AutoCloseHandle ) ){
+//        qDebug() << "Could not write Profile results";
+//        return 0;
+//    }
+//    QDataStream dataStream( &file );
+//    dataStream << m_result;
+//    file.close();
+//    // If using "exit()", this child process will become a zombie process in CARTA
+//    // We tried to use "wait()" and "waitpid()" to clean the dead process, but failed.
+//    _exit(EXIT_SUCCESS);
+
+    return m_result;
 }
 
 
