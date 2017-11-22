@@ -901,10 +901,10 @@ void Stack::_updateZoom(double zoomFactor,
     } else {
         double oldZoom = data->_getZoom();
         if ( zoomFactor < 0 ) {
-            newZoom = oldZoom / 0.9;
+            newZoom = oldZoom * 1.25;
         }
         else {
-            newZoom = oldZoom * 0.9;
+            newZoom = oldZoom * 0.8;
         }
     }
 
@@ -929,10 +929,10 @@ void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor,
         } else {
             double oldZoom = data->_getZoom();
             if ( zoomFactor < 0 ) {
-                newZoom = oldZoom / 0.9;
+                newZoom = oldZoom * 1.5625;
             }
             else {
-                newZoom = oldZoom * 0.9;
+                newZoom = oldZoom * 0.64;
             }
         }
 
