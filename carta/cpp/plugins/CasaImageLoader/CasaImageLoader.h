@@ -5,7 +5,7 @@
 #include "CartaLib/IPlugin.h"
 #include <QObject>
 #include <QString>
-
+#include <qmutex.h>
 
 class CasaImageLoader : public QObject, public IPlugin
 {
@@ -27,4 +27,5 @@ public:
 private:
 
     Carta::Lib::Image::ImageInterface::SharedPtr loadImage(const QString & fname);
+    QMutex mutex;
 };

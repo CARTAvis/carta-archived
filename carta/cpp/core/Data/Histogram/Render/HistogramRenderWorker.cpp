@@ -36,31 +36,31 @@ void HistogramRenderWorker::setParameters( const HistogramRenderRequest& request
 }
 
 
-int HistogramRenderWorker::computeHist(){
+Carta::Lib::Hooks::HistogramResult HistogramRenderWorker::computeHist(){
     //Note:  we compute the histogram in a separate process because casacore tables
     //cannot be accessed by different threads at the same time.
-    int histogramPipes [2];
-    if (pipe (histogramPipes)){
-        qDebug() << "*** HistogramRenderWorker::run: pipe creation failed: " << strerror (errno);
-        return -1;
-    }
+//    int histogramPipes [2];
+//    if (pipe (histogramPipes)){
+//        qDebug() << "*** HistogramRenderWorker::run: pipe creation failed: " << strerror (errno);
+//        return -1;
+//    }
 
-    int pid = fork ();
-    if (pid == -1){
-        // Failure
-        qDebug() << "*** HistogramRenderWorker::run: fork failed: " << strerror (errno);
-        return -1;
+//    int pid = fork ();
+//    if (pid == -1){
+//        // Failure
+//        qDebug() << "*** HistogramRenderWorker::run: fork failed: " << strerror (errno);
+//        return -1;
 
-    }
-    else if (pid != 0){
-        // The original process comes here.
-        close (histogramPipes [1]); // close write end of the pipe
-        return histogramPipes [0]; // return the read end of the pipe
-    }
+//    }
+//    else if (pid != 0){
+//        // The original process comes here.
+//        close (histogramPipes [1]); // close write end of the pipe
+//        return histogramPipes [0]; // return the read end of the pipe
+//    }
 
     // We're our own process
     // Close the read end of the pipe
-    close( histogramPipes[0] );
+//    close( histogramPipes[0] );
     auto result = Globals::instance()-> pluginManager()
                           -> prepare <Carta::Lib::Hooks::HistogramHook>(m_dataSource, m_binCount,
                                   m_minChannel, m_maxChannel, m_minFrequency, m_maxFrequency, m_rangeUnits,
@@ -76,19 +76,21 @@ int HistogramRenderWorker::computeHist(){
         m_result.setName( Util::ERROR +": "+QString(error) );
     }
 
-    QFile file;
-    if ( !file.open( histogramPipes[1], QIODevice::WriteOnly, QFileDevice::AutoCloseHandle ) ){
-        qDebug() << "Could not write histogram results";
-        close( histogramPipes[1] );
-        exit(0);
-        return 0;
-    }
-    QDataStream dataStream( &file );
-    dataStream << m_result;
-    file.close();
-    // Please refer the comment in the ProfileRenderWorker.cpp
-    _exit(EXIT_SUCCESS);
-    return 0;
+//    QFile file;
+//    if ( !file.open( histogramPipes[1], QIODevice::WriteOnly, QFileDevice::AutoCloseHandle ) ){
+//        qDebug() << "Could not write histogram results";
+//        close( histogramPipes[1] );
+//        exit(0);
+//        return 0;
+//    }
+//    QDataStream dataStream( &file );
+//    dataStream << m_result;
+//    file.close();
+//    // Please refer the comment in the ProfileRenderWorker.cpp
+//    _exit(EXIT_SUCCESS);
+//    return 0;
+
+    return m_result;
 }
 
 

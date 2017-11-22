@@ -18,6 +18,7 @@
 #include "../Clips.h"
 #include <QDebug>
 #include <QElapsedTimer>
+#include "CartaLib/UtilCASA.h"
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -118,6 +119,7 @@ std::vector<int> DataSource::_fitFramesToImage( const std::vector<int>& sourceFr
 
 std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
     std::vector<AxisInfo::KnownType> types;
+    casa_mutex.lock();
     CoordinateFormatterInterface::SharedPtr cf(
                    m_image-> metaData()-> coordinateFormatter()-> clone() );
     int axisCount = cf->nAxes();
@@ -128,12 +130,15 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
             types.push_back( axisInfo.knownType() );
         }
     }
+    casa_mutex.unlock();
+
     return types;
 }
 
 
 std::vector<AxisInfo> DataSource::_getAxisInfos() const {
     std::vector<AxisInfo> Infos;
+    casa_mutex.lock();
     CoordinateFormatterInterface::SharedPtr cf(
                    m_image-> metaData()-> coordinateFormatter()-> clone() );
     int axisCount = cf->nAxes();
@@ -143,12 +148,15 @@ std::vector<AxisInfo> DataSource::_getAxisInfos() const {
             Infos.push_back( axisInfo );
         }
     }
+    casa_mutex.unlock();
+
     return Infos;
 }
 
 
 AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
     AxisInfo::KnownType type = AxisInfo::KnownType::OTHER;
+    casa_mutex.lock();
     CoordinateFormatterInterface::SharedPtr cf(
                        m_image-> metaData()-> coordinateFormatter()-> clone() );
     int axisCount = cf->nAxes();
@@ -156,6 +164,8 @@ AxisInfo::KnownType DataSource::_getAxisType( int index ) const {
         AxisInfo axisInfo = cf->axisInfo( index );
         type = axisInfo.knownType();
     }
+    casa_mutex.unlock();
+
     return type;
 }
 
@@ -186,6 +196,7 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisZTypes() const {
 QStringList DataSource::_getCoordinates( double x, double y,
         Carta::Lib::KnownSkyCS system, const std::vector<int>& frames ) const{
     std::vector<int> mFrames = _fitFramesToImage( frames );
+    casa_mutex.lock();
     CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
     cf-> setSkyCS( system );
     int imageSize = m_image->dims().size();
@@ -204,15 +215,20 @@ QStringList DataSource::_getCoordinates( double x, double y,
         }
     }
     QStringList list = cf-> formatFromPixelCoordinate( pixel );
+    casa_mutex.unlock();
     return list;
 }
 
 QString DataSource::_getSkyCS(){
 
+    casa_mutex.lock();
+
     CoordinateFormatterInterface::SharedPtr cf(
             m_image-> metaData()-> coordinateFormatter()-> clone() );
 
     QString coordName = m_coords->getName( cf->skyCS() );
+    casa_mutex.unlock();
+
     return coordName;
 }
 
@@ -232,6 +248,8 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
         // set print out values with rounded imgX and imgY
         QString round_imgX = QString::number(imgX, 'f', 2);
         QString round_imgY = QString::number(imgY, 'f', 2);
+
+        casa_mutex.lock();
 
         CoordinateFormatterInterface::SharedPtr cf(
                 m_image-> metaData()-> coordinateFormatter()-> clone() );
@@ -271,6 +289,8 @@ QString DataSource::_getCursorText(bool isAutoClip, double minPercent, double ma
             const AxisInfo & ai = cf-> axisInfo( axis );
             ais.push_back( ai );
         }
+
+        casa_mutex.unlock();
 
         QStringList coordList = _getCoordinates( imgX, imgY, cs, frames);
         for ( size_t i = 0 ; i < ais.size() ; i++ ) {
@@ -773,7 +793,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     std::vector<std::pair<double, double>> intensityCache(percentileCount, std::pair<double, double>(-1, -1));
     int foundCount = 0;
     std::vector<bool> found(percentileCount, false);
-    
+
     // If the disk cache exists, try to look up cached intensity and location values
     for (int i = 0; i < percentileCount; i++) {
         intensityCache[i] = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame);
@@ -830,7 +850,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(doubleView, percentiles_to_calculate);
 
         for (int i = 0; i < percentileCount; i++) {
-            if (!found[i]) {                
+            if (!found[i]) {
                 intensities[i] = clips_map[percentiles[i]];
                 found[i] = true; // for completeness, in case we test this later
                 // put calculated values in the disk cache if it exists
@@ -879,6 +899,7 @@ double DataSource::_getPercentile( int frameLow, int frameHigh, double intensity
 
 QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) const{
     QPointF result;
+    casa_mutex.lock();
     CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
     const CoordinateFormatterInterface::VD world { ra, dec };
     CoordinateFormatterInterface::VD pixel;
@@ -886,6 +907,8 @@ QPointF DataSource::_getPixelCoordinates( double ra, double dec, bool* valid ) c
     if ( *valid ){
         result = QPointF( pixel[0], pixel[1]);
     }
+    casa_mutex.unlock();
+
     return result;
 }
 
@@ -913,6 +936,8 @@ QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
 QPointF DataSource::_getWorldCoordinates( double pixelX, double pixelY,
         Carta::Lib::KnownSkyCS coordSys, bool* valid ) const{
     QPointF result;
+    casa_mutex.lock();
+
     CoordinateFormatterInterface::SharedPtr cf( m_image-> metaData()-> coordinateFormatter()-> clone() );
     cf->setSkyCS( coordSys );
     int imageDims = _getDimensions();
@@ -924,6 +949,8 @@ QPointF DataSource::_getWorldCoordinates( double pixelX, double pixelY,
     if ( *valid ){
         result = QPointF( world[0], world[1]);
     }
+    casa_mutex.unlock();
+
     return result;
 }
 

@@ -7,6 +7,7 @@
 #include "casacore/components/ComponentModels/GaussianBeam.h"
 
 #include <QDebug>
+#include "CartaLib/UtilCASA.h"
 
 StatisticsCASAImage::StatisticsCASAImage() {
 
@@ -17,7 +18,7 @@ std::vector<QString> StatisticsCASAImage::_beamAsStringVector( const casacore::G
     std::vector<QString> result;
     if (! beam.isNull()) {
         char buf[512];
-        //determine the precision of beam size dynamically 
+        //determine the precision of beam size dynamically
         if (beam.getMinor("arcsec") > 0.1 && beam.getMinor("arcsec") < 60.0){
             sprintf( buf,"%.2f\"", beam.getMajor("arcsec") );
             result.push_back(QString(buf));
@@ -70,14 +71,20 @@ bool StatisticsCASAImage::_beamCompare( const casacore::GaussianBeam &a, const c
 
 void StatisticsCASAImage::_computeStats(const casacore::ImageInterface<casacore::Float>* image,
         QList<Carta::Lib::StatInfo>& stats ){
+    casa_mutex.lock();
+
     casacore::Vector<casacore::Int> shapeVector = image->shape().asVector();
     int dimCount = shapeVector.nelements();
     if (dimCount <= 0 ){
+        casa_mutex.unlock();
+
         return;
     }
     _insertShape( shapeVector, stats );
 
     const casacore::CoordinateSystem cs = image->coordinates();
+    casa_mutex.unlock();
+
     _insertRaDec( cs, shapeVector, stats );
 
     _insertSpectral( cs, shapeVector, stats );
@@ -90,8 +97,12 @@ void StatisticsCASAImage::_getStatsPlanar( const casacore::ImageInterface<casaco
         QList<Carta::Lib::StatInfo>& statsMap, int zIndex, int hIndex ) {
 
     try {
+        casa_mutex.lock();
+
         int dim = image->shape().nelements();
         if ( dim <= 2 ){
+            casa_mutex.unlock();
+
             return;
         }
 
@@ -127,7 +138,6 @@ void StatisticsCASAImage::_getStatsPlanar( const casacore::ImageInterface<casaco
         }
 
         casacore::String zUnit, zspKey, zspVal;
-
         casacore::String unit =  image->units().getName();
 
         //Region Spectral Plane
@@ -215,6 +225,7 @@ void StatisticsCASAImage::_getStatsPlanar( const casacore::ImageInterface<casaco
             info.setValue( QString::number( beamArea ) );
             statsMap.append( info );
         }
+        casa_mutex.unlock();
     }
     catch (const casacore::AipsError& err) {
         std::string errMsg_ = err.getMesg();
@@ -332,6 +343,7 @@ void StatisticsCASAImage::_insertShape( const casacore::Vector<casacore::Int>& s
 void StatisticsCASAImage::_insertSpectral( const casacore::CoordinateSystem& cs,
         casacore::Vector<casacore::Int>& shapeVector, QList<Carta::Lib::StatInfo>& stats ){
     if ( cs.hasSpectralAxis( ) && shapeVector[cs.spectralAxisNumber( )] > 1 ) {
+        casa_mutex.lock();
         casacore::SpectralCoordinate spec = cs.spectralCoordinate( );
         casacore::Vector<casacore::String> specUnitVec = spec.worldAxisUnits( );
         if ( specUnitVec(0) == "Hz" ){
@@ -360,6 +372,7 @@ void StatisticsCASAImage::_insertSpectral( const casacore::CoordinateSystem& cs,
             }
 
         }
+        casa_mutex.unlock();
 
         if ( frequencies.size() > 0 ){
             QString freqRange = QString::number( frequencies.front() ) + ", " +

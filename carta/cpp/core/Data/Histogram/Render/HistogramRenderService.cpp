@@ -34,31 +34,33 @@ void HistogramRenderService::_scheduleRender( const HistogramRenderRequest& requ
 	if ( m_renderQueued ) {
 		return;
 	}
-	m_renderQueued = true;
-	if ( !m_worker ){
-		m_worker = new HistogramRenderWorker();
-	}
-	m_worker->setParameters( request );
-	int pid = m_worker->computeHist();
-	if ( pid != -1 ){
-		if ( !m_renderThread ){
-			m_renderThread = new HistogramRenderThread( pid );
-			connect( m_renderThread, SIGNAL(finished()), this, SLOT( _postResult()));
-		}
-		else {
-			m_renderThread->setFileDescriptor( pid );
-		}
-		m_renderThread->start();
-	}
-	else {
-		qDebug() << "Bad file descriptor: "<<pid;
-		m_renderQueued = false;
-	}
+
+//	m_renderQueued = true;
+    if ( !m_worker ){
+        m_worker = new HistogramRenderWorker();
+    }
+    m_worker->setParameters( request );
+    _postResult(m_worker->computeHist());
+
+//	if ( pid != -1 ){
+//		if ( !m_renderThread ){
+//			m_renderThread = new HistogramRenderThread( pid );
+//			connect( m_renderThread, SIGNAL(finished()), this, SLOT( _postResult()));
+//		}
+//		else {
+//			m_renderThread->setFileDescriptor( pid );
+//		}
+//		m_renderThread->start();
+//	}
+//	else {
+//		qDebug() << "Bad file descriptor: "<<pid;
+//		m_renderQueued = false;
+//	}
 
 }
 
-void HistogramRenderService::_postResult( ){
-	Carta::Lib::Hooks::HistogramResult result = m_renderThread->getResult();
+void HistogramRenderService::_postResult(Carta::Lib::Hooks::HistogramResult result){
+
 	m_requests.dequeue();
 	emit histogramResult( result );
 	m_renderQueued = false;

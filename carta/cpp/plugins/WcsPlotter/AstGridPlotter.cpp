@@ -8,8 +8,13 @@ extern "C" {
 #include <ast.h>
 };
 
+
 namespace WcsPlotterPluginNS
 {
+
+QThread AstGridPlotter::astThread;
+
+
 AstGridPlotter::AstGridPlotter()
 {
 //    impl_ = new Impl;
@@ -33,6 +38,17 @@ AstGridPlotter::getError()
 {
     return m_errorString;
 }
+
+void AstGridPlotter::startPlotSlot(){
+    bool plotSuccess = plot();
+
+        if( ! plotSuccess) {
+            qWarning() << "Grid rendering error"; // << sgp.getError()
+        }
+
+    emit plotResultSignal();
+}
+
 
 /// This part of code will be removed in the future
 /*

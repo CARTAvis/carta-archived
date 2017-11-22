@@ -9,6 +9,8 @@
 #include <casacore/lattices/Lattices/LatticeIterator.h>
 #include <casacore/casa/Arrays/IPosition.h>
 
+#include "CartaLib/UtilCASA.h"
+
 template < typename PType >
 class CCImage;
 
@@ -236,6 +238,8 @@ CCRawView < PType >::forEach(
         inc( i ) = slice1d.step;
     }
     stepper.subSection( blc, trc, inc );
+
+    casa_mutex.lock();
     casacore::RO_LatticeIterator < PType > iterator( * casaII, stepper );
 
     bool first = true;
@@ -251,6 +255,7 @@ CCRawView < PType >::forEach(
         }
         first = false;
     }
+    casa_mutex.unlock();
 } // forEach
 
 template < typename PType >
