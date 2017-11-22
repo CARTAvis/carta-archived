@@ -328,7 +328,7 @@ AstWcsGridRenderService::renderNow()
     // grid density
     sgp.setDensityModifier( m_gridDensity );
 
-    connect(&sgp, SIGNAL(startPlotSignal()), &sgp, SLOT(startPlotSlot()));
+    connect(&sgp, SIGNAL(startPlotSignal()), &sgp, SLOT(startPlotSlot()), Qt::BlockingQueuedConnection);
 
 //    connect(&sgp,
 //            SIGNAL(plotResultSignal(bool ok)),
@@ -352,6 +352,8 @@ AstWcsGridRenderService::renderNow()
 
     // do the actual plot
     emit sgp.startPlotSignal();
+
+    plotResultsSlot();
 
 } // startRendering
 
