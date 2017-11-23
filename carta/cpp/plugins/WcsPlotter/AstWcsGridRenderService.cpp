@@ -227,7 +227,7 @@ AstWcsGridRenderService::renderNow()
 
     // draw the grid
     // =============================
-//    AstGridPlotter sgp;
+    AstGridPlotter sgp;
 
 //    for ( const QPen & pen : m().pens ) {
 //        sgp.pens().push_back( pen );
