@@ -468,7 +468,6 @@ void Animator::_initializeCallbacks(){
             QList<QString> keys = m_animators.keys();
             int j = 0;
             for ( int i = 0; i < animationCount; i++ ){
-                qDebug()<<"try to get animatortypes";
                 if ( !m_animators[keys[i]]->isRemoved()){
                     QJsonObject jsonObj;
                     QString arrayPath = UtilState::getLookup(AnimatorType::ANIMATIONS, QString::number(j));

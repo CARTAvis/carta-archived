@@ -107,7 +107,7 @@ private slots:
 
 private:
 
-    WcsPlotterPluginNS::AstGridPlotter sgp;
+//    WcsPlotterPluginNS::AstGridPlotter sgp;
 //    AstGridPlotter sgp;
 
 

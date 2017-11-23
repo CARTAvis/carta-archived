@@ -42,11 +42,11 @@ AstGridPlotter::getError()
 void AstGridPlotter::startPlotSlot(){
     bool plotSuccess = plot();
 
-        if( ! plotSuccess) {
-            qWarning() << "Grid rendering error"; // << sgp.getError()
-        }
+    if( ! plotSuccess) {
+        qWarning() << "Grid rendering error"; // << sgp.getError()
+    }
 
-    emit plotResultSignal();
+//    emit plotResultSignal();
 }
 
 

@@ -49,7 +49,7 @@ public:
      * @return - the file descriptor for the pipe that can be used to read the
      *      Profile data.
      */
-    int computeProfile();
+    Lib::Hooks::ProfileResult computeProfile();
 
     /**
      * Destructor.

@@ -65,7 +65,8 @@ signals:
 
 private slots:
 
-    void _postResult( );
+    void _postResult( Lib::Hooks::ProfileResult result );
+
 
 private:
     void _scheduleRender( std::shared_ptr<Layer> layer,
@@ -77,6 +78,8 @@ private:
 
     ProfileRenderService( const ProfileRenderService& other);
     ProfileRenderService& operator=( const ProfileRenderService& other );
+
+    Carta::Lib::Hooks::ProfileResult m_result;
 };
 }
 }

@@ -210,7 +210,6 @@ void AnimatorType::_initializeCommands(){
 
         //TODO use something other than getStateString
         if ( m_select != nullptr ){
-            qDebug()<<"getSelecitonData" << m_select->getStateString();
             return m_select->getStateString();
         }
 

@@ -40,7 +40,8 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
     if ( m_renderQueued ) {
         return;
     }
-    m_renderQueued = true;
+
+//    /*m_renderQueued*/ = true;
 
 
     //Create a worker if we don't have one.
@@ -48,29 +49,32 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
         m_worker = new ProfileRenderWorker();
     }
 
-    if ( !m_renderThread ){
-        m_renderThread = new ProfileRenderThread();
-        connect( m_renderThread, SIGNAL(finished()),
-                this, SLOT( _postResult()));
-    }
+//    if ( !m_renderThread ){
+//        m_renderThread = new ProfileRenderThread();
+//        connect( m_renderThread, SIGNAL(finished()),
+//                this, SLOT( _postResult()));
+//    }
+
     std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo(nullptr);
     if ( region ){
         regionInfo = region->getModel();
     }
     std::shared_ptr<Carta::Lib::Image::ImageInterface> dataSource = layer->_getImage();
     m_worker->setParameters( dataSource, regionInfo, profInfo );
-    int pid = m_worker->computeProfile();
-    if ( pid != -1 ){
-        m_renderThread->setFileDescriptor( pid );
-        m_renderThread->start();
-    }
-    else {
-        m_renderQueued = false;
-    }
+
+    _postResult(m_worker->computeProfile());
+//    if ( pid != -1 ){
+//        m_renderThread->setFileDescriptor( pid );
+//        m_renderThread->start();
+//    }
+//    else {
+//        m_renderQueued = false;
+//    }
 }
 
-void ProfileRenderService::_postResult(  ){
-    Lib::Hooks::ProfileResult result = m_renderThread->getResult();
+void ProfileRenderService::_postResult( Lib::Hooks::ProfileResult result ){
+//    Lib::Hooks::ProfileResult result = m_renderThread->getResult();
+    m_result = result;
     ProfileRenderRequest request = m_requests.dequeue();
     emit profileResult(result, request.getLayer(), request.getRegion(), request.isCreateNew() );
     m_renderQueued = false;
@@ -91,7 +95,8 @@ bool ProfileRenderService::waitThreadFinish(){
 }
 
 Lib::Hooks::ProfileResult ProfileRenderService::getResult(){
-    return m_renderThread->getResult();
+    return m_result;
+//    return m_renderThread->getResult();
 }
 
 ProfileRenderService::~ProfileRenderService(){

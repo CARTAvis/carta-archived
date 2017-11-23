@@ -28,22 +28,18 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
 {
     qDebug() << "CasaImageLoader plugin is handling hook #" << hookData.hookId();
     if( hookData.is<Carta::Lib::Hooks::Initialize>()) {
-        qDebug() << "CasaImageLoader plugin 1";
         // Register FITS and Miriad image types
         casacore::FITSImage::registerOpenFunction();
         casacore::MIRIADImage::registerOpenFunction();
-        qDebug() << "CasaImageLoader plugin 1-2";
         return true;
     }
 
     else if( hookData.is<Carta::Lib::Hooks::LoadAstroImage>()) {
-        qDebug() << "CasaImageLoader plugin 2";
         Carta::Lib::Hooks::LoadAstroImage & hook
                 = static_cast<Carta::Lib::Hooks::LoadAstroImage &>( hookData);
         auto fname = hook.paramsPtr->fileName;
         hook.result = loadImage( fname);
         // return true if result is not null
-        qDebug() << "CasaImageLoader plugin 2-2";
         return hook.result != nullptr;
     }
 
@@ -85,7 +81,6 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     // get the image type
     casacore::ImageOpener::ImageTypes filetype = casacore::ImageOpener::imageType(fname.toStdString());
 
-    qDebug() << "CasaImageLoader plugin trying to load image 2 ";
     // load image
     casacore::LatticeBase * lat = nullptr;
     if(filetype == casacore::ImageOpener::ImageTypes::AIPSPP)
@@ -98,13 +93,13 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     }
     else if(filetype != casacore::ImageOpener::ImageTypes::UNKNOWN)
     {
-        qDebug() << "CasaImageLoader plugin trying to load image 3 ";
+        qDebug() << "CasaImageLoader plugin tries to load non-casa image";
 
         casa_mutex.lock();
         lat = casacore::ImageOpener::openImage ( fname.toStdString());
         casa_mutex.unlock();
 
-        qDebug() << "CasaImageLoader plugin trying to load image 4 ";
+        qDebug() << "CasaImageLoader plugin loads non-casa image ok";
 
         if(filetype == casacore::ImageOpener::ImageTypes::FITS)
         {
