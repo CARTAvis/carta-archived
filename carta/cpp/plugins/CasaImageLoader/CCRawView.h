@@ -197,11 +197,14 @@ CCRawView < PType >::get( const Carta::Lib::NdArray::RawViewInterface::VI & pos 
                        + p * m_appliedSlice.dims()[i].step;
     }
 
+    casa_mutex.lock();
+
     // casacore::ImageInterface::operator() returns the result by value
     // so in order to return reference (to satisfy our API) we need to store this
     // in a buffer first...
     m_buff = m_ccimage-> m_casaII->
                  operator() ( m_destPos );
+    casa_mutex.unlock();
 
     return reinterpret_cast < const char * > ( & m_buff );
 } // get
