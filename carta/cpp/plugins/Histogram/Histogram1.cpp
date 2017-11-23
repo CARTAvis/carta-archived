@@ -7,6 +7,7 @@
 #include <casacore/coordinates/Coordinates/SpectralCoordinate.h>
 #include <casacore/images/Regions/ImageRegion.h>
 #include <QDebug>
+#include "CartaLib/UtilCASA.h"
 
 Histogram1::Histogram1( QObject * parent ) :
     QObject( parent )
@@ -167,9 +168,11 @@ Histogram1::handleHook( BaseHook & hookData )
             return false;
         }
 
+        casa_mutex.lock();
         casacore::ImageInterface<casacore::Float> * casaImage = cartaII2casaII_float( image );
         if( ! casaImage) {
             qWarning() << "Histogram plugin: not an image created by casaimageloader...";
+            casa_mutex.unlock();
             return false;
         }
         if ( !m_histogram ){
@@ -214,6 +217,8 @@ Histogram1::handleHook( BaseHook & hookData )
 
         hook.result = _computeHistogram();
         hook.result.setFrequencyBounds( frequencyMin, frequencyMax );
+
+        casa_mutex.unlock();
 
         return true;
     }
