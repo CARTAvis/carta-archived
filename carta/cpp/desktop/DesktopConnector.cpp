@@ -314,7 +314,7 @@ void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int
 
     defer([this,view,viewInfo](){
         view-> handleResizeRequest( viewInfo-> clientSize);
-        refreshView( view);
+        // refreshView( view);
     });
 }
 
