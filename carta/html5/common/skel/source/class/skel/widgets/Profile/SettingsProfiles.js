@@ -147,6 +147,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
             this.m_autoCheck = new qx.ui.form.CheckBox();
             skel.widgets.TestID.addTestId( this.m_autoCheck, "profileAutoGenerate");
             this.m_autoCheck.setToolTipText( "Automatically generate profiles.");
+            this.m_autoCheck.setEnabled( false );
             this.m_autoListenId = this.m_autoCheck.addListener( "changeValue", this._sendAutoGenerateCmd, this );
 
             this.m_genSelect = new skel.widgets.CustomUI.SelectBox();
@@ -562,7 +563,10 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                     this.m_regionSelect.removeListenerById( this.m_regionSelectListenId );
                 }
                 this.m_regionSelect.setSelectValue( names[dataIndex] );
-                this._sendRegionSelectCmd();
+                // The following line orignially used to sync the selected region in Profiler,
+                // but it will cause crash in some cases so that temporarily commented.
+                // Issue #216: Enable the function of producing profile manually in the future
+                // this._sendRegionSelectCmd();
                 this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged",
                         this._sendRegionSelectCmd, this );
             }
@@ -613,7 +617,7 @@ qx.Class.define("skel.widgets.Profile.SettingsProfiles", {
                 this.m_regionSelect.removeListenerById( this.m_regionSelectListenId );
             }
             this.m_regionSelect.setSelectValue( selectName );
-            this._sendRegionSelectCmd();
+            // this._sendRegionSelectCmd();
             this.m_regionSelectListenId = this.m_regionSelect.addListener( "selectChanged",
                     this._sendRegionSelectCmd, this );
         },

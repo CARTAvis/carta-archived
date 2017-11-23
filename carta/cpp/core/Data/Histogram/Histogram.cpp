@@ -1354,8 +1354,8 @@ QString Histogram::setClipMax( double clipMaxClient, bool finish ){
                     Controller* controller = _getControllerSelected();
                     if ( controller != nullptr ){
                         std::pair<int,int> bounds = _getFrameBounds();
-                        double clipMaxPercent = controller->getPercentile(bounds.first, bounds.second,
-                                clipMaxClient );
+                        double clipMaxPercent = controller->getPercentiles(bounds.first, bounds.second,
+                                {clipMaxClient} )[0];
                         if ( clipMaxPercent >= 0 ){
                             clipMaxPercent = Util::roundToDigits(clipMaxPercent * 100, significantDigits);
                             if(qAbs(oldMaxPercent - clipMaxPercent) > m_errorMargin){
@@ -1426,7 +1426,7 @@ QString Histogram::setClipMin( double clipMinClient, bool finish ){
                 bool validWidth = _resetBinCountBasedOnWidth();
                 if ( validWidth ){
                     std::pair<int,int> bounds = _getFrameBounds();
-                    double clipMinPercent = controller->getPercentile( bounds.first, bounds.second, clipMinClient);
+                    double clipMinPercent = controller->getPercentiles( bounds.first, bounds.second, {clipMinClient})[0];
                     clipMinPercent = Util::roundToDigits(clipMinPercent * 100, significantDigits);
                     if ( clipMinPercent >= 0 ){
                         if(qAbs(oldMinPercent - clipMinPercent) > m_errorMargin){
@@ -1619,7 +1619,7 @@ QString Histogram::setColorMin( double colorMin, bool finish ){
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
                 std::pair<int,int> bounds = _getFrameBounds();
-                double colorMinPercent = controller->getPercentile( bounds.first, bounds.second, colorMinRounded);
+                double colorMinPercent = controller->getPercentiles( bounds.first, bounds.second, {colorMinRounded})[0];
                 colorMinPercent = colorMinPercent * 100;
                 if ( colorMinPercent >= 0 ){
                     if(qAbs(oldMinPercent - colorMinPercent) > m_errorMargin){
@@ -1657,7 +1657,7 @@ QString Histogram::setColorMax( double colorMax, bool finish ){
             Controller* controller = _getControllerSelected();
             if ( controller != nullptr ){
                 std::pair<int,int> bounds = _getFrameBounds();
-                double colorMaxPercent = controller->getPercentile(bounds.first, bounds.second, colorMaxRounded );
+                double colorMaxPercent = controller->getPercentiles(bounds.first, bounds.second, {colorMaxRounded} )[0];
                 if ( colorMaxPercent >= 0 ){
                     colorMaxPercent = colorMaxPercent * 100;
                     if(qAbs(oldMaxPercent - colorMaxPercent) > m_errorMargin){
