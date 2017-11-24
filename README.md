@@ -180,8 +180,6 @@ Use this repo, https://github.com/cartavis/deploytask.
 
 # Third Party Libraries
 
-This file file serves as your book's preface, a great place to describe your book's content and ideas.
-
 | Third-party Libraries | Version | license |
 | :--- | :--- | :--- |
 | casacore | 2.3+ | GPLv2 |
