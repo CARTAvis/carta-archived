@@ -40,7 +40,6 @@ void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
     if ( m_renderQueued ) {
         return;
     }
-
 //    /*m_renderQueued*/ = true;
 
 

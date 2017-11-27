@@ -1039,9 +1039,9 @@ void Controller::refreshState(){
 }
 
 void Controller::_regionsChanged(){
-	Carta::Lib::VectorGraphics::VGList vgList = m_regionControls->vgList();
-	m_stack-> _setRegionGraphics ( vgList );
-	_loadView();
+//	Carta::Lib::VectorGraphics::VGList vgList = m_regionControls->vgList();
+//	m_stack-> _setRegionGraphics ( vgList );
+//	_loadView();
 	emit dataChangedRegion( this );
 }
 

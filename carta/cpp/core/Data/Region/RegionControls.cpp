@@ -8,7 +8,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/Regions/IRegion.h"
 #include "CartaLib/Regions/Ellipse.h"
-
+#include "CartaLib/InputEvents.h"
 #include <QDebug>
 
 namespace Carta {
@@ -128,8 +128,9 @@ void RegionControls::_editDone(){
 				this, SLOT(_regionSelectionChanged( const QString&)));
 		connect( m_regions[regionCount-1].get(), SIGNAL(regionShapeChanged()),
 				this, SLOT(_regionShapeChanged()));
-
 		m_selectRegion->setUpperBound( m_regions.size() );
+        // set current index
+        setIndexCurrent(regionCount-1);
 		m_regionEdit = std::shared_ptr<Region>(nullptr);
 		m_state.setValue<QString>(CREATE_TYPE, "");
 		_saveStateRegions();
@@ -156,7 +157,7 @@ std::shared_ptr<Region> RegionControls::getRegion( const QString& regionName ) c
     int regionIndex = -1;
     //Used the current region if the passed in id is empty
     if ( regionName.isEmpty() || regionName.length() == 0 ){
-		regionIndex = m_selectRegion->getIndex();
+        regionIndex = m_selectRegion->getIndex();
     }
     else {
     	//Find the region with matching id.
@@ -170,7 +171,8 @@ std::shared_ptr<Region> RegionControls::getRegion( const QString& regionName ) c
     }
     int regionCount = m_regions.size();
     if ( regionIndex >= 0 && regionIndex < regionCount ){
-    	region = m_regions[regionIndex];
+        region = m_regions[regionIndex];
+//        region = m_regions[regionCount-1];
     }
     return region;
 }
@@ -213,7 +215,11 @@ bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev,
 		validDrag = true;
 		if ( m_regionEdit ){
 			m_regionEdit->handleDrag( ev, imagePt );
-			emit regionsChanged();
+            const Carta::Lib::InputEvents::Drag2Event::Phase m_phase = ev.phase();
+            // prevent calculating profiler on start
+            if (m_phase != Carta::Lib::InputEvents::Drag2Event::Phase::Start) {
+                emit regionsChanged();
+            }
 		}
 		else {
 			int regionCount = m_regions.size();
@@ -580,7 +586,7 @@ void RegionControls::setAutoSelect( bool autoSelect ){
 
 void RegionControls::setIndexCurrent( int index ){
 	int oldIndex = m_selectRegion->getIndex();
-	m_selectRegion->setIndex( index );
+    m_selectRegion->setIndex( index );
 	if ( oldIndex != index ){
 		_saveStateRegions();
 		emit regionsChanged();
