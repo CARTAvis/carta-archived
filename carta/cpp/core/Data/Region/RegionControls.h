@@ -93,6 +93,9 @@ public:
 	 */
 	void setIndexCurrent( int index );
 
+    void setIndexCurrentNoRegionsChanged( int index );
+
+
 	/**
 	 * Set the center of all selected regions.
 	 * @param center - the center of all selected regions.
