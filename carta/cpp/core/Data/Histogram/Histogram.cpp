@@ -244,8 +244,18 @@ void Histogram::_createHistogram( Controller* controller){
         m_stateData.setValue<double>(CLIP_MIN_CLIENT, minIntensity );
         m_stateData.setValue<double>(CLIP_MAX_CLIENT, maxIntensity );
 
+        // set the bin width
+        // prevent using setBinWidth to trigger multiply rendering.
         double binWidth = qAbs( maxIntensity - minIntensity ) / m_state.getValue<int>(BIN_COUNT);
-        setBinWidth( binWidth );
+        double binWidthRounded = Util::roundToDigits( binWidth, significantDigits );
+        if ( binWidthRounded > 0 ){
+            m_state.setValue<double>( BIN_WIDTH, binWidthRounded );
+            m_state.flushState();
+        }
+        else {
+            qWarning() << "The bin width is nefative.";
+        }
+        // setBinWidth( binWidth );
 
         int frameCount = controller->getFrameUpperBound(Carta::Lib::AxisInfo::KnownType::SPECTRAL) - 1;
         bool planeModeValid = false;
