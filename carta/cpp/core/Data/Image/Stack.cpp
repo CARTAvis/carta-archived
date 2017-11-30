@@ -61,6 +61,8 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     QString result = _addData( fileName, success, &stackIndex);
     if ( *success && stackIndex >= 0 ){
         _resetFrames( stackIndex );
+        // NOTE: If the gridcontrol is removed in the future, I think
+        // this part should emit a viewload signal.
         _saveState();
     }
     return result;
@@ -368,7 +370,8 @@ void Stack::_initializeSelections(){
     m_selects.resize( axisCount );
     for ( int i = 0; i < axisCount; i++ ){
         m_selects[i] = objMan->createObject<Selection>();
-        connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
+        // This signal-slot connection causes the duplicate rendering
+        // connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
     }
 }
 
