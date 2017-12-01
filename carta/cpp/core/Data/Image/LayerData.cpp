@@ -802,7 +802,7 @@ void LayerData::_renderStart(){
     QSize outputSize = request->getOutputSize();
 
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-    std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
+    //std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
 
     m_dataSource->_viewResize( outputSize );
 
