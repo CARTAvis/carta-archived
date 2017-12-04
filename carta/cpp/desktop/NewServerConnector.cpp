@@ -441,7 +441,7 @@ void NewServerConnector::jsUpdateViewSizeSlot(const QString & sessionID, const Q
 
     defer([this,view,viewInfo](){
         view-> handleResizeRequest( viewInfo-> clientSize);
-        refreshView( view);
+        // refreshView( view);
     });
 }
 
