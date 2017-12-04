@@ -343,11 +343,13 @@ void Profiler::_convertDataY( std::vector<double>& converted, const std::vector<
                 QString maxUnit = m_plotManager->getAxisUnitsY();
                 auto result = Globals::instance()-> pluginManager()
                                      -> prepare <Carta::Lib::Hooks::ConversionIntensityHook>(dataSource,
-                                             leftUnit, newUnits, hertzVals, converted,
+                                             leftUnit, newUnits,
                                              boundsY.second, maxUnit );;
-
-                auto lam = [&converted] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &data ) {
-                    converted = data;
+                
+                auto lam = [&converted, &hertzVals] ( const Carta::Lib::Hooks::ConversionIntensityHook::ResultType &converter ) {
+                    if (converter) {
+                        converted = converter->convert(converted, hertzVals);
+                    }
                 };
                 try {
                     result.forEach( lam );

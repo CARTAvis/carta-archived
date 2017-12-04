@@ -27,12 +27,12 @@ MainWindow::MainWindow( )
     m_locationEdit->setSizePolicy(QSizePolicy::Expanding, m_locationEdit->sizePolicy().verticalPolicy());
     connect(m_locationEdit, SIGNAL(returnPressed()), SLOT(changeLocation()));
 
-    QToolBar *toolBar = addToolBar(tr("Navigation"));
-    toolBar->addAction(m_view->pageAction(QWebPage::Back));
-    toolBar->addAction(m_view->pageAction(QWebPage::Forward));
-    toolBar->addAction(m_view->pageAction(QWebPage::Reload));
-    toolBar->addAction(QIcon("://icons/inspector.png"), "Inspector", this, SLOT(showJsConsole()));
-    toolBar->addWidget(m_locationEdit);
+    //QToolBar *toolBar = addToolBar(tr("Navigation"));
+    //toolBar->addAction(m_view->pageAction(QWebPage::Back));
+    //toolBar->addAction(m_view->pageAction(QWebPage::Forward));
+    //toolBar->addAction(m_view->pageAction(QWebPage::Reload));
+    //toolBar->addAction(QIcon("://icons/inspector.png"), "Inspector", this, SLOT(showJsConsole()));
+    //toolBar->addWidget(m_locationEdit);
 
     m_inspector = new QWebInspector( nullptr);
     m_inspector-> setPage( m_view-> page());
@@ -79,16 +79,10 @@ MainWindow::MainWindow( )
              this,
              & MainWindow::addToJavaScript );
 
-    bool qtDecorationsEnabled = Globals::instance()->mainConfig()->isDeveloperDecorations();
-    if( !qtDecorationsEnabled ) {
-        menuBar()->setVisible( true);
-        toolBar->setVisible( false);
-        statusBar()->setVisible( true);
-    } else {
-        menuBar()->setVisible( true);
-        toolBar->setVisible( false);
-        statusBar()->setVisible( true);
-    }
+    // set visibilities of window bars
+    menuBar()->setVisible( true);
+    //toolBar->setVisible( false);
+    statusBar()->setVisible( true);
 
     // install 'fileq' protocol handler
     m_view->page()->setNetworkAccessManager( new Carta::Desktop::NetworkAccessManager(this));

@@ -6,6 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/IntensityUnitConverter.h"
 #include <QDebug>
 #include <limits>
 #include <algorithm>
@@ -20,10 +21,28 @@ namespace Core
 {
 namespace Algorithms
 {
+    
+/// helper function for calculating a slice for a single 2D frame of the image
+static Carta::Lib::NdArray::Double viewSliceForFrame(Carta::Lib::NdArray::Double view, int spectralIndex, int frameIndex) {
+    // Create a slice for retrieving a single frame
+    SliceND frame;
+    for (size_t d = 0; d < view.dims().size(); d++) {
+        if ((int)d == spectralIndex) {
+            frame.index(frameIndex);
+        } else {
+            frame.next();
+        }
+    }
+
+    // Create a new view for a single frame using this slice
+    Carta::Lib::NdArray::Double viewSlice( view.rawView()->getView(frame), false ); // create a new view for this slice
+    return viewSlice;
+}
+
 /// compute requested percentiles
 /// \param view the input dataset
-/// \param quant which percentiles to compute
-/// \return the computed percentiles. If all inputs are nans, the result will also be nans.
+/// \param percentiles which percentiles to compute
+/// \return the computed intensities. If all inputs are nans, the result will also be nans.
 ///
 /// Example: [0.1] will compute a value such that 10% of all values are smaller than the returned
 /// value.
@@ -40,29 +59,64 @@ static
 typename std::map < double, Scalar >
 percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    std::vector < double > quant
+    std::vector < double > percentiles,
+    int spectralIndex=-1,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
+    std::vector<double> hertzValues={}
     )
 {
-    //qDebug() << "++++++++ raw data shape for computing percentile per frame is" << view.dims();
-
     // basic preconditions
     if ( CARTA_RUNTIME_CHECKS ) {
-        for ( auto q : quant ) {
+        for ( auto q : percentiles ) {
             CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
             Q_UNUSED(q);
         }
     }
 
+    // if we have a frame-dependent converter and no spectral axis,
+    // we can't do anything because we don't know the channel units
+    if (converter && converter->frameDependent && spectralIndex < 0) {
+        qFatal("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
+    }
+
     // read in all values from the view into memory so that we can do quickselect on it
     std::vector < Scalar > allValues;
-    view.forEach(
-        [& allValues] ( const Scalar & val ) {
-            // check if the value from raw data is finite
+    double hertzVal;
+
+    // start timer for scanning the raw data
+    QElapsedTimer timer;
+    timer.start();
+
+    if (converter && converter->frameDependent) {
+        // we need to apply the frame-dependent conversion to each intensity value before copying it
+        // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
+        for (size_t f = 0; f < hertzValues.size(); f++) {
+            hertzVal = hertzValues[f];
+            
+            Carta::Lib::NdArray::Double viewSlice = viewSliceForFrame(view, spectralIndex, f);
+
+            // iterate over the frame
+            viewSlice.forEach([&allValues, &converter, &hertzVal](const Scalar & val) {
+                if ( std::isfinite( val ) ) {
+                    allValues.push_back( converter->_frameDependentConvert(val, hertzVal) );
+                }
+            });
+        }
+    } else {
+        // we don't have to do any conversions in the loop
+        // and we can loop over the flat image
+        view.forEach([& allValues] ( const Scalar & val ) {
             if ( std::isfinite( val ) ) {
                 allValues.push_back( val );
             }
-        }
-    );
+        });
+    }
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to scan the raw data:" << elapsedTime << "ms";
+    }
 
     // indicate bad clip if no finite numbers were found
     if ( allValues.size() == 0 ) {
@@ -73,126 +127,115 @@ percentile2pixels(
 
     // for every input percentile, do quickselect and store the result
 
-    for ( double q : quant ) {
+    for ( double q : percentiles ) {
         // we clamp to incremented values and decrement at the end because size_t cannot be negative
         size_t x1 = Carta::Lib::clamp<size_t>(allValues.size() * q , 1, allValues.size()) - 1;
         CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
         std::nth_element( allValues.begin(), allValues.begin() + x1, allValues.end() );
         result[q] = allValues[x1];
-    }
-    CARTA_ASSERT( result.size() == quant.size());
+    }   
+
+    CARTA_ASSERT( result.size() == percentiles.size());
 
     return result;
-} // computeClips
+} // percentile2pixels
 
 
-///
-/// compute the percentile and return pixel values
-/// with respect to their spectral channels
-///
 template < typename Scalar >
 static
-std::map<double, std::pair<int,Scalar>>
-percentile2pixels_precise(
+typename std::vector<double>
+intensities2percentiles(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    int spectralIndex,
-    std::vector < double > quant
+    std::vector < Scalar > intensities,
+    int spectralIndex=-1,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
+    std::vector<double> hertzValues={}
     )
 {
-    // basic preconditions
-    if ( CARTA_RUNTIME_CHECKS ) {
-        for ( auto q : quant ) {
-            CARTA_ASSERT( 0.0 <= q && q <= 1.0 );
-            Q_UNUSED(q);
-        }
+    // if we have a frame-dependent converter and no spectral axis,
+    // we can't do anything because we don't know the channel units
+    if (converter && converter->frameDependent && spectralIndex < 0) {
+        qFatal("Cannot find percentiles in these units: the conversion is frame-dependent and there is no spectral axis.");
     }
+    
+    std::vector<Scalar> divided_intensities;
+    std::vector<Scalar> target_intensities;
 
-    // read in all values from the view into memory so that we can do quickselect on it
-    size_t index = 0;
-    std::vector<std::pair<int,Scalar>> allValues;
-    std::map<double, std::pair<int,Scalar>> result;
+    u_int64_t totalCount = 0;
+    std::vector<u_int64_t> countBelow(intensities.size());
+    std::vector<double> percentiles(intensities.size());
+    
+    // What we do in the loop doesn't change; how we calculate the target intensities changes
+    auto view_lambda = [&totalCount, &target_intensities, &countBelow](const double& val) {
+        if( Q_UNLIKELY( std::isnan(val))){
+            return;
+        }
+        
+        totalCount++;
 
-    std::vector<int> dims = view.dims();
-    size_t total_size = 1;
-    for ( auto d : dims ) total_size *= d;
-    qDebug() << "++++++++ raw data totalsize=" << total_size << "pixel elements, for raw data shape" << dims;
-
-    size_t divisor = total_size;
-    if (spectralIndex != -1) divisor /= dims[spectralIndex];
-    qDebug() << "++++++++ raw data size per channel=" << divisor;
-
-    // Preallocate space to avoid running out of memory unnecessarily through dynamic allocation
-    allValues.reserve(total_size);
-
-    // start timer for loading the raw data
-    QElapsedTimer timer;
-    timer.start();
-
-    view.forEach(
-        [&allValues, &index] ( const Scalar &val ) {
-            // check if the value from raw data is finite
-            if ( std::isfinite( val ) ) {
-                allValues.push_back( std::make_pair(index, val) );
+        for (size_t i = 0; i < target_intensities.size(); i++) {
+            if( val <= target_intensities[i]){
+                countBelow[i]++;
             }
-            index++;
         }
-    );
-    qDebug() << "++++++++ raw data index number=" << index;
+        
+        return;
+    };
 
-    // end of timer for loading the raw data
-    int elapsedTime = timer.elapsed();
-    if (CARTA_RUNTIME_CHECKS) {
-        qCritical() << "<> Time to load the raw data:" << elapsedTime << "ms";
-    }
-
-    // indicate bad clip if no finite numbers were found
-    if ( allValues.size() == 0 ) {
-        qFatal( "The size of raw data is zero !!" );
-    }
-
-    // for every input percentile, do quickselect and store the result
-    // only compare the intensity values and ignore the indices
-    auto compareIntensityTuples = [] (const std::pair<int,Scalar>& lhs, const std::pair<int,Scalar>& rhs) { return lhs.second < rhs.second; };
-
-    for ( double q : quant ) {
-        // x1 is the locationIndex used for quantile calculation
-        // we clamp to incremented values and decrement at the end because size_t cannot be negative
-        size_t x1 = Carta::Lib::clamp<size_t>(allValues.size() * q , 1, allValues.size()) - 1;
-        CARTA_ASSERT( 0 <= x1 && x1 < allValues.size() );
-
-        // start timer for getting the nth_element from raw data
-        QElapsedTimer timer2;
-        timer2.start();
-
-        std::nth_element( allValues.begin(), allValues.begin()+x1, allValues.end(), compareIntensityTuples );
-
-        // end of timer for getting the nth_element from the raw data
-        int elapsedTime2 = timer2.elapsed();
-        if (CARTA_RUNTIME_CHECKS) {
-            qCritical() << "<> Time to get std::nth_element=" << q << "from raw data:" << elapsedTime2 << "ms";
+    if (converter) {
+        // Divide the target intensities by the multiplier
+        for (auto& intensity : intensities) {
+            divided_intensities.push_back(intensity / converter->multiplier);
         }
 
-        result[q] = std::make_pair(allValues[x1].first/divisor, allValues[x1].second);
-    }
+        if (converter->frameDependent) { // more complicated loop for frame-dependent conversions; need to recalculate target intensities for every frame
+            target_intensities.resize(intensities.size());
+            
+            for (size_t f = 0; f < hertzValues.size(); f++) {
+                for (size_t i = 0; i < intensities.size(); i++) {
+                    target_intensities[i] = converter->_frameDependentConvertInverse(divided_intensities[i], hertzValues[f]);
+                }
 
-    return result;
+                Carta::Lib::NdArray::Double viewSlice = viewSliceForFrame(view, spectralIndex, f);
+                
+                viewSlice.forEach(view_lambda);
+            }
+
+        } else { // not frame-dependent; calculate the target intensities once; iterate over flat image
+            target_intensities = divided_intensities;
+            view.forEach(view_lambda);
+        }
+    } else { // no conversion; iterate over flat image
+        target_intensities = intensities;
+        view.forEach(view_lambda);
+    } 
+
+    for (size_t i = 0; i < intensities.size(); i++) { // calculate the percentages
+        if ( totalCount > 0 ){
+            percentiles[i] = double(countBelow[i]) / totalCount;
+        }
+    }
+    
+    return percentiles;
 }
-
 
 ///
 /// C.C. Chiang: compute the approximation of percentile and return
 ///              pixel values (w or w/o their spectral channels)
 ///
+// TODO make converter-aware
+
 template < typename Scalar >
 static
-std::map<double, std::pair<int,Scalar>>
+std::map<double, Scalar>
 percentile2pixels_approximation(
     Carta::Lib::NdArray::TypedView <Scalar> & view,
-    int spectralIndex,
-    std::vector<std::pair<int,double>> minMaxIntensities,
+    std::vector<double> minMaxIntensities,
     unsigned int pixelDividedNo,
-    bool getLocation,
-    std::vector<double> quant
+    std::vector<double> quant,
+    int spectralIndex=-1,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
+    std::vector<double> hertzValues={}
     )
 {
     // basic preconditions
@@ -203,23 +246,23 @@ percentile2pixels_approximation(
         }
     }
 
-    size_t index = 0; // define raw data index
-    size_t indexOfFinite = 0; // define raw data index with finite value
-    std::map<double, std::pair<int,Scalar>> result; // define the output results
+    // if we have a frame-dependent converter and no spectral axis,
+    // we can't do anything because we don't know the channel units
+    if (converter && converter->frameDependent && spectralIndex < 0) {
+        qFatal("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
+    }
 
-    std::vector<int> dims = view.dims();
-    size_t total_size = 1;
-    for ( auto d : dims ) total_size *= d;
-    qDebug() << "++++++++ raw data totalsize=" << total_size << "pixel elements, for raw data shape" << dims;
-
-    size_t divisor = total_size;
-    if (spectralIndex != -1) divisor /= dims[spectralIndex];
-    qDebug() << "++++++++ raw data size per channel=" << divisor;
-
+    double hertzVal;
+    
     std::vector<size_t> element(pixelDividedNo+1, 0); // initialize the vector elements as 0
 
-    double minIntensity = minMaxIntensities[0].second; // get the minimum intensity
-    double maxIntensity =  minMaxIntensities[1].second; // get the maximum intensity
+    double minIntensity = minMaxIntensities[0]; // get the minimum intensity
+    double maxIntensity =  minMaxIntensities[1]; // get the maximum intensity
+    // These should already have been provided in matching units, but we need to reverse any constant multiplier which may have been applied so that we can make valid comparisons to values inside the loop, which will also not have the constant multiplier applied. 
+    if (converter) {
+        minIntensity /= converter->multiplier;
+        maxIntensity /= converter->multiplier;
+    }
     double intensityRange = fabs(maxIntensity - minIntensity); // calculate the intensity range of the raw data
     unsigned int pixelIndex; // the index of vector element
 
@@ -228,22 +271,44 @@ percentile2pixels_approximation(
     timer.start();
 
     // convert pixel values from raw data to 1-D histogram and save it in a vector
-    view.forEach(
-        [&index, &indexOfFinite, &element, &pixelDividedNo, &pixelIndex, &minIntensity, &intensityRange] (const Scalar &val) {
-            if (std::isfinite(val)) {
-                pixelIndex = static_cast<unsigned int>(round(pixelDividedNo*(val-minIntensity)/intensityRange));
-                element[pixelIndex]++;
-                indexOfFinite++;
-            }
-            index++;
+    if (converter && converter->frameDependent) {
+        // we need to apply the frame-dependent conversion to each intensity value before using it        
+        // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
+        for (size_t f = 0; f < hertzValues.size(); f++) {
+            hertzVal = hertzValues[f];
+            
+            Carta::Lib::NdArray::Double viewSlice = viewSliceForFrame(view, spectralIndex, f);
+
+            // iterate over the frame
+            viewSlice.forEach([&element, &pixelDividedNo, &pixelIndex, &minIntensity, &intensityRange, &converter, &hertzVal] (const Scalar &val) {
+                if (std::isfinite(val)) {
+                    pixelIndex = static_cast<unsigned int>(round(pixelDividedNo * (converter->_frameDependentConvert(val, hertzVal) - minIntensity) / intensityRange));
+                    element[pixelIndex]++;
+                }
+            });
         }
-    );
-    qDebug() << "++++++++ raw data number=" << index << ", finite raw data number=" << indexOfFinite;
+    } else {
+        // we don't have to do any conversions in the loop
+        // and we can loop over the flat image
+        view.forEach([&element, &pixelDividedNo, &pixelIndex, &minIntensity, &intensityRange] (const Scalar &val) {
+            if (std::isfinite(val)) {
+                pixelIndex = static_cast<unsigned int>(round(pixelDividedNo * (val - minIntensity) / intensityRange));
+                element[pixelIndex]++;
+            }
+        });
+    }
+        
+    // total number of finite values
+    size_t indexOfFinite = std::accumulate(element.begin(), element.end(), 0);
+    
+    qDebug() << ", finite raw data number=" << indexOfFinite;
 
     // indicate bad clip if no finite numbers were found
-    if ( index == 0 ) {
-        qFatal( "The size of raw data is zero !!" );
+    if ( indexOfFinite == 0 ) {
+        qFatal( "The size of finite raw data is zero !!" );
     }
+
+    std::map<double, Scalar> result;
 
     int sizeOfQuant = quant.size();
     size_t accumulateEvent = 0;
@@ -251,8 +316,6 @@ percentile2pixels_approximation(
     std::vector<bool> flag(sizeOfQuant, false);
     double pixelValue[sizeOfQuant];
     double pixelValueError = intensityRange/pixelDividedNo;
-    std::vector<size_t> pixelValueLocation(sizeOfQuant, 0);
-    std::vector<unsigned int> count(sizeOfQuant, 0);
 
     // get accumulation numbers for histogram with respect to specific percentiles
     for (int j = 0; j < sizeOfQuant; j++) {
@@ -270,36 +333,10 @@ percentile2pixels_approximation(
         }
     }
 
-    // this step (get location) will spend more time, so by default it is *false*.
-    // we may skip this step if it would not affect the colormap setting.
-    if (getLocation == true) {
-        // get location index with respect to the approximate pixel value
-        int quantIndex;
-        size_t locationIndex = 0;
-        view.forEach(
-            [&pixelValue, &pixelValueLocation, &quantIndex, &sizeOfQuant, &count, &locationIndex, &pixelValueError] (const Scalar &val) {
-                // check if the value from raw data is finite
-                if (std::isfinite(val)) {
-                    for (quantIndex = 0; quantIndex < sizeOfQuant; quantIndex++) {
-                        if (fabs(val-pixelValue[quantIndex]) <= 2.0*pixelValueError) {
-                            pixelValueLocation[quantIndex] = locationIndex;
-                            count[quantIndex]++;
-                        }
-                    }
-                }
-                locationIndex++;
-            }
-        );
-        for (int j = 0; j < sizeOfQuant; j++) {
-            qDebug() << "++++++++ for percentile=" << quant[j]
-                     << "location=" << pixelValueLocation[j]/divisor << "(channel)" << "candidates within error bar=" << count[j];
-        }
-    }
-
     // print out and save the results
     for (int j = 0; j < sizeOfQuant; j++) {
         qDebug() << "++++++++ for percentile=" << quant[j] << "intensity=" << pixelValue[j] << "+/-" << pixelValueError;
-        result[quant[j]] = std::make_pair(pixelValueLocation[j]/divisor, pixelValue[j]);
+        result[quant[j]] = pixelValue[j];
     }
 
     // end of timer for loading the raw data
@@ -316,13 +353,16 @@ percentile2pixels_approximation(
 /// C.C. Chiang: compute the minimum and maximum pixel values
 ///              with respect to their spectral channels
 ///
+// TODO make converter-aware
 template < typename Scalar >
 static
-std::map<double, std::pair<int,Scalar>>
+std::map<double, Scalar>
 minMax2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    int spectralIndex,
-    std::vector < double > quant
+    std::vector < double > quant,
+    int spectralIndex=-1,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr,
+    std::vector<double> hertzValues={}
     )
 {
     // basic preconditions
@@ -333,22 +373,18 @@ minMax2pixels(
         }
     }
 
-    size_t index = 0;
-    size_t indexOfFinite = 0;
-    std::map<double, std::pair<int,Scalar>> result;
-    double minPixel = 0.0;
-    double maxPixel = 0.0;
-    size_t indexOfMinPixel = 0;
-    size_t indexOfMaxPixel = 0;
+    // if we have a frame-dependent converter and no spectral axis,
+    // we can't do anything because we don't know the channel units
+    if (converter && converter->frameDependent && spectralIndex < 0) {
+        qFatal("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
+    }
 
-    std::vector<int> dims = view.dims();
-    size_t total_size = 1;
-    for ( auto d : dims) total_size *= d;
-    qDebug() << "++++++++ raw data size:" << total_size << "pixel elements, for raw data shape" << dims;
+    std::map<double, Scalar> result;
+    Scalar minPixel = std::numeric_limits<Scalar>::max();
+    Scalar maxPixel = std::numeric_limits<Scalar>::lowest();
 
-    size_t divisor = total_size;
-    if (spectralIndex != -1) divisor /= dims[spectralIndex];
-    qDebug() << "++++++++ raw data size per channel=" << divisor;
+    double hertzVal;
+    double convertedVal; // cache the conversion so that we don't do it twice
 
     // start timer for scanning the raw data
     QElapsedTimer timer;
@@ -356,29 +392,35 @@ minMax2pixels(
 
     // scan the raw data from the view to get the minimum and maximum pixel values
     // with respect to their spectral channels
-    view.forEach(
-        [&index, &indexOfFinite, &minPixel, &maxPixel, &indexOfMinPixel, &indexOfMaxPixel] ( const Scalar &val ) {
-            // check if the value from raw data is finite
-            if ( std::isfinite( val ) ) {
-                if (indexOfFinite == 0) {
-                    minPixel = val;
-                    maxPixel = val;
-                } else {
-                    if (val < minPixel) {
-                        minPixel = val;
-                        indexOfMinPixel = index;
-                    }
-                    if (val > maxPixel) {
-                        maxPixel = val;
-                        indexOfMaxPixel = index;
-                    }
+    
+    
+    if (converter && converter->frameDependent) {
+        // we need to apply the frame-dependent conversion to each intensity value before using it   
+        // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
+        for (size_t f = 0; f < hertzValues.size(); f++) {
+            hertzVal = hertzValues[f];
+            
+            Carta::Lib::NdArray::Double viewSlice = viewSliceForFrame(view, spectralIndex, f);
+
+            // iterate over the frame
+            viewSlice.forEach([&minPixel, &maxPixel, &converter, &hertzVal, &convertedVal] ( const Scalar &val ) {
+                if ( std::isfinite( val ) ) {
+                    convertedVal = converter->_frameDependentConvert(val, hertzVal);
+                    minPixel = std::min(minPixel, convertedVal);
+                    maxPixel = std::max(maxPixel, convertedVal);
                 }
-                indexOfFinite++;
-            }
-            index++;
+            });
         }
-    );
-    qDebug() << "++++++++ raw data index number=" << index << ", raw data finite index number=" << indexOfFinite;
+    } else {
+        // we don't have to do any conversions in the loop
+        // and we can loop over the flat image
+        view.forEach([&minPixel, &maxPixel] ( const Scalar &val ) {
+            if ( std::isfinite( val ) ) {
+                minPixel = std::min(minPixel, val);
+                maxPixel = std::max(maxPixel, val);
+            }
+        });
+    }
 
     // end of timer for loading the raw data
     int elapsedTime = timer.elapsed();
@@ -386,14 +428,15 @@ minMax2pixels(
         qCritical() << "<> Time to scan the raw data:" << elapsedTime << "ms";
     }
 
-    // check if the data size is zero
-    if (index == 0) {
-        qFatal( "The size of raw data is zero !!" );
-    }
+    //// is there a sufficiently good reason to count the values?
+    //// We may be able to use currentPos() to check if we iterated over anything.
+    //if (index == 0) {
+        //qFatal( "The size of raw data is zero !!" );
+    //}
 
     for ( double q : quant ) {
-        if (q==0) result[q] = std::make_pair(indexOfMinPixel/divisor, minPixel);
-        if (q==1) result[q] = std::make_pair(indexOfMaxPixel/divisor, maxPixel);
+        if (q==0) result[q] = minPixel;
+        if (q==1) result[q] = maxPixel;
     }
 
     return result;
