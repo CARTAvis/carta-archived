@@ -58,9 +58,14 @@ void HistogramRenderService::_scheduleRender( const HistogramRenderRequest& requ
 //	}
 
 }
-
+Carta::Lib::Hooks::HistogramResult HistogramRenderService::getResult() {
+    return m_result;
+}
+void HistogramRenderService::_setResult(Carta::Lib::Hooks::HistogramResult result) {
+    m_result = result;
+}
 void HistogramRenderService::_postResult(Carta::Lib::Hooks::HistogramResult result){
-
+    _setResult(result);
 	m_requests.dequeue();
 	emit histogramResult( result );
 	m_renderQueued = false;
