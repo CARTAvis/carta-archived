@@ -17,6 +17,8 @@ SUBDIRS += ProfileCASA
 
 SUBDIRS += qimage
 
+SUBDIRS += python273
+
 SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 
