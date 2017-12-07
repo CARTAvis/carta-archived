@@ -429,9 +429,9 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
 
 std::pair<bool, double> DataSource::_isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const {
     std::pair<bool, double> result = std::make_pair(false, -1);
-    for (size_t i = 0; i < comparedValue.size(); i++) {
-        if (fabs(inputValue - comparedValue[i]) < threshold) {
-            result = std::make_pair(true, comparedValue[i]);
+    for ( auto iter : comparedValue ) {
+        if (fabs(inputValue - iter) < threshold) {
+            result = std::make_pair(true, iter);
             break;
         }
     }
@@ -559,7 +559,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         // check the raw data size
         std::vector<int> dataDims = doubleView.dims();
         size_t dataSize = 1;
-        for (size_t i = 0; i < dataDims.size(); i++) dataSize *= dataDims[i];
+        for ( auto dim : dataDims ) dataSize *= dim;
         qDebug() << "++++++++ check the raw data size:" << dataSize << "pixel elements, for raw data shape" << dataDims;
 
         // Make a list of the percentiles which have to be calculated

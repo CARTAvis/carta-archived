@@ -415,7 +415,7 @@ QString CurveData::getRestUnits() const {
     return units;
 }
 
-QString CurveData::getStateString() const{
+QString CurveData::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/) const{
     return m_state.toString();
 }
 

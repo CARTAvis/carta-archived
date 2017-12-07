@@ -33,13 +33,13 @@ public:
      * Return the center of the bounding box containing the polygon.
      * @return - the center of the bounding box containing the polygon.
      */
-    virtual QPointF getCenter() const;
+    virtual QPointF getCenter() const override;
 
     /**
      * Return the size of the bounding box containing the polygon.
      * @return - the size of the bounding box containing the polygon.
      */
-    virtual QSizeF getSize() const;
+    virtual QSizeF getSize() const override;
 
     /**
      * Return the vector graphics for the shape.

@@ -238,7 +238,7 @@ CCRawView < PType >::forEach(
     casacore::IPosition blc( imgDims, 0 );
     auto trc = blc;
     auto inc = blc;
-    for ( size_t i = 0 ; i < imgDims ; i++ ) {
+    for ( int i = 0 ; i < imgDims ; i++ ) {
         const auto & slice1d = m_appliedSlice.dims()[i];
         blc( i ) = slice1d.start;
         trc( i ) = slice1d.end();

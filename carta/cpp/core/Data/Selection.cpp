@@ -52,7 +52,7 @@ int Selection::_getValue(const QString& key) const {
 
 
 
-QString Selection::getStateString() const{
+QString Selection::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/) const{
     QString result = m_state.toString();
     return result;
 }

@@ -349,12 +349,12 @@ QString AstWcsGridRenderService::_setDisplayLabelOptionforAst()
     // get PermOrder
     int NumAxis = m_axisDisplayInfos.size();
     int fperm[NumAxis];
-    int iperm[NumAxis];
+    // int iperm[NumAxis];
     for(int ii = 0; ii < NumAxis;ii=ii+1)
     {
         auto thisAxis = m_axisDisplayInfos[ii].getPermuteIndex();
         fperm[thisAxis] = ii;
-        iperm[ii] = thisAxis;
+        // iperm[ii] = thisAxis;
 
     }
 

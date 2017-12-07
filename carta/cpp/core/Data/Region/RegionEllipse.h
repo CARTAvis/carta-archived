@@ -71,7 +71,7 @@ public:
 	 * Set the underlying model for the region.
 	 * @param model - the region model.
 	 */
-    virtual void setModel( Carta::Lib::Regions::RegionBase* model );
+    virtual void setModel( Carta::Lib::Regions::RegionBase* model ) Q_DECL_OVERRIDE;
 
     /**
      * Set the major radius of the ellipse.

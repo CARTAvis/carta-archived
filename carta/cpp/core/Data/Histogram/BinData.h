@@ -43,7 +43,7 @@ public:
      * Return the internal state of the data as a string.
      * @return - the data state.
      */
-    QString getStateString() const;
+    QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const override;
 
     /**
      * Set the color to use in plotting the points of the data.

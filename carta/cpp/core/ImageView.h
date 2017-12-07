@@ -23,12 +23,12 @@ public:
      * Refresh the view.
      */
     void scheduleRedraw();
-    virtual void registration(IConnector *connector);
-    virtual const QString & name() const;
-    virtual QSize size();
-    virtual const QImage & getBuffer();
-    virtual void handleResizeRequest(const QSize & size);
-    virtual void handleMouseEvent(const QMouseEvent & ev);
+    virtual void registration(IConnector *connector) override;
+    virtual const QString & name() const override;
+    virtual QSize size() override;
+    virtual const QImage & getBuffer() override;
+    virtual void handleResizeRequest(const QSize & size) override;
+    virtual void handleMouseEvent(const QMouseEvent & ev) override;
     virtual void handleKeyEvent(const QKeyEvent & /*event*/) override {}
     virtual void viewRefreshed( qint64 /*id*/) override {}
     static const QString MOUSE;
@@ -55,4 +55,3 @@ protected:
 
 
 };
-

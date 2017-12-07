@@ -8,9 +8,9 @@ class ConverterChannel : public Converter {
 public:
     ConverterChannel( const QString& oldUnits, const QString& newUnits );
 
-    virtual double toPixel( double value, casacore::SpectralCoordinate spectralCoordinate );
+    virtual double toPixel( double value, casacore::SpectralCoordinate spectralCoordinate ) Q_DECL_OVERRIDE;
     virtual casacore::Vector<double> convert( const casacore::Vector<double>& oldValues,
             casacore::SpectralCoordinate spectralCoordinate )  Q_DECL_OVERRIDE;
-    virtual double convert ( double oldValue, casacore::SpectralCoordinate spectralCoordinate );
+    virtual double convert ( double oldValue, casacore::SpectralCoordinate spectralCoordinate ) Q_DECL_OVERRIDE;
     virtual ~ConverterChannel();
 };

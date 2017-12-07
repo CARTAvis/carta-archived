@@ -68,7 +68,7 @@ public:
      * Reset the state.
      * @param state - a representation of the state to restore.
      */
-    void resetState( const QString& state );
+    void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Set the color of the image box.

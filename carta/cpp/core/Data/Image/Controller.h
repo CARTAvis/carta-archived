@@ -205,7 +205,6 @@ public:
      */
     std::vector<int> getImageDimensions( ) const;
 
-
     /**
      * Returns the intensities corresponding to a given list of percentiles.
      * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
@@ -394,7 +393,7 @@ public:
      * Restore the state from a string representation.
      * @param state- a json representation of state.
      */
-    void resetState( const QString& state );
+    void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Reset the images that are loaded and other data associated state.

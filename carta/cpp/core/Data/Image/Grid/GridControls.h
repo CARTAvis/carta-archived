@@ -266,7 +266,8 @@ private:
             int* red, int* green, int* blue ) const;
     void _resetCoordinateSystem( const QString coordSystem );
     void _resetState( const Carta::State::StateInterface& otherState );
-    void _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );
+    // Deprecated
+    // void _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );
     void _setAxisInfos( std::vector<Carta::Lib::AxisInfo> supportedAxes );
     void _updateGrid();
 
