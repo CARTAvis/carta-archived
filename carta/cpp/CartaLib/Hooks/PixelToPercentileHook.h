@@ -18,13 +18,15 @@ class ImageInterface;
 }
 namespace Hooks
 {
+
+template <typename Scalar>
 class PixelToPercentileHook : public BaseHook
 {
     CARTA_HOOK_BOILER1( PixelToPercentileHook );
 
 public:
-
-   typedef Carta::Lib::IPercentilesToPixels::SharedPtr ResultType;
+    
+    typedef typename Carta::Lib::IPercentilesToPixels<Scalar>::SharedPtr ResultType;
 
     /**
      * @brief Params
@@ -32,10 +34,7 @@ public:
      struct Params {
 
             Params(
-                std::shared_ptr<Image::ImageInterface> image,
-                int spectralIndex,
-                Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-                std::vector<double> hertzValues,
+                std::shared_ptr<Image::ImageInterface> image
             ) {
                 m_image = image;
             }

@@ -107,11 +107,9 @@ ParsedInfo parse(const QString & filePath)
     _storeBool( json["hacksEnabled"], &info.m_hacksEnabled, "hacks enabled");
     _storeBool( json["developerLayout"], &info.m_developerLayout, "developer layout");
     _storeBool( json["qtDecorations"], &info.m_developerDecorations, "developer decorations");
-    _storeBool( json["percentileApproximation"], &info.m_percentileApproximation, "whether to use approximation method for percentile calculation");
 
     _storePositiveInt( json["histogramBinCountMax"], &info.m_histogramBinCountMax, "histogram bin count max");
     _storePositiveInt( json["contourLevelCountMax"], &info.m_contourLevelCountMax, "contour level count max");
-    _storeUnsignedInt( json["percentApproxDividedNum"], &info.m_percentApproxDividedNum, "define the pixel bin size=(max-min)/m_percentApproxDividedNum");
 
     return info;
 }

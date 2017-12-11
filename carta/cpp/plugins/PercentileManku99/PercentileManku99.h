@@ -461,7 +461,7 @@ std::map<double, Scalar> Manku99Algorithm<Scalar>::opOutput(const std::vector<do
 /*****************************************************************************/
 
 template <typename Scalar>
-class PercentileManku99 : public Carta::Lib::IPercentilesToPixels {
+class PercentileManku99 : public Carta::Lib::IPercentilesToPixels<Scalar> {
 public:
     PercentileManku99(
         const size_t numBuffers, 
@@ -486,11 +486,12 @@ private:
 };
 
 // TODO: error is completely wrong; work out what it actually is
-PercentileManku99::PercentileManku99(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter) : IPercentilesToPixels(0.5, "Manku99 approximation", true) : numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
+template <typename Scalar>
+PercentileManku99<Scalar>::PercentileManku99(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter) :Carta::Lib:: IPercentilesToPixels<Scalar>(0.5, "Manku99 approximation", true) : numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
 }
 
 template <typename Scalar>
-PercentileManku99::percentile2pixels(
+PercentileManku99<Scalar>::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector <double> percentiles
     int spectralIndex,

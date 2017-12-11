@@ -9,6 +9,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/IntensityUnitConverter.h"
+#include "CartaLib/IntensityCacheHelper.h"
 
 #include <memory>
 
@@ -220,7 +221,7 @@ private:
      * @return - a pointer to an IntensityValue object,
      * or a null pointer if the percentile is not in the cache
      */
-    Carta::Lib::IntensityValue * _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const;
+    std::shared_ptr<Carta::Lib::IntensityValue> _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const;
 
     void _setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const;
 

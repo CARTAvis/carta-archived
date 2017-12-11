@@ -25,13 +25,12 @@ namespace Algorithms
 {
 
 template <typename Scalar>
-class PercentilesToPixels : public Carta::Lib::IPercentilesToPixels {
+class PercentilesToPixels : public Carta::Lib::IPercentilesToPixels<Scalar> {
 public:
     PercentilesToPixels();
-    ~PercentilesToPixels();
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
-        std::vector <double> percentiles
+        std::vector <double> percentiles,
         int spectralIndex,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter,
         std::vector<double> hertzValues
@@ -39,10 +38,9 @@ public:
 };
 
 template <typename Scalar>
-class PixelsToPercentiles : public Carta::Lib::IPixelsToPercentiles {
+class PixelsToPercentiles : public Carta::Lib::IPixelsToPercentiles<Scalar> {
 public:
     PixelsToPercentiles();
-    ~PixelsToPercentiles();
     std::vector<double> pixels2percentiles(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <Scalar> pixels,
@@ -53,10 +51,9 @@ public:
 };
 
 template <typename Scalar>
-class MinMaxPercentiles : public Carta::Lib::IPercentilesToPixels {
+class MinMaxPercentiles : public Carta::Lib::IPercentilesToPixels<Scalar> {
 public:
-    PercentilesToPixels();
-    ~PercentilesToPixels();
+    MinMaxPercentiles();
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <double> percentiles,
@@ -66,13 +63,16 @@ public:
     ) override;
 };
 
-PercentilesToPixels::PercentilesToPixels() : IPercentilesToPixels(0, "Exact percentile algorithm") {
+template <typename Scalar>
+PercentilesToPixels<Scalar>::PercentilesToPixels() : Carta::Lib::IPercentilesToPixels<Scalar>(0, "Exact percentile algorithm") {
 }
 
-PixelsToPercentiles::PixelsToPercentiles() : IPixelsToPercentiles(0, "Exact reverse percentile algorithm") {
+template <typename Scalar>
+PixelsToPercentiles<Scalar>::PixelsToPercentiles() : Carta::Lib::IPixelsToPercentiles<Scalar>(0, "Exact reverse percentile algorithm") {
 }
 
-MinMaxPercentiles::MinMaxPercentiles() : IPercentilesToPixels(0, "Exact min/max percentile algorithm") {
+template <typename Scalar>
+MinMaxPercentiles<Scalar>::MinMaxPercentiles() : Carta::Lib::IPercentilesToPixels<Scalar>(0, "Exact min/max percentile algorithm") {
 }
 
 /// compute requested percentiles
@@ -92,7 +92,7 @@ MinMaxPercentiles::MinMaxPercentiles() : IPercentilesToPixels(0, "Exact min/max 
 /// \note for best performance, the supplied list of percentiles should be sorted small->large
 template < typename Scalar >
 std::map < double, Scalar >
-PercentilesToPixels::percentile2pixels(
+PercentilesToPixels<Scalar>::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector < double > percentiles,
     int spectralIndex,
@@ -179,7 +179,7 @@ PercentilesToPixels::percentile2pixels(
 
 template < typename Scalar >
 std::vector<double>
-PixelsToPercentiles::pixels2percentiles(
+PixelsToPercentiles<Scalar>::pixels2percentiles(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector < Scalar > intensities,
     int spectralIndex,
@@ -263,7 +263,7 @@ PixelsToPercentiles::pixels2percentiles(
 ///
 template < typename Scalar >
 std::map<double, Scalar>
-MinMaxPercentiles::percentile2pixels(
+MinMaxPercentiles<Scalar>::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector < double > percentiles,
     int spectralIndex,

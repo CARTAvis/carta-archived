@@ -14,7 +14,6 @@
 #include "CartaLib/Hooks/PixelToPercentileHook.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IPCache.h"
-#include "CartaLib/IntensityCacheHelper.h"
 #include "../../ImageRenderService.h"
 #include "../../Algorithms/percentileAlgorithms.h"
 #include "../Clips.h"
@@ -72,7 +71,7 @@ DataSource::DataSource() :
         }
         else {
             m_diskCache = res.val();
-            m_diskCacheHelper = std::make_shared<Carta::Lib::DiskCacheHelper>(m_diskCache);
+            m_diskCacheHelper = std::make_shared<Carta::Lib::IntensityCacheHelper>(m_diskCache);
         }
 }
 
@@ -429,16 +428,16 @@ std::shared_ptr<Carta::Core::ImageRenderService::Service> DataSource::_getRender
     return m_renderService;
 }
 
-Carta::Lib::IntensityValue * DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const {
+std::shared_ptr<Carta::Lib::IntensityValue> DataSource::_readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const {
     if (m_diskCacheHelper) {
-        return m_diskCacheHelper.get(frameLow, frameHigh, percentile, stokeFrame, transformationLabel);
+        return m_diskCacheHelper->get(m_fileName, frameLow, frameHigh, percentile, stokeFrame, transformationLabel);
     }
     return nullptr;
 }
 
 void DataSource::_setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const {
     if (m_diskCacheHelper) {
-        m_diskCacheHelper.set(intensity, error, frameLow, frameHigh, percentile, stokeFrame, transformationLabel);
+        m_diskCacheHelper->set(m_fileName, intensity, error, frameLow, frameHigh, percentile, stokeFrame, transformationLabel);
     }
 }
 
@@ -448,16 +447,16 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     
     // Pick a calculator
     
-    Carta::Lib::IPercentilesToPixels::SharedPtr calculator = nullptr;
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
     
     if (percentiles.size() == 2 && percentiles[0] == 0 && percentiles[1] == 1) {
         // Special case: always use the min/max algorithm for min and max
-        calculator = make_shared<Carta::Core::Algorithms::MinMaxPercentiles>();
+        calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
     } else {
         // Look for the best approximate plugin
-        auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::PixelToPercentileHook>(m_image);
+        auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::PixelToPercentileHook<double> >(m_image);
         
-        auto lam = [&calculator] ( const Carta::Lib::Hooks::PixelToPercentileHook::ResultType &data ) {
+        auto lam = [&calculator] ( const Carta::Lib::Hooks::PixelToPercentileHook<double>::ResultType &data ) {
             if (!calculator || data->error < calculator->error) {
                 calculator = data;
             }
@@ -467,7 +466,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
 
         if (!calculator) {
             // No approximate plugin found; use exact algorithm
-            calculator = make_shared<Carta::Core::Algorithms::PercentilesToPixels>();
+            calculator = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
         }
     }
         
@@ -483,7 +482,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     // If the disk cache exists, try to look up cached intensity values
     
     for (size_t i = 0; i < percentiles.size(); i++) {
-        Carta::Lib::IntensityValue cachedValue = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformationLabel);
+        std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformationLabel);
         
         if (cachedValue /* this intensity cache exists */ &&
             cachedValue->error <= calculator->error /* already has an intensity error order smaller than the current choice */ ) {
@@ -526,7 +525,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         std::vector<double> percentilesToCalculate;
         
         // Add the original missing percentiles
-        for (int i = 0; i < percentiles.size(); i++) {
+        for (size_t i = 0; i < percentiles.size(); i++) {
             if (!found[i]) {
                 percentilesToCalculate.push_back(percentiles[i]);
             }
@@ -550,7 +549,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
                     } else {
                         // This is a different percentile
                         // Look in the cache first
-                        Carta::Lib::IntensityValue cachedValue = _readIntensityCache(frameLow, frameHigh, p, stokeFrame, transformationLabel);
+                        std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, p, stokeFrame, transformationLabel);
                         // Add it to the list if it's not in the cache
                         if (!cachedValue) {
                             percentilesToCalculate.push_back(p);
@@ -559,7 +558,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
                 }
             }
             
-            std::sort(percentilesToCalculate_plus.begin(), percentilesToCalculate_plus.end()
+            std::sort(percentilesToCalculate.begin(), percentilesToCalculate.end());
         }
         
         // Find Hz values if they are required for the unit transformation
@@ -589,14 +588,14 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         for (auto &m : clips_map) {
             // TODO: check what happens with the close values. Do we also need to cache the value with a different key, or does the serialisation unify them?
             // put calculated values in the disk cache if it exists
-            _setIntensityCache(m.second, error, frameLow, frameHigh, m.first, stokeFrame, transformationLabel);
+            _setIntensityCache(m.second, calculator->error, frameLow, frameHigh, m.first, stokeFrame, transformationLabel);
             
             qDebug() << "++++++++ [set cache] for percentile" << m.first << ", intensity=" << m.second << "+/- (max-min)*" << calculator->error;
         }
         
         // set return values (only the intensities which were requested)
         
-        for (int i = 0; i < percentiles.size(); i++) {
+        for (size_t i = 0; i < percentiles.size(); i++) {
             if (!found[i]) {
                 intensities[i] = clips_map[percentiles[i]];
                 found[i] = true; // for completeness, in case we test this later
@@ -655,8 +654,8 @@ std::vector<double> DataSource::_getPercentiles( int frameLow, int frameHigh, st
             hertzValues = _getHertzValues(view.dims(), spectralIndex);
         }
         
-        Carta::Lib::IPercentilesToPixels::SharedPtr calculator = make_shared<Carta::Core::Algorithms::PixelsToPercentiles>()
-        
+        Carta::Lib::IPixelsToPercentiles<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PixelsToPercentiles<double> >();
+                
         percentiles = calculator->pixels2percentiles(view, intensities, spectralIndex, converter, hertzValues);
     }
     return percentiles;
@@ -1230,11 +1229,11 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
     std::vector<double> clips;
 
     // If the disk cache exists, try to find the clips in the cache first
-    Carta::Lib::IntensityValue * minClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, minClipPercentile, stokeIndex[1], "NONE");
-    Carta::Lib::IntensityValue * maxClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, maxClipPercentile, stokeIndex[1], "NONE");
+    std::shared_ptr<Carta::Lib::IntensityValue> minClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, minClipPercentile, stokeIndex[1], "NONE");
+    std::shared_ptr<Carta::Lib::IntensityValue> maxClipInCache = _readIntensityCache(setChannelIndex, setChannelIndex, maxClipPercentile, stokeIndex[1], "NONE");
     // if both of caches exist, we get their values
-    if (minClipInCache && minClipCache->error == 0 /* minimum intensity cache exists and has a zero error order */ &&
-        maxClipInCache && maxClipCache->error == 0 /* maximum intensity cache exists and has a zero error order */) {
+    if (minClipInCache && minClipInCache->error == 0 /* minimum intensity cache exists and has a zero error order */ &&
+        maxClipInCache && maxClipInCache->error == 0 /* maximum intensity cache exists and has a zero error order */) {
         clips.push_back(minClipInCache->value);
         clips.push_back(maxClipInCache->value);
         if (showMesg == true) qDebug() << "++++++++ [find cache] for clips= [" << clips[0] << "," << clips[1] << "]";
@@ -1250,9 +1249,9 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         timer.start();
 
         // calculate pixel values with respect to percentiles per frame
-        Carta::Lib::IPercentilesToPixels::SharedPtr calculator = make_shared<Carta::Core::Algorithms::PercentilesToPixels>();
+        Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
         
-        std::map<double, double> clips_map = calculator->percentile2pixels(doubleView, percentilesToCalculate, -1, nullptr, {});
+        std::map<double, double> clips_map = calculator->percentile2pixels(doubleView, clips, -1, nullptr, {});
 
         // end of timer for computing percentile per frame
         int elapsedTime = timer.elapsed();

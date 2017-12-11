@@ -14,7 +14,7 @@
 #include <QElapsedTimer>
 
 template <typename Scalar>
-class PercentileHistogram : public Carta::Lib::IPercentilesToPixels {
+class PercentileHistogram : public Carta::Lib::IPercentilesToPixels<Scalar> {
 public:
     PercentileHistogram(const unsigned int numberOfBins);
     
@@ -33,12 +33,12 @@ private:
 };
 
 
-PercentileHistogram::PercentileHistogram(const unsigned int numberOfBins) : IPercentilesToPixels(1/numberOfBins, "Histogram approximation", true, true) : numberOfBins(numberOfBins) {
+PercentileHistogram<Scalar>::PercentileHistogram(const unsigned int numberOfBins) : Carta::Lib::IPercentilesToPixels<Scalar>(1/numberOfBins, "Histogram approximation", true, true) : numberOfBins(numberOfBins) {
 }
 
 
 template <typename Scalar>
-PercentileHistogram::percentile2pixels(
+PercentileHistogram<Scalar>::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector <double> percentiles,
     int spectralIndex,

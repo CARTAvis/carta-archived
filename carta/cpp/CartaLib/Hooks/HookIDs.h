@@ -33,6 +33,7 @@ enum class UniqueHookIDs {
     ImageStatisticsHook_ID,
     GetPersistentCache_ID,
     GetProfileExtractor_ID,
+    PixelToPercentileHook_ID,
 
     /// region related stuff, still to be considered experimental
     CoordSystemHook_ID,

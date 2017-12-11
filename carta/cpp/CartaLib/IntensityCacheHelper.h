@@ -11,25 +11,23 @@ namespace Lib {
     
 struct IntensityValue {
     IntensityValue(double value, double error);
-    ~IntensityValue();
     double value;
     double error;
-}
+};
     
 class IntensityCacheHelper {
     CLASS_BOILERPLATE( IntensityCacheHelper );
 public:
     IntensityCacheHelper(std::shared_ptr<Carta::Lib::IPCache> diskCache);
-    ~IntensityCacheHelper();
     
     /** Returns a pointer to a (value, error) pair if the value exists in the cache, or a null pointer */
-    IntensityValue * get(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel);
+    std::shared_ptr<IntensityValue> get(QString fileName, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel);
     
     /** Sets the provided value and error for this intensity */
-    void set(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel);
+    void set(QString fileName, double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel);
 private:
     std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
-}
+};
 
 }
 }
