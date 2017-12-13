@@ -150,6 +150,7 @@ function installforBuildCARTAandPackaging() {
 sudo easy_install cython
 sudo easy_install pip
 sudo su $SUDO_USER -c "pip install matplotlib --user -U"
+sudo su $SUDO_USER -c "pip2.7 install cython --user -U"
 
   #statements
 su $SUDO_USER <<EOF
