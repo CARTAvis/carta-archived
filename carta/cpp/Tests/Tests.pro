@@ -5,7 +5,7 @@
 QT      +=  core
 HEADERS += \
     catch.h \
-    TestRawView.h
+    quantileTestCommon.h
 
 SOURCES += \
     TopoSortTest.cpp \
