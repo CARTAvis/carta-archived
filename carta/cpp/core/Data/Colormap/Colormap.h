@@ -303,6 +303,7 @@ private:
     static bool m_registered;
 
     const static QString COLOR_STOPS;
+    const static QString COLOR_GRADES;
     const static QString GLOBAL;
     const static QString IMAGE_UNITS;
     const static QString INTENSITY_MIN;

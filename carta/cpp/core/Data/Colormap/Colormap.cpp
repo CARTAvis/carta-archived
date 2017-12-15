@@ -29,6 +29,7 @@ namespace Data {
 
 const QString Colormap::CLASS_NAME = "Colormap";
 const QString Colormap::COLOR_STOPS = "stops";
+const QString Colormap::COLOR_GRADES = "colorGrades";
 const QString Colormap::GLOBAL = "global";
 const QString Colormap::IMAGE_UNITS = "imageUnits";
 const QString Colormap::INTENSITY_MIN = "intensityMin";
@@ -137,6 +138,7 @@ void Colormap::_calculateColorStops(){
             std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipe = dSource->_getPipeline();
             if ( pipe ){
                 QStringList buff;
+                QStringList buff_val_for_label;
 
                 // This is not actually correct -- the pixel pipeline should be converting the values in the image to the new units before comparing them.
                 // But it's more correct than using the wrong units, which is what was happening before.
@@ -153,6 +155,7 @@ void Colormap::_calculateColorStops(){
 
                     float val = intensityMin + i*delta;
 
+                    // fill Hex color codes in a string list
                     Carta::Lib::PixelPipeline::NormRgb normRgb;
                     pipe->convert( val, normRgb );
                     QColor mapColor;
@@ -163,10 +166,35 @@ void Colormap::_calculateColorStops(){
                     if ( i < 99 ){
                         hexStr = hexStr + ",";
                     }
-
                     buff.append( hexStr );
                 }
                 m_state.setValue<QString>( COLOR_STOPS, buff.join("") );
+
+                // Note that we do not convert the unit for the entire raw data,
+                // we just convert the unit for labels in colormap bar.
+                double intensityMin_for_label;
+                double intensityMax_for_label;
+                bool success_for_label;
+                Carta::Lib::IntensityUnitConverter::SharedPtr converter_for_label = _getIntensityConverter(getImageUnits());
+                std::tie(intensityMin_for_label, intensityMax_for_label) = _getIntensities(success_for_label, converter_for_label);
+                if (!success_for_label) {
+                    intensityMin_for_label = intensityMin;
+                    intensityMax_for_label = intensityMax;
+                }
+                int number_of_section = 100;
+                double delta_for_label = (intensityMax_for_label - intensityMin_for_label) / number_of_section;
+                for (int j = 0; j < number_of_section+1; j++) {
+
+                    float val_for_label = intensityMin_for_label + j*delta_for_label;
+
+                    // fill intensities in a string list
+                    QString sci_val_for_label = QString::number(val_for_label, 'E', 3);
+                    if (j < number_of_section) {
+                        sci_val_for_label = sci_val_for_label + ",";
+                    }
+                    buff_val_for_label.append(sci_val_for_label);
+                }
+                m_state.setValue<QString>( COLOR_GRADES, buff_val_for_label.join("") );
             }
         }
     }
@@ -382,6 +410,7 @@ void Colormap::_initializeDefaultState(){
 
     m_state.insertValue<bool>( GLOBAL, true );
     m_state.insertValue<QString>( COLOR_STOPS, "");
+    m_state.insertValue<QString>( COLOR_GRADES, "");
     m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
     m_state.insertValue<int>(TAB_INDEX, 0 );
     m_state.insertValue<QString>( IMAGE_UNITS, m_intensityUnits->getDefault() );
@@ -1028,6 +1057,9 @@ QString Colormap::setImageUnits( const QString& unitsStr ){
                 double intMax = Util::roundToDigits( values.second, getSignificantDigits() );
                 m_stateData.setValue<double>( INTENSITY_MAX, intMax );
                 m_stateData.flushState();
+
+                // flush the colormap state and colormap bar labels
+                _colorStateChanged();
             } else {
                 result = QString("Could not set image units. Unable to convert intensity values to %1.").arg(actualUnits);
             }
@@ -1175,6 +1207,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent, boo
             _colorStateChanged();
             m_stateData.flushState();
         }
+
     }
 }
 
