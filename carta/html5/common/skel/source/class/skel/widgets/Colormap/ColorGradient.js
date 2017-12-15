@@ -98,10 +98,12 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
                     if (k === 0) {
                         ctx.textAlign = "left";
                         ctx.strokeText(this.m_colorGrades[k], width*k/gradeLength, text_y_coordinate2, text_width);
-                    } else if ((k+1) === gradeLength) {
+                    }
+                    if (k === gradeLength-1) {
                         ctx.textAlign = "right";
                         ctx.strokeText(this.m_colorGrades[k], width*k/gradeLength, text_y_coordinate2, text_width);
-                    } else if (k%20 === 0) {
+                    }
+                    if (k > 0 && k < gradeLength-1 && k%20 === 0) {
                         ctx.textAlign = "center";
                         ctx.strokeText(this.m_colorGrades[k], width*k/gradeLength, text_y_coordinate, text_width);
                     }
