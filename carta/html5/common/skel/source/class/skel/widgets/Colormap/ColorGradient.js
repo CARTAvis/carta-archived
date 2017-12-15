@@ -95,13 +95,13 @@ qx.Class.define("skel.widgets.Colormap.ColorGradient", {
                 var text_y_coordinate2 = HLine_y_coordinate + label_height*4;
                 ctx.font="normal 20px Arial";
                 for (var k = 0; k < gradeLength; k++) {
-                    if (k == 0) {
+                    if (k === 0) {
                         ctx.textAlign = "left";
                         ctx.strokeText(this.m_colorGrades[k], width*k/gradeLength, text_y_coordinate2, text_width);
-                    } else if ((k+1) == gradeLength) {
+                    } else if ((k+1) === gradeLength) {
                         ctx.textAlign = "right";
                         ctx.strokeText(this.m_colorGrades[k], width*k/gradeLength, text_y_coordinate2, text_width);
-                    } else if (k%20 == 0) {
+                    } else if (k%20 === 0) {
                         ctx.textAlign = "center";
                         ctx.strokeText(this.m_colorGrades[k], width*k/gradeLength, text_y_coordinate, text_width);
                     }
