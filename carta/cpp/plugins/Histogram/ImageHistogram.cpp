@@ -157,6 +157,7 @@ void ImageHistogram<T>::_filterByChannels( const casacore::ImageInterface<T>* im
 template <class T>
 void ImageHistogram<T>::setImage( const casacore::ImageInterface<T>*  val ){
     if ( val != nullptr ){
+        m_image = nullptr;
         if ( m_image == nullptr || m_image->name(true) != val->name(true) ){
             m_image = val;
             _reset();

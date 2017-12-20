@@ -164,7 +164,7 @@ void Region::handleEvent( Carta::Lib::InputEvents::JsonEvent & ev ) {
 
 void Region::_initializeState(){
 	m_state.insertValue<QString>( REGION_TYPE, "" );
-	m_state.insertValue<bool>( Util::SELECTED, true );
+    m_state.insertValue<bool>( Util::SELECTED, false );
 	m_state.insertValue<bool>( CUSTOM_NAME, false );
 	m_state.insertValue<bool>( ACTIVE, true );
         m_state.insertValue<QString>( Util::COLOR, "" );
@@ -267,7 +267,7 @@ bool Region::setColor( QColor color){
 
 void Region::setSelected( bool selected ) {
 	bool oldSelected = isSelected();
-	if ( oldSelected != selected ){
+    if ( oldSelected != selected ){
 		m_state.setValue<bool>( Util::SELECTED, selected );
 		m_shape->setSelected( selected );
 		emit regionSelectionChanged( getId());

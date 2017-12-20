@@ -12,7 +12,7 @@ HistogramRenderRequest::HistogramRenderRequest( std::shared_ptr<Carta::Lib::Imag
 		const QString& regionId ) :
 		m_image (nullptr),
 		m_region (nullptr ){
-	m_image = dataSource;
+    m_image = dataSource;
 	m_region = region;
 	m_binCount = binCount;
 	m_minChannel = minChannel;
