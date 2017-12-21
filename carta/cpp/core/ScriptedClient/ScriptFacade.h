@@ -665,209 +665,209 @@ public:
      */
     QStringList saveHistogram( const QString& histogramId, const QString& filename, int width, int height, const QString& aspectRatioMode );
 
-    /**
-     * Set the grid axes color.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param red- an integer in [0, 255] indicating the amount of red.
-     * @param green - an integer in [0,255] indicating the amount of green.
-     * @param blue - an integer in [0,255] indicating the amount of blue.
-     * @return a list of errors or an empty list if the color was successfully set.
-     */
-    QStringList setGridAxesColor( const QString& controlId, int red, int green, int blue );
-
-    /**
-     * Set grid axis thickness.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param thickness - a positive integer.
-     * @return an error message if the thickness could not be set or an empty string
-     *  if the thickness was successfully set.
-     */
-    QStringList setGridAxesThickness( const QString& controldId, int thickness );
-
-    /**
-     * Set the grid axis transparency.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param transparency - a nonnegative integer between 0 and 255, with 255 opaque.
-     * @return an error message if the transparency could not be set or an empty string
-     *      if it was successfully set.
-     */
-    QStringList setGridAxesTransparency( const QString& controldId, int transparency );
-
-    /**
-     * Set whether or not grid control settings should apply to all images on the set.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param applyAll - true if the settings apply to all images on the stack;
-     *      false otherwise.
-     */
-    QStringList setGridApplyAll( const QString& controlId, bool applyAll );
-
-    /**
-     * Set the grid coordinate system.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param coordSystem - an identifier for a grid coordinate system.
-     * @return an error message if there was a problem setting the coordinate system;
-     *  an empty string otherwise.
-     */
-    QStringList setGridCoordinateSystem( const QString& controlId, const QString& coordSystem );
-
-    /**
-     * Set the font family used for grid labels.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param fontFamily - an identifier for a font family.
-     * @return an error message if there was a problem setting the font family;
-     *  an empty string otherwise.
-     */
-    QStringList setGridFontFamily( const QString& controlId, const QString& fontFamily );
-
-    /**
-     * Set the font size used for grid labels.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param fontSize - an identifier for a font point size.
-     * @return an error message if there was a problem setting the font point size;
-     *  an empty string otherwise.
-     */
-    QStringList setGridFontSize( const QString& controlId, int fontSize );
-
-    /**
-     * Set the grid color.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param redAmount - an integer in [0, 255] indicating the amount of red.
-     * @param greenAmount  an integer in [0,255] indicating the amount of green.
-     * @param blueAmount - an integer in [0,255] indicating the amount of blue.
-     * @return a list of errors or an empty list if the color was successfully set.
-     */
-    QStringList setGridColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
-
-    /**
-     * Set the spacing between grid lines.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param spacing - the grid spacing in [0,1] with 1 having the least amount of spacing.
-     * @return an error message if there was a problem setting the grid spacing; an empty
-     *      string otherwise.
-     */
-    QStringList setGridSpacing( const QString& controlId, double spacing );
-
-    /**
-     * Set the thickness of the grid lines.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param thickness -a positive integer.
-     * @return an error message if there was a problem setting the grid line thickness; an empty
-     *      string otherwise.
-     */
-    QStringList setGridThickness( const QString& controlId, int thickness );
-
-    /**
-     * Set the transparency of the grid.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param transparency - the amount of transparency in [0,255] with 255 completely opaque.
-     * @return an error message if there was a problem setting the transparency; an empty
-     *      string otherwise.
-     */
-    QStringList setGridTransparency( const QString& controlId, int transparency );
-
-    /**
-     * Set the color of grid labels color.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param redAmount - an integer in [0, 255] indicating the amount of red.
-     * @param greenAmount  an integer in [0,255] indicating the amount of green.
-     * @param blueAmount - an integer in [0,255] indicating the amount of blue.
-     * @return a list of errors or an empty list if the color was successfully set.
-     */
-    QStringList setGridLabelColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
-
-    /**
-     * Set whether or not the grid axes should be shown.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param showAxis - true if the axes should be shown; false otherwise.
-     * @return an error message if there was a problem changing the visibility of the
-     *      axes; an empty string otherwise.
-     */
-    QStringList setShowGridAxis( const QString& controlId, bool showAxis );
-
-    /**
-     * Set whether or not the grid coordinate system should be visible.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param showCoordinateSystem - true if the coordinate system should be shown;
-     *      false otherwise.
-     * @return an error message if there was a problem setting the coordinate system;
-     *      an empty string otherwise.
-     */
-    QStringList setShowGridCoordinateSystem( const QString& controlId, bool showCoordinateSystem );
-
-    /**
-     * Set whether or not the grid lines should be shown.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param showGridLines - true if the grid lines should be shown; false otherwise.
-     * @return an error message if there was a problem changing the visibility of the
-     *     grid; an empty string otherwise.
-     */
-    QStringList setShowGridLines( const QString& controlId, bool showGridLines );
-
-    /**
-     * Set whether or not the grid axis should be internal or external.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param showInternalLabels - true if the axes should be internal; false otherwise.
-     * @return an error message if there was a problem setting the axes internal/external;
-     *      false otherwise.
-     */
-    QStringList setShowGridInternalLabels( const QString& controlId, bool showInternalLabels );
-
-    /**
-     * Sets whether or not cursor position image statistics should be shown.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param showStatistics - true if cursor statistics should be shown; false otherwise.
-     * @return an error message if there was a problem hiding/showing cursor statistics;
-     *      an empty string otherwise.
-     */
-    QStringList setShowGridStatistics( const QString& controlId, bool showStatistics );
-
-    /**
-     * Set whether or not to show grid axis ticks.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param showTicks - true if the grid axis ticks should be shown; false otherwise.
-     * @return an error message if there was a problem setting the visibility of grid axis
-     *      ticks; and empty string otherwise.
-     */
-    QStringList setShowGridTicks( const QString& controldId, bool showTicks );
-
-    /**
-     * Set the color of the grid tick marks.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param redAmount - a nonnegative integer in [0,255].
-     * @param greenAmount - a nonnegative integer in [0,255].
-     * @param blueAmount - a nonnegative integer in [0,255].
-     * @return a list of error message(s) if there was a problem setting the tick
-     *      color; an empty list otherwise.
-     */
-    QStringList setGridTickColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
-
-    /**
-     * Set the length of the grid ticks.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param tickThickness - a positive integer.
-     * @return an error message if the tick thickness was not successfully set;
-     *      an empty string otherwise.
-     */
-    QStringList setGridTickThickness( const QString& controlId, int tickThickness );
-
-    /**
-     * Set the transparency of the grid tick marks.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param transparency - a nonnegative integer between 0 and 255 with 255 being
-     *      opaque.
-     * @return an error message if the transparency was not successfully set; an
-     *      empty string otherwise.
-     */
-    QStringList setGridTickTransparency( const QString& controldId, int transparency );
-
-    /**
-     * Set the grid canvas theme.
-     * @param controlId the unique server-side id of an object managing a controller.
-     * @param theme - an identifier for a canvas theme.
-     * @return an error message if the theme was not successfully set; an empty
-     *      string otherwise.
-     */
-    QStringList setGridTheme( const QString& controlId, const QString& theme );
+    // /**
+    //  * Set the grid axes color.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param red- an integer in [0, 255] indicating the amount of red.
+    //  * @param green - an integer in [0,255] indicating the amount of green.
+    //  * @param blue - an integer in [0,255] indicating the amount of blue.
+    //  * @return a list of errors or an empty list if the color was successfully set.
+    //  */
+    // QStringList setGridAxesColor( const QString& controlId, int red, int green, int blue );
+    //
+    // /**
+    //  * Set grid axis thickness.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param thickness - a positive integer.
+    //  * @return an error message if the thickness could not be set or an empty string
+    //  *  if the thickness was successfully set.
+    //  */
+    // QStringList setGridAxesThickness( const QString& controldId, int thickness );
+    //
+    // /**
+    //  * Set the grid axis transparency.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param transparency - a nonnegative integer between 0 and 255, with 255 opaque.
+    //  * @return an error message if the transparency could not be set or an empty string
+    //  *      if it was successfully set.
+    //  */
+    // QStringList setGridAxesTransparency( const QString& controldId, int transparency );
+    //
+    // /**
+    //  * Set whether or not grid control settings should apply to all images on the set.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param applyAll - true if the settings apply to all images on the stack;
+    //  *      false otherwise.
+    //  */
+    // QStringList setGridApplyAll( const QString& controlId, bool applyAll );
+    //
+    // /**
+    //  * Set the grid coordinate system.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param coordSystem - an identifier for a grid coordinate system.
+    //  * @return an error message if there was a problem setting the coordinate system;
+    //  *  an empty string otherwise.
+    //  */
+    // QStringList setGridCoordinateSystem( const QString& controlId, const QString& coordSystem );
+    //
+    // /**
+    //  * Set the font family used for grid labels.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param fontFamily - an identifier for a font family.
+    //  * @return an error message if there was a problem setting the font family;
+    //  *  an empty string otherwise.
+    //  */
+    // QStringList setGridFontFamily( const QString& controlId, const QString& fontFamily );
+    //
+    // /**
+    //  * Set the font size used for grid labels.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param fontSize - an identifier for a font point size.
+    //  * @return an error message if there was a problem setting the font point size;
+    //  *  an empty string otherwise.
+    //  */
+    // QStringList setGridFontSize( const QString& controlId, int fontSize );
+    //
+    // /**
+    //  * Set the grid color.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param redAmount - an integer in [0, 255] indicating the amount of red.
+    //  * @param greenAmount  an integer in [0,255] indicating the amount of green.
+    //  * @param blueAmount - an integer in [0,255] indicating the amount of blue.
+    //  * @return a list of errors or an empty list if the color was successfully set.
+    //  */
+    // QStringList setGridColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
+    //
+    // /**
+    //  * Set the spacing between grid lines.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param spacing - the grid spacing in [0,1] with 1 having the least amount of spacing.
+    //  * @return an error message if there was a problem setting the grid spacing; an empty
+    //  *      string otherwise.
+    //  */
+    // QStringList setGridSpacing( const QString& controlId, double spacing );
+    //
+    // /**
+    //  * Set the thickness of the grid lines.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param thickness -a positive integer.
+    //  * @return an error message if there was a problem setting the grid line thickness; an empty
+    //  *      string otherwise.
+    //  */
+    // QStringList setGridThickness( const QString& controlId, int thickness );
+    //
+    // /**
+    //  * Set the transparency of the grid.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param transparency - the amount of transparency in [0,255] with 255 completely opaque.
+    //  * @return an error message if there was a problem setting the transparency; an empty
+    //  *      string otherwise.
+    //  */
+    // QStringList setGridTransparency( const QString& controlId, int transparency );
+    //
+    // /**
+    //  * Set the color of grid labels color.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param redAmount - an integer in [0, 255] indicating the amount of red.
+    //  * @param greenAmount  an integer in [0,255] indicating the amount of green.
+    //  * @param blueAmount - an integer in [0,255] indicating the amount of blue.
+    //  * @return a list of errors or an empty list if the color was successfully set.
+    //  */
+    // QStringList setGridLabelColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
+    //
+    // /**
+    //  * Set whether or not the grid axes should be shown.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param showAxis - true if the axes should be shown; false otherwise.
+    //  * @return an error message if there was a problem changing the visibility of the
+    //  *      axes; an empty string otherwise.
+    //  */
+    // QStringList setShowGridAxis( const QString& controlId, bool showAxis );
+    //
+    // /**
+    //  * Set whether or not the grid coordinate system should be visible.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param showCoordinateSystem - true if the coordinate system should be shown;
+    //  *      false otherwise.
+    //  * @return an error message if there was a problem setting the coordinate system;
+    //  *      an empty string otherwise.
+    //  */
+    // QStringList setShowGridCoordinateSystem( const QString& controlId, bool showCoordinateSystem );
+    //
+    // /**
+    //  * Set whether or not the grid lines should be shown.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param showGridLines - true if the grid lines should be shown; false otherwise.
+    //  * @return an error message if there was a problem changing the visibility of the
+    //  *     grid; an empty string otherwise.
+    //  */
+    // QStringList setShowGridLines( const QString& controlId, bool showGridLines );
+    //
+    // /**
+    //  * Set whether or not the grid axis should be internal or external.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param showInternalLabels - true if the axes should be internal; false otherwise.
+    //  * @return an error message if there was a problem setting the axes internal/external;
+    //  *      false otherwise.
+    //  */
+    // QStringList setShowGridInternalLabels( const QString& controlId, bool showInternalLabels );
+    //
+    // /**
+    //  * Sets whether or not cursor position image statistics should be shown.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param showStatistics - true if cursor statistics should be shown; false otherwise.
+    //  * @return an error message if there was a problem hiding/showing cursor statistics;
+    //  *      an empty string otherwise.
+    //  */
+    // QStringList setShowGridStatistics( const QString& controlId, bool showStatistics );
+    //
+    // /**
+    //  * Set whether or not to show grid axis ticks.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param showTicks - true if the grid axis ticks should be shown; false otherwise.
+    //  * @return an error message if there was a problem setting the visibility of grid axis
+    //  *      ticks; and empty string otherwise.
+    //  */
+    // QStringList setShowGridTicks( const QString& controldId, bool showTicks );
+    //
+    // /**
+    //  * Set the color of the grid tick marks.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param redAmount - a nonnegative integer in [0,255].
+    //  * @param greenAmount - a nonnegative integer in [0,255].
+    //  * @param blueAmount - a nonnegative integer in [0,255].
+    //  * @return a list of error message(s) if there was a problem setting the tick
+    //  *      color; an empty list otherwise.
+    //  */
+    // QStringList setGridTickColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount );
+    //
+    // /**
+    //  * Set the length of the grid ticks.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param tickThickness - a positive integer.
+    //  * @return an error message if the tick thickness was not successfully set;
+    //  *      an empty string otherwise.
+    //  */
+    // QStringList setGridTickThickness( const QString& controlId, int tickThickness );
+    //
+    // /**
+    //  * Set the transparency of the grid tick marks.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param transparency - a nonnegative integer between 0 and 255 with 255 being
+    //  *      opaque.
+    //  * @return an error message if the transparency was not successfully set; an
+    //  *      empty string otherwise.
+    //  */
+    // QStringList setGridTickTransparency( const QString& controldId, int transparency );
+    //
+    // /**
+    //  * Set the grid canvas theme.
+    //  * @param controlId the unique server-side id of an object managing a controller.
+    //  * @param theme - an identifier for a canvas theme.
+    //  * @return an error message if the theme was not successfully set; an empty
+    //  *      string otherwise.
+    //  */
+    // QStringList setGridTheme( const QString& controlId, const QString& theme );
 
     /**
      * Delete the contour set with the indicated name.
@@ -1053,4 +1053,3 @@ private:
     const static QString HISTOGRAM_NOT_FOUND;
     const static QString ANIMATOR_NOT_FOUND;
 };
-
