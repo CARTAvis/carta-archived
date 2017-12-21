@@ -183,7 +183,7 @@ public:
      * Return a shared pointer to the grid controls.
      * @return - a shared pointer to the grid controls.
      */
-    std::shared_ptr<GridControls> getGridControls();
+    // std::shared_ptr<GridControls> getGridControls();
 
     /**
      * Return the point in image coordinates that is currently under the cursor.
@@ -649,12 +649,12 @@ protected:
 
 private slots:
 
-	void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
+	// void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
 
 	void _contourSetAdded( Layer* cData, const QString& setName );
 	void _contourSetRemoved( const QString setName );
 
-	void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
+	// void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 	void _onInputEvent( InputEvent ev );
 
 	//Refresh the view based on the latest data selection information.

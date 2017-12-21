@@ -94,10 +94,10 @@ Controller::Controller( const QString& path, const QString& id ) :
 
 	GridControls* gridObj = objMan->createObject<GridControls>();
 	m_gridControls.reset( gridObj );
-	connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
-			this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
-	connect( m_gridControls.get(), SIGNAL(displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )),
-			this, SLOT( _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )));
+	// connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
+	// 		this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
+	// connect( m_gridControls.get(), SIGNAL(displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )),
+	// 		this, SLOT( _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )));
 
 	ContourControls* contourObj = objMan->createObject<ContourControls>();
 	m_contourControls.reset( contourObj );
@@ -236,12 +236,12 @@ void Controller::_contourSetRemoved( const QString setName ){
 }
 
 
-void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
-        bool applyAll ){
-    m_stack->_displayAxesChanged( displayAxisTypes, applyAll );
-    emit axesChanged(); //animator has this signal axesChanged, also frameChanged
-    _updateCursorText( true );
-}
+// void Controller::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxisTypes,
+//         bool applyAll ){
+//     m_stack->_displayAxesChanged( displayAxisTypes, applyAll );
+//     emit axesChanged(); //animator has this signal axesChanged, also frameChanged
+//     _updateCursorText( true );
+// }
 
 
 std::vector<Carta::Lib::AxisInfo::KnownType> Controller::_getAxisZTypes() const {
@@ -339,9 +339,9 @@ int Controller::getFrame( AxisInfo::KnownType axisType ) const {
 }
 
 
-std::shared_ptr<GridControls> Controller::getGridControls() {
-    return m_gridControls;
-}
+// std::shared_ptr<GridControls> Controller::getGridControls() {
+//     return m_gridControls;
+// }
 
 
 std::vector<int> Controller::getImageDimensions( ) const {
@@ -512,10 +512,10 @@ double Controller::getZoomLevel( ) const {
     return m_stack->_getZoom();
 }
 
-void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
-    m_stack->_gridChanged( state, applyAll );
-    _setSkyCSName();
-}
+// void Controller::_gridChanged( const StateInterface& state, bool applyAll ){
+//     m_stack->_gridChanged( state, applyAll );
+//     _setSkyCSName();
+// }
 
 void Controller::_onInputEvent( InputEvent  ev ){
 
@@ -731,6 +731,13 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+
+    addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        Carta::State::StateInterface dataGridState = m_stack->_getDataGridState();
+        QString result = dataGridState.toString();
+        return result;
+    });
 
     addCommandCallback( "newzoom", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {

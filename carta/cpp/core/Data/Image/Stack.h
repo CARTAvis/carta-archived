@@ -99,6 +99,7 @@ private:
                 Carta::Lib::KnownSkyCS system ) const;
 
     QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY );
+    Carta::State::StateInterface _getDataGridState();
 
     QList<std::shared_ptr<Layer> > _getDrawChildren() const;
     int _getFrame( Carta::Lib::AxisInfo::KnownType axisType ) const;

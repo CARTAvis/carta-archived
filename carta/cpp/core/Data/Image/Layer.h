@@ -31,6 +31,7 @@ class RawViewInterface;
 
 namespace Data {
 
+class DataGrid;
 class ColorState;
 class DataContours;
 class DataSource;
@@ -186,6 +187,12 @@ protected:
     virtual QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
             const std::vector<int>& frames, const QSize& outputSize ) = 0;
 
+
+    /**
+     * Return the data grid of the image.
+     * @return - the data grid of the image.
+     */
+    virtual std::shared_ptr<DataGrid> _getDataGrid() = 0;
 
     /**
      * Return the data source of the image.

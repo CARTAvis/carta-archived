@@ -240,6 +240,10 @@ QString LayerData::_getCursorText(bool isAutoClip, double minPercent, double max
     return cursorText;
 }
 
+std::shared_ptr<DataGrid> LayerData::_getDataGrid(){
+    return m_dataGrid;
+}
+
 std::shared_ptr<DataSource> LayerData::_getDataSource(){
     return m_dataSource;
 }

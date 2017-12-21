@@ -146,6 +146,12 @@ protected:
             const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
 
     /**
+     * Return the data grid of the image.
+     * @return - the data grid of the image.
+     */
+    virtual std::shared_ptr<DataGrid> _getDataGrid() Q_DECL_OVERRIDE;
+
+    /**
      * Return the data source of the image.
      * @return - the data source of the image.
      */

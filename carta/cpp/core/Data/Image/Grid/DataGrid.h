@@ -30,6 +30,8 @@ class Themes;
 class DataGrid : public Carta::State::CartaObject {
 
 friend class LayerData;
+friend class LayerGroup;
+friend class Stack;
 friend class GridControls;
 
 public:

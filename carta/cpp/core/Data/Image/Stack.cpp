@@ -4,6 +4,7 @@
 #include "Data/Image/Draw/DrawStackSynchronizer.h"
 #include "Data/Image/Draw/DrawImageViewsSynchronizer.h"
 #include "Data/Image/Grid/AxisMapper.h"
+#include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Save/SaveService.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/Region/Region.h"
@@ -176,6 +177,12 @@ QString Stack::_getCursorText(bool isAutoClip, double minPercent, double maxPerc
                 frameIndices, outputSize );
     }
     return cursorText;
+}
+
+Carta::State::StateInterface Stack::_getDataGridState(){
+    std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
+    Carta::State::StateInterface dataGridState = dataGrid->_getState();
+    return dataGridState;
 }
 
 QList<std::shared_ptr<Layer> > Stack::_getDrawChildren() const {

@@ -341,6 +341,15 @@ QString LayerGroup::_getCursorText(bool isAutoClip, double minPercent, double ma
 
 }
 
+std::shared_ptr<DataGrid> LayerGroup::_getDataGrid(){
+    std::shared_ptr<DataGrid> dataGrid( nullptr );
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        dataGrid = m_children[dataIndex]->_getDataGrid();
+    }
+    return dataGrid;
+}
+
 QString LayerGroup::_getDefaultName( const QString& id ) const {
     return GROUP + " "+id;
 }
