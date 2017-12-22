@@ -45,6 +45,7 @@ const QString DataGrid::THEME = "theme";
 const QString DataGrid::TICK = "tick";
 const QString DataGrid::TICK_LENGTH = "tickLength";
 const QString DataGrid::SUPPORTED_AXES = "supportedAxes";
+const QString DataGrid::SUPPORTED_COORDINATE_SYSTEMS = "supportedCS";
 const int DataGrid::MARGIN_DEFAULT = 10;
 const int DataGrid::MARGIN_LABEL = 50;
 const int DataGrid::TICK_LENGTH_MAX = 50;
@@ -305,6 +306,14 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<QString>( AxisMapper::AXIS_X, xName );
     QString yName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Y, cs );
     m_state.insertValue<QString>( AxisMapper::AXIS_Y, yName );
+
+    QStringList coordinateSystems = m_coordSystems->getCoordinateSystems();
+    m_state.insertArray( SUPPORTED_COORDINATE_SYSTEMS, coordinateSystems.length() );
+    for( int i=0; i<coordinateSystems.length(); i++ ){
+        QString name = coordinateSystems[i];
+        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_COORDINATE_SYSTEMS, i );
+        m_state.setValue<QString>( lookup, name );
+    }
 
     m_state.flushState();
 }

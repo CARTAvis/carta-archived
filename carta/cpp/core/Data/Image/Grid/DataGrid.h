@@ -128,6 +128,7 @@ private:
     const static QString SHOW_TICKS;
     const static QString SPACING;
     const static QString SUPPORTED_AXES;
+    const static QString SUPPORTED_COORDINATE_SYSTEMS;
     const static QString THEME;
     const static QString TICK;
     const static QString TICK_LENGTH;
