@@ -998,6 +998,17 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
         bool csChanged = false;
         QString initCS = m_dataGrid->_setCoordinateSystem( csName, &csChanged);
 
+        // TODO:the variable is used to match the crietia of _setAxis(), try to remove later.
+        bool axisChanged = false;
+        std::vector<AxisInfo> supportedAxes = m_dataSource->_getAxisInfos();
+        m_dataGrid->_setAxisInfos( supportedAxes );
+        int xIndex = m_dataSource->m_axisIndexX;
+        int yIndex = m_dataSource->m_axisIndexY;
+        QString xPurpose = supportedAxes[xIndex].longLabel().plain();
+        QString yPurpose = supportedAxes[yIndex].longLabel().plain();
+        m_dataGrid->_setAxis( AxisMapper::AXIS_X, xPurpose, &axisChanged );
+        m_dataGrid->_setAxis( AxisMapper::AXIS_Y, yPurpose, &axisChanged );
+
         //Reset the pan and zoom when the image is loaded.
         _resetPan();
         _resetZoom();

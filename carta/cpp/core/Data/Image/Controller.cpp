@@ -92,8 +92,8 @@ Controller::Controller( const QString& path, const QString& id ) :
 	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
 			SLOT( _onInputEvent( InputEvent )));
 
-	GridControls* gridObj = objMan->createObject<GridControls>();
-	m_gridControls.reset( gridObj );
+	// GridControls* gridObj = objMan->createObject<GridControls>();
+	// m_gridControls.reset( gridObj );
 	// connect( m_gridControls.get(), SIGNAL(gridChanged( const Carta::State::StateInterface&,bool)),
 	// 		this, SLOT(_gridChanged( const Carta::State::StateInterface&, bool )));
 	// connect( m_gridControls.get(), SIGNAL(displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType>,bool )),
@@ -135,7 +135,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
             selectedLayers.append( stackId );
             _setLayersSelected( selectedLayers );
         }
-        _setSkyCSName();
+        // _setSkyCSName();
         _updateDisplayAxes();
         emit dataChanged( this );
     }
@@ -816,9 +816,9 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "registerGridControls", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         QString result;
-        if ( m_gridControls.get() != nullptr ){
-            result = m_gridControls->getPath();
-        }
+        // if ( m_gridControls.get() != nullptr ){
+        //     result = m_gridControls->getPath();
+        // }
         return result;
     });
 
@@ -984,6 +984,448 @@ void Controller::_initializeCallbacks(){
         Util::commandPostProcess( result );
         return result;
     });
+
+
+
+////////// Copy the callback functions in gridcontrol here. A note for unfinished commands.
+
+    // addCommandCallback( "setApplyAll", [=] (const QString & /*cmd*/,
+    //                const QString & params, const QString & /*sessionId*/) -> QString {
+    //            QString result;
+    //            std::set<QString> keys = {ALL};
+    //            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //            QString applyAllStr = dataValues[ALL];
+    //            bool validBool = false;
+    //            bool applyAll = Util::toBool( applyAllStr, &validBool );
+    //            if ( validBool ){
+    //                setApplyAll( applyAll  );
+    //            }
+    //            else {
+    //                result = "Whether or not to apply grid changes to all images must be true/false:"+params;
+    //            }
+    //            Util::commandPostProcess( result );
+    //            return result;
+    //        });
+    //
+    //
+    // addCommandCallback( "setAxesColor", [=] (const QString & /*cmd*/,
+    //                                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //     int redAmount = 0;
+    //     int greenAmount = 0;
+    //     int blueAmount = 0;
+    //     QStringList result = _parseColorParams( params, "Axes", &redAmount, &greenAmount, &blueAmount);
+    //     if ( result.size() == 0 ){
+    //         result = setAxesColor( redAmount, greenAmount, blueAmount );
+    //     }
+    //     QString errors;
+    //     if ( result.size() > 0 ){
+    //         errors = result.join( ",");
+    //     }
+    //     Util::commandPostProcess( errors );
+    //     return errors;
+    // });
+    //
+    // addCommandCallback( "setAxesThickness", [=] (const QString & /*cmd*/,
+    //                                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //    QString result;
+    //    std::set<QString> keys = {DataGrid::AXES};
+    //    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //    QString thicknessStr = dataValues[DataGrid::AXES];
+    //    bool validInt = false;
+    //    int thickness = thicknessStr.toInt( &validInt );
+    //    if ( validInt ){
+    //        result = setAxesThickness( thickness  );
+    //    }
+    //    else {
+    //        result = "Axes thickness must be a number:"+params;
+    //    }
+    //     Util::commandPostProcess( result );
+    //     return result;
+    // });
+    //
+    // addCommandCallback( "setAxesTransparency", [=] (const QString & /*cmd*/,
+    //                                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //     QString result;
+    //     std::set<QString> keys = {Util::ALPHA};
+    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //     QString transparencyStr = dataValues[Util::ALPHA];
+    //     bool validInt = false;
+    //     int transparency = transparencyStr.toInt( &validInt );
+    //     if ( validInt ){
+    //         result = setAxesTransparency( transparency );
+    //     }
+    //     else {
+    //         result = "Axes transparency must be an integer:"+params;
+    //     }
+    //     Util::commandPostProcess( result );
+    //     return result;
+    // });
+    //
+    // addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
+    //                     const QString & params, const QString & /*sessionId*/) ->QString {
+    //     std::set<QString> keys = {AxisMapper::AXIS_X};
+    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //     QString axisName = dataValues[AxisMapper::AXIS_X];
+    //     QString result = setAxis( AxisMapper::AXIS_X, axisName );
+    //     return result;
+    // });
+    //
+    // addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
+    //                     const QString & params, const QString & /*sessionId*/) ->QString {
+    //     std::set<QString> keys = {AxisMapper::AXIS_Y};
+    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //     QString axisName = dataValues[AxisMapper::AXIS_Y];
+    //     QString result = setAxis( AxisMapper::AXIS_Y, axisName );
+    //     return result;
+    // });
+    //
+    // addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
+    //                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //             std::set<QString> keys = {DataGrid::COORD_SYSTEM};
+    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //             QString showAxisStr = dataValues[DataGrid::SHOW_AXIS];
+    //             QString result = setCoordinateSystem( dataValues[DataGrid::COORD_SYSTEM] );
+    //             Util::commandPostProcess( result );
+    //             return result;
+    //         });
+    //
+    // addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
+    //                     const QString & params, const QString & /*sessionId*/) -> QString {
+    //                 std::set<QString> keys = {DataGrid::FORMAT, DataGrid::LABEL_SIDE};
+    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                 QString format = dataValues[DataGrid::FORMAT];
+    //                 //Because the map expects colons and the label format has colons,
+    //                 //the format colons are replaced with a - before sending from the
+    //                 //client and the server must restore the colons.
+    //                 format = format.replace( "-", ":");
+    //                 QString labelSide = dataValues[DataGrid::LABEL_SIDE];
+    //                 QString result = setLabelFormat( labelSide, format );
+    //                 Util::commandPostProcess( result );
+    //                 return result;
+    //             });
+    //
+    // addCommandCallback( "setGridColor", [=] (const QString & /*cmd*/,
+    //                                     const QString & params, const QString & /*sessionId*/) -> QString {
+    //         int redAmount = 0;
+    //         int greenAmount = 0;
+    //         int blueAmount = 0;
+    //         QStringList result = _parseColorParams( params, DataGrid::GRID, &redAmount, &greenAmount, &blueAmount);
+    //         if ( result.size() == 0 ){
+    //             result = setGridColor( redAmount, greenAmount, blueAmount );
+    //         }
+    //         QString errors;
+    //         if ( result.size() > 0 ){
+    //             errors = result.join( ",");
+    //         }
+    //         Util::commandPostProcess( errors );
+    //         return errors;
+    //     });
+    //
+    // addCommandCallback( "setFontFamily", [=] (const QString & /*cmd*/,
+    //                     const QString & params, const QString & /*sessionId*/) -> QString {
+    //                 std::set<QString> keys = {Fonts::FONT_FAMILY};
+    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                 QString result = setFontFamily( dataValues[Fonts::FONT_FAMILY] );
+    //                 Util::commandPostProcess( result );
+    //                 return result;
+    //             });
+    //
+    // addCommandCallback( "setFontSize", [=] (const QString & /*cmd*/,
+    //                         const QString & params, const QString & /*sessionId*/) -> QString {
+    //                     QString result;
+    //                     std::set<QString> keys = {Fonts::FONT_SIZE};
+    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                     QString fontSizeStr = dataValues[Fonts::FONT_SIZE];
+    //                     bool validInt = false;
+    //                     int fontSize = fontSizeStr.toInt(&validInt);
+    //                     if ( validInt ){
+    //                         result = setFontSize( fontSize );
+    //                     }
+    //                     else {
+    //                         result = "Font size must be a nonnegative integer: "+fontSizeStr;
+    //                     }
+    //                     Util::commandPostProcess( result );
+    //                     return result;
+    //                 });
+    //
+    // addCommandCallback( "setGridThickness", [=] (const QString & /*cmd*/,
+    //                     const QString & params, const QString & /*sessionId*/) -> QString {
+    //                 QString result;
+    //                 std::set<QString> keys = {DataGrid::GRID};
+    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                 QString thicknessStr = dataValues[DataGrid::GRID];
+    //                 bool validInt = false;
+    //                 int thickness = thicknessStr.toInt( &validInt );
+    //                 if ( validInt ){
+    //                     result = setGridThickness( thickness  );
+    //                 }
+    //                 else {
+    //                     result = "Grid thickness must be a number:"+params;
+    //                 }
+    //                 Util::commandPostProcess( result );
+    //                 return result;
+    //             });
+    //
+    // addCommandCallback( "setGridSpacing", [=] (const QString & /*cmd*/,
+    //                         const QString & params, const QString & /*sessionId*/) -> QString {
+    //                     QString result;
+    //                     std::set<QString> keys = {DataGrid::SPACING};
+    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                     QString spacingStr = dataValues[DataGrid::SPACING];
+    //                     bool validDouble = false;
+    //                     double spacing = spacingStr.toDouble( &validDouble );
+    //                     if ( validDouble ){
+    //                         result = setGridSpacing( spacing  );
+    //                     }
+    //                     else {
+    //                         result = "Grid spacing must be a number:"+params;
+    //                     }
+    //                     Util::commandPostProcess( result );
+    //                     return result;
+    //                 });
+    //
+    // addCommandCallback( "setGridTransparency", [=] (const QString & /*cmd*/,
+    //                             const QString & params, const QString & /*sessionId*/) -> QString {
+    //         QString result;
+    //         std::set<QString> keys = {Util::ALPHA};
+    //         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //         QString transparencyStr = dataValues[Util::ALPHA];
+    //         bool validInt = false;
+    //         int transparency = transparencyStr.toInt( &validInt );
+    //         if ( validInt ){
+    //             result = setGridTransparency( transparency );
+    //         }
+    //         else {
+    //             result = "Grid transparency must be an integer:"+params;
+    //         }
+    //         Util::commandPostProcess( result );
+    //         return result;
+    //     });
+    //
+    // addCommandCallback( "setLabelDecimals", [=] (const QString & /*cmd*/,
+    //                                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //     QString result;
+    //     std::set<QString> keys = {DataGrid::LABEL_DECIMAL_PLACES};
+    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //     QString decimalsStr = dataValues[DataGrid::LABEL_DECIMAL_PLACES];
+    //     bool validInt = false;
+    //     int decimalPlaces = decimalsStr.toInt( &validInt );
+    //     if ( validInt ){
+    //         result = setLabelDecimals( decimalPlaces );
+    //     }
+    //     else {
+    //         result = "Grid label decimal places must be an integer:"+params;
+    //     }
+    //     Util::commandPostProcess( result );
+    //     return result;
+    // });
+    //
+    // addCommandCallback( "setLabelColor", [=] (const QString & /*cmd*/,
+    //                             const QString & params, const QString & /*sessionId*/) -> QString {
+    //         int redAmount = 0;
+    //         int greenAmount = 0;
+    //         int blueAmount = 0;
+    //         QStringList result = _parseColorParams( params, "Label", &redAmount, &greenAmount, &blueAmount);
+    //         if ( result.size() == 0 ){
+    //             result = setLabelColor( redAmount, greenAmount, blueAmount );
+    //         }
+    //         QString errors;
+    //         if ( result.size() > 0 ){
+    //             errors = result.join( ",");
+    //         }
+    //         Util::commandPostProcess( errors );
+    //         return errors;
+    //     });
+    //
+    // addCommandCallback( "setShowAxis", [=] (const QString & /*cmd*/,
+    //             const QString & params, const QString & /*sessionId*/) -> QString {
+    //         QString result;
+    //         std::set<QString> keys = {DataGrid::SHOW_AXIS};
+    //         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //         QString showAxisStr = dataValues[DataGrid::SHOW_AXIS];
+    //         bool validBool = false;
+    //         bool showAxis = Util::toBool( showAxisStr, &validBool );
+    //         if ( validBool ){
+    //             result = setShowAxis( showAxis  );
+    //         }
+    //         else {
+    //             result = "Making an axis visible/invisible must be true/false:"+params;
+    //         }
+    //         Util::commandPostProcess( result );
+    //         return result;
+    //     });
+    //
+    // addCommandCallback( "setShowCoordinateSystem", [=] (const QString & /*cmd*/,
+    //                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //             QString result;
+    //             std::set<QString> keys = {DataGrid::SHOW_COORDS};
+    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //             QString showCoordsStr = dataValues[DataGrid::SHOW_COORDS];
+    //             bool validBool = false;
+    //             bool showCoord = Util::toBool( showCoordsStr, &validBool );
+    //             if ( validBool ){
+    //                 result = setShowCoordinateSystem( showCoord );
+    //             }
+    //             else {
+    //                 result = "Whether or not to show the coordinate system must be true/false:"+params;
+    //             }
+    //             Util::commandPostProcess( result );
+    //             return result;
+    //         });
+    //
+    //
+    // addCommandCallback( "setShowGridLines", [=] (const QString & /*cmd*/,
+    //                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //             QString result;
+    //             std::set<QString> keys = {DataGrid::SHOW_GRID_LINES};
+    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //             QString showLinesStr = dataValues[DataGrid::SHOW_GRID_LINES];
+    //             bool validBool = false;
+    //             bool showLines = Util::toBool( showLinesStr, &validBool );
+    //             if ( validBool ){
+    //                 result = setShowGridLines( showLines  );
+    //             }
+    //             else {
+    //                 result = "Setting axis grid lines visible/invisible must be true/false:"+params;
+    //             }
+    //             Util::commandPostProcess( result );
+    //             return result;
+    //         });
+    //
+    // addCommandCallback( "setShowInternalLabels", [=] (const QString & /*cmd*/,
+    //                     const QString & params, const QString & /*sessionId*/) -> QString {
+    //                 QString result;
+    //                 std::set<QString> keys = {DataGrid::SHOW_INTERNAL_LABELS};
+    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                 QString showLabelsStr = dataValues[DataGrid::SHOW_INTERNAL_LABELS];
+    //                 bool validBool = false;
+    //                 bool showLabels = Util::toBool( showLabelsStr, &validBool );
+    //                 if ( validBool ){
+    //                     result = setShowInternalLabels( showLabels  );
+    //                 }
+    //                 else {
+    //                     result = "Showing internal axis labels must be true/false:"+params;
+    //                 }
+    //                 Util::commandPostProcess( result );
+    //                 return result;
+    //             });
+    //
+    // addCommandCallback( "setShowTicks", [=] (const QString & /*cmd*/,
+    //                 const QString & params, const QString & /*sessionId*/) -> QString {
+    //             QString result;
+    //             std::set<QString> keys = {DataGrid::SHOW_TICKS};
+    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //             QString showTicksStr = dataValues[DataGrid::SHOW_TICKS];
+    //             bool validBool = false;
+    //             bool showTicks = Util::toBool( showTicksStr, &validBool );
+    //             if ( validBool ){
+    //                 result = setShowTicks( showTicks  );
+    //             }
+    //             else {
+    //                 result = "Making ticks visible/invisible must be true/false:"+params;
+    //             }
+    //             Util::commandPostProcess( result );
+    //             return result;
+    //         });
+    //
+    // addCommandCallback( "setShowStatistics", [=] (const QString & /*cmd*/,
+    //                     const QString & params, const QString & /*sessionId*/) -> QString {
+    //                 QString result;
+    //                 std::set<QString> keys = {DataGrid::SHOW_STATISTICS};
+    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                 QString showStatisticsStr = dataValues[DataGrid::SHOW_STATISTICS];
+    //                 bool validBool = false;
+    //                 bool showStatistics = Util::toBool( showStatisticsStr, &validBool );
+    //                 if ( validBool ){
+    //                     result = setShowStatistics( showStatistics  );
+    //                 }
+    //                 else {
+    //                     result = "Making statistics visible/invisible must be true/false:"+params;
+    //                 }
+    //                 Util::commandPostProcess( result );
+    //                 return result;
+    //             });
+    //
+    // addCommandCallback( "setTickColor", [=] (const QString & /*cmd*/,
+    //                                        const QString & params, const QString & /*sessionId*/) -> QString {
+    //            int redAmount = 0;
+    //            int greenAmount = 0;
+    //            int blueAmount = 0;
+    //            QStringList result = _parseColorParams( params, DataGrid::TICK, &redAmount, &greenAmount, &blueAmount);
+    //            if ( result.size() == 0 ){
+    //                result = setTickColor( redAmount, greenAmount, blueAmount );
+    //            }
+    //            QString errors;
+    //            if ( result.size() > 0 ){
+    //                errors = result.join( ",");
+    //            }
+    //            Util::commandPostProcess( errors );
+    //            return errors;
+    //        });
+    //
+    // addCommandCallback( "setTickLength", [=] (const QString & /*cmd*/,
+    //                             const QString & params, const QString & /*sessionId*/) -> QString {
+    //         QString result;
+    //         std::set<QString> keys = {DataGrid::TICK_LENGTH};
+    //         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //         QString lengthStr = dataValues[DataGrid::TICK_LENGTH];
+    //         bool validInt = false;
+    //         int length = lengthStr.toInt( &validInt );
+    //         if ( validInt ){
+    //             result = setTickLength( length  );
+    //         }
+    //         else {
+    //             result = "Tick length must be a number:"+params;
+    //         }
+    //         Util::commandPostProcess( result );
+    //         return result;
+    //     });
+    //
+    // addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
+    //                         const QString & params, const QString & /*sessionId*/) -> QString {
+    //                     QString result;
+    //                     std::set<QString> keys = {DataGrid::TICK};
+    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                     QString thicknessStr = dataValues[DataGrid::TICK];
+    //                     bool validInt = false;
+    //                     int thickness = thicknessStr.toInt( &validInt );
+    //                     if ( validInt ){
+    //                         result = setTickThickness( thickness  );
+    //                     }
+    //                     else {
+    //                         result = "Tick thickness must be a number:"+params;
+    //                     }
+    //                     Util::commandPostProcess( result );
+    //                     return result;
+    //                 });
+    //
+    // addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
+    //                                     const QString & params, const QString & /*sessionId*/) -> QString {
+    //         QString result;
+    //         std::set<QString> keys = {Util::ALPHA};
+    //         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //         QString transparencyStr = dataValues[Util::ALPHA];
+    //         bool validInt = false;
+    //         int transparency = transparencyStr.toInt( &validInt );
+    //         if ( validInt ){
+    //             result = setTickTransparency( transparency );
+    //         }
+    //         else {
+    //             result = "Tick transparency must be an integer:"+params;
+    //         }
+    //         Util::commandPostProcess( result );
+    //         return result;
+    //     });
+    //
+    // addCommandCallback( "setTheme", [=] (const QString & /*cmd*/,
+    //                         const QString & params, const QString & /*sessionId*/) -> QString {
+    //                     std::set<QString> keys = {DataGrid::THEME};
+    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //                     QString themeStr = dataValues[DataGrid::THEME];
+    //                     QString result = setTheme( themeStr );
+    //                     Util::commandPostProcess( result );
+    //                     return result;
+    //                 });
 }
 
 
@@ -1041,7 +1483,7 @@ void Controller::refreshState(){
     CartaObject::refreshState();
     m_settings->refreshState();
     m_regionControls->refreshState();
-    m_gridControls->refreshState();
+    // m_gridControls->refreshState();
     m_contourControls->refreshState();
 }
 
@@ -1098,8 +1540,8 @@ void Controller::resetStateData( const QString& state ){
     emit colorChanged( this );
 
     //Reset the state of the grid controls based on the selected image.
-    StateInterface gridState = m_stack->_getGridState();
-    m_gridControls->_resetState( gridState );
+    // StateInterface gridState = m_stack->_getGridState();
+    // m_gridControls->_resetState( gridState );
     _loadViewQueued();
 }
 
@@ -1210,12 +1652,12 @@ void Controller::recallClipValue() {
 }
 
 
-void Controller::_setSkyCSName(){
-    const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-    CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
-    QString csName = m_coords->getName(cs);
-    m_gridControls->_resetCoordinateSystem(csName);
-}
+// void Controller::_setSkyCSName(){
+//     const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+//     CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
+//     QString csName = m_coords->getName(cs);
+//     m_gridControls->_resetCoordinateSystem(csName);
+// }
 
 
 void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
@@ -1238,7 +1680,7 @@ void Controller::setFrameImage( int val) {
         }
 
         Carta::State::StateInterface gridState = m_stack->_getGridState();
-        m_gridControls->_resetState( gridState );
+        // m_gridControls->_resetState( gridState );
         _updateCursorText( true );
         emit dataChanged( this );
     }
@@ -1458,17 +1900,17 @@ void Controller::_updateCursorText(bool notifyClients ){
 
 
 void Controller::_updateDisplayAxes(){
-    if ( m_gridControls ){
-        std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
-        m_gridControls->_setAxisInfos( supportedAxes );
-        AxisInfo::KnownType xType = m_stack->_getAxisXType();
-        AxisInfo::KnownType yType = m_stack->_getAxisYType();
-        //const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-        QString xPurpose = AxisMapper::getPurpose( xType );
-        QString yPurpose = AxisMapper::getPurpose( yType );
-        m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
-        m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
-    }
+    // if ( m_gridControls ){
+    //     std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
+    //     m_gridControls->_setAxisInfos( supportedAxes );
+    //     AxisInfo::KnownType xType = m_stack->_getAxisXType();
+    //     AxisInfo::KnownType yType = m_stack->_getAxisYType();
+    //     //const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+    //     QString xPurpose = AxisMapper::getPurpose( xType );
+    //     QString yPurpose = AxisMapper::getPurpose( yType );
+    //     m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
+    //     m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
+    // }
 }
 
 void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId ){

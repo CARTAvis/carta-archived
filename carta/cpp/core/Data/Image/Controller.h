@@ -712,7 +712,7 @@ private:
 
     // Set the AxisMapper::axisMap to use
     void _setAxisMap();
-    void _setSkyCSName();
+    // void _setSkyCSName();
 
 	/**
 	 * Make a frame selection.
@@ -744,7 +744,7 @@ private:
 	static const QString CENTER;
 	static const QString STACK_SELECT_AUTO;
 
-	std::shared_ptr<GridControls> m_gridControls;
+	// std::shared_ptr<GridControls> m_gridControls;
 	std::shared_ptr<ContourControls> m_contourControls;
 	std::shared_ptr<RegionControls> m_regionControls;
 

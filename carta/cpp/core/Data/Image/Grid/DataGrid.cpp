@@ -577,39 +577,55 @@ bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
 bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     int axisCount = supportedAxes.size();
     bool axisTypesChanged = false;
-    int oldCount = m_state.getArraySize( SUPPORTED_AXES );
-    m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+    m_state.resizeArray( SUPPORTED_AXES, axisCount );
 
     int axisIndex = 0;
     for( int i=0; i<axisCount; i++ ){
         QString name = supportedAxes[i].longLabel().plain();
         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, axisIndex );
-        QString oldName;
-        if ( i < oldCount ){
-            oldName = m_state.getValue<QString>( lookup );
+
+        axisTypesChanged = true;
+        if ( AxisMapper::getType(name)==Carta::Lib::AxisInfo::KnownType::STOKES ){
+            m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
+            continue;
         }
-        if ( name != oldName ){
-            //_setAxis( AxisMapper::AXIS_X, supportedAxes[0].longLabel().plain(), &axisTypesChanged);
-            //_setAxis( AxisMapper::AXIS_Y, supportedAxes[1].longLabel().plain(), &axisTypesChanged);
-            //if(i==0){
-            //    _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
-            //}
-            //else if(i==1){
-            //    _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
-            //}
-            axisTypesChanged = true;
-            if ( AxisMapper::getType(name)==Carta::Lib::AxisInfo::KnownType::STOKES ){
-                m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
-                continue;
-            }
-            m_state.setValue<QString>( lookup, name );
-        }
+        m_state.setValue<QString>( lookup, name );
         axisIndex++;
     }
-
-    if ( axisTypesChanged ){
-        m_state.flushState();
-    }
+    // Deprecated. This part is designed for GridControls
+    // int oldCount = m_state.getArraySize( SUPPORTED_AXES );
+    // m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+    //
+    // int axisIndex = 0;
+    // for( int i=0; i<axisCount; i++ ){
+    //     QString name = supportedAxes[i].longLabel().plain();
+    //     QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, axisIndex );
+    //     QString oldName;
+    //     if ( i < oldCount ){
+    //         oldName = m_state.getValue<QString>( lookup );
+    //     }
+    //     if ( name != oldName ){
+    //         //_setAxis( AxisMapper::AXIS_X, supportedAxes[0].longLabel().plain(), &axisTypesChanged);
+    //         //_setAxis( AxisMapper::AXIS_Y, supportedAxes[1].longLabel().plain(), &axisTypesChanged);
+    //         //if(i==0){
+    //         //    _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
+    //         //}
+    //         //else if(i==1){
+    //         //    _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
+    //         //}
+    //         axisTypesChanged = true;
+    //         if ( AxisMapper::getType(name)==Carta::Lib::AxisInfo::KnownType::STOKES ){
+    //             m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
+    //             continue;
+    //         }
+    //         m_state.setValue<QString>( lookup, name );
+    //     }
+    //     axisIndex++;
+    // }
+    //
+    // if ( axisTypesChanged ){
+    //     m_state.flushState();
+    // }
     return axisTypesChanged;
 }
 
