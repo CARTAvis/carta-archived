@@ -430,6 +430,8 @@ protected:
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
 
+    virtual QString _setAxisX( QString name ) Q_DECL_OVERRIDE; 
+
     /**
      * Set the mode used to compose this layer.
      * @param compositionMode - the mode used to compose this layer.

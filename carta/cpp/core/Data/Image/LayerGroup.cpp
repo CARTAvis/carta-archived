@@ -1,6 +1,8 @@
 #include "LayerGroup.h"
 #include "LayerData.h"
 #include "DataSource.h"
+#include "Grid/AxisMapper.h"
+#include "Grid/DataGrid.h"
 #include "Data/Util.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "CartaLib/IRemoteVGView.h"
@@ -940,6 +942,15 @@ void LayerGroup::_setColorSupport( Layer* layer ){
     bool alphaSupport = m_compositionModes->isAlphaSupport( compMode );
     layer->_setSupportColor( colorSupport );
     layer->_setSupportAlpha( alphaSupport );
+}
+
+QString LayerGroup::_setAxisX( QString name ){
+    // TODO: the variable is used to match the parameter of function, remove it later.
+    bool axisChanged = false;
+    // TODO: should layergroup change all the datagrid of children?
+    std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
+    QString result = dataGrid->_setAxis( AxisMapper::AXIS_X, name, &axisChanged );
+    return result;
 }
 
 bool LayerGroup::_setCompositionMode( const QString& id, const QString& compositionMode,

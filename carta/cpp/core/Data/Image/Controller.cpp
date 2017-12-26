@@ -733,7 +733,7 @@ void Controller::_initializeCallbacks(){
 
 
     addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
+            const QString & /*params*/, const QString & /*sessionId*/) ->QString {
         Carta::State::StateInterface dataGridState = m_stack->_getDataGridState();
         QString result = dataGridState.toString();
         return result;
@@ -1061,14 +1061,15 @@ void Controller::_initializeCallbacks(){
     //     return result;
     // });
     //
-    // addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
-    //                     const QString & params, const QString & /*sessionId*/) ->QString {
-    //     std::set<QString> keys = {AxisMapper::AXIS_X};
-    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //     QString axisName = dataValues[AxisMapper::AXIS_X];
-    //     QString result = setAxis( AxisMapper::AXIS_X, axisName );
-    //     return result;
-    // });
+    addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) ->QString {
+        // std::set<QString> keys = {AxisMapper::AXIS_X};
+        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        // QString axisName = dataValues[AxisMapper::AXIS_X];
+        // QString result = setAxis( AxisMapper::AXIS_X, axisName );
+        QString result = m_stack->_setAxisX( params );
+        return result;
+    });
     //
     // addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
     //                     const QString & params, const QString & /*sessionId*/) ->QString {

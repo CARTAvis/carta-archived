@@ -60,6 +60,7 @@ protected:
     virtual QStringList _getLayerIds( ) const Q_DECL_OVERRIDE;
 
 
+    virtual QString _setAxisX( QString name ) Q_DECL_OVERRIDE;
 
     /**
      * Give the layer (a more user-friendly) name.

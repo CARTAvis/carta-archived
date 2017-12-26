@@ -307,6 +307,7 @@ void DataGrid::_initializeDefaultState(){
     QString yName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Y, cs );
     m_state.insertValue<QString>( AxisMapper::AXIS_Y, yName );
 
+    // Provide the list of supported coordinate systems to javascript
     QStringList coordinateSystems = m_coordSystems->getCoordinateSystems();
     m_state.insertArray( SUPPORTED_COORDINATE_SYSTEMS, coordinateSystems.length() );
     for( int i=0; i<coordinateSystems.length(); i++ ){
@@ -503,6 +504,8 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
                 // update Label format
                 std::vector<AxisInfo::KnownType> AxisTypeArray = _getDisplayAxes();
                 m_formats->setAxisformat(&AxisTypeArray[0]);
+
+                result = m_state.toString();
             }
         }
         else {

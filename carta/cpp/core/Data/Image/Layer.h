@@ -521,6 +521,8 @@ protected:
      */
     virtual void _resetZoom( ) = 0;
 
+    virtual QString _setAxisX( QString name ) = 0;
+
     /**
      * Set the mode used to compose this layer.
      * @param id - the identifier for the layer group where the composition mode will change.

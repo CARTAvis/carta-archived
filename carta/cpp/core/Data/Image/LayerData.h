@@ -429,6 +429,8 @@ protected:
      */
     virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
 
+    virtual QString _setAxisX( QString name ) Q_DECL_OVERRIDE;
+
     /**
      * Group or ungroup any child layers.
      * @param grouped - true if child layers should be grouped; false, otherwise.
