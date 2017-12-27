@@ -1062,7 +1062,7 @@ void Controller::_initializeCallbacks(){
     // });
     //
     addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) ->QString {
+            const QString & params, const QString & /*sessionId*/) ->QString {
         // std::set<QString> keys = {AxisMapper::AXIS_X};
         // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
         // QString axisName = dataValues[AxisMapper::AXIS_X];

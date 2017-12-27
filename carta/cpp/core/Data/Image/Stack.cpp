@@ -653,30 +653,35 @@ void Stack::_saveState( bool flush ) {
 }
 
 QString Stack::_setAxisX( QString name ){
-    bool axisChanged = false;
-    // TODO: should layergroup change all the datagrid of children?
-    std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
-    QString result = dataGrid->_setAxis( AxisMapper::AXIS_X, name, &axisChanged );
-
-    std::vector<AxisInfo::KnownType> displayTypes = dataGrid->_getDisplayAxes();
-    int dataIndex = _getIndexCurrent();
-    if (dataIndex >= 0 ) {
-        if (m_children[dataIndex] != nullptr) {
-            std::vector<int> frames = _getFrameIndices();
-            m_children[dataIndex]->_displayAxesChanged( displayTypes, frames );
-        }
-    }
-    emit viewLoad();
+    // bool axisChanged = false;
+    // // TODO: should layergroup change all the datagrid of children?
+    // std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
+    // QString result = dataGrid->_setAxis( AxisMapper::AXIS_X, name, &axisChanged );
+    //
+    // std::vector<AxisInfo::KnownType> displayTypes = dataGrid->_getDisplayAxes();
+    // int dataIndex = _getIndexCurrent();
+    // if (dataIndex >= 0 ) {
+    //     if (m_children[dataIndex] != nullptr) {
+    //         std::vector<int> frames = _getFrameIndices();
+    //         m_children[dataIndex]->_displayAxesChanged( displayTypes, frames );
+    //     }
+    // }
+    // emit viewLoad();
 
     //TODO: so far the _displayAxesChanged() should be called from Stack
     //due to the _getFrameIndices(), try to simplify this part
-    // int dataIndex = _getIndexCurrent();
-    // if ( dataIndex >= 0 ){
-    //     m_children[dataIndex]->_setAxisX( name );
-    //     std::vector<int> frames = _getFrameIndices();
-    //     m_children[dataIndex]->_displayAxesChanged( displayTypes, frames );
-    //     emit viewLoad();
-    // }
+    QString result = "";
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_setAxisX( name );
+
+        // Get the updated datagrid to update raster image
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        std::vector<AxisInfo::KnownType> displayTypes = dataGrid->_getDisplayAxes();
+        std::vector<int> frames = _getFrameIndices();
+        m_children[dataIndex]->_displayAxesChanged( displayTypes, frames );
+        emit viewLoad();
+    }
 
     // TODO: the return value mix with exception, try to seperate them.
     return result;
