@@ -1037,6 +1037,17 @@ QString LayerData::_setAxisX( QString name ){
     return result;
 }
 
+QString LayerData::_setDataGridState( const QString stateName, const QString stateValue ){
+    QString result;
+    // use setTickTransparency to try
+    // TODO: build a table to decide type of argument for each state element.
+    if( stateName == Carta::State::UtilState::getLookup( DataGrid::TICK, Util::ALPHA ) ){
+        int value = stateValue.toInt();
+        result = m_dataGrid->_setState<int>( stateName, value );
+    }
+    return result;
+}
+
 bool LayerData::_setLayersGrouped( bool /*grouped*/, const QSize& /*viewSize*/  ){
     return false;
 }

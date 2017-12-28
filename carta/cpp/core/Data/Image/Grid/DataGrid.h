@@ -32,6 +32,7 @@ class DataGrid : public Carta::State::CartaObject {
 friend class LayerData;
 friend class LayerGroup;
 friend class Stack;
+friend class Controller;
 friend class GridControls;
 
 public:
@@ -93,6 +94,13 @@ private:
     QStringList _setTickColor( int redAmount, int greenAmount, int blueAmount, bool* colorChanged );
     QString _setTickTransparency( int transparency, bool* transparencyChanged );
     QString _setTheme( const QString& theme, bool* themeChanged );
+
+    // template function should be defined in header file
+    template < typename T > QString _setState( const QString stateName, const T stateValue ){
+        m_state.setValue<T>( stateName, stateValue );
+        _resetGridRenderer();
+        return m_state.toString();
+    };
 
     Carta::State::StateInterface _getState();
     QPen _getPen( const QString& key, const Carta::State::StateInterface& state );

@@ -1400,23 +1400,13 @@ void Controller::_initializeCallbacks(){
     //                     return result;
     //                 });
     //
-    // addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
-    //                                     const QString & params, const QString & /*sessionId*/) -> QString {
-    //         QString result;
-    //         std::set<QString> keys = {Util::ALPHA};
-    //         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //         QString transparencyStr = dataValues[Util::ALPHA];
-    //         bool validInt = false;
-    //         int transparency = transparencyStr.toInt( &validInt );
-    //         if ( validInt ){
-    //             result = setTickTransparency( transparency );
-    //         }
-    //         else {
-    //             result = "Tick transparency must be an integer:"+params;
-    //         }
-    //         Util::commandPostProcess( result );
-    //         return result;
-    //     });
+    addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = Carta::State::UtilState::getLookup( DataGrid::TICK, Util::ALPHA );
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
     //
     // addCommandCallback( "setTheme", [=] (const QString & /*cmd*/,
     //                         const QString & params, const QString & /*sessionId*/) -> QString {

@@ -532,6 +532,8 @@ protected:
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg );
 
+    virtual QString _setDataGridState( const QString stateName, const QString stateValue );
+
     /**
      * Attempts to load an image file.
      * @param fileName - an identifier for the location of the image file.

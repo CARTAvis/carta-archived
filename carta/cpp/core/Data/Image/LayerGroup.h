@@ -440,6 +440,8 @@ protected:
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg ) Q_DECL_OVERRIDE;
 
+    virtual QString _setDataGridState( const QString stateName, const QString stateValue ) Q_DECL_OVERRIDE;
+
     /**
      * Give the layer (a more user-friendly) name.
      * @param id - an identifier for the layer to rename.
