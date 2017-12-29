@@ -1382,28 +1382,18 @@ void Controller::_initializeCallbacks(){
     //         return result;
     //     });
     //
-    // addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
-    //                         const QString & params, const QString & /*sessionId*/) -> QString {
-    //                     QString result;
-    //                     std::set<QString> keys = {DataGrid::TICK};
-    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //                     QString thicknessStr = dataValues[DataGrid::TICK];
-    //                     bool validInt = false;
-    //                     int thickness = thicknessStr.toInt( &validInt );
-    //                     if ( validInt ){
-    //                         result = setTickThickness( thickness  );
-    //                     }
-    //                     else {
-    //                         result = "Tick thickness must be a number:"+params;
-    //                     }
-    //                     Util::commandPostProcess( result );
-    //                     return result;
-    //                 });
-    //
+    addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::TICK_WIDTH;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
+
     addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
 
-        QString stateName = Carta::State::UtilState::getLookup( DataGrid::TICK, Util::ALPHA );
+        QString stateName = DataGrid::TICK_ALPHA;
         QString result = m_stack->_setDataGridState( stateName, params );
         return result;
     });

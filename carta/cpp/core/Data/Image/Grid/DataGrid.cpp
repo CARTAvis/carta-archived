@@ -25,6 +25,8 @@ const QString DataGrid::AXES = "axes";
 const QString DataGrid::COORD_SYSTEM = "skyCS";
 const QString DataGrid::DIRECTION = "direction";
 const QString DataGrid::FONT = "font";
+const QString DataGrid::FONT_SIZE = "font/size";
+const QString DataGrid::FONT_FAMILY = "font/family";
 const QString DataGrid::LABEL_COLOR = "labels";
 const QString DataGrid::LABEL_DECIMAL_PLACES = "decimals";
 const QString DataGrid::LABEL_DECIMAL_PLACES_MAX = "decimalsMax";
@@ -51,6 +53,62 @@ const int DataGrid::MARGIN_LABEL = 50;
 const int DataGrid::TICK_LENGTH_MAX = 50;
 const int DataGrid::PEN_FACTOR = 10;
 const int DataGrid::LABEL_DECIMAL_MAX = 10;
+
+const QString DataGrid::AXES_ALPHA = "axes/alpha";
+const QString DataGrid::AXES_BLUE = "axes/blue";
+const QString DataGrid::AXES_GREEN = "axes/greeen";
+const QString DataGrid::AXES_RED = "axes/red";
+const QString DataGrid::AXES_WIDTH = "axes/width";
+const QString DataGrid::GRID_ALPHA = "grid/alpha";
+const QString DataGrid::GRID_BLUE = "grid/blue";
+const QString DataGrid::GRID_GREEN = "grid/green";
+const QString DataGrid::GRID_RED = "grid/red";
+const QString DataGrid::GRID_WIDTH = "grid/width";
+const QString DataGrid::TICK_ALPHA = "tick/alpha";
+const QString DataGrid::TICK_BLUE = "tick/blue";
+const QString DataGrid::TICK_GREEN = "tick/green";
+const QString DataGrid::TICK_RED = "tick/red";
+const QString DataGrid::TICK_WIDTH = "tick/width";
+const QString DataGrid::LABEL_COLOR_BLUE = "labels/blue";
+const QString DataGrid::LABEL_COLOR_GREEN = "labels/green";
+const QString DataGrid::LABEL_COLOR_RED = "labels/red";
+
+const std::map< QString, DataGrid::ConvertType > DataGrid::typeTable = {
+    // TODO: label format, coordinate system
+    { DataGrid::SHOW_AXIS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_COORDS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_GRID_LINES, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_INTERNAL_LABELS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_STATISTICS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_TICKS, DataGrid::ConvertType::BOOL },
+
+    { DataGrid::AXES_ALPHA, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_RED, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_WIDTH, DataGrid::ConvertType::INT },
+    { DataGrid::FONT_SIZE, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_ALPHA, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_RED, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_WIDTH, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_COLOR_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_COLOR_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_COLOR_RED, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_DECIMAL_PLACES, DataGrid::ConvertType::INT },
+    { DataGrid::SPACING, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_ALPHA, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_RED, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_WIDTH, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_LENGTH, DataGrid::ConvertType::INT },
+
+    { DataGrid::FONT_FAMILY, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::THEME, DataGrid::ConvertType::NOCONVERT }
+    // { Carta::State::UtilState::getLookup( DataGrid::TICK, Util::ALPHA ), DataGrid::ConvertType::INT }
+};
 
 using Carta::Lib::AxisInfo;
 
@@ -998,6 +1056,38 @@ QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
         result = "The theme "+theme+" was not recognized";
     }
     return result;
+}
+
+QString DataGrid::_setState( const QString stateName, const QString stateValue ){
+    // ConvertType convertType = _typeClassifier( stateName, stateValue );
+    // ConvertType convertType = typeTable[stateName];
+    ConvertType convertType = ConvertType::UNKNOWN;
+    if ( typeTable.find(stateName) != typeTable.end() ){
+        convertType = typeTable.find(stateName)->second;
+    }
+
+    switch (convertType) {
+        case ConvertType::BOOL:{
+            bool valid = false;
+            bool boolValue = Util::toBool( stateValue, &valid);
+            m_state.setValue<bool>( stateName, boolValue );
+        }
+        break;
+        case ConvertType::INT:{
+            int intValue = stateValue.toInt();
+            m_state.setValue<int>( stateName, intValue );
+        }
+        break;
+        case ConvertType::NOCONVERT:{
+            m_state.setValue<QString>( stateName, stateValue );
+        }
+        break;
+        default:
+            qCritical() << "Unknown type to convert.";
+        break;
+    }
+    _resetGridRenderer();
+    return m_state.toString();
 }
 
 DataGrid::~DataGrid(){
