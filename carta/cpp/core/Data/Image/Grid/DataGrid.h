@@ -32,6 +32,7 @@ class DataGrid : public Carta::State::CartaObject {
 friend class LayerData;
 friend class LayerGroup;
 friend class Stack;
+// For controller to use const string in callback.
 friend class Controller;
 friend class GridControls;
 

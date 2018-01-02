@@ -1311,23 +1311,13 @@ void Controller::_initializeCallbacks(){
     //                 return result;
     //             });
     //
-    // addCommandCallback( "setShowTicks", [=] (const QString & /*cmd*/,
-    //                 const QString & params, const QString & /*sessionId*/) -> QString {
-    //             QString result;
-    //             std::set<QString> keys = {DataGrid::SHOW_TICKS};
-    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //             QString showTicksStr = dataValues[DataGrid::SHOW_TICKS];
-    //             bool validBool = false;
-    //             bool showTicks = Util::toBool( showTicksStr, &validBool );
-    //             if ( validBool ){
-    //                 result = setShowTicks( showTicks  );
-    //             }
-    //             else {
-    //                 result = "Making ticks visible/invisible must be true/false:"+params;
-    //             }
-    //             Util::commandPostProcess( result );
-    //             return result;
-    //         });
+    addCommandCallback( "setShowTicks", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::SHOW_TICKS;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
     //
     // addCommandCallback( "setShowStatistics", [=] (const QString & /*cmd*/,
     //                     const QString & params, const QString & /*sessionId*/) -> QString {
