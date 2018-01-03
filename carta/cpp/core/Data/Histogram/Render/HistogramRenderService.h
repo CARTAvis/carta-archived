@@ -43,7 +43,7 @@ public:
      * @param request - a collection of parameters that specify how to render the histogram.
      */
     bool renderHistogram(const HistogramRenderRequest& request );
-
+    Carta::Lib::Hooks::HistogramResult getResult();
     /**
      * Destructor.
      */
@@ -57,7 +57,7 @@ signals:
     void histogramResult( const Carta::Lib::Hooks::HistogramResult& result );
 
 private slots:
-
+    void _setResult(Carta::Lib::Hooks::HistogramResult result);
     void _postResult(Carta::Lib::Hooks::HistogramResult result);
 
 private:
@@ -69,6 +69,7 @@ private:
 
     HistogramRenderService( const HistogramRenderService& other);
     HistogramRenderService& operator=( const HistogramRenderService& other );
+    Carta::Lib::Hooks::HistogramResult m_result;
 };
 }
 }

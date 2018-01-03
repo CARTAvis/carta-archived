@@ -26,7 +26,6 @@ namespace Hooks
 class HistogramHook : public BaseHook
 {
     CARTA_HOOK_BOILER1( HistogramHook );
-
 public:
 
     /**
@@ -79,7 +78,6 @@ public:
     {
         CARTA_ASSERT( is < Me > () );
     }
-
     ResultType result;
     Params * paramsPtr;
 };

@@ -29,6 +29,7 @@
 #include <QtCore/qmath.h>
 #include <QDir>
 #include <QDebug>
+#include <QJsonObject>
 
 namespace Carta {
 
@@ -568,7 +569,27 @@ void Histogram::_initializeCallbacks(){
                 QString result = _getPreferencesId();
                 return result;
             });
-
+    addCommandCallback( "getHistogramData", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        Carta::Lib::Hooks::HistogramResult histogramResult = m_renderService->getResult();
+        std::vector<std::pair<double,double>> data = histogramResult.getData();
+        qDebug() << "histogram data: " << data;
+        int dataCount = data.size();
+        QJsonObject m_histogramData;
+        if ( dataCount > 0 ){
+            QJsonArray histogramDataX, histogramDataY;
+            for( int i = 0 ; i < dataCount; i ++ ){
+                histogramDataX.append( data[i].first );
+                histogramDataY.append( data[i].second );
+            }
+            m_histogramData.insert( "x", histogramDataX );
+            m_histogramData.insert( "y", histogramDataY );
+        }
+        QString result = "";
+        QJsonDocument doc(m_histogramData);
+        result = QString(doc.toJson());
+        return result;
+    });
     addCommandCallback( "setBinWidth", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
             QString result;
