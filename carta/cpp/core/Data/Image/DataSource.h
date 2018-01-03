@@ -47,7 +47,7 @@ class DataSource : public QObject {
     friend class Histogram;
     friend class Profiler;
     friend class Colormap;
-
+    friend class Controller;
     Q_OBJECT
 
 public:
