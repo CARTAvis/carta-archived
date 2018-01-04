@@ -7,6 +7,8 @@
 
 #include "CartaLib/IImage.h"
 #include "CartaLib/Slice.h"
+#include "CartaLib/IntensityUnitConverter.h"
+#include <random>
 
 /// Implementing the bare minimum; excluding slices for now
 
@@ -166,23 +168,26 @@ public:
 };
 
 class QuantileTestData {
+public:
     QuantileTestData(
-        const Carta::Lib::NdArray::Double view,
-        const std::vector<double> percentiles,
-        const int spectralIndex,
-        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hzValues,
-        const std::map <double, double> expected
-    ) :  view(view), percentiles(percentiles), spectralIndex(spectralIndex), converter(converter), hzValues(hzValues), expected(expected) {
+        std::string name,
+        Carta::Lib::NdArray::Double view,
+        std::vector<double> percentiles,
+        int spectralIndex,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        std::vector<double> hzValues,
+        std::map <double, double> expected
+    ) :  name(name), view(view), percentiles(percentiles), spectralIndex(spectralIndex), converter(converter), hzValues(hzValues), expected(expected) {
     }
 
-    const Carta::Lib::NdArray::Double view;
-    const std::vector<double> percentiles;
-    const int spectralIndex;
-    const Carta::Lib::IntensityUnitConverter::SharedPtr converter;
-    const std::vector<double> hzValues;
-    const std::map <double, double> expected;
-}
+    std::string name;
+    Carta::Lib::NdArray::Double view;
+    std::vector<double> percentiles;
+    int spectralIndex;
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter;
+    std::vector<double> hzValues;
+    std::map <double, double> expected;
+};
 
 std::vector<QuantileTestData> commonTestCases() {
     std::vector<int> dims = {200, 200, 10};
@@ -211,7 +216,7 @@ std::vector<QuantileTestData> commonTestCases() {
     std::map <double, double> exactSolutionFrameDependent = {
         {0, 0.015625},
         {0.01, 103.3},
-        {0.1, 1035.14},
+        {0.1, 1035.1358024691},
         {0.9, 80052},
         {0.99, 360171},
         {1, 399994}
@@ -223,9 +228,9 @@ std::vector<QuantileTestData> commonTestCases() {
     
     std::vector<QuantileTestData> cases;
     
-    cases.push_back(QuantileTestData(doubleView, percentiles, -1, nullptr, {}, exactSolution));
-    cases.push_back(QuantileTestData(doubleView, percentiles, spectralIndex, std::make_shared<FrameDependentConverter>(), dummyHzValues, exactSolutionFrameDependent));
-    cases.push_back(QuantileTestData(doubleView, percentiles, spectralIndex, std::make_shared<FrameIndependentConverter>(), dummyHzValues, exactSolution));
+    cases.push_back(QuantileTestData("no conversion", doubleView, percentiles, -1, nullptr, {}, exactSolution));
+    cases.push_back(QuantileTestData("frame-dependent conversion", doubleView, percentiles, spectralIndex, std::make_shared<FrameDependentConverter>(), dummyHzValues, exactSolutionFrameDependent));
+    cases.push_back(QuantileTestData("frame-independent conversion", doubleView, percentiles, spectralIndex, std::make_shared<FrameIndependentConverter>(), dummyHzValues, exactSolution));
     
     return cases;
 }
