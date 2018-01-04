@@ -105,6 +105,7 @@ const std::map< QString, DataGrid::ConvertType > DataGrid::typeTable = {
     { DataGrid::TICK_WIDTH, DataGrid::ConvertType::INT },
     { DataGrid::TICK_LENGTH, DataGrid::ConvertType::INT },
 
+    { DataGrid::COORD_SYSTEM, DataGrid::ConvertType::NOCONVERT },
     { DataGrid::FONT_FAMILY, DataGrid::ConvertType::NOCONVERT },
     { DataGrid::THEME, DataGrid::ConvertType::NOCONVERT }
     // { Carta::State::UtilState::getLookup( DataGrid::TICK, Util::ALPHA ), DataGrid::ConvertType::INT }

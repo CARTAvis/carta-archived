@@ -1080,15 +1080,17 @@ void Controller::_initializeCallbacks(){
     //     return result;
     // });
     //
-    // addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
-    //                 const QString & params, const QString & /*sessionId*/) -> QString {
-    //             std::set<QString> keys = {DataGrid::COORD_SYSTEM};
-    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //             QString showAxisStr = dataValues[DataGrid::SHOW_AXIS];
-    //             QString result = setCoordinateSystem( dataValues[DataGrid::COORD_SYSTEM] );
-    //             Util::commandPostProcess( result );
-    //             return result;
-    //         });
+    addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        // std::set<QString> keys = {DataGrid::COORD_SYSTEM};
+        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        // QString showAxisStr = dataValues[DataGrid::SHOW_AXIS];
+        // QString result = setCoordinateSystem( dataValues[DataGrid::COORD_SYSTEM] );
+        // Util::commandPostProcess( result );
+        QString stateName = DataGrid::COORD_SYSTEM;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
     //
     // addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
     //                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1238,60 +1240,29 @@ void Controller::_initializeCallbacks(){
     //         return errors;
     //     });
     //
-    // addCommandCallback( "setShowAxis", [=] (const QString & /*cmd*/,
-    //             const QString & params, const QString & /*sessionId*/) -> QString {
-    //         QString result;
-    //         std::set<QString> keys = {DataGrid::SHOW_AXIS};
-    //         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //         QString showAxisStr = dataValues[DataGrid::SHOW_AXIS];
-    //         bool validBool = false;
-    //         bool showAxis = Util::toBool( showAxisStr, &validBool );
-    //         if ( validBool ){
-    //             result = setShowAxis( showAxis  );
-    //         }
-    //         else {
-    //             result = "Making an axis visible/invisible must be true/false:"+params;
-    //         }
-    //         Util::commandPostProcess( result );
-    //         return result;
-    //     });
-    //
-    // addCommandCallback( "setShowCoordinateSystem", [=] (const QString & /*cmd*/,
-    //                 const QString & params, const QString & /*sessionId*/) -> QString {
-    //             QString result;
-    //             std::set<QString> keys = {DataGrid::SHOW_COORDS};
-    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //             QString showCoordsStr = dataValues[DataGrid::SHOW_COORDS];
-    //             bool validBool = false;
-    //             bool showCoord = Util::toBool( showCoordsStr, &validBool );
-    //             if ( validBool ){
-    //                 result = setShowCoordinateSystem( showCoord );
-    //             }
-    //             else {
-    //                 result = "Whether or not to show the coordinate system must be true/false:"+params;
-    //             }
-    //             Util::commandPostProcess( result );
-    //             return result;
-    //         });
-    //
-    //
-    // addCommandCallback( "setShowGridLines", [=] (const QString & /*cmd*/,
-    //                 const QString & params, const QString & /*sessionId*/) -> QString {
-    //             QString result;
-    //             std::set<QString> keys = {DataGrid::SHOW_GRID_LINES};
-    //             std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //             QString showLinesStr = dataValues[DataGrid::SHOW_GRID_LINES];
-    //             bool validBool = false;
-    //             bool showLines = Util::toBool( showLinesStr, &validBool );
-    //             if ( validBool ){
-    //                 result = setShowGridLines( showLines  );
-    //             }
-    //             else {
-    //                 result = "Setting axis grid lines visible/invisible must be true/false:"+params;
-    //             }
-    //             Util::commandPostProcess( result );
-    //             return result;
-    //         });
+    addCommandCallback( "setShowAxis", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::SHOW_AXIS;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
+
+    addCommandCallback( "setShowCoordinateSystem", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::SHOW_COORDS;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
+
+    addCommandCallback( "setShowGridLines", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::SHOW_GRID_LINES;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
     //
     // addCommandCallback( "setShowInternalLabels", [=] (const QString & /*cmd*/,
     //                     const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1354,24 +1325,14 @@ void Controller::_initializeCallbacks(){
     //            return errors;
     //        });
     //
-    // addCommandCallback( "setTickLength", [=] (const QString & /*cmd*/,
-    //                             const QString & params, const QString & /*sessionId*/) -> QString {
-    //         QString result;
-    //         std::set<QString> keys = {DataGrid::TICK_LENGTH};
-    //         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //         QString lengthStr = dataValues[DataGrid::TICK_LENGTH];
-    //         bool validInt = false;
-    //         int length = lengthStr.toInt( &validInt );
-    //         if ( validInt ){
-    //             result = setTickLength( length  );
-    //         }
-    //         else {
-    //             result = "Tick length must be a number:"+params;
-    //         }
-    //         Util::commandPostProcess( result );
-    //         return result;
-    //     });
-    //
+    addCommandCallback( "setTickLength", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::TICK_LENGTH;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
+
     addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
 
