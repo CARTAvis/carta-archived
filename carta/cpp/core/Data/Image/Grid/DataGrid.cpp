@@ -97,13 +97,14 @@ const std::map< QString, DataGrid::ConvertType > DataGrid::typeTable = {
     { DataGrid::LABEL_COLOR_GREEN, DataGrid::ConvertType::INT },
     { DataGrid::LABEL_COLOR_RED, DataGrid::ConvertType::INT },
     { DataGrid::LABEL_DECIMAL_PLACES, DataGrid::ConvertType::INT },
-    { DataGrid::SPACING, DataGrid::ConvertType::INT },
     { DataGrid::TICK_ALPHA, DataGrid::ConvertType::INT },
     { DataGrid::TICK_BLUE, DataGrid::ConvertType::INT },
     { DataGrid::TICK_GREEN, DataGrid::ConvertType::INT },
     { DataGrid::TICK_RED, DataGrid::ConvertType::INT },
     { DataGrid::TICK_WIDTH, DataGrid::ConvertType::INT },
     { DataGrid::TICK_LENGTH, DataGrid::ConvertType::INT },
+
+    { DataGrid::SPACING, DataGrid::ConvertType::DOUBLE },
 
     { DataGrid::COORD_SYSTEM, DataGrid::ConvertType::NOCONVERT },
     { DataGrid::FONT_FAMILY, DataGrid::ConvertType::NOCONVERT },
@@ -1077,6 +1078,11 @@ QString DataGrid::_setState( const QString stateName, const QString stateValue )
         case ConvertType::INT:{
             int intValue = stateValue.toInt();
             m_state.setValue<int>( stateName, intValue );
+        }
+        break;
+        case ConvertType::DOUBLE:{
+            double doubleValue = stateValue.toDouble();
+            m_state.setValue<double>( stateName, doubleValue);
         }
         break;
         case ConvertType::NOCONVERT:{

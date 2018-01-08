@@ -47,6 +47,7 @@ private:
     enum class ConvertType {
         BOOL,
         INT,
+        DOUBLE,
         NOCONVERT,
         UNKNOWN
     };

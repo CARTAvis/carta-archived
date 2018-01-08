@@ -1113,24 +1113,6 @@ void Controller::_initializeCallbacks(){
     //                 return result;
     //             });
     //
-    // addCommandCallback( "setGridSpacing", [=] (const QString & /*cmd*/,
-    //                         const QString & params, const QString & /*sessionId*/) -> QString {
-    //                     QString result;
-    //                     std::set<QString> keys = {DataGrid::SPACING};
-    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //                     QString spacingStr = dataValues[DataGrid::SPACING];
-    //                     bool validDouble = false;
-    //                     double spacing = spacingStr.toDouble( &validDouble );
-    //                     if ( validDouble ){
-    //                         result = setGridSpacing( spacing  );
-    //                     }
-    //                     else {
-    //                         result = "Grid spacing must be a number:"+params;
-    //                     }
-    //                     Util::commandPostProcess( result );
-    //                     return result;
-    //                 });
-    //
     addCommandCallback( "setFontSize", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
 
@@ -1143,6 +1125,14 @@ void Controller::_initializeCallbacks(){
             const QString & params, const QString & /*sessionId*/) -> QString {
 
         QString stateName = DataGrid::GRID_WIDTH;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
+
+    addCommandCallback( "setGridSpacing", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::SPACING;
         QString result = m_stack->_setDataGridState( stateName, params );
         return result;
     });
@@ -1203,25 +1193,15 @@ void Controller::_initializeCallbacks(){
         QString result = m_stack->_setDataGridState( stateName, params );
         return result;
     });
-    //
-    // addCommandCallback( "setShowInternalLabels", [=] (const QString & /*cmd*/,
-    //                     const QString & params, const QString & /*sessionId*/) -> QString {
-    //                 QString result;
-    //                 std::set<QString> keys = {DataGrid::SHOW_INTERNAL_LABELS};
-    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //                 QString showLabelsStr = dataValues[DataGrid::SHOW_INTERNAL_LABELS];
-    //                 bool validBool = false;
-    //                 bool showLabels = Util::toBool( showLabelsStr, &validBool );
-    //                 if ( validBool ){
-    //                     result = setShowInternalLabels( showLabels  );
-    //                 }
-    //                 else {
-    //                     result = "Showing internal axis labels must be true/false:"+params;
-    //                 }
-    //                 Util::commandPostProcess( result );
-    //                 return result;
-    //             });
-    //
+
+    addCommandCallback( "setShowInternalLabels", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::SHOW_INTERNAL_LABELS;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
+
     addCommandCallback( "setShowTicks", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
 
