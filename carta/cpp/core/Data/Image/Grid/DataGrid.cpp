@@ -749,19 +749,11 @@ QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmo
 }
 
 QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordChanged ){
-    QString result;
-    *coordChanged = false;
-    QString recognizedSystem = m_coordSystems->getCoordinateSystem( coordSystem );
-    if ( !recognizedSystem.isEmpty() ){
-        if ( m_state.getValue<QString>( COORD_SYSTEM) != recognizedSystem ){
-            m_state.setValue<QString>( COORD_SYSTEM, recognizedSystem );
-            *coordChanged = true;
-        }
-    }
-    else {
-        result= "The coordinate system "+coordSystem+" is not supported.";
-    }
-    return result;
+
+    *coordChanged = true;
+    m_state.setValue<QString>( COORD_SYSTEM, coordSystem );
+    _resetGridRenderer();
+    return m_state.toString();
 }
 
 QString DataGrid::_setFontFamily( const QString& fontFamily, bool* familyChanged ){

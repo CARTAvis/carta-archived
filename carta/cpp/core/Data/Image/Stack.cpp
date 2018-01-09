@@ -687,6 +687,16 @@ QString Stack::_setAxisX( QString name ){
     return result;
 }
 
+QString Stack::_setCoordinateSystem( QString csName ){
+    QString result;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_setCoordinateSystem( csName );
+        emit viewLoad();
+    }
+    return result;
+}
+
 QString Stack::_setDataGridState( const QString stateName, const QString stateValue ){
     QString result;
     int dataIndex = _getIndexCurrent();

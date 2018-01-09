@@ -996,6 +996,22 @@ bool LayerGroup::_setCompositionMode( const QString& id, const QString& composit
     return stateChanged;
 }
 
+QString LayerGroup::_setCoordinateSystem( QString csName ){
+    QString result;
+    for ( auto layer : m_children ){
+        // std::shared_ptr<DataGrid> dataGrid = layer->_getDataGrid();
+        result = layer->_setCoordinateSystem( csName );
+    }
+
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        Carta::State::StateInterface dataGridState = dataGrid->_getState();
+        result = dataGridState.toString();
+    }
+    return result;
+}
+
 QString LayerGroup::_setDataGridState( const QString stateName, const QString stateValue ){
     QString result;
     for ( auto layer : m_children ){

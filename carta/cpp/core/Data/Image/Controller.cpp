@@ -1062,13 +1062,8 @@ void Controller::_initializeCallbacks(){
     //
     addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        // std::set<QString> keys = {DataGrid::COORD_SYSTEM};
-        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        // QString showAxisStr = dataValues[DataGrid::SHOW_AXIS];
-        // QString result = setCoordinateSystem( dataValues[DataGrid::COORD_SYSTEM] );
-        // Util::commandPostProcess( result );
-        QString stateName = DataGrid::COORD_SYSTEM;
-        QString result = m_stack->_setDataGridState( stateName, params );
+
+        QString result = m_stack->_setCoordinateSystem( params );
         return result;
     });
     //

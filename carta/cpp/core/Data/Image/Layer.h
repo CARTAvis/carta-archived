@@ -532,6 +532,8 @@ protected:
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg );
 
+    virtual QString _setCoordinateSystem( QString csName ) = 0;
+
     virtual QString _setDataGridState( const QString stateName, const QString stateValue );
 
     /**
