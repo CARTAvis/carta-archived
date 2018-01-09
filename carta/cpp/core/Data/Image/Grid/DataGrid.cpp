@@ -564,10 +564,9 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
                 // update Label format
                 std::vector<AxisInfo::KnownType> AxisTypeArray = _getDisplayAxes();
                 m_formats->setAxisformat(&AxisTypeArray[0]);
-
-                // TODO: simplify the return value(only the xAxis and the yAxis are necessary)
-                result = m_state.toString();
             }
+            // TODO: simplify the return value(only the xAxis and the yAxis are necessary)
+            result = m_state.toString();
         }
         else {
             result = "Unrecognized axis type: "+purpose;

@@ -999,7 +999,6 @@ bool LayerGroup::_setCompositionMode( const QString& id, const QString& composit
 QString LayerGroup::_setCoordinateSystem( QString csName ){
     QString result;
     for ( auto layer : m_children ){
-        // std::shared_ptr<DataGrid> dataGrid = layer->_getDataGrid();
         result = layer->_setCoordinateSystem( csName );
     }
 
