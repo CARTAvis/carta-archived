@@ -3,6 +3,7 @@
 #include "plugins/CasaImageLoader/CCImage.h"
 #include "plugins/PercentileManku99/PercentileManku99Plugin.h"
 #include "plugins/PercentileManku99/PercentileManku99.h"
+#include <QJsonDocument>
 #include <QDebug>
 
 
@@ -11,14 +12,14 @@ bool PercentileManku99Plugin::handleHook( BaseHook & hookData ){
         return true;
     }
     
-    else if ( hookData.is < Carta::Lib::Hooks::PixelToPercentileHook > () ) {
-        Carta::Lib::Hooks::PixelToPercentileHook & hook
-            = static_cast <Carta::Lib::Hooks::PixelToPercentileHook & > ( hookData );
+    else if ( hookData.is < Carta::Lib::Hooks::PixelToPercentileHook<double> > () ) {
+        Carta::Lib::Hooks::PixelToPercentileHook<double> & hook
+            = static_cast <Carta::Lib::Hooks::PixelToPercentileHook<double> & > ( hookData );
         
         // TODO this is currently unused, but we should use it to pick a plugin (maybe)
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = hook.paramsPtr->m_image;
                 
-        hook.result = PercentileManku99(m_numBuffers, m_bufferCapacity, m_sampleAfter);
+        hook.result = std::make_shared<PercentileManku99<double> >(m_numBuffers, m_bufferCapacity, m_sampleAfter);
         
         return true;
     }
@@ -31,7 +32,7 @@ bool PercentileManku99Plugin::handleHook( BaseHook & hookData ){
 std::vector < HookId > PercentileManku99Plugin::getInitialHookList() {
     return {
         Carta::Lib::Hooks::Initialize::staticId,
-        Carta::Lib::Hooks::PixelToPercentileHook::staticId
+        Carta::Lib::Hooks::PixelToPercentileHook<double>::staticId
     };
 }
 

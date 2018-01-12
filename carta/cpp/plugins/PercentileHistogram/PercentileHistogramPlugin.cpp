@@ -3,6 +3,7 @@
 #include "plugins/CasaImageLoader/CCImage.h"
 #include "plugins/PercentileHistogram/PercentileHistogramPlugin.h"
 #include "plugins/PercentileHistogram/PercentileHistogram.h"
+#include <QJsonDocument>
 #include <QDebug>
 
 
@@ -11,14 +12,14 @@ bool PercentileHistogramPlugin::handleHook( BaseHook & hookData ){
         return true;
     }
     
-    else if ( hookData.is < Carta::Lib::Hooks::PixelToPercentileHook > () ) {
-        Carta::Lib::Hooks::PixelToPercentileHook & hook
-            = static_cast <Carta::Lib::Hooks::PixelToPercentileHook & > ( hookData );
+    else if ( hookData.is < Carta::Lib::Hooks::PixelToPercentileHook<double> > () ) {
+        Carta::Lib::Hooks::PixelToPercentileHook<double> & hook
+            = static_cast <Carta::Lib::Hooks::PixelToPercentileHook<double> & > ( hookData );
         
         // TODO this is currently unused, but we should use it to pick a plugin (maybe)
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = hook.paramsPtr->m_image;
                 
-        hook.result = PercentileHistogram(m_numberOfBins);
+        hook.result = std::make_shared<PercentileHistogram<double> >(m_numberOfBins);
         
         return true;
     }
@@ -31,7 +32,7 @@ bool PercentileHistogramPlugin::handleHook( BaseHook & hookData ){
 std::vector < HookId > PercentileHistogramPlugin::getInitialHookList() {
     return {
         Carta::Lib::Hooks::Initialize::staticId,
-        Carta::Lib::Hooks::PixelToPercentileHook::staticId
+        Carta::Lib::Hooks::PixelToPercentileHook<double>::staticId
     };
 }
 

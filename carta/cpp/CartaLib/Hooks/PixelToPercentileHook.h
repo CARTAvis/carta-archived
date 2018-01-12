@@ -26,7 +26,8 @@ class PixelToPercentileHook : public BaseHook
 
 public:
     
-    typedef typename Carta::Lib::IPercentilesToPixels<Scalar>::SharedPtr ResultType;
+//     typedef typename Carta::Lib::IPercentilesToPixels<Scalar>::SharedPtr ResultType;
+    using ResultType = typename Carta::Lib::IPercentilesToPixels<Scalar>::SharedPtr;
 
     /**
      * @brief Params

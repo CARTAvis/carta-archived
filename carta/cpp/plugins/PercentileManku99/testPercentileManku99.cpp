@@ -10,46 +10,44 @@ private slots:
     void test_quantiles();
 };
 
-// TO CONVERT -- PASTED FROM OLD TEST
-
-/*
-SECTION( "Manku 99 algorithm, no conversion") {
-    std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles);
-    REQUIRE(intensities.size() == percentiles.size());
-    for (auto& p : percentiles) {
-        int error = fabs(exactSolution[p] - intensities[p]);
-        double fractionalError = (double)error / size;
-        //qDebug() << error << fractionalError;
-        REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
+void TestPercentileManku99::test_quantiles_data() {
+    std::vector<QuantileTestData> testCases = commonTestCases();
+    
+    Q_DECLARE_METATYPE(Carta::Lib::NdArray::Double);
+    Q_DECLARE_METATYPE(Carta::Lib::IntensityUnitConverter::SharedPtr);
+    
+    QTest::addColumn<Carta::Lib::NdArray::Double>("view");
+    QTest::addColumn<std::vector<double> >("percentiles");
+    QTest::addColumn<int>("spectral_index");
+    QTest::addColumn<Carta::Lib::IntensityUnitConverter::SharedPtr>("converter");
+    QTest::addColumn<std::vector<double> >("hz_values");
+    
+    QTest::addColumn<std::map<double, double> >("expected");
+    
+    for (auto& testCase : testCases) {
+        QTest::newRow(testCase.name.c_str()) << testCase.view << testCase.percentiles << testCase.spectralIndex << testCase.converter << testCase.hzValues << testCase.expected;
     }
 }
 
-// This is terrible. Why? Ordered data?
-// Probably; the algorithm is weighted towards earlier data.
-// How to fix this in the test?
-// Add a scaling factor to the data after scrambling.
-SECTION( "Manku 99 algorithm, frame-dependent conversion") {
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = std::make_shared<FrameDependentConverter>();
+void TestPercentileManku99::test_quantiles() {
+    QFETCH(Carta::Lib::NdArray::Double, view);
+    QFETCH(std::vector<double>, percentiles);
+    QFETCH(int, spectral_index);
+    QFETCH(Carta::Lib::IntensityUnitConverter::SharedPtr, converter);
+    QFETCH(std::vector<double>, hz_values);
     
-    std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
-    REQUIRE(intensities.size() == percentiles.size());
-    for (auto& p : percentiles) {
-        int error = fabs(exactSolutionFrameDependent[p] - intensities[p]);
-        double fractionalError = (double)error / size;
-        qDebug() << exactSolutionFrameDependent[p] << intensities[p] << error << fractionalError;
-        //REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
-    }
-}
-
-SECTION( "Manku 99 algorithm, frame-independent conversion") {
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = std::make_shared<FrameIndependentConverter>();
+    typedef std::map<double, double> DoubleMap;
+    Q_DECLARE_METATYPE(DoubleMap);
+    QFETCH(DoubleMap, expected);
     
-    std::map <double, double> intensities =  Carta::Core::Algorithms::percentile2pixels_approximate_manku99(doubleView, percentiles, spectralIndex, converter, dummyHzValues);
-    REQUIRE(intensities.size() == percentiles.size());
+    std::map <double, double> intensities = PercentileManku99<double>::percentile2pixels(view, percentiles, spectralIndex, converter, hzValues);
+    
+    QVERIFY(intensities.size() == percentiles.size());
+    
     for (auto& p : percentiles) {
-        int error = fabs(exactSolution[p] - intensities[p]);
+        int error = fabs(expected[p] - intensities[p]);
         double fractionalError = (double)error / size;
         //qDebug() << error << fractionalError;
-        REQUIRE(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
+        QVERIFY(fractionalError < 0.03); // 3%; overly generous, but covers expected spikes
     }
-}*/
+}

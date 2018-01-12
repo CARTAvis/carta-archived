@@ -16,17 +16,15 @@ SUBDIRS += ImageStatistics
 SUBDIRS += RegionCASA
 SUBDIRS += RegionDs9
 SUBDIRS += ProfileCASA
-
 SUBDIRS += qimage
-
 SUBDIRS += python273
-
 SUBDIRS += ColormapsPy
-
 SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
-
 SUBDIRS += PCacheSqlite3
+SUBDIRS += PercentileHistogram
+SUBDIRS += PercentileManku99
+SUBDIRS += PercentileManku99/Test.pro
 
 unix:macx {
 # Disable PCacheLevelDB plugin on Mac, since build carta error with LevelDB enabled.

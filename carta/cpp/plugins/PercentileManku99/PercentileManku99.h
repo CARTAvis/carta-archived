@@ -487,13 +487,13 @@ private:
 
 // TODO: error is completely wrong; work out what it actually is
 template <typename Scalar>
-PercentileManku99<Scalar>::PercentileManku99(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter) :Carta::Lib:: IPercentilesToPixels<Scalar>(0.5, "Manku99 approximation", true) : numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
+PercentileManku99<Scalar>::PercentileManku99(const size_t numBuffers, const size_t bufferCapacity, const size_t sampleAfter) :Carta::Lib:: IPercentilesToPixels<Scalar>(0.5, "Manku99 approximation", true), numBuffers(numBuffers), bufferCapacity(bufferCapacity), sampleAfter(sampleAfter) {
 }
 
 template <typename Scalar>
-PercentileManku99<Scalar>::percentile2pixels(
+std::map<double, Scalar> PercentileManku99<Scalar>::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
-    std::vector <double> percentiles
+    std::vector <double> percentiles,
     int spectralIndex,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter,
     std::vector<double> hertzValues

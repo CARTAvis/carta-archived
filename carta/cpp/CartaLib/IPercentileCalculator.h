@@ -60,7 +60,6 @@ public:
     
     const bool isApproximate=false;
     const bool needsMinMax=false;
-private:
     std::vector<Scalar> minMaxIntensities;
 };
 

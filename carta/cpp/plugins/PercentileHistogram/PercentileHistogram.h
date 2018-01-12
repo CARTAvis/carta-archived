@@ -33,12 +33,13 @@ private:
 };
 
 
-PercentileHistogram<Scalar>::PercentileHistogram(const unsigned int numberOfBins) : Carta::Lib::IPercentilesToPixels<Scalar>(1/numberOfBins, "Histogram approximation", true, true) : numberOfBins(numberOfBins) {
+template <typename Scalar>
+PercentileHistogram<Scalar>::PercentileHistogram(const unsigned int numberOfBins) : Carta::Lib::IPercentilesToPixels<Scalar>(1/numberOfBins, "Histogram approximation", true, true), numberOfBins(numberOfBins) {
 }
 
 
 template <typename Scalar>
-PercentileHistogram<Scalar>::percentile2pixels(
+std::map<double, Scalar> PercentileHistogram<Scalar>::percentile2pixels(
     Carta::Lib::NdArray::TypedView < Scalar > & view,
     std::vector <double> percentiles,
     int spectralIndex,
@@ -63,8 +64,8 @@ PercentileHistogram<Scalar>::percentile2pixels(
     
     std::vector<size_t> bins(numberOfBins+1, 0); // initialize the vector binss as 0
 
-    double minIntensity = minMaxIntensities[0]; // get the minimum intensity
-    double maxIntensity =  minMaxIntensities[1]; // get the maximum intensity
+    double minIntensity = this->minMaxIntensities[0]; // get the minimum intensity
+    double maxIntensity = this->minMaxIntensities[1]; // get the maximum intensity
     // These should already have been provided in matching units, but we need to reverse any constant multiplier which may have been applied so that we can make valid comparisons to values inside the loop, which will also not have the constant multiplier applied. 
     if (converter) {
         minIntensity /= converter->multiplier;
@@ -87,9 +88,9 @@ PercentileHistogram<Scalar>::percentile2pixels(
             Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(view, spectralIndex, f);
 
             // iterate over the frame
-            viewSlice.forEach([&bins, &numberOfBins, &pixelIndex, &minIntensity, &intensityRange, &converter, &hertzVal] (const Scalar &val) {
+            viewSlice.forEach([&bins, this, &pixelIndex, &minIntensity, &intensityRange, &converter, &hertzVal] (const Scalar &val) {
                 if (std::isfinite(val)) {
-                    pixelIndex = static_cast<unsigned int>(round(numberOfBins * (converter->_frameDependentConvert(val, hertzVal) - minIntensity) / intensityRange));
+                    pixelIndex = static_cast<unsigned int>(round(this->numberOfBins * (converter->_frameDependentConvert(val, hertzVal) - minIntensity) / intensityRange));
                     bins[pixelIndex]++;
                 }
             });
@@ -97,9 +98,9 @@ PercentileHistogram<Scalar>::percentile2pixels(
     } else {
         // we don't have to do any conversions in the loop
         // and we can loop over the flat image
-        view.forEach([&bins, &numberOfBins, &pixelIndex, &minIntensity, &intensityRange] (const Scalar &val) {
+        view.forEach([&bins, this, &pixelIndex, &minIntensity, &intensityRange] (const Scalar &val) {
             if (std::isfinite(val)) {
-                pixelIndex = static_cast<unsigned int>(round(numberOfBins * (val - minIntensity) / intensityRange));
+                pixelIndex = static_cast<unsigned int>(round(this->numberOfBins * (val - minIntensity) / intensityRange));
                 bins[pixelIndex]++;
             }
         });
