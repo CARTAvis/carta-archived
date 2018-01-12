@@ -64,6 +64,7 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
         _resetFrames( stackIndex );
         _saveState();
     }
+    emit viewLoad();
     return result;
 }
 

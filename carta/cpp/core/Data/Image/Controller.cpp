@@ -1051,7 +1051,7 @@ void Controller::_initializeCallbacks(){
     addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
 
-        QString result = m_stack->_setAxis( AxisMapper::AXIS_Y, axisName );
+        QString result = m_stack->_setAxis( AxisMapper::AXIS_Y, params );
         return result;
     });
 
