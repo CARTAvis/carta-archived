@@ -652,7 +652,7 @@ void Stack::_saveState( bool flush ) {
     }
 }
 
-QString Stack::_setAxisX( QString name ){
+QString Stack::_setAxis( const QString axis, const QString name ){
     // bool axisChanged = false;
     // // TODO: should layergroup change all the datagrid of children?
     // std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
@@ -673,7 +673,7 @@ QString Stack::_setAxisX( QString name ){
     QString result = "";
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        result = m_children[dataIndex]->_setAxisX( name );
+        result = m_children[dataIndex]->_setAxis( axis, name );
 
         // Get the updated datagrid to update raster image
         std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();

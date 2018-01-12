@@ -1043,23 +1043,18 @@ void Controller::_initializeCallbacks(){
 
     addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) ->QString {
-        // std::set<QString> keys = {AxisMapper::AXIS_X};
-        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        // QString axisName = dataValues[AxisMapper::AXIS_X];
-        // QString result = setAxis( AxisMapper::AXIS_X, axisName );
-        QString result = m_stack->_setAxisX( params );
+
+        QString result = m_stack->_setAxis( AxisMapper::AXIS_X, params );
         return result;
     });
-    //
-    // addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
-    //                     const QString & params, const QString & /*sessionId*/) ->QString {
-    //     std::set<QString> keys = {AxisMapper::AXIS_Y};
-    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //     QString axisName = dataValues[AxisMapper::AXIS_Y];
-    //     QString result = setAxis( AxisMapper::AXIS_Y, axisName );
-    //     return result;
-    // });
-    //
+
+    addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+
+        QString result = m_stack->_setAxis( AxisMapper::AXIS_Y, axisName );
+        return result;
+    });
+
     addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
 
@@ -1099,15 +1094,15 @@ void Controller::_initializeCallbacks(){
     //         return errors;
     //     });
     //
-    // addCommandCallback( "setFontFamily", [=] (const QString & /*cmd*/,
-    //                     const QString & params, const QString & /*sessionId*/) -> QString {
-    //                 std::set<QString> keys = {Fonts::FONT_FAMILY};
-    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //                 QString result = setFontFamily( dataValues[Fonts::FONT_FAMILY] );
-    //                 Util::commandPostProcess( result );
-    //                 return result;
-    //             });
-    //
+    addCommandCallback( "setFontFamily", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        // TODO: the function is unfinished
+        QString stateName = DataGrid::FONT_FAMILY;
+        QString result = m_stack->_setDataGridState( stateName, params );
+        return result;
+    });
+
     addCommandCallback( "setFontSize", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
 

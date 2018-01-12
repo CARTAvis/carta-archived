@@ -521,7 +521,7 @@ protected:
      */
     virtual void _resetZoom( ) = 0;
 
-    virtual QString _setAxisX( QString name ) = 0;
+    virtual QString _setAxis( const QString axis, const QString name ) = 0;
 
     /**
      * Set the mode used to compose this layer.

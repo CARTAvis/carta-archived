@@ -944,16 +944,10 @@ void LayerGroup::_setColorSupport( Layer* layer ){
     layer->_setSupportAlpha( alphaSupport );
 }
 
-QString LayerGroup::_setAxisX( QString name ){
+QString LayerGroup::_setAxis( const QString axis, const QString name ){
     QString result;
     for ( auto layer : m_children ){
-        // TODO: the variable is used to match the parameter of function, remove it later.
-        bool axisChanged = false;
-        // TODO: should layergroup change all the datagrid of children?
-        // 2017.12.27 make layergroup change all the datagrid
-        std::shared_ptr<DataGrid> dataGrid = layer->_getDataGrid();
-        // The returned statestring is meanless in this layergroup case
-        result = dataGrid->_setAxis( AxisMapper::AXIS_X, name, &axisChanged );
+        layer->_setAxis( axis, name);
     }
 
     int dataIndex = _getIndexCurrent();

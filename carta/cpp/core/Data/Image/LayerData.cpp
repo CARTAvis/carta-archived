@@ -1017,10 +1017,10 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
     return result;
 }
 
-QString LayerData::_setAxisX( QString name ){
+QString LayerData::_setAxis( const QString axis, const QString name ){
     // TODO: the variable is used to match the parameter of function, remove it later.
     bool axisChanged = false;
-    QString result = m_dataGrid->_setAxis( AxisMapper::AXIS_X, name, &axisChanged );
+    QString result = m_dataGrid->_setAxis( axis, name, &axisChanged );
     return result;
 }
 
