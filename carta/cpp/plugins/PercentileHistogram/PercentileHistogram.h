@@ -17,9 +17,7 @@ template <typename Scalar>
 class PercentileHistogram : public Carta::Lib::IPercentilesToPixels<Scalar> {
 public:
     PercentileHistogram(const unsigned int numberOfBins);
-    
-    ~PercentileHistogram();
-        
+            
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <double> percentiles,

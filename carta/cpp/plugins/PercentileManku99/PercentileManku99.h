@@ -468,9 +468,7 @@ public:
         const size_t bufferCapacity, 
         const size_t sampleAfter
     );
-    
-    ~PercentileManku99();
-    
+        
     std::map<double, Scalar> percentile2pixels(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         std::vector <double> percentiles,
