@@ -146,6 +146,7 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
     return hertzValues;
 }
 
+// TODO: pass in a calculator obtained from plugins
 static void testPercentile(QString imageFname) {
     auto pm = Globals::instance()->pluginManager();
 
@@ -175,6 +176,7 @@ static void testPercentile(QString imageFname) {
     int spectralIndex = getAxisIndex(astroImage, AxisInfo::KnownType::SPECTRAL);
 
     // TODO: set a unit converter for tests
+    // TODO: let the user specify this in parameters;then it becomes the user's responsibility to make it match the file
     //Carta::Lib::IntensityUnitConverter::SharedPtr converter(ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA));
     Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr;
 
@@ -184,11 +186,13 @@ static void testPercentile(QString imageFname) {
         hertzValues = getHertzValues(astroImage, doubleView.dims(), spectralIndex);
     }
 
+    // TODO this needs refactoring
     // calculate Min and Max percentiles: new way
     std::map<double, double> clips_MinMax1 = Carta::Core::Algorithms::minMax2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
     double intensity_min_new = clips_MinMax1[0];
     double intensity_max_new = clips_MinMax1[1];
 
+    // TODO this needs refactoring
     // calculate Min and Max percentiles: original way
     std::map<double, double> clips_MinMax2 = Carta::Core::Algorithms::percentile2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
     double intensity_min_original = clips_MinMax2[0];
@@ -197,10 +201,12 @@ static void testPercentile(QString imageFname) {
     // calculate the intensity range
     double intensity_range = fabs(intensity_max_new-intensity_min_new);
 
+    // TODO: this needs refactoring
     // calculate precise percentiles to intensities
     std::map<double, double>
             clips_map1 = Carta::Core::Algorithms::percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
 
+    // TODO: put this test in a different function and do it once before the histogram approximation only
     // check the difference of Min/Max intensity with new and original algorithms
     qCritical() << "\n############################### START CHECKING #################################";
     qCritical() << "For the image file:" << imageFname;
@@ -214,6 +220,7 @@ static void testPercentile(QString imageFname) {
                     << "!=" << intensity_min_original << "/" << intensity_max_original << "(original way)";
     }
 
+    // TODO: this needs refactoring; use calculator passed in
     // calculate approximate percentiles to intensities
     int bin_number_size = bin_number.size();
     for (int j = 0; j < bin_number_size; j++) {
@@ -291,6 +298,9 @@ static int coreMainCPP(QString platformString, int argc, char **argv) {
     for (const auto & entry : infoList) {
         qDebug() << "  path:" << entry.json.name;
     }
+    
+    // TODO: get the percentile plugins here; initialise calculators and run tests for each calculator
+    // TODO: pass the calculator into the function
 
     // get percentile from the image raw data
     for (int i = 0; i < file_num; i++) {
