@@ -450,7 +450,7 @@ public:
     }
 
     virtual std::shared_ptr<Carta::Lib::Image::ImageInterface>
-            getPermuted(const std::vector<int> & /*indices*/){
+            getPermuted(const std::vector<int> & /*indices*/) override {
             qFatal( "Not implemented");
         }
 

@@ -240,7 +240,6 @@ bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev
 		}
 		else {
 			int regionCount = m_regions.size();
-			int selectedIndex =m_selectRegion->getIndex();
 			for ( int i = 0; i < regionCount; i++ ){
 				m_regions[i]->handleTouch( imagePt);
 			}

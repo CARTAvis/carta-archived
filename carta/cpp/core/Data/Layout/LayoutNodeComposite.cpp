@@ -219,7 +219,7 @@ QStringList LayoutNodeComposite::getPluginList() const {
     return plugins;
 }
 
-QString LayoutNodeComposite::getStateString() const {
+QString LayoutNodeComposite::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
     Carta::State::StateInterface compState( "");
     compState.setState( m_state.toString());
     if ( m_firstChild.get() != nullptr ){

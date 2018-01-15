@@ -106,8 +106,6 @@ ParsedInfo parse(const QString & filePath)
 
     _storeBool( json["hacksEnabled"], &info.m_hacksEnabled, "hacks enabled");
     _storeBool( json["developerLayout"], &info.m_developerLayout, "developer layout");
-    _storeBool( json["qtDecorations"], &info.m_developerDecorations, "developer decorations");
-
     _storePositiveInt( json["histogramBinCountMax"], &info.m_histogramBinCountMax, "histogram bin count max");
     _storePositiveInt( json["contourLevelCountMax"], &info.m_contourLevelCountMax, "contour level count max");
 
@@ -123,10 +121,6 @@ bool ParsedInfo::hacksEnabled() const
 {
     qDebug() << "Hacks enabled retuning "<<m_hacksEnabled;
     return m_hacksEnabled;
-}
-
-bool ParsedInfo::isDeveloperDecorations() const {
-    return m_developerDecorations;
 }
 
 bool ParsedInfo::isDeveloperLayout() const {

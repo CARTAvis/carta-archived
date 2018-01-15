@@ -335,6 +335,8 @@ CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
         mdir = casacore::MDirection::GALACTIC;
         break;
     default :
+        // meanless initilization, only for sliencing warning
+        mdir = casacore::MDirection::DEFAULT;
         CARTA_ASSERT_ALWAYS_X( false, "Internal error" );
         break;
     } // switch

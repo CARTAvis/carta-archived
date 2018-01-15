@@ -87,6 +87,14 @@ contains( CARTA_CONFIG, addrSanit) {
     message( "- no address sanitization")
 }
 
+unix:macx {
+# Disable openmp on Mac
+}
+else{
+    QMAKE_CXXFLAGS += -fopenmp
+    QMAKE_CFLAGS += -fopenmp
+}
+
 # use gcc 4.8.1
 CONFIG += gcc481
 

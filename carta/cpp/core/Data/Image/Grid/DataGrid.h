@@ -64,7 +64,8 @@ private:
     void _resetCoordinateSystem( const QString& coordSystem );
     void _resetState( const Carta::State::StateInterface& otherState );
     QString _setAxis( const QString& axisId, const QString& purpose, bool* axisChanged );
-    bool _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );
+    // Deprecated
+    // bool _setAxisTypes( std::vector<Carta::Lib::AxisInfo::KnownType> supportedAxes );
     bool _setAxisInfos( std::vector<Carta::Lib::AxisInfo> supportedAxes);
     QStringList _setAxesColor( int redAmount, int greenAmount, int blueAmount, bool* axesColorChanged );
     QString _setAxesThickness( int thickness, bool* thicknessChanged );

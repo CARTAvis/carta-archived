@@ -58,7 +58,7 @@ else{
 unix:!macx {
 
   # the below line seems not effect
-  QMAKE_RPATHDIR=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
+  QMAKE_RPATHDIR=$$OUT_PWD/../../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
 
   # if we do not setup QMAKE_RPATHDIR+=$${WCSLIBDIR}/lib,
   # CasaImageLoader will have two duplicate linking to wcslib.

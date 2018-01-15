@@ -41,7 +41,7 @@ protected:
      * Add a contour set.
      * @param contour - the contour set to add.
      */
-    virtual void _addContourSet( std::shared_ptr<DataContours> contour );
+    virtual void _addContourSet( std::shared_ptr<DataContours> contour ) Q_DECL_OVERRIDE;
 
     /**
      * Add a data layer to the group.
@@ -113,9 +113,9 @@ protected:
      * @param valid - whether or not the returned point is valid.
      * @return - the pixel position of the point in image coordinates.
      */
-    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const;
+    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const Q_DECL_OVERRIDE;
 
-    virtual std::shared_ptr<DataContours> _getContour( const QString& name );
+    virtual std::shared_ptr<DataContours> _getContour( const QString& name ) Q_DECL_OVERRIDE;
 
 
     /**
@@ -397,7 +397,7 @@ protected:
     /**
      * Generate a new QImage.
      */
-    virtual void _renderStart( );
+    virtual void _renderStart( ) Q_DECL_OVERRIDE;
 
     /**
      * Center the image.
@@ -469,7 +469,7 @@ protected:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    virtual bool _setMaskAlpha( const QString& id, int alphaAmount);
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount) Q_DECL_OVERRIDE;
 
     /**
      * Reset the default mask transparency.

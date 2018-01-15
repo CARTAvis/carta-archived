@@ -132,7 +132,7 @@ else{
 }
 
 unix:!macx {
-  QMAKE_RPATHDIR=$ORIGIN/../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
+  QMAKE_RPATHDIR=$$OUT_PWD/../../../../../CARTAvis-externals/ThirdParty/casa/trunk/linux/lib
   QMAKE_RPATHDIR+=$${WCSLIBDIR}/lib
 }
 else {

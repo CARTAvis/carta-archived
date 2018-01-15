@@ -18,7 +18,6 @@ SUBDIRS += RegionDs9
 SUBDIRS += ProfileCASA
 SUBDIRS += qimage
 SUBDIRS += python273
-SUBDIRS += ColormapsPy
 SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 SUBDIRS += PCacheSqlite3

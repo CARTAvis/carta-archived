@@ -36,7 +36,7 @@ public:
     virtual QString getPlugin( const QString& locationId ) const Q_DECL_OVERRIDE;
 
     virtual QStringList getPluginList() const Q_DECL_OVERRIDE;
-    virtual QString getStateString() const Q_DECL_OVERRIDE;
+    virtual QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const Q_DECL_OVERRIDE;
     virtual bool isComposite() const Q_DECL_OVERRIDE;
 
     void releaseChild( const QString& key ) Q_DECL_OVERRIDE;
@@ -47,7 +47,7 @@ public:
     virtual void setChildSecond( LayoutNode* node ) Q_DECL_OVERRIDE;
     virtual bool setPlugin( const QString& nodeId, const QString& nodeType, int index ) Q_DECL_OVERRIDE;
     virtual bool setPlugins( QStringList& names, QMap<QString,int>& usedPlugins, bool useFirst ) Q_DECL_OVERRIDE;
-    virtual QString setSize( int width, int height );
+    virtual QString setSize( int width, int height ) Q_DECL_OVERRIDE;
     virtual QString toString() const  Q_DECL_OVERRIDE;
     virtual ~LayoutNodeComposite();
 

@@ -40,7 +40,7 @@ public:
     makeRemoteVGView( QString viewName) override;
 
     /// Return the location where the state is saved.
-    virtual QString getStateLocation( const QString& saveName ) const;
+    virtual QString getStateLocation( const QString& saveName ) const override;
 
 public slots:
 

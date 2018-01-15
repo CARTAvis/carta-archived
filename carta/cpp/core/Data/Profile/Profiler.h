@@ -589,7 +589,7 @@ public:
 
 protected:
     //Callback for moving the frame.
-    virtual void timerEvent( QTimerEvent* event );
+    virtual void timerEvent( QTimerEvent* event ) Q_DECL_OVERRIDE;
 
 private slots:
     void _cursorUpdate( double x, double y );
@@ -644,7 +644,7 @@ private:
     const static QString ZOOM_MAX;
     const static QString ZOOM_MIN_PERCENT;
     const static QString ZOOM_MAX_PERCENT;
-    const static int ERROR_MARGIN;
+    const static double ERROR_MARGIN;
 
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );

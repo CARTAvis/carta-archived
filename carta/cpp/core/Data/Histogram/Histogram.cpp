@@ -149,8 +149,8 @@ QString Histogram::addLink( CartaObject*  target){
                                		this, SLOT(_createHistogram(Controller*)));
                 connect( controller,SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
                         this, SLOT(_updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
-                connect(controller, SIGNAL(clipsChanged(double,double)),
-                        this, SLOT(_updateColorClips(double,double)));
+                connect(controller, SIGNAL(clipsChanged(double,double,bool)),
+                        this, SLOT(_updateColorClips(double,double,bool)));
                 m_controllerLinked = true;
                 _createHistogram( controller );
             }
@@ -218,9 +218,9 @@ void Histogram::applyClips(){
                controller->applyClips( minPercentile, maxPercentile );
            }
        }
-       double colorMin = m_stateData.getValue<double>( COLOR_MIN );
-       double colorMax = m_stateData.getValue<double>( COLOR_MAX );
-       emit colorIntensityBoundsChanged( colorMin, colorMax );
+       //double colorMin = m_stateData.getValue<double>( COLOR_MIN );
+       //double colorMax = m_stateData.getValue<double>( COLOR_MAX );
+       //emit colorIntensityBoundsChanged( colorMin, colorMax, false );
    }
 }
 
@@ -265,7 +265,8 @@ void Histogram::_createHistogram( Controller* controller){
 
         double colorMinPercent = controller->getClipPercentileMin();
         double colorMaxPercent = controller->getClipPercentileMax();
-        _updateColorClips( colorMinPercent, colorMaxPercent );
+        bool autoClip = controller->getAutoClip();
+        _updateColorClips( colorMinPercent, colorMaxPercent, autoClip );
 
 
         m_stateData.flushState();
@@ -2136,15 +2137,16 @@ void Histogram::updateColorMap(){
 }
 
 
-void Histogram::_updateColorClips( double colorMinPercent, double colorMaxPercent ){
+void Histogram::_updateColorClips(double colorMinPercent, double colorMaxPercent, bool autoClip){
     if ( colorMinPercent < colorMaxPercent ){
         double normMin = colorMinPercent * 100;
         double normMax = colorMaxPercent * 100;
         setColorMinPercent( normMin, false );
         setColorMaxPercent( normMax, false );
-        double colorMin = m_stateData.getValue<double>(COLOR_MIN);
-        double colorMax = m_stateData.getValue<double>(COLOR_MAX);
-        emit colorIntensityBoundsChanged( colorMin, colorMax );
+        //double colorMin = m_stateData.getValue<double>(COLOR_MIN);
+        //double colorMax = m_stateData.getValue<double>(COLOR_MAX);
+        //emit colorIntensityBoundsChanged( colorMin, colorMax, autoClip );
+        qDebug() << "++++++++ [Histogram] autoClip=" << autoClip;
         m_stateData.flushState();
     }
 }
@@ -2178,6 +2180,10 @@ void Histogram::_updatePlots( ){
 	m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
 	m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
 	m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
+	bool isColored = getColored();
+	if (isColored) {
+	    updateColorMap();
+	}
 	m_plotManager->updatePlot();
 }
 

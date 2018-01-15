@@ -146,7 +146,7 @@ RegionCASA::_loadRegion( const QString & fname,
 					double dataMinX = std::numeric_limits<double>::max();
 					double dataMinY = std::numeric_limits<double>::max();
 					double dataMaxX = -1 * dataMinX;
-					double dataMaxY = -1 * dataMaxY;
+					double dataMaxY = -1 * dataMinY;
 					QRectF rectangle;
 					for ( int i = 0; i < cornerCount; i++ ){
 						if ( corners[i].x() < dataMinX ){

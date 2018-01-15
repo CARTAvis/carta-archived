@@ -982,7 +982,7 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
     QString result = m_dataSource->_setFileName( fileName, success );
     if ( *success){
 
-        Carta::Lib::KnownSkyCS cs;
+        // Carta::Lib::KnownSkyCS cs;
         QString csName = m_dataSource->_getSkyCS();
         bool csChanged = false;
         QString initCS = m_dataGrid->_setCoordinateSystem( csName, &csChanged);

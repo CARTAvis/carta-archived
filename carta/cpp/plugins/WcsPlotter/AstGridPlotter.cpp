@@ -4,9 +4,6 @@
 
 #include <string.h>
 #include <locale.h>
-extern "C" {
-#include <ast.h>
-};
 
 namespace WcsPlotterPluginNS
 {
@@ -315,13 +312,13 @@ AstGridPlotter::plot()
     grfGlobals()-> vgComposer = m_vgc;
     // pre-cache some things
     grfGlobals()-> prepare();
-    
-    // Temporarily override numeric locale, otherwise AST will fail to 
-    // parse floating point numbers in the FITS header if the user's 
-    // locale uses a comma as a decimal separator. Back up the old 
+
+    // Temporarily override numeric locale, otherwise AST will fail to
+    // parse floating point numbers in the FITS header if the user's
+    // locale uses a comma as a decimal separator. Back up the old
     // locale so that we can switch back afterwards and minimise impact
     // on the rest of the application.
-    
+
     std::string oldLocale = setlocale(LC_NUMERIC, "C");
 
     // get rid of any ast errors from previous calls, just in case
@@ -548,9 +545,9 @@ AstGridPlotter::plot()
     plot = (AstPlot *) astAnnul( plot );
     wcsinfo = (AstFrameSet *) astAnnul( wcsinfo );
     fitschan = (AstFitsChan *) astAnnul( fitschan );
-    
+
     // Restore previous numeric locale
-    
+
     setlocale(LC_NUMERIC, oldLocale.c_str());
 
     return true;

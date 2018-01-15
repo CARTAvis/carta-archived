@@ -95,7 +95,7 @@ QString Colormap::addLink( CartaObject*  cartaObject ){
             if ( objAdded ){
                 connect( this, SIGNAL(colorMapChanged()), hist, SLOT( updateColorMap()));
                 hist->updateColorMap();
-                //connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double)), this, SLOT(_updateIntensityBounds( double, double )));
+                //connect( hist,SIGNAL(colorIntensityBoundsChanged(double,double,bool)), this, SLOT(_updateIntensityBounds(double,double,bool)));
             }
         }
         else {
@@ -130,9 +130,9 @@ void Colormap::_calculateColorStops(){
     if ( controller ){
         std::shared_ptr<DataSource> dSource = controller->getDataSource();
         if ( dSource  ){
-            QString nameStr = m_state.getValue<QString>(ColorState::COLOR_MAP_NAME);
-            Colormaps* cMaps = Util::findSingletonObject<Colormaps>();
-            std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = cMaps->getColorMap( nameStr );
+            //QString nameStr = m_state.getValue<QString>(ColorState::COLOR_MAP_NAME);
+            //Colormaps* cMaps = Util::findSingletonObject<Colormaps>();
+            //std::shared_ptr<Carta::Lib::PixelPipeline::IColormapNamed> map = cMaps->getColorMap( nameStr );
 
             std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipe = dSource->_getPipeline();
             if ( pipe ){

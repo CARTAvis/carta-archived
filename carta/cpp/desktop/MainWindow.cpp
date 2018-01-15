@@ -79,16 +79,10 @@ MainWindow::MainWindow( )
              this,
              & MainWindow::addToJavaScript );
 
-    bool qtDecorationsEnabled = Globals::instance()->mainConfig()->isDeveloperDecorations();
-    if( !qtDecorationsEnabled ) {
-        menuBar()->setVisible( true);
-        toolBar->setVisible( false);
-        statusBar()->setVisible( true);
-    } else {
-        menuBar()->setVisible( true);
-        toolBar->setVisible( false);
-        statusBar()->setVisible( true);
-    }
+    // set visibilities of window bars
+    menuBar()->setVisible( true);
+    toolBar->setVisible( false);
+    statusBar()->setVisible( true);
 
     // install 'fileq' protocol handler
     m_view->page()->setNetworkAccessManager( new Carta::Desktop::NetworkAccessManager(this));

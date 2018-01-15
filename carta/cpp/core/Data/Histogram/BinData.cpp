@@ -48,7 +48,7 @@ QString BinData::getName() const {
 }
 
 
-QString BinData::getStateString() const{
+QString BinData::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const{
     return m_state.toString();
 }
 

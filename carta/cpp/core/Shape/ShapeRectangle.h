@@ -33,13 +33,13 @@ public:
      * Return the center of the rectangle.
      * @return - the center of the rectangle.
      */
-    virtual QPointF getCenter() const;
+    virtual QPointF getCenter() const override;
 
     /**
      * Return the size of the rectangle.
      * @return - the size of the rectangle.
      */
-    virtual QSizeF getSize() const;
+    virtual QSizeF getSize() const override;
 
     /**
      * Return the vector graphics for the shape.
@@ -76,9 +76,9 @@ protected:
 
     void _controlPointCB( int index, bool final );
 
-    virtual void _editShadow( const QPointF& pt );
+    virtual void _editShadow( const QPointF& pt ) override;
 
-    virtual void _moveShadow( const QPointF& pt );
+    virtual void _moveShadow( const QPointF& pt ) override;
 
     virtual void _syncShadowToCPs() override;
 

@@ -49,13 +49,6 @@ public:
      */
     bool isDeveloperLayout() const;
 
-    /**
-     * Returns whether CARTA should come up with decorations such
-     * as the Debug console enabled on the desktop version.
-     * @return true - for developer debug widgets enabled; false otherwise.
-     */
-    bool isDeveloperDecorations() const;
-
     /// the whole config file as json
     const QJsonObject & json() const;
 
@@ -98,7 +91,6 @@ protected:
 
     QStringList m_pluginDirectories;
     bool m_hacksEnabled = false;
-    bool m_developerDecorations = false;
     bool m_developerLayout = false;
     int m_histogramBinCountMax = -1;
     int m_contourLevelCountMax = -1;
