@@ -23,6 +23,7 @@ SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 SUBDIRS += PCacheSqlite3
 SUBDIRS += PercentileHistogram
+SUBDIRS += PercentileHistogram/Test.pro
 SUBDIRS += PercentileManku99
 SUBDIRS += PercentileManku99/Test.pro
 

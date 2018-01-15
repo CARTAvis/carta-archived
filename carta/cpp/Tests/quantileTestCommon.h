@@ -176,8 +176,9 @@ public:
         int spectralIndex,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter,
         std::vector<double> hzValues,
+        std::vector<double> minMax,
         std::map <double, double> expected
-    ) :  name(name), view(view), percentiles(percentiles), spectralIndex(spectralIndex), converter(converter), hzValues(hzValues), expected(expected) {
+    ) :  name(name), view(view), percentiles(percentiles), spectralIndex(spectralIndex), converter(converter), hzValues(hzValues), minMax(minMax), expected(expected) {
     }
 
     std::string name;
@@ -186,6 +187,7 @@ public:
     int spectralIndex;
     Carta::Lib::IntensityUnitConverter::SharedPtr converter;
     std::vector<double> hzValues;
+    std::vector<double> minMax;
     std::map <double, double> expected;
 };
 
@@ -228,9 +230,9 @@ std::vector<QuantileTestData> commonTestCases() {
     
     std::vector<QuantileTestData> cases;
     
-    cases.push_back(QuantileTestData("no conversion", doubleView, percentiles, -1, nullptr, {}, exactSolution));
-    cases.push_back(QuantileTestData("frame-dependent conversion", doubleView, percentiles, spectralIndex, std::make_shared<FrameDependentConverter>(), dummyHzValues, exactSolutionFrameDependent));
-    cases.push_back(QuantileTestData("frame-independent conversion", doubleView, percentiles, spectralIndex, std::make_shared<FrameIndependentConverter>(), dummyHzValues, exactSolution));
+    cases.push_back(QuantileTestData("no conversion", doubleView, percentiles, -1, nullptr, {}, {1, 200*200*10}, exactSolution));
+    cases.push_back(QuantileTestData("frame-dependent conversion", doubleView, percentiles, spectralIndex, std::make_shared<FrameDependentConverter>(), dummyHzValues, {1, 200*200*10}, exactSolutionFrameDependent));
+    cases.push_back(QuantileTestData("frame-independent conversion", doubleView, percentiles, spectralIndex, std::make_shared<FrameIndependentConverter>(), dummyHzValues, {1, 200*200*10}, exactSolution));
     
     return cases;
 }

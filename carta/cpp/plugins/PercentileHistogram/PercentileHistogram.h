@@ -61,6 +61,10 @@ std::map<double, Scalar> PercentileHistogram<Scalar>::percentile2pixels(
     double hertzVal;
     
     std::vector<size_t> bins(numberOfBins+1, 0); // initialize the vector binss as 0
+    
+    if (!this->minMaxIntensities.size()) {
+        qFatal("Cannot find minimum and maximum intensity. Use the setMinMax function to set them before calling this function.");
+    }
 
     double minIntensity = this->minMaxIntensities[0]; // get the minimum intensity
     double maxIntensity = this->minMaxIntensities[1]; // get the maximum intensity

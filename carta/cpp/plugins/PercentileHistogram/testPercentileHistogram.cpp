@@ -1,20 +1,22 @@
-#include "PercentileManku99.h"
+#include "PercentileHistogram.h"
 #include "Tests/quantileTestCommon.h"
 #include <QtTest/QtTest>
+#include <QDebug>
 
-class TestPercentileManku99: public QObject
+class TestPercentileHistogram: public QObject
 {
     Q_OBJECT
 private slots:
     void test_quantiles();
 };
 
-void TestPercentileManku99::test_quantiles() {
+void TestPercentileHistogram::test_quantiles() {
     std::vector<QuantileTestData> testCases = commonTestCases();
     
-    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = std::make_shared<PercentileManku99<double> >(10, 1000, 10);
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = std::make_shared<PercentileHistogram<double> >(1000);
     
     for (auto& testCase : testCases) {
+        calculator->setMinMax(testCase.minMax);
         std::map<double, double> intensities = calculator->percentile2pixels(testCase.view, testCase.percentiles, testCase.spectralIndex, testCase.converter, testCase.hzValues);
         
         QVERIFY(intensities.size() == testCase.percentiles.size());
@@ -27,5 +29,5 @@ void TestPercentileManku99::test_quantiles() {
     }
 }
 
-QTEST_MAIN(TestPercentileManku99)
-#include "testPercentileManku99.moc"
+QTEST_MAIN(TestPercentileHistogram)
+#include "testPercentileHistogram.moc"
