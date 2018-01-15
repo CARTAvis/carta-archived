@@ -27,7 +27,11 @@
 // get unit conversion headers
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
-#include "../plugins/ConversionIntensity/ConverterIntensity.h"
+
+// TODO this should not be a dependency, or necessary!!
+// #include "../plugins/ConversionIntensity/ConverterIntensity.h"
+
+#include "CartaLib/Hooks/PixelToPercentileHook.h"
 
 #include "CartaLib/Regions/CoordinateSystemFormatter.h"
 #include <QDebug>
@@ -146,12 +150,8 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
     return hertzValues;
 }
 
-// TODO: pass in a calculator obtained from plugins
-static void testPercentile(QString imageFname) {
+static void testPercentile(QString imageFname, Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator) {
     auto pm = Globals::instance()->pluginManager();
-
-    // tell all plugins that the core has initialized
-    pm-> prepare <Carta::Lib::Hooks::Initialize> ().executeAll();
 
     auto imgRes = pm-> prepare <Carta::Lib::Hooks::LoadAstroImage> (imageFname).first();
     if (imgRes.isNull()) {
@@ -177,6 +177,8 @@ static void testPercentile(QString imageFname) {
 
     // TODO: set a unit converter for tests
     // TODO: let the user specify this in parameters;then it becomes the user's responsibility to make it match the file
+    // TODO: pass it in from outside
+    // TODO: one for all files? one per file?
     //Carta::Lib::IntensityUnitConverter::SharedPtr converter(ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA));
     Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr;
 
@@ -186,25 +188,23 @@ static void testPercentile(QString imageFname) {
         hertzValues = getHertzValues(astroImage, doubleView.dims(), spectralIndex);
     }
 
-    // TODO this needs refactoring
     // calculate Min and Max percentiles: new way
-    std::map<double, double> clips_MinMax1 = Carta::Core::Algorithms::minMax2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
+    minMaxCalc = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+    std::map<double, double> clips_MinMax1 = minMaxCalc->percentile2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
     double intensity_min_new = clips_MinMax1[0];
     double intensity_max_new = clips_MinMax1[1];
 
-    // TODO this needs refactoring
     // calculate Min and Max percentiles: original way
-    std::map<double, double> clips_MinMax2 = Carta::Core::Algorithms::percentile2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
+    exactCalc = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
+    std::map<double, double> clips_MinMax1 = exactCalc->percentile2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
     double intensity_min_original = clips_MinMax2[0];
     double intensity_max_original = clips_MinMax2[1];
 
     // calculate the intensity range
     double intensity_range = fabs(intensity_max_new-intensity_min_new);
 
-    // TODO: this needs refactoring
     // calculate precise percentiles to intensities
-    std::map<double, double>
-            clips_map1 = Carta::Core::Algorithms::percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
+    std::map<double, double> clips_map1 = exactCalc->percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
 
     // TODO: put this test in a different function and do it once before the histogram approximation only
     // check the difference of Min/Max intensity with new and original algorithms
@@ -221,6 +221,9 @@ static void testPercentile(QString imageFname) {
     }
 
     // TODO: this needs refactoring; use calculator passed in
+    // TODO: but we need to set different bin numbers for the histogram (and different parameters for Manku) -- what to do?
+    // TODO: we need to do this outside, overriding the config so that the plugin reads the modified parameters
+    
     // calculate approximate percentiles to intensities
     int bin_number_size = bin_number.size();
     for (int j = 0; j < bin_number_size; j++) {
@@ -299,13 +302,27 @@ static int coreMainCPP(QString platformString, int argc, char **argv) {
         qDebug() << "  path:" << entry.json.name;
     }
     
-    // TODO: get the percentile plugins here; initialise calculators and run tests for each calculator
-    // TODO: pass the calculator into the function
-
-    // get percentile from the image raw data
-    for (int i = 0; i < file_num; i++) {
-        testPercentile(cmdLineInfo.fileList()[i]);
-    }
+    // tell all plugins that the core has initialized
+    pm-> prepare <Carta::Lib::Hooks::Initialize> ().executeAll();
+    
+    // TODO TODO TODO we need to override the config to load a specific plugin at a time and also iterate over different plugin config parameters
+    // Add a test hook implemented by each plugin which overrides config with values passed in.
+    // Test-specific, or generic reconfiguration hook?
+    // Then we can also use it in the pcache test
+    // How to make data a generic struct?
+    
+    // make a lambda to set the value of calculator and call the tests
+    auto lam = [=] ( const Carta::Lib::Hooks::PixelToPercentileHook<double>::ResultType &res ) {
+        calculator = res;
+        // TODO: in here check the class of the calculator and reconfigure parameters using new reconfigure hook
+        for (int i = 0; i < file_num; i++) {
+            testPercentile(cmdLineInfo.fileList()[i], calculator);
+        }
+    };
+    
+    // call the lambda on every pcache plugin
+    auto calculatorRes = pm-> prepare< Carta::Lib::Hooks::PixelToPercentileHook<double> >();
+    calculatorRes.forEach(lam);
 
     // if we get here, it means we are done
     qDebug() << "Done";
