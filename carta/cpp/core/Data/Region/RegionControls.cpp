@@ -129,8 +129,11 @@ void RegionControls::_editDone(){
 		connect( m_regions[regionCount-1].get(), SIGNAL(regionShapeChanged()),
 				this, SLOT(_regionShapeChanged()));
 		m_selectRegion->setUpperBound( m_regions.size() );
+
         // set current index
-        setIndexCurrent(regionCount-1);
+        setIndexCurrentNoRegionsChanged(regionCount-1);
+//        setIndexCurrent(regionCount-1);
+
 		m_regionEdit = std::shared_ptr<Region>(nullptr);
 		m_state.setValue<QString>(CREATE_TYPE, "");
 		_saveStateRegions();
@@ -582,6 +585,15 @@ void RegionControls::setAutoSelect( bool autoSelect ){
 		m_state.setValue<bool>( REGION_SELECT_AUTO, autoSelect );
 		m_state.flushState();
 	}
+}
+
+void RegionControls::setIndexCurrentNoRegionsChanged( int index ){
+    int oldIndex = m_selectRegion->getIndex();
+    m_selectRegion->setIndex( index );
+//	if ( oldIndex != index ){
+//		_saveStateRegions();
+//		emit regionsChanged();
+//	}
 }
 
 void RegionControls::setIndexCurrent( int index ){

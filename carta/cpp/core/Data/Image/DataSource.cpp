@@ -136,11 +136,23 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
 }
 
 
-std::vector<AxisInfo> DataSource::_getAxisInfos() const {
+std::vector<AxisInfo> DataSource::_getAxisInfos( Carta::Lib::KnownSkyCS cs ) const {
     std::vector<AxisInfo> Infos;
     casa_mutex.lock();
     CoordinateFormatterInterface::SharedPtr cf(
                    m_image-> metaData()-> coordinateFormatter()-> clone() );
+
+    if ( cs == Carta::Lib::KnownSkyCS::Unknown ) {
+        qWarning() << "Unknown celestial coordinate system.";
+    }
+    else if ( cs == Carta::Lib::KnownSkyCS::Error ){
+        qCritical() << "Error celestial coordinate system.";
+        CARTA_ASSERT("There are something wrong when trying get axisinfo.");
+    }
+    else if ( cs != Carta::Lib::KnownSkyCS::Default ) {
+        cf->setSkyCS( cs );
+    }
+
     int axisCount = cf->nAxes();
     for ( int axis = 0 ; axis < axisCount; axis++ ) {
         const AxisInfo & axisInfo = cf-> axisInfo( axis );

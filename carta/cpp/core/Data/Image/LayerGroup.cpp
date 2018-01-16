@@ -1,6 +1,8 @@
 #include "LayerGroup.h"
 #include "LayerData.h"
 #include "DataSource.h"
+#include "Grid/AxisMapper.h"
+#include "Grid/DataGrid.h"
 #include "Data/Util.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "CartaLib/IRemoteVGView.h"
@@ -339,6 +341,15 @@ QString LayerGroup::_getCursorText(bool isAutoClip, double minPercent, double ma
     }
     return cursorText;
 
+}
+
+std::shared_ptr<DataGrid> LayerGroup::_getDataGrid(){
+    std::shared_ptr<DataGrid> dataGrid( nullptr );
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        dataGrid = m_children[dataIndex]->_getDataGrid();
+    }
+    return dataGrid;
 }
 
 QString LayerGroup::_getDefaultName( const QString& id ) const {
@@ -933,6 +944,21 @@ void LayerGroup::_setColorSupport( Layer* layer ){
     layer->_setSupportAlpha( alphaSupport );
 }
 
+QString LayerGroup::_setAxis( const QString axis, const QString name ){
+    QString result;
+    for ( auto layer : m_children ){
+        layer->_setAxis( axis, name);
+    }
+
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        Carta::State::StateInterface dataGridState = dataGrid->_getState();
+        result = dataGridState.toString();
+    }
+    return result;
+}
+
 bool LayerGroup::_setCompositionMode( const QString& id, const QString& compositionMode,
         QString& errorMsg ){
     bool stateChanged = false;
@@ -964,6 +990,36 @@ bool LayerGroup::_setCompositionMode( const QString& id, const QString& composit
     return stateChanged;
 }
 
+QString LayerGroup::_setCoordinateSystem( QString csName ){
+    QString result;
+    for ( auto layer : m_children ){
+        result = layer->_setCoordinateSystem( csName );
+    }
+
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        Carta::State::StateInterface dataGridState = dataGrid->_getState();
+        result = dataGridState.toString();
+    }
+    return result;
+}
+
+QString LayerGroup::_setDataGridState( const QString stateName, const QString stateValue ){
+    QString result;
+    for ( auto layer : m_children ){
+        std::shared_ptr<DataGrid> dataGrid = layer->_getDataGrid();
+        result = dataGrid->_setState( stateName, stateValue );
+    }
+
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        Carta::State::StateInterface dataGridState = dataGrid->_getState();
+        result = dataGridState.toString();
+    }
+    return result;
+}
 
 bool LayerGroup::_setLayersGrouped( bool grouped, const QSize& clientSize  ){
     bool operationPerformed = false;

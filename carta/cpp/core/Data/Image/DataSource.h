@@ -83,7 +83,7 @@ private:
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
 
-    std::vector<Carta::Lib::AxisInfo> _getAxisInfos() const;
+    std::vector<Carta::Lib::AxisInfo> _getAxisInfos( Carta::Lib::KnownSkyCS cs = Carta::Lib::KnownSkyCS::Default ) const;
 
     /**
      * Returns the type of the axis with the given index in the image.

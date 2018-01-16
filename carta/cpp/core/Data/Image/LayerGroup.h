@@ -146,6 +146,12 @@ protected:
             const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
 
     /**
+     * Return the data grid of the image.
+     * @return - the data grid of the image.
+     */
+    virtual std::shared_ptr<DataGrid> _getDataGrid() Q_DECL_OVERRIDE;
+
+    /**
      * Return the data source of the image.
      * @return - the data source of the image.
      */
@@ -424,6 +430,8 @@ protected:
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
 
+    virtual QString _setAxis( const QString axis, const QString name ) Q_DECL_OVERRIDE; 
+
     /**
      * Set the mode used to compose this layer.
      * @param compositionMode - the mode used to compose this layer.
@@ -431,6 +439,10 @@ protected:
      */
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg ) Q_DECL_OVERRIDE;
+
+    virtual QString _setCoordinateSystem( QString csName ) Q_DECL_OVERRIDE;
+
+    virtual QString _setDataGridState( const QString stateName, const QString stateValue ) Q_DECL_OVERRIDE;
 
     /**
      * Give the layer (a more user-friendly) name.

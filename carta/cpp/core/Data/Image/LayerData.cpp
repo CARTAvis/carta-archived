@@ -240,6 +240,10 @@ QString LayerData::_getCursorText(bool isAutoClip, double minPercent, double max
     return cursorText;
 }
 
+std::shared_ptr<DataGrid> LayerData::_getDataGrid(){
+    return m_dataGrid;
+}
+
 std::shared_ptr<DataSource> LayerData::_getDataSource(){
     return m_dataSource;
 }
@@ -989,10 +993,8 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
     QString result = m_dataSource->_setFileName( fileName, success );
     if ( *success){
 
-        Carta::Lib::KnownSkyCS cs;
-        QString csName = m_dataSource->_getSkyCS();
-        bool csChanged = false;
-        QString initCS = m_dataGrid->_setCoordinateSystem( csName, &csChanged);
+        CoordinateSystems* coordSys = Util::findSingletonObject<CoordinateSystems>();
+        _setCoordinateSystem( coordSys->getDefault() );
 
         //Reset the pan and zoom when the image is loaded.
         _resetPan();
@@ -1012,6 +1014,46 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
         }
         result = m_state.getValue<QString>( Util::ID );
     }
+    return result;
+}
+
+QString LayerData::_setAxis( const QString axis, const QString name ){
+    // TODO: the variable is used to match the parameter of function, remove it later.
+    bool axisChanged = false;
+    QString result = m_dataGrid->_setAxis( axis, name, &axisChanged );
+    return result;
+}
+
+QString LayerData::_setCoordinateSystem( QString csName ){
+
+    QString result;
+
+    CoordinateSystems* coordSys = Util::findSingletonObject<CoordinateSystems>();
+    if( coordSys->getIndex(csName) == Carta::Lib::KnownSkyCS::Default ){
+        csName = m_dataSource->_getSkyCS();
+    }
+
+    Carta::Lib::KnownSkyCS cs = coordSys->getIndex( csName );
+    bool csChanged = false; // useless variable
+    result = m_dataGrid->_setCoordinateSystem( csName, &csChanged);
+
+    // TODO:the variable is used to match the crietia of _setAxis(), try to remove later.
+    bool axisChanged = false;
+    std::vector<AxisInfo> supportedAxes = m_dataSource->_getAxisInfos( cs );
+    m_dataGrid->_setAxisInfos( supportedAxes );
+    int xIndex = m_dataSource->m_axisIndexX;
+    int yIndex = m_dataSource->m_axisIndexY;
+    QString xPurpose = supportedAxes[xIndex].longLabel().plain();
+    QString yPurpose = supportedAxes[yIndex].longLabel().plain();
+    result = m_dataGrid->_setAxis( AxisMapper::AXIS_X, xPurpose, &axisChanged );
+    result = m_dataGrid->_setAxis( AxisMapper::AXIS_Y, yPurpose, &axisChanged );
+
+    return result;
+}
+
+QString LayerData::_setDataGridState( const QString stateName, const QString stateValue ){
+    QString result;
+    result = m_dataGrid->_setState( stateName, stateValue );
     return result;
 }
 
