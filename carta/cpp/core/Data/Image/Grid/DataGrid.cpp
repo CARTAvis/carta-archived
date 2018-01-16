@@ -72,6 +72,10 @@ const QString DataGrid::TICK_WIDTH = "tick/width";
 const QString DataGrid::LABEL_COLOR_BLUE = "labels/blue";
 const QString DataGrid::LABEL_COLOR_GREEN = "labels/green";
 const QString DataGrid::LABEL_COLOR_RED = "labels/red";
+const QString DataGrid::LABEL_FORMAT_LEFT = "labelFormats/left/format";
+const QString DataGrid::LABEL_FORMAT_RIGHT = "labelFormats/right/format";
+const QString DataGrid::LABEL_FORMAT_TOP = "labelFormats/top/format";
+const QString DataGrid::LABEL_FORMAT_BOTTOM = "labelFormats/bottom/format";
 
 const std::map< QString, DataGrid::ConvertType > DataGrid::typeTable = {
     // TODO: label format, coordinate system
@@ -108,7 +112,11 @@ const std::map< QString, DataGrid::ConvertType > DataGrid::typeTable = {
 
     { DataGrid::COORD_SYSTEM, DataGrid::ConvertType::NOCONVERT },
     { DataGrid::FONT_FAMILY, DataGrid::ConvertType::NOCONVERT },
-    { DataGrid::THEME, DataGrid::ConvertType::NOCONVERT }
+    { DataGrid::THEME, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_LEFT, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_RIGHT, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_TOP, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_BOTTOM, DataGrid::ConvertType::NOCONVERT }
     // { Carta::State::UtilState::getLookup( DataGrid::TICK, Util::ALPHA ), DataGrid::ConvertType::INT }
 };
 

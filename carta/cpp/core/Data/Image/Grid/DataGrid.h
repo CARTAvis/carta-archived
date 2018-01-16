@@ -171,6 +171,10 @@ private:
     const static QString LABEL_COLOR_BLUE;
     const static QString LABEL_COLOR_GREEN;
     const static QString LABEL_COLOR_RED;
+    const static QString LABEL_FORMAT_LEFT;
+    const static QString LABEL_FORMAT_RIGHT;
+    const static QString LABEL_FORMAT_TOP;
+    const static QString LABEL_FORMAT_BOTTOM;
 
     const static std::map< QString, ConvertType > typeTable;
 

@@ -4,6 +4,7 @@
 #include "Data/Image/CoordinateSystems.h"
 #include "Data/Image/DataFactory.h"
 #include "Data/Image/Stack.h"
+#include "Data/Image/Grid/LabelFormats.h"
 #include "Data/Image/DataSource.h"
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/DataGrid.h"
@@ -1061,22 +1062,31 @@ void Controller::_initializeCallbacks(){
         QString result = m_stack->_setCoordinateSystem( params );
         return result;
     });
-    //
-    // addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
-    //                     const QString & params, const QString & /*sessionId*/) -> QString {
-    //                 std::set<QString> keys = {DataGrid::FORMAT, DataGrid::LABEL_SIDE};
-    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //                 QString format = dataValues[DataGrid::FORMAT];
-    //                 //Because the map expects colons and the label format has colons,
-    //                 //the format colons are replaced with a - before sending from the
-    //                 //client and the server must restore the colons.
-    //                 format = format.replace( "-", ":");
-    //                 QString labelSide = dataValues[DataGrid::LABEL_SIDE];
-    //                 QString result = setLabelFormat( labelSide, format );
-    //                 Util::commandPostProcess( result );
-    //                 return result;
-    //             });
-    //
+
+     addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
+                         const QString & params, const QString & /*sessionId*/) -> QString {
+        std::set<QString> keys = {DataGrid::FORMAT, DataGrid::LABEL_SIDE};
+        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        QString format = dataValues[DataGrid::FORMAT];
+                     //Because the map expects colons and the label format has colons,
+                     //the format colons are replaced with a - before sending from the
+                     //client and the server must restore the colons.
+        format = format.replace( "-", ":");
+        QString labelSide = dataValues[DataGrid::LABEL_SIDE];
+//                     QString result = setLabelFormat( labelSide, format );
+//                     Util::commandPostProcess( result );
+        QString directionLookup = Carta::State::UtilState::getLookup( DataGrid::LABEL_FORMAT, labelSide);
+        QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, DataGrid::FORMAT );
+        LabelFormats *m_formats = Util::findSingletonObject<LabelFormats>();
+        QString actualFormat = m_formats->getFormat(format);
+        QString result = m_stack->_setDataGridState(directionFormatLookup, actualFormat);
+        QString oppositeSide = m_formats->getOppositeSide(labelSide);
+        QString dLookup = Carta::State::UtilState::getLookup( DataGrid::LABEL_FORMAT, oppositeSide );
+        QString dFormatLookup = Carta::State::UtilState::getLookup( dLookup, DataGrid::FORMAT );
+        result = m_stack->_setDataGridState(dFormatLookup, LabelFormats::FORMAT_NONE);
+        return result;
+    });
+
     // addCommandCallback( "setGridColor", [=] (const QString & /*cmd*/,
     //                                     const QString & params, const QString & /*sessionId*/) -> QString {
     //         int redAmount = 0;
