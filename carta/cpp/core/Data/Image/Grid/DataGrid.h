@@ -137,6 +137,7 @@ private:
     const static QString FORMAT;
     const static QString SHOW_AXIS;
     const static QString SHOW_COORDS;
+    const static QString SHOW_DEFAULT_COORDS;
     const static QString SHOW_INTERNAL_LABELS;
     const static QString SHOW_GRID_LINES;
     const static QString SHOW_STATISTICS;

@@ -1186,6 +1186,22 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "setShowDefaultCoordinateSystem", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString stateName = DataGrid::SHOW_DEFAULT_COORDS;
+        QString result = m_stack->_setDataGridState( stateName, params );
+
+        Carta::State::StateInterface stackDataGridState = m_stack->_getDataGridState();
+        bool useDefault = stackDataGridState.getValue<bool>( DataGrid::SHOW_DEFAULT_COORDS );
+        if ( useDefault ){
+            CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
+            QString defaultName = m_coords->getDefault();
+            result = m_stack->_setCoordinateSystem( defaultName );
+        }
+        return result;
+    });
+
     addCommandCallback( "setShowGridLines", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
 

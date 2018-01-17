@@ -37,6 +37,7 @@ const QString DataGrid::FORMAT = "format";
 const QString DataGrid::LABEL_SIDE = "side";
 const QString DataGrid::SHOW_AXIS = "showAxis";
 const QString DataGrid::SHOW_COORDS = "showCoordinateSystem";
+const QString DataGrid::SHOW_DEFAULT_COORDS = "showDefaultCS";
 const QString DataGrid::SHOW_INTERNAL_LABELS = "showInternalLabels";
 const QString DataGrid::SHOW_GRID_LINES = "showGridLines";
 const QString DataGrid::SHOW_STATISTICS = "showStatistics";
@@ -81,6 +82,7 @@ const std::map< QString, DataGrid::ConvertType > DataGrid::typeTable = {
     // TODO: label format, coordinate system
     { DataGrid::SHOW_AXIS, DataGrid::ConvertType::BOOL },
     { DataGrid::SHOW_COORDS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_DEFAULT_COORDS, DataGrid::ConvertType::BOOL },
     { DataGrid::SHOW_GRID_LINES, DataGrid::ConvertType::BOOL },
     { DataGrid::SHOW_INTERNAL_LABELS, DataGrid::ConvertType::BOOL },
     { DataGrid::SHOW_STATISTICS, DataGrid::ConvertType::BOOL },
@@ -333,6 +335,7 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<bool>( SHOW_TICKS, true );
     m_state.insertValue<bool>( SHOW_INTERNAL_LABELS, false );
     m_state.insertValue<bool>( SHOW_COORDS, true );
+    m_state.insertValue<bool>( SHOW_DEFAULT_COORDS, true );
 
     m_state.insertValue<bool>( SHOW_STATISTICS, true );
 
