@@ -620,7 +620,23 @@ void Controller::_initializeCallbacks(){
         return result;
     });
 
+    // get the Clipping state
+    addCommandCallback( "getClipState", [=] (const QString & /*cmd*/,
+                const QString & /*arg*/, const QString & /*sessionId*/) -> QString {
+        QString result;
+        result = getClipState();
+        Util::commandPostProcess( result );
+        return result;
+    });
 
+    // get the Auto Clipping state
+    addCommandCallback( "getAutoClipState", [=] (const QString & /*cmd*/,
+                const QString & /*arg*/, const QString & /*sessionId*/) -> QString {
+        QString result;
+        result = getAutoClipState();
+        Util::commandPostProcess( result );
+        return result;
+    });
 
     //Listen for updates to the clip and reload the frame.
     addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
@@ -1155,10 +1171,9 @@ void Controller::setAutoClip( bool autoClip ){
     if ( autoClip != oldAutoClip ) {
         m_state.setValue<bool>( AUTO_CLIP, autoClip );
         m_state.flushState();
+        // refresh the image viewer
+        recallClipValue();
     }
-    // before rendering we need to flush the state in Colormap::_updateIntensityBounds()
-    // if autoClip is changed from true to false !!
-    if ( autoClip != oldAutoClip && autoClip == false) recallClipValue();
 }
 
 
@@ -1200,6 +1215,28 @@ void Controller::recallClipValue() {
     double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
     double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
     emit clipsChanged( minPercent, maxPercent, autoClip );
+    _loadViewQueued();
+}
+
+
+QString Controller::getClipState() {
+    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+    double percent = maxPercent - minPercent;
+    QString result = QString::number(percent, 'f', 3);
+    return result;
+}
+
+
+QString Controller::getAutoClipState() {
+    bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
+    QString result;
+    if (autoClip == false) {
+        result = "false";
+    } else {
+        result = "true";
+    }
+    return result;
 }
 
 
