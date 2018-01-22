@@ -217,7 +217,7 @@ static void testPercentileHistogram(QString imageFname, std::shared_ptr<Carta::L
     std::map<double, double> clips_map2 = calculator->percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
 
     // expected intensity error
-    double expected_error = 100/numberOfBins; // represented as %
+    double expected_error = 100/(double)numberOfBins; // represented as %
 
     // check the difference of percentile to intensity with new and original algorithms
     int percentile_number = percentile.size();
