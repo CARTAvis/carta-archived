@@ -36,6 +36,7 @@
 #include "CartaLib/Regions/CoordinateSystemFormatter.h"
 #include <QDebug>
 #include <cmath>
+#include <QJsonObject>
 
 const std::vector<double> percentile = {0.0005, 0.0025, 0.005, 0.01, 0.015,
                                         0.02, 0.025, 0.0375, 0.05, 0.95,
@@ -208,6 +209,10 @@ static void testPercentileHistogram(QString imageFname, std::shared_ptr<Carta::L
     }
 
     calculator->setMinMax({clips_MinMax1[0], clips_MinMax1[1]});
+    // override number of bins
+    QJsonObject config;
+    config["numberOfBins"] = numberOfBins;
+    calculator->reconfigure(config);
     
     std::map<double, double> clips_map2 = calculator->percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
 

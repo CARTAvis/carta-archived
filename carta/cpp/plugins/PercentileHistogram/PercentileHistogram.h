@@ -12,6 +12,7 @@
 #include <cmath>
 #include <numeric>
 #include <QElapsedTimer>
+#include <QJsonObject>
 
 template <typename Scalar>
 class PercentileHistogram : public Carta::Lib::IPercentilesToPixels<Scalar> {
@@ -26,8 +27,9 @@ public:
         std::vector<double> hertzValues
     ) override;
     
+    void reconfigure(const QJsonObject config) override;
 private:
-    const unsigned int numberOfBins;
+    unsigned int numberOfBins;
 };
 
 
@@ -156,4 +158,10 @@ std::map<double, Scalar> PercentileHistogram<Scalar>::percentile2pixels(
     }
 
     return result;
+}
+
+template <typename Scalar>
+void PercentileHistogram<Scalar>::reconfigure(const QJsonObject config) {
+    this->numberOfBins = config["numberOfBins"].toInt();
+    this->error = 1/this->numberOfBins;
 }

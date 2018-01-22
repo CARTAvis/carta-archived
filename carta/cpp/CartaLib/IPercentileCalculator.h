@@ -9,6 +9,7 @@
 #include "CartaLib/IntensityUnitConverter.h"
 #include <QString>
 #include <vector>
+#include <QJsonObject>
 
 namespace Carta {
 namespace Lib {
@@ -41,13 +42,17 @@ public:
     IPercentilesToPixels(const double error, const QString label, const bool isApproximate=false, const bool needsMinMax=false);
         
     /** The error margin for the returned values. In future this may be deprecated in favour of independent per-value error margins, if necessary. */
-    const double error;
+    double error;
     
     /** The name of this algorithm, for logging purposes. */
     const QString label;
     
     /** This may need to be rethought, but for now it's the simplest way to achieve this without having to calculate the minimum and maximum unnecessarily. */
     void setMinMax(std::vector<Scalar> minMaxIntensities);
+    
+    /** This is a hook which allows tests to reconfigure algorithm parameters.
+     It would really be better to do this at the plugin level. */
+    virtual void reconfigure(const QJsonObject config);
     
     /** The actual calculator function */
     virtual std::map<double, Scalar> percentile2pixels(
@@ -85,6 +90,12 @@ std::map<double, Scalar> IPercentilesToPixels<Scalar>::percentile2pixels(
     Q_UNUSED(spectralIndex);
     Q_UNUSED(converter);
     Q_UNUSED(hertzValues);
+    qFatal( "Unimplemented virtual function");
+}
+
+template <typename Scalar>
+void IPercentilesToPixels<Scalar>::reconfigure(const QJsonObject config) {
+    Q_UNUSED(config);
     qFatal( "Unimplemented virtual function");
 }
 

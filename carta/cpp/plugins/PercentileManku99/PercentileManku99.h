@@ -478,9 +478,9 @@ public:
     ) override;
 
 private:
-    const size_t numBuffers;
-    const size_t bufferCapacity;
-    const size_t sampleAfter;
+    size_t numBuffers;
+    size_t bufferCapacity;
+    size_t sampleAfter;
 };
 
 // TODO: error is completely wrong; work out what it actually is
