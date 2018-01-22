@@ -43,7 +43,7 @@ void PercentileHistogramPlugin::initialize( const IPlugin::InitInfo & initInfo )
     qDebug() << "PercentileHistogramPlugin initializing...";
     QJsonDocument doc( initInfo.json );
     qDebug() << doc.toJson();
-    
+        
     try {
         m_numberOfBins = initInfo.json.value( "numberOfBins").toInt();
     } catch (const QString& error) {

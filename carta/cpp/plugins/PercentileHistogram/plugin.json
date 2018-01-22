@@ -1,6 +1,6 @@
 {
     "api"        : "1",
-    "name"       : "PercentileHistogramPlugin",
+    "name"       : "PercentileHistogram",
     "version"    : "1",
     "type"       : "C++",
     "description": [
