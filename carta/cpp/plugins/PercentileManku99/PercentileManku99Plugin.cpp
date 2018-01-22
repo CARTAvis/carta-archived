@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QDebug>
 
+PercentileManku99Plugin::PercentileManku99Plugin( QObject * parent ) : QObject( parent ) {
+}
 
 bool PercentileManku99Plugin::handleHook( BaseHook & hookData ){
     if ( hookData.is < Carta::Lib::Hooks::Initialize > () ) {
@@ -73,3 +75,6 @@ void PercentileManku99Plugin::initialize( const IPlugin::InitInfo & initInfo )
     }
 }
 
+
+PercentileManku99Plugin::~PercentileManku99Plugin() {
+}

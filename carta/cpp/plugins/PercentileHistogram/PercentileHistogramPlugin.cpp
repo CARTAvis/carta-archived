@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QDebug>
 
+PercentileHistogramPlugin::PercentileHistogramPlugin( QObject * parent ) : QObject( parent ) {
+}
 
 bool PercentileHistogramPlugin::handleHook( BaseHook & hookData ){
     if ( hookData.is < Carta::Lib::Hooks::Initialize > () ) {
@@ -53,3 +55,5 @@ void PercentileHistogramPlugin::initialize( const IPlugin::InitInfo & initInfo )
     }
 }
 
+PercentileHistogramPlugin::~PercentileHistogramPlugin() {
+}
