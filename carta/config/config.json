@@ -4,7 +4,7 @@
         "$(APPDIR)/../plugins",
         "$(APPDIR)/../../../../plugins"
     ],
-    "disabledPlugins" : ["python273"],
+    "disabledPlugins" : ["python273", "PercentileManku99"],
     "plugins": {
         "PCacheSqlite3" : {
             "dbPath": "$(HOME)/CARTA/cache/pcache.sqlite"
