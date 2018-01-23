@@ -11,8 +11,7 @@ namespace Data {
 
 ProfileRenderService::ProfileRenderService( QObject * parent ) :
         QObject( parent ),
-        m_worker( nullptr),
-        m_renderThread( nullptr ){
+        m_worker( nullptr){
     m_renderQueued = false;
 }
 
@@ -83,16 +82,6 @@ void ProfileRenderService::_postResult( Lib::Hooks::ProfileResult result ){
     }
 }
 
-bool ProfileRenderService::waitThreadFinish(){
-    if (!m_renderThread){
-        qDebug() << "There is no thread for rendering profile.";
-    }
-    else {
-        qDebug() << "Waiting for the qthread computing profile";
-    }
-    return ( m_renderThread ? m_renderThread->wait() : false );
-}
-
 Lib::Hooks::ProfileResult ProfileRenderService::getResult(){
     return m_result;
 //    return m_renderThread->getResult();
@@ -100,8 +89,6 @@ Lib::Hooks::ProfileResult ProfileRenderService::getResult(){
 
 ProfileRenderService::~ProfileRenderService(){
     delete m_worker;
-    delete m_renderThread;
 }
 }
 }
-

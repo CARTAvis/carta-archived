@@ -44,8 +44,6 @@ public:
     bool renderProfile(std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
             const Carta::Lib::ProfileInfo& profInfo, bool createNew );
 
-    bool waitThreadFinish();
-    
     Lib::Hooks::ProfileResult getResult();
 
     /**
@@ -72,7 +70,6 @@ private:
     void _scheduleRender( std::shared_ptr<Layer> layer,
             std::shared_ptr<Region> region, const Carta::Lib::ProfileInfo& profInfo );
     ProfileRenderWorker* m_worker;
-    ProfileRenderThread* m_renderThread;
     bool m_renderQueued;
     QQueue<ProfileRenderRequest> m_requests;
 
@@ -83,6 +80,3 @@ private:
 };
 }
 }
-
-
-

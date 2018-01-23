@@ -266,7 +266,7 @@ public:
      * @param autoGenerate - true if they should be automatically generated; false,
      * 		otherwise.
      */
-    void setAutoGenerate( bool autoGenerate );
+    QString setAutoGenerate( bool autoGenerate );
 
     /**
      * Set the bottom axis units.
