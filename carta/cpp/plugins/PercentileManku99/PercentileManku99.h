@@ -476,6 +476,8 @@ public:
         Carta::Lib::IntensityUnitConverter::SharedPtr converter,
         std::vector<double> hertzValues
     ) override;
+    
+    void reconfigure(const QJsonObject config) override;
 
 private:
     size_t numBuffers;
@@ -547,4 +549,11 @@ std::map<double, Scalar> PercentileManku99<Scalar>::percentile2pixels(
     CARTA_ASSERT( result.size() == percentiles.size());
 
     return result;
+}
+
+template <typename Scalar>
+void PercentileManku99<Scalar>::reconfigure(const QJsonObject config) {
+    this->numBuffers = config["numBuffers"].toInt();
+    this->bufferCapacity = config["bufferCapacity"].toInt();
+    this->sampleAfter = config["sampleAfter"].toInt();
 }

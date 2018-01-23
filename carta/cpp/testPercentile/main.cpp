@@ -43,7 +43,11 @@ const std::vector<double> percentile = {0.0005, 0.0025, 0.005, 0.01, 0.015,
                                         0.9625, 0.975, 0.98, 0.985, 0.99,
                                         0.995, 0.9975, 0.9995};
 
-const std::vector<double> bin_number = {1000, 10000, 100000, 1000000};
+const std::vector<int> bin_number = {1000, 10000, 100000, 1000000};
+
+const std::vector<int> buffer_numbers = {10, 50, 100};
+const std::vector<int> buffer_sizes = {1000, 10000, 100000};
+const std::vector<int> sample_after = {5, 10, 20};
 
 namespace tPercentile {
 
@@ -151,7 +155,7 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
     return hertzValues;
 }
 
-static void testPercentileHistogram(QString imageFname, std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage, Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator, int numberOfBins) {
+static void testMinMax(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage) {
     // set stoke index for getting the raw data (0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
     int stokeIndex = 0;
 
@@ -188,17 +192,7 @@ static void testPercentileHistogram(QString imageFname, std::shared_ptr<Carta::L
     double intensity_min_original = clips_MinMax2[0];
     double intensity_max_original = clips_MinMax2[1];
 
-    // calculate the intensity range
-    double intensity_range = fabs(intensity_max_new-intensity_min_new);
-
-    // calculate precise percentiles to intensities
-    std::map<double, double> clips_map1 = exactCalc->percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
-
-    // TODO: put this test in a different function and do it once before the histogram approximation only
     // check the difference of Min/Max intensity with new and original algorithms
-    qCritical() << "\n############################### START CHECKING #################################";
-    qCritical() << "For the image file:" << imageFname;
-    qCritical() << "--------------------------------------------------------------------------------";
     double delta_min = fabs(intensity_min_new-intensity_min_original);
     double delta_max = fabs(intensity_max_new-intensity_max_original);
     if (delta_min < 1.0e-9 && delta_max < 1.0e-9) {
@@ -207,6 +201,43 @@ static void testPercentileHistogram(QString imageFname, std::shared_ptr<Carta::L
         qCritical() << "[FAIL !!] for Min/Max intensity =" << intensity_min_new << "/" << intensity_max_new << "(new way)"
                     << "!=" << intensity_min_original << "/" << intensity_max_original << "(original way)";
     }
+}
+
+static void testPercentileHistogram(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage, Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator, int numberOfBins) {
+    // set stoke index for getting the raw data (0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+    int stokeIndex = 0;
+
+    // get raw data as the double type
+    Carta::Lib::NdArray::RawViewInterface* rawData = getRawData(astroImage, -1, -1, stokeIndex);
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+    //get the index of spectral axis
+    int spectralIndex = getAxisIndex(astroImage, AxisInfo::KnownType::SPECTRAL);
+
+    // TODO: set a unit converter for tests
+    // TODO: let the user specify this in parameters;then it becomes the user's responsibility to make it match the file
+    // TODO: pass it in from outside
+    // TODO: one for all files? one per file?
+    //Carta::Lib::IntensityUnitConverter::SharedPtr converter(ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA));
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr;
+
+    // get Hertz values
+    std::vector<double> hertzValues={};
+    if (converter && converter->frameDependent) {
+        hertzValues = getHertzValues(astroImage, doubleView.dims(), spectralIndex);
+    }
+
+    // calculate Min and Max percentiles: new way
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr minMaxCalc = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+    std::map<double, double> clips_MinMax1 = minMaxCalc->percentile2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
+
+    // calculate the intensity range
+    double intensity_range = fabs(clips_MinMax1[1] - clips_MinMax1[0]);
+
+    // calculate precise percentiles to intensities
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr exactCalc = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
+    std::map<double, double> clips_map1 = exactCalc->percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
 
     calculator->setMinMax({clips_MinMax1[0], clips_MinMax1[1]});
     // override number of bins
@@ -221,6 +252,7 @@ static void testPercentileHistogram(QString imageFname, std::shared_ptr<Carta::L
 
     // check the difference of percentile to intensity with new and original algorithms
     int percentile_number = percentile.size();
+    qCritical() << "HISTOGRAM APPROXIMATION";
     qCritical() << "--------------------------------------------------------------------------------";
     qCritical() << "For bin numbers:" << numberOfBins;
     for (int i = 0; i < percentile_number; i++) {
@@ -233,8 +265,75 @@ static void testPercentileHistogram(QString imageFname, std::shared_ptr<Carta::L
             qCritical() << "[FAIL !!] for percentile" << 100*percentile[i] << "(%), intensity error =" << error << ">" << expected_error << "(%)";
         }
     }
+
+}
+
+static void testPercentileManku99(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage, Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator, int numBuffers, int bufferCapacity, int sampleAfter) {
+    // set stoke index for getting the raw data (0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+    int stokeIndex = 0;
+
+    // get raw data as the double type
+    Carta::Lib::NdArray::RawViewInterface* rawData = getRawData(astroImage, -1, -1, stokeIndex);
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+    //get the index of spectral axis
+    int spectralIndex = getAxisIndex(astroImage, AxisInfo::KnownType::SPECTRAL);
+
+    // TODO: set a unit converter for tests
+    // TODO: let the user specify this in parameters;then it becomes the user's responsibility to make it match the file
+    // TODO: pass it in from outside
+    // TODO: one for all files? one per file?
+    //Carta::Lib::IntensityUnitConverter::SharedPtr converter(ConverterIntensity::converters(from_units, to_units, max_value, max_units, BEAM_AREA));
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr;
+
+    // get Hertz values
+    std::vector<double> hertzValues={};
+    if (converter && converter->frameDependent) {
+        hertzValues = getHertzValues(astroImage, doubleView.dims(), spectralIndex);
+    }
+
+    // calculate Min and Max percentiles: new way
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr minMaxCalc = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+    std::map<double, double> clips_MinMax1 = minMaxCalc->percentile2pixels(doubleView, {0, 1}, spectralIndex, converter, hertzValues);
+
+    // calculate the intensity range
+    double intensity_range = fabs(clips_MinMax1[1] - clips_MinMax1[0]);
+
+    // calculate precise percentiles to intensities
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr exactCalc = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
+    std::map<double, double> clips_map1 = exactCalc->percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
+
+    // override parameters
+    QJsonObject config;
+    config["numBuffers"] = numBuffers;
+    config["bufferCapacity"] = bufferCapacity;
+    config["sampleAfter"] = sampleAfter;
+    calculator->reconfigure(config);
     
-    qCritical() << "#################################### END #######################################\n";
+    std::map<double, double> clips_map2 = calculator->percentile2pixels(doubleView, percentile, spectralIndex, converter, hertzValues);
+
+    // expected intensity error
+//     double expected_error = ???; // represented as %
+
+    // check the difference of percentile to intensity with new and original algorithms
+    qCritical() << "MANKU 99 APPROXIMATION";
+    qCritical() << "--------------------------------------------------------------------------------";
+    qCritical() << "Parameters: buffers" << numBuffers << "buffer capacity" << bufferCapacity << "sample after" << sampleAfter;
+    
+    for (auto& p : percentile) {
+        double intensity_precise = clips_map1[p];
+        double intensity_approximation = clips_map2[p];
+        double error = 100*fabs(intensity_approximation - intensity_precise)/intensity_range; // represented as %
+        qCritical() << "For percentile" << 100*p << "(%), intensity error =" << error << "(%)";
+        
+        // add this back in when we have a better idea of the expected error
+//         if (error <= expected_error) {
+//             qCritical() << "[PASS] for percentile" << 100*p << "(%), intensity error =" << error << "<=" << expected_error << "(%)";
+//         } else {
+//             qCritical() << "[FAIL !!] for percentile" << 100*p << "(%), intensity error =" << error << ">" << expected_error << "(%)";
+//         }
+    }
 
 }
 
@@ -294,6 +393,9 @@ static int coreMainCPP(QString platformString, int argc, char **argv) {
     // reuse the Initialise hook or write a Reconfigure hook (which takes a JSON object)
     
     for (int i = 0; i < file_num; i++) {
+        qCritical() << "\n############################### START CHECKING #################################";
+        qCritical() << "For the image file:" << cmdLineInfo.fileList()[i];
+        qCritical() << "--------------------------------------------------------------------------------";
 
         auto imgRes = pm-> prepare <Carta::Lib::Hooks::LoadAstroImage> (cmdLineInfo.fileList()[i]).first();
         if (imgRes.isNull()) {
@@ -305,24 +407,38 @@ static int coreMainCPP(QString platformString, int argc, char **argv) {
         if (! astroImage) {
             throw "Image read was a nullptr";
         }
+        
+        // Compare old and new min/max algorithms
+        testMinMax(astroImage);
 
         // make a lambda to set the value of calculator and call the tests
         auto lam = [=] ( const Carta::Lib::Hooks::PixelToPercentileHook<double>::ResultType &res ) {
             Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = res;
+            
+            // histogram test
             if (calculator->label == "Histogram approximation") {
-                
-                for (auto numberOfBins : bin_number) {
-                    // TODO set the number of bins on the calculator somehow
-                    // But how?
-                    testPercentileHistogram(cmdLineInfo.fileList()[i], astroImage, calculator, numberOfBins);
+                for (auto& numberOfBins : bin_number) {
+                    testPercentileHistogram(astroImage, calculator, numberOfBins);
                 }
-                
+            }
+            
+            // Manku 99 test
+            if (calculator->label == "Manku99 approximation") {
+                for (auto& numBuffers : buffer_numbers) {
+                    for (auto& bufferCapacity : buffer_sizes) {
+                        for (auto& sampleAfter : sample_after) {
+                            testPercentileManku99(astroImage, calculator, numBuffers, bufferCapacity, sampleAfter);
+                        }
+                    }
+                }
             }
         };
         
         // call the lambda on every percentile plugin
         auto percentileRes = pm-> prepare< Carta::Lib::Hooks::PixelToPercentileHook<double> >(astroImage);
         percentileRes.forEach(lam);
+        
+        qCritical() << "#################################### END #######################################\n";
     }
     
     // if we get here, it means we are done
