@@ -681,6 +681,8 @@ private:
     void _generateFit( );
     std::vector<std::tuple<double,double,double> > _generateFitGuesses( int count, bool random );
 
+    QString _generateName( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
+
     Controller* _getControllerSelected() const;
     std::pair<double,double> _getCurveRangeX() const;
     std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;

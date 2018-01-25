@@ -228,6 +228,7 @@ int CurveData::getDataCount() const {
 
 QString CurveData::getDefaultName() const {
 	QString dName = _generateName( m_layer, m_region );
+    // QString defaultName = m_state.getValue<QString>( "defaultName" );
     return dName;
 }
 
@@ -310,6 +311,9 @@ std::vector<std::tuple<double,double,double> > CurveData::getGaussParams() const
     return m_gaussParams;
 }
 
+QString CurveData::getId() const {
+    return m_state.getValue<QString>( Util::ID );
+}
 
 std::shared_ptr<Layer> CurveData::getLayer() const {
     return m_layer;
@@ -446,7 +450,7 @@ std::vector<double> CurveData::getValuesYFit() const{
 
 void CurveData::_initializeDefaultState(){
     m_state.insertValue<QString>( Util::NAME, "");
-    //m_state.insertValue<QString>( Util::ID, "");
+    m_state.insertValue<QString>( Util::ID, "");
     m_state.insertValue<int>( Util::RED, 255 );
     m_state.insertValue<int>( Util::GREEN, 0 );
     m_state.insertValue<int>( Util::BLUE, 0 );
@@ -622,6 +626,9 @@ void CurveData::setFitStatus( const QString& fitStatus ) {
     m_fitStatus = fitStatus;
 }
 
+void CurveData::setId( QString id ) {
+    m_state.setValue<QString>( Util::ID, id );
+}
 
 void CurveData::setLayer( std::shared_ptr<Layer> layer ){
     m_layer = layer;

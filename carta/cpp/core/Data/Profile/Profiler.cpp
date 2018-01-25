@@ -385,7 +385,7 @@ int Profiler::_findCurveIndex( const QString& name ) const {
     int curveCount = m_plotCurves.size();
     int index = -1;
     for ( int i = 0; i < curveCount; i++ ){
-        if ( m_plotCurves[i]->getName() == name ){
+        if ( m_plotCurves[i]->getId() == name ){
             index = i;
             break;
         }
@@ -613,6 +613,20 @@ std::vector<std::tuple<double,double,double> > Profiler::_generateFitGuesses( in
         guesses[i] = std::tuple<double,double,double>( center, peak, fbhwFit );
     }
     return guesses;
+}
+
+QString Profiler::_generateName( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ){
+    QString name;
+    if ( layer ){
+        name = layer->_getLayerName();
+        if ( region ){
+            QString regionName = region->getRegionName();
+            if ( regionName.length() > 0 ){
+                name = name + "[" + regionName + "]";
+            }
+        }
+    }
+    return name;
 }
 
 QString Profiler::getAxisUnitsX() const {
@@ -1482,6 +1496,12 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "getCurveData", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result = m_stateData.toString();
+        return result;
+    });
+
     addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         std::set<QString> keys = {Util::NAME};
@@ -2031,6 +2051,7 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
                 int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
                 double restRounded = Util::roundToDigits( restFrequency, significantDigits );
                 QString restUnit = result.getRestUnits();
+                profileCurve->setId( id );
                 profileCurve->setRestQuantity( restRounded, restUnit );
                 profileCurve->setSpectralInfo( getSpectralType(), getSpectralUnits() );
                 profileCurve->setStokesFrame( getStokesFrame() );
@@ -2038,20 +2059,21 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
                 if ( curveIndex < 0 ){
                     m_plotCurves.append( profileCurve );
                 }
-                else if ( createNew ){
-                    //It will have the same name as an existing curve.  So we set a custom name
-                    //be appending a number after the default name.
-                    QString curveName = CurveData::_generateName( layer, region );
-                    int existIndex = _findCurveIndex( curveName );
-                    int i = 1;
-                    while ( existIndex >= 0 ){
-                        curveName = curveName + QString::number(i);
-                        existIndex = _findCurveIndex( curveName );
-                        i++;
-                    }
-                    profileCurve->setName( curveName );
-                    m_plotCurves.append( profileCurve );
-                }
+                // TODO:temporarily remove the feature in the newArch, check it later
+                // else if ( createNew ){
+                //     //It will have the same name as an existing curve.  So we set a custom name
+                //     //be appending a number after the default name.
+                //     QString curveName = CurveData::_generateName( layer, region );
+                //     int existIndex = _findCurveIndex( curveName );
+                //     int i = 1;
+                //     while ( existIndex >= 0 ){
+                //         curveName = curveName + QString::number(i);
+                //         existIndex = _findCurveIndex( curveName );
+                //         i++;
+                //     }
+                //     profileCurve->setName( curveName );
+                //     m_plotCurves.append( profileCurve );
+                // }
                 else {
                     m_plotCurves.replace( curveIndex, profileCurve );
                 }
@@ -3589,65 +3611,122 @@ void Profiler::_updatePlotData(){
 }
 
 bool Profiler::_updateProfiles( Controller* controller ){
+
+    if ( !isAutoGenerate() ){
+        return false;
+    }
+
     bool profileChanged = false;
+    bool curveStatusChange = false;
+    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
+    std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
+    int dataCount = layers.size();
+    int regionCount = regions.size();
+    int curveCount = m_plotCurves.size();
 
-    if ( isAutoGenerate() ){
-        //Go through the old profiles and set inactive any whose regions&layers are not in
-        //the prescribed list.
-        // _removeUnsupportedCurves();
-        int curveCount = m_plotCurves.size();
-        std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
-        std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
-        int dataCount = layers.size();
-        int regionCount = regions.size();
-        bool curveStatusChange = false;
-        for ( int i = 0; i < curveCount; i++ ){
-            QString curveId = m_plotCurves[i]->getName();
-            bool layerFound = false;
-            for ( int j = 0; j < dataCount; j++ ){
-                if ( regionCount > 0 ){
-                    for ( int k = 0; k < regionCount; k++ ){
-                        QString id = CurveData::_generateName( layers[j], regions[k] );
-                        if ( id == curveId ){
-                            layerFound = true;
-                            break;
-                        }
-                    }
-                    if ( layerFound ){
-                        break;
-                    }
-                }
-            }
-            bool activeChanged = m_plotCurves[i]->setActive( layerFound );
-            if ( activeChanged ){
-                curveStatusChange = true;
+    // bool existing = false;
+    for ( int i = 0; i < dataCount; i++ ){
+        for ( int j = 0; j < regionCount; j++ ){
+            // existing = false;
+            // for ( int k = 0; k < curveCount; k++ ){
+            //     QString curveName = m_plotCurves[k]->getDefaultName();
+            //     QString name = _generateName( layers[i], regions[j] );
+            //
+            //     if ( name == curveName ){
+            //         existing = true;
+            //         break;
+            //     }
+            // }
+            QString name = _generateName( layers[i], regions[j] );
+            int index = _findCurveIndex( name );
+            if ( index < 0 ){
+                _generateData( layers[i], regions[j] );
+                profileChanged = true;
             }
         }
 
-        //Make profiles for any new data that has been loaded.
-        for ( int i = 0; i < dataCount; i++ ) {
-            if ( regionCount > 0 ){
-                for ( int j = 0; j < regionCount; j++ ){
-                    bool curveGenerated = _generateCurve( layers[i], regions[j] );
-                    if ( curveGenerated ){
-                        profileChanged = true;
-                    }
-                }
-            }
-            else {
-                //Profile of entire image
-                bool curveGenerated = _generateCurve( layers[i], nullptr );
-                if ( curveGenerated ){
-                    profileChanged = true;
-                }
-            }
-        }
-
-        _saveCurveState();
-        if ( curveStatusChange && !profileChanged ){
-            _updateSelectedCurve();
+        // // This part generate profiler without region, used for test.
+        // // The feature should be reomoved in the future.
+        // existing = false;
+        // for ( int k = 0; k < curveCount; k++ ){
+        //     QString curveName = m_plotCurves[k]->getDefaultName();
+        //     QString name = _generateName( layers[i], nullptr );
+        //     if ( name == curveName ){
+        //         existing = true;
+        //         break;
+        //     }
+        // }
+        QString name = _generateName( layers[i], nullptr );
+        int index = _findCurveIndex( name );
+        if ( index < 0 ){
+            _generateData( layers[i], nullptr );
+            profileChanged = true;
         }
     }
+
+    // I am not sure the purpose
+    _saveCurveState();
+    if ( curveStatusChange && !profileChanged ){
+        _updateSelectedCurve();
+    }
+
+    // if ( isAutoGenerate() ){
+    //     //Go through the old profiles and set inactive any whose regions&layers are not in
+    //     //the prescribed list.
+    //     // _removeUnsupportedCurves();
+    //     int curveCount = m_plotCurves.size();
+    //     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
+    //     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
+    //     int dataCount = layers.size();
+    //     int regionCount = regions.size();
+    //     bool curveStatusChange = false;
+    //     for ( int i = 0; i < curveCount; i++ ){
+    //         QString curveId = m_plotCurves[i]->getName();
+    //         bool layerFound = false;
+    //         for ( int j = 0; j < dataCount; j++ ){
+    //             if ( regionCount > 0 ){
+    //                 for ( int k = 0; k < regionCount; k++ ){
+    //                     QString id = CurveData::_generateName( layers[j], regions[k] );
+    //                     if ( id == curveId ){
+    //                         layerFound = true;
+    //                         break;
+    //                     }
+    //                 }
+    //                 if ( layerFound ){
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //         bool activeChanged = m_plotCurves[i]->setActive( layerFound );
+    //         if ( activeChanged ){
+    //             curveStatusChange = true;
+    //         }
+    //     }
+    //
+    //     //Make profiles for any new data that has been loaded.
+    //     for ( int i = 0; i < dataCount; i++ ) {
+    //         if ( regionCount > 0 ){
+    //             for ( int j = 0; j < regionCount; j++ ){
+    //                 bool curveGenerated = _generateCurve( layers[i], regions[j] );
+    //                 if ( curveGenerated ){
+    //                     profileChanged = true;
+    //                 }
+    //             }
+    //         }
+    //         else {
+    //             //Profile of entire image
+    //             bool curveGenerated = _generateCurve( layers[i], nullptr );
+    //             if ( curveGenerated ){
+    //                 profileChanged = true;
+    //             }
+    //         }
+    //     }
+    //
+    //     _saveCurveState();
+    //     if ( curveStatusChange && !profileChanged ){
+    //         _updateSelectedCurve();
+    //     }
+    // }
 
 //     m_plotCurves.clear();
 //     std::shared_ptr<Layer> currentLayer = controller->getLayer("");

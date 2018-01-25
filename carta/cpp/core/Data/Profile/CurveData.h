@@ -135,6 +135,8 @@ public:
      */
     std::vector<std::tuple<double,double,double> > getGaussParams() const;
 
+    QString getId() const;
+
     /**
      * Return the image used to generate the curve.
      * @return - the image used to generate the curve.
@@ -386,6 +388,8 @@ public:
      * @param polyCoeffs - the coefficients of any polynomial that was fit to the curve.
      */
     void setFitPolyCoeffs( const std::vector<double>& polyCoeffs );
+
+    void setId( QString id );
 
     /**
      * Set the line style (outline,solid, etc) for drawing the curve.
