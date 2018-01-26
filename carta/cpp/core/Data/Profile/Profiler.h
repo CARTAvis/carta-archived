@@ -685,7 +685,7 @@ private:
 
     Controller* _getControllerSelected() const;
     std::pair<double,double> _getCurveRangeX() const;
-    std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
+    std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( /*Controller* controller*/) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
 
     QString _getFitStatusMessage( Carta::Lib::Fit1DInfo::StatusType statType) const;
@@ -701,6 +701,8 @@ private:
     void _initializeDefaultState();
     void _initializeCallbacks();
     void _initializeStatics();
+
+    bool _isPermittedLayer( std::shared_ptr<Layer> layer ) const;
 
     void _makeInitialGuesses( int count );
 

@@ -459,23 +459,24 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
     }
 }
 
-bool Profiler::_generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ){
-    bool generates = false;
-    if ( layer ){
-        QString curveId = CurveData::_generateName( layer, region );
-        int profileIndex = _findCurveIndex( curveId );
-        if ( profileIndex < 0 ){
-            _generateData( layer, region);
-            generates = true;
-        }
-        else {
-            //Set the curve active
-            m_plotCurves[profileIndex]->setActive( true );
-        }
-
-    }
-    return generates;
-}
+// Deprecated
+// bool Profiler::_generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region ){
+//     bool generates = false;
+//     if ( layer ){
+//         QString curveId = CurveData::_generateName( layer, region );
+//         int profileIndex = _findCurveIndex( curveId );
+//         if ( profileIndex < 0 ){
+//             _generateData( layer, region);
+//             generates = true;
+//         }
+//         else {
+//             //Set the curve active
+//             m_plotCurves[profileIndex]->setActive( true );
+//         }
+//
+//     }
+//     return generates;
+// }
 
 
 
@@ -673,39 +674,30 @@ std::pair<double,double> Profiler::_getCurveRangeX() const {
 }
 
 
-std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode( Controller* controller) const {
-    QString generateMode = m_state.getValue<QString>( GEN_MODE );
-    std::vector<std::shared_ptr<Layer> > dataSources;
-    bool isCelestial = false;
-    int specCount = 1;
-    int tabCount = 1;
-    if ( m_generateModes->isCurrent( generateMode ) ){
-        std::shared_ptr<Layer> dataSource = controller->getLayer("");
-        if ( dataSource ){
-            isCelestial = dataSource->_isOnCelestialPlane();
-            specCount = dataSource->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
-            tabCount = dataSource->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
-        }
+std::vector<std::shared_ptr<Layer> > Profiler::_getDataForGenerateMode() const {
 
-        if ( isCelestial && (specCount > 1 || tabCount > 1) ){
-            dataSources.push_back( dataSource );
+    Controller* controller = _getControllerSelected();
+
+    QString generateMode = m_state.getValue<QString>( GEN_MODE );
+    std::vector<std::shared_ptr<Layer> > selectedLayers;
+
+    if ( m_generateModes->isCurrent( generateMode ) ){
+        std::shared_ptr<Layer> layer = controller->getLayer("");
+        if ( _isPermittedLayer( layer ) ){
+            selectedLayers.push_back( layer );
         }
     }
     else if ( m_generateModes->isAll( generateMode ) ){
-        std::vector<std::shared_ptr<Layer> > dSources = controller->getLayers();
-        int dCount = dSources.size();
-        for ( int i = 0; i < dCount; i++ ){
-            isCelestial = false;
-            specCount = tabCount = 1;
-            isCelestial = dSources[i]->_isOnCelestialPlane();
-            specCount = dSources[i]->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
-            tabCount = dSources[i]->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
-            if ( isCelestial && (specCount > 1 || tabCount > 1) ){
-                dataSources.push_back( dSources[i]);
+        std::vector<std::shared_ptr<Layer> > layers = controller->getLayers();
+        int count = layers.size();
+        for ( int i = 0; i < count; i++ ){
+            if ( _isPermittedLayer( layers[i] ) ){
+                selectedLayers.push_back( layers[i] );
             }
         }
     }
-    return dataSources;
+
+    return selectedLayers;
 }
 
 
@@ -1821,6 +1813,19 @@ void Profiler::_initializeStatics(){
     if ( m_wavelengthUnits == nullptr ){
         m_wavelengthUnits = Util::findSingletonObject<UnitsWavelength>();
     }
+}
+
+bool Profiler::_isPermittedLayer( std::shared_ptr<Layer> layer ) const {
+
+    if ( !layer ){
+        return false;
+    }
+
+    bool isCelestial = layer->_isOnCelestialPlane();
+    int specCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+    int tabCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
+
+    return isCelestial && (specCount > 1 || tabCount > 1);
 }
 
 bool Profiler::isAutoGenerate() const {
@@ -3618,25 +3623,14 @@ bool Profiler::_updateProfiles( Controller* controller ){
 
     bool profileChanged = false;
     bool curveStatusChange = false;
-    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
+    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( /*controller*/ );
     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
     int dataCount = layers.size();
     int regionCount = regions.size();
     int curveCount = m_plotCurves.size();
 
-    // bool existing = false;
     for ( int i = 0; i < dataCount; i++ ){
         for ( int j = 0; j < regionCount; j++ ){
-            // existing = false;
-            // for ( int k = 0; k < curveCount; k++ ){
-            //     QString curveName = m_plotCurves[k]->getDefaultName();
-            //     QString name = _generateName( layers[i], regions[j] );
-            //
-            //     if ( name == curveName ){
-            //         existing = true;
-            //         break;
-            //     }
-            // }
             QString name = _generateName( layers[i], regions[j] );
             int index = _findCurveIndex( name );
             if ( index < 0 ){
@@ -3645,17 +3639,8 @@ bool Profiler::_updateProfiles( Controller* controller ){
             }
         }
 
-        // // This part generate profiler without region, used for test.
-        // // The feature should be reomoved in the future.
-        // existing = false;
-        // for ( int k = 0; k < curveCount; k++ ){
-        //     QString curveName = m_plotCurves[k]->getDefaultName();
-        //     QString name = _generateName( layers[i], nullptr );
-        //     if ( name == curveName ){
-        //         existing = true;
-        //         break;
-        //     }
-        // }
+        // This part generate profiler without region, used for test.
+        // The feature should be reomoved in the future.
         QString name = _generateName( layers[i], nullptr );
         int index = _findCurveIndex( name );
         if ( index < 0 ){
@@ -3669,70 +3654,6 @@ bool Profiler::_updateProfiles( Controller* controller ){
     if ( curveStatusChange && !profileChanged ){
         _updateSelectedCurve();
     }
-
-    // if ( isAutoGenerate() ){
-    //     //Go through the old profiles and set inactive any whose regions&layers are not in
-    //     //the prescribed list.
-    //     // _removeUnsupportedCurves();
-    //     int curveCount = m_plotCurves.size();
-    //     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( controller );
-    //     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
-    //     int dataCount = layers.size();
-    //     int regionCount = regions.size();
-    //     bool curveStatusChange = false;
-    //     for ( int i = 0; i < curveCount; i++ ){
-    //         QString curveId = m_plotCurves[i]->getName();
-    //         bool layerFound = false;
-    //         for ( int j = 0; j < dataCount; j++ ){
-    //             if ( regionCount > 0 ){
-    //                 for ( int k = 0; k < regionCount; k++ ){
-    //                     QString id = CurveData::_generateName( layers[j], regions[k] );
-    //                     if ( id == curveId ){
-    //                         layerFound = true;
-    //                         break;
-    //                     }
-    //                 }
-    //                 if ( layerFound ){
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //         bool activeChanged = m_plotCurves[i]->setActive( layerFound );
-    //         if ( activeChanged ){
-    //             curveStatusChange = true;
-    //         }
-    //     }
-    //
-    //     //Make profiles for any new data that has been loaded.
-    //     for ( int i = 0; i < dataCount; i++ ) {
-    //         if ( regionCount > 0 ){
-    //             for ( int j = 0; j < regionCount; j++ ){
-    //                 bool curveGenerated = _generateCurve( layers[i], regions[j] );
-    //                 if ( curveGenerated ){
-    //                     profileChanged = true;
-    //                 }
-    //             }
-    //         }
-    //         else {
-    //             //Profile of entire image
-    //             bool curveGenerated = _generateCurve( layers[i], nullptr );
-    //             if ( curveGenerated ){
-    //                 profileChanged = true;
-    //             }
-    //         }
-    //     }
-    //
-    //     _saveCurveState();
-    //     if ( curveStatusChange && !profileChanged ){
-    //         _updateSelectedCurve();
-    //     }
-    // }
-
-//     m_plotCurves.clear();
-//     std::shared_ptr<Layer> currentLayer = controller->getLayer("");
-//     std::shared_ptr<Region> currentRegion = controller->getRegionControls()->getRegion("");
-// //    profileChanged = _generateCurve( currentLayer, nullptr );
-//     profileChanged = _generateCurve( currentLayer, currentRegion );
 
     return profileChanged;
 }
