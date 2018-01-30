@@ -31,7 +31,7 @@
 // TODO this should not be a dependency, or necessary!!
 // #include "../plugins/ConversionIntensity/ConverterIntensity.h"
 
-#include "CartaLib/Hooks/PixelToPercentileHook.h"
+#include "CartaLib/Hooks/PercentileToPixelHook.h"
 
 #include "CartaLib/Regions/CoordinateSystemFormatter.h"
 #include <QDebug>
@@ -412,7 +412,7 @@ static int coreMainCPP(QString platformString, int argc, char **argv) {
         testMinMax(astroImage);
 
         // make a lambda to set the value of calculator and call the tests
-        auto lam = [=] ( const Carta::Lib::Hooks::PixelToPercentileHook<double>::ResultType &res ) {
+        auto lam = [=] ( const Carta::Lib::Hooks::PercentileToPixelHook<double>::ResultType &res ) {
             Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = res;
             
             // histogram test
@@ -435,7 +435,7 @@ static int coreMainCPP(QString platformString, int argc, char **argv) {
         };
         
         // call the lambda on every percentile plugin
-        auto percentileRes = pm-> prepare< Carta::Lib::Hooks::PixelToPercentileHook<double> >(astroImage);
+        auto percentileRes = pm-> prepare< Carta::Lib::Hooks::PercentileToPixelHook<double> >(astroImage);
         percentileRes.forEach(lam);
         
         qCritical() << "#################################### END #######################################\n";

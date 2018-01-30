@@ -20,9 +20,9 @@ namespace Hooks
 {
 
 template <typename Scalar>
-class PixelToPercentileHook : public BaseHook
+class PercentileToPixelHook : public BaseHook
 {
-    CARTA_HOOK_BOILER1( PixelToPercentileHook );
+    CARTA_HOOK_BOILER1( PercentileToPixelHook );
 
 public:
     
@@ -49,7 +49,7 @@ public:
      *
      * @todo make hook constructors protected, so that only hook helper can create them
      */
-    PixelToPercentileHook( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr )
+    PercentileToPixelHook( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr )
     {
         CARTA_ASSERT( is < Me > () );
     }

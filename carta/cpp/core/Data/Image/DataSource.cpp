@@ -11,7 +11,7 @@
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/GetPersistentCache.h"
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
-#include "CartaLib/Hooks/PixelToPercentileHook.h"
+#include "CartaLib/Hooks/PercentileToPixelHook.h"
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IPCache.h"
 #include "../../ImageRenderService.h"
@@ -454,9 +454,9 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
     } else {
         // Look for the best approximate plugin
-        auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::PixelToPercentileHook<double> >(m_image);
+        auto result = Globals::instance()-> pluginManager()-> prepare <Carta::Lib::Hooks::PercentileToPixelHook<double> >(m_image);
         
-        auto lam = [&calculator] ( const Carta::Lib::Hooks::PixelToPercentileHook<double>::ResultType &data ) {
+        auto lam = [&calculator] ( const Carta::Lib::Hooks::PercentileToPixelHook<double>::ResultType &data ) {
             if (!calculator || data->error < calculator->error) {
                 calculator = data;
             }

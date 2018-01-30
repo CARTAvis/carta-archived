@@ -1,5 +1,5 @@
 #include "CartaLib/Hooks/Initialize.h"
-#include "CartaLib/Hooks/PixelToPercentileHook.h"
+#include "CartaLib/Hooks/PercentileToPixelHook.h"
 #include "plugins/CasaImageLoader/CCImage.h"
 #include "plugins/PercentileHistogram/PercentileHistogramPlugin.h"
 #include "plugins/PercentileHistogram/PercentileHistogram.h"
@@ -14,9 +14,9 @@ bool PercentileHistogramPlugin::handleHook( BaseHook & hookData ){
         return true;
     }
     
-    else if ( hookData.is < Carta::Lib::Hooks::PixelToPercentileHook<double> > () ) {
-        Carta::Lib::Hooks::PixelToPercentileHook<double> & hook
-            = static_cast <Carta::Lib::Hooks::PixelToPercentileHook<double> & > ( hookData );
+    else if ( hookData.is < Carta::Lib::Hooks::PercentileToPixelHook<double> > () ) {
+        Carta::Lib::Hooks::PercentileToPixelHook<double> & hook
+            = static_cast <Carta::Lib::Hooks::PercentileToPixelHook<double> & > ( hookData );
         
         // TODO this is currently unused, but we should use it to pick a plugin (maybe)
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = hook.paramsPtr->m_image;
@@ -34,7 +34,7 @@ bool PercentileHistogramPlugin::handleHook( BaseHook & hookData ){
 std::vector < HookId > PercentileHistogramPlugin::getInitialHookList() {
     return {
         Carta::Lib::Hooks::Initialize::staticId,
-        Carta::Lib::Hooks::PixelToPercentileHook<double>::staticId
+        Carta::Lib::Hooks::PercentileToPixelHook<double>::staticId
     };
 }
 
