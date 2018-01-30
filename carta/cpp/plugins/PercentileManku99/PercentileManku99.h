@@ -546,8 +546,6 @@ std::map<double, Scalar> PercentileManku99<Scalar>::percentile2pixels(
 
     std::map <double, Scalar> result = algorithm.opOutput(percentiles);
 
-    CARTA_ASSERT( result.size() == percentiles.size());
-
     return result;
 }
 
