@@ -17,6 +17,7 @@
 #include "Data/DataLoader.h"
 #include "Data/Error/ErrorManager.h"
 #include "../../ImageRenderService.h"
+#include "Data/Colormap/Colormaps.h"
 
 #include "Data/Util.h"
 #include "ImageView.h"
@@ -1315,6 +1316,12 @@ void Controller::_initializeCallbacks(){
     //                     Util::commandPostProcess( result );
     //                     return result;
     //                 });
+    addCommandCallback( "getColormaps", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+        Colormaps* colormaps = Util::findSingletonObject<Colormaps>();
+        QString result = colormaps->getColorMaps().join(",");
+        return result;
+    });
 }
 
 

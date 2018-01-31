@@ -236,6 +236,14 @@ void Statistics::_initializeCallbacks(){
             Util::commandPostProcess( result );
             return result;
         });
+    addCommandCallback( "getStatsInfo", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+        return m_stateData.toString();
+    });
+    addCommandCallback( "getStatsPref", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+        return getStateString("1", Carta::State::CartaObject::SNAPSHOT_PREFERENCES);
+    });
 }
 
 
