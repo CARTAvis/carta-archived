@@ -26,6 +26,7 @@ class Profiler;
 class Statistics;
 class Snapshots;
 class ViewPlugins;
+class InteractiveClean;
 
 class ViewManager : public QObject, public Carta::State::CartaObject {
 
@@ -92,6 +93,12 @@ public:
      * @return - the image zoom view count.
      */
     int getImageZoomCount() const;
+
+    /**
+     * Return the number of interactive clean views.
+     * @return - the interactive clean view count.
+     */
+    int getInteractiveCleanCount() const;
 
     /**
      * Load the file into the controller with the given id.
@@ -196,6 +203,7 @@ private:
     void _clearImageZooms( int startIndex, int upperBound );
     void _clearProfilers( int startIndex, int upperBound );
     void _clearStatistics( int startIndex, int upperBound );
+    void _clearInteractiveCleans( int startIndex, int upperBound );
 
     void _setupSingletons();
 
@@ -231,6 +239,7 @@ private:
     QString _makeProfile( int index );
     QString _makeSnapshots();
     QString _makeStatistics( int index );
+    QString _makeInteractiveCleans( int index );
 
     void _makeDataLoader();
 
@@ -276,6 +285,9 @@ private:
 
     //Statistics
     QList<Statistics* > m_statistics;
+
+    //Interactive Cleans
+    QList<InteractiveClean* > m_interactiveCleans;
 
     static bool m_registered;
     Layout* m_layout;

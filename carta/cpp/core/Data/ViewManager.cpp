@@ -15,6 +15,7 @@
 #include "Data/Image/ImageContext.h"
 #include "Data/Image/ImageZoom.h"
 #include "Data/Image/LayerCompositionModes.h"
+#include "Data/InteractiveClean/InteractiveClean.h"
 #include "Data/Histogram/ChannelUnits.h"
 #include "Data/DataLoader.h"
 #include "Data/Colormap/Gamma.h"
@@ -157,6 +158,7 @@ void ViewManager::_clear(){
    _clearImageContexts( 0, m_imageContexts.size() );
    _clearProfilers( 0, m_profilers.size() );
     _clearControllers( 0, m_controllers.size() );
+    _clearInteractiveCleans( 0, m_interactiveCleans.size() );
     if ( m_layout != nullptr ){
         m_layout->clear();
     }
@@ -185,6 +187,9 @@ void ViewManager::_clearControllers( int startIndex, int upperBound ){
         }
         for ( ImageContext* context : m_imageContexts ){
             context->removeLink( m_controllers[i] );
+        }
+        for ( InteractiveClean* context : m_interactiveCleans ){
+          //            context->removeLink( m_controllers[i] );
         }
         objMan->destroyObject( m_controllers[i]->getId() );
         m_controllers.removeAt(i);
@@ -247,6 +252,14 @@ void ViewManager::_clearStatistics( int startIndex, int upperBound ){
     for ( int i = upperBound-1; i >= startIndex; i-- ){
         objMan->destroyObject( m_statistics[i]->getId() );
         m_statistics.removeAt( i );
+    }
+}
+
+void ViewManager::_clearInteractiveCleans( int startIndex, int upperBound ){
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    for ( int i = upperBound-1; i >= startIndex; i-- ){
+        objMan->destroyObject( m_interactiveCleans[i]->getId() );
+        m_interactiveCleans.removeAt( i );
     }
 }
 
@@ -359,6 +372,17 @@ QString ViewManager::getObjectId( const QString& plugin, int index, bool forceCr
             viewId = _makeStatistics( index );
         }
     }
+    else if ( plugin == InteractiveClean::CLASS_NAME ){
+        if ( 0 <= index && index < m_interactiveCleans.size() && !forceCreate){
+            viewId = m_interactiveCleans[index]->getPath();
+        }
+        else {
+            if ( index == -1 ){
+                index = m_interactiveCleans.size();
+            }
+            viewId = _makeInteractiveCleans( index );
+        }
+    }
     else if ( plugin == ViewPlugins::CLASS_NAME ){
         viewId = _makePluginList();
     }
@@ -399,6 +423,11 @@ int ViewManager::getImageContextCount() const {
 int ViewManager::getImageZoomCount() const {
     int zoomCount = m_imageZooms.size();
     return zoomCount;
+}
+
+int ViewManager::getInteractiveCleanCount() const {
+    int cleanCount = m_interactiveCleans.size();
+    return cleanCount;
 }
 
 QString ViewManager::dataLoaded(const QString & params) {
@@ -763,6 +792,14 @@ void ViewManager::_moveView( const QString& plugin, int oldIndex, int newIndex )
                m_profilers.insert( newIndex, profiler );
            }
         }
+        else if ( plugin == InteractiveClean::CLASS_NAME ){
+           int cleanCount = m_interactiveCleans.size();
+           if ( oldIndex < cleanCount && newIndex < cleanCount ){
+               InteractiveClean* interactiveClean = m_interactiveCleans[oldIndex];
+               m_interactiveCleans.removeAt(oldIndex );
+               m_interactiveCleans.insert( newIndex, interactiveClean );
+           }
+        }
 
         else if ( plugin != NodeFactory::EMPTY ){
             qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
@@ -860,6 +897,22 @@ QString ViewManager::_makeImageContext( int index ){
         m_imageContexts[i]->setIndex( i );
     }
     return m_imageContexts[index]->getPath();
+}
+
+QString ViewManager::_makeInteractiveCleans( int index ){
+    int currentCount = m_interactiveCleans.size();
+    CARTA_ASSERT( 0 <= index && index <= currentCount );
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    InteractiveClean* cleanObj = objMan->createObject<InteractiveClean>();
+    m_interactiveCleans.insert( index, cleanObj );
+    for ( int i = index; i < currentCount + 1; i++ ){
+        m_interactiveCleans[i]->setIndex( i );
+    }
+    // if ( m_interactiveCleans.size() == 1 && m_controllers.size() == 1 ){
+    //     m_interactiveCleans[0]->addLink( m_controllers[0] );
+    // }
+
+    return m_interactiveCleans[index]->getPath();
 }
 
 QString ViewManager::_makeLayout(){
@@ -1122,6 +1175,10 @@ void ViewManager::_removeView( const QString& plugin, int index ){
         objMan->destroyObject( m_profilers[index]->getId());
         m_profilers.removeAt( index );
     }
+    else if ( plugin == InteractiveClean::CLASS_NAME ){
+        objMan->destroyObject( m_interactiveCleans[index]->getId());
+        m_interactiveCleans.removeAt( index );
+    }
 
     else if ( plugin != NodeFactory::EMPTY ){
         qWarning() << "Unrecognized plugin "<<plugin<<" to remove";
@@ -1172,6 +1229,13 @@ int ViewManager::_removeViews( const QString& name, int startIndex, int endIndex
             upperBound = existingCount;
         }
         _clearProfilers(startIndex, upperBound);
+    }
+    else if ( name == InteractiveClean::CLASS_NAME ){
+        existingCount = m_interactiveCleans.size();
+        if ( endIndex < 0 ){
+            upperBound = existingCount;
+        }
+        _clearInteractiveCleans(startIndex, upperBound);
     }
     else if ( name == Statistics::CLASS_NAME ){
         existingCount = m_statistics.size();
@@ -1248,7 +1312,7 @@ void ViewManager::setAnalysisView(){
         _clearStatistics( 0, m_statistics.size());
         _clearProfilers( 1, m_profilers.size() );
         _clearControllers( 1, m_controllers.size() );
-
+        _clearInteractiveCleans( 0, m_interactiveCleans.size());
         m_layout->setLayoutAnalysis();
 
         //Add the links to establish reasonable defaults.
@@ -1271,6 +1335,7 @@ void ViewManager::setHistogramAnalysisView(){
         _clearStatistics( 1, m_statistics.size());
         _clearProfilers( 0, m_profilers.size() );
         _clearControllers( 1, m_controllers.size() );
+        _clearInteractiveCleans( 0, m_interactiveCleans.size());
 
         m_layout->setLayoutHistogramAnalysis();
 
@@ -1297,6 +1362,7 @@ void ViewManager::setImageCompositeView(){
 
         _clearImageZooms( 1, m_imageZooms.size());
         _clearImageContexts( 1, m_imageContexts.size());
+        _clearInteractiveCleans( 0, m_interactiveCleans.size());
 
         m_layout->setLayoutImageComposite();
 
@@ -1319,6 +1385,7 @@ void ViewManager::setImageView(){
         _clearStatistics( 0, m_statistics.size());
         _clearProfilers( 0, m_profilers.size());
         _clearControllers( 1, m_controllers.size() );
+        _clearInteractiveCleans( 0, m_interactiveCleans.size());
 
         m_layout->setLayoutImage();
     }
@@ -1363,6 +1430,7 @@ QString ViewManager::_setPlugin( const QString& sourceNodeId, const QString& des
             destPluginType != Profiler::CLASS_NAME &&
             destPluginType != Statistics::CLASS_NAME &&
             destPluginType != ViewPlugins::CLASS_NAME &&
+            destPluginType != InteractiveClean::CLASS_NAME &&
             destPluginType != NodeFactory::HIDDEN ){
         msg = "Unrecognized plugin: "+destPluginType;
     }
@@ -1432,6 +1500,7 @@ ViewManager::~ViewManager(){
     _clearStatistics( 0, m_statistics.size() );
     _clearProfilers( 0, m_profilers.size() );
     _clearControllers( 0, m_controllers.size() );
+    _clearInteractiveCleans( 0, m_interactiveCleans.size() );
 
     //Delete the statics
     CartaObject* obj = Util::findSingletonObject<Clips>();

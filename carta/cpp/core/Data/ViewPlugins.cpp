@@ -9,6 +9,7 @@
 #include "Histogram/Histogram.h"
 #include "Colormap/Colormap.h"
 #include "Profile/Profiler.h"
+#include "InteractiveClean/InteractiveClean.h"
 #include "Util.h"
 #include "State/UtilState.h"
 
@@ -72,7 +73,7 @@ void ViewPlugins::_initializeDefaultState(){
         _insertPlugin( ind, entry.json.name, entry.json.description, entry.json.typeString, entry.json.version, entry.errors.join("|"));
         ind ++;
     }*/
-    m_state.insertArray( PLUGINS, 8 );
+    m_state.insertArray( PLUGINS, 9 );
     int ind = 0;
     _insertPlugin( ind, Controller::PLUGIN_NAME, "Image Display", "", "", "");
     ind++;
@@ -89,6 +90,8 @@ void ViewPlugins::_initializeDefaultState(){
     _insertPlugin( ind, ImageContext::CLASS_NAME, "Image Context", "", "", "");
     ind++;
     _insertPlugin( ind, ImageZoom::CLASS_NAME, "Image Zoom", "", "", "");
+    ind++;
+    _insertPlugin( ind, InteractiveClean::CLASS_NAME, "Interactive Clean", "", "", "");
     ind++;
     m_state.insertValue<int>( STAMP, ind);
     m_state.flushState();
