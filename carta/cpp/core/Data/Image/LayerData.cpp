@@ -1024,7 +1024,7 @@ QString LayerData::_setCoordinateSystem( QString csName ){
 
     CoordinateSystems* coordSys = Util::findSingletonObject<CoordinateSystems>();
     if( coordSys->getIndex(csName) == Carta::Lib::KnownSkyCS::Default ){
-        csName = m_dataSource->_getSkyCS();
+        csName = m_dataSource->_getDefaultCoordinateSystem();
     }
 
     Carta::Lib::KnownSkyCS cs = coordSys->getIndex( csName );
@@ -1033,7 +1033,8 @@ QString LayerData::_setCoordinateSystem( QString csName ){
 
     // TODO:the variable is used to match the crietia of _setAxis(), try to remove later.
     bool axisChanged = false;
-    std::vector<AxisInfo> supportedAxes = m_dataSource->_getAxisInfos( cs );
+    m_dataSource->_setCoordinateSystem( cs );
+    std::vector<AxisInfo> supportedAxes = m_dataSource->_getAxisInfos();
     m_dataGrid->_setAxisInfos( supportedAxes );
     int xIndex = m_dataSource->m_axisIndexX;
     int yIndex = m_dataSource->m_axisIndexY;
