@@ -428,7 +428,7 @@ protected:
      */
     virtual double _getZoom() const = 0;
 
-    virtual void _gridChanged( const Carta::State::StateInterface& state) = 0;
+    // virtual void _gridChanged( const Carta::State::StateInterface& state) = 0;
 
     /**
      * Returns whether or not the layer can contain other layers.

@@ -729,14 +729,14 @@ double LayerGroup::_getZoom() const {
     return zoom;
 }
 
-void LayerGroup::_gridChanged( const Carta::State::StateInterface& state ){
-    int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_children[i] != nullptr ){
-            m_children[i]->_gridChanged( state );
-        }
-    }
-}
+// void LayerGroup::_gridChanged( const Carta::State::StateInterface& state ){
+//     int dataCount = m_children.size();
+//     for ( int i = 0; i < dataCount; i++ ){
+//         if ( m_children[i] != nullptr ){
+//             m_children[i]->_gridChanged( state );
+//         }
+//     }
+// }
 
 
 void LayerGroup::_initializeState(){

@@ -295,7 +295,7 @@ protected:
     virtual double _getZoom() const;
 
 
-    virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
+    // virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
 
     /**
      * Returns whether or not the layer can be loaded with the indicated frames.

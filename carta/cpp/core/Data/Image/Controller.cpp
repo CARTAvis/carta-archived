@@ -137,7 +137,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
             _setLayersSelected( selectedLayers );
         }
         // _setSkyCSName();
-        _updateDisplayAxes();
+        // _updateDisplayAxes();
         emit dataChanged( this );
     }
     return result;
@@ -1767,19 +1767,19 @@ void Controller::_updateCursorText(bool notifyClients ){
 }
 
 
-void Controller::_updateDisplayAxes(){
-    // if ( m_gridControls ){
-    //     std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
-    //     m_gridControls->_setAxisInfos( supportedAxes );
-    //     AxisInfo::KnownType xType = m_stack->_getAxisXType();
-    //     AxisInfo::KnownType yType = m_stack->_getAxisYType();
-    //     //const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
-    //     QString xPurpose = AxisMapper::getPurpose( xType );
-    //     QString yPurpose = AxisMapper::getPurpose( yType );
-    //     m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
-    //     m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
-    // }
-}
+// void Controller::_updateDisplayAxes(){
+//     if ( m_gridControls ){
+//         std::vector<AxisInfo> supportedAxes = m_stack->_getAxisInfos();
+//         m_gridControls->_setAxisInfos( supportedAxes );
+//         AxisInfo::KnownType xType = m_stack->_getAxisXType();
+//         AxisInfo::KnownType yType = m_stack->_getAxisYType();
+//         //const Carta::Lib::KnownSkyCS cs = getCoordinateSystem();
+//         QString xPurpose = AxisMapper::getPurpose( xType );
+//         QString yPurpose = AxisMapper::getPurpose( yType );
+//         m_gridControls->setAxis( AxisMapper::AXIS_X, xPurpose );
+//         m_gridControls->setAxis( AxisMapper::AXIS_Y, yPurpose );
+//     }
+// }
 
 void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId ){
     m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);

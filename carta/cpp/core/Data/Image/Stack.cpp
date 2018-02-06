@@ -350,23 +350,23 @@ QString Stack::getStateString() const{
     return result;
 }
 
-void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyAll ){
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        if ( !applyAll ){
-            m_children[dataIndex]->_gridChanged( state );
-        }
-        else {
-            int dataCount = m_children.size();
-            for ( int i = 0; i < dataCount; i++ ){
-                if ( m_children[i] != nullptr ){
-                    m_children[i]->_gridChanged( state );
-                }
-            }
-        }
-        emit viewLoad( );
-    }
-}
+// void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyAll ){
+//     int dataIndex = _getIndexCurrent();
+//     if ( dataIndex >= 0 ){
+//         if ( !applyAll ){
+//             m_children[dataIndex]->_gridChanged( state );
+//         }
+//         else {
+//             int dataCount = m_children.size();
+//             for ( int i = 0; i < dataCount; i++ ){
+//                 if ( m_children[i] != nullptr ){
+//                     m_children[i]->_gridChanged( state );
+//                 }
+//             }
+//         }
+//         emit viewLoad( );
+//     }
+// }
 
 void Stack::_initializeSelections(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();

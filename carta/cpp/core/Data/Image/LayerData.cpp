@@ -226,13 +226,6 @@ QString LayerData::_getCursorText(bool isAutoClip, double minPercent, double max
     QString cursorText;
     if ( m_dataSource ){
         Carta::Lib::KnownSkyCS cs = m_dataGrid->_getSkyCS();
-        //if(cs == Carta::Lib::KnownSkyCS::Default){
-            //QString csName = m_dataSource->_getSkyCS();
-            //bool *csChanged;
-            //m_dataGrid->_setCoordinateSystem( csName, csChanged);
-            //cs = m_dataGrid->_getSkyCS();
-            //cs = m_dataGrid->_getSkyCS(csName);
-        //}
         QPointF pan = _getPan();
         double zoom = _getZoom();
         cursorText = m_dataSource->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY, cs, frames, zoom, pan, outputSize);
@@ -638,19 +631,19 @@ double LayerData::_getZoom() const {
     return zoom;
 }
 
-void LayerData::_gridChanged( const Carta::State::StateInterface& state ){
-    QString skyCS = Carta::Data::DataGrid::COORD_SYSTEM;
-    QString csName = state.getValue<QString>( skyCS );
-    Carta::State::StateInterface substituteState = state;
-    CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
-    if(m_coords->getIndex(csName) == Carta::Lib::KnownSkyCS::Default){
-        csName = m_dataSource->_getSkyCS();
-        substituteState.setValue<QString>( skyCS, csName );
-        //m_state.setValue<QString>( skyCS, csName );
-        //m_state.flushState();
-    }
-    m_dataGrid->_resetState( substituteState );
-}
+// void LayerData::_gridChanged( const Carta::State::StateInterface& state ){
+//     QString skyCS = Carta::Data::DataGrid::COORD_SYSTEM;
+//     QString csName = state.getValue<QString>( skyCS );
+//     Carta::State::StateInterface substituteState = state;
+//     CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
+//     if(m_coords->getIndex(csName) == Carta::Lib::KnownSkyCS::Default){
+//         csName = m_dataSource->_getSkyCS();
+//         substituteState.setValue<QString>( skyCS, csName );
+//         //m_state.setValue<QString>( skyCS, csName );
+//         //m_state.flushState();
+//     }
+//     m_dataGrid->_resetState( substituteState );
+// }
 
 
 void LayerData::_initializeState() {
@@ -937,7 +930,8 @@ void LayerData::_resetState( const Carta::State::StateInterface& restoreState ){
     QString gridStr = restoreState.toString( DataGrid::GRID );
     Carta::State::StateInterface gridState( "" );
     gridState.setState( gridStr );
-    _gridChanged( gridState);
+    // _gridChanged( gridState);
+    m_dataGrid->_resetState( gridState );
     _resetStateContours( restoreState );
     QString colorState = restoreState.toString( ColorState::CLASS_NAME);
     if ( colorState.length() > 0 ){

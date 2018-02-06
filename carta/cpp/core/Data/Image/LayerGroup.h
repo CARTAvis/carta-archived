@@ -365,7 +365,7 @@ protected:
     virtual double _getZoom() const Q_DECL_OVERRIDE;
 
 
-    virtual void _gridChanged( const Carta::State::StateInterface& state ) Q_DECL_OVERRIDE;
+    // virtual void _gridChanged( const Carta::State::StateInterface& state ) Q_DECL_OVERRIDE;
 
     /**
      * Returns true since other layers can be added to a group.

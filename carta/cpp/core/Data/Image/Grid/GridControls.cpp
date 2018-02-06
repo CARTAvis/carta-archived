@@ -53,13 +53,13 @@ void GridControls::_initializeDefaultState(){
 
 void GridControls::_initializeCallbacks(){
 
-    addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
-                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result;
-        Carta::State::StateInterface gridState = m_dataGrid->_getState();
-        result = gridState.toString();
-        return result;
-    });
+    // addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
+    //                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+    //     QString result;
+    //     Carta::State::StateInterface gridState = m_dataGrid->_getState();
+    //     result = gridState.toString();
+    //     return result;
+    // });
 
     addCommandCallback( "setApplyAll", [=] (const QString & /*cmd*/,
                    const QString & params, const QString & /*sessionId*/) -> QString {
