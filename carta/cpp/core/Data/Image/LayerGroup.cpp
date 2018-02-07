@@ -242,7 +242,7 @@ void LayerGroup::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     }
 }
 
-Carta::Lib::AxisInfo::KnownType LayerGroup::_getAxisType( int /*index*/ ) const {
+Carta::Lib::AxisInfo::KnownType LayerGroup::_getAxisType( int index ) const {
     AxisInfo::KnownType axisType = AxisInfo::KnownType::OTHER;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
