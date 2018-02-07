@@ -131,6 +131,13 @@ QString InteractiveClean::getStateString( const QString& sessionId, SnapshotType
 
 void InteractiveClean::_initializeCallbacks(){
 
+  addCommandCallback( "getInteractiveClean", [=] (const QString & /*cmd*/,
+                                                    const QString & params, const QString & /*sessionId*/) -> QString {
+                        qDebug() << "get Interactive Clean";
+                        QString result("interactive clean return");
+                        return result;
+                      });
+
     addCommandCallback( "buttonPressed", [=] (const QString & /*cmd*/,
                                                     const QString & params, const QString & /*sessionId*/) -> QString {
                           std::set<QString> keys = {"button"};
