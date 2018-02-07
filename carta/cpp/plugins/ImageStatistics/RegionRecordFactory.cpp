@@ -294,7 +294,9 @@ casacore::Record RegionRecordFactory::_getRegionRecordPoint(
     	Carta::Lib::Regions::Point* pointRegion = dynamic_cast<Carta::Lib::Regions::Point*>( region.get());
     	QRectF polygon = pointRegion->outlineBox();
     	QPointF centerVal = polygon.center();
-    	QRectF pointRect( centerVal.x(), centerVal.y(), centerVal.x(), centerVal.y() );
+        int pointWidth = 1;
+        int pointHeight = 1;
+        QRectF pointRect( centerVal.x(), centerVal.y(), pointWidth, pointHeight );
     	typeStr = "Point";
     	casacore::ImageRegion* region = _getRectangle( casaImage, pointRect, slice );
     	if ( region != nullptr ){

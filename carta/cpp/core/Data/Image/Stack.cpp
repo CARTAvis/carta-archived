@@ -247,7 +247,8 @@ std::vector<int> Stack::_getImageSlice() const {
         Carta::Lib::AxisInfo::KnownType axisXType = _getAxisXType();
         Carta::Lib::AxisInfo::KnownType axisYType = _getAxisYType();
         for ( int i = 0; i < dimensions; i++ ){
-            Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i );
+            //Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i ); // call the function LayerGroup::_getAxisType( int )
+            Carta::Lib::AxisInfo::KnownType type  = m_children[dataIndex]->_getAxisType( i ); // call the function LayerData::_getAxisType( int )
             if ( type == axisXType || type == axisYType ){
                 result[i] = -1;
             }
