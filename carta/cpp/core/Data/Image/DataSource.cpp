@@ -42,6 +42,7 @@ CoordinateSystems* DataSource::m_coords = nullptr;
 DataSource::DataSource() :
     m_image( nullptr ),
     m_permuteImage( nullptr),
+    m_coordinateFormatter( nullptr ),
     m_axisIndexX( 0 ),
     m_axisIndexY( 1 ){
         m_cmapCacheSize = 1000;
@@ -135,19 +136,24 @@ std::vector<AxisInfo::KnownType> DataSource::_getAxisTypes() const {
     return types;
 }
 
+void DataSource::_setCoordinateSystem( Carta::Lib::KnownSkyCS cs ){
+    casa_mutex.lock();
+    m_coordinateFormatter->setSkyCS( cs );
+    casa_mutex.unlock();
+}
 
 std::vector<AxisInfo> DataSource::_getAxisInfos() const {
     std::vector<AxisInfo> Infos;
     casa_mutex.lock();
-    CoordinateFormatterInterface::SharedPtr cf(
-                   m_image-> metaData()-> coordinateFormatter()-> clone() );
-    int axisCount = cf->nAxes();
+
+    int axisCount = m_coordinateFormatter->nAxes();
     for ( int axis = 0 ; axis < axisCount; axis++ ) {
-        const AxisInfo & axisInfo = cf-> axisInfo( axis );
+        const AxisInfo & axisInfo = m_coordinateFormatter-> axisInfo( axis );
         if ( axisInfo.knownType() != AxisInfo::KnownType::OTHER ){
             Infos.push_back( axisInfo );
         }
     }
+
     casa_mutex.unlock();
 
     return Infos;
@@ -219,7 +225,7 @@ QStringList DataSource::_getCoordinates( double x, double y,
     return list;
 }
 
-QString DataSource::_getSkyCS(){
+QString DataSource::_getDefaultCoordinateSystem() const{
 
     casa_mutex.lock();
 
@@ -1299,6 +1305,9 @@ QString DataSource::_setFileName( const QString& fileName, bool* success ){
                 if (!res.isNull()){
                     m_image = res.val();
                     m_permuteImage = m_image;
+                    std::shared_ptr<CoordinateFormatterInterface> cf(
+                        m_image->metaData()->coordinateFormatter()->clone() );
+                    m_coordinateFormatter = cf;
                     // reset zoom/pan
                     _resetZoom();
                     _resetPan();

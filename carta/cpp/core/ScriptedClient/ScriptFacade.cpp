@@ -1545,574 +1545,574 @@ QStringList ScriptFacade::saveHistogram( const QString& histogramId, const QStri
     return resultList;
 }
 
-QStringList ScriptFacade::setGridAxesColor( const QString& controlId, int red, int green, int blue ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                resultList = controller->getGridControls()->setAxesColor( red, green, blue );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
+// QStringList ScriptFacade::setGridAxesColor( const QString& controlId, int red, int green, int blue ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 resultList = controller->getGridControls()->setAxesColor( red, green, blue );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
 
-QStringList ScriptFacade::setGridAxesThickness( const QString& controlId, int thickness ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setAxesThickness( thickness );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridAxesTransparency( const QString& controlId, int transparency ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setAxesTransparency( transparency );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridApplyAll( const QString& controlId, bool applyAll ) {
-    QStringList resultList("");
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                controller->getGridControls()->setApplyAll( applyAll );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridCoordinateSystem( const QString& controlId, const QString& coordSystem ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setCoordinateSystem( coordSystem );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridFontFamily( const QString& controlId, const QString& fontFamily ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setFontFamily( fontFamily );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridFontSize( const QString& controlId, int fontSize ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setFontSize( fontSize );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                resultList = controller->getGridControls()->setGridColor( redAmount, greenAmount, blueAmount );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridSpacing( const QString& controlId, double spacing ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setGridSpacing( spacing );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridThickness( const QString& controlId, int thickness ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setGridThickness( thickness );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-
-}
-
-QStringList ScriptFacade::setGridTransparency( const QString& controlId, int transparency ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setGridTransparency( transparency );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridLabelColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                resultList = controller->getGridControls()->setLabelColor( redAmount, greenAmount, blueAmount );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setShowGridAxis( const QString& controlId, bool showAxis ) {
-    QStringList resultList("");
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setShowAxis( showAxis );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setShowGridCoordinateSystem( const QString& controlId, bool showCoordinateSystem ) {
-    QStringList resultList("");
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setShowCoordinateSystem( showCoordinateSystem );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
-    QStringList resultList("");
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setShowGridLines( showGridLines );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, bool showInternalLabels ) {
-    QStringList resultList("");
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setShowInternalLabels( showInternalLabels );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setShowGridStatistics( const QString& controlId, bool showStatistics ) {
-    QStringList resultList("");
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setShowStatistics( showStatistics );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setShowGridTicks( const QString& controlId, bool showTicks ) {
-    QStringList resultList("");
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setShowTicks( showTicks );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridTickColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                resultList = controller->getGridControls()->setTickColor( redAmount, greenAmount, blueAmount );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridTickThickness( const QString& controlId, int tickThickness ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setTickThickness( tickThickness );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridTickTransparency( const QString& controlId, int transparency ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setTickTransparency( transparency );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
-
-QStringList ScriptFacade::setGridTheme( const QString& controlId, const QString& theme ) {
-    QStringList resultList;
-    Carta::State::CartaObject* obj = _getObject( controlId );
-    if ( obj != nullptr ){
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
-        if ( controller != nullptr ){
-            if ( controller->getStackedImageCount() > 0 ) {
-                QString result = controller->getGridControls()->setTheme( theme );
-                resultList = QStringList( result );
-            }
-            else {
-                resultList = _logErrorMessage( ERROR, NO_IMAGE );
-            }
-        }
-        else {
-            resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
-        }
-    }
-    else {
-        resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
-    }
-    if ( resultList.length() == 0 ) {
-        resultList = QStringList("");
-    }
-    return resultList;
-}
+// QStringList ScriptFacade::setGridAxesThickness( const QString& controlId, int thickness ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setAxesThickness( thickness );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridAxesTransparency( const QString& controlId, int transparency ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setAxesTransparency( transparency );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridApplyAll( const QString& controlId, bool applyAll ) {
+//     QStringList resultList("");
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 controller->getGridControls()->setApplyAll( applyAll );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId );
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridCoordinateSystem( const QString& controlId, const QString& coordSystem ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setCoordinateSystem( coordSystem );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridFontFamily( const QString& controlId, const QString& fontFamily ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setFontFamily( fontFamily );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridFontSize( const QString& controlId, int fontSize ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setFontSize( fontSize );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 resultList = controller->getGridControls()->setGridColor( redAmount, greenAmount, blueAmount );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridSpacing( const QString& controlId, double spacing ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setGridSpacing( spacing );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridThickness( const QString& controlId, int thickness ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setGridThickness( thickness );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+//
+// }
+//
+// QStringList ScriptFacade::setGridTransparency( const QString& controlId, int transparency ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setGridTransparency( transparency );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridLabelColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 resultList = controller->getGridControls()->setLabelColor( redAmount, greenAmount, blueAmount );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setShowGridAxis( const QString& controlId, bool showAxis ) {
+//     QStringList resultList("");
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setShowAxis( showAxis );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setShowGridCoordinateSystem( const QString& controlId, bool showCoordinateSystem ) {
+//     QStringList resultList("");
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setShowCoordinateSystem( showCoordinateSystem );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setShowGridLines( const QString& controlId, bool showGridLines ) {
+//     QStringList resultList("");
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setShowGridLines( showGridLines );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setShowGridInternalLabels( const QString& controlId, bool showInternalLabels ) {
+//     QStringList resultList("");
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setShowInternalLabels( showInternalLabels );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setShowGridStatistics( const QString& controlId, bool showStatistics ) {
+//     QStringList resultList("");
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setShowStatistics( showStatistics );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setShowGridTicks( const QString& controlId, bool showTicks ) {
+//     QStringList resultList("");
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setShowTicks( showTicks );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridTickColor( const QString& controlId, int redAmount, int greenAmount, int blueAmount ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 resultList = controller->getGridControls()->setTickColor( redAmount, greenAmount, blueAmount );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridTickThickness( const QString& controlId, int tickThickness ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setTickThickness( tickThickness );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridTickTransparency( const QString& controlId, int transparency ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setTickTransparency( transparency );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
+//
+// QStringList ScriptFacade::setGridTheme( const QString& controlId, const QString& theme ) {
+//     QStringList resultList;
+//     Carta::State::CartaObject* obj = _getObject( controlId );
+//     if ( obj != nullptr ){
+//         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
+//         if ( controller != nullptr ){
+//             if ( controller->getStackedImageCount() > 0 ) {
+//                 QString result = controller->getGridControls()->setTheme( theme );
+//                 resultList = QStringList( result );
+//             }
+//             else {
+//                 resultList = _logErrorMessage( ERROR, NO_IMAGE );
+//             }
+//         }
+//         else {
+//             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
+//         }
+//     }
+//     else {
+//         resultList = _logErrorMessage( ERROR, IMAGE_VIEW_NOT_FOUND + controlId);
+//     }
+//     if ( resultList.length() == 0 ) {
+//         resultList = QStringList("");
+//     }
+//     return resultList;
+// }
 
 QStringList ScriptFacade::deleteContourSet( const QString& controlId, const QString& name ) {
     QStringList resultList;

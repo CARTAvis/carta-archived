@@ -3612,10 +3612,21 @@ bool Profiler::_updateProfiles( Controller* controller ){
     // }
 
     m_plotCurves.clear();
+    bool isCelestial = false;
+    int specCount = 1;
+    int tabCount = 1;
     std::shared_ptr<Layer> currentLayer = controller->getLayer("");
+    if ( currentLayer ){
+        isCelestial = currentLayer->_isOnCelestialPlane();
+        specCount = currentLayer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+        tabCount = currentLayer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
+    }
+
     std::shared_ptr<Region> currentRegion = controller->getRegionControls()->getRegion("");
 //    profileChanged = _generateCurve( currentLayer, nullptr );
-    profileChanged = _generateCurve( currentLayer, currentRegion );
+    if ( isCelestial && (specCount > 1 || tabCount > 1) ){
+        profileChanged = _generateCurve( currentLayer, currentRegion );
+    }
 
     return profileChanged;
 }

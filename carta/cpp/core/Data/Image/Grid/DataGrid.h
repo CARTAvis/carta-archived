@@ -30,6 +30,10 @@ class Themes;
 class DataGrid : public Carta::State::CartaObject {
 
 friend class LayerData;
+friend class LayerGroup;
+friend class Stack;
+// For controller to use const string in callback.
+friend class Controller;
 friend class GridControls;
 
 public:
@@ -39,6 +43,15 @@ public:
     const static QString CLASS_NAME;
     const static QString GRID;
 private:
+
+    enum class ConvertType {
+        BOOL,
+        INT,
+        DOUBLE,
+        NOCONVERT,
+        UNKNOWN
+    };
+
     void _addUsedPurpose( const QString& key, const QString& targetPurpose,
         QList<QString>& usedPurposes, QString& usedPurposeKey );
     int _getMargin( const QString& direction ) const;
@@ -92,6 +105,8 @@ private:
     QString _setTickTransparency( int transparency, bool* transparencyChanged );
     QString _setTheme( const QString& theme, bool* themeChanged );
 
+    QString _setState( const QString stateName, const QString stateValue );
+
     Carta::State::StateInterface _getState();
     QPen _getPen( const QString& key, const Carta::State::StateInterface& state );
     void _initializeDefaultPen( const QString& key, int red, int green, int blue,
@@ -111,6 +126,8 @@ private:
     const static QString COORD_SYSTEM;
     const static QString DIRECTION;
     const static QString FONT;
+    const static QString FONT_FAMILY;
+    const static QString FONT_SIZE;
     const static QString LABEL_AXIS;
     const static QString LABEL_COLOR;
     const static QString LABEL_DECIMAL_PLACES;
@@ -120,12 +137,14 @@ private:
     const static QString FORMAT;
     const static QString SHOW_AXIS;
     const static QString SHOW_COORDS;
+    const static QString SHOW_DEFAULT_COORDS;
     const static QString SHOW_INTERNAL_LABELS;
     const static QString SHOW_GRID_LINES;
     const static QString SHOW_STATISTICS;
     const static QString SHOW_TICKS;
     const static QString SPACING;
     const static QString SUPPORTED_AXES;
+    const static QString SUPPORTED_COORDINATE_SYSTEMS;
     const static QString THEME;
     const static QString TICK;
     const static QString TICK_LENGTH;
@@ -134,6 +153,31 @@ private:
     const static int MARGIN_LABEL;
     const static int TICK_LENGTH_MAX;
     const static int PEN_FACTOR;
+
+    const static QString AXES_ALPHA;
+    const static QString AXES_BLUE;
+    const static QString AXES_GREEN;
+    const static QString AXES_RED;
+    const static QString AXES_WIDTH;
+    const static QString GRID_ALPHA;
+    const static QString GRID_BLUE;
+    const static QString GRID_GREEN;
+    const static QString GRID_RED;
+    const static QString GRID_WIDTH;
+    const static QString TICK_ALPHA;
+    const static QString TICK_BLUE;
+    const static QString TICK_GREEN;
+    const static QString TICK_RED;
+    const static QString TICK_WIDTH;
+    const static QString LABEL_COLOR_BLUE;
+    const static QString LABEL_COLOR_GREEN;
+    const static QString LABEL_COLOR_RED;
+    const static QString LABEL_FORMAT_LEFT;
+    const static QString LABEL_FORMAT_RIGHT;
+    const static QString LABEL_FORMAT_TOP;
+    const static QString LABEL_FORMAT_BOTTOM;
+
+    const static std::map< QString, ConvertType > typeTable;
 
     static bool m_registered;
 

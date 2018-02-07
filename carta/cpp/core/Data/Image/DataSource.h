@@ -82,7 +82,10 @@ private:
      */
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
-
+    /**
+     * Return a list of axes in the image, containing the type and name of axes.
+     * @return - a list of axes that are present in the image.
+     */
     std::vector<Carta::Lib::AxisInfo> _getAxisInfos() const;
 
     /**
@@ -128,8 +131,11 @@ private:
     QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
             const std::vector<int>& frames) const;
 
-
-    QString _getSkyCS();
+    /**
+     * Get the name of the default celestial coordinate system of image.
+     * @return the name of the default coordinate coordinate system
+     */
+    QString _getDefaultCoordinateSystem() const;
 
     /**
      * Returns information about the image at the current location of the cursor.
@@ -461,6 +467,13 @@ private:
     void _setColorNan( double red, double green, double blue );
 
     /**
+     * Set the coordinate system in the duplicated coordinateformatter,
+     * i.e. m_coordinateFormatter.
+     * @param cs - the target coordinate system (defined in CartaLib::KnownSkyCS)
+     */
+    void _setCoordinateSystem( Carta::Lib::KnownSkyCS cs );
+
+    /**
      * Set the x-, y-, and z- axes that are to be displayed.
      * @param displayAxisTypes - the list of display axes.
      * @param frames - a list of current image frames.
@@ -562,10 +575,10 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
-    
+
     // disk cache
     std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
-    
+
     //Indices of the display axes.
     int m_axisIndexX;
     int m_axisIndexY;

@@ -146,6 +146,12 @@ protected:
             const std::vector<int>& frames, const QSize& outputSize) Q_DECL_OVERRIDE;
 
     /**
+     * Return the data grid of the image.
+     * @return - the data grid of the image.
+     */
+    virtual std::shared_ptr<DataGrid> _getDataGrid() Q_DECL_OVERRIDE;
+
+    /**
      * Return the data source of the image.
      * @return - the data source of the image.
      */
@@ -289,7 +295,7 @@ protected:
     virtual double _getZoom() const;
 
 
-    virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
+    // virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
 
     /**
      * Returns whether or not the layer can be loaded with the indicated frames.
@@ -423,6 +429,12 @@ protected:
      */
     virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
 
+    virtual QString _setAxis( const QString axis, const QString name ) Q_DECL_OVERRIDE;
+
+    virtual QString _setCoordinateSystem( QString csName ) Q_DECL_OVERRIDE;
+
+    virtual QString _setDataGridState( const QString stateName, const QString stateValue ) Q_DECL_OVERRIDE;
+
     /**
      * Group or ungroup any child layers.
      * @param grouped - true if child layers should be grouped; false, otherwise.
@@ -533,7 +545,8 @@ private:
     static const QString PAN;
 
 
-    std::unique_ptr<DataGrid> m_dataGrid;
+    // std::unique_ptr<DataGrid> m_dataGrid;
+    std::shared_ptr<DataGrid> m_dataGrid;
 
     std::set< std::shared_ptr<DataContours> > m_dataContours;
 

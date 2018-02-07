@@ -31,6 +31,7 @@ class RawViewInterface;
 
 namespace Data {
 
+class DataGrid;
 class ColorState;
 class DataContours;
 class DataSource;
@@ -186,6 +187,12 @@ protected:
     virtual QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
             const std::vector<int>& frames, const QSize& outputSize ) = 0;
 
+
+    /**
+     * Return the data grid of the image.
+     * @return - the data grid of the image.
+     */
+    virtual std::shared_ptr<DataGrid> _getDataGrid() = 0;
 
     /**
      * Return the data source of the image.
@@ -421,7 +428,7 @@ protected:
      */
     virtual double _getZoom() const = 0;
 
-    virtual void _gridChanged( const Carta::State::StateInterface& state) = 0;
+    // virtual void _gridChanged( const Carta::State::StateInterface& state) = 0;
 
     /**
      * Returns whether or not the layer can contain other layers.
@@ -514,6 +521,8 @@ protected:
      */
     virtual void _resetZoom( ) = 0;
 
+    virtual QString _setAxis( const QString axis, const QString name ) = 0;
+
     /**
      * Set the mode used to compose this layer.
      * @param id - the identifier for the layer group where the composition mode will change.
@@ -522,6 +531,10 @@ protected:
      */
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg );
+
+    virtual QString _setCoordinateSystem( QString csName ) = 0;
+
+    virtual QString _setDataGridState( const QString stateName, const QString stateValue );
 
     /**
      * Attempts to load an image file.

@@ -25,6 +25,8 @@ const QString DataGrid::AXES = "axes";
 const QString DataGrid::COORD_SYSTEM = "skyCS";
 const QString DataGrid::DIRECTION = "direction";
 const QString DataGrid::FONT = "font";
+const QString DataGrid::FONT_SIZE = "font/size";
+const QString DataGrid::FONT_FAMILY = "font/family";
 const QString DataGrid::LABEL_COLOR = "labels";
 const QString DataGrid::LABEL_DECIMAL_PLACES = "decimals";
 const QString DataGrid::LABEL_DECIMAL_PLACES_MAX = "decimalsMax";
@@ -35,6 +37,7 @@ const QString DataGrid::FORMAT = "format";
 const QString DataGrid::LABEL_SIDE = "side";
 const QString DataGrid::SHOW_AXIS = "showAxis";
 const QString DataGrid::SHOW_COORDS = "showCoordinateSystem";
+const QString DataGrid::SHOW_DEFAULT_COORDS = "showDefaultCS";
 const QString DataGrid::SHOW_INTERNAL_LABELS = "showInternalLabels";
 const QString DataGrid::SHOW_GRID_LINES = "showGridLines";
 const QString DataGrid::SHOW_STATISTICS = "showStatistics";
@@ -45,11 +48,79 @@ const QString DataGrid::THEME = "theme";
 const QString DataGrid::TICK = "tick";
 const QString DataGrid::TICK_LENGTH = "tickLength";
 const QString DataGrid::SUPPORTED_AXES = "supportedAxes";
+const QString DataGrid::SUPPORTED_COORDINATE_SYSTEMS = "supportedCS";
 const int DataGrid::MARGIN_DEFAULT = 10;
 const int DataGrid::MARGIN_LABEL = 50;
 const int DataGrid::TICK_LENGTH_MAX = 50;
 const int DataGrid::PEN_FACTOR = 10;
 const int DataGrid::LABEL_DECIMAL_MAX = 10;
+
+const QString DataGrid::AXES_ALPHA = "axes/alpha";
+const QString DataGrid::AXES_BLUE = "axes/blue";
+const QString DataGrid::AXES_GREEN = "axes/greeen";
+const QString DataGrid::AXES_RED = "axes/red";
+const QString DataGrid::AXES_WIDTH = "axes/width";
+const QString DataGrid::GRID_ALPHA = "grid/alpha";
+const QString DataGrid::GRID_BLUE = "grid/blue";
+const QString DataGrid::GRID_GREEN = "grid/green";
+const QString DataGrid::GRID_RED = "grid/red";
+const QString DataGrid::GRID_WIDTH = "grid/width";
+const QString DataGrid::TICK_ALPHA = "tick/alpha";
+const QString DataGrid::TICK_BLUE = "tick/blue";
+const QString DataGrid::TICK_GREEN = "tick/green";
+const QString DataGrid::TICK_RED = "tick/red";
+const QString DataGrid::TICK_WIDTH = "tick/width";
+const QString DataGrid::LABEL_COLOR_BLUE = "labels/blue";
+const QString DataGrid::LABEL_COLOR_GREEN = "labels/green";
+const QString DataGrid::LABEL_COLOR_RED = "labels/red";
+const QString DataGrid::LABEL_FORMAT_LEFT = "labelFormats/left/format";
+const QString DataGrid::LABEL_FORMAT_RIGHT = "labelFormats/right/format";
+const QString DataGrid::LABEL_FORMAT_TOP = "labelFormats/top/format";
+const QString DataGrid::LABEL_FORMAT_BOTTOM = "labelFormats/bottom/format";
+
+const std::map< QString, DataGrid::ConvertType > DataGrid::typeTable = {
+    // TODO: label format, coordinate system
+    { DataGrid::SHOW_AXIS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_COORDS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_DEFAULT_COORDS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_GRID_LINES, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_INTERNAL_LABELS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_STATISTICS, DataGrid::ConvertType::BOOL },
+    { DataGrid::SHOW_TICKS, DataGrid::ConvertType::BOOL },
+
+    { DataGrid::AXES_ALPHA, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_RED, DataGrid::ConvertType::INT },
+    { DataGrid::AXES_WIDTH, DataGrid::ConvertType::INT },
+    { DataGrid::FONT_SIZE, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_ALPHA, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_RED, DataGrid::ConvertType::INT },
+    { DataGrid::GRID_WIDTH, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_COLOR_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_COLOR_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_COLOR_RED, DataGrid::ConvertType::INT },
+    { DataGrid::LABEL_DECIMAL_PLACES, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_ALPHA, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_BLUE, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_GREEN, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_RED, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_WIDTH, DataGrid::ConvertType::INT },
+    { DataGrid::TICK_LENGTH, DataGrid::ConvertType::INT },
+
+    { DataGrid::SPACING, DataGrid::ConvertType::DOUBLE },
+
+    { DataGrid::COORD_SYSTEM, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::FONT_FAMILY, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::THEME, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_LEFT, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_RIGHT, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_TOP, DataGrid::ConvertType::NOCONVERT },
+    { DataGrid::LABEL_FORMAT_BOTTOM, DataGrid::ConvertType::NOCONVERT }
+    // { Carta::State::UtilState::getLookup( DataGrid::TICK, Util::ALPHA ), DataGrid::ConvertType::INT }
+};
 
 using Carta::Lib::AxisInfo;
 
@@ -264,6 +335,7 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<bool>( SHOW_TICKS, true );
     m_state.insertValue<bool>( SHOW_INTERNAL_LABELS, false );
     m_state.insertValue<bool>( SHOW_COORDS, true );
+    m_state.insertValue<bool>( SHOW_DEFAULT_COORDS, true );
 
     m_state.insertValue<bool>( SHOW_STATISTICS, true );
 
@@ -305,6 +377,15 @@ void DataGrid::_initializeDefaultState(){
     m_state.insertValue<QString>( AxisMapper::AXIS_X, xName );
     QString yName = AxisMapper::getDefaultPurpose( AxisMapper::AXIS_Y, cs );
     m_state.insertValue<QString>( AxisMapper::AXIS_Y, yName );
+
+    // Provide the list of supported coordinate systems to javascript
+    QStringList coordinateSystems = m_coordSystems->getCoordinateSystems();
+    m_state.insertArray( SUPPORTED_COORDINATE_SYSTEMS, coordinateSystems.length() );
+    for( int i=0; i<coordinateSystems.length(); i++ ){
+        QString name = coordinateSystems[i];
+        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_COORDINATE_SYSTEMS, i );
+        m_state.setValue<QString>( lookup, name );
+    }
 
     m_state.flushState();
 }
@@ -495,6 +576,8 @@ QString DataGrid::_setAxis( const QString& axisId, const QString& purpose, bool*
                 std::vector<AxisInfo::KnownType> AxisTypeArray = _getDisplayAxes();
                 m_formats->setAxisformat(&AxisTypeArray[0]);
             }
+            // TODO: simplify the return value(only the xAxis and the yAxis are necessary)
+            result = m_state.toString();
         }
         else {
             result = "Unrecognized axis type: "+purpose;
@@ -577,39 +660,56 @@ bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
 bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     int axisCount = supportedAxes.size();
     bool axisTypesChanged = false;
-    int oldCount = m_state.getArraySize( SUPPORTED_AXES );
-    m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+    m_state.resizeArray( SUPPORTED_AXES, axisCount );
 
     int axisIndex = 0;
     for( int i=0; i<axisCount; i++ ){
         QString name = supportedAxes[i].longLabel().plain();
+        Carta::Lib::AxisInfo::KnownType type = supportedAxes[i].knownType();
         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, axisIndex );
-        QString oldName;
-        if ( i < oldCount ){
-            oldName = m_state.getValue<QString>( lookup );
+
+        axisTypesChanged = true;
+        if ( type == Carta::Lib::AxisInfo::KnownType::STOKES ){
+            m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
+            continue;
         }
-        if ( name != oldName ){
-            //_setAxis( AxisMapper::AXIS_X, supportedAxes[0].longLabel().plain(), &axisTypesChanged);
-            //_setAxis( AxisMapper::AXIS_Y, supportedAxes[1].longLabel().plain(), &axisTypesChanged);
-            //if(i==0){
-            //    _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
-            //}
-            //else if(i==1){
-            //    _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
-            //}
-            axisTypesChanged = true;
-            if ( AxisMapper::getType(name)==Carta::Lib::AxisInfo::KnownType::STOKES ){
-                m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
-                continue;
-            }
-            m_state.setValue<QString>( lookup, name );
-        }
+        m_state.setValue<QString>( lookup, name );
         axisIndex++;
     }
-
-    if ( axisTypesChanged ){
-        m_state.flushState();
-    }
+    // Deprecated. This part is designed for GridControls
+    // int oldCount = m_state.getArraySize( SUPPORTED_AXES );
+    // m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+    //
+    // int axisIndex = 0;
+    // for( int i=0; i<axisCount; i++ ){
+    //     QString name = supportedAxes[i].longLabel().plain();
+    //     QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, axisIndex );
+    //     QString oldName;
+    //     if ( i < oldCount ){
+    //         oldName = m_state.getValue<QString>( lookup );
+    //     }
+    //     if ( name != oldName ){
+    //         //_setAxis( AxisMapper::AXIS_X, supportedAxes[0].longLabel().plain(), &axisTypesChanged);
+    //         //_setAxis( AxisMapper::AXIS_Y, supportedAxes[1].longLabel().plain(), &axisTypesChanged);
+    //         //if(i==0){
+    //         //    _setAxis( AxisMapper::AXIS_X, name, &axisTypesChanged);
+    //         //}
+    //         //else if(i==1){
+    //         //    _setAxis( AxisMapper::AXIS_Y, name, &axisTypesChanged);
+    //         //}
+    //         axisTypesChanged = true;
+    //         if ( AxisMapper::getType(name)==Carta::Lib::AxisInfo::KnownType::STOKES ){
+    //             m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
+    //             continue;
+    //         }
+    //         m_state.setValue<QString>( lookup, name );
+    //     }
+    //     axisIndex++;
+    // }
+    //
+    // if ( axisTypesChanged ){
+    //     m_state.flushState();
+    // }
     return axisTypesChanged;
 }
 
@@ -660,19 +760,11 @@ QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmo
 }
 
 QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordChanged ){
-    QString result;
-    *coordChanged = false;
-    QString recognizedSystem = m_coordSystems->getCoordinateSystem( coordSystem );
-    if ( !recognizedSystem.isEmpty() ){
-        if ( m_state.getValue<QString>( COORD_SYSTEM) != recognizedSystem ){
-            m_state.setValue<QString>( COORD_SYSTEM, recognizedSystem );
-            *coordChanged = true;
-        }
-    }
-    else {
-        result= "The coordinate system "+coordSystem+" is not supported.";
-    }
-    return result;
+
+    *coordChanged = true;
+    m_state.setValue<QString>( COORD_SYSTEM, coordSystem );
+    _resetGridRenderer();
+    return m_state.toString();
 }
 
 QString DataGrid::_setFontFamily( const QString& fontFamily, bool* familyChanged ){
@@ -969,6 +1061,43 @@ QString DataGrid::_setTheme( const QString& theme, bool* themeChanged ){
         result = "The theme "+theme+" was not recognized";
     }
     return result;
+}
+
+QString DataGrid::_setState( const QString stateName, const QString stateValue ){
+    // ConvertType convertType = _typeClassifier( stateName, stateValue );
+    // ConvertType convertType = typeTable[stateName];
+    ConvertType convertType = ConvertType::UNKNOWN;
+    if ( typeTable.find(stateName) != typeTable.end() ){
+        convertType = typeTable.find(stateName)->second;
+    }
+
+    switch (convertType) {
+        case ConvertType::BOOL:{
+            bool valid = false;
+            bool boolValue = Util::toBool( stateValue, &valid);
+            m_state.setValue<bool>( stateName, boolValue );
+        }
+        break;
+        case ConvertType::INT:{
+            int intValue = stateValue.toInt();
+            m_state.setValue<int>( stateName, intValue );
+        }
+        break;
+        case ConvertType::DOUBLE:{
+            double doubleValue = stateValue.toDouble();
+            m_state.setValue<double>( stateName, doubleValue);
+        }
+        break;
+        case ConvertType::NOCONVERT:{
+            m_state.setValue<QString>( stateName, stateValue );
+        }
+        break;
+        default:
+            qCritical() << "Unknown type to convert.";
+        break;
+    }
+    _resetGridRenderer();
+    return m_state.toString();
 }
 
 DataGrid::~DataGrid(){
