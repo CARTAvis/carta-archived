@@ -94,7 +94,8 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
     QString contourType;
     bool drawing = false;
     bool hasDifferentContourType = false;
-    QString tmpContourType1, tmpContourType2;
+    QString tmpContourType = "null";
+    int count = 0;
     m_pens.clear();
     for( std::set< std::shared_ptr<DataContours> >::iterator it = contours.begin();
             it != contours.end(); it++ ){
@@ -105,20 +106,16 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
             std::vector<double> setLevels = (*it)->getLevels();
             levels.insert( levels.end(), setLevels.begin(), setLevels.end());
             levelsVector.push_back(setLevels);
+            // deal with the multiple contour types
             contourType = (*it)->getContourType();
+            if (count > 0 && contourType != tmpContourType) {
+                hasDifferentContourType = true;
+            }
+            tmpContourType = contourType;
             contourTypesVector.push_back(contourType);
+            count++;
         }
         //qDebug() << "[contour] contour set name:"<< (*it)->getName() << "contour type:" << (*it)->getContourType();
-    }
-    if (contourTypesVector.size() > 1) {
-        for (int i = 0; i < contourTypesVector.size(); i++) {
-            tmpContourType1 = tmpContourType2;
-            tmpContourType2 = contourTypesVector[i];
-            if (i > 0 && tmpContourType1 != tmpContourType2) {
-                hasDifferentContourType = true;
-                break;
-            }
-        }
     }
     m_cec->setHasDifferentContourTypes(hasDifferentContourType);
     if (drawing && hasDifferentContourType){
