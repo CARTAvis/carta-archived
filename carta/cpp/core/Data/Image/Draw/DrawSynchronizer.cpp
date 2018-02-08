@@ -117,13 +117,16 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
         }
         //qDebug() << "[contour] contour set name:"<< (*it)->getName() << "contour type:" << (*it)->getContourType();
     }
-    m_cec->setHasDifferentContourTypes(hasDifferentContourType);
-    if (drawing && hasDifferentContourType){
+    if (!hasDifferentContourType) {
+        // replace contourTypesVector and levelsVector with single vectors (.i.e, contourType and levels), respectively.
+        contourTypesVector.erase(contourTypesVector.begin(), contourTypesVector.end());
+        contourTypesVector.push_back(contourType);
+        levelsVector.erase(levelsVector.begin(), levelsVector.end());
+        levelsVector.push_back(levels);
+    }
+    if (drawing) {
         m_cec->setContourTypesVector(contourTypesVector);
         m_cec->setLevelsVector(levelsVector);
-    } else if (drawing) {
-        m_cec->setContourType(contourType);
-        m_cec->setLevels(levels);
     }
 }
 
