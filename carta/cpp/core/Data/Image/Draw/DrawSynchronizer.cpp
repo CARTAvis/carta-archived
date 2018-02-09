@@ -95,7 +95,6 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
     bool drawing = false;
     bool hasDifferentContourType = false;
     QString tmpContourType = "null";
-    int count = 0;
     m_pens.clear();
     for( std::set< std::shared_ptr<DataContours> >::iterator it = contours.begin();
             it != contours.end(); it++ ){
@@ -108,12 +107,11 @@ void DrawSynchronizer::setContours( const std::set<std::shared_ptr<DataContours>
             levelsVector.push_back(setLevels);
             // deal with the multiple contour types
             contourType = (*it)->getContourType();
-            if (count > 0 && contourType != tmpContourType) {
+            if (contourType != tmpContourType && tmpContourType != "null") {
                 hasDifferentContourType = true;
             }
             tmpContourType = contourType;
             contourTypesVector.push_back(contourType);
-            count++;
         }
         //qDebug() << "[contour] contour set name:"<< (*it)->getName() << "contour type:" << (*it)->getContourType();
     }
