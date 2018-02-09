@@ -26,12 +26,6 @@ DefaultContourGeneratorService::setContourTypesVector( const QStringList & conto
 }
 
 void
-DefaultContourGeneratorService::setLevels( const std::vector < double > & levels )
-{
-    m_levels = levels;
-}
-
-void
 DefaultContourGeneratorService::setLevelsVector( const std::vector < std::vector < double > > & levelsVector )
 {
     m_levelsVector = levelsVector;

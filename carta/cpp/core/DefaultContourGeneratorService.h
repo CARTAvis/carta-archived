@@ -27,9 +27,6 @@ public:
     setContourTypesVector(const QStringList & contourTypesVector ) override;
 
     virtual void
-    setLevels( const std::vector < double > & levels ) override;
-
-    virtual void
     setLevelsVector( const std::vector < std::vector < double > > & levelsVector ) override;
 
     virtual void
@@ -46,7 +43,6 @@ private slots:
 
 private:
 
-    std::vector < double > m_levels;
     std::vector < std::vector < double > > m_levelsVector;
     QString m_contourType;
     QStringList m_contourTypesVector;

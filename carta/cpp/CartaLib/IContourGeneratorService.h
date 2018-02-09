@@ -96,10 +96,6 @@ public:
     virtual void
     setContourTypesVector( const QStringList & contourTypesVector ) = 0;
 
-    /// request levels for which to generate the contours
-    virtual void
-    setLevels( const std::vector < double > & levels ) = 0;
-
     /// request a vector of levels for which to generate the contours
     virtual void
     setLevelsVector( const std::vector < std::vector < double > > & levelsVector ) = 0;
