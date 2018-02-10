@@ -62,13 +62,9 @@ DefaultContourGeneratorService::timerCB()
     // set the output result
     Result result;
 
-    if (m_contourTypesVector.size() > 1) {
-        qDebug() << "++++++++ [contour] build the result for different contour types";
-    } else {
-        qDebug() << "++++++++ [contour] build the result for a single contour type";
-    }
     // run the contour algorithm
     for (int i = 0; i < m_contourTypesVector.size(); i++) {
+        qDebug() << "++++++++ [contour] build the contour for" << m_contourTypesVector.size() << "smoothness type(s)";
         Carta::Lib::Algorithms::ContourConrec cc;
         cc.setLevels(m_levelsVector[i]);
         auto rawContours = cc.compute(m_rawView.get(), m_contourTypesVector[i]);
