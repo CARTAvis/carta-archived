@@ -44,7 +44,6 @@ private slots:
 private:
 
     std::vector < std::vector < double > > m_levelsVector;
-    QString m_contourType;
     QStringList m_contourTypesVector;
     JobId m_lastJobId = - 1;
     Carta::Lib::NdArray::RawViewInterface::SharedPtr m_rawView = nullptr;
