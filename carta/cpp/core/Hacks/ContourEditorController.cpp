@@ -142,6 +142,7 @@ ContourEditorController::stdVarCB()
     qDebug() << "decoded string var:" << text;
 
     std::vector<double> levels;
+    std::vector<std::vector<double>> levelsVector;
     m_pens.resize( 0);
     double width = 1.0;
     QColor color = QColor( "green");
@@ -211,7 +212,8 @@ ContourEditorController::stdVarCB()
             qWarning() << "Error parsing contour UI:" << line;
         }
     }
-    m_contourSvc-> setLevels( levels);
+    levelsVector.push_back(levels);
+    m_contourSvc->setLevelsVector(levelsVector);
     emit updated();
 
 //    text.replace( ',',' ');
