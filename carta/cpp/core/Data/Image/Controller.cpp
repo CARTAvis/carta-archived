@@ -87,7 +87,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 			this, SLOT(_contourSetAdded(Layer*, const QString&)));
 	connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
 			this, SLOT(_contourSetRemoved(const QString&)));
-	connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _loadViewQueued() ));
+    connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT(_emitColorChanged()));
 	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
 	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
 			SLOT( _onInputEvent( InputEvent )));
@@ -961,6 +961,11 @@ bool Controller::isStackSelectAuto() const {
 
 void Controller::_loadViewQueued( ){
     QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
+}
+
+void Controller::_emitColorChanged() {
+    _loadViewQueued();
+    emit colorChanged(this);
 }
 
 void Controller::_loadView(){

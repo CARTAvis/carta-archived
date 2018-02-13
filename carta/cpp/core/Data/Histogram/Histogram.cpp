@@ -145,6 +145,8 @@ QString Histogram::addLink( CartaObject*  target){
             if ( linkAdded ){
                 connect(controller, SIGNAL(dataChanged(Controller*)),
                 		this, SLOT(_createHistogram(Controller*)));
+                connect(controller, SIGNAL(colorChanged(Controller*)),
+                        this, SLOT(updateColorMap()));
                 connect(controller, SIGNAL(dataChangedRegion(Controller*)),
                                		this, SLOT(_createHistogram(Controller*)));
                 connect( controller,SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
@@ -2126,12 +2128,15 @@ void Histogram::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kn
 
 
 void Histogram::updateColorMap(){
-    Controller* controller = _getControllerSelected();
-    if ( controller ){
-        std::shared_ptr<DataSource> dataSource = controller->getDataSource();
-        if ( dataSource ){
-            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
-            m_plotManager->setPipeline( pipeline );
+    bool isColored = getColored();
+    if (isColored) {
+        Controller* controller = _getControllerSelected();
+        if ( controller ){
+            std::shared_ptr<DataSource> dataSource = controller->getDataSource();
+            if ( dataSource ){
+                std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
+                m_plotManager->setPipeline( pipeline );
+            }
         }
     }
 }
@@ -2147,6 +2152,7 @@ void Histogram::_updateColorClips(double colorMinPercent, double colorMaxPercent
         //double colorMax = m_stateData.getValue<double>(COLOR_MAX);
         //emit colorIntensityBoundsChanged( colorMin, colorMax, autoClip );
         qDebug() << "++++++++ [Histogram] autoClip=" << autoClip;
+        updateColorMap();
         m_stateData.flushState();
     }
 }
@@ -2180,10 +2186,7 @@ void Histogram::_updatePlots( ){
 	m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
 	m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
 	m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
-	bool isColored = getColored();
-	if (isColored) {
-	    updateColorMap();
-	}
+    updateColorMap();
 	m_plotManager->updatePlot();
 }
 
