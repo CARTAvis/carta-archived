@@ -65,10 +65,8 @@ private slots:
     void _updateInteractiveClean( Controller* controller, Carta::Lib::AxisInfo::KnownType type = Carta::Lib::AxisInfo::KnownType::SPECTRAL );
 
 private:
-    const static QString FROM;
-    const static QString LABEL;
+    const static QString PARAMETERS;
     const static QString SELECTED_INDEX;
-    const static QString TO;
 
     void _clearLinks();
 

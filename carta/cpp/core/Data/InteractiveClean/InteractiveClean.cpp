@@ -20,10 +20,8 @@ namespace Carta {
 namespace Data {
 
 const QString InteractiveClean::CLASS_NAME = "InteractiveClean";
-const QString InteractiveClean::FROM = "from";
-const QString InteractiveClean::LABEL = "label";
+const QString InteractiveClean::PARAMETERS = "cleanParameters";
 const QString InteractiveClean::SELECTED_INDEX = "selectedIndex";
-const QString InteractiveClean::TO = "to";
 
 class InteractiveClean::Factory : public Carta::State::CartaObjectFactory {
 public:
@@ -138,13 +136,19 @@ void InteractiveClean::_initializeCallbacks(){
                         return result;
                       });
 
-    addCommandCallback( "buttonPressed", [=] (const QString & /*cmd*/,
+  addCommandCallback( "cleanCommand", [=] (const QString & /*cmd*/,
+                                                    const QString & params, const QString & /*sessionId*/) -> QString {
+                        qDebug() << "params: " << params;
+                        QString result("clean command is: "+params);
+                        return result;
+                      });
+    addCommandCallback( "maskCommand", [=] (const QString & /*cmd*/,
                                                     const QString & params, const QString & /*sessionId*/) -> QString {
                           std::set<QString> keys = {"button"};
-                          std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                          QString maskStr = dataValues[*keys.begin()];
-                          QString result = maskStr;
-                          qDebug() << result;
+                          //                          std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+                          //                          QString maskStr = dataValues[*keys.begin()];
+                          qDebug() << "params: " << params;
+                          QString result("mask command is: "+params);
                           return result;
      });
 
@@ -160,8 +164,8 @@ void InteractiveClean::_initializeCallbacks(){
 
 
 void InteractiveClean::_initializeDefaultState(){
-    //Data state is the selected image and image/region interactive clean
     m_stateData.insertValue<int>(SELECTED_INDEX, 0 );
+    m_stateData.insertValue<QString>( PARAMETERS, "" );
     m_stateData.flushState();
 
     m_state.flushState();
