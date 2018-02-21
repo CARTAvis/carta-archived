@@ -1115,7 +1115,7 @@ void Histogram::_loadData( Controller* controller ){
         	for ( int i = 0; i < regionCount; i++ ){
         		std::shared_ptr<Carta::Lib::Regions::RegionBase> regionBase = regions[i]->getModel();
         		QString idStr = regions[i]->getId();
-        		HistogramRenderRequest request( image, binCount, minChannel, maxChannel,
+                HistogramRenderRequest request( image, binCount, minChannel, maxChannel,
         		        				minFrequency, maxFrequency, rangeUnits, minIntensity, maxIntensity,
         		        				fileName, regionBase, idStr );
         		requests.push_back( request );

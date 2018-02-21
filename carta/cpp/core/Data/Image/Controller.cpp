@@ -16,6 +16,8 @@
 #include "Data/Settings.h"
 #include "Data/DataLoader.h"
 #include "Data/Error/ErrorManager.h"
+#include "../../ImageRenderService.h"
+#include "Data/Colormap/Colormaps.h"
 
 #include "Data/Util.h"
 #include "ImageView.h"
@@ -732,6 +734,42 @@ void Controller::_initializeCallbacks(){
         return "";
     });
 
+    addCommandCallback( "regionZoom", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) ->QString {
+        std::vector<std::shared_ptr<Region>> regions = m_regionControls->getRegions();
+        std::shared_ptr<DataSource> dataSource = this->getDataSource();
+        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = dataSource->_getRenderer();
+        QJsonArray array;
+        for(int i = 0; i < regions.size(); i++) {
+            QJsonObject json = regions[i]->toJSON();
+            qreal x = json.value("x").toDouble();
+            qreal y = json.value("y").toDouble();
+            qreal width = json.value("width").toDouble();
+            qreal height = json.value("height").toDouble();
+            QPointF pt;
+            pt.setX(x - (width / 2));
+            pt.setY(y + (height / 2));
+            QPointF topLeft = imageService->img2screen(pt);
+            pt.setX(x + (width / 2));
+            QPointF topRight = imageService->img2screen(pt);
+            int w = static_cast<int>(topRight.x() - topLeft.x() + 0.5);
+            pt.setX(x - (width / 2));
+            pt.setY(y - (height / 2));
+            QPointF bottomLeft = imageService->img2screen(pt);
+            int h = static_cast<int>(bottomLeft.y() - topLeft.y() + 0.5);
+            QString str = "";
+            QJsonObject screenJson;
+            screenJson.insert("x", static_cast<int>(topLeft.x() + 0.5));
+            screenJson.insert("y", static_cast<int>(topLeft.y() + 0.5));
+            screenJson.insert("width", w);
+            screenJson.insert("height", h);
+            array.insert(i, QJsonValue(screenJson));
+        }
+        QString value = "";
+        QJsonDocument doc(array);
+        value = QString(doc.toJson());
+        return value;
+    });
 
     addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) ->QString {
@@ -1294,6 +1332,12 @@ void Controller::_initializeCallbacks(){
     //                     Util::commandPostProcess( result );
     //                     return result;
     //                 });
+    addCommandCallback( "getColormaps", [=] (const QString & /*cmd*/,
+                        const QString & params, const QString & /*sessionId*/) -> QString {
+        Colormaps* colormaps = Util::findSingletonObject<Colormaps>();
+        QString result = colormaps->getColorMaps().join(",");
+        return result;
+    });
 }
 
 
@@ -1356,9 +1400,9 @@ void Controller::refreshState(){
 }
 
 void Controller::_regionsChanged(){
-//	Carta::Lib::VectorGraphics::VGList vgList = m_regionControls->vgList();
-//	m_stack-> _setRegionGraphics ( vgList );
-//	_loadView();
+//    Carta::Lib::VectorGraphics::VGList vgList = m_regionControls->vgList();
+//    m_stack-> _setRegionGraphics ( vgList );
+//    _loadView();
 	emit dataChangedRegion( this );
 }
 
