@@ -1008,6 +1008,7 @@ bool Controller::isStackSelectAuto() const {
 
 
 void Controller::_loadViewQueued( ){
+    qDebug() << "Dequeue from the queue of view";
     QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
 }
 

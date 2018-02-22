@@ -304,6 +304,9 @@ NewServerConnector::ViewInfo * NewServerConnector::findViewInfo( const QString &
 
 void NewServerConnector::refreshViewNow(IView *view)
 {
+    qDebug() << "NewServerConnector is refreshing view now.";
+    //ref http://techqa.info/programming/question/29295074/Converting-a-QImage-to-a-C--Image
+
     QString sessionID = QThread::currentThread()->objectName();
 
     ViewInfo * viewInfo = findViewInfo( view-> name());

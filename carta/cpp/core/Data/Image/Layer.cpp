@@ -182,6 +182,7 @@ bool Layer::_isVisible() const {
 }
 
 void Layer::_render( const std::shared_ptr<RenderRequest>& request ){
+    qDebug() << "Layer prepare for rendering.";
     m_renderRequests.push( request );
     if ( !m_renderQueued ){
         _renderStart();

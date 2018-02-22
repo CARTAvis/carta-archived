@@ -16,6 +16,7 @@ HistogramRenderService::HistogramRenderService( QObject * parent ) :
 
 
 bool HistogramRenderService::renderHistogram( const HistogramRenderRequest& request ){
+    qDebug() << "Request to compute histogram.";
 	bool histogramRender = true;
 	if ( request.getImage() ){
 		if ( ! m_requests.contains( request ) ){
@@ -31,6 +32,7 @@ bool HistogramRenderService::renderHistogram( const HistogramRenderRequest& requ
 
 
 void HistogramRenderService::_scheduleRender( const HistogramRenderRequest& request ){
+    qDebug() << "Starting to compute histogram.";
 	if ( m_renderQueued ) {
 		return;
 	}

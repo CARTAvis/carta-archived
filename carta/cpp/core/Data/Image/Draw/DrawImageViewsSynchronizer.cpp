@@ -61,6 +61,8 @@ bool DrawImageViewsSynchronizer::isZoomView() const {
 
 
 void DrawImageViewsSynchronizer::render( const std::shared_ptr<RenderRequest>& request ){
+    qDebug() << "Preparing to start rendering in drawimageviewssynchonizers";
+    qDebug() << "Whether this is requested:" << _isRequested(request);
 	if ( !_isRequested( request) ){
 		m_requests.enqueue( request );
 		if ( m_busy ){
@@ -94,6 +96,8 @@ void DrawImageViewsSynchronizer::setViewDrawZoom( std::shared_ptr<DrawStackSynch
 }
 
 void DrawImageViewsSynchronizer::_startNextDraw(){
+    qDebug() << "Preparing to start the next draw in drawimageviewssynchronizer.";
+    qDebug() << "The size of requests:" << m_requests.size();
     if ( m_requests.size() > 0 ){
         m_busy = true;
         std::shared_ptr<RenderRequest> request = m_requests.dequeue();

@@ -51,6 +51,7 @@ void DrawStackSynchronizer::_repaintFrameNow(){
 }
 
 void DrawStackSynchronizer::_render( const std::shared_ptr<RenderRequest>& request ){
+    qDebug() << "Preparing to start rendering in drawstacksynchonizer";
     if ( m_repaintFrameQueued ){
         emit done( false );
         return;

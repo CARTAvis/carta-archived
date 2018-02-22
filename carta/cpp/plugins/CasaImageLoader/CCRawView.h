@@ -215,6 +215,7 @@ CCRawView < PType >::forEach(
     std::function < void (const char *) > func,
     Carta::Lib::NdArray::RawViewInterface::Traversal traversal )
 {
+    qDebug() << "Running forEach in CCRawView.";
     if ( traversal != Carta::Lib::NdArray::RawViewInterface::Traversal::Sequential ) {
         qFatal( "sorry, not implemented yet" );
     }

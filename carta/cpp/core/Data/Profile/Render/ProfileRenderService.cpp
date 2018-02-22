@@ -20,6 +20,7 @@ ProfileRenderService::ProfileRenderService( QObject * parent ) :
 bool ProfileRenderService::renderProfile(std::shared_ptr<Layer> layer,
         std::shared_ptr<Region> region, const Carta::Lib::ProfileInfo& profInfo,
         bool createNew ){
+    qDebug() << "Requesting to compute the profile.";
     bool profileRender = true;
     ProfileRenderRequest request( layer, region, profInfo, createNew );
     if ( layer ){
@@ -37,6 +38,7 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Layer> layer,
 
 void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
         std::shared_ptr<Region> region, const Carta::Lib::ProfileInfo& profInfo){
+    qDebug() << "Starting to compute the profile.";
     if ( m_renderQueued ) {
         return;
     }
