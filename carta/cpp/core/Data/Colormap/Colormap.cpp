@@ -412,6 +412,25 @@ void Colormap::_initializeDefaultState(){
 
 void Colormap::_initializeCallbacks(){
 
+    addCommandCallback( "get_colormap_all_data", [=] (const QString & /*cmd*/,
+                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+                    QString result =m_state.toString();
+                    QJsonDocument result_d=QJsonDocument::fromJson(result.toUtf8());
+                    QJsonObject resultObj= result_d.object();
+
+                    QString intensity = m_stateData.toString();
+                    QJsonDocument intensity_d=QJsonDocument::fromJson(intensity.toUtf8());
+                    QJsonObject intensityObj= intensity_d.object();
+                    resultObj.insert("intensity_data",intensityObj);
+
+                    QJsonDocument new_result_doc(resultObj);
+                    QString resultStr(new_result_doc.toJson());
+
+                    qDebug() <<"result:" << resultStr;
+                    return resultStr;
+//                    return m_stateData.toString();
+    });
+
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
                     QString result = _getPreferencesId();
