@@ -365,7 +365,7 @@ void Stack::_initializeSelections(){
     m_selects.resize( axisCount );
     for ( int i = 0; i < axisCount; i++ ){
         m_selects[i] = objMan->createObject<Selection>();
-        // This signal-slot connection causes the duplicate rendering
+        // This signal-slot connection causes the duplicate rendering in Stack::_setFrameImage
         // connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
     }
 }
