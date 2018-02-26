@@ -813,7 +813,7 @@ void Controller::_initializeCallbacks(){
             result = "Please specify the layers to select.";
         }
         else {
-            result = _setLayersSelected( names );
+            result = setLayersSelected( names );
         }
         Util::commandPostProcess( result );
         return result;
@@ -1238,12 +1238,14 @@ QString Controller::setLayerName( const QString& id, const QString& name ){
 }
 
 // 20170420, no one use yet
+// Start to try to use
 QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     if ( indices.size() > 0 ){
         bool selectModeAuto = isStackSelectAuto();
         if ( !selectModeAuto ){
             result = _setLayersSelected( indices );
+            emit dataChanged( this );
         }
         else {
             result = "Enable manual layer selection mode before setting layers.";
@@ -1274,7 +1276,9 @@ QString Controller::_setLayersSelected( QStringList names ){
         // refresh the map of axes immediately after read data
         _setAxisMap();
         emit colorChanged( this );
-        emit dataChanged( this );
+        // The signal below causes the duplicate behaviors
+        // Use setLayersSelected() to replace the original callback
+        // emit dataChanged( this );
     }
     return result;
 }
