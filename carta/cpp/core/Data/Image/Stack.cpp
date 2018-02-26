@@ -363,7 +363,7 @@ void Stack::_initializeSelections(){
     m_selects.resize( axisCount );
     for ( int i = 0; i < axisCount; i++ ){
         m_selects[i] = objMan->createObject<Selection>();
-        //connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
+        connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
     }
 }
 
