@@ -105,10 +105,6 @@ protected:
     InitializeCallback m_initializeCallback;
     std::map< QString, QString > m_state;
 
-private:
-
-    int m_width = 0;
-    int m_height = 0;
 };
 
 

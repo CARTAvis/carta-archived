@@ -309,18 +309,13 @@ void DesktopConnector::jsUpdateViewSlot(const QString & viewName, int width, int
         return;
     }
 
-    if (m_width != width || m_height != height) {
-        IView * view = viewInfo-> view;
-        viewInfo-> clientSize = QSize( width, height);
+    IView * view = viewInfo-> view;
+    viewInfo-> clientSize = QSize( width, height);
 
-        defer([this,view,viewInfo](){
-            view-> handleResizeRequest( viewInfo-> clientSize);
-            refreshView( view);
-        });
-    }
-
-    if (m_width != width) m_width = width;
-    if (m_height != height) m_height = height;
+    defer([this,view,viewInfo](){
+        view-> handleResizeRequest( viewInfo-> clientSize);
+        //refreshView( view);
+    });
 }
 
 void DesktopConnector::jsViewRefreshedSlot(const QString & viewName, qint64 id)
