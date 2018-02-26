@@ -540,20 +540,26 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
             for (auto& p : percentilesFromClips) {
                 // TODO check exactly why this is necessary
                 // check if extra percentiles are close to any existing percentiles, cached or uncached
+                // C.C.Chiang: For approximation method, we can calculate all clipping values which are
+                // listed on the UI panel at the same time. This "for loop" is used to fill in all clipping
+                // values (as a set) we want to calculate.
+                bool isDuplicate = false;
                 for (size_t i = 0; i < percentiles.size(); i++) {
                     if (fabs(percentiles[i] - p) < 1e-6) {
+                        isDuplicate = true;
                         // Either this was found in the cache already
                         // Or it's already in the list of percentiles to be calculated
                         // Either way, ignore it
                         break;
-                    } else {
-                        // This is a different percentile
-                        // Look in the cache first
-                        std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, p, stokeFrame, transformationLabel);
-                        // Add it to the list if it's not in the cache
-                        if (!cachedValue) {
-                            percentilesToCalculate.push_back(p);
-                        }
+                    }
+                }
+                if (!isDuplicate) {
+                    // This is a different percentile
+                    // Look in the cache first
+                    std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, p, stokeFrame, transformationLabel);
+                    // Add it to the list if it's not in the cache
+                    if (!cachedValue) {
+                        percentilesToCalculate.push_back(p);
                     }
                 }
             }
