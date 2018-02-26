@@ -253,7 +253,7 @@ void Histogram::_createHistogram( Controller* controller){
             m_state.flushState();
         }
         else {
-            qWarning() << "The bin width is nefative.";
+            qWarning() << "The bin width is negative.";
         }
         // setBinWidth( binWidth );
 
