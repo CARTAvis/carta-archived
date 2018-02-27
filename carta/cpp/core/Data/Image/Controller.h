@@ -644,6 +644,7 @@ private slots:
 	//Refresh the view based on the latest data selection information.
 	void _loadView(  );
 	void _loadViewQueued( );
+    void _emitColorChanged();
 	void _notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis );
 	void _regionsChanged();
 

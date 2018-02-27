@@ -106,11 +106,8 @@ ParsedInfo parse(const QString & filePath)
 
     _storeBool( json["hacksEnabled"], &info.m_hacksEnabled, "hacks enabled");
     _storeBool( json["developerLayout"], &info.m_developerLayout, "developer layout");
-    _storeBool( json["percentileApproximation"], &info.m_percentileApproximation, "whether to use approximation method for percentile calculation");
-
     _storePositiveInt( json["histogramBinCountMax"], &info.m_histogramBinCountMax, "histogram bin count max");
     _storePositiveInt( json["contourLevelCountMax"], &info.m_contourLevelCountMax, "contour level count max");
-    _storeUnsignedInt( json["percentApproxDividedNum"], &info.m_percentApproxDividedNum, "define the pixel bin size=(max-min)/m_percentApproxDividedNum");
 
     return info;
 }
@@ -126,10 +123,6 @@ bool ParsedInfo::hacksEnabled() const
     return m_hacksEnabled;
 }
 
-bool ParsedInfo::isPercentileApproximation() const {
-    return m_percentileApproximation;
-}
-
 bool ParsedInfo::isDeveloperLayout() const {
     return m_developerLayout;
 }
@@ -140,10 +133,6 @@ int ParsedInfo::getContourLevelCountMax() const {
 
 int ParsedInfo::getHistogramBinCountMax() const {
     return m_histogramBinCountMax;
-}
-
-unsigned int ParsedInfo::getPercentApproxDividedNum() const {
-    return m_percentApproxDividedNum;
 }
 
 const QJsonObject &ParsedInfo::json() const

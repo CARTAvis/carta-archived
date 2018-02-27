@@ -151,7 +151,7 @@ ln -s rapidjson-1.0.2 rapidjson
 ## wcslib-5.15
 echo "build wcslib"
 cd $cartawork/CARTAvis-externals/ThirdParty
-curl -O -L ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-5.15.tar.bz2
+curl -O -L ftp://ftp.fau.de/macports/distfiles/wcslib/wcslib-5.15.tar.bz2
 tar xvfj wcslib-5.15.tar.bz2 > /dev/null
 mv wcslib-5.15 wcslib-5.15-src
 cd wcslib-5.15-src

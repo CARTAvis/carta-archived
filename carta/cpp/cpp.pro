@@ -26,6 +26,7 @@ plugins.depends = core
 testRegion.depends = core
 testCache.depends = core
 testPercentile.depends = core
+
 isEmpty(NOSERVER) {
         Tests.depends = core desktop server plugins
 }

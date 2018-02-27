@@ -31,8 +31,9 @@ ConstantMultiplier::ConstantMultiplier(const QString fromUnits, const QString to
     : Carta::Lib::IntensityUnitConverter(fromUnits, toUnits, multiplier, false, "NONE") {
 }
 
-const double ConverterIntensity::BOLTZMANN = 1.38e-23;
-const double ConverterIntensity::LIGHT_SPEED_FACTOR = 9e-10; // includes a unit conversion; find out exactly what this is
+const double ConverterIntensity::BOLTZMANN = 1.38064852e-23; // unit: J * K^-1
+const double ConverterIntensity::LIGHT_SPEED = 2.99792458; // unit: 10^8 m/s
+const double ConverterIntensity::LIGHT_SPEED_FACTOR = pow(LIGHT_SPEED, 2) * 1e-10; // includes a unit conversion; find out exactly what this is
 const double ConverterIntensity::ARCSECONDS_SQUARED_PER_STERADIAN = pow(180 * 3600 / M_PI, 2);
 const double ConverterIntensity::JY_IN_MJY = 1e6;
 

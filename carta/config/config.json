@@ -4,13 +4,19 @@
         "$(APPDIR)/../plugins",
         "$(APPDIR)/../../../../plugins"
     ],
-    "disabledPlugins" : ["python273"],
+    "disabledPlugins" : ["python273", "PercentileManku99"],
     "plugins": {
         "PCacheSqlite3" : {
             "dbPath": "$(HOME)/CARTA/cache/pcache.sqlite"
+        },
+        "PercentileHistogram" : {
+            "numberOfBins": 1000000
+        },
+        "PercentileManku99" : {
+            "numBuffers" : 10,
+            "bufferCapacity" : 1000,
+            "sampleAfter" : 10
         }
-    },
-    "percentileApproximation" : "true",
-    "percentApproxDividedNum" : 1000000
+    }
 }
 

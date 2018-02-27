@@ -1,6 +1,6 @@
 {
     "api"        : "1",
-    "name"       : "IntensityConversionPlugin",
+    "name"       : "IntensityConversion",
     "version"    : "1",
     "type"       : "C++",
     "description": [

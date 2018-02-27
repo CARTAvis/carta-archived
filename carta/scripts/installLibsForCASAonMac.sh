@@ -8,7 +8,8 @@ brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/198f8903db
 
 ### For building libsakura
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/0ee09d116505e7a5cbc4e2b94335fca82a69e146/Formula/doxygen.rb
-brew install eigen@3.2 ## the latest of eigen is 3.3.3 but its 3.3.3 is not compatible with libsakura 4.0.2065
+#brew install eigen@3.2 ## the latest of eigen is 3.3.3 but its 3.3.3 is not compatible with libsakura 4.0.2065
+brew install CARTAvis/homebrew-tap/eigen@3.2 ## Now using eigen@3.2 tap as it has been removed from the homebrew formulae list
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/712fb0b23bad079214c28e325cd82548b216dcab/Formula/log4cxx.rb
 ###
 

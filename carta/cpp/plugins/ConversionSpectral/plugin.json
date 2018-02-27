@@ -1,6 +1,6 @@
 {
     "api"        : "1",
-    "name"       : "SpectralConversionPlugin",
+    "name"       : "SpectralConversion",
     "version"    : "1",
     "type"       : "C++",
     "description": [

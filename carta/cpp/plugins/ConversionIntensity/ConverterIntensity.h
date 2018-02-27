@@ -35,6 +35,7 @@ public:
 class ConverterIntensity {
 public:
     static const double BOLTZMANN;
+    static const double LIGHT_SPEED;
     static const double LIGHT_SPEED_FACTOR;
     static const double ARCSECONDS_SQUARED_PER_STERADIAN;
     static const double JY_IN_MJY;

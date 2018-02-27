@@ -20,12 +20,12 @@ Introduction to build, run and deploy Desktop ver. of CARTA Viewer on Mac and Li
 Development platform:
 1. CentOS 7 (7.3.1611 tested)
 2. Ubuntu 14.04, Ubuntu 16.04 and Ubuntu 17.04
-3. Mac 10.11, 10.12
+3. Mac 10.11, 10.12, 10.13
 
 Supported deployment platform:
 1. CentOS 6, 7
 2. Ubuntu
-3. Mac: OS X El Capitan (10.11), macOS Sierra (10.12)
+3. Mac: OS X El Capitan (10.11), macOS Sierra (10.12), macos high sierra (10.13)
 
 Tested c++ compiler: gcc 4.8.5, 5.4 (used by Ubuntu 16.04) & clang on macOS.
 

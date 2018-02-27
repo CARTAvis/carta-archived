@@ -87,7 +87,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 			this, SLOT(_contourSetAdded(Layer*, const QString&)));
 	connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
 			this, SLOT(_contourSetRemoved(const QString&)));
-	connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _loadViewQueued() ));
+    connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT(_emitColorChanged()));
 	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
 	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
 			SLOT( _onInputEvent( InputEvent )));
@@ -813,7 +813,7 @@ void Controller::_initializeCallbacks(){
             result = "Please specify the layers to select.";
         }
         else {
-            result = _setLayersSelected( names );
+            result = setLayersSelected( names );
         }
         Util::commandPostProcess( result );
         return result;
@@ -961,6 +961,11 @@ bool Controller::isStackSelectAuto() const {
 
 void Controller::_loadViewQueued( ){
     QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
+}
+
+void Controller::_emitColorChanged() {
+    _loadViewQueued();
+    emit colorChanged(this);
 }
 
 void Controller::_loadView(){
@@ -1233,12 +1238,14 @@ QString Controller::setLayerName( const QString& id, const QString& name ){
 }
 
 // 20170420, no one use yet
+// Start to try to use
 QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     if ( indices.size() > 0 ){
         bool selectModeAuto = isStackSelectAuto();
         if ( !selectModeAuto ){
             result = _setLayersSelected( indices );
+            emit dataChanged( this );
         }
         else {
             result = "Enable manual layer selection mode before setting layers.";
@@ -1269,7 +1276,9 @@ QString Controller::_setLayersSelected( QStringList names ){
         // refresh the map of axes immediately after read data
         _setAxisMap();
         emit colorChanged( this );
-        emit dataChanged( this );
+        // The signal below causes the duplicate behaviors
+        // Use setLayersSelected() to replace the original callback
+        // emit dataChanged( this );
     }
     return result;
 }

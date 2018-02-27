@@ -145,6 +145,8 @@ QString Histogram::addLink( CartaObject*  target){
             if ( linkAdded ){
                 connect(controller, SIGNAL(dataChanged(Controller*)),
                 		this, SLOT(_createHistogram(Controller*)));
+                connect(controller, SIGNAL(colorChanged(Controller*)),
+                        this, SLOT(updateColorMap()));
                 connect(controller, SIGNAL(dataChangedRegion(Controller*)),
                                		this, SLOT(_createHistogram(Controller*)));
                 connect( controller,SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
@@ -244,8 +246,18 @@ void Histogram::_createHistogram( Controller* controller){
         m_stateData.setValue<double>(CLIP_MIN_CLIENT, minIntensity );
         m_stateData.setValue<double>(CLIP_MAX_CLIENT, maxIntensity );
 
+        // set the bin width
+        // prevent using setBinWidth to trigger multiply rendering.
         double binWidth = qAbs( maxIntensity - minIntensity ) / m_state.getValue<int>(BIN_COUNT);
-        setBinWidth( binWidth );
+        double binWidthRounded = Util::roundToDigits( binWidth, significantDigits );
+        if ( binWidthRounded > 0 ){
+            m_state.setValue<double>( BIN_WIDTH, binWidthRounded );
+            m_state.flushState();
+        }
+        else {
+            qWarning() << "The bin width is negative.";
+        }
+        // setBinWidth( binWidth );
 
         int frameCount = controller->getFrameUpperBound(Carta::Lib::AxisInfo::KnownType::SPECTRAL) - 1;
         bool planeModeValid = false;
@@ -2126,12 +2138,15 @@ void Histogram::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kn
 
 
 void Histogram::updateColorMap(){
-    Controller* controller = _getControllerSelected();
-    if ( controller ){
-        std::shared_ptr<DataSource> dataSource = controller->getDataSource();
-        if ( dataSource ){
-            std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
-            m_plotManager->setPipeline( pipeline );
+    bool isColored = getColored();
+    if (isColored) {
+        Controller* controller = _getControllerSelected();
+        if ( controller ){
+            std::shared_ptr<DataSource> dataSource = controller->getDataSource();
+            if ( dataSource ){
+                std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> pipeline = dataSource->_getPipeline();
+                m_plotManager->setPipeline( pipeline );
+            }
         }
     }
 }
@@ -2147,6 +2162,7 @@ void Histogram::_updateColorClips(double colorMinPercent, double colorMaxPercent
         //double colorMax = m_stateData.getValue<double>(COLOR_MAX);
         //emit colorIntensityBoundsChanged( colorMin, colorMax, autoClip );
         qDebug() << "++++++++ [Histogram] autoClip=" << autoClip;
+        updateColorMap();
         m_stateData.flushState();
     }
 }
@@ -2180,10 +2196,7 @@ void Histogram::_updatePlots( ){
 	m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );
 	m_plotManager->setStyle( m_state.getValue<QString>( GRAPH_STYLE ) );
 	m_plotManager->setColored( m_state.getValue<bool>( GRAPH_COLORED ) );
-	bool isColored = getColored();
-	if (isColored) {
-	    updateColorMap();
-	}
+    updateColorMap();
 	m_plotManager->updatePlot();
 }
 
