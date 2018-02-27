@@ -1108,10 +1108,9 @@ void Controller::setAutoClip( bool autoClip ){
     if ( autoClip != oldAutoClip ) {
         m_state.setValue<bool>( AUTO_CLIP, autoClip );
         m_state.flushState();
+        // refresh the image viewer
+        recallClipValue();
     }
-    // before rendering we need to flush the state in Colormap::_updateIntensityBounds()
-    // if autoClip is changed from true to false !!
-    if ( autoClip != oldAutoClip && autoClip == false) recallClipValue();
 }
 
 
@@ -1153,6 +1152,7 @@ void Controller::recallClipValue() {
     double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
     double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
     emit clipsChanged( minPercent, maxPercent, autoClip );
+    _loadViewQueued();
 }
 
 
