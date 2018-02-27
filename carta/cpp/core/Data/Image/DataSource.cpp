@@ -1242,7 +1242,9 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         maxClipInCache && maxClipInCache->error == 0 /* maximum intensity cache exists and has a zero error order */) {
         clips.push_back(minClipInCache->value);
         clips.push_back(maxClipInCache->value);
-        if (showMesg == true) qDebug() << "++++++++ [find cache] for clips= [" << clips[0] << "," << clips[1] << "]";
+        if (showMesg == true) {
+            qDebug() << "++++++++ [find cache] for percentile (per frame)= [" << minClipPercentile << "," << maxClipPercentile << "], intensity= [" << clips[0] << "," << clips[1] << "]";
+        }
     }
 
 
@@ -1257,7 +1259,7 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         // calculate pixel values with respect to percentiles per frame
         Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
         
-        std::map<double, double> clips_map = calculator->percentile2pixels(doubleView, clips, -1, nullptr, {});
+        std::map<double, double> clips_map = calculator->percentile2pixels(doubleView, {minClipPercentile, maxClipPercentile}, -1, nullptr, {});
 
         // end of timer for computing percentile per frame
         int elapsedTime = timer.elapsed();
@@ -1279,8 +1281,7 @@ std::vector<double> DataSource::_getQuantileIntensityCache(std::shared_ptr<Carta
         // for precise percentile calculation
         _setIntensityCache(clips[0], 0, setChannelIndex, setChannelIndex, minClipPercentile, stokeIndex[1], "NONE");
         _setIntensityCache(clips[1], 0, setChannelIndex, setChannelIndex, maxClipPercentile, stokeIndex[1], "NONE");
-        qDebug() << "++++++++ [set cache] for clips= [" << clips[0] << "," << clips[1] << "]";
-
+        qDebug() << "++++++++ [find cache] for percentile (per frame)= [" << minClipPercentile << "," << maxClipPercentile << "], intensity= [" << clips[0] << "," << clips[1] << "]";
     }
     return clips;
 }
