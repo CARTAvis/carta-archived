@@ -61,6 +61,7 @@ jobs:
     - run: sudo pip install pyvirtualdisplay
     - run: echo -e "LICENSE calgarysci pureweb 4.1 permanent uncounted hostid=ANY\n  issuer=CSI customer=CyberSKA _ck=$CKID sig=$SIGID" > PureWeb_4_1_CyberSKA.lic
     # This is based on your 1.0 configuration file or project settings
+    - run: setup-docker-engine
     - run: docker info
     - run: mkdir -p ~/docker
     - run: if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/carta/cartabuild:base_20170603; docker save docker.io/carta/cartabuild:base_20170603 > ~/docker/image.tar; fi
