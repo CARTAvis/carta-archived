@@ -185,10 +185,9 @@ void Colormap::_calculateColorLabels() {
     bool success_for_label;
     Carta::Lib::IntensityUnitConverter::SharedPtr converter_for_label = _getIntensityConverter(getImageUnits());
     std::tie(intensityMin_for_label, intensityMax_for_label) = _getIntensities(success_for_label, converter_for_label);
-    //if (!success_for_label) {
-    //    intensityMin_for_label = intensityMin;
-    //    intensityMax_for_label = intensityMax;
-    //}
+    if (!success_for_label) {
+        std::tie(intensityMin_for_label, intensityMax_for_label) = _getIntensities(success_for_label);
+    }
     int number_of_section = 100;
     double delta_for_label = (intensityMax_for_label - intensityMin_for_label) / number_of_section;
     for (int j = 0; j < number_of_section+1; j++) {
