@@ -187,6 +187,7 @@ void Colormap::_calculateColorLabels() {
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = _getIntensityConverter(getImageUnits());
     // calculate the Min. and Max. intensities with the unit conversion.
     std::tie(intensityMin, intensityMax) = _getIntensities(success, converter);
+    // if the unit conversion is not success, we choose colormap bar labels without the unit conversion.
     if (!success) {
         std::tie(intensityMin, intensityMax) = _getIntensities(success);
     }
@@ -1062,8 +1063,10 @@ QString Colormap::setImageUnits( const QString& unitsStr ){
                 m_stateData.setValue<double>( INTENSITY_MAX, intMax );
                 m_stateData.flushState();
 
-                // flush the colormap state and colormap bar labels
-                _colorStateChanged();
+                // flush the colormap bar labels
+                _calculateColorLabels();
+                // we need to flush the "m_state" again in order to catch the firt unit conversion results
+                m_state.flushState();
             } else {
                 result = QString("Could not set image units. Unable to convert intensity values to %1.").arg(actualUnits);
             }
