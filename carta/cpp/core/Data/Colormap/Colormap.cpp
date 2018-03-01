@@ -177,31 +177,32 @@ void Colormap::_calculateColorStops(){
 }
 
 void Colormap::_calculateColorLabels() {
-    // Note that we do not convert the unit for the entire raw data,
+    // Note that we do not convert the unit for the entire raw data (see the function Colormap::_calculateColorStops()),
     // we just convert the unit for labels in colormap bar.
-    QStringList buff_val_for_label;
-    double intensityMin_for_label;
-    double intensityMax_for_label;
-    bool success_for_label;
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter_for_label = _getIntensityConverter(getImageUnits());
-    std::tie(intensityMin_for_label, intensityMax_for_label) = _getIntensities(success_for_label, converter_for_label);
-    if (!success_for_label) {
-        std::tie(intensityMin_for_label, intensityMax_for_label) = _getIntensities(success_for_label);
+    QStringList buff;
+    double intensityMin;
+    double intensityMax;
+    bool success;
+    // get the unit converter with the current unit for colormap bar labels.
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = _getIntensityConverter(getImageUnits());
+    // calculate the Min. and Max. intensities with the unit conversion.
+    std::tie(intensityMin, intensityMax) = _getIntensities(success, converter);
+    if (!success) {
+        std::tie(intensityMin, intensityMax) = _getIntensities(success);
     }
+    // define the number of intensity labels to calculate
     int number_of_section = 100;
-    double delta_for_label = (intensityMax_for_label - intensityMin_for_label) / number_of_section;
-    for (int j = 0; j < number_of_section+1; j++) {
-
-        float val_for_label = intensityMin_for_label + j*delta_for_label;
-
-        // fill intensities in a string list
-        QString sci_val_for_label = QString::number(val_for_label, 'E', 3);
+    double delta = (intensityMax - intensityMin) / number_of_section;
+    for (int j = 0; j < number_of_section + 1; j++) {
+        float val = intensityMin + j * delta;
+        // fill in intensity labels in a string list (as scientific expressions)
+        QString sci_val = QString::number(val, 'E', 3);
         if (j < number_of_section) {
-            sci_val_for_label = sci_val_for_label + ",";
+            sci_val = sci_val + ",";
         }
-        buff_val_for_label.append(sci_val_for_label);
+        buff.append(sci_val);
     }
-    m_state.setValue<QString>( COLOR_GRADES, buff_val_for_label.join("") );
+    m_state.setValue<QString>(COLOR_GRADES, buff.join(""));
 }
 
 QString Colormap::_commandInvertColorMap( const QString& params ){
