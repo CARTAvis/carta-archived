@@ -183,7 +183,7 @@ void Colormap::_calculateColorLabels() {
     double intensityMin;
     double intensityMax;
     bool success = false;
-    bool isApproximation = false;
+    bool isApproximation = true;
 
     // define the number of intensity labels to calculate
     int numberOfSection = 5;
