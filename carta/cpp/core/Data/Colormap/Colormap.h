@@ -285,6 +285,9 @@ private:
     std::pair<double,double> _getIntensities(bool &success, const double minPercent, const double maxPercent,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
 
+    std::vector<double> _getIntensityLables(bool &success, const int numberOfSections,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
+
     Controller* _getControllerSelected() const;
 
     /**

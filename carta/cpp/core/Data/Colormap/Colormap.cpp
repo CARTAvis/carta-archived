@@ -182,23 +182,48 @@ void Colormap::_calculateColorLabels() {
     QStringList buff;
     double intensityMin;
     double intensityMax;
-    bool success;
+    bool success = false;
+    bool isApproximation = false;
+
+    // define the number of intensity labels to calculate
+    int numberOfSection = 5;
+    std::vector<double> intensities(numberOfSection + 1, -1);
+
     // get the unit converter with the current unit for colormap bar labels.
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = _getIntensityConverter(getImageUnits());
-    // calculate the Min. and Max. intensities with the unit conversion.
-    std::tie(intensityMin, intensityMax) = _getIntensities(success, converter);
-    // if the unit conversion is not success, we choose colormap bar labels without the unit conversion.
-    if (!success) {
-        std::tie(intensityMin, intensityMax) = _getIntensities(success);
+
+    if (isApproximation) {
+        // Calculate the Min. and Max. intensities with the unit conversion.
+        std::tie(intensityMin, intensityMax) = _getIntensities(success, converter);
+    } else {
+        // Get intensitis for colormap bar labels with the unit converter.
+        intensities = _getIntensityLables(success, numberOfSection, converter);
     }
-    // define the number of intensity labels to calculate
-    int number_of_section = 5;
-    double delta = (intensityMax - intensityMin) / number_of_section;
-    for (int j = 0; j < number_of_section + 1; j++) {
-        float val = intensityMin + j * delta;
+
+    qDebug() << "[colormap bar intensities] is unit conversion success:" << success << "; is approximation:" << isApproximation;
+
+    if (!success) {
+        // Use original intensities without unit conversion.
+        bool dummySuccess;
+        std::tie(intensityMin, intensityMax) = _getIntensities(dummySuccess);
+    }
+
+    for (int j = 0; j < numberOfSection + 1; j++) {
+        double val;
+        if (success) {
+            if (isApproximation) {
+                // We use intensities which are equally distributed between Min. and Max values.
+                val = intensityMin + j * (intensityMax - intensityMin) / numberOfSection;
+            } else {
+                val = intensities[j];
+            }
+        } else {
+            // We use intensities which are equally distributed between Min. and Max values.
+            val = intensityMin + j * (intensityMax - intensityMin) / numberOfSection;
+        }
         // fill in intensity labels in a string list (as scientific expressions)
         QString sci_val = QString::number(val, 'E', 3);
-        if (j < number_of_section) {
+        if (j < numberOfSection) {
             sci_val = sci_val + ",";
         }
         buff.append(sci_val);
@@ -339,6 +364,40 @@ std::pair<double,double> Colormap::_getIntensities(bool &success, const double m
     }
 
     return std::make_pair(-1, -1);
+}
+
+std::vector<double> Colormap::_getIntensityLables(bool &success, const int numberOfSections, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    double minIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
+    double maxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
+    std::vector<double> oldIntensities;
+    double delta = (maxIntensity - minIntensity) / numberOfSections;
+
+    for (int i = 0; i < numberOfSections + 1; i++) {
+        double tmpIntensity = minIntensity + i * delta;
+        oldIntensities.push_back(tmpIntensity);
+    }
+
+    // get the controller
+    Controller* controller = _getControllerSelected();
+
+    // get percentiles with respect to old intensity labels
+    std::vector<double> percentiles;
+    if (controller) {
+        percentiles = controller->getPercentiles( -1, -1, oldIntensities, converter );
+    }
+
+    // Initialize new intensity labels for unit conversion
+    std::vector<double> intensities(numberOfSections + 1, -1);
+    success = false;
+
+    // If the controller exists and intensities size is greater than one (since we need at least two labels for a colormap bar).
+    if (controller && percentiles.size() > 1) {
+        // get new intensity labels after the unit conversion
+        intensities = controller->getIntensity( -1, -1, percentiles, converter );
+        success = true;
+        return intensities;
+    }
+    return intensities;
 }
 
 void Colormap::_dataChanged( Controller* controller ){
