@@ -273,6 +273,7 @@ private slots:
 
 private:
     void _calculateColorStops();
+    void _calculateColorLabels();
     QString _commandSetColorMap( const QString& params );
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
