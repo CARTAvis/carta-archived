@@ -191,7 +191,7 @@ void Colormap::_calculateColorLabels() {
         std::tie(intensityMin, intensityMax) = _getIntensities(success);
     }
     // define the number of intensity labels to calculate
-    int number_of_section = 100;
+    int number_of_section = 5;
     double delta = (intensityMax - intensityMin) / number_of_section;
     for (int j = 0; j < number_of_section + 1; j++) {
         float val = intensityMin + j * delta;
