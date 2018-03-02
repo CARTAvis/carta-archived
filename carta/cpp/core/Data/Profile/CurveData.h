@@ -283,6 +283,8 @@ public:
     bool isMatch( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
     		Carta::Lib::ProfileInfo otherProfInfo ) const;
 
+    bool isMatch( QString name, Carta::Lib::ProfileInfo profInfo ) const;
+
     /**
      * Return whether or not the curve has been fit.
      * @return - true if the curve has been fit with one or more Gaussian/polynomials, etc;

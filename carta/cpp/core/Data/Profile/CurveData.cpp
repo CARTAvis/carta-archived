@@ -530,6 +530,14 @@ bool CurveData::isMatch( std::shared_ptr<Layer> layer, std::shared_ptr<Region> r
     return match;
 }
 
+bool CurveData::isMatch( QString name, Carta::Lib::ProfileInfo profInfo ) const {
+    bool match = false;
+    if ( name == getId() && profInfo == getProfileInfo() ){
+        match = true;
+    }
+    return match;
+}
+
 bool CurveData::_isPointSource() const {
     return m_state.getValue<bool>( POINT_SOURCE );
 }

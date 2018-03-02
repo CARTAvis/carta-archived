@@ -672,6 +672,7 @@ private:
             const QString & newUnit ) const;
 
     int _findCurveIndex( const QString& curveId ) const;
+    int _findCurveIndex( const QString& curveId, const Carta::Lib::ProfileInfo& profInfo ) const;
 
     bool _generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
 
@@ -770,6 +771,8 @@ private:
     //Fit statistics
     Carta::State::StateInterface m_stateFitStatistics;
 
+    // TODO: save current profile info to compare the one in CurveData
+    // Carta::Lib::ProfileInfo m_profInfo;
 
     static UnitsSpectral* m_spectralUnits;
     static UnitsIntensity* m_intensityUnits;
