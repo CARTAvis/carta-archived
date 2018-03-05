@@ -412,7 +412,7 @@ void Colormap::_initializeDefaultState(){
 
 void Colormap::_initializeCallbacks(){
 
-    addCommandCallback( "get_colormap_all_data", [=] (const QString & /*cmd*/,
+    addCommandCallback( "getColormapAllData", [=] (const QString & /*cmd*/,
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
                     QString result =m_state.toString();
                     QJsonDocument result_d=QJsonDocument::fromJson(result.toUtf8());

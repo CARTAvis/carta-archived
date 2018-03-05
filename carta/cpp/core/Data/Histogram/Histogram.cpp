@@ -573,7 +573,6 @@ void Histogram::_initializeCallbacks(){
                         const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         Carta::Lib::Hooks::HistogramResult histogramResult = m_renderService->getResult();
         std::vector<std::pair<double,double>> data = histogramResult.getData();
-        qDebug() << "histogram data: " << data;
         int dataCount = data.size();
         QJsonObject m_histogramData;
         if ( dataCount > 0 ){
