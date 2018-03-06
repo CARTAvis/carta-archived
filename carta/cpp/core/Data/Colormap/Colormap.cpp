@@ -183,41 +183,48 @@ void Colormap::_calculateColorLabels() {
     double intensityMin;
     double intensityMax;
     bool success = false;
-    bool isApproximation = true;
 
     // define the number of intensity labels to calculate
     int numberOfSection = 5;
     std::vector<double> intensities(numberOfSection + 1, -1);
 
     // get the unit converter with the current unit for colormap bar labels.
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = _getIntensityConverter(getImageUnits());
-
-    if (isApproximation) {
-        // Calculate the Min. and Max. intensities with the unit conversion.
-        std::tie(intensityMin, intensityMax) = _getIntensities(success, converter);
-    } else {
-        // Get intensitis for colormap bar labels with the unit converter.
-        intensities = _getIntensityLables(success, numberOfSection, converter);
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+    if (getImageUnits() != "N/A") {
+        converter = _getIntensityConverter(getImageUnits());
     }
 
-    qDebug() << "[colormap bar intensities] is unit conversion success:" << success << "; is approximation:" << isApproximation;
+    if (converter && converter->frameDependent) {
+        // Get intensitis for colormap bar labels with the unit converter.
+        intensities = _getIntensityLables(success, numberOfSection, converter);
+        qDebug() << "[colormap bar intensities] the unit conversion is dependent on the spectral frame";
+    } else if (converter) {
+        // Calculate the Min. and Max. intensities with the unit conversion.
+        std::tie(intensityMin, intensityMax) = _getIntensities(success, converter);
+        qDebug() << "[colormap bar intensities] the unit conversion is independent of the spectral frame";
+    }
 
     if (!success) {
         // Use original intensities without unit conversion.
         bool dummySuccess;
         std::tie(intensityMin, intensityMax) = _getIntensities(dummySuccess);
+        qDebug() << "[colormap bar intensities] the unit conversion is not applied";
     }
 
     for (int j = 0; j < numberOfSection + 1; j++) {
         double val;
         if (success) {
-            if (isApproximation) {
+            // if the unit conversion is successful
+            if (converter && converter->frameDependent) {
+                // if the unit conversion is dependent on the spectral frame
+                val = intensities[j];
+            } else {
+                // if the unit conversion is independent of the spectral frame
                 // We use intensities which are equally distributed between Min. and Max values.
                 val = intensityMin + j * (intensityMax - intensityMin) / numberOfSection;
-            } else {
-                val = intensities[j];
             }
         } else {
+            // if the unit conversion is not successful
             // We use intensities which are equally distributed between Min. and Max values.
             val = intensityMin + j * (intensityMax - intensityMin) / numberOfSection;
         }
