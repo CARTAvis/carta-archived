@@ -1131,7 +1131,7 @@ QString Colormap::setImageUnits( const QString& unitsStr ){
 
                 // flush the colormap bar labels
                 _calculateColorLabels();
-                // we need to flush the "m_state" again in order to catch the firt unit conversion results
+                // we need to flush the "m_state" again in order to catch the first unit conversion results
                 m_state.flushState();
             } else {
                 result = QString("Could not set image units. Unable to convert intensity values to %1.").arg(actualUnits);
