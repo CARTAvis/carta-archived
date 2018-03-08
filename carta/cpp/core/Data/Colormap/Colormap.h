@@ -273,6 +273,7 @@ private slots:
 
 private:
     void _calculateColorStops();
+    void _calculateColorLabels();
     QString _commandSetColorMap( const QString& params );
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
@@ -282,6 +283,9 @@ private:
 
     std::pair<double,double> _getIntensities(bool &success, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
     std::pair<double,double> _getIntensities(bool &success, const double minPercent, const double maxPercent,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
+
+    std::vector<double> _getIntensityLables(bool &success, const int numberOfSections,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
 
     Controller* _getControllerSelected() const;
@@ -303,6 +307,7 @@ private:
     static bool m_registered;
 
     const static QString COLOR_STOPS;
+    const static QString COLOR_GRADES;
     const static QString GLOBAL;
     const static QString IMAGE_UNITS;
     const static QString INTENSITY_MIN;

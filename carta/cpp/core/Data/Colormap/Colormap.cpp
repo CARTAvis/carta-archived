@@ -29,6 +29,7 @@ namespace Data {
 
 const QString Colormap::CLASS_NAME = "Colormap";
 const QString Colormap::COLOR_STOPS = "stops";
+const QString Colormap::COLOR_GRADES = "colorGrades";
 const QString Colormap::GLOBAL = "global";
 const QString Colormap::IMAGE_UNITS = "imageUnits";
 const QString Colormap::INTENSITY_MIN = "intensityMin";
@@ -153,6 +154,7 @@ void Colormap::_calculateColorStops(){
 
                     float val = intensityMin + i*delta;
 
+                    // fill Hex color codes in a string list
                     Carta::Lib::PixelPipeline::NormRgb normRgb;
                     pipe->convert( val, normRgb );
                     QColor mapColor;
@@ -163,15 +165,78 @@ void Colormap::_calculateColorStops(){
                     if ( i < 99 ){
                         hexStr = hexStr + ",";
                     }
-
                     buff.append( hexStr );
                 }
                 m_state.setValue<QString>( COLOR_STOPS, buff.join("") );
+
+                // recalculate the colormap bar labels
+                _calculateColorLabels();
             }
         }
     }
 }
 
+void Colormap::_calculateColorLabels() {
+    // Note that we do not convert the unit for the entire raw data (see the function Colormap::_calculateColorStops()),
+    // we just convert the unit for labels in colormap bar.
+    QStringList buff;
+    double intensityMin;
+    double intensityMax;
+    bool success = false;
+
+    // define the number of intensity labels to calculate
+    int numberOfSection = 5;
+    std::vector<double> intensities(numberOfSection + 1, -1);
+
+    // get the unit converter with the current unit for colormap bar labels.
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+    if (getImageUnits() != "N/A") {
+        converter = _getIntensityConverter(getImageUnits());
+    }
+
+    if (converter && converter->frameDependent) {
+        // Get intensitis for colormap bar labels with the unit converter.
+        intensities = _getIntensityLables(success, numberOfSection, converter);
+        qDebug() << "[colormap bar intensities] the unit conversion is dependent on the spectral frame";
+    } else if (converter) {
+        // Calculate the Min. and Max. intensities with the unit conversion.
+        std::tie(intensityMin, intensityMax) = _getIntensities(success, converter);
+        qDebug() << "[colormap bar intensities] the unit conversion is independent of the spectral frame";
+    }
+
+    if (!success) {
+        // Use original intensities without unit conversion.
+        bool dummySuccess;
+        std::tie(intensityMin, intensityMax) = _getIntensities(dummySuccess);
+        qDebug() << "[colormap bar intensities] the unit conversion is not applied";
+    }
+
+    for (int j = 0; j < numberOfSection + 1; j++) {
+        double val;
+        if (success) {
+            // if the unit conversion is successful
+            if (converter && converter->frameDependent) {
+                // if the unit conversion is dependent on the spectral frame
+                val = intensities[j];
+            } else {
+                // if the unit conversion is independent of the spectral frame
+                // We use intensities which are equally distributed between Min. and Max values.
+                val = intensityMin + j * (intensityMax - intensityMin) / numberOfSection;
+            }
+        } else {
+            // if the unit conversion is not successful
+            // We use intensities which are equally distributed between Min. and Max values.
+            val = intensityMin + j * (intensityMax - intensityMin) / numberOfSection;
+        }
+        // fill in intensity labels in a string list (as scientific expressions)
+        QString sci_val = QString::number(val, 'E', 3);
+        if (j < numberOfSection) {
+            sci_val = sci_val + ",";
+        }
+        buff.append(sci_val);
+    }
+    m_state.setValue<QString>(COLOR_GRADES, buff.join(""));
+}
 
 QString Colormap::_commandInvertColorMap( const QString& params ){
     QString result;
@@ -308,6 +373,40 @@ std::pair<double,double> Colormap::_getIntensities(bool &success, const double m
     return std::make_pair(-1, -1);
 }
 
+std::vector<double> Colormap::_getIntensityLables(bool &success, const int numberOfSections, Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    double minIntensity = m_stateData.getValue<double>( INTENSITY_MIN );
+    double maxIntensity = m_stateData.getValue<double>( INTENSITY_MAX );
+    std::vector<double> oldIntensities;
+    double delta = (maxIntensity - minIntensity) / numberOfSections;
+
+    for (int i = 0; i < numberOfSections + 1; i++) {
+        double tmpIntensity = minIntensity + i * delta;
+        oldIntensities.push_back(tmpIntensity);
+    }
+
+    // get the controller
+    Controller* controller = _getControllerSelected();
+
+    // get percentiles with respect to old intensity labels
+    std::vector<double> percentiles;
+    if (controller) {
+        percentiles = controller->getPercentiles( -1, -1, oldIntensities, converter );
+    }
+
+    // Initialize new intensity labels for unit conversion
+    std::vector<double> intensities(numberOfSections + 1, -1);
+    success = false;
+
+    // If the controller exists and intensities size is greater than one (since we need at least two labels for a colormap bar).
+    if (controller && percentiles.size() > 1) {
+        // get new intensity labels after the unit conversion
+        intensities = controller->getIntensity( -1, -1, percentiles, converter );
+        success = true;
+        return intensities;
+    }
+    return intensities;
+}
+
 void Colormap::_dataChanged( Controller* controller ){
     if ( controller ){
         bool autoClip = controller->getAutoClip();
@@ -382,6 +481,7 @@ void Colormap::_initializeDefaultState(){
 
     m_state.insertValue<bool>( GLOBAL, true );
     m_state.insertValue<QString>( COLOR_STOPS, "");
+    m_state.insertValue<QString>( COLOR_GRADES, "");
     m_state.insertValue<int>(Util::SIGNIFICANT_DIGITS, 6 );
     m_state.insertValue<int>(TAB_INDEX, 0 );
     m_state.insertValue<QString>( IMAGE_UNITS, m_intensityUnits->getDefault() );
@@ -1028,6 +1128,11 @@ QString Colormap::setImageUnits( const QString& unitsStr ){
                 double intMax = Util::roundToDigits( values.second, getSignificantDigits() );
                 m_stateData.setValue<double>( INTENSITY_MAX, intMax );
                 m_stateData.flushState();
+
+                // flush the colormap bar labels
+                _calculateColorLabels();
+                // we need to flush the "m_state" again in order to catch the first unit conversion results
+                m_state.flushState();
             } else {
                 result = QString("Could not set image units. Unable to convert intensity values to %1.").arg(actualUnits);
             }
@@ -1175,6 +1280,7 @@ void Colormap::_updateIntensityBounds( double minPercent, double maxPercent, boo
             _colorStateChanged();
             m_stateData.flushState();
         }
+
     }
 }
 
