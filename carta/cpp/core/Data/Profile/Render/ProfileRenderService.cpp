@@ -33,6 +33,23 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Layer> layer,
     return profileRender;
 }
 
+bool ProfileRenderService::renderProfile(std::shared_ptr<Layer> layer,
+        std::shared_ptr<Region> region, const Carta::Lib::ProfileInfo& profInfo,
+        int index ){
+    bool profileRender = true;
+    ProfileRenderRequest request( layer, region, profInfo, index );
+    if ( layer ){
+        if ( ! m_requests.contains( request ) ){
+            m_requests.enqueue( request );
+            _scheduleRender( layer, region, profInfo );
+        }
+    }
+    else {
+        profileRender = false;
+    }
+    return profileRender;
+}
+
 
 void ProfileRenderService::_scheduleRender( std::shared_ptr<Layer> layer,
         std::shared_ptr<Region> region, const Carta::Lib::ProfileInfo& profInfo){
@@ -74,7 +91,8 @@ void ProfileRenderService::_postResult( Lib::Hooks::ProfileResult result ){
 //    Lib::Hooks::ProfileResult result = m_renderThread->getResult();
     m_result = result;
     ProfileRenderRequest request = m_requests.dequeue();
-    emit profileResult(result, request.getLayer(), request.getRegion(), request.isCreateNew() );
+    emit profileResult( result, request.getCurveIndex());
+    // emit profileResult(result, request.getLayer(), request.getRegion(), request.isCreateNew() );
     m_renderQueued = false;
     if ( m_requests.size() > 0 ){
         ProfileRenderRequest& head = m_requests.head();

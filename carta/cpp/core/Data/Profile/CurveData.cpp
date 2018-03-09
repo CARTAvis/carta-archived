@@ -398,6 +398,10 @@ Carta::Lib::ProfileInfo CurveData::getProfileInfo() const {
     return profInfo;
 }
 
+void CurveData::setProfileInfo( Carta::Lib::ProfileInfo profInfo ){
+    m_profInfo = profInfo;
+}
+
 std::shared_ptr<Region> CurveData::getRegion() const {
     return m_region;
 }

@@ -43,6 +43,8 @@ public:
 
     bool renderProfile(std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
             const Carta::Lib::ProfileInfo& profInfo, bool createNew );
+    bool renderProfile(std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
+            const Carta::Lib::ProfileInfo& profInfo, int index );
 
     Lib::Hooks::ProfileResult getResult();
 
@@ -60,6 +62,7 @@ signals:
             std::shared_ptr<Layer> layer,
             std::shared_ptr<Region> region,
             bool createNew);
+    void profileResult( const Carta::Lib::Hooks::ProfileResult&, int curveIndex);
 
 private slots:
 

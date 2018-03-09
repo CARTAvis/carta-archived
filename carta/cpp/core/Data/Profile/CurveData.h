@@ -423,6 +423,12 @@ public:
     QString setPlotStyle( const QString& plotStyle );
 
     /**
+     * Set the profile information to generate profile data
+     * @param profInfo - the ProfileInfo to be used in ProfileRenderService and display
+     */
+    void setProfileInfo( Carta::Lib::ProfileInfo profInfo );
+
+    /**
      * Set the region over which the curve is defined.
      * @param region - the region over which the curve is defined.
      */
@@ -564,6 +570,7 @@ private:
     std::shared_ptr<Region> m_region;
 
     Carta::State::StateInterface m_stateFit;
+    Carta::Lib::ProfileInfo m_profInfo;
 
     bool m_nameSet;
 
