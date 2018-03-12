@@ -1516,40 +1516,46 @@ void Profiler::_initializeCallbacks(){
     });
 
     addCommandCallback( "newProfile", [=] (const QString & /*cmd*/,
-                    const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-                // QString result = profileNew();
-                QString result;
-                _generateProfiles();
-                // Controller* controller = _getControllerSelected();
-                // bool generateNew = _updateProfiles(controller);
-                Util::commandPostProcess( result );
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        // QString result = profileNew();
+        QString result;
+        _generateProfiles();
 
-                QJsonArray profileDataList;
-                QJsonObject profileData;
+        // QJsonArray profileDataList;
+        // QJsonObject profileData;
+        //
+        // int curveCount = m_plotCurves.size();
+        // for ( int i = 0; i< curveCount; i++ ){
+        //     std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
+        //     std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
+        //
+        //     int dataCount = curveDataX.size();
+        //     if ( dataCount > 0 ){
+        //         QJsonArray profileDataX, profileDataY;
+        //         for( int i = 0 ; i < dataCount; i ++ ){
+        //             profileDataX.append( curveDataX[i] );
+        //             profileDataY.append( curveDataY[i] );
+        //         }
+        //         profileData.insert( "curveName", i );
+        //         profileData.insert( "x", profileDataX );
+        //         profileData.insert( "y", profileDataY );
+        //     }
+        //     profileDataList.push_back(profileData);
+        // }
+        //
+        // QJsonDocument doc(profileDataList);
+        // result = QString(doc.toJson());
+        int curveCount = m_plotCurves.size();
+        m_stateData.resizeArray( CURVES, curveCount );
+        for ( int i = 0; i < curveCount; i++ ){
+            QString key = Carta::State::UtilState::getLookup( CURVES, i );
+            QString curveState = m_plotCurves[i]->getStateString();
+            m_stateData.setObject( key, curveState );
+        }
+        result = m_stateData.toString();
 
-                int curveCount = m_plotCurves.size();
-                for ( int i = 0; i< curveCount; i++ ){
-                    std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
-                    std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
-
-                    int dataCount = curveDataX.size();
-                    if ( dataCount > 0 ){
-                        QJsonArray profileDataX, profileDataY;
-                        for( int i = 0 ; i < dataCount; i ++ ){
-                            profileDataX.append( curveDataX[i] );
-                            profileDataY.append( curveDataY[i] );
-                        }
-                        profileData.insert( "curveName", i );
-                        profileData.insert( "x", profileDataX );
-                        profileData.insert( "y", profileDataY );
-                    }
-                    profileDataList.push_back(profileData);
-                }
-
-                QJsonDocument doc(profileDataList);
-                result = QString(doc.toJson());
-                return result;
-            });
+        return result;
+    });
 
     addCommandCallback( "getProfileData", [=] ( const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
@@ -2173,6 +2179,7 @@ QString Profiler::profileRemove( const QString& name ){
 void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result, int index ){
     QString errorMessage = result.getError();
     if ( !errorMessage.isEmpty() ){
+        m_plotCurves.removeAt(index);
         ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
         hr->registerError( errorMessage );
         return;

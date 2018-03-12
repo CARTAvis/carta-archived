@@ -21,6 +21,8 @@ namespace Carta {
 namespace Data {
 
 const QString CurveData::CLASS_NAME = "CurveData";
+const QString CurveData::DATA_X = "x";
+const QString CurveData::DATA_Y = "y";
 const QString CurveData::ACTIVE = "active";
 const QString CurveData::FIT = "fit";
 const QString CurveData::FIT_CENTER = "center";
@@ -453,6 +455,10 @@ std::vector<double> CurveData::getValuesYFit() const{
 
 
 void CurveData::_initializeDefaultState(){
+
+    m_state.insertArray( DATA_X, 0);
+    m_state.insertArray( DATA_Y, 0);
+
     m_state.insertValue<QString>( Util::NAME, "");
     m_state.insertValue<QString>( Util::ID, "");
     m_state.insertValue<int>( Util::RED, 255 );
@@ -580,6 +586,15 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
     CARTA_ASSERT( valsX.size() == valsY.size() );
     m_plotDataX = valsX;
     m_plotDataY = valsY;
+    int dataCount = m_plotDataX.size();
+    m_state.resizeArray( DATA_X, dataCount);
+    m_state.resizeArray( DATA_Y, dataCount);
+    for( int i=0; i<dataCount; i++){
+        QString xLookup = Carta::State::UtilState::getLookup( DATA_X, i);
+        QString yLookup = Carta::State::UtilState::getLookup( DATA_Y, i);
+        m_state.setValue<double>( xLookup, m_plotDataX[i]);
+        m_state.setValue<double>( yLookup, m_plotDataY[i]);
+    }
     bool pointSource = false;
     if ( m_plotDataX.size() <= 1 ){
         pointSource = true;
@@ -591,6 +606,11 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
 void CurveData::setDataX( const std::vector<double>& valsX ){
     CARTA_ASSERT( m_plotDataY.size() == valsX.size());
     m_plotDataX = valsX;
+    int dataCount = m_plotDataX.size();
+    for( int i=0; i<dataCount; i++){
+        QString xLookup = Carta::State::UtilState::getLookup( DATA_X, i);
+        m_state.setValue<double>( xLookup, m_plotDataX[i]);
+    }
 }
 
 void CurveData::setDataXFit( const std::vector<double>& valsX ){
@@ -601,6 +621,11 @@ void CurveData::setDataXFit( const std::vector<double>& valsX ){
 void CurveData::setDataY( const std::vector<double>& valsY ){
     CARTA_ASSERT( m_plotDataX.size() == valsY.size());
     m_plotDataY = valsY;
+    int dataCount = m_plotDataY.size();
+    for( int i=0; i<dataCount; i++){
+        QString yLookup = Carta::State::UtilState::getLookup( DATA_Y, i);
+        m_state.setValue<double>( yLookup, m_plotDataY[i]);
+    }
 }
 
 void CurveData::setDataYFit( const std::vector<double>& valsY ){

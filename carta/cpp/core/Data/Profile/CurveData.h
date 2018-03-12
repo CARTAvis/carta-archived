@@ -508,6 +508,10 @@ public:
     const static QString CLASS_NAME;
 
 private:
+
+    const static QString DATA_X;
+    const static QString DATA_Y;
+
     const static QString ACTIVE;
     const static QString FIT;
     const static QString FIT_CENTER;
