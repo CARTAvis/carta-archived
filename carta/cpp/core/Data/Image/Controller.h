@@ -471,6 +471,16 @@ public:
     void recallClipValue();
 
     /**
+     * @brief get the clip state value and represent it as a percentile
+     */
+    QString getClipState();
+
+    /**
+     * @brief get the auto clip state value and represent it as a percentile (per frame)
+     */
+    QString getAutoClipState();
+
+    /**
      * Set whether or not to apply a composition mode to the image.
      * @param compMode - the type of composition mode to apply.
      * @return an error message if there was a problem recognizing the composition mode.
