@@ -240,6 +240,8 @@ public:
      */
     QString profileRemove( const QString& name );
 
+    QString profileRemove( int index );
+
     /**
      * Force a state refresh.
      */

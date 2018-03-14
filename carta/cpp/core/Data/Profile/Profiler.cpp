@@ -1606,13 +1606,20 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    // addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
+    //         const QString & params, const QString & /*sessionId*/) -> QString {
+    //     std::set<QString> keys = {Util::NAME};
+    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+    //     QString nameStr = dataValues[Util::NAME];
+    //     QString result = profileRemove( nameStr );
+    //     Util::commandPostProcess( result );
+    //     return result;
+    // });
+
     addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::NAME};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString nameStr = dataValues[Util::NAME];
-        QString result = profileRemove( nameStr );
-        Util::commandPostProcess( result );
+        int index = params.toInt();
+        QString result = profileRemove( index );
         return result;
     });
 
@@ -2176,10 +2183,22 @@ QString Profiler::profileRemove( const QString& name ){
     return result;
 }
 
+QString Profiler::profileRemove( int index ){
+    QString result;
+    if ( index >= 0 ){
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        objMan->removeObject( m_plotCurves[index]->getId());
+        m_plotCurves.removeAt( index );
+        _saveCurveState();
+    }
+    result = m_stateData.toString();
+    return result;
+}
+
 void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result, int index ){
     QString errorMessage = result.getError();
     if ( !errorMessage.isEmpty() ){
-        m_plotCurves.removeAt(index);
+        profileRemove( index );
         ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
         hr->registerError( errorMessage );
         return;
@@ -2188,7 +2207,7 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result, 
     int dataCount = data.size();
 
     if (dataCount < 1) {
-        m_plotCurves.removeAt(index);
+        profileRemove( index );
         return;
     }
 
@@ -2441,9 +2460,8 @@ void Profiler::_saveCurveState(){
     int curveCount = m_plotCurves.size();
     m_stateData.resizeArray( CURVES, curveCount );
     for ( int i = 0; i < curveCount; i++ ){
-       _saveCurveState( i );
+        _saveCurveState( i );
     }
-    m_stateData.flushState();
 }
 
 QString Profiler::setAutoGenerate( bool autoGenerate ){
