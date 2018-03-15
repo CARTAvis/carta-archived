@@ -176,14 +176,14 @@ QString Profiler::addLink( CartaObject*  target){
         if ( !m_controllerLinked ){
             linkAdded = m_linkImpl->addLink( controller );
             if ( linkAdded ){
-                connect(controller, SIGNAL(dataChanged(Controller*)),
-                        this , SLOT(_loadProfile(Controller*)));
-                connect(controller, SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
-                        this, SLOT( _updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
-                connect(controller, SIGNAL(dataChangedRegion(Controller*)),
-                        this, SLOT( _loadProfile( Controller*)));
+                // connect(controller, SIGNAL(dataChanged(Controller*)),
+                //         this , SLOT(_loadProfile(Controller*)));
+                // connect(controller, SIGNAL(frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
+                //         this, SLOT( _updateChannel(Controller*, Carta::Lib::AxisInfo::KnownType)));
+                // connect(controller, SIGNAL(dataChangedRegion(Controller*)),
+                //         this, SLOT( _loadProfile( Controller*)));
                 m_controllerLinked = true;
-                _loadProfile( controller);
+                // _loadProfile( controller);
             }
         }
         else {
@@ -1457,14 +1457,11 @@ void Profiler::_initializeCallbacks(){
             });
 
     addCommandCallback( "setGenerationMode", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {"mode"};
-                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString modeStr = dataValues[*keys.begin()];
-                QString result = setGenerateMode( modeStr );
-                Util::commandPostProcess( result );
-                return result;
-            });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+
+        QString result = setGenerateMode( params );
+        return result;
+    });
 
     addCommandCallback( "setRestFrequency", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -2474,8 +2471,8 @@ QString Profiler::setAutoGenerate( bool autoGenerate ){
     //     _loadProfile( controller );
     // }
     m_state.setValue<bool>( AUTO_GENERATE, autoGenerate );
-    Controller* controller = _getControllerSelected();
-    _loadProfile( controller );
+    // Controller* controller = _getControllerSelected();
+    // _loadProfile( controller );
 
     result = m_state.toString();
     return result;
@@ -2852,24 +2849,11 @@ QString Profiler::setGaussCount( int count ){
 
 QString Profiler::setGenerateMode( const QString& modeStr ){
     QString result;
-    if ( isAutoGenerate() ){
-        QString actualMode = m_generateModes->getActualMode( modeStr );
-        if ( !actualMode.isEmpty() ){
-            QString oldMode = m_state.getValue<QString>( GEN_MODE );
-            if ( actualMode != oldMode ){
-                m_state.setValue<QString>( GEN_MODE, actualMode);
-                m_state.flushState();
-                Controller* controller = _getControllerSelected();
-                _loadProfile( controller );
-            }
-        }
-        else {
-            result = "Unrecognized profile generation mode: "+modeStr;
-        }
+    QString actualMode = m_generateModes->getActualMode( modeStr );
+    if ( !actualMode.isEmpty() ){
+        m_state.setValue<QString>( GEN_MODE, actualMode);
     }
-    else {
-        result = "Custom profiles can only be set when auto-generation is turned off.";
-    }
+    result = m_state.toString();
     return result;
 }
 

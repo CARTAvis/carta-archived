@@ -44,7 +44,9 @@ bool ProfileInfo::operator==( const ProfileInfo& rhs ) const {
                 if ( m_spectralUnit == rhs.m_spectralUnit ){
                     const double ERROR_MARGIN = 0.000001;
                     if ( fabs( m_restFrequency - rhs.m_restFrequency ) < ERROR_MARGIN ){
-                        if ( m_stokesFrame == rhs.m_stokesFrame ){
+                        // Don't need to compare if stokesFrame doesn't exist
+                        if ( m_stokesFrame != -1 || rhs.m_stokesFrame != -1 ||
+                            m_stokesFrame == rhs.m_stokesFrame ){
                             equalProfiles = true;
                         }
                     }
