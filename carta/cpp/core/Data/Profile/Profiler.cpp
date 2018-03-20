@@ -662,6 +662,12 @@ QString Profiler::_generateName( std::shared_ptr<Layer> layer, std::shared_ptr<R
 
 void Profiler::_generateProfiles() {
 
+    bool autoGen = isAutoGenerate();
+    QString generateMode = m_state.getValue<QString>( GEN_MODE );
+    if ( autoGen && m_generateModes->isCurrent( generateMode ) ){
+        _clearData();
+    }
+
     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode();
     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode();
     int dataCount = layers.size();
@@ -952,7 +958,8 @@ QString Profiler::getStatistic( const QString& curveName ) const {
 int Profiler::getStokesFrame() const {
     Controller* controller = _getControllerSelected();
     int stokesFrame = controller->getFrame(Carta::Lib::AxisInfo::KnownType::STOKES);
-    return stokesFrame;
+    // assume the first one when there is no stokes frame.
+    return (stokesFrame == -1 ? 0 :stokesFrame);
 }
 
 QString Profiler::_getUnitType( const QString& unitStr ){
@@ -1978,18 +1985,18 @@ bool Profiler::isShowResiduals() const {
 }
 
 
-void Profiler::_loadProfile( Controller* controller ){
-    if( ! controller) {
-        return;
-    }
-    m_plotManager->clearData();
-    bool generatingNew = _updateProfiles( controller );
-    //If we removed some curves but did not generate any new ones, the plot
-    //needs to get updated (it will be updated automatically if a new curve is generated.
-    // if ( !generatingNew ){
-    //     _updatePlotData();
-    // }
-}
+// void Profiler::_loadProfile( Controller* controller ){
+//     if( ! controller) {
+//         return;
+//     }
+//     m_plotManager->clearData();
+//     bool generatingNew = _updateProfiles( controller );
+//     //If we removed some curves but did not generate any new ones, the plot
+//     //needs to get updated (it will be updated automatically if a new curve is generated.
+//     // if ( !generatingNew ){
+//     //     _updatePlotData();
+//     // }
+// }
 
 void Profiler::_makeInitialGuesses( int count ){
     QString guessKey = Carta::State::UtilState::getLookup( CurveData::FIT, CurveData::INITIAL_GUESSES );
@@ -3796,48 +3803,48 @@ void Profiler::_updateZoomRangeBasedOnPercent(){
 //     m_plotManager->updatePlot();
 // }
 
-bool Profiler::_updateProfiles( Controller* controller ){
-
-    if ( !isAutoGenerate() ){
-        return false;
-    }
-
-    bool profileChanged = false;
-    bool curveStatusChange = false;
-    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( /*controller*/ );
-    std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
-    int dataCount = layers.size();
-    int regionCount = regions.size();
-    int curveCount = m_plotCurves.size();
-
-    for ( int i = 0; i < dataCount; i++ ){
-        for ( int j = 0; j < regionCount; j++ ){
-            QString name = _generateName( layers[i], regions[j] );
-            int index = _findCurveIndex( name );
-            if ( index < 0 ){
-                _generateData( layers[i], regions[j] );
-                profileChanged = true;
-            }
-        }
-
-        // This part generate profiler without region, used for test.
-        // The feature should be reomoved in the future.
-        QString name = _generateName( layers[i], nullptr );
-        int index = _findCurveIndex( name );
-        if ( index < 0 ){
-            _generateData( layers[i], nullptr );
-            profileChanged = true;
-        }
-    }
-
-    // I am not sure the purpose
-    _saveCurveState();
-    if ( curveStatusChange && !profileChanged ){
-        _updateSelectedCurve();
-    }
-
-    return profileChanged;
-}
+// bool Profiler::_updateProfiles( Controller* controller ){
+//
+//     if ( !isAutoGenerate() ){
+//         return false;
+//     }
+//
+//     bool profileChanged = false;
+//     bool curveStatusChange = false;
+//     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( /*controller*/ );
+//     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
+//     int dataCount = layers.size();
+//     int regionCount = regions.size();
+//     int curveCount = m_plotCurves.size();
+//
+//     for ( int i = 0; i < dataCount; i++ ){
+//         for ( int j = 0; j < regionCount; j++ ){
+//             QString name = _generateName( layers[i], regions[j] );
+//             int index = _findCurveIndex( name );
+//             if ( index < 0 ){
+//                 _generateData( layers[i], regions[j] );
+//                 profileChanged = true;
+//             }
+//         }
+//
+//         // This part generate profiler without region, used for test.
+//         // The feature should be reomoved in the future.
+//         QString name = _generateName( layers[i], nullptr );
+//         int index = _findCurveIndex( name );
+//         if ( index < 0 ){
+//             _generateData( layers[i], nullptr );
+//             profileChanged = true;
+//         }
+//     }
+//
+//     // I am not sure the purpose
+//     _saveCurveState();
+//     if ( curveStatusChange && !profileChanged ){
+//         _updateSelectedCurve();
+//     }
+//
+//     return profileChanged;
+// }
 
 QString Profiler::_zoomToSelection(){
     QString result;

@@ -596,7 +596,7 @@ protected:
 private slots:
     void _cursorUpdate( double x, double y );
     void _fitFinished(const std::vector<Carta::Lib::Hooks::FitResult>& result);
-    void _loadProfile( Controller* controller);
+    // void _loadProfile( Controller* controller);
     void _movieFrame();
     void _plotSizeChanged();
     void _profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
@@ -736,7 +736,7 @@ private:
 
     void _updatePlotDisplay();
 
-    bool _updateProfiles( Controller* controller );
+    // bool _updateProfiles( Controller* controller );
     void _updateSelectedCurve();
 
     //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
