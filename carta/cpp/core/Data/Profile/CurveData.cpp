@@ -525,25 +525,15 @@ bool CurveData::isFrequencyUnits() const {
 }
 
 bool CurveData::isMatch( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
-		Carta::Lib::ProfileInfo otherProfInfo ) const {
+        Carta::Lib::ProfileInfo otherProfInfo ) const {
     bool match = false;
-    if ( layer && m_layer ){
-    	if ( layer->_getLayerName() == m_layer->_getLayerName()){
-            if ( (!region && !m_region) || this->getName() == _generateName( layer, region) ){
-				Carta::Lib::ProfileInfo profInfo = getProfileInfo();
-				if ( profInfo == otherProfInfo ){
-					match = true;
-				}
-			}
-    	}
-	}
-    return match;
-}
-
-bool CurveData::isMatch( QString name, Carta::Lib::ProfileInfo profInfo ) const {
-    bool match = false;
-    if ( name == getId() && profInfo == getProfileInfo() ){
-        match = true;
+    if ( layer && m_layer && layer == m_layer ){
+        if ( (!region && !m_region) || region == m_region ){
+            Carta::Lib::ProfileInfo profInfo = getProfileInfo();
+            if ( profInfo == otherProfInfo ){
+                match = true;
+            }
+        }
     }
     return match;
 }
@@ -663,8 +653,11 @@ void CurveData::setFitStatus( const QString& fitStatus ) {
     m_fitStatus = fitStatus;
 }
 
+// id should be identical and permanent.
+// The function should be called only when the curvedata is first generated
 void CurveData::setId( QString id ) {
     m_state.setValue<QString>( Util::ID, id );
+    setName(id); // Set the default name be the same with id
 }
 
 void CurveData::setLayer( std::shared_ptr<Layer> layer ){
@@ -744,11 +737,6 @@ QString CurveData::setPlotStyle( const QString& plotStyle ){
 
 void CurveData::setRegion( std::shared_ptr<Region> region ){
     m_region = region;
-    if ( !m_nameSet ){
-        QString dName = getDefaultName();
-        m_state.setValue<QString>( Util::NAME, dName );
-        m_state.flushState();
-    }
 }
 
 

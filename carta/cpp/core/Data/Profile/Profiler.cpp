@@ -131,12 +131,12 @@ Profiler::Profiler( const QString& path, const QString& id):
             SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&, int )),
             this,
             SLOT(_profileRendered(const Carta::Lib::Hooks::ProfileResult&, int)));
-    connect( m_renderService.get(),
-            SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&,
-                    std::shared_ptr<Layer>, std::shared_ptr<Region>, bool )),
-            this,
-            SLOT(_profileRendered(const Carta::Lib::Hooks::ProfileResult&,
-                    std::shared_ptr<Layer>, std::shared_ptr<Region>, bool )));
+    // connect( m_renderService.get(),
+    //         SIGNAL(profileResult(const Carta::Lib::Hooks::ProfileResult&,
+    //                 std::shared_ptr<Layer>, std::shared_ptr<Region>, bool )),
+    //         this,
+    //         SLOT(_profileRendered(const Carta::Lib::Hooks::ProfileResult&,
+    //                 std::shared_ptr<Layer>, std::shared_ptr<Region>, bool )));
     connect( m_fitService.get(),
                SIGNAL(fitResult(const std::vector<Carta::Lib::Hooks::FitResult>&)),
                this,
@@ -213,13 +213,13 @@ int Profiler::_addNewCurveData( std::shared_ptr<Layer> layer,
     profileCurve->setLayer( layer );
     profileCurve->setRegion( region );
     profileCurve->setProfileInfo( profInfo );
+    profileCurve->setId( _generateName( layer, region) );
 
     // TODO::merge these behaviour into setProfileInfo
     double restFrequency = getRestFrequency("");
     int significantDigits = m_state.getValue<int>( Util::SIGNIFICANT_DIGITS );
     double restRounded = Util::roundToDigits( restFrequency, significantDigits );
     QString restUnit = getRestUnits("");
-    profileCurve->setId( _generateName( layer, region) );
     profileCurve->setRestQuantity( restRounded, restUnit );
     profileCurve->setSpectralInfo( getSpectralType(), getSpectralUnits() );
     profileCurve->setStokesFrame( getStokesFrame() );
@@ -265,8 +265,7 @@ void Profiler::_assignColor( std::shared_ptr<CurveData> curveData ){
 void Profiler::_clearData(){
     int curveSize = m_plotCurves.size();
     for ( int i = curveSize - 1; i>= 0; i-- ){
-        QString curveName = m_plotCurves[i]->getName();
-        profileRemove( curveName );
+        profileRemove( i );
     }
 }
 
@@ -423,13 +422,13 @@ int Profiler::_findCurveIndex( const QString& name ) const {
 }
 
 
-int Profiler::_findCurveIndex( const QString& curveId,
+int Profiler::_findCurveIndex( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
         const Carta::Lib::ProfileInfo& profInfo ) const {
 
     int curveCount = m_plotCurves.size();
     int index = -1;
     for ( int i = 0; i < curveCount; i++ ){
-        if ( m_plotCurves[i]->isMatch( curveId, profInfo) ) {
+        if ( m_plotCurves[i]->isMatch( layer, region, profInfo) ) {
             index = i;
             break;
         }
@@ -656,15 +655,28 @@ QString Profiler::_generateName( std::shared_ptr<Layer> layer, std::shared_ptr<R
             }
         }
     }
-    return name;
+
+    // If the name existed, add the index behind.
+    QString curveName = name;
+    int existIndex = _findCurveIndex( name );
+    int i = 1;
+    while ( existIndex >= 0 ){
+        curveName = name + QString::number(i);
+        existIndex = _findCurveIndex( curveName );
+        i++;
+    }
+    return curveName;
 }
 
 void Profiler::_generateProfiles() {
 
     bool autoGen = isAutoGenerate();
     QString generateMode = m_state.getValue<QString>( GEN_MODE );
-    if ( autoGen && m_generateModes->isCurrent( generateMode ) ){
-        _clearData();
+    if ( autoGen ){
+        if( m_generateModes->isCurrent( generateMode ) ){
+            _clearData();
+        }
+        _removeUnsupportedCurves();
     }
 
     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode();
@@ -676,8 +688,8 @@ void Profiler::_generateProfiles() {
 
     for ( int i = 0; i < dataCount; i++ ){
         for ( int j = 0; j < regionCount; j++ ){
-            QString name = _generateName( layers[i], regions[j] );
-            int index = _findCurveIndex( name, profInfo );
+            // QString name = _generateName( layers[i], regions[j] );
+            int index = _findCurveIndex( layers[i], regions[j], profInfo );
             if ( index < 0 ){
                 index = _addNewCurveData( layers[i], regions[i], profInfo );
                 _generateData( m_plotCurves[index], index );
@@ -686,8 +698,8 @@ void Profiler::_generateProfiles() {
 
         // This part generate profiler without region, used for test.
         // The feature should be reomoved in the future.
-        QString name = _generateName( layers[i], nullptr );
-        int index = _findCurveIndex( name, profInfo );
+        // QString name = _generateName( layers[i], nullptr );
+        int index = _findCurveIndex( layers[i], nullptr, profInfo );
         if ( index < 0 ){
             index = _addNewCurveData( layers[i], nullptr, profInfo );
             _generateData( m_plotCurves[index], index );
@@ -2079,118 +2091,118 @@ void Profiler::_plotSizeChanged(){
     _resetFitGuessPixels();
 }
 
-QString Profiler::profileNew(){
-    QString result;
-    Controller* controller = _getControllerSelected();
-    if ( !controller ){
-        result = "Could not generate a profile - no linked images.";
-        return result;
-    }
+// QString Profiler::profileNew(){
+//     QString result;
+//     Controller* controller = _getControllerSelected();
+//     if ( !controller ){
+//         result = "Could not generate a profile - no linked images.";
+//         return result;
+//     }
+//
+//     std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( /*controller*/ );
+//     std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
+//     int dataCount = layers.size();
+//     int regionCount = regions.size();
+//
+//     Carta::Lib::ProfileInfo profInfo;
+//     profInfo.setRestFrequency( getRestFrequency( ""));
+//     QString stat = getStatistic( "" );
+//     Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
+//     profInfo.setAggregateType( aggType );
+//     profInfo.setRestUnit( getRestUnits("") );
+//     profInfo.setSpectralUnit( getSpectralUnits() );
+//     profInfo.setSpectralType( getSpectralType() );
+//     profInfo.setStokesFrame( getStokesFrame() );
+//
+//     for ( int i = 0; i < dataCount; i++ ){
+//         for ( int j = 0; j < regionCount; j++ ){
+//             QString name = _generateName( layers[i], regions[j] );
+//             int index = _findCurveIndex( name, profInfo );
+//             if ( index < 0 ){
+//                 _generateData( layers[i], regions[j] );
+//             }
+//         }
+//
+//         // This part generate profiler without region, used for test.
+//         // The feature should be reomoved in the future.
+//         QString name = _generateName( layers[i], nullptr );
+//         int index = _findCurveIndex( name, profInfo );
+//         if ( index < 0 ){
+//             _generateData( layers[i], nullptr );
+//         }
+//     }
+//     // if ( controller){
+//     //     QString layerId = getSelectedLayer();
+//     //     std::shared_ptr<Layer> layer = controller->getLayer( layerId );
+//     //     std::shared_ptr<Region> region( nullptr );
+//     //     std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+//     //     if ( regionControls ){
+//     //         QString regionId = getSelectedRegion();
+//     //         region = regionControls->getRegion( regionId );
+//     //     }
+//     //     if ( layer && layer->_isOnCelestialPlane() && region ){
+//     //         int specCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+//     //         int tabCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
+//     //         if ( specCount > 1 || tabCount > 1 ){
+//     //             //Get the name that is stored.  If it matches an existing profile, just set
+//     //             //the existing profile active.  Otherwise, generate a new one.
+//     //             Carta::Lib::ProfileInfo profInfo;
+//     //             profInfo.setRestFrequency( getRestFrequency( ""));
+//     //             QString stat = getStatistic( "" );
+//     //             Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
+//     //             profInfo.setAggregateType( aggType );
+//     //             profInfo.setRestUnit( getRestUnits("") );
+//     //             profInfo.setSpectralUnit( getSpectralUnits() );
+//     //             profInfo.setSpectralType( getSpectralType() );
+//     //             profInfo.setStokesFrame( getStokesFrame() );
+//     //             int curveCount = m_plotCurves.size();
+//     //             int curveIndex = -1;
+//     //             for ( int i = 0; i < curveCount; i++ ){
+//     //                 bool match = m_plotCurves[i]->isMatch( layer, region, profInfo );
+//     //                 if ( match ){
+//     //                     curveIndex = i;
+//     //                     break;
+//     //                 }
+//     //             }
+//     //             if ( curveIndex >= 0 ){
+//     //                 m_plotCurves[curveIndex]->setActive( true );
+//     //             }
+//     //             else {
+//     //                 _generateData( layer, region, true );
+//     //             }
+//     //         }
+//     //         else {
+//     //             result = "The layer does not have a spectral-like axis.";
+//     //         }
+//     //     }
+//     //     else {
+//     //         result = "Cannot render without a layer or a region.";
+//     //     }
+//     // }
+//     // else {
+//     //     result = "Could not generate a profile - no linked images.";
+//     // }
+//     return result;
+// }
 
-    std::vector<std::shared_ptr<Layer> > layers = _getDataForGenerateMode( /*controller*/ );
-    std::vector<std::shared_ptr<Region> > regions = _getRegionForGenerateMode( /*controller*/ );
-    int dataCount = layers.size();
-    int regionCount = regions.size();
 
-    Carta::Lib::ProfileInfo profInfo;
-    profInfo.setRestFrequency( getRestFrequency( ""));
-    QString stat = getStatistic( "" );
-    Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
-    profInfo.setAggregateType( aggType );
-    profInfo.setRestUnit( getRestUnits("") );
-    profInfo.setSpectralUnit( getSpectralUnits() );
-    profInfo.setSpectralType( getSpectralType() );
-    profInfo.setStokesFrame( getStokesFrame() );
-
-    for ( int i = 0; i < dataCount; i++ ){
-        for ( int j = 0; j < regionCount; j++ ){
-            QString name = _generateName( layers[i], regions[j] );
-            int index = _findCurveIndex( name, profInfo );
-            if ( index < 0 ){
-                _generateData( layers[i], regions[j] );
-            }
-        }
-
-        // This part generate profiler without region, used for test.
-        // The feature should be reomoved in the future.
-        QString name = _generateName( layers[i], nullptr );
-        int index = _findCurveIndex( name, profInfo );
-        if ( index < 0 ){
-            _generateData( layers[i], nullptr );
-        }
-    }
-    // if ( controller){
-    //     QString layerId = getSelectedLayer();
-    //     std::shared_ptr<Layer> layer = controller->getLayer( layerId );
-    //     std::shared_ptr<Region> region( nullptr );
-    //     std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
-    //     if ( regionControls ){
-    //         QString regionId = getSelectedRegion();
-    //         region = regionControls->getRegion( regionId );
-    //     }
-    //     if ( layer && layer->_isOnCelestialPlane() && region ){
-    //         int specCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::SPECTRAL );
-    //         int tabCount = layer->_getFrameCount( Carta::Lib::AxisInfo::KnownType::TABULAR );
-    //         if ( specCount > 1 || tabCount > 1 ){
-    //             //Get the name that is stored.  If it matches an existing profile, just set
-    //             //the existing profile active.  Otherwise, generate a new one.
-    //             Carta::Lib::ProfileInfo profInfo;
-    //             profInfo.setRestFrequency( getRestFrequency( ""));
-    //             QString stat = getStatistic( "" );
-    //             Carta::Lib::ProfileInfo::AggregateType aggType = this->m_stats->getTypeFor( stat );
-    //             profInfo.setAggregateType( aggType );
-    //             profInfo.setRestUnit( getRestUnits("") );
-    //             profInfo.setSpectralUnit( getSpectralUnits() );
-    //             profInfo.setSpectralType( getSpectralType() );
-    //             profInfo.setStokesFrame( getStokesFrame() );
-    //             int curveCount = m_plotCurves.size();
-    //             int curveIndex = -1;
-    //             for ( int i = 0; i < curveCount; i++ ){
-    //                 bool match = m_plotCurves[i]->isMatch( layer, region, profInfo );
-    //                 if ( match ){
-    //                     curveIndex = i;
-    //                     break;
-    //                 }
-    //             }
-    //             if ( curveIndex >= 0 ){
-    //                 m_plotCurves[curveIndex]->setActive( true );
-    //             }
-    //             else {
-    //                 _generateData( layer, region, true );
-    //             }
-    //         }
-    //         else {
-    //             result = "The layer does not have a spectral-like axis.";
-    //         }
-    //     }
-    //     else {
-    //         result = "Cannot render without a layer or a region.";
-    //     }
-    // }
-    // else {
-    //     result = "Could not generate a profile - no linked images.";
-    // }
-    return result;
-}
-
-
-QString Profiler::profileRemove( const QString& name ){
-    QString result;
-    int curveIndex = _findCurveIndex( name );
-    if ( curveIndex >= 0 ){
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        objMan->removeObject( m_plotCurves[curveIndex]->getId());
-        m_plotCurves.removeAt( curveIndex );
-        m_plotManager->removeData( name );
-        _saveCurveState();
-        _updateZoomRangeBasedOnPercent();
-        // _updatePlotData();
-    }
-    else {
-        result = "Could not find profile curve "+name+" to remove.";
-    }
-    return result;
-}
+// QString Profiler::profileRemove( const QString& name ){
+//     QString result;
+//     int curveIndex = _findCurveIndex( name );
+//     if ( curveIndex >= 0 ){
+//         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+//         objMan->removeObject( m_plotCurves[curveIndex]->getId());
+//         m_plotCurves.removeAt( curveIndex );
+//         m_plotManager->removeData( name );
+//         _saveCurveState();
+//         _updateZoomRangeBasedOnPercent();
+//         // _updatePlotData();
+//     }
+//     else {
+//         result = "Could not find profile curve "+name+" to remove.";
+//     }
+//     return result;
+// }
 
 QString Profiler::profileRemove( int index ){
     QString result;
@@ -2318,43 +2330,49 @@ void Profiler::_removeUnsupportedCurves(){
     //If the image or the region used by the profile is not longer present, remove
     //the profile.
     Controller* controller = _getControllerSelected();
-    if ( controller ){
-        std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
-        int curveCount = m_plotCurves.size();
-        std::vector<int> removeIndices;
-        for ( int i = 0; i < curveCount; i++ ){
-            std::shared_ptr<Layer> layer = m_plotCurves[i]->getLayer();
-            QString layerName = layer->_getLayerName();
-            std::shared_ptr<Layer> existingLayer = controller->getLayer(layerName );
-            // Here we suppose that every curve is generated with a region.
-            std::shared_ptr<Region> region = m_plotCurves[i]->getRegion();
-            QString regionName = region->getRegionName();
-            std::shared_ptr<Region> existingRegion = regionControls->getRegion( regionName );
-            if ( existingLayer && existingRegion ){
-                // This part is a temporary solution to sync the curve with an updated region.
-                // Remove the old one and generate a new one later.
-                // The root problem is that the shared ptr of region saved in m_plotCurves
-                // is updated before the curve. The curve cannot be found correctly to replace
-                // in _profileRendered().
-                QString curveName = m_plotCurves[i]->getName();
-                if ( curveName != CurveData::_generateName( existingLayer, existingRegion) ){
-                    removeIndices.push_back( i );
-                }
-            }
-            else {
+    if ( !controller ){
+        //No controller, we should not have any curves.
+        m_plotCurves.clear();
+        _saveCurveState();
+        return;
+    }
+
+    std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
+    std::vector<std::shared_ptr<Layer> > layers = controller->getLayers();
+    std::vector<std::shared_ptr<Region> > regions = regionControls->getRegions();
+
+    int curveCount = m_plotCurves.size();
+    std::vector<int> removeIndices;
+
+    for ( int i = 0; i < curveCount; i++ ){
+        std::shared_ptr<Layer> curveLayer = m_plotCurves[i]->getLayer();
+        std::shared_ptr<Region> curveRegion = m_plotCurves[i]->getRegion();
+        QString curveId = m_plotCurves[i]->getId();
+
+        std::vector<std::shared_ptr<Layer> >::iterator layer;
+        std::vector<std::shared_ptr<Region> >::iterator region;
+
+        layer = find( layers.begin(), layers.end(), curveLayer);
+        if ( layer == layers.end() ){
+            // if the layer is removed.
+            removeIndices.push_back( i );
+        }
+        else if ( curveRegion ){
+            region = find( regions.begin(), regions.end(), curveRegion);
+            if ( region == regions.end() ||
+                !curveId.contains( (*region)->getRegionName() )){
+                // if the region is removed or moved
                 removeIndices.push_back( i );
             }
         }
-        //Go through the plot curves and remove the ones marked for removal
-        int removeCount = removeIndices.size();
-        for ( int i = removeCount - 1; i >= 0; i-- ){
-            m_plotCurves.removeAt( removeIndices[i] );
-        }
     }
-    else {
-        //No controller, we should not have any curves.
-        m_plotCurves.clear();
+    //Go through the plot curves and remove the ones marked for removal
+    int removeCount = removeIndices.size();
+    for ( int i = removeCount - 1; i >= 0; i-- ){
+        m_plotCurves.removeAt( removeIndices[i] );
     }
+
+    _saveCurveState();
 }
 
 
@@ -3526,12 +3544,12 @@ void Profiler::_updateChannel( Controller* controller, Carta::Lib::AxisInfo::Kno
             m_plotManager->setVLinePosition( values[0] );
         }
     }
-    else if ( type == Carta::Lib::AxisInfo::KnownType::STOKES ){
-        // This part may be improved in the future
-        // I just clear all and generate a new one to test the correction, but it's waste and stupid.
-        _clearData();
-        profileNew();
-    }
+    // else if ( type == Carta::Lib::AxisInfo::KnownType::STOKES ){
+    //     // This part may be improved in the future
+    //     // I just clear all and generate a new one to test the correction, but it's waste and stupid.
+    //     _clearData();
+    //     profileNew();
+    // }
 }
 
 void Profiler::_updateFitStatistics(  ){

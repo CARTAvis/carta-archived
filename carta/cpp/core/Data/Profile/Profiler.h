@@ -678,7 +678,8 @@ private:
             const QString & newUnit ) const;
 
     int _findCurveIndex( const QString& curveId ) const;
-    int _findCurveIndex( const QString& curveId, const Carta::Lib::ProfileInfo& profInfo ) const;
+    int _findCurveIndex( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
+         const Carta::Lib::ProfileInfo& profInfo ) const;
 
     bool _generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
 
