@@ -263,7 +263,6 @@ void Profiler::_assignColor( std::shared_ptr<CurveData> curveData ){
 
 
 void Profiler::_clearData(){
-    m_plotManager->clearData();
     int curveSize = m_plotCurves.size();
     for ( int i = curveSize - 1; i>= 0; i-- ){
         QString curveName = m_plotCurves[i]->getName();
@@ -1089,6 +1088,12 @@ void Profiler::_initializeCallbacks(){
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         clearFits();
         return "";
+    });
+
+    addCommandCallback( "clearProfiles", [=] (const QString & /*cmd*/,
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        _clearData();
+        return m_stateData.toString();
     });
 
     addCommandCallback( "getProfilerSettings", [=] (const QString & /*cmd*/,
