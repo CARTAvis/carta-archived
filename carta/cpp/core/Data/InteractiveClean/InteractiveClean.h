@@ -34,6 +34,11 @@ public:
     virtual QList<QString> getLinks() const Q_DECL_OVERRIDE;
 
     /**
+      Read the clean parameters from CASA clean process
+     */
+    QString getInitialParameters( );
+
+    /**
      * Return a string representation of the interactive clean state.
      * @param sessionId - an identifier for a user session.
      * @param type - the type of state requested.
@@ -63,6 +68,8 @@ private slots:
      * @param controller - the controller to use for interactive clean generation.
      */
     void _updateInteractiveClean( Controller* controller, Carta::Lib::AxisInfo::KnownType type = Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+
+    void _readInitialParameters();
 
 private:
     const static QString PARAMETERS;

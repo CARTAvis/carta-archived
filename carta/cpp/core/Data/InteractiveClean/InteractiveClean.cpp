@@ -21,7 +21,6 @@ namespace Data {
 
 const QString InteractiveClean::CLASS_NAME = "InteractiveClean";
 const QString InteractiveClean::PARAMETERS = "cleanParameters";
-const QString InteractiveClean::SELECTED_INDEX = "selectedIndex";
 
 class InteractiveClean::Factory : public Carta::State::CartaObjectFactory {
 public:
@@ -110,6 +109,12 @@ QString InteractiveClean::_getPreferencesId() const {
     return id;
 }
 
+QString InteractiveClean::getInitialParameters( ){
+    m_stateData.fetchState();
+    QString result = m_stateData.toString("parameters");
+    return result;
+}
+
 QString InteractiveClean::getStateString( const QString& sessionId, SnapshotType type ) const{
     QString result("");
     if ( type == SNAPSHOT_PREFERENCES ){
@@ -132,7 +137,8 @@ void InteractiveClean::_initializeCallbacks(){
   addCommandCallback( "getInteractiveClean", [=] (const QString & /*cmd*/,
                                                     const QString & params, const QString & /*sessionId*/) -> QString {
                         qDebug() << "get Interactive Clean";
-                        QString result("interactive clean return");
+                        _readInitialParameters();
+                        QString result = getInitialParameters();
                         return result;
                       });
 
@@ -164,8 +170,13 @@ void InteractiveClean::_initializeCallbacks(){
 
 
 void InteractiveClean::_initializeDefaultState(){
-    m_stateData.insertValue<int>(SELECTED_INDEX, 0 );
-    m_stateData.insertValue<QString>( PARAMETERS, "" );
+  /**
+   * List of clean parameters is static and so size of array can be set to 8 at initialization:
+   *
+   */
+    //m_stateData.insertValue<int>(SELECTED_INDEX, 0 );
+    m_stateData.insertArray( PARAMETERS, 8 );
+    m_stateData.insertObject( "parameters" );
     m_stateData.flushState();
 
     m_state.flushState();
@@ -282,6 +293,35 @@ void InteractiveClean::_updateInteractiveClean( Controller* controller, Carta::L
         // }
 
     }
+}
+
+void InteractiveClean::_readInitialParameters(){
+
+  /**
+    TO-DO: Connect to interactive clean session, read parameters and store them in the state.
+  */
+
+  int niter = 80;
+  QString threshold = "0.12mJy";
+  int cycleNiter = 30;
+  int interactiveNiter = 5;
+  QString cycleThreshold = "0.05";
+  QString interactiveThreshold = "0.01";
+  int cycleFactor = 3;
+  double loopGain = 1;
+
+  QString pars("{\"niter\":"+QString::number(niter)+
+               ",\"threshold\":\""+threshold+"\""+
+               ",\"cycleNiter\":"+QString::number(cycleNiter)+
+               ",\"interactiveNiter\":"+QString::number(interactiveNiter)+
+               ",\"cycleThreshold\":"+cycleThreshold+
+               ",\"interactiveThreshold\":"+interactiveThreshold+
+               ",\"cycleFactor\":"+QString::number(cycleFactor)+
+               ",\"loopGain\":"+QString::number(loopGain)+"}");
+
+  m_stateData.setObject("parameters",pars);
+  m_stateData.flushState();
+
 }
 
 
