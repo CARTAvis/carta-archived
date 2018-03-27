@@ -142,19 +142,19 @@ void InteractiveClean::_initializeCallbacks(){
                         return result;
                       });
 
-  addCommandCallback( "cleanCommand", [=] (const QString & /*cmd*/,
+  addCommandCallback( "performCleanAction", [=] (const QString & /*cmd*/,
                                                     const QString & params, const QString & /*sessionId*/) -> QString {
                         qDebug() << "params: " << params;
-                        QString result("clean command is: "+params);
+                        QString result("clean action is: "+params);
                         return result;
                       });
-    addCommandCallback( "maskCommand", [=] (const QString & /*cmd*/,
+    addCommandCallback( "performMaskAction", [=] (const QString & /*cmd*/,
                                                     const QString & params, const QString & /*sessionId*/) -> QString {
                           std::set<QString> keys = {"button"};
                           //                          std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
                           //                          QString maskStr = dataValues[*keys.begin()];
                           qDebug() << "params: " << params;
-                          QString result("mask command is: "+params);
+                          QString result("mask action is: "+params);
                           return result;
      });
 
