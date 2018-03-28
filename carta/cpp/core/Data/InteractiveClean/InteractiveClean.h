@@ -67,7 +67,7 @@ private slots:
      * Recompute the interactive clean.
      * @param controller - the controller to use for interactive clean generation.
      */
-    void _updateInteractiveClean( Controller* controller, Carta::Lib::AxisInfo::KnownType type = Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+    void _updateInteractiveClean( QString cleanParameters );
 
     void _readInitialParameters();
 

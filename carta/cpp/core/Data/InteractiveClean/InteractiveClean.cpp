@@ -70,16 +70,6 @@ QString InteractiveClean::addLink( CartaObject*  target){
         }
         if ( !linkAdded ){
             linkAdded = m_linkImpl->addLink( controller );
-            if ( linkAdded ){
-                connect(controller, SIGNAL(dataChanged(Controller*)),
-                        this , SLOT(_updateInteractiveClean(Controller*)));
-                connect( controller, SIGNAL( frameChanged(Controller*, Carta::Lib::AxisInfo::KnownType)),
-                        this, SLOT(_updateInteractiveClean(Controller*, Carta::Lib::AxisInfo::KnownType)));
-                connect(controller, SIGNAL(dataChangedRegion(Controller*)),
-                        this, SLOT( _updateInteractiveClean( Controller*)));
-                m_controllerLinked = true;
-                _updateInteractiveClean( controller, Carta::Lib::AxisInfo::KnownType::OTHER );
-            }
         }
     }
     else {
@@ -148,7 +138,8 @@ void InteractiveClean::_initializeCallbacks(){
                         QString result("clean action is: "+params);
                         return result;
                       });
-    addCommandCallback( "performMaskAction", [=] (const QString & /*cmd*/,
+
+  addCommandCallback( "performMaskAction", [=] (const QString & /*cmd*/,
                                                     const QString & params, const QString & /*sessionId*/) -> QString {
                           std::set<QString> keys = {"button"};
                           //                          std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
@@ -156,7 +147,15 @@ void InteractiveClean::_initializeCallbacks(){
                           qDebug() << "params: " << params;
                           QString result("mask action is: "+params);
                           return result;
-     });
+                        });
+
+  addCommandCallback( "updateInteractiveClean", [=] (const QString & /*cmd*/,
+                                                    const QString & params, const QString & /*sessionId*/) -> QString {
+                                std::set<QString> keys = {PARAMETERS};
+                                QString result("new parameters are: "+params);
+                                _updateInteractiveClean(params);
+                                return result;
+                              });
 
     addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
                                                     const QString & /*params*/, const QString & /*sessionId*/) -> QString {
@@ -220,13 +219,17 @@ void InteractiveClean::resetState( const QString& state ){
     m_state.setValue<bool>("flush", false );
 }
 
-void InteractiveClean::_updateInteractiveClean( Controller* controller, Carta::Lib::AxisInfo::KnownType /*type*/  ){
-    if ( controller != nullptr ){
-      qDebug() << "update interactiveClean";
-    }
+void InteractiveClean::_updateInteractiveClean( QString cleanParameters ){
+  qDebug() << "new parameters in uic: " << cleanParameters;
+  m_stateData.setObject(PARAMETERS,cleanParameters);
+  m_stateData.flushState();
+
+  QString printout = m_stateData.toString(PARAMETERS);
+  qDebug() << "state printout: " << printout << "\n\tof:\n" << m_stateData.toString();
+
 }
 
-void InteractiveClean::_readInitialParameters(){
+void InteractiveClean::_readInitialParameters( ){
 
   /**
     TO-DO: Connect to interactive clean session, read parameters and store them in the state.
