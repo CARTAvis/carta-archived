@@ -111,7 +111,7 @@ QString InteractiveClean::_getPreferencesId() const {
 
 QString InteractiveClean::getInitialParameters( ){
     m_stateData.fetchState();
-    QString result = m_stateData.toString("parameters");
+    QString result = m_stateData.toString("cleanParameters");
     return result;
 }
 
@@ -174,12 +174,8 @@ void InteractiveClean::_initializeDefaultState(){
    * List of clean parameters is static and so size of array can be set to 8 at initialization:
    *
    */
-    //m_stateData.insertValue<int>(SELECTED_INDEX, 0 );
     m_stateData.insertArray( PARAMETERS, 8 );
-    m_stateData.insertObject( "parameters" );
     m_stateData.flushState();
-
-    m_state.flushState();
 }
 
 
@@ -224,74 +220,9 @@ void InteractiveClean::resetState( const QString& state ){
     m_state.setValue<bool>("flush", false );
 }
 
-
 void InteractiveClean::_updateInteractiveClean( Controller* controller, Carta::Lib::AxisInfo::KnownType /*type*/  ){
     if ( controller != nullptr ){
-
-        // int selectedIndex = controller->getSelectImageIndex();
-        // m_stateData.setValue<int>(SELECTED_INDEX, selectedIndex );
-
-        // std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > dataSources =
-        //         controller->getImages();
-
-
-        // std::vector<std::shared_ptr<Region> > coreRegions;
-        // std::shared_ptr<RegionControls> regionControls = controller->getRegionControls();
-        // if ( regionControls ){
-        // 	coreRegions = regionControls->getRegions();
-        // }
-        // int regionCount = coreRegions.size();
-        // std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions;
-        // for ( int i = 0; i < regionCount; i++ ){
-        //     regions.push_back( coreRegions[i]->getModel() );
-        // }
-
-        // std::vector<int> frameIndices = controller->getImageSlice();
-
-        // int sourceCount = dataSources.size();
-        // if ( sourceCount > 0 ){
-        //     auto result = Globals::instance()-> pluginManager()
-        //                  -> prepare <Carta::Lib::Hooks::ImageInteractiveCleanHook>(dataSources, regions, frameIndices);
-        //     auto lam = [=] ( const Carta::Lib::Hooks::ImageInteractiveCleanHook::ResultType &data ) {
-
-        //         //An array for each image
-        //         int dataCount = data.size();
-        //         m_stateData.resizeArray( STATS, dataCount );
-        //         for ( int i = 0; i < dataCount; i++ ){
-        //             //Each element of the image array contains an array of interactive clean.
-        //             QString arrayLookup = UtilState::getLookup( STATS, i );
-        //             int statCount = data[i].size();
-        //             m_stateData.setArray( arrayLookup, statCount );
-
-        //             //Go through each set of interactive clean for the image.
-        //             for ( int k = 0; k < statCount; k++ ){
-        //                 QString objLookup = UtilState::getLookup( arrayLookup, k );
-        //                 QList<QString> existingKeys = m_stateData.getMemberNames( objLookup );
-        //                 int keyCount = data[i][k].size();
-        //                 for ( int j = 0; j < keyCount; j++ ){
-        //                     QString label = data[i][k][j].getLabel();
-        //                     QString lookup = UtilState::getLookup( objLookup, label );
-        //                     m_stateData.insertValue<QString>( lookup, data[i][k][j].getValue() );
-        //                 }
-        //             }
-        //         }
-        //         m_stateData.flushState();
-        //     };
-        //     try {
-        //         result.forEach( lam );
-        //     }
-        //     catch( char*& error ){
-        //         QString errorStr( error );
-        //         ErrorManager* hr = Util::findSingletonObject<ErrorManager>();
-        //         hr->registerError( errorStr );
-        //     }
-        // }
-        // //No interactive clean
-        // else {
-        //     m_stateData.resizeArray( STATS, 0 );
-        //     m_stateData.flushState();
-        // }
-
+      qDebug() << "update interactiveClean";
     }
 }
 
@@ -319,7 +250,7 @@ void InteractiveClean::_readInitialParameters(){
                ",\"cycleFactor\":"+QString::number(cycleFactor)+
                ",\"loopGain\":"+QString::number(loopGain)+"}");
 
-  m_stateData.setObject("parameters",pars);
+  m_stateData.setObject(PARAMETERS,pars);
   m_stateData.flushState();
 
 }
