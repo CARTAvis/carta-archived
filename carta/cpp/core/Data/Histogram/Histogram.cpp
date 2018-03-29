@@ -236,8 +236,10 @@ void Histogram::_createHistogram( Controller* controller){
     std::vector<double> intensities = controller->getIntensity( frameBounds.first, frameBounds.second, {0, 1} );
     if( intensities.size() == 2){
         int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
-        double minIntensity = Util::roundToDigits( intensities[0], significantDigits );
-        double maxIntensity = Util::roundToDigits( intensities[1], significantDigits );
+//        double minIntensity = Util::roundToDigits( intensities[0], significantDigits );
+//        double maxIntensity = Util::roundToDigits( intensities[1], significantDigits );
+        double minIntensity = intensities[0];
+        double maxIntensity = intensities[1];
         m_stateData.setValue<double>(CLIP_MIN_PERCENT, 0 );
         m_stateData.setValue<double>(CLIP_MAX_PERCENT, 100 );
         m_stateData.setValue<double>(CLIP_MIN, minIntensity);
@@ -550,12 +552,15 @@ void Histogram::_initializeCallbacks(){
             //example, bin count should be 1 when the slider is at 0%, at 10
             //when it is at 25%, 100 at 50%, 1000 at 75% and 10000 at 100%.
             //Issue #67
-            int maxBinCount = m_state.getValue<int>(BIN_COUNT_MAX);
-            double logMaxCount = qLn( maxBinCount ) / qLn(10);
-            double percentage  = (binCount*1.0) / maxBinCount;
-            double percentLogMax = percentage * logMaxCount;
-            int scaledBinCount = round( qPow(10, percentLogMax) );
-            result = setBinCount( scaledBinCount );
+
+            /* commented out b/c the new CARTA currently does not support
+               log scale slider */
+//            int maxBinCount = m_state.getValue<int>(BIN_COUNT_MAX);
+//            double logMaxCount = qLn( maxBinCount ) / qLn(10);
+//            double percentage  = (binCount*1.0) / maxBinCount;
+//            double percentLogMax = percentage * logMaxCount;
+//            int scaledBinCount = round( qPow(10, percentLogMax) );
+            result = setBinCount( binCount );
         }
         else {
             result = "Invalid bin count: "+params+" must be a valid integer";
@@ -1021,6 +1026,11 @@ void Histogram::_initializeCallbacks(){
         QString result = _zoomToSelection();
         Util::commandPostProcess( result );
         return result;
+    });
+    addCommandCallback( "getHistogramPref", [=] (const QString & /*cmd*/,
+                                    const QString & params, const QString & /*sessionId*/) -> QString {
+        // "1" is the sessionID for the desktop version of CARTA 1.0
+        return getStateString("1", Carta::State::CartaObject::SNAPSHOT_PREFERENCES);
     });
 }
 
@@ -1792,11 +1802,11 @@ QString Histogram::setColorMinPercent( double colorMinPercent, bool complete ){
 QString Histogram::setBinWidth( double binWidth ){
     QString result;
     double oldBinWidth = m_state.getValue<double>(BIN_WIDTH);
-    int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
-    double binWidthRounded = Util::roundToDigits( binWidth, significantDigits );
-    if ( binWidthRounded > 0 ){
-        if ( qAbs( oldBinWidth - binWidthRounded) > m_errorMargin ){
-            m_state.setValue<double>( BIN_WIDTH, binWidthRounded );
+//    int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
+//    double binWidthRounded = Util::roundToDigits( binWidth, significantDigits );
+    if ( binWidth > 0 ){
+        if ( qAbs( oldBinWidth - binWidth) > m_errorMargin ){
+            m_state.setValue<double>( BIN_WIDTH, binWidth );
             bool validWidth = _resetBinCountBasedOnWidth();
             if ( !validWidth ){
                 result = "Resulting histogram bin count exceeded the maximum.";
@@ -1823,9 +1833,9 @@ QString Histogram::setBinCount( int binCount ){
             if ( binCount != oldBinCount ){
                 m_state.setValue<int>(BIN_COUNT, binCount );
                 double binWidth = _toBinWidth( binCount );
-
-                int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
-                m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
+//                int significantDigits = m_state.getValue<int>(Util::SIGNIFICANT_DIGITS);
+//                m_state.setValue<double>(BIN_WIDTH, Util::roundToDigits(binWidth,significantDigits) );
+                m_state.setValue<double>(BIN_WIDTH, binWidth);
                 m_state.flushState();
                 _generateHistogram( nullptr );
             }
