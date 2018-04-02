@@ -721,8 +721,13 @@ private:
 
     void _makeInitialGuesses( int count );
 
+    void _resetProfInfo(); // The function should be called before getCurrentProfInfo
+    QString _resetProfInfoState();
+    QString _resetRestFrequency( std::shared_ptr<Layer> layer );
+
     void _saveCurveState();
     void _saveCurveState( int index );
+    void _setProfInfo( Carta::Lib::ProfileInfo profInfo );
 
     void _setErrorMargin();
 
@@ -786,7 +791,7 @@ private:
     Carta::State::StateInterface m_stateFitStatistics;
 
     // TODO: save current profile info to compare the one in CurveData
-    // Carta::Lib::ProfileInfo m_profInfo;
+    Carta::Lib::ProfileInfo m_profInfo;
 
     static UnitsSpectral* m_spectralUnits;
     static UnitsIntensity* m_intensityUnits;

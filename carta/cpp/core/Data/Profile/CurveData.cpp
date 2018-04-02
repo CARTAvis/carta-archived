@@ -381,23 +381,7 @@ QString CurveData::getSpectralUnit() const {
 }
 
 Carta::Lib::ProfileInfo CurveData::getProfileInfo() const {
-    double restFreq = getRestFrequency();
-    QString restUnits = getRestUnits();
-    QString stat = getStatistic();
-    QString spectralUnit = getSpectralUnit();
-    QString spectralType = getSpectralType();
-    int stokesFrame = getStokesFrame();
-    Carta::Lib::ProfileInfo profInfo;
-
-    profInfo.setRestFrequency( restFreq );
-    profInfo.setRestUnit( restUnits );
-    Carta::Lib::ProfileInfo::AggregateType agType = m_stats ->getTypeFor( stat );
-    profInfo.setAggregateType( agType );
-    profInfo.setSpectralUnit( spectralUnit );
-    profInfo.setSpectralType( spectralType );
-    profInfo.setStokesFrame( stokesFrame );
-
-    return profInfo;
+    return m_profInfo;
 }
 
 void CurveData::setProfileInfo( Carta::Lib::ProfileInfo profInfo ){
