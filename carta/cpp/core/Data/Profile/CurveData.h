@@ -57,13 +57,6 @@ public:
     int getDataCount() const;
 
     /**
-     * Return a default name to be used for the curve if the user hasn't specified
-     * a custom name.
-     * @return - a default descriptive name for the curve.
-     */
-    QString getDefaultName() const;
-
-    /**
      * Return the two-dimensional data that represent a fit to this curve.
      * @return - the two-dimensional data that represent a curve fit.
      */
@@ -135,6 +128,10 @@ public:
      */
     std::vector<std::tuple<double,double,double> > getGaussParams() const;
 
+    /**
+     * Return the id of the curve.
+     * @return - the id of the curve.
+     */
     QString getId() const;
 
     /**
@@ -389,6 +386,10 @@ public:
      */
     void setFitPolyCoeffs( const std::vector<double>& polyCoeffs );
 
+    /**
+     * Set the permanent id of the curvedata, the value should not be changed until the curve is destroyed.
+     * @param id - the name generated when constructing the curve.
+     */
     void setId( QString id );
 
     /**

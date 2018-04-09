@@ -228,12 +228,6 @@ int CurveData::getDataCount() const {
     return m_plotDataX.size();
 }
 
-QString CurveData::getDefaultName() const {
-	QString dName = _generateName( m_layer, m_region );
-    // QString defaultName = m_state.getValue<QString>( "defaultName" );
-    return dName;
-}
-
 std::vector< std::pair<double,double> > CurveData::getFitData() const {
     int fitCount = m_fitDataX.size();
     std::vector< std::pair<double,double> > fitData( fitCount );
