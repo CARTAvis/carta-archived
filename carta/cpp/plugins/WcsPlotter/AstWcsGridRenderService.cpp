@@ -466,7 +466,10 @@ void AstWcsGridRenderService::setAxisDisplayInfo( std::vector<Carta::Lib::AxisDi
         for ( int i = 0; i < infoCount; i++ ){
             if ( displayInfos[i] != m_axisDisplayInfos[i] ){
                 m_axisDisplayInfos[i] = displayInfos[i];
-                //m_vgValid = false;
+                if(displayInfos[i].getAxisType() != Carta::Lib::AxisInfo::KnownType::SPECTRAL)
+                {
+                    m_vgValid = false;
+                }
             }
         }
     }
