@@ -477,7 +477,7 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
                 _updateResidualData();
                 _updateFitStatistics();
                 //Restore any zoom imposed on the graph
-                _updatePlotBounds();
+                // _updatePlotBounds();
             }
 
         }
@@ -1014,13 +1014,13 @@ void Profiler::_initializeDefaultState(){
     m_stateData.insertValue<QString>(CURVE_SELECT, "" );
     m_stateData.insertValue<QString>( IMAGE_SELECT, "" );
     m_stateData.insertValue<QString>( REGION_SELECT, "" );
-    m_stateData.insertValue<double>( ZOOM_MIN, 0 );
-    m_stateData.insertValue<double>(ZOOM_MAX, 1);
-    m_stateData.insertValue<double>(ZOOM_MIN_PERCENT, 0);
-    m_stateData.insertValue<double>(ZOOM_MAX_PERCENT, 100 );
-    m_stateData.insertValue<bool>(ZOOM_BUFFER, false );
-    m_stateData.insertValue<double>( ZOOM_BUFFER_SIZE, 10 );
-    m_stateData.flushState();
+
+    m_state.insertValue<double>( ZOOM_MIN, 0 );
+    m_state.insertValue<double>(ZOOM_MAX, 1);
+    m_state.insertValue<double>(ZOOM_MIN_PERCENT, 0);
+    m_state.insertValue<double>(ZOOM_MAX_PERCENT, 100 );
+    m_state.insertValue<bool>(ZOOM_BUFFER, false );
+    m_state.insertValue<double>( ZOOM_BUFFER_SIZE, 10 );
 
     m_state.insertValue<QString>(CURVE_SELECT, "" );
     //Default units
@@ -1106,12 +1106,6 @@ void Profiler::_initializeCallbacks(){
         return m_stateData.toString();
     });
 
-    addCommandCallback( "getProfilerSettings", [=] (const QString & /*cmd*/,
-            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result = m_state.toString();
-        return result;
-    });
-
     addCommandCallback( "registerLegendLocations", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         QString result = _getLegendLocationsId();
@@ -1178,22 +1172,22 @@ void Profiler::_initializeCallbacks(){
 
     addCommandCallback( "setAxisUnitsBottom", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::UNITS};
-
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString unitStr = dataValues[*keys.begin()];
-        QString result = setAxisUnitsX( unitStr );
-        Util::commandPostProcess( result );
+        // std::set<QString> keys = {Util::UNITS};
+        //
+        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        // QString unitStr = dataValues[*keys.begin()];
+        QString result = setAxisUnitsX( params );
+        // Util::commandPostProcess( result );
         return result;
     });
 
     addCommandCallback( "setAxisUnitsLeft", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::UNITS};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString unitStr = dataValues[*keys.begin()];
-        QString result = setAxisUnitsY( unitStr );
-        Util::commandPostProcess( result );
+        // std::set<QString> keys = {Util::UNITS};
+        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        // QString unitStr = dataValues[*keys.begin()];
+        QString result = setAxisUnitsY( params );
+        // Util::commandPostProcess( result );
         return result;
     });
 
@@ -1465,15 +1459,15 @@ void Profiler::_initializeCallbacks(){
         });
 
     addCommandCallback( "setFitCurves", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {"fitCurves"};
-                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString names = dataValues[*keys.begin()];
-                QStringList nameList = names.split( ";");
-                QString result = setFitCurves( nameList );
-                Util::commandPostProcess( result );
-                return result;
-            });
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        // std::set<QString> keys = {"fitCurves"};
+        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        // QString names = dataValues[*keys.begin()];
+        QStringList nameList = params.split( ",");
+        QString result = setFitCurves( nameList );
+        // Util::commandPostProcess( result );
+        return result;
+    });
 
     addCommandCallback( "setGenerationMode", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
@@ -1566,6 +1560,17 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
+    addCommandCallback( "getFitData", [=] ( const QString & /*cmd*/,
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        return m_stateFit.toString();
+    });
+
+    addCommandCallback( "getFitStatistics", [=] (const QString & /*cmd*/,
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        QString result = m_stateFitStatistics.toString();
+        return result;
+    });
+
     addCommandCallback( "getProfileData", [=] ( const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
         // Carta::Lib::Hooks::ProfileResult profileResult = m_renderService->getResult();
@@ -1581,31 +1586,37 @@ void Profiler::_initializeCallbacks(){
         //     m_profileData.insert( "y", profileDataY );
         // }
 
-        QJsonArray profileDataList;
-        QJsonObject profileData;
+        // QJsonArray profileDataList;
+        // QJsonObject profileData;
+        //
+        // int curveCount = m_plotCurves.size();
+        // for ( int i = 0; i< curveCount; i++ ){
+        //     std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
+        //     std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
+        //
+        //     int dataCount = curveDataX.size();
+        //     if ( dataCount > 0 ){
+        //         QJsonArray profileDataX, profileDataY;
+        //         for( int i = 0 ; i < dataCount; i ++ ){
+        //             profileDataX.append( curveDataX[i] );
+        //             profileDataY.append( curveDataY[i] );
+        //         }
+        //         profileData.insert( "curveName", i );
+        //         profileData.insert( "x", profileDataX );
+        //         profileData.insert( "y", profileDataY );
+        //     }
+        //     profileDataList.push_back(profileData);
+        // }
+        //
+        // QString result = "";
+        // QJsonDocument doc(profileDataList);
+        // result = QString(doc.toJson());
+        return m_stateData.toString();
+    });
 
-        int curveCount = m_plotCurves.size();
-        for ( int i = 0; i< curveCount; i++ ){
-            std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
-            std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
-
-            int dataCount = curveDataX.size();
-            if ( dataCount > 0 ){
-                QJsonArray profileDataX, profileDataY;
-                for( int i = 0 ; i < dataCount; i ++ ){
-                    profileDataX.append( curveDataX[i] );
-                    profileDataY.append( curveDataY[i] );
-                }
-                profileData.insert( "curveName", i );
-                profileData.insert( "x", profileDataX );
-                profileData.insert( "y", profileDataY );
-            }
-            profileDataList.push_back(profileData);
-        }
-
-        QString result = "";
-        QJsonDocument doc(profileDataList);
-        result = QString(doc.toJson());
+    addCommandCallback( "getProfilerSettings", [=] (const QString & /*cmd*/,
+            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+        QString result = m_state.toString();
         return result;
     });
 
@@ -1691,18 +1702,19 @@ void Profiler::_initializeCallbacks(){
     addCommandCallback( "setGaussCount", [=] (const QString & /*cmd*/,
             const QString & params, const QString & /*sessionId*/) -> QString {
         QString result;
-        std::set<QString> keys = {GAUSS_COUNT};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString countStr = dataValues[GAUSS_COUNT];
+        // std::set<QString> keys = {GAUSS_COUNT};
+        // std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+        // QString countStr = dataValues[GAUSS_COUNT];
         bool validCount = false;
-        int count = countStr.toInt( &validCount );
+        int count = params.toInt( &validCount );
         if ( validCount ){
             result = setGaussCount( count );
         }
         else {
             result = "Profile fit gaussian count must be an integer: "+params;
         }
-        Util::commandPostProcess( result );
+        // Util::commandPostProcess( result );
+        result = m_stateFit.toString();
         return result;
     });
 
@@ -2575,16 +2587,17 @@ QString Profiler::setAxisUnitsX( const QString& unitStr ){
                     m_plotCurves[i]->setGaussParams( guesses );
                 }
             }
+            _saveCurveState();
 
             //Update the state & graph
             m_state.setValue<QString>( AXIS_UNITS_BOTTOM, actualUnits);
-            m_state.flushState();
+            // m_state.flushState();
 
             //Set the zoom min & max based on new units
-            _updateZoomRangeBasedOnPercent();
+            // _updateZoomRangeBasedOnPercent();
 
             //Tell the plot about the new bounds.
-            _updatePlotBounds();
+            // _updatePlotBounds();
 
             //Put the data into the plot
             // _updatePlotData();
@@ -2592,8 +2605,9 @@ QString Profiler::setAxisUnitsX( const QString& unitStr ){
             _updateFitStatistics();
 
             //Update channel line
-            _updateChannel( _getControllerSelected(), Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+            // _updateChannel( _getControllerSelected(), Carta::Lib::AxisInfo::KnownType::SPECTRAL );
         }
+        result = m_state.toString();
     }
     else {
         result = "Unrecognized profile bottom axis units: "+unitStr;
@@ -2613,9 +2627,9 @@ QString Profiler::setAxisUnitsY( const QString& unitStr ){
                 std::vector<double> converted = _convertUnitsY( m_plotCurves[i], actualUnits );
                 m_plotCurves[i]->setDataY( converted );
             }
+            _saveCurveState();
             //Update the state and plot
             m_state.setValue<QString>( AXIS_UNITS_LEFT, actualUnits );
-            m_state.flushState();
 
             QList<int> unselectedIndices;
             //Go through the curves and find the ones that are fitted.
@@ -2640,6 +2654,7 @@ QString Profiler::setAxisUnitsY( const QString& unitStr ){
             _updateResidualData();
             _updateFitStatistics();
         }
+        result = m_state.toString();
     }
     else {
         result = "Unrecognized profile left axis units: "+unitStr;
