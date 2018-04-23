@@ -263,12 +263,13 @@ void Profiler::clearFits(){
     int curveSize = m_plotCurves.size();
     for ( int i = 0; i < curveSize; i++ ){
         m_plotCurves[i]->clearFit();
+        m_stateFit.resizeArray( "x", 0);
+        m_stateFit.resizeArray( "y", 0);
     }
     setGaussCount( 0 );
     setPolyCount( 0 );
     setShowFitResiduals( false );
     setShowFitStatistics( false );
-    m_plotManager->clearDataFit();
 }
 
 std::vector<double> Profiler::_convertUnitsX( std::shared_ptr<CurveData> curveData,
@@ -462,8 +463,8 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
 
                 double mean = sum / count;
                 double rms = result.getRMS();
-                m_plotManager->setMarkedRange( mean - rms, mean + rms );
-                m_plotManager->setHLinePosition( mean );
+                // m_plotManager->setMarkedRange( mean - rms, mean + rms );
+                // m_plotManager->setHLinePosition( mean );
 
                 m_plotCurves[ curveIndex ]->setFit( dataX, dataY );
                 m_plotCurves[ curveIndex ]->setGaussParams( result.getGaussFits() );
@@ -471,13 +472,25 @@ void Profiler::_fitFinished(const std::vector<Carta::Lib::Hooks::FitResult> & re
                 m_plotCurves[ curveIndex ]->setFitPolyCoeffs( result.getPolyCoefficients() );
                 QString statusMsg = _getFitStatusMessage(result.getStatus());
                 m_plotCurves[ curveIndex ]->setFitStatus( statusMsg );
-                QString lineStyle = getLineStyleFit();
-                m_plotCurves[curveIndex] ->setLineStyleFit( lineStyle );
+                // QString lineStyle = getLineStyleFit();
+                // m_plotCurves[curveIndex] ->setLineStyleFit( lineStyle );
                 // _updatePlotData();
                 _updateResidualData();
                 _updateFitStatistics();
                 //Restore any zoom imposed on the graph
                 // _updatePlotBounds();
+
+                // Trail for return fit curve in newArch //
+                int dataCount = dataX.size();
+                m_stateFit.resizeArray( "x", dataCount);
+                m_stateFit.resizeArray( "y", dataCount);
+                for( int i=0; i<dataCount; i++){
+                    QString xLookup = Carta::State::UtilState::getLookup( "x", i);
+                    QString yLookup = Carta::State::UtilState::getLookup( "y", i);
+                    m_stateFit.setValue<double>( xLookup, dataX[i]);
+                    m_stateFit.setValue<double>( yLookup, dataY[i]);
+                }
+                //////////////////////////////////////////
             }
 
         }
@@ -1068,6 +1081,8 @@ void Profiler::_initializeDefaultState(){
     m_state.flushState();
 
     //Fit Parameters
+    m_stateFit.insertArray( "x", 0);
+    m_stateFit.insertArray( "y", 0);
     m_stateFit.insertValue<int>( PLOT_WIDTH, 0 );
     m_stateFit.insertValue<int>( PLOT_HEIGHT, 0 );
     m_stateFit.insertValue<int>( PLOT_LEFT, 0 );
@@ -2767,6 +2782,10 @@ QString Profiler::setFitCurves( const QStringList curveNames ){
         }
     }
 
+    if(fitCount == 0){
+        clearFits();
+    }
+
     if ( changed ){
         _saveCurveState();
     }
@@ -2928,7 +2947,7 @@ QString Profiler::setGaussCount( int count ){
                 clearFits();
             }
             _generateFit();
-            m_stateFit.flushState();
+            // m_stateFit.flushState();
         }
     }
     else {
