@@ -92,6 +92,7 @@ void ContourControls::_addContourSet( const std::vector<double>& levels,
 
         _updateContourSetState();
     }
+    Q_UNUSED( contourType );
 }
 
 

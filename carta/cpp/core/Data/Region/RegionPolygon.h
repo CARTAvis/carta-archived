@@ -46,13 +46,13 @@ public:
 	 * Notification of a click event.
 	 * @param pt - the current location of the mouse.
 	 */
-    virtual void handleTouch( const QPointF& pt );
+    virtual void handleTouch( const QPointF& pt ) Q_DECL_OVERRIDE;
 
     /**
      * Notification of a double click event.
      * @param pt - the current location of the mouse.
      */
-    virtual void handleTapDouble( const QPointF& pt );
+    virtual void handleTapDouble( const QPointF& pt ) Q_DECL_OVERRIDE;
 
     /**
      * Set the center of the rectangle.
@@ -65,20 +65,20 @@ public:
      * @param value - the height of the region bounding box.
      * @return - true if the height was successfully set; false, otherwise.
      */
-    virtual bool setHeight( double value );
+    virtual bool setHeight( double value ) Q_DECL_OVERRIDE;
 
     /**
      * Set the underlying model for the region.
 	 * @param model - the region model.
 	 */
-    virtual void setModel( Carta::Lib::Regions::RegionBase* model );
+    virtual void setModel( Carta::Lib::Regions::RegionBase* model ) Q_DECL_OVERRIDE;
 
     /**
      * Set the width of the bounding box of the region.
      * @param value - the width of the region bounding box.
      * @return - true if the width was successfully set; false, otherwise.
      */
-    virtual bool setWidth( double value );
+    virtual bool setWidth( double value ) Q_DECL_OVERRIDE;
 
     /**
      * Returns a json representation of the region.

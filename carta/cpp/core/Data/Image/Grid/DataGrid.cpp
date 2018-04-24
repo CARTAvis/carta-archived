@@ -632,30 +632,30 @@ QString DataGrid::_setAxesThickness( int thickness, bool* thicknessChanged ){
     return result;
 }
 
-bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
-    int axisCount = supportedAxes.size();
-    bool axisTypesChanged = false;
-    int oldCount = m_state.getArraySize( SUPPORTED_AXES );
-    m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
-    QString coordStr = m_state.getValue<QString>( COORD_SYSTEM );
-    const Carta::Lib::KnownSkyCS& cs = m_coordSystems->getIndex( coordStr );
-    for ( int i = 0; i < axisCount; i++ ){
-        QString name = AxisMapper::getPurpose( supportedAxes[i] );
-        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
-        QString oldName;
-        if ( i < oldCount ){
-            oldName = m_state.getValue<QString>( lookup );
-        }
-        if ( name != oldName ){
-            axisTypesChanged = true;
-            m_state.setValue<QString>( lookup, name );
-        }
-    }
-    if ( axisTypesChanged ){
-        m_state.flushState();
-    }
-    return axisTypesChanged;
-}
+// bool DataGrid::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes){
+//     int axisCount = supportedAxes.size();
+//     bool axisTypesChanged = false;
+//     int oldCount = m_state.getArraySize( SUPPORTED_AXES );
+//     m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
+//     QString coordStr = m_state.getValue<QString>( COORD_SYSTEM );
+//     const Carta::Lib::KnownSkyCS& cs = m_coordSystems->getIndex( coordStr );
+//     for ( int i = 0; i < axisCount; i++ ){
+//         QString name = AxisMapper::getPurpose( supportedAxes[i] );
+//         QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, i );
+//         QString oldName;
+//         if ( i < oldCount ){
+//             oldName = m_state.getValue<QString>( lookup );
+//         }
+//         if ( name != oldName ){
+//             axisTypesChanged = true;
+//             m_state.setValue<QString>( lookup, name );
+//         }
+//     }
+//     if ( axisTypesChanged ){
+//         m_state.flushState();
+//     }
+//     return axisTypesChanged;
+// }
 
 bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     int axisCount = supportedAxes.size();

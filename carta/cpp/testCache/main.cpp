@@ -4,7 +4,7 @@
 #include "core/CmdLine.h"
 #include "core/MainConfig.h"
 #include "core/Globals.h"
-#include "core/Algorithms/cacheUtils.h"
+#include "CartaLib/Algorithms/cacheUtils.h"
 #include "CartaLib/IPCache.h"
 #include <QDebug>
 #include <QTime>

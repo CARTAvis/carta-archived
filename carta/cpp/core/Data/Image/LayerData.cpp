@@ -375,20 +375,13 @@ QRectF LayerData::_getInputRectangle( const QPointF& pan, double zoom, const QRe
     return inputRect;
 }
 
-std::vector<std::pair<int,double> > LayerData::_getLocationAndIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
-    std::vector<std::pair<int,double> > intensities;
-    if ( m_dataSource ){
-        intensities = m_dataSource->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
-    }
-    return intensities;
-}
 
 std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
+        const std::vector<double>& percentiles, int stokeFrame,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     std::vector<double> intensities;
     if ( m_dataSource ){
-        intensities = m_dataSource->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+        intensities = m_dataSource->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame, converter );
     }
     return intensities;
 }
@@ -453,12 +446,12 @@ QPointF LayerData::_getPan() const {
 }
 
 
-double LayerData::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = 0;
+std::vector<double> LayerData::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
+    std::vector<double> percentiles(intensities.size());
     if ( m_dataSource ){
-        percentile = m_dataSource->_getPercentile( frameLow, frameHigh, intensity );
+        percentiles = m_dataSource->_getPercentiles( frameLow, frameHigh, intensities, converter );
     }
-    return percentile;
+    return percentiles;
 }
 
 
@@ -806,7 +799,8 @@ void LayerData::_renderStart(){
     QSize outputSize = request->getOutputSize();
 
     std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-    std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
+    //The following pointer "imageService" is not used. Do not sure if we need it in future, just comment it for now.
+    //std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
 
     m_dataSource->_viewResize( outputSize );
 

@@ -62,6 +62,8 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     QString result = _addData( fileName, success, &stackIndex);
     if ( *success && stackIndex >= 0 ){
         _resetFrames( stackIndex );
+        // NOTE: If the gridcontrol is removed in the future, I think
+        // this part should emit a viewload signal.
         _saveState();
     }
     emit viewLoad();
@@ -255,7 +257,8 @@ std::vector<int> Stack::_getImageSlice() const {
         Carta::Lib::AxisInfo::KnownType axisXType = _getAxisXType();
         Carta::Lib::AxisInfo::KnownType axisYType = _getAxisYType();
         for ( int i = 0; i < dimensions; i++ ){
-            Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i );
+            //Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i ); // call the function LayerGroup::_getAxisType( int )
+            Carta::Lib::AxisInfo::KnownType type  = m_children[dataIndex]->_getAxisType( i ); // call the function LayerData::_getAxisType( int )
             if ( type == axisXType || type == axisYType ){
                 result[i] = -1;
             }
@@ -336,7 +339,7 @@ QString Stack::_getStateString() const{
     _saveChildren( copyState, false );
     copyState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
     int selectCount = m_selects.size();
-    const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
+    // const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
     for ( int i = 0; i < selectCount; i++ ){
         QString axisName = AxisMapper::getPurpose( static_cast<AxisInfo::KnownType>(i) );
         copyState.insertValue<QString>( axisName, m_selects[i]->getStateString());
@@ -376,7 +379,8 @@ void Stack::_initializeSelections(){
     m_selects.resize( axisCount );
     for ( int i = 0; i < axisCount; i++ ){
         m_selects[i] = objMan->createObject<Selection>();
-        connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
+        // This signal-slot connection causes the duplicate rendering in Stack::_setFrameImage
+        // connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
     }
 }
 
@@ -555,7 +559,7 @@ void Stack::_resetStack( const Carta::State::StateInterface& restoreState ){
     int selectCount = m_selects.size();
     for ( int i = 0; i < selectCount; i++ ){
         AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
-        const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
+        // const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
         QString axisPurpose = AxisMapper::getPurpose( axisType );
         QString axisState = restoreState.getValue<QString>( axisPurpose );
         m_selects[i]->resetState( axisState );

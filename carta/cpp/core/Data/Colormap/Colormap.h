@@ -9,6 +9,7 @@
 #include "State/StateInterface.h"
 #include "Data/ILinkable.h"
 #include "Data/LinkableImpl.h"
+#include "CartaLib/IntensityUnitConverter.h"
 
 class ImageView;
 
@@ -272,17 +273,22 @@ private slots:
 
 private:
     void _calculateColorStops();
+    void _calculateColorLabels();
     QString _commandSetColorMap( const QString& params );
     QString _commandInvertColorMap( const QString& params );
     QString _commandReverseColorMap( const QString& params );
     QString _commandSetColorMix( const QString& params );
 
-    std::pair<double,double>  _convertIntensity( const QString& oldUnit, const QString& newUnit );
-    std::pair<double,double> _convertIntensity( const QString& oldUnit, const QString& newUnit,
-            double minValue, double maxValue );
+    Carta::Lib::IntensityUnitConverter::SharedPtr _getIntensityConverter(const QString& toUnit);
+
+    std::pair<double,double> _getIntensities(bool &success, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
+    std::pair<double,double> _getIntensities(bool &success, const double minPercent, const double maxPercent,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
+
+    std::vector<double> _getIntensityLables(bool &success, const int numberOfSections,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
 
     Controller* _getControllerSelected() const;
-    std::vector<std::pair<int,double> > _getIntensityForPercents( std::vector<double>& percent ) const;
 
     /**
      * Return the server side id of the preferences for this colormap.
@@ -301,12 +307,14 @@ private:
     static bool m_registered;
 
     const static QString COLOR_STOPS;
+    const static QString COLOR_GRADES;
     const static QString GLOBAL;
     const static QString IMAGE_UNITS;
     const static QString INTENSITY_MIN;
     const static QString INTENSITY_MAX;
-    const static QString INTENSITY_MIN_INDEX;
-    const static QString INTENSITY_MAX_INDEX;
+    const static QString PERCENT_MIN;
+    const static QString PERCENT_MAX;
+
     const static QString SIGNIFICANT_DIGITS;
     const static QString TAB_INDEX;
 

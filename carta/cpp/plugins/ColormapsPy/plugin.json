@@ -1,8 +1,0 @@
-{
-    "name"       : "ColormapsPy",
-    "version"    : "0.0.1",
-    "type"       : "python",
-    "description": "Imports colormaps from matplotlib using python.",
-    "about"      : "Part of carta default plugins. Written by Pavol",
-    "depends"    : [ "python273" ]
-}

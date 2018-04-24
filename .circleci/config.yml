@@ -1,0 +1,40 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: ~/CARTAvis/carta
+    docker:
+      - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
+
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+      - restore_cache:
+         keys:
+        # This branch if available
+         - v1-dep-{{ .Branch }}-
+        # Default branch if not
+         - v1-dep-develop-
+        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+         - v1-dep-
+
+      - run: sudo pip install selenium==2.53.6
+      - run: sudo pip install pytest
+      - run: sudo pip install flaky
+      - run: sudo pip install pytest-timeout
+      - run: sudo pip install pyvirtualdisplay
+      - run: echo -e "LICENSE calgarysci pureweb 4.1 permanent uncounted hostid=ANY\n  issuer=CSI customer=CyberSKA _ck=$CKID sig=$SIGID" > PureWeb_4_1_CyberSKA.lic
+      - run: mkdir -p ~/docker
+      - run: if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; else  docker pull docker.io/carta/cartabuild:base_20170603; docker save docker.io/carta/cartabuild:base_20170603 > ~/docker/image.tar; fi
+      - run: docker build -t cartavis/circlecibuild .
+      
+      - save_cache:
+         key: v1-dep-{{ .Branch }}-{{ epoch }}
+         paths:
+         - ~/docker
+

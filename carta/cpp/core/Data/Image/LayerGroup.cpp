@@ -244,8 +244,12 @@ void LayerGroup::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     }
 }
 
-Carta::Lib::AxisInfo::KnownType LayerGroup::_getAxisType( int /*index*/ ) const {
+Carta::Lib::AxisInfo::KnownType LayerGroup::_getAxisType( int index ) const {
     AxisInfo::KnownType axisType = AxisInfo::KnownType::OTHER;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        axisType = m_children[dataIndex]->_getAxisType( index );
+    }
     return axisType;
 }
 
@@ -463,7 +467,7 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_g
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_children.size();
     //Return the images in stack order.
-    int startIndex = _getIndexCurrent();
+    // int startIndex = _getIndexCurrent();
     for ( int i = 0; i < dataCount; i++ ){
         // int dIndex = (startIndex + i) % dataCount;
         if ( m_children[i]->_isVisible() ){
@@ -500,24 +504,14 @@ QRectF LayerGroup::_getInputRect( const QSize& size ) const {
     return rect;
 }
 
-std::vector<std::pair<int,double> > LayerGroup::_getLocationAndIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
-    std::vector<std::pair<int,double> > results;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        results = m_children[dataIndex]->_getLocationAndIntensity( frameLow, frameHigh,
-                percentiles, stokeFrame );
-    }
-    return results;
-}
-
 std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
+        const std::vector<double>& percentiles, int stokeFrame,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     std::vector<double> results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
-                percentiles, stokeFrame );
+                percentiles, stokeFrame, converter );
     }
     return results;
 }
@@ -589,13 +583,13 @@ QStringList LayerGroup::_getLayerIds( ) const {
 }
 
 
-double LayerGroup::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = 0;
+std::vector<double> LayerGroup::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
+    std::vector<double> percentiles(intensities.size());
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        percentile = m_children[dataIndex]->_getPercentile( frameLow, frameHigh, intensity );
+        percentiles = m_children[dataIndex]->_getPercentiles( frameLow, frameHigh, intensities, converter );
     }
-    return percentile;
+    return percentiles;
 }
 
 

@@ -7,6 +7,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/IntensityUnitConverter.h"
 
 namespace Carta {
 
@@ -40,7 +41,7 @@ protected:
      * Add a contour set.
      * @param contour - the contour set to add.
      */
-    virtual void _addContourSet( std::shared_ptr<DataContours> contour );
+    virtual void _addContourSet( std::shared_ptr<DataContours> contour ) Q_DECL_OVERRIDE;
 
     /**
      * Add a data layer to the group.
@@ -112,9 +113,9 @@ protected:
      * @param valid - whether or not the returned point is valid.
      * @return - the pixel position of the point in image coordinates.
      */
-    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const;
+    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const Q_DECL_OVERRIDE;
 
-    virtual std::shared_ptr<DataContours> _getContour( const QString& name );
+    virtual std::shared_ptr<DataContours> _getContour( const QString& name ) Q_DECL_OVERRIDE;
 
 
     /**
@@ -223,16 +224,6 @@ protected:
      */
     virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
-    /**
-     * Returns the location and intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - a list of (location,intensity) pairs.
-     */
-    virtual std::vector<std::pair<int,double> > _getLocationAndIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -243,7 +234,8 @@ protected:
      * @return - a list of intenstiy values.
      */
     virtual std::vector<double> _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
+            const std::vector<double>& percentiles, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
@@ -274,7 +266,7 @@ protected:
      * @param intensity a value for which a percentile is needed.
      * @return the percentile corresponding to the intensity.
      */
-    virtual double _getPercentile( int frameLow, int frameHigh, double intensity ) const Q_DECL_OVERRIDE;
+    virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
 
     /**
@@ -411,7 +403,7 @@ protected:
     /**
      * Generate a new QImage.
      */
-    virtual void _renderStart( );
+    virtual void _renderStart( ) Q_DECL_OVERRIDE;
 
     /**
      * Center the image.
@@ -489,7 +481,7 @@ protected:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    virtual bool _setMaskAlpha( const QString& id, int alphaAmount);
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount) Q_DECL_OVERRIDE;
 
     /**
      * Reset the default mask transparency.

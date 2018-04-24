@@ -23,6 +23,9 @@ class Layout : public QObject, public Carta::State::CartaObject {
     Q_OBJECT
 
 public:
+
+    using CartaObject::resetState;
+
     /**
      * Add a new window at the given position in the layout.
      * @param nodeId - a list of one or more window identifiers where the window should be added.
@@ -46,7 +49,7 @@ public:
      * Return a string representing the layout state.
      * @return a QString representing the corresponding layout state.
      */
-    QString getStateString() const;
+    QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const override;
 
     bool isLayoutDefault() const;
 

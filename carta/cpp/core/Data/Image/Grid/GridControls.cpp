@@ -556,12 +556,12 @@ void GridControls::setApplyAll( bool applyAll ){
     }
 }
 
-void GridControls::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes ){
-    bool axisTypesChanged = m_dataGrid->_setAxisTypes( supportedAxes );
-    if ( axisTypesChanged ){
-        _updateGrid();
-    }
-}
+// void GridControls::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes ){
+//     bool axisTypesChanged = m_dataGrid->_setAxisTypes( supportedAxes );
+//     if ( axisTypesChanged ){
+//         _updateGrid();
+//     }
+// }
 
 void GridControls::_setAxisInfos( std::vector<AxisInfo> supportedAxes ){
     bool axisInfosChanged = m_dataGrid->_setAxisInfos( supportedAxes );

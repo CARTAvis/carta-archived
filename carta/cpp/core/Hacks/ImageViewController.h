@@ -230,7 +230,7 @@ public:
 
     /// IView interface
     virtual void
-    viewRefreshed( qint64 id);
+    viewRefreshed( qint64 id) override;
 
     void setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr );
     void

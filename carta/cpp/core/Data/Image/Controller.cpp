@@ -90,7 +90,7 @@ Controller::Controller( const QString& path, const QString& id ) :
 			this, SLOT(_contourSetAdded(Layer*, const QString&)));
 	connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
 			this, SLOT(_contourSetRemoved(const QString&)));
-	connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT( _loadViewQueued() ));
+    connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT(_emitColorChanged()));
 	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
 	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
 			SLOT( _onInputEvent( InputEvent )));
@@ -365,32 +365,17 @@ std::vector<int> Controller::getImageSlice() const {
 }
 
 
-std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( const std::vector<double>& percentiles ) const{
+std::vector<double> Controller::getIntensity( const std::vector<double>& percentiles, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    std::vector<std::pair<int,double> > result = getLocationAndIntensity( currentFrame, currentFrame, percentiles );
+    std::vector<double> result = getIntensity( currentFrame, currentFrame, percentiles, converter );
     return result;
 }
 
 
-std::vector<double> Controller::getIntensity( const std::vector<double>& percentiles ) const{
-    int currentFrame = getFrame( AxisInfo::KnownType::SPECTRAL);
-    std::vector<double> result = getIntensity( currentFrame, currentFrame, percentiles );
-    return result;
-}
-
-
-std::vector<std::pair<int,double> > Controller::getLocationAndIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
+std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
-    std::vector<std::pair<int,double> > intensities = m_stack->_getLocationAndIntensity( frameLow, frameHigh, percentiles, stokeFrame );
-    return intensities;
-}
-
-
-std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const std::vector<double>& percentiles ) const{
-    int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
-    std::vector<double> intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame );
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<double> intensities = m_stack->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame, converter );
     return intensities;
 }
 
@@ -406,9 +391,8 @@ QSize Controller::getOutputSize( ) const {
 }
 
 
-double Controller::getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = m_stack->_getPercentile( frameLow, frameHigh, intensity );
-    return percentile;
+std::vector<double> Controller::getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
+    return m_stack->_getPercentiles( frameLow, frameHigh, intensities, converter );
 }
 
 
@@ -907,7 +891,7 @@ void Controller::_initializeCallbacks(){
             result = "Please specify the layers to select.";
         }
         else {
-            result = _setLayersSelected( names );
+            result = setLayersSelected( names );
         }
         Util::commandPostProcess( result );
         return result;
@@ -1372,6 +1356,11 @@ void Controller::_loadViewQueued( ){
     QMetaObject::invokeMethod( this, "_loadView", Qt::QueuedConnection );
 }
 
+void Controller::_emitColorChanged() {
+    _loadViewQueued();
+    emit colorChanged(this);
+}
+
 void Controller::_loadView(){
     //Load the image.
     bool autoClip = m_state.getValue<bool>(AUTO_CLIP);
@@ -1516,10 +1505,9 @@ void Controller::setAutoClip( bool autoClip ){
     if ( autoClip != oldAutoClip ) {
         m_state.setValue<bool>( AUTO_CLIP, autoClip );
         m_state.flushState();
+        // refresh the image viewer
+        recallClipValue();
     }
-    // before rendering we need to flush the state in Colormap::_updateIntensityBounds()
-    // if autoClip is changed from true to false !!
-    if ( autoClip != oldAutoClip && autoClip == false) recallClipValue();
 }
 
 
@@ -1561,6 +1549,7 @@ void Controller::recallClipValue() {
     double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
     double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
     emit clipsChanged( minPercent, maxPercent, autoClip );
+    _loadViewQueued();
 }
 
 
@@ -1646,12 +1635,14 @@ QString Controller::setLayerName( const QString& id, const QString& name ){
 }
 
 // 20170420, no one use yet
+// Start to try to use
 QString Controller::setLayersSelected( const QStringList indices ){
     QString result;
     if ( indices.size() > 0 ){
         bool selectModeAuto = isStackSelectAuto();
         if ( !selectModeAuto ){
             result = _setLayersSelected( indices );
+            emit dataChanged( this );
         }
         else {
             result = "Enable manual layer selection mode before setting layers.";
@@ -1682,7 +1673,9 @@ QString Controller::_setLayersSelected( QStringList names ){
         // refresh the map of axes immediately after read data
         _setAxisMap();
         emit colorChanged( this );
-        emit dataChanged( this );
+        // The signal below causes the duplicate behaviors
+        // Use setLayersSelected() to replace the original callback
+        // emit dataChanged( this );
     }
     return result;
 }

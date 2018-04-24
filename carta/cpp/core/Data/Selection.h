@@ -44,7 +44,7 @@ public:
      * Returns a json string representing the state of this selection.
      * @return a string representing the state of this selection.
      */
-    QString getStateString() const;
+    QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const override;
 
     /**
      * Returns the upper bound for the selection.

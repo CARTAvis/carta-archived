@@ -20,15 +20,15 @@ DefaultContourGeneratorService::DefaultContourGeneratorService( QObject * parent
 }
 
 void
-DefaultContourGeneratorService::setName( const QString & name )
+DefaultContourGeneratorService::setContourTypesVector( const QStringList & contourTypesVector )
 {
-    m_name = name;
+    m_contourTypesVector = contourTypesVector;
 }
 
 void
-DefaultContourGeneratorService::setLevels( const std::vector < double > & levels )
+DefaultContourGeneratorService::setLevelsVector( const std::vector < std::vector < double > > & levelsVector )
 {
-    m_levels = levels;
+    m_levelsVector = levelsVector;
 }
 
 void
@@ -59,23 +59,25 @@ DefaultContourGeneratorService::timerCB()
     QElapsedTimer timer;
     timer.start();
 
-    // run the contour algorithm
-    Carta::Lib::Algorithms::ContourConrec cc;
+    // set the output result
+    Result result;
 
-    cc.setLevels(m_levels);
-    auto rawContours = cc.compute(m_rawView.get(), m_name);
+    // run the contour algorithm
+    for (int i = 0; i < m_contourTypesVector.size(); i++) {
+        qDebug() << "++++++++ [contour] build the contour for" << m_contourTypesVector.size() << "smoothness type(s)";
+        Carta::Lib::Algorithms::ContourConrec cc;
+        cc.setLevels(m_levelsVector[i]);
+        auto rawContours = cc.compute(m_rawView.get(), m_contourTypesVector[i]);
+        for (size_t j = 0; j < m_levelsVector[i].size(); ++ j) {
+            Carta::Lib::Contour contour( m_levelsVector[i][j], rawContours[j]);
+            result.add(contour);
+        }
+    }
 
     int elapsedTime = timer.elapsed();
     if (CARTA_RUNTIME_CHECKS) {
         // stop the timer and print out the elapsed time
         qDebug() << "++++++++ [contour] Spending time for calculating contours:" << elapsedTime << "ms";
-    }
-
-    // build the result
-    Result result;
-    for( size_t i = 0 ; i < m_levels.size() ; ++ i) {
-        Carta::Lib::Contour contour( m_levels[i], rawContours[i]);
-        result.add( contour);
     }
 
     emit done( result, m_lastJobId );

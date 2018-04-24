@@ -10,6 +10,7 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/VectorGraphics/VGList.h"
+#include "CartaLib/IntensityUnitConverter.h"
 #include <QImage>
 #include <memory>
 #include <set>
@@ -67,12 +68,12 @@ protected:
          * Add a contour set.
          * @param contour - the contour set to add.
          */
-    virtual void _addContourSet( std::shared_ptr<DataContours> contour );
+    virtual void _addContourSet( std::shared_ptr<DataContours> contour ) Q_DECL_OVERRIDE;
 
     /**
         * Remove the color map.
         */
-       virtual void _clearColorMap();
+       virtual void _clearColorMap() Q_DECL_OVERRIDE;
 
     /**
      * Respond to a change in display axes.
@@ -216,13 +217,13 @@ protected:
 
 
      /**
-      * Return the percentile corresponding to the given intensity.
-      * @param frameLow a lower bound for the frame index or -1 if there is no lower bound.
-      * @param frameHigh an upper bound for the frame index or -1 if there is no upper bound.
-      * @param intensity a value for which a percentile is needed.
-      * @return the percentile corresponding to the intensity.
-      */
-     virtual double _getPercentile( int frameLow, int frameHigh, double intensity ) const Q_DECL_OVERRIDE;
+     * Return percentiles corresponding to the given intensities.
+     * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
+     * @param intensities values for which percentiles are needed.
+     * @return the percentiles corresponding to the intensities.
+     */
+     virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
      /**
       * Return the pixel coordinates corresponding to the given world coordinates.
@@ -292,7 +293,7 @@ protected:
      * Return the zoom factor for this image.
      * @return the zoom multiplier.
      */
-    virtual double _getZoom() const;
+    virtual double _getZoom() const Q_DECL_OVERRIDE;
 
 
     // virtual void _gridChanged( const Carta::State::StateInterface& state) Q_DECL_OVERRIDE;
@@ -330,7 +331,7 @@ protected:
      */
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
-    virtual QString _getFileName();
+    virtual QString _getFileName() Q_DECL_OVERRIDE;
 
     /**
      * Attempts to load an image file.
@@ -360,17 +361,6 @@ protected:
     virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
     /**
-     * Returns the location and intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - a list of (location,intensity) pairs.
-     */
-    virtual std::vector<std::pair<int,double> > _getLocationAndIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
-
-    /**
      * Returns the intensity corresponding to a given percentile.
      * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
@@ -379,7 +369,8 @@ protected:
      * @return - a list of intensity values.
      */
     virtual std::vector<double> _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
+            const std::vector<double>& percentiles, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the units of the pixels.
@@ -427,7 +418,7 @@ protected:
      * Reset the layer contours.
      * @param restoreeState - the new layer state.
      */
-    virtual void _resetStateContours(const Carta::State::StateInterface& restoreState );
+    virtual void _resetStateContours(const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
 
     virtual QString _setAxis( const QString axis, const QString name ) Q_DECL_OVERRIDE;
 
@@ -450,9 +441,9 @@ protected:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    virtual bool _setMaskAlpha( const QString& id, int alphaAmount );
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount ) Q_DECL_OVERRIDE;
 
-    virtual void _setMaskAlphaDefault();
+    virtual void _setMaskAlphaDefault() Q_DECL_OVERRIDE;
 
     /**
      * Set the color to use for the mask.
@@ -464,9 +455,9 @@ protected:
      * @return - true if the mask color was changed; false otherwise.
      */
     virtual bool _setMaskColor( const QString& id, int redAmount,
-            int greenAmount, int blueAmount );
+            int greenAmount, int blueAmount ) Q_DECL_OVERRIDE;
 
-    virtual void _setMaskColorDefault();
+    virtual void _setMaskColorDefault() Q_DECL_OVERRIDE;
 
 
     /**
@@ -481,8 +472,8 @@ protected:
      * @param regionVGList - graphics for drawing the current regions.
      */
     virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
-    virtual void _setSupportAlpha( bool supportAlpha );
-    virtual void _setSupportColor( bool supportColor );
+    virtual void _setSupportAlpha( bool supportAlpha ) Q_DECL_OVERRIDE;
+    virtual void _setSupportColor( bool supportColor ) Q_DECL_OVERRIDE;
 
     /**
      * Set the zoom factor for this image.

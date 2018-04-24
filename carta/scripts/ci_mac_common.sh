@@ -51,7 +51,7 @@ echo "install gfortran, start to backup travis-c++"
 mv /usr/local/include/c++ /usr/local/include/c++_backup # this folder is from homebrew's gcc49
 su $SUDO_USER <<EOF
 echo "attempted fix for the Homebrew Ruby 2.3 error"
-brew update 
+brew update
 brew install gcc
 brew update
 EOF
@@ -150,6 +150,7 @@ function installforBuildCARTAandPackaging() {
 sudo easy_install cython
 sudo easy_install pip
 sudo su $SUDO_USER -c "pip install matplotlib --user -U"
+sudo su $SUDO_USER -c "pip2.7 install cython --user -U"
 
   #statements
 su $SUDO_USER <<EOF
@@ -172,7 +173,7 @@ installgsl
 
 #bison, fftw, boost-python(<-not sure if we need )
 su $SUDO_USER <<EOF
-brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/49887a8f215bd8b365c28c6ae5ea62bb1350c893/Formula/bison.rb
+brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/de8537492057d1049a522c6384af6f833ae0d5bc/Formula/bison.rb
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/cb79fc2ec2c5fcebf35f7bf26bb7459c9f87ae0b/Formula/fftw.rb
 brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/198f8903db0bb77f1b84e19e020c6f825210433d/Formula/boost-python.rb
 EOF
