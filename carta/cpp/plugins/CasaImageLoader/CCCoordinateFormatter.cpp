@@ -351,6 +351,8 @@ CCCoordinateFormatter::setSkyCS( const KnownSkyCS & scs )
         mdir = casacore::MDirection::GALACTIC;
         break;
     default :
+        // meanless initilization, only for sliencing warning
+        mdir = casacore::MDirection::DEFAULT;
         CARTA_ASSERT_ALWAYS_X( false, "Internal error" );
         break;
     } // switch
@@ -480,18 +482,21 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 if ( skycs == KnownSkyCS::B1950 ||
                      skycs == KnownSkyCS::J2000 ||
                      skycs == KnownSkyCS::ICRS ) {
-                    aInfo.setShortLabel( HtmlString( "RA", "&alpha;" ) );
+                    aInfo.setShortLabel( HtmlString( "RA", "&alpha;" ) )
+                        .setLongLabel( HtmlString::fromPlain("Right Ascension") );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 5;
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
-                    aInfo.setShortLabel( HtmlString( "ELon", "&lambda;"));
+                    aInfo.setShortLabel( HtmlString( "ELon", "&lambda;"))
+                        .setLongLabel( HtmlString::fromPlain("Ecliptic Longitude") );
                         //.setShortLabel( HtmlString( "ELon", "l" ) );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
-                    aInfo.setShortLabel( HtmlString( "GLon", "l"));
+                    aInfo.setShortLabel( HtmlString( "GLon", "l"))
+                        .setLongLabel( HtmlString::fromPlain("Galactic Longitude") );
                         //.setShortLabel( HtmlString( "GLon", "&lambda;" ) );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;
@@ -508,18 +513,21 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
                 if ( skycs == KnownSkyCS::B1950 ||
                      skycs == KnownSkyCS::J2000 ||
                      skycs == KnownSkyCS::ICRS ) {
-                    aInfo.setShortLabel( HtmlString( "Dec", "&delta;" ) );
+                    aInfo.setShortLabel( HtmlString( "Dec", "&delta;" ) )
+                        .setLongLabel( HtmlString::fromPlain("Declination") );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 4;
                 }
                 else if ( skycs == KnownSkyCS::Ecliptic ) {
-                    aInfo.setShortLabel( HtmlString( "Elat", "&beta;"));
+                    aInfo.setShortLabel( HtmlString( "Elat", "&beta;"))
+                        .setLongLabel( HtmlString::fromPlain("Ecliptic Latitude") );
                         //.setShortLabel( HtmlString( "ELat", "b" ) );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;
                 }
                 else if ( skycs == KnownSkyCS::Galactic ) {
-                    aInfo.setShortLabel( HtmlString( "GLat", "b"));
+                    aInfo.setShortLabel( HtmlString( "GLat", "b"))
+                        .setLongLabel( HtmlString::fromPlain("Galactic Latitude") );
                         //.setShortLabel( HtmlString( "GLat", "&beta;" ) );
                     //precision to 0.001 arcsec
                     m_precisions[pixelAxis] = 7;

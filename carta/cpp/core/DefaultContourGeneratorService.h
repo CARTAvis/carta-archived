@@ -24,10 +24,10 @@ public:
     DefaultContourGeneratorService( QObject * parent = 0 );
 
     virtual void
-    setName( const QString & name ) override;
+    setContourTypesVector(const QStringList & contourTypesVector ) override;
 
     virtual void
-    setLevels( const std::vector < double > & levels ) override;
+    setLevelsVector( const std::vector < std::vector < double > > & levelsVector ) override;
 
     virtual void
     setInput( Carta::Lib::NdArray::RawViewInterface::SharedPtr rawView ) override;
@@ -43,8 +43,8 @@ private slots:
 
 private:
 
-    std::vector < double > m_levels;
-    QString m_name;
+    std::vector < std::vector < double > > m_levelsVector;
+    QStringList m_contourTypesVector;
     JobId m_lastJobId = - 1;
     Carta::Lib::NdArray::RawViewInterface::SharedPtr m_rawView = nullptr;
     QTimer m_timer;

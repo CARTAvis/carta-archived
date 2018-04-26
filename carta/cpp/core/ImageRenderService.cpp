@@ -6,6 +6,7 @@
 #include "CartaLib/LinearMap.h"
 #include <QColor>
 #include <QPainter>
+#include <QElapsedTimer>
 
 namespace NdArray = Carta::Lib::NdArray;
 
@@ -350,6 +351,10 @@ Service::internalRenderSlot()
     // seems it is copying, so no need to copy again for more safe usage
     auto cachedRawImage = m_frameCache.object(cacheId);
 
+    // start the timer
+    QElapsedTimer timer;
+    timer.start();
+
     // render the frame if needed
     if (!cachedRawImage) {
         // cacheRaw miss
@@ -382,6 +387,9 @@ Service::internalRenderSlot()
         // cacheRaw hit
         m_frameImage = *cachedRawImage;
     }
+
+    // end the timer
+    qDebug() << "Time for applying the colormap on the current view of image:" << timer.elapsed() << "ms";
 
     // prepare output
     QImage img( m_outputSize, OptimalQImageFormat );

@@ -493,9 +493,8 @@ ImageViewController::loadFrame( int frame )
     std::vector < double > clips = m_quantileCache[m_currentFrame];
     if ( clips.size() < 2 ) {
         Carta::Lib::NdArray::Double doubleView( view.get(), false );
-        std::map<double, double> clips_map = Carta::Core::Algorithms::percentile2pixels(
-            doubleView, { 0.0, 1.0 }
-            );
+        Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
+        std::map<double, double> clips_map = calculator->percentile2pixels(doubleView, { 0.0, 1.0 }, -1, nullptr, {});
         clips = {clips_map[0.0], clips_map[1.0]};
         qDebug() << "recomputed clips" << clips;
         m_quantileCache[m_currentFrame] = clips;

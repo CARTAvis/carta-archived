@@ -8,6 +8,8 @@
 #include "CartaLib/AxisDisplayInfo.h"
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
+#include "CartaLib/IntensityUnitConverter.h"
+#include "CartaLib/IntensityCacheHelper.h"
 
 #include <memory>
 
@@ -47,7 +49,7 @@ class DataSource : public QObject {
     friend class Histogram;
     friend class Profiler;
     friend class Colormap;
-
+    friend class Controller;
     Q_OBJECT
 
 public:
@@ -82,7 +84,10 @@ private:
      */
     std::vector<Carta::Lib::AxisInfo::KnownType> _getAxisTypes() const;
 
-
+    /**
+     * Return a list of axes in the image, containing the type and name of axes.
+     * @return - a list of axes that are present in the image.
+     */
     std::vector<Carta::Lib::AxisInfo> _getAxisInfos() const;
 
     /**
@@ -128,8 +133,11 @@ private:
     QStringList _getCoordinates( double x, double y, Carta::Lib::KnownSkyCS system,
             const std::vector<int>& frames) const;
 
-
-    QString _getSkyCS();
+    /**
+     * Get the name of the default celestial coordinate system of image.
+     * @return the name of the default coordinate coordinate system
+     */
+    QString _getDefaultCoordinateSystem() const;
 
     /**
      * Returns information about the image at the current location of the cursor.
@@ -210,58 +218,19 @@ private:
             const QSize& outputSize, bool* valid ) const;
 
     /**
-     * check if the "inputValue" is amoung the vector of "comparedValue",
-     * if true, return the original value from "comparedValue"
-     */
-    std::pair<bool, double> _isSameValue(double inputValue, std::vector<double> comparedValue, double threshold) const;
-
-    /**
-     * Returns the bool and location corresponding to a percentile value.
+     * Returns the intensity and error corresponding to a percentile value.
      * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
-     * @return - a corresponding percentile (bool, location) pair.
-     *           If bool is true, the location cache exists and we can read the cache value.
-     *           If bool is false, the location cache does not exist and returns the default value -1.
+     * @param transformationLabel - a string identifier for the per-frame unit conversion used in the calculation
+     * @return - a pointer to an IntensityValue object,
+     * or a null pointer if the percentile is not in the cache
      */
-    std::pair<int, double> _readLocationCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+    std::shared_ptr<Carta::Lib::IntensityValue> _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const;
 
-    void _setLocationCache(int location, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
+    void _setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame, QString transformationLabel) const;
 
-    /**
-     * Returns the bool and intensity corresponding to a percentile value.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - a corresponding percentile (bool, intensity) pair.
-     *           If bool is true, the intensity cache exists and we can read the cache value.
-     *           If bool is false, the intensity cache does not exist and returns the default value -1.
-     */
-    std::pair<double, double> _readIntensityCache(int frameLow, int frameHigh, double percentile, int stokeFrame) const;
-
-    void _setIntensityCache(double intensity, double error, int frameLow, int frameHigh, double percentile, int stokeFrame) const;
-
-    /**
-     * Returns the locations and intensities corresponding to a given percentiles.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - minimum and maximum intensities.
-     */
-    std::vector<std::pair<int,double>> _getMinMaxIntensity(int frameLow, int frameHigh, int stokeFrame) const;
-
-    /**
-     * Returns the locations and intensities corresponding to a given percentiles.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - a list of corresponding (location,intensity) pairs.
-     */
-    std::vector<std::pair<int,double> > _getLocationAndIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame);
 
     /**
      * Returns the intensities corresponding to a given percentiles.
@@ -269,10 +238,12 @@ private:
      * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
      * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
      * @param stokeFrame - the index number of stoke slice
+     * @param transformationLabel - a string identifier for the per-frame unit conversion used in the calculation
      * @return - a list of intensity values.
      */
     std::vector<double> _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame);
+            const std::vector<double>& percentiles, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
 
     /**
@@ -281,15 +252,16 @@ private:
      */
     QColor _getNanColor() const;
 
+    std::vector<double> _getHertzValues(const std::vector<int> dims, const int spectralIndex) const;
 
     /**
-     * Return the percentile corresponding to the given intensity.
-     * @param frameLow a lower bound for the frames or -1 if there is no lower bound.
-     * @param frameHigh an upper bound for the frames or -1 if there is no upper bound.
-     * @param intensity a value for which a percentile is needed.
-     * @return the percentile corresponding to the intensity.
+     * Return percentiles corresponding to the given intensities.
+     * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
+     * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
+     * @param intensities values for which percentiles are needed.
+     * @return the percentiles corresponding to the intensities.
      */
-    double _getPercentile( int frameLow, int frameHigh, double intensity ) const;
+    std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const;
 
 
     std::shared_ptr<Carta::Lib::Image::ImageInterface> _getPermutedImage() const;
@@ -461,6 +433,13 @@ private:
     void _setColorNan( double red, double green, double blue );
 
     /**
+     * Set the coordinate system in the duplicated coordinateformatter,
+     * i.e. m_coordinateFormatter.
+     * @param cs - the target coordinate system (defined in CartaLib::KnownSkyCS)
+     */
+    void _setCoordinateSystem( Carta::Lib::KnownSkyCS cs );
+
+    /**
      * Set the x-, y-, and z- axes that are to be displayed.
      * @param displayAxisTypes - the list of display axes.
      * @param frames - a list of current image frames.
@@ -562,10 +541,12 @@ private:
 
     ///pixel pipeline
     std::shared_ptr<Carta::Lib::PixelPipeline::CustomizablePixelPipeline> m_pixelPipeline;
-    
+
     // disk cache
     std::shared_ptr<Carta::Lib::IPCache> m_diskCache;
-    
+    // wrapper class
+    std::shared_ptr<Carta::Lib::IntensityCacheHelper> m_diskCacheHelper;
+
     //Indices of the display axes.
     int m_axisIndexX;
     int m_axisIndexY;

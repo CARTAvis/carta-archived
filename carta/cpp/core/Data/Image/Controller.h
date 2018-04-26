@@ -10,6 +10,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/InputEvents.h"
+#include "CartaLib/IntensityUnitConverter.h"
 #include <QString>
 #include <QList>
 #include <QObject>
@@ -183,7 +184,7 @@ public:
      * Return a shared pointer to the grid controls.
      * @return - a shared pointer to the grid controls.
      */
-    std::shared_ptr<GridControls> getGridControls();
+    // std::shared_ptr<GridControls> getGridControls();
 
     /**
      * Return the point in image coordinates that is currently under the cursor.
@@ -205,28 +206,11 @@ public:
     std::vector<int> getImageDimensions( ) const;
 
     /**
-     * Returns the locations and intensities corresponding to a given list of percentiles.
-     * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
-     * @return - a list of corresponding (location,intensity) pairs.
-     */
-    std::vector<std::pair<int,double> > getLocationAndIntensity( const std::vector<double>& percentiles ) const;
-
-    /**
      * Returns the intensities corresponding to a given list of percentiles.
      * @param percentiles - a list of numbers in [0,1] for which intensities are desired.
      * @return - a list of corresponding intensity values.
      */
-    std::vector<double> getIntensity( const std::vector<double>& percentiles ) const;
-
-    /**
-     * Returns the location and intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
-     * @param percentiles - a list of percentiles in [0,1] for which an intensity is desired.
-     * @return - a list of <location,intensity> pairs corresponding to the percentiles.
-     */
-    std::vector<std::pair<int,double> > getLocationAndIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles ) const;
+    std::vector<double> getIntensity( const std::vector<double>& percentiles, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -236,7 +220,8 @@ public:
      * @return - a list of intensity values corresponding to the percentiles.
      */
     std::vector<double> getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles ) const;
+            const std::vector<double>& percentiles,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
@@ -271,13 +256,13 @@ public:
     QSize getOutputSize( ) const;
 
     /**
-     * Return the percentile corresponding to the given intensity.
+     * Return percentiles corresponding to the given intensities.
      * @param frameLow a lower bound for the channel range or -1 if there is no lower bound.
      * @param frameHigh an upper bound for the channel range or -1 if there is no upper bound.
-     * @param intensity a value for which a percentile is needed.
-     * @return the percentile corresponding to the intensity.
+     * @param intensities values for which percentiles are needed.
+     * @return the percentiles corresponding to the intensities.
      */
-    double getPercentile( int frameLow, int frameHigh, double intensity ) const;
+    std::vector<double> getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
     /**
      * Return the pixel coordinates corresponding to the given world coordinates.
@@ -408,7 +393,7 @@ public:
      * Restore the state from a string representation.
      * @param state- a json representation of state.
      */
-    void resetState( const QString& state );
+    void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Reset the images that are loaded and other data associated state.
@@ -649,17 +634,18 @@ protected:
 
 private slots:
 
-	void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
+	// void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll);
 
 	void _contourSetAdded( Layer* cData, const QString& setName );
 	void _contourSetRemoved( const QString setName );
 
-	void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
+	// void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
 	void _onInputEvent( InputEvent ev );
 
 	//Refresh the view based on the latest data selection information.
 	void _loadView(  );
 	void _loadViewQueued( );
+    void _emitColorChanged();
 	void _notifyFrameChange( Carta::Lib::AxisInfo::KnownType axis );
 	void _regionsChanged();
 
@@ -712,7 +698,7 @@ private:
 
     // Set the AxisMapper::axisMap to use
     void _setAxisMap();
-    void _setSkyCSName();
+    // void _setSkyCSName();
 
 	/**
 	 * Make a frame selection.
@@ -744,7 +730,7 @@ private:
 	static const QString CENTER;
 	static const QString STACK_SELECT_AUTO;
 
-	std::shared_ptr<GridControls> m_gridControls;
+	// std::shared_ptr<GridControls> m_gridControls;
 	std::shared_ptr<ContourControls> m_contourControls;
 	std::shared_ptr<RegionControls> m_regionControls;
 

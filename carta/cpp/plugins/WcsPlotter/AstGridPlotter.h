@@ -25,9 +25,11 @@
 
 #include <QThread>
 
+extern "C" {
+#include <ast.h>
+};
+
 class QImage;
-class AstFrame;
-class AstFrameSet;
 
 namespace WcsPlotterPluginNS
 {

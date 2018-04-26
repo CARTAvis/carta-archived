@@ -197,7 +197,7 @@ QString GeneratorState::setLevelCount( int count ){
         }
     }
     else {
-        result = "A contour set must have at least one level:"+count;
+        result = "A contour set must have at least one level:" + QString::number(count);
     }
     return result;
 }

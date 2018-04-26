@@ -38,7 +38,7 @@ public:
         if ( ! p_db ) {
             return;
         }
-        
+
         leveldb::Iterator* it = p_db->NewIterator(p_readOptions);
         for (it->SeekToFirst(); it->Valid(); it->Next()) {
             auto status = p_db->Delete(p_writeOptions, it->key());
@@ -51,7 +51,8 @@ public:
     virtual bool
     readEntry( const QByteArray & key, QByteArray & val, QByteArray & error ) override
     {
-        
+        Q_UNUSED( error );
+
         if ( ! p_db ) {
             return false;
         }
@@ -68,6 +69,8 @@ public:
     virtual void
     setEntry( const QByteArray & key, const QByteArray & val, const QByteArray & error ) override
     {
+        Q_UNUSED( error );
+
         if( ! p_db) return;
         auto status = p_db-> Put( p_writeOptions,
                     leveldb::Slice( key.constData(), key.size()),
@@ -113,7 +116,7 @@ private:
         leveldb::Options options;
 
         options.create_if_missing = true;
-        
+
         leveldb::Status status = leveldb::DB::Open( options, dirPath.toStdString(), & db );
 
         if ( false == status.ok() ) {

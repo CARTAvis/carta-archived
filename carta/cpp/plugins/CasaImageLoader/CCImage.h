@@ -234,7 +234,7 @@ public:
         return m_casaII;
     }
 
-    casacore::ImageInfo getImageInfo() const {
+    casacore::ImageInfo getImageInfo() const override{
                return m_casaII->imageInfo();
            }
 

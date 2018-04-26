@@ -53,6 +53,14 @@ void GridControls::_initializeDefaultState(){
 
 void GridControls::_initializeCallbacks(){
 
+    // addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
+    //                 const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+    //     QString result;
+    //     Carta::State::StateInterface gridState = m_dataGrid->_getState();
+    //     result = gridState.toString();
+    //     return result;
+    // });
+
     addCommandCallback( "setApplyAll", [=] (const QString & /*cmd*/,
                    const QString & params, const QString & /*sessionId*/) -> QString {
                QString result;
@@ -548,12 +556,12 @@ void GridControls::setApplyAll( bool applyAll ){
     }
 }
 
-void GridControls::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes ){
-    bool axisTypesChanged = m_dataGrid->_setAxisTypes( supportedAxes );
-    if ( axisTypesChanged ){
-        _updateGrid();
-    }
-}
+// void GridControls::_setAxisTypes( std::vector<AxisInfo::KnownType> supportedAxes ){
+//     bool axisTypesChanged = m_dataGrid->_setAxisTypes( supportedAxes );
+//     if ( axisTypesChanged ){
+//         _updateGrid();
+//     }
+// }
 
 void GridControls::_setAxisInfos( std::vector<AxisInfo> supportedAxes ){
     bool axisInfosChanged = m_dataGrid->_setAxisInfos( supportedAxes );

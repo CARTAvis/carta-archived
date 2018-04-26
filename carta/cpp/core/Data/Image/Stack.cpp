@@ -4,6 +4,7 @@
 #include "Data/Image/Draw/DrawStackSynchronizer.h"
 #include "Data/Image/Draw/DrawImageViewsSynchronizer.h"
 #include "Data/Image/Grid/AxisMapper.h"
+#include "Data/Image/Grid/DataGrid.h"
 #include "Data/Image/Save/SaveService.h"
 #include "Data/Preferences/PreferencesSave.h"
 #include "Data/Region/Region.h"
@@ -61,8 +62,11 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     QString result = _addData( fileName, success, &stackIndex);
     if ( *success && stackIndex >= 0 ){
         _resetFrames( stackIndex );
+        // NOTE: If the gridcontrol is removed in the future, I think
+        // this part should emit a viewload signal.
         _saveState();
     }
+    emit viewLoad();
     return result;
 }
 
@@ -178,6 +182,12 @@ QString Stack::_getCursorText(bool isAutoClip, double minPercent, double maxPerc
     return cursorText;
 }
 
+Carta::State::StateInterface Stack::_getDataGridState(){
+    std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
+    Carta::State::StateInterface dataGridState = dataGrid->_getState();
+    return dataGridState;
+}
+
 QList<std::shared_ptr<Layer> > Stack::_getDrawChildren() const {
     QList<std::shared_ptr<Layer> > datas;
     int dataCount = m_children.size();
@@ -247,7 +257,8 @@ std::vector<int> Stack::_getImageSlice() const {
         Carta::Lib::AxisInfo::KnownType axisXType = _getAxisXType();
         Carta::Lib::AxisInfo::KnownType axisYType = _getAxisYType();
         for ( int i = 0; i < dimensions; i++ ){
-            Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i );
+            //Carta::Lib::AxisInfo::KnownType type  = _getAxisType( i ); // call the function LayerGroup::_getAxisType( int )
+            Carta::Lib::AxisInfo::KnownType type  = m_children[dataIndex]->_getAxisType( i ); // call the function LayerData::_getAxisType( int )
             if ( type == axisXType || type == axisYType ){
                 result[i] = -1;
             }
@@ -328,7 +339,7 @@ QString Stack::_getStateString() const{
     _saveChildren( copyState, false );
     copyState.insertValue<QString>( Selection::IMAGE, m_selectImage->getStateString());
     int selectCount = m_selects.size();
-    const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
+    // const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
     for ( int i = 0; i < selectCount; i++ ){
         QString axisName = AxisMapper::getPurpose( static_cast<AxisInfo::KnownType>(i) );
         copyState.insertValue<QString>( axisName, m_selects[i]->getStateString());
@@ -342,23 +353,23 @@ QString Stack::getStateString() const{
     return result;
 }
 
-void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyAll ){
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        if ( !applyAll ){
-            m_children[dataIndex]->_gridChanged( state );
-        }
-        else {
-            int dataCount = m_children.size();
-            for ( int i = 0; i < dataCount; i++ ){
-                if ( m_children[i] != nullptr ){
-                    m_children[i]->_gridChanged( state );
-                }
-            }
-        }
-        emit viewLoad( );
-    }
-}
+// void Stack::_gridChanged( const Carta::State::StateInterface& state, bool applyAll ){
+//     int dataIndex = _getIndexCurrent();
+//     if ( dataIndex >= 0 ){
+//         if ( !applyAll ){
+//             m_children[dataIndex]->_gridChanged( state );
+//         }
+//         else {
+//             int dataCount = m_children.size();
+//             for ( int i = 0; i < dataCount; i++ ){
+//                 if ( m_children[i] != nullptr ){
+//                     m_children[i]->_gridChanged( state );
+//                 }
+//             }
+//         }
+//         emit viewLoad( );
+//     }
+// }
 
 void Stack::_initializeSelections(){
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -368,7 +379,8 @@ void Stack::_initializeSelections(){
     m_selects.resize( axisCount );
     for ( int i = 0; i < axisCount; i++ ){
         m_selects[i] = objMan->createObject<Selection>();
-        connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
+        // This signal-slot connection causes the duplicate rendering in Stack::_setFrameImage
+        // connect( m_selects[i], SIGNAL(indexChanged()), this, SIGNAL(viewLoad()));
     }
 }
 
@@ -547,7 +559,7 @@ void Stack::_resetStack( const Carta::State::StateInterface& restoreState ){
     int selectCount = m_selects.size();
     for ( int i = 0; i < selectCount; i++ ){
         AxisInfo::KnownType axisType = static_cast<AxisInfo::KnownType>( i );
-        const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
+        // const Carta::Lib::KnownSkyCS cs = _getCoordinateSystem();
         QString axisPurpose = AxisMapper::getPurpose( axisType );
         QString axisState = restoreState.getValue<QString>( axisPurpose );
         m_selects[i]->resetState( axisState );
@@ -643,6 +655,61 @@ void Stack::_saveState( bool flush ) {
     if ( flush ){
         m_state.flushState();
     }
+}
+
+QString Stack::_setAxis( const QString axis, const QString name ){
+    // bool axisChanged = false;
+    // // TODO: should layergroup change all the datagrid of children?
+    // std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
+    // QString result = dataGrid->_setAxis( AxisMapper::AXIS_X, name, &axisChanged );
+    //
+    // std::vector<AxisInfo::KnownType> displayTypes = dataGrid->_getDisplayAxes();
+    // int dataIndex = _getIndexCurrent();
+    // if (dataIndex >= 0 ) {
+    //     if (m_children[dataIndex] != nullptr) {
+    //         std::vector<int> frames = _getFrameIndices();
+    //         m_children[dataIndex]->_displayAxesChanged( displayTypes, frames );
+    //     }
+    // }
+    // emit viewLoad();
+
+    //TODO: so far the _displayAxesChanged() should be called from Stack
+    //due to the _getFrameIndices(), try to simplify this part
+    QString result = "";
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_setAxis( axis, name );
+
+        // Get the updated datagrid to update raster image
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        std::vector<AxisInfo::KnownType> displayTypes = dataGrid->_getDisplayAxes();
+        std::vector<int> frames = _getFrameIndices();
+        m_children[dataIndex]->_displayAxesChanged( displayTypes, frames );
+        emit viewLoad();
+    }
+
+    // TODO: the return value mix with exception, try to seperate them.
+    return result;
+}
+
+QString Stack::_setCoordinateSystem( QString csName ){
+    QString result;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_setCoordinateSystem( csName );
+        emit viewLoad();
+    }
+    return result;
+}
+
+QString Stack::_setDataGridState( const QString stateName, const QString stateValue ){
+    QString result;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        result = m_children[dataIndex]->_setDataGridState( stateName, stateValue );
+        emit viewLoad();
+    }
+    return result;
 }
 
 bool Stack::_setCompositionMode( const QString& id, const QString& compositionMode,

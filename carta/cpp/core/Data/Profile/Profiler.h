@@ -591,7 +591,7 @@ public:
 
 protected:
     //Callback for moving the frame.
-    virtual void timerEvent( QTimerEvent* event );
+    virtual void timerEvent( QTimerEvent* event ) Q_DECL_OVERRIDE;
 
 private slots:
     void _cursorUpdate( double x, double y );
@@ -647,7 +647,7 @@ private:
     const static QString ZOOM_MAX;
     const static QString ZOOM_MIN_PERCENT;
     const static QString ZOOM_MAX_PERCENT;
-    const static int ERROR_MARGIN;
+    const static double ERROR_MARGIN;
 
     int _addNewCurveData( std::shared_ptr<Layer> layer,
         std::shared_ptr<Region> region, Carta::Lib::ProfileInfo profInfo);

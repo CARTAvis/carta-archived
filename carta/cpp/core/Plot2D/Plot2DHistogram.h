@@ -61,10 +61,10 @@ public:
     virtual ~Plot2DHistogram();
 
 protected:
-    virtual void drawColumn (QPainter *, const QwtColumnRect &, const QwtIntervalSample &) const;
+    virtual void drawColumn (QPainter *, const QwtColumnRect &, const QwtIntervalSample &) const Q_DECL_OVERRIDE;
 
     virtual void drawSeries ( QPainter* painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap,
-            const QRectF& canvasRect, int from, int to ) const;
+            const QRectF& canvasRect, int from, int to ) const Q_DECL_OVERRIDE;
 
 private:
 

@@ -67,7 +67,7 @@ public:
      * Reset the state of the image zoom from a stored value.
      * @param state - a string representation of the state.
      */
-    void resetState( const QString& state );
+    void resetState( const QString& state ) Q_DECL_OVERRIDE;
 
     /**
      * Set the color used to draw the pixel box.

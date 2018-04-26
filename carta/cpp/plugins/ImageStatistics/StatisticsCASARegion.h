@@ -36,11 +36,12 @@ private:
 
     static void _insertScalar( const casacore::Record& result, const casacore::String& key,
             Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
-    static void _insertList( const casacore::Record& result, const casacore::String& key,
-            Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
+    static void _insertList(const casacore::Record& result, const casacore::String& key,
+            Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats,
+            const std::vector<int> &slice);
     static void _insertString( const casacore::Record& result, const casacore::String& key,
             Carta::Lib::StatInfo::StatType statType, QList<Carta::Lib::StatInfo>& stats );
-    static QString _vectorToString( const casacore::Vector<int>& valArray );
+    static QString _vectorToString(const casacore::Vector<int>& valArray, const std::vector<int> &slice);
 
     virtual ~StatisticsCASARegion();
 

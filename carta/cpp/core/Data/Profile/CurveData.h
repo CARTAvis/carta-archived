@@ -224,7 +224,7 @@ public:
      * Return the internal state of the curve as a string.
      * @return - the curve state.
      */
-    QString getStateString() const;
+    QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const override;
 
     /**
      * Return the statistic used to summarize profiles.

@@ -148,6 +148,7 @@ HEADERS += \
     ScriptedClient/ScriptedCommandListener.h \
     ScriptedClient/ScriptFacade.h \
     Algorithms/percentileAlgorithms.h \
+    Algorithms/percentileManku99.h \
     ScriptedClient/Listener.h \
     ScriptedClient/ScriptedCommandInterpreter.h \
     ScriptedClient/VarLengthMessage.h \

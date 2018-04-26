@@ -58,7 +58,7 @@ public:
      * @param size - the size of the icon.
      * @return - a custom icon for the legend item.
      */
-    virtual QwtGraphic legendIcon( int index, const QSizeF& size ) const;
+    virtual QwtGraphic legendIcon( int index, const QSizeF& size ) const Q_DECL_OVERRIDE;
 
     /**
      * Set the base y-vale for the plot.
@@ -76,13 +76,13 @@ public:
      * Set the draw style for the data (continuous, step, etc).
      * @param style - an identifier for a draw style.
      */
-    virtual void setDrawStyle( const QString& style );
+    virtual void setDrawStyle( const QString& style ) Q_DECL_OVERRIDE;
 
     /**
      * Set an identifier for this data set.
      * @param id - an identifier for this data set.
      */
-    virtual void setId( const QString& id );
+    virtual void setId( const QString& id ) Q_DECL_OVERRIDE;
 
     /**
      * Set whether or not to display a sample line with the legend item.
@@ -105,9 +105,9 @@ public:
 protected:
 
     virtual void drawLines (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
-            const QRectF &canvasRect, int from, int to) const;
+            const QRectF &canvasRect, int from, int to) const Q_DECL_OVERRIDE;
     virtual void drawSteps (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap,
-            const QRectF &canvasRect, int from, int to) const;
+            const QRectF &canvasRect, int from, int to) const Q_DECL_OVERRIDE;
     //This method was put in so that profiles consisting of a single point could be drawn.
     void drawSymbol( QPainter* painter, const QwtScaleMap & xMap,
             const QwtScaleMap & yMap, const QRectF & canvasRect, int from, int to ) const;

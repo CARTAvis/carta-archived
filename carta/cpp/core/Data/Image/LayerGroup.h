@@ -7,6 +7,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/IImage.h"
+#include "CartaLib/IntensityUnitConverter.h"
 
 namespace Carta {
 
@@ -40,7 +41,7 @@ protected:
      * Add a contour set.
      * @param contour - the contour set to add.
      */
-    virtual void _addContourSet( std::shared_ptr<DataContours> contour );
+    virtual void _addContourSet( std::shared_ptr<DataContours> contour ) Q_DECL_OVERRIDE;
 
     /**
      * Add a data layer to the group.
@@ -112,9 +113,9 @@ protected:
      * @param valid - whether or not the returned point is valid.
      * @return - the pixel position of the point in image coordinates.
      */
-    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const;
+    virtual QPointF _getContextPt( const QPointF& mousePt, const QSize& outputSize, bool* valid ) const Q_DECL_OVERRIDE;
 
-    virtual std::shared_ptr<DataContours> _getContour( const QString& name );
+    virtual std::shared_ptr<DataContours> _getContour( const QString& name ) Q_DECL_OVERRIDE;
 
 
     /**
@@ -144,6 +145,12 @@ protected:
      */
     virtual QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY,
             const std::vector<int>& frames, const QSize& outputSize ) Q_DECL_OVERRIDE;
+
+    /**
+     * Return the data grid of the image.
+     * @return - the data grid of the image.
+     */
+    virtual std::shared_ptr<DataGrid> _getDataGrid() Q_DECL_OVERRIDE;
 
     /**
      * Return the data source of the image.
@@ -217,16 +224,6 @@ protected:
      */
     virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
-    /**
-     * Returns the location and intensity corresponding to a given percentile.
-     * @param frameLow - a lower bound for the image frames or -1 if there is no lower bound.
-     * @param frameHigh - an upper bound for the image frames or -1 if there is no upper bound.
-     * @param percentiles - a list of numbers in [0,1] for which an intensity is desired.
-     * @param stokeFrame - the index number of stoke slice
-     * @return - a list of (location,intensity) pairs.
-     */
-    virtual std::vector<std::pair<int,double> > _getLocationAndIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -237,7 +234,8 @@ protected:
      * @return - a list of intenstiy values.
      */
     virtual std::vector<double> _getIntensity( int frameLow, int frameHigh,
-            const std::vector<double>& percentiles, int stokeFrame ) const Q_DECL_OVERRIDE;
+            const std::vector<double>& percentiles, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
@@ -268,7 +266,7 @@ protected:
      * @param intensity a value for which a percentile is needed.
      * @return the percentile corresponding to the intensity.
      */
-    virtual double _getPercentile( int frameLow, int frameHigh, double intensity ) const Q_DECL_OVERRIDE;
+    virtual std::vector<double> _getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
 
     /**
@@ -359,7 +357,7 @@ protected:
     virtual double _getZoom() const Q_DECL_OVERRIDE;
 
 
-    virtual void _gridChanged( const Carta::State::StateInterface& state ) Q_DECL_OVERRIDE;
+    // virtual void _gridChanged( const Carta::State::StateInterface& state ) Q_DECL_OVERRIDE;
 
     /**
      * Returns true since other layers can be added to a group.
@@ -405,7 +403,7 @@ protected:
     /**
      * Generate a new QImage.
      */
-    virtual void _renderStart( );
+    virtual void _renderStart( ) Q_DECL_OVERRIDE;
 
     /**
      * Center the image.
@@ -424,6 +422,8 @@ protected:
     virtual void _resetZoom() Q_DECL_OVERRIDE;
 
 
+    virtual QString _setAxis( const QString axis, const QString name ) Q_DECL_OVERRIDE; 
+
     /**
      * Set the mode used to compose this layer.
      * @param compositionMode - the mode used to compose this layer.
@@ -431,6 +431,10 @@ protected:
      */
     virtual bool _setCompositionMode( const QString& id, const QString& compositionMode,
             QString& errorMsg ) Q_DECL_OVERRIDE;
+
+    virtual QString _setCoordinateSystem( QString csName ) Q_DECL_OVERRIDE;
+
+    virtual QString _setDataGridState( const QString stateName, const QString stateValue ) Q_DECL_OVERRIDE;
 
     /**
      * Give the layer (a more user-friendly) name.
@@ -477,7 +481,7 @@ protected:
      *      an empty string otherwise.
      * @return - true if the mask opacity was changed; false otherwise.
      */
-    virtual bool _setMaskAlpha( const QString& id, int alphaAmount);
+    virtual bool _setMaskAlpha( const QString& id, int alphaAmount) Q_DECL_OVERRIDE;
 
     /**
      * Reset the default mask transparency.

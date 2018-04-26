@@ -136,7 +136,7 @@ void Layout::clear(){
 }
 
 
-QString Layout::getStateString() const {
+QString Layout::getStateString( const QString& /*sessionId*/, SnapshotType /*type*/ ) const {
     Carta::State::StateInterface layoutState("");
     layoutState.setState( m_state.toString());
     layoutState.insertObject( "nodes", m_layoutRoot->getStateString());
@@ -491,7 +491,7 @@ void Layout::setLayoutAnalysis(){
     QStringList oldNames = getPluginList();
     _makeRoot();
 
-    LayoutNode* rightTop = NodeFactory::makeComposite( false );
+    // LayoutNode* rightTop = NodeFactory::makeComposite( false );
 
     LayoutNode* rightBottom = NodeFactory::makeComposite( false );
     LayoutNode* colorLeaf = NodeFactory::makeLeaf( Colormap::CLASS_NAME );

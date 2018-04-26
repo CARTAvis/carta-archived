@@ -48,7 +48,7 @@ public:
      ~NewServerConnector();
 
     Viewer viewer;
-    QThread *selfThread; //not really use now, may take effect later 
+    QThread *selfThread; //not really use now, may take effect later
     void testStartViewerSlot(const QString & sessionID);
 
 public slots:

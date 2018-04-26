@@ -17,6 +17,8 @@ class LayoutNode : public Carta::State::CartaObject {
 
 public:
 
+    using CartaObject::resetState;
+
     /**
      * Add an empty layout cell to the cell identified by nodeId at the position indicated.
      * @param nodeId - an identifier for a layout cell that needs to be split.
@@ -87,7 +89,7 @@ public:
      * Returns a string representation of this layout cell's state.
      * @return a string representation of the layout cell.
      */
-    virtual QString getStateString() const;
+    virtual QString getStateString( const QString& sessionId = "", SnapshotType type = SNAPSHOT_INFO ) const override;
 
     /**
      * Returns the width of the plugin.

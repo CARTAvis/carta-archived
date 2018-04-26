@@ -1,6 +1,8 @@
 #include "LayerGroup.h"
 #include "LayerData.h"
 #include "DataSource.h"
+#include "Grid/AxisMapper.h"
+#include "Grid/DataGrid.h"
 #include "Data/Util.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "CartaLib/IRemoteVGView.h"
@@ -242,8 +244,12 @@ void LayerGroup::_displayAxesChanged(std::vector<AxisInfo::KnownType> displayAxi
     }
 }
 
-Carta::Lib::AxisInfo::KnownType LayerGroup::_getAxisType( int /*index*/ ) const {
+Carta::Lib::AxisInfo::KnownType LayerGroup::_getAxisType( int index ) const {
     AxisInfo::KnownType axisType = AxisInfo::KnownType::OTHER;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        axisType = m_children[dataIndex]->_getAxisType( index );
+    }
     return axisType;
 }
 
@@ -339,6 +345,15 @@ QString LayerGroup::_getCursorText(bool isAutoClip, double minPercent, double ma
     }
     return cursorText;
 
+}
+
+std::shared_ptr<DataGrid> LayerGroup::_getDataGrid(){
+    std::shared_ptr<DataGrid> dataGrid( nullptr );
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        dataGrid = m_children[dataIndex]->_getDataGrid();
+    }
+    return dataGrid;
 }
 
 QString LayerGroup::_getDefaultName( const QString& id ) const {
@@ -452,7 +467,7 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_g
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
     int dataCount = m_children.size();
     //Return the images in stack order.
-    int startIndex = _getIndexCurrent();
+    // int startIndex = _getIndexCurrent();
     for ( int i = 0; i < dataCount; i++ ){
         // int dIndex = (startIndex + i) % dataCount;
         if ( m_children[i]->_isVisible() ){
@@ -489,24 +504,14 @@ QRectF LayerGroup::_getInputRect( const QSize& size ) const {
     return rect;
 }
 
-std::vector<std::pair<int,double> > LayerGroup::_getLocationAndIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
-    std::vector<std::pair<int,double> > results;
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        results = m_children[dataIndex]->_getLocationAndIntensity( frameLow, frameHigh,
-                percentiles, stokeFrame );
-    }
-    return results;
-}
-
 std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
-        const std::vector<double>& percentiles, int stokeFrame ) const{
+        const std::vector<double>& percentiles, int stokeFrame,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const{
     std::vector<double> results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
         results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
-                percentiles, stokeFrame );
+                percentiles, stokeFrame, converter );
     }
     return results;
 }
@@ -578,13 +583,13 @@ QStringList LayerGroup::_getLayerIds( ) const {
 }
 
 
-double LayerGroup::_getPercentile( int frameLow, int frameHigh, double intensity ) const {
-    double percentile = 0;
+std::vector<double> LayerGroup::_getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
+    std::vector<double> percentiles(intensities.size());
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        percentile = m_children[dataIndex]->_getPercentile( frameLow, frameHigh, intensity );
+        percentiles = m_children[dataIndex]->_getPercentiles( frameLow, frameHigh, intensities, converter );
     }
-    return percentile;
+    return percentiles;
 }
 
 
@@ -718,14 +723,14 @@ double LayerGroup::_getZoom() const {
     return zoom;
 }
 
-void LayerGroup::_gridChanged( const Carta::State::StateInterface& state ){
-    int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        if ( m_children[i] != nullptr ){
-            m_children[i]->_gridChanged( state );
-        }
-    }
-}
+// void LayerGroup::_gridChanged( const Carta::State::StateInterface& state ){
+//     int dataCount = m_children.size();
+//     for ( int i = 0; i < dataCount; i++ ){
+//         if ( m_children[i] != nullptr ){
+//             m_children[i]->_gridChanged( state );
+//         }
+//     }
+// }
 
 
 void LayerGroup::_initializeState(){
@@ -933,6 +938,21 @@ void LayerGroup::_setColorSupport( Layer* layer ){
     layer->_setSupportAlpha( alphaSupport );
 }
 
+QString LayerGroup::_setAxis( const QString axis, const QString name ){
+    QString result;
+    for ( auto layer : m_children ){
+        layer->_setAxis( axis, name);
+    }
+
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        Carta::State::StateInterface dataGridState = dataGrid->_getState();
+        result = dataGridState.toString();
+    }
+    return result;
+}
+
 bool LayerGroup::_setCompositionMode( const QString& id, const QString& compositionMode,
         QString& errorMsg ){
     bool stateChanged = false;
@@ -964,6 +984,36 @@ bool LayerGroup::_setCompositionMode( const QString& id, const QString& composit
     return stateChanged;
 }
 
+QString LayerGroup::_setCoordinateSystem( QString csName ){
+    QString result;
+    for ( auto layer : m_children ){
+        result = layer->_setCoordinateSystem( csName );
+    }
+
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        Carta::State::StateInterface dataGridState = dataGrid->_getState();
+        result = dataGridState.toString();
+    }
+    return result;
+}
+
+QString LayerGroup::_setDataGridState( const QString stateName, const QString stateValue ){
+    QString result;
+    for ( auto layer : m_children ){
+        std::shared_ptr<DataGrid> dataGrid = layer->_getDataGrid();
+        result = dataGrid->_setState( stateName, stateValue );
+    }
+
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        std::shared_ptr<DataGrid> dataGrid = m_children[dataIndex]->_getDataGrid();
+        Carta::State::StateInterface dataGridState = dataGrid->_getState();
+        result = dataGridState.toString();
+    }
+    return result;
+}
 
 bool LayerGroup::_setLayersGrouped( bool grouped, const QSize& clientSize  ){
     bool operationPerformed = false;
