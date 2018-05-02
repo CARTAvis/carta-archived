@@ -57,13 +57,6 @@ public:
     int getDataCount() const;
 
     /**
-     * Return a default name to be used for the curve if the user hasn't specified
-     * a custom name.
-     * @return - a default descriptive name for the curve.
-     */
-    QString getDefaultName() const;
-
-    /**
      * Return the two-dimensional data that represent a fit to this curve.
      * @return - the two-dimensional data that represent a curve fit.
      */
@@ -134,6 +127,12 @@ public:
      *      that were fit to the curve.
      */
     std::vector<std::tuple<double,double,double> > getGaussParams() const;
+
+    /**
+     * Return the id of the curve.
+     * @return - the id of the curve.
+     */
+    QString getId() const;
 
     /**
      * Return the image used to generate the curve.
@@ -388,6 +387,12 @@ public:
     void setFitPolyCoeffs( const std::vector<double>& polyCoeffs );
 
     /**
+     * Set the permanent id of the curvedata, the value should not be changed until the curve is destroyed.
+     * @param id - the name generated when constructing the curve.
+     */
+    void setId( QString id );
+
+    /**
      * Set the line style (outline,solid, etc) for drawing the curve.
      * @param lineStyle - the style to be used for connecting the curve points.
      */
@@ -415,6 +420,12 @@ public:
      *      an empty string.
      */
     QString setPlotStyle( const QString& plotStyle );
+
+    /**
+     * Set the profile information to generate profile data
+     * @param profInfo - the ProfileInfo to be used in ProfileRenderService and display
+     */
+    void setProfileInfo( Carta::Lib::ProfileInfo profInfo );
 
     /**
      * Set the region over which the curve is defined.
@@ -496,6 +507,10 @@ public:
     const static QString CLASS_NAME;
 
 private:
+
+    const static QString DATA_X;
+    const static QString DATA_Y;
+
     const static QString ACTIVE;
     const static QString FIT;
     const static QString FIT_CENTER;
@@ -558,6 +573,7 @@ private:
     std::shared_ptr<Region> m_region;
 
     Carta::State::StateInterface m_stateFit;
+    Carta::Lib::ProfileInfo m_profInfo;
 
     bool m_nameSet;
 

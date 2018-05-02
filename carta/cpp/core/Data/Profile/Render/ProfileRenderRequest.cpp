@@ -6,50 +6,54 @@ namespace Carta {
 namespace Data {
 
 ProfileRenderRequest::ProfileRenderRequest( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
-		Carta::Lib::ProfileInfo profileInfo, bool createNew) :
-		m_layer (nullptr),
-		m_region (nullptr ){
-	m_layer = layer;
-	m_region = region;
-	m_profileInfo = profileInfo;
-	m_createNew = createNew;
+        Carta::Lib::ProfileInfo profileInfo, int curveIndex) :
+        m_layer (nullptr),
+        m_region (nullptr ){
+    m_layer = layer;
+    m_region = region;
+    m_profileInfo = profileInfo;
+    m_curveIndex = curveIndex;
 }
 
 std::shared_ptr<Layer> ProfileRenderRequest::getLayer() const {
-	return m_layer;
+    return m_layer;
 }
 
 std::shared_ptr<Region> ProfileRenderRequest::getRegion() const {
-	return m_region;
+    return m_region;
 }
 
 Carta::Lib::ProfileInfo ProfileRenderRequest::getProfileInfo() const {
-	return m_profileInfo;
+    return m_profileInfo;
 }
 
 QString ProfileRenderRequest::_getId() const {
-	 QString id;
-	 if ( m_layer ){
-		 id = m_layer->_getLayerId();
-	 }
-	 if ( m_region ){
-		 id = id + m_region->getRegionName();
-	 }
-	 return id;
+     QString id;
+     if ( m_layer ){
+         id = m_layer->_getLayerId();
+     }
+     if ( m_region ){
+        id = id + m_region->getRegionName();
+     }
+     return id;
 }
 
-bool ProfileRenderRequest::isCreateNew() const {
-	return m_createNew;
+// bool ProfileRenderRequest::isCreateNew() const {
+// 	return m_createNew;
+// }
+
+int ProfileRenderRequest::getCurveIndex() const {
+    return m_curveIndex;
 }
 
 bool ProfileRenderRequest::operator==( const ProfileRenderRequest& other ){
-	bool equalRequests = false;
-	if ( other._getId() == _getId() ){
-		if ( other.m_profileInfo == m_profileInfo ){
-			equalRequests = true;
-		}
-	}
-	return equalRequests;
+    bool equalRequests = false;
+    if ( other._getId() == _getId() ){
+        if ( other.m_profileInfo == m_profileInfo ){
+            equalRequests = true;
+        }
+    }
+    return equalRequests;
 }
 
 ProfileRenderRequest::~ProfileRenderRequest(){
@@ -57,4 +61,3 @@ ProfileRenderRequest::~ProfileRenderRequest(){
 }
 }
 }
-

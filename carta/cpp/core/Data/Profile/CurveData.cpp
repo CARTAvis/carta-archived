@@ -21,6 +21,8 @@ namespace Carta {
 namespace Data {
 
 const QString CurveData::CLASS_NAME = "CurveData";
+const QString CurveData::DATA_X = "x";
+const QString CurveData::DATA_Y = "y";
 const QString CurveData::ACTIVE = "active";
 const QString CurveData::FIT = "fit";
 const QString CurveData::FIT_CENTER = "center";
@@ -226,11 +228,6 @@ int CurveData::getDataCount() const {
     return m_plotDataX.size();
 }
 
-QString CurveData::getDefaultName() const {
-	QString dName = _generateName( m_layer, m_region );
-    return dName;
-}
-
 std::vector< std::pair<double,double> > CurveData::getFitData() const {
     int fitCount = m_fitDataX.size();
     std::vector< std::pair<double,double> > fitData( fitCount );
@@ -310,6 +307,9 @@ std::vector<std::tuple<double,double,double> > CurveData::getGaussParams() const
     return m_gaussParams;
 }
 
+QString CurveData::getId() const {
+    return m_state.getValue<QString>( Util::ID );
+}
 
 std::shared_ptr<Layer> CurveData::getLayer() const {
     return m_layer;
@@ -375,23 +375,11 @@ QString CurveData::getSpectralUnit() const {
 }
 
 Carta::Lib::ProfileInfo CurveData::getProfileInfo() const {
-    double restFreq = getRestFrequency();
-    QString restUnits = getRestUnits();
-    QString stat = getStatistic();
-    QString spectralUnit = getSpectralUnit();
-    QString spectralType = getSpectralType();
-    int stokesFrame = getStokesFrame();
-    Carta::Lib::ProfileInfo profInfo;
+    return m_profInfo;
+}
 
-    profInfo.setRestFrequency( restFreq );
-    profInfo.setRestUnit( restUnits );
-    Carta::Lib::ProfileInfo::AggregateType agType = m_stats ->getTypeFor( stat );
-    profInfo.setAggregateType( agType );
-    profInfo.setSpectralUnit( spectralUnit );
-    profInfo.setSpectralType( spectralType );
-    profInfo.setStokesFrame( stokesFrame );
-
-    return profInfo;
+void CurveData::setProfileInfo( Carta::Lib::ProfileInfo profInfo ){
+    m_profInfo = profInfo;
 }
 
 std::shared_ptr<Region> CurveData::getRegion() const {
@@ -445,8 +433,12 @@ std::vector<double> CurveData::getValuesYFit() const{
 
 
 void CurveData::_initializeDefaultState(){
+
+    m_state.insertArray( DATA_X, 0);
+    m_state.insertArray( DATA_Y, 0);
+
     m_state.insertValue<QString>( Util::NAME, "");
-    //m_state.insertValue<QString>( Util::ID, "");
+    m_state.insertValue<QString>( Util::ID, "");
     m_state.insertValue<int>( Util::RED, 255 );
     m_state.insertValue<int>( Util::GREEN, 0 );
     m_state.insertValue<int>( Util::BLUE, 0 );
@@ -511,18 +503,16 @@ bool CurveData::isFrequencyUnits() const {
 }
 
 bool CurveData::isMatch( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
-		Carta::Lib::ProfileInfo otherProfInfo ) const {
+        Carta::Lib::ProfileInfo otherProfInfo ) const {
     bool match = false;
-    if ( layer && m_layer ){
-    	if ( layer->_getLayerName() == m_layer->_getLayerName()){
-            if ( (!region && !m_region) || this->getName() == _generateName( layer, region) ){
-				Carta::Lib::ProfileInfo profInfo = getProfileInfo();
-				if ( profInfo == otherProfInfo ){
-					match = true;
-				}
-			}
-    	}
-	}
+    if ( layer && m_layer && layer == m_layer ){
+        if ( (!region && !m_region) || region == m_region ){
+            Carta::Lib::ProfileInfo profInfo = getProfileInfo();
+            if ( profInfo == otherProfInfo ){
+                match = true;
+            }
+        }
+    }
     return match;
 }
 
@@ -564,6 +554,15 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
     CARTA_ASSERT( valsX.size() == valsY.size() );
     m_plotDataX = valsX;
     m_plotDataY = valsY;
+    int dataCount = m_plotDataX.size();
+    m_state.resizeArray( DATA_X, dataCount);
+    m_state.resizeArray( DATA_Y, dataCount);
+    for( int i=0; i<dataCount; i++){
+        QString xLookup = Carta::State::UtilState::getLookup( DATA_X, i);
+        QString yLookup = Carta::State::UtilState::getLookup( DATA_Y, i);
+        m_state.setValue<double>( xLookup, m_plotDataX[i]);
+        m_state.setValue<double>( yLookup, m_plotDataY[i]);
+    }
     bool pointSource = false;
     if ( m_plotDataX.size() <= 1 ){
         pointSource = true;
@@ -575,6 +574,11 @@ void CurveData::setData( const std::vector<double>& valsX, const std::vector<dou
 void CurveData::setDataX( const std::vector<double>& valsX ){
     CARTA_ASSERT( m_plotDataY.size() == valsX.size());
     m_plotDataX = valsX;
+    int dataCount = m_plotDataX.size();
+    for( int i=0; i<dataCount; i++){
+        QString xLookup = Carta::State::UtilState::getLookup( DATA_X, i);
+        m_state.setValue<double>( xLookup, m_plotDataX[i]);
+    }
 }
 
 void CurveData::setDataXFit( const std::vector<double>& valsX ){
@@ -585,6 +589,11 @@ void CurveData::setDataXFit( const std::vector<double>& valsX ){
 void CurveData::setDataY( const std::vector<double>& valsY ){
     CARTA_ASSERT( m_plotDataX.size() == valsY.size());
     m_plotDataY = valsY;
+    int dataCount = m_plotDataY.size();
+    for( int i=0; i<dataCount; i++){
+        QString yLookup = Carta::State::UtilState::getLookup( DATA_Y, i);
+        m_state.setValue<double>( yLookup, m_plotDataY[i]);
+    }
 }
 
 void CurveData::setDataYFit( const std::vector<double>& valsY ){
@@ -622,6 +631,12 @@ void CurveData::setFitStatus( const QString& fitStatus ) {
     m_fitStatus = fitStatus;
 }
 
+// id should be identical and permanent.
+// The function should be called only when the curvedata is first generated
+void CurveData::setId( QString id ) {
+    m_state.setValue<QString>( Util::ID, id );
+    setName(id); // Set the default name be the same with id
+}
 
 void CurveData::setLayer( std::shared_ptr<Layer> layer ){
     m_layer = layer;
@@ -700,11 +715,6 @@ QString CurveData::setPlotStyle( const QString& plotStyle ){
 
 void CurveData::setRegion( std::shared_ptr<Region> region ){
     m_region = region;
-    if ( !m_nameSet ){
-        QString dName = getDefaultName();
-        m_state.setValue<QString>( Util::NAME, dName );
-        m_state.flushState();
-    }
 }
 
 

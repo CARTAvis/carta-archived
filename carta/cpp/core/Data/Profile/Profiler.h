@@ -240,6 +240,8 @@ public:
      */
     QString profileRemove( const QString& name );
 
+    QString profileRemove( int index );
+
     /**
      * Force a state refresh.
      */
@@ -266,7 +268,7 @@ public:
      * @param autoGenerate - true if they should be automatically generated; false,
      * 		otherwise.
      */
-    void setAutoGenerate( bool autoGenerate );
+    QString setAutoGenerate( bool autoGenerate );
 
     /**
      * Set the bottom axis units.
@@ -594,7 +596,7 @@ protected:
 private slots:
     void _cursorUpdate( double x, double y );
     void _fitFinished(const std::vector<Carta::Lib::Hooks::FitResult>& result);
-    void _loadProfile( Controller* controller);
+    // void _loadProfile( Controller* controller);
     void _movieFrame();
     void _plotSizeChanged();
     void _profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
@@ -604,6 +606,7 @@ private slots:
     void _updateChannel( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
     void _updateZoomRangeBasedOnPercent();
     QString _zoomToSelection();
+    void _profileRendered(const Carta::Lib::Hooks::ProfileResult& result, int index );
 
 private:
     const static QString AUTO_GENERATE;
@@ -646,6 +649,9 @@ private:
     const static QString ZOOM_MAX_PERCENT;
     const static double ERROR_MARGIN;
 
+    int _addNewCurveData( std::shared_ptr<Layer> layer,
+        std::shared_ptr<Region> region, Carta::Lib::ProfileInfo profInfo);
+
     //Assign a color to the curve.
     void _assignColor( std::shared_ptr<CurveData> curveData );
 
@@ -672,18 +678,29 @@ private:
             const QString & newUnit ) const;
 
     int _findCurveIndex( const QString& curveId ) const;
+    int _findCurveIndex( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
+         const Carta::Lib::ProfileInfo& profInfo ) const;
 
     bool _generateCurve( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
 
     void _generateData( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region,
             bool createNew = false);
+    // TODO:Replace the above one
+    void _generateData( std::shared_ptr<CurveData> profileCurve, int index );
 
     void _generateFit( );
     std::vector<std::tuple<double,double,double> > _generateFitGuesses( int count, bool random );
 
+    QString _generateName( std::shared_ptr<Layer> layer, std::shared_ptr<Region> region );
+
+    // TODO:Integrate the updateprofiles() and profileNew() to the new-defined function.
+    void _generateProfiles();
+
     Controller* _getControllerSelected() const;
+
+    Carta::Lib::ProfileInfo _getCurrentProfileInfo() const;
     std::pair<double,double> _getCurveRangeX() const;
-    std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( Controller* controller) const;
+    std::vector<std::shared_ptr<Layer> > _getDataForGenerateMode( /*Controller* controller*/) const;
     int _getExtractionAxisIndex( std::shared_ptr<Carta::Lib::Image::ImageInterface> image ) const;
 
     QString _getFitStatusMessage( Carta::Lib::Fit1DInfo::StatusType statType) const;
@@ -700,10 +717,17 @@ private:
     void _initializeCallbacks();
     void _initializeStatics();
 
+    bool _isPermittedLayer( std::shared_ptr<Layer> layer ) const;
+
     void _makeInitialGuesses( int count );
+
+    void _resetProfInfo(); // The function should be called before getCurrentProfInfo
+    QString _resetProfInfoState();
+    QString _resetRestFrequency( std::shared_ptr<Layer> layer );
 
     void _saveCurveState();
     void _saveCurveState( int index );
+    void _setProfInfo( Carta::Lib::ProfileInfo profInfo );
 
     void _setErrorMargin();
 
@@ -718,7 +742,7 @@ private:
 
     void _updatePlotDisplay();
 
-    bool _updateProfiles( Controller* controller );
+    // bool _updateProfiles( Controller* controller );
     void _updateSelectedCurve();
 
     //Breaks a string of the form "Frequency (GHz)" into a type "Frequency"
@@ -766,6 +790,8 @@ private:
     //Fit statistics
     Carta::State::StateInterface m_stateFitStatistics;
 
+    // TODO: save current profile info to compare the one in CurveData
+    Carta::Lib::ProfileInfo m_profInfo;
 
     static UnitsSpectral* m_spectralUnits;
     static UnitsIntensity* m_intensityUnits;

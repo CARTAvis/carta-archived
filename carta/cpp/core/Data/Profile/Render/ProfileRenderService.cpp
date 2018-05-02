@@ -11,8 +11,7 @@ namespace Data {
 
 ProfileRenderService::ProfileRenderService( QObject * parent ) :
         QObject( parent ),
-        m_worker( nullptr),
-        m_renderThread( nullptr ){
+        m_worker( nullptr){
     m_renderQueued = false;
 }
 
@@ -27,6 +26,23 @@ bool ProfileRenderService::renderProfile(std::shared_ptr<Layer> layer,
     		m_requests.enqueue( request );
     		_scheduleRender( layer, region, profInfo );
     	}
+    }
+    else {
+        profileRender = false;
+    }
+    return profileRender;
+}
+
+bool ProfileRenderService::renderProfile(std::shared_ptr<Layer> layer,
+        std::shared_ptr<Region> region, const Carta::Lib::ProfileInfo& profInfo,
+        int index ){
+    bool profileRender = true;
+    ProfileRenderRequest request( layer, region, profInfo, index );
+    if ( layer ){
+        if ( ! m_requests.contains( request ) ){
+            m_requests.enqueue( request );
+            _scheduleRender( layer, region, profInfo );
+        }
     }
     else {
         profileRender = false;
@@ -75,22 +91,13 @@ void ProfileRenderService::_postResult( Lib::Hooks::ProfileResult result ){
 //    Lib::Hooks::ProfileResult result = m_renderThread->getResult();
     m_result = result;
     ProfileRenderRequest request = m_requests.dequeue();
-    emit profileResult(result, request.getLayer(), request.getRegion(), request.isCreateNew() );
+    emit profileResult( result, request.getCurveIndex());
+    // emit profileResult(result, request.getLayer(), request.getRegion(), request.isCreateNew() );
     m_renderQueued = false;
     if ( m_requests.size() > 0 ){
         ProfileRenderRequest& head = m_requests.head();
          _scheduleRender( head.getLayer(), head.getRegion(), head.getProfileInfo() );
     }
-}
-
-bool ProfileRenderService::waitThreadFinish(){
-    if (!m_renderThread){
-        qDebug() << "There is no thread for rendering profile.";
-    }
-    else {
-        qDebug() << "Waiting for the qthread computing profile";
-    }
-    return ( m_renderThread ? m_renderThread->wait() : false );
 }
 
 Lib::Hooks::ProfileResult ProfileRenderService::getResult(){
@@ -100,8 +107,6 @@ Lib::Hooks::ProfileResult ProfileRenderService::getResult(){
 
 ProfileRenderService::~ProfileRenderService(){
     delete m_worker;
-    delete m_renderThread;
 }
 }
 }
-
