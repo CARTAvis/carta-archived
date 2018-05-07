@@ -1,0 +1,31 @@
+// See README.txt for information and build instructions.
+//
+// Note: START and END tags are used in comments to define sections used in
+// tutorials.  They are not part of the syntax for Protocol Buffers.
+//
+// To get an in-depth walkthrough of this file and the related examples, see:
+// https://developers.google.com/protocol-buffers/docs/tutorials
+
+// [START declaration]
+syntax = "proto3";
+package CartaMessage;
+
+//import "google/protobuf/timestamp.proto";
+// [END declaration]
+
+// [START messages]
+message RasterImage {
+  int32 file_id = 1;
+  int32 layer_id = 2;
+  int32 image_bound_x = 3;
+  int32 image_bound_y = 4;
+  int32 stoke = 5;
+  int32 channel = 6;
+  repeated double pixel_data = 7 [packed=true];
+}
+
+// Our address book file is just one of these.
+message DataBook {
+  repeated RasterImage raster_image = 1;
+}
+// [END messages]
