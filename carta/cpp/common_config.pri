@@ -11,6 +11,7 @@ WCSLIBDIR=../../ThirdParty/wcslib
 CFITSIODIR=../../ThirdParty/cfitsio
 IMAGEANALYSISDIR=../../ThirdParty/imageanalysis
 FLEXANDBISONDIR=../../ThirdParty/flex
+PROTOBUFDIR=../../ThirdParty/protobuf
 
 # don't edit these:
 # relative links are replaced by absolute paths
@@ -21,3 +22,4 @@ WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
 CFITSIODIR=$$absolute_path($${CFITSIODIR})
 IMAGEANALYSISDIR=$$absolute_path($${IMAGEANALYSISDIR})
 FLEXANDBISONDIR=$$absolute_path($${FLEXANDBISONDIR})
+PROTOBUFDIR=$$absolute_path($${PROTOBUFDIR})
