@@ -14,6 +14,8 @@ using namespace std;
 
 typedef Carta::Lib::AxisInfo AxisInfo;
 
+const double NAN_VALUE = -9999;
+
 int getAxisIndex(std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image, AxisInfo::KnownType axisType) {
     int index = -1;
     if (m_image){
@@ -123,12 +125,88 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
     return hertzValues;
 }
 
-std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage) {
-    // set stoke index for getting the raw data (0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
-    int stokeIndex = 0;
-    int frameStart = 0;
-    int frameEnd = 1;
+bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip) {
+    // check if the setting value of x- or y- dim matches the raw data size and fits the down sampling requirement
+    if (rawData.size() != x_size * y_size || mip > x_size || mip > y_size || x_size <= 0 || y_size <= 0) {
+        qCritical() << "The input value of x- or y- dim does not match the raw data size or down sampling requirement!";
+        return false;
+    }
+    if (mip < 1) {
+        qCritical() << "The mip value should be greater than or equal to 1!";
+        return false;
+    } else if (mip == 1) {
+        qDebug() << "The mip value is equal to one, return the original raw data.";
+        return true;
+    } else {
+        // do the down sampling procedure
+        int reduced_x_size = x_size / mip;
+        int reduced_y_size = y_size / mip;
+        int residual_x = x_size % mip;
+        int residual_y = y_size % mip;
+        // collapse the column size first
+        for (int i = y_size - 1; i >= 0; i--) { // start from the last row
+            for (int j = reduced_x_size - 1; j >= 0; j--) { // start from the last column
+                // calculate the reatin index
+                int retain_index = x_size * i + mip * j;
+                // calculate the average of the pixel value in the "mip" range
+                int denominator = mip;
+                for (int k = 1; k < mip; k++) {
+                    if (rawData[retain_index] < NAN_VALUE + 1) {
+                        denominator -= 1;
+                    } else {
+                        rawData[retain_index] += rawData[retain_index + k];
+                    }
+                }
+                if (denominator == 0) {
+                    rawData[retain_index] = NAN_VALUE;
+                } else {
+                    rawData[retain_index] /= denominator;
+                }
+                // erase last elements in the mip range except the ratain element
+                int remove_index_begin = retain_index + 1;
+                int remove_index_end = remove_index_begin + mip - 1;
+                // erase residual columns on the right hand side
+                if (j == reduced_x_size - 1) {
+                    remove_index_end += residual_x;
+                }
+                rawData.erase(rawData.begin() + remove_index_begin, rawData.begin() + remove_index_end);
+            }
+        }
+        // then collapse the row size
+        for (int i = reduced_y_size - 1; i >= 0; i--) { // start from the last row
+            for (int j = reduced_x_size - 1; j >= 0; j--) { // start from the last column
+                // calculate the reatin index
+                int retain_index = mip * i * reduced_x_size + j;
+                // calculate the average of the pixel value in the "mip" range
+                int denominator = mip;
+                for (int k = 1; k < mip; k++) {
+                    if (rawData[retain_index] < NAN_VALUE + 1) {
+                        denominator -= 1;
+                    } else {
+                        rawData[retain_index] += rawData[retain_index + k * reduced_x_size];
+                    }
+                }
+                if (denominator == 0) {
+                    rawData[retain_index] = NAN_VALUE;
+                } else {
+                    rawData[retain_index] /= denominator;
+                }
+            }
+            // erase last elements in the mip range except the ratain element
+            int remove_index_begin = (mip * i + 1) * reduced_x_size;
+            int remove_index_end = remove_index_begin + (mip - 1) * reduced_x_size;
+            // erase residual rows on the bottom
+            if (i == reduced_y_size - 1) {
+                remove_index_end += residual_y * reduced_x_size;
+            }
+            rawData.erase(rawData.begin() + remove_index_begin, rawData.begin() + remove_index_end);
+        }
+        return true;
+    }
+}
 
+std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage,
+                                   int frameStart, int frameEnd, int stokeIndex, int mip) {
     // get raw data as the double type
     Carta::Lib::NdArray::RawViewInterface* rawData = getRawData(astroImage, frameStart, frameEnd, stokeIndex);
     std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
@@ -167,7 +245,7 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
                 if (std::isfinite(val)) {
                     allValues.push_back(converter->_frameDependentConvert(val, hertzVal));
                 } else {
-                    allValues.push_back(-1);
+                    allValues.push_back(NAN_VALUE);
                 }
             });
         }
@@ -178,9 +256,21 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
             if (std::isfinite(val)) {
                 allValues.push_back(val);
             } else {
-                allValues.push_back(-1);
+                allValues.push_back(NAN_VALUE);
             }
         });
+    }
+
+    //qDebug() << "++++++++ the size of X-axis:" << astroImage->dims()[0];
+    //qDebug() << "++++++++ the size of Y-axis:" << astroImage->dims()[1];
+    int x_size = astroImage->dims()[0];
+    int y_size = astroImage->dims()[1];
+
+    bool isDownSampling = downSampling(allValues, x_size, y_size, mip);
+    if (isDownSampling) {
+        qDebug() << "++++++++ down sampling is success!";
+    } else {
+        qDebug() << "++++++++ down sampling is failed! Return the original raw data.";
     }
 
     //cout << "raw data size: " << allValues.size() << endl;
