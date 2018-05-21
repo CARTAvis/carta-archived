@@ -103,8 +103,20 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
         throw "Image read was a nullptr";
     }
 
+    //*****************************************************************
+    // parameters for extracting the raw data
+    //*****************************************************************
+
+    // set the spectral frame range [frameStart, frameEnd]
+    int frameStart = 0;
+    int frameEnd = 1;
+    // set stoke index for getting the raw data (0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+    int stokeIndex = 0;
+    // The mip level defines how many image pixels correspond to the downsampled image
+    int mip = 1;
+
     // extract the raw data
-    std::vector<double> rawdata = extractRawData(astroImage);
+    std::vector<double> rawdata = extractRawData(astroImage, frameStart, frameEnd, stokeIndex, mip);
 
     //*****************************************************************
     // start to load the protocol buffer !!
