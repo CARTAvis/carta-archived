@@ -15,4 +15,6 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
 
 bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip);
 
+std::vector<double> downSampling2(Carta::Lib::NdArray::RawViewInterface * view, int ilb, int iub, int jlb, int jub, int mip);
+
 #endif

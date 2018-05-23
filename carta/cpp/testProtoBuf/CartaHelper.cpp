@@ -148,16 +148,22 @@ bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip)
             for (int j = reduced_x_size - 1; j >= 0; j--) { // start from the last column
                 // calculate the reatin index
                 int retain_index = x_size * i + mip * j;
+                double denominator = 1.0 * mip;
+                // check if the retain index of the raw data is NAN
+                if (rawData[retain_index] < NAN_VALUE + 1) {
+                    rawData[retain_index] = 0;
+                    denominator -= 1;
+                }
                 // calculate the average of the pixel value in the "mip" range
-                int denominator = mip;
                 for (int k = 1; k < mip; k++) {
-                    if (rawData[retain_index] < NAN_VALUE + 1) {
+                    // check if the range retain index of the raw data is NAN
+                    if (rawData[retain_index + k] < NAN_VALUE + 1) {
                         denominator -= 1;
                     } else {
                         rawData[retain_index] += rawData[retain_index + k];
                     }
                 }
-                if (denominator == 0) {
+                if (denominator < 0) {
                     rawData[retain_index] = NAN_VALUE;
                 } else {
                     rawData[retain_index] /= denominator;
@@ -178,15 +184,21 @@ bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip)
                 // calculate the reatin index
                 int retain_index = mip * i * reduced_x_size + j;
                 // calculate the average of the pixel value in the "mip" range
-                int denominator = mip;
+                double denominator = 1.0 * mip;
+                // check if the retain index of the raw data is NAN
+                if (rawData[retain_index] < NAN_VALUE + 1) {
+                    rawData[retain_index] = 0;
+                    denominator -= 1;
+                }
                 for (int k = 1; k < mip; k++) {
-                    if (rawData[retain_index] < NAN_VALUE + 1) {
+                    // check if the range retain index of the raw data is NAN
+                    if (rawData[retain_index + k * reduced_x_size] < NAN_VALUE + 1) {
                         denominator -= 1;
                     } else {
                         rawData[retain_index] += rawData[retain_index + k * reduced_x_size];
                     }
                 }
-                if (denominator == 0) {
+                if (denominator < 0) {
                     rawData[retain_index] = NAN_VALUE;
                 } else {
                     rawData[retain_index] /= denominator;
@@ -203,6 +215,82 @@ bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip)
         }
         return true;
     }
+}
+
+std::vector<double> downSampling2(Carta::Lib::NdArray::RawViewInterface *view, int ilb, int iub, int jlb, int jub, int mip) {
+    std::vector<double> allValues;
+    int nRows = (jub - jlb + 1) / mip;
+    int nCols = (iub - ilb + 1) / mip;
+
+    if (nCols > view -> dims()[0] || nRows > view -> dims()[1] || nCols < 0 || nRows < 0) {
+        qCritical() << "The input values of ilb, iub, jlb, jub or mip may be not correct!";
+        return allValues;
+    }
+
+    int prepareCols = iub - ilb + 1;
+    int prepareRows = mip;
+    int area = prepareCols * prepareRows;
+    std::vector<double> rawData(nCols), prepareArea(area);
+    int nextRowToReadIn = 0;
+
+    auto updateRows = [&]() -> void {
+        CARTA_ASSERT( nextRowToReadIn < view -> dims()[1] );
+
+        SliceND rowSlice;
+        int update = prepareRows;
+        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
+        auto rawRowView = view -> getView( rowSlice );
+
+        // make a double view of this raw row view
+        Carta::Lib::NdArray::Double dview( rawRowView, true );
+
+        int t = 0;
+        dview.forEach( [&] ( const double & val ) {
+            // To improve the performance, the prepareArea also update only one row
+            // by computing the module
+            prepareArea[(t++) % area] = val;
+        });
+
+        // Calculate the mean of each block (mip X mip)
+        for (int i = 0; i < nCols; i++) {
+            rawData[i] = 0;
+            int elems = mip * mip;
+            double denominator = 1.0 * elems;
+            for (int e = 0; e < elems; e++) {
+                int row = e / mip;
+                int col = e % mip;
+                int index = (row * prepareCols + col + i * mip) % area;
+                //
+                if (std::isfinite(prepareArea[index])) {
+                    rawData[i] += prepareArea[index];
+                } else {
+                    denominator -= 1;
+                }
+            }
+            //
+            if (denominator < 1) {
+                rawData[i] = NAN_VALUE;
+            } else {
+                rawData[i] /= denominator;
+            }
+            //
+            allValues.push_back(rawData[i]);
+        }
+        nextRowToReadIn += update;
+    };
+
+    for (int j = 0; j < nRows; j++) {
+        updateRows();
+        //for (int i = 0; i < nCols; i++) {
+        //    if (i == 0)
+        //       std::cout << rawData[i] << " ";
+        //}
+    }
+
+    //std::cout << "\n nCols: " << nCols << "\n";
+    //std::cout << "\n nRows: " << nRows << "\n";
+    //std::cout << "\n allValues.size(): " << allValues.size() << "\n";
+    return allValues;
 }
 
 std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage,
@@ -273,12 +361,31 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
         qDebug() << "++++++++ down sampling is failed! Return the original raw data.";
     }
 
-    //cout << "raw data size: " << allValues.size() << endl;
-    //for (int i = 0; i < allValues.size(); i++) {
-    //    cout << allValues[i] << " ";
-    //}
-    //cout << endl;
+    int ilb = 0;          // start of column index
+    int iub = x_size - 1; // end of column index
+    int jlb = 0;          // start of row index
+    int jub = y_size - 1; // end of row index
+    std::vector<double> testValues = downSampling2(rawData, ilb, iub, jlb, jub, mip);
+
+    // verify if downSampling() and downSampling2() give consistent results
+    if (allValues.size() != testValues.size()) {
+        qCritical() << "downSampling() and downSampling2() results are not consistent!";
+    } else {
+        bool isConsistent = true;
+        for (int i = 0; i < allValues.size(); i++) {
+            if (fabs(allValues[i] - testValues[i]) > 1e-6) {
+                qCritical() << "downSampling() and downSampling2() results are not consistent!"
+                            << "( allValues["<< i << "]=" << allValues[i]
+                            << ", testValues[" << i << "]=" << testValues[i] << ")";
+                isConsistent = false;
+            }
+        }
+        if (isConsistent) {
+            qDebug() << "downSampling() and downSampling2() results are consistent.";
+        }
+    }
 
     return allValues;
 
 } // end of extractRawData()
+
