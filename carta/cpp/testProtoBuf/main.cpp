@@ -113,7 +113,7 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     // set stoke index for getting the raw data (0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
     int stokeIndex = 0;
     // The mip level defines how many image pixels correspond to the downsampled image
-    int mip = 2;
+    int mip = 1;
 
     // extract the raw data
     std::vector<double> rawdata = extractRawData(astroImage, frameStart, frameEnd, stokeIndex, mip);

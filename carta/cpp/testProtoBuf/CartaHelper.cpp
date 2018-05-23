@@ -15,6 +15,7 @@ using namespace std;
 typedef Carta::Lib::AxisInfo AxisInfo;
 
 const double NAN_VALUE = -9999;
+const bool CHECK_DOWNSAMPLING_RESULT = false;
 
 int getAxisIndex(std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image, AxisInfo::KnownType axisType) {
     int index = -1;
@@ -39,10 +40,6 @@ Carta::Lib::NdArray::RawViewInterface* getRawData(std::shared_ptr<Carta::Lib::Im
     int m_axisIndexY = getAxisIndex(m_image, AxisInfo::KnownType::DIRECTION_LAT);
     int stokeIndex = getAxisIndex(m_image, AxisInfo::KnownType::STOKES);
     int spectralIndex = getAxisIndex(m_image, AxisInfo::KnownType::SPECTRAL);
-    //qDebug() << "++++++++ X Index:" << m_axisIndexX;
-    //qDebug() << "++++++++ Y Index:" << m_axisIndexY;
-    //qDebug() << "++++++++ Stoke Index:" << stokeIndex;
-    //qDebug() << "++++++++ Spectral Index:" << spectralIndex;
 
     if (m_axisIndexX != 0 || m_axisIndexY != 1) {
         qFatal("Can not find x or y axises");
@@ -125,7 +122,7 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
     return hertzValues;
 }
 
-bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip) {
+bool downVector(std::vector<double> &rawData, int x_size, int y_size, int mip) {
     // check if the setting value of x- or y- dim matches the raw data size and fits the down sampling requirement
     if (rawData.size() != x_size * y_size || mip > x_size || mip > y_size || x_size <= 0 || y_size <= 0) {
         qCritical() << "The input value of x- or y- dim does not match the raw data size or down sampling requirement!";
@@ -217,7 +214,7 @@ bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip)
     }
 }
 
-std::vector<double> downSampling2(Carta::Lib::NdArray::RawViewInterface *view, int ilb, int iub, int jlb, int jub, int mip) {
+std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, int ilb, int iub, int jlb, int jub, int mip) {
     std::vector<double> allValues;
     int nRows = (jub - jlb + 1) / mip;
     int nCols = (iub - ilb + 1) / mip;
@@ -287,65 +284,69 @@ std::vector<double> downSampling2(Carta::Lib::NdArray::RawViewInterface *view, i
         //}
     }
 
-    //std::cout << "\n nCols: " << nCols << "\n";
-    //std::cout << "\n nRows: " << nRows << "\n";
-    //std::cout << "\n allValues.size(): " << allValues.size() << "\n";
     return allValues;
+}
+
+void compareVectors(std::vector<double> vec1, std::vector<double> vec2) {
+    if (vec1.size() != vec2.size()) {
+        qCritical() << "!! Two vector sizes are not the same!";
+    } else {
+        bool isConsistent = true;
+        for (int i = 0; i < vec1.size(); i++) {
+            if (fabs(vec1[i] - vec2[i]) > 1e-6) {
+                qCritical() << "!! Two vector elements are not consistent:"
+                            << "vec1["<< i << "]=" << vec1[i]
+                            << ", vec2[" << i << "]=" << vec2[i]
+                            << ", diff=" << ((vec1[i] - vec2[i]) / vec1[i]) * 100.0 << "%";
+                isConsistent = false;
+            }
+        }
+        if (isConsistent) {
+            qDebug() << "Two vectors are the same.";
+        }
+    }
 }
 
 std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage,
                                    int frameStart, int frameEnd, int stokeIndex, int mip) {
     // get raw data as the double type
     Carta::Lib::NdArray::RawViewInterface* rawData = getRawData(astroImage, frameStart, frameEnd, stokeIndex);
-    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
-    Carta::Lib::NdArray::Double doubleView(view.get(), false);
-    std::vector<double> allValues;
-
-    doubleView.forEach([& allValues] (const double & val) {
-        if (std::isfinite(val)) {
-            allValues.push_back(val);
-        } else {
-            allValues.push_back(NAN_VALUE);
-        }
-    });
-
-    //qDebug() << "++++++++ the size of X-axis:" << astroImage->dims()[0];
-    //qDebug() << "++++++++ the size of Y-axis:" << astroImage->dims()[1];
-    int x_size = astroImage->dims()[0];
-    int y_size = astroImage->dims()[1];
-
-    bool isDownSampling = downSampling(allValues, x_size, y_size, mip);
-    if (isDownSampling) {
-        qDebug() << "++++++++ down sampling is success!";
-    } else {
-        qDebug() << "++++++++ down sampling is failed! Return the original raw data.";
-    }
+    int x_size = astroImage->dims()[0]; // the size of X-axis
+    int y_size = astroImage->dims()[1]; // the size of Y-axis
 
     int ilb = 0;          // start of column index
     int iub = x_size - 1; // end of column index
     int jlb = 0;          // start of row index
     int jub = y_size - 1; // end of row index
-    std::vector<double> testValues = downSampling2(rawData, ilb, iub, jlb, jub, mip);
+    std::vector<double> resultValues = downSampling(rawData, ilb, iub, jlb, jub, mip);
 
-    // verify if downSampling() and downSampling2() give consistent results
-    if (allValues.size() != testValues.size()) {
-        qCritical() << "downSampling() and downSampling2() results are not consistent!";
-    } else {
-        bool isConsistent = true;
-        for (int i = 0; i < allValues.size(); i++) {
-            if (fabs(allValues[i] - testValues[i]) > 1e-6) {
-                qCritical() << "downSampling() and downSampling2() results are not consistent!"
-                            << "( allValues["<< i << "]=" << allValues[i]
-                            << ", testValues[" << i << "]=" << testValues[i] << ")";
-                isConsistent = false;
+    // check if downsampling results are correct
+    if (CHECK_DOWNSAMPLING_RESULT) {
+        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+        Carta::Lib::NdArray::Double doubleView(view.get(), false);
+        std::vector<double> allValues;
+
+        doubleView.forEach([& allValues] (const double & val) {
+            if (std::isfinite(val)) {
+                allValues.push_back(val);
+            } else {
+                allValues.push_back(NAN_VALUE);
             }
+        });
+
+        bool isDownSampling = downVector(allValues, x_size, y_size, mip);
+
+        if (isDownSampling) {
+            qDebug() << "++++++++ down sampling is success!";
+        } else {
+            qDebug() << "++++++++ down sampling is failed! Return the original raw data.";
         }
-        if (isConsistent) {
-            qDebug() << "downSampling() and downSampling2() results are consistent.";
-        }
+
+        // check if two vectors are the same
+        compareVectors(allValues, resultValues);
     }
 
-    return allValues;
+    return resultValues;
 
 } // end of extractRawData()
 
