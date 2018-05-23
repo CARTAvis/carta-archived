@@ -163,7 +163,7 @@ bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip)
                         rawData[retain_index] += rawData[retain_index + k];
                     }
                 }
-                if (denominator < 0) {
+                if (denominator < 1) {
                     rawData[retain_index] = NAN_VALUE;
                 } else {
                     rawData[retain_index] /= denominator;
@@ -198,7 +198,7 @@ bool downSampling(std::vector<double> &rawData, int x_size, int y_size, int mip)
                         rawData[retain_index] += rawData[retain_index + k * reduced_x_size];
                     }
                 }
-                if (denominator < 0) {
+                if (denominator < 1) {
                     rawData[retain_index] = NAN_VALUE;
                 } else {
                     rawData[retain_index] /= denominator;
@@ -299,55 +299,15 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
     Carta::Lib::NdArray::RawViewInterface* rawData = getRawData(astroImage, frameStart, frameEnd, stokeIndex);
     std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
     Carta::Lib::NdArray::Double doubleView(view.get(), false);
-
-    //get the index of spectral axis
-    int spectralIndex = getAxisIndex(astroImage, AxisInfo::KnownType::SPECTRAL);
-
-    // TODO: set a unit converter for tests
-    // TODO: let the user specify this in parameters;then it becomes the user's responsibility to make it match the file
-    // TODO: pass it in from outside
-    // TODO: one for all files? one per file?
-    // unit converter
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
-
-    // get Hertz values
-    std::vector<double> hertzValues={};
-    if (converter && converter->frameDependent) {
-        hertzValues = getHertzValues(astroImage, doubleView.dims(), spectralIndex);
-    }
-
-    // read in all values from the view into memory so that we can do quickselect on it
     std::vector<double> allValues;
-    double hertzVal;
 
-    if (converter && converter->frameDependent) {
-        // we need to apply the frame-dependent conversion to each intensity value before copying it
-        // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
-        for (size_t f = 0; f < hertzValues.size(); f++) {
-            hertzVal = hertzValues[f];
-
-            Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(doubleView, spectralIndex, f);
-
-            // iterate over the frame
-            viewSlice.forEach([&allValues, &converter, &hertzVal](const double & val) {
-                if (std::isfinite(val)) {
-                    allValues.push_back(converter->_frameDependentConvert(val, hertzVal));
-                } else {
-                    allValues.push_back(NAN_VALUE);
-                }
-            });
+    doubleView.forEach([& allValues] (const double & val) {
+        if (std::isfinite(val)) {
+            allValues.push_back(val);
+        } else {
+            allValues.push_back(NAN_VALUE);
         }
-    } else {
-        // we don't have to do any conversions in the loop
-        // and we can loop over the flat image
-        doubleView.forEach([& allValues] (const double & val) {
-            if (std::isfinite(val)) {
-                allValues.push_back(val);
-            } else {
-                allValues.push_back(NAN_VALUE);
-            }
-        });
-    }
+    });
 
     //qDebug() << "++++++++ the size of X-axis:" << astroImage->dims()[0];
     //qDebug() << "++++++++ the size of Y-axis:" << astroImage->dims()[1];
