@@ -249,7 +249,7 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
         });
 
         // Calculate the mean of each block (mip X mip)
-        for (int i = 0; i < nCols; i++) {
+        for (int i = ilb; i < nCols; i++) {
             rawData[i] = 0;
             int elems = mip * mip;
             double denominator = 1.0 * elems;
@@ -276,7 +276,7 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
         nextRowToReadIn += update;
     };
 
-    for (int j = 0; j < nRows; j++) {
+    for (int j = jlb; j < nRows; j++) {
         updateRows();
         //for (int i = 0; i < nCols; i++) {
         //    if (i == 0)
@@ -326,6 +326,7 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
         Carta::Lib::NdArray::Double doubleView(view.get(), false);
         std::vector<double> allValues;
 
+        // get all pixel elements
         doubleView.forEach([& allValues] (const double & val) {
             if (std::isfinite(val)) {
                 allValues.push_back(val);
@@ -334,6 +335,7 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
             }
         });
 
+        // downsample the hole pixel elements by the "mip" factor
         bool isDownSampling = downVector(allValues, x_size, y_size, mip);
 
         if (isDownSampling) {
