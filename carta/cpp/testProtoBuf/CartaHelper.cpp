@@ -228,7 +228,7 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
     std::vector<double> rawData(nCols), prepareArea(area);
-    int nextRowToReadIn = 0;
+    int nextRowToReadIn = jlb;
 
     auto updateRows = [&]() -> void {
         CARTA_ASSERT( nextRowToReadIn < view -> dims()[1] );
