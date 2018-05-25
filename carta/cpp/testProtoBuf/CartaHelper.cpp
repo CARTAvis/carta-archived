@@ -160,11 +160,7 @@ bool downVector(std::vector<double> &rawData, int x_size, int y_size, int mip) {
                         rawData[retain_index] += rawData[retain_index + k];
                     }
                 }
-                if (denominator < 1) {
-                    rawData[retain_index] = NAN_VALUE;
-                } else {
-                    rawData[retain_index] /= denominator;
-                }
+                rawData[retain_index] = (denominator < 1 ? NAN_VALUE : rawData[retain_index] / denominator);
                 // erase last elements in the mip range except the ratain element
                 int remove_index_begin = retain_index + 1;
                 int remove_index_end = remove_index_begin + mip - 1;
@@ -195,11 +191,7 @@ bool downVector(std::vector<double> &rawData, int x_size, int y_size, int mip) {
                         rawData[retain_index] += rawData[retain_index + k * reduced_x_size];
                     }
                 }
-                if (denominator < 1) {
-                    rawData[retain_index] = NAN_VALUE;
-                } else {
-                    rawData[retain_index] /= denominator;
-                }
+                rawData[retain_index] = (denominator < 1 ? NAN_VALUE : rawData[retain_index] / denominator);
             }
             // erase last elements in the mip range except the ratain element
             int remove_index_begin = (mip * i + 1) * reduced_x_size;
@@ -264,13 +256,7 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
                     denominator -= 1;
                 }
             }
-            //
-            if (denominator < 1) {
-                rawData[i] = NAN_VALUE;
-            } else {
-                rawData[i] /= denominator;
-            }
-            //
+            rawData[i] = (denominator < 1 ? NAN_VALUE : rawData[i] / denominator);
             allValues.push_back(rawData[i]);
         }
         nextRowToReadIn += update;
@@ -278,10 +264,6 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
 
     for (int j = jlb; j < nRows; j++) {
         updateRows();
-        //for (int i = 0; i < nCols; i++) {
-        //    if (i == 0)
-        //       std::cout << rawData[i] << " ";
-        //}
     }
 
     return allValues;
@@ -289,7 +271,7 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
 
 void compareVectors(std::vector<double> vec1, std::vector<double> vec2) {
     if (vec1.size() != vec2.size()) {
-        qCritical() << "!! Two vector sizes are not the same!";
+        qCritical() << "!! Two vector sizes are not the same: vec1.size()=" << vec1.size() << ", vec2.size()=" << vec2.size();
     } else {
         bool isConsistent = true;
         for (int i = 0; i < vec1.size(); i++) {
