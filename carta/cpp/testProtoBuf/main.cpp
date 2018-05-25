@@ -116,7 +116,7 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     int mip = 1;
 
     // extract the raw data
-    std::vector<double> rawdata = extractRawData(astroImage, frameStart, frameEnd, stokeIndex, mip);
+    std::vector<float> rawdata = extractRawData(astroImage, frameStart, frameEnd, stokeIndex, mip);
 
     //*****************************************************************
     // start to load the protocol buffer !!

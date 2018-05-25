@@ -13,7 +13,7 @@ using namespace std;
 typedef ::google::protobuf::uint32 uint32;
 
 // This function fills in a RasterImageData message based on user input.
-void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, const std::vector<double> rawdata) {
+void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, const std::vector<float> rawdata) {
     // The file ID that the raster image corresponds to
     uint32 file_id = 0;
     RasterImageData->set_file_id(file_id);

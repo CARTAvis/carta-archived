@@ -14,7 +14,7 @@ using namespace std;
 
 typedef Carta::Lib::AxisInfo AxisInfo;
 
-const double NAN_VALUE = -9999;
+const float NAN_VALUE = -9999;
 const bool CHECK_DOWNSAMPLING_RESULT = false;
 
 int getAxisIndex(std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image, AxisInfo::KnownType axisType) {
@@ -122,7 +122,7 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
     return hertzValues;
 }
 
-bool downVector(std::vector<double> &rawData, int x_size, int y_size, int mip) {
+bool downVector(std::vector<float> &rawData, int x_size, int y_size, int mip) {
     // check if the setting value of x- or y- dim matches the raw data size and fits the down sampling requirement
     if (rawData.size() != x_size * y_size || mip > x_size || mip > y_size || x_size <= 0 || y_size <= 0) {
         qCritical() << "The input value of x- or y- dim does not match the raw data size or down sampling requirement!";
@@ -145,7 +145,7 @@ bool downVector(std::vector<double> &rawData, int x_size, int y_size, int mip) {
             for (int j = reduced_x_size - 1; j >= 0; j--) { // start from the last column
                 // calculate the reatin index
                 int retain_index = x_size * i + mip * j;
-                double denominator = 1.0 * mip;
+                float denominator = 1.0 * mip;
                 // check if the retain index of the raw data is NAN
                 if (rawData[retain_index] < NAN_VALUE + 1) {
                     rawData[retain_index] = 0;
@@ -177,7 +177,7 @@ bool downVector(std::vector<double> &rawData, int x_size, int y_size, int mip) {
                 // calculate the reatin index
                 int retain_index = mip * i * reduced_x_size + j;
                 // calculate the average of the pixel value in the "mip" range
-                double denominator = 1.0 * mip;
+                float denominator = 1.0 * mip;
                 // check if the retain index of the raw data is NAN
                 if (rawData[retain_index] < NAN_VALUE + 1) {
                     rawData[retain_index] = 0;
@@ -206,8 +206,8 @@ bool downVector(std::vector<double> &rawData, int x_size, int y_size, int mip) {
     }
 }
 
-std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, int ilb, int iub, int jlb, int jub, int mip) {
-    std::vector<double> allValues;
+std::vector<float> downSampling(Carta::Lib::NdArray::RawViewInterface *view, int ilb, int iub, int jlb, int jub, int mip) {
+    std::vector<float> allValues;
     int nRows = (jub - jlb + 1) / mip;
     int nCols = (iub - ilb + 1) / mip;
 
@@ -219,7 +219,7 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
     int prepareCols = iub - ilb + 1;
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
-    std::vector<double> rawData(nCols), prepareArea(area);
+    std::vector<float> rawData(nCols), prepareArea(area);
     int nextRowToReadIn = jlb;
 
     auto updateRows = [&]() -> void {
@@ -230,11 +230,11 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
         rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
         auto rawRowView = view -> getView( rowSlice );
 
-        // make a double view of this raw row view
-        Carta::Lib::NdArray::Double dview( rawRowView, true );
+        // make a float view of this raw row view
+        Carta::Lib::NdArray::Float fview( rawRowView, true );
 
         int t = 0;
-        dview.forEach( [&] ( const double & val ) {
+        fview.forEach( [&] ( const float & val ) {
             // To improve the performance, the prepareArea also update only one row
             // by computing the module
             prepareArea[(t++) % area] = val;
@@ -244,7 +244,7 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
         for (int i = ilb; i < nCols; i++) {
             rawData[i] = 0;
             int elems = mip * mip;
-            double denominator = 1.0 * elems;
+            float denominator = 1.0 * elems;
             for (int e = 0; e < elems; e++) {
                 int row = e / mip;
                 int col = e % mip;
@@ -269,13 +269,13 @@ std::vector<double> downSampling(Carta::Lib::NdArray::RawViewInterface *view, in
     return allValues;
 }
 
-void compareVectors(std::vector<double> vec1, std::vector<double> vec2) {
+void compareVectors(std::vector<float> vec1, std::vector<float> vec2) {
     if (vec1.size() != vec2.size()) {
         qCritical() << "!! Two vector sizes are not the same: vec1.size()=" << vec1.size() << ", vec2.size()=" << vec2.size();
     } else {
         bool isConsistent = true;
         for (int i = 0; i < vec1.size(); i++) {
-            if (fabs(vec1[i] - vec2[i]) > 1e-6) {
+            if (fabs(vec1[i] - vec2[i]) > 1e-3) {
                 qCritical() << "!! Two vector elements are not consistent:"
                             << "vec1["<< i << "]=" << vec1[i]
                             << ", vec2[" << i << "]=" << vec2[i]
@@ -289,9 +289,9 @@ void compareVectors(std::vector<double> vec1, std::vector<double> vec2) {
     }
 }
 
-std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage,
+std::vector<float> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage,
                                    int frameStart, int frameEnd, int stokeIndex, int mip) {
-    // get raw data as the double type
+    // get raw data as the float type
     Carta::Lib::NdArray::RawViewInterface* rawData = getRawData(astroImage, frameStart, frameEnd, stokeIndex);
     int x_size = astroImage->dims()[0]; // the size of X-axis
     int y_size = astroImage->dims()[1]; // the size of Y-axis
@@ -300,16 +300,16 @@ std::vector<double> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInter
     int iub = x_size - 1; // end of column index
     int jlb = 0;          // start of row index
     int jub = y_size - 1; // end of row index
-    std::vector<double> resultValues = downSampling(rawData, ilb, iub, jlb, jub, mip);
+    std::vector<float> resultValues = downSampling(rawData, ilb, iub, jlb, jub, mip);
 
     // check if downsampling results are correct
     if (CHECK_DOWNSAMPLING_RESULT) {
         std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
-        Carta::Lib::NdArray::Double doubleView(view.get(), false);
-        std::vector<double> allValues;
+        Carta::Lib::NdArray::Float floatView(view.get(), false);
+        std::vector<float> allValues;
 
         // get all pixel elements
-        doubleView.forEach([& allValues] (const double & val) {
+        floatView.forEach([& allValues] (const float & val) {
             if (std::isfinite(val)) {
                 allValues.push_back(val);
             } else {
