@@ -17,6 +17,8 @@ bool downVector(std::vector<float> &rawData, int x_size, int y_size, int mip);
 
 std::vector<float> downSampling(Carta::Lib::NdArray::RawViewInterface *view, int ilb, int iub, int jlb, int jub, int mip);
 
+std::vector<float> fullSampling(Carta::Lib::NdArray::RawViewInterface *view);
+
 void compareVectors(std::vector<float> vec1, std::vector<float> vec2);
 
 #endif

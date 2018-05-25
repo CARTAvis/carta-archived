@@ -269,6 +269,21 @@ std::vector<float> downSampling(Carta::Lib::NdArray::RawViewInterface *view, int
     return allValues;
 }
 
+std::vector<float> fullSampling(Carta::Lib::NdArray::RawViewInterface *view) {
+    Carta::Lib::NdArray::Float floatView(view, false);
+    std::vector<float> allValues;
+
+    // get all pixel elements
+    floatView.forEach([& allValues] (const float & val) {
+        if (std::isfinite(val)) {
+            allValues.push_back(val);
+        } else {
+            allValues.push_back(NAN_VALUE);
+        }
+    });
+    return allValues;
+}
+
 void compareVectors(std::vector<float> vec1, std::vector<float> vec2) {
     if (vec1.size() != vec2.size()) {
         qCritical() << "!! Two vector sizes are not the same: vec1.size()=" << vec1.size() << ", vec2.size()=" << vec2.size();
@@ -296,29 +311,26 @@ std::vector<float> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterf
     int x_size = astroImage->dims()[0]; // the size of X-axis
     int y_size = astroImage->dims()[1]; // the size of Y-axis
 
+    // set the range of pixel coordinates to extract the raw data
     int ilb = 0;          // start of column index
     int iub = x_size - 1; // end of column index
     int jlb = 0;          // start of row index
     int jub = y_size - 1; // end of row index
-    std::vector<float> resultValues = downSampling(rawData, ilb, iub, jlb, jub, mip);
 
-    // check if downsampling results are correct
+    std::vector<float> resultValues;
+
+    if (ilb == 0 && iub == x_size - 1 && jlb == 0 && jub == y_size - 1 && mip == 1) {
+        resultValues = fullSampling(rawData);
+    } else {
+        resultValues = downSampling(rawData, ilb, iub, jlb, jub, mip);
+    }
+
+    // check if downsampling results are correct (only for selecting the full range of the raw data)
     if (CHECK_DOWNSAMPLING_RESULT) {
-        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
-        Carta::Lib::NdArray::Float floatView(view.get(), false);
-        std::vector<float> allValues;
-
-        // get all pixel elements
-        floatView.forEach([& allValues] (const float & val) {
-            if (std::isfinite(val)) {
-                allValues.push_back(val);
-            } else {
-                allValues.push_back(NAN_VALUE);
-            }
-        });
+        std::vector<float> testValues = fullSampling(rawData);
 
         // downsample the hole pixel elements by the "mip" factor
-        bool isDownSampling = downVector(allValues, x_size, y_size, mip);
+        bool isDownSampling = downVector(testValues, x_size, y_size, mip);
 
         if (isDownSampling) {
             qDebug() << "++++++++ down sampling is success!";
@@ -327,7 +339,7 @@ std::vector<float> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterf
         }
 
         // check if two vectors are the same
-        compareVectors(allValues, resultValues);
+        compareVectors(testValues, resultValues);
     }
 
     return resultValues;
