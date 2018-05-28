@@ -305,17 +305,12 @@ void compareVectors(std::vector<float> vec1, std::vector<float> vec2) {
 }
 
 std::vector<float> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage,
-                                   int frameStart, int frameEnd, int stokeIndex, int mip) {
+                                  int frameStart, int frameEnd, int stokeIndex,
+                                  int ilb, int iub, int jlb, int jub, int mip) {
     // get raw data as the float type
     Carta::Lib::NdArray::RawViewInterface* rawData = getRawData(astroImage, frameStart, frameEnd, stokeIndex);
     int x_size = astroImage->dims()[0]; // the size of X-axis
     int y_size = astroImage->dims()[1]; // the size of Y-axis
-
-    // set the range of pixel coordinates to extract the raw data
-    int ilb = 0;          // start of column index
-    int iub = x_size - 1; // end of column index
-    int jlb = 0;          // start of row index
-    int jub = y_size - 1; // end of row index
 
     std::vector<float> resultValues;
 

@@ -11,7 +11,8 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
                                    std::vector<int> dims, int spectralIndex);
 
 std::vector<float> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage,
-                                   int frameStart, int frameEnd, int stokeIndex, int mip);
+                                  int ilb, int iub, int jlb, int jub,
+                                  int frameStart, int frameEnd, int stokeIndex, int mip);
 
 bool downVector(std::vector<float> &rawData, int x_size, int y_size, int mip);
 

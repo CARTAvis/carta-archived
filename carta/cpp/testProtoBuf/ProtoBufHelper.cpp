@@ -10,62 +10,57 @@
 
 using namespace std;
 
+const string NAN_VALUE = "-9999";
+
 typedef ::google::protobuf::uint32 uint32;
 
 // This function fills in a RasterImageData message based on user input.
-void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, const std::vector<float> rawdata) {
+void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 file_id, uint32 layer_id, uint32 x, uint32 y,
+                              uint32 width, uint32 height, uint32 stokes, uint32 channel, uint32 mip,
+                              Stream::RasterImageData::CompressionType type, float compression_quality, uint32 num_subsets,
+                              const std::vector<float> rawdata) {
     // The file ID that the raster image corresponds to
-    uint32 file_id = 0;
     RasterImageData->set_file_id(file_id);
 
     // The layer ID that the raster image corresponds to
-    uint32 layer_id = 0;
     RasterImageData->set_layer_id(layer_id);
 
     // Starting x-coordinate of the image region in image space
-    uint32 x = 0;
     RasterImageData->set_x(x);
 
     // Starting y-coordinate of the image region in image space
-    uint32 y = 0;
     RasterImageData->set_y(y);
 
     // Width (in the x-direction) of the image region in image space
-    uint32 width = 1;
     RasterImageData->set_width(width);
 
     // Height (in the y-direction) of the image region in image space
-    uint32 height = 1;
     RasterImageData->set_height(height);
 
     // The image stokes coordinate
-    uint32 stoke = 0;
-    RasterImageData->set_stokes(stoke);
+    RasterImageData->set_stokes(stokes);
 
     // The image channel (z-coordinate)
-    uint32 channel = 0;
     RasterImageData->set_channel(channel);
 
     // The mip level used. The mip level defines how many image pixels correspond to the downsampled image
-    uint32 mip = 1;
     RasterImageData->set_mip(mip);
 
     // The compression algorithm used.
-    RasterImageData->set_compression_type(Stream::RasterImageData::NONE);
+    //RasterImageData->set_compression_type(Stream::RasterImageData::NONE);
+    RasterImageData->set_compression_type(type);
 
     // Compression quality switch
-    float compression_quality = 0;
     RasterImageData->set_compression_quality(compression_quality);
 
     // The number of subsets that the data is broken into (for multithreaded compression/decompression)
-    uint32 num_subsets = 0;
     RasterImageData->set_num_subsets(num_subsets);
 
     for (int i = 0; i < rawdata.size(); i++) {
         std::ostringstream strs;
         strs << rawdata[i];
         std::string str = strs.str();
-        if (str == "-1") {
+        if (str == NAN_VALUE) {
             // Run-length encodings of NaN values removed before compression. These values are used to restore the image’s NaN values after decompression.
             std::string index = std::to_string(i);
             RasterImageData->add_nan_encodings(index);

@@ -35,6 +35,8 @@
 
 using namespace std;
 
+typedef ::google::protobuf::uint32 uint32;
+
 namespace testProtoBuff {
 
 typedef Carta::Lib::AxisInfo AxisInfo;
@@ -90,7 +92,11 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     
     // tell all plugins that the core has initialized
     pm -> prepare<Carta::Lib::Hooks::Initialize>().executeAll();
-    
+
+    //*****************************************************************
+    // load the image file
+    //*****************************************************************
+
     auto imgRes = pm -> prepare<Carta::Lib::Hooks::LoadAstroImage>(cmdLineInfo.fileList()[0]).first();
 
     if (imgRes.isNull()) {
@@ -104,19 +110,67 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     }
 
     //*****************************************************************
-    // parameters for extracting the raw data
+    // set parameters for protocol buffer
+    //*****************************************************************
+
+    // The file ID that the raster image corresponds to
+    uint32 file_id = 0;
+
+    // The layer ID that the raster image corresponds to
+    uint32 layer_id = 0;
+
+    // Starting x-coordinate of the image region in image space
+    uint32 x = 0;
+
+    // Starting y-coordinate of the image region in image space
+    uint32 y = 0;
+
+    // Width (in the x-direction) of the image region in image space
+    int x_size = astroImage->dims()[0]; // the size of X-axis
+    uint32 width = x_size;
+
+    // Height (in the y-direction) of the image region in image space
+    int y_size = astroImage->dims()[1]; // the size of Y-axis
+    uint32 height = y_size;
+
+    // The image stokes coordinate
+    uint32 stokes = 0;
+
+    // The image channel (z-coordinate)
+    uint32 channel = 0;
+
+    // The mip level used. The mip level defines how many image pixels correspond to the downsampled image
+    uint32 mip = 1;
+
+    // The compression algorithm used.
+    Stream::RasterImageData::CompressionType type = Stream::RasterImageData::NONE;
+
+    // Compression quality switch
+    float compression_quality = 0;
+
+    // The number of subsets that the data is broken into (for multithreaded compression/decompression)
+    uint32 num_subsets = 0;
+
+    //*****************************************************************
+    // set parameters for extracting the raw data
     //*****************************************************************
 
     // set the spectral frame range [frameStart, frameEnd]
-    int frameStart = 0;
-    int frameEnd = 1;
+    int frameStart = channel;
+    int frameEnd = frameStart + 1;
     // set stoke index for getting the raw data (0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
-    int stokeIndex = 0;
+    int stokeIndex = stokes;
+    // set the range of pixel coordinates to extract the raw data
+    int ilb = x;          // start of column index
+    int iub = width - 1; // end of column index
+    int jlb = y;          // start of row index
+    int jub = height - 1; // end of row index
+
     // The mip level defines how many image pixels correspond to the downsampled image
-    int mip = 1;
+    int downSample = mip;
 
     // extract the raw data
-    std::vector<float> rawdata = extractRawData(astroImage, frameStart, frameEnd, stokeIndex, mip);
+    std::vector<float> rawdata = extractRawData(astroImage, frameStart, frameEnd, stokeIndex, ilb, iub, jlb, jub, downSample);
 
     //*****************************************************************
     // start to load the protocol buffer !!
@@ -130,7 +184,8 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     //char const *test = "DataBook.dat";
 
     // Add an databook.
-    PromptForRasterImageData(DataBook.mutable_raster_image_data(), rawdata);
+    PromptForRasterImageData(DataBook.mutable_raster_image_data(), file_id, layer_id, x, y,
+                             width, height, stokes, channel, mip, type, compression_quality, num_subsets, rawdata);
 
     // Write the new databook book back to disk.
     //fstream output(test, ios::out | ios::trunc | ios::binary);
