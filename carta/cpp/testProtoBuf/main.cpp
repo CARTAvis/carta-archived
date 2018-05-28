@@ -41,73 +41,7 @@ namespace testProtoBuff {
 
 typedef Carta::Lib::AxisInfo AxisInfo;
 
-static int coreMainCPP(QString platformString, int argc, char* argv[]) {
-    MyQApp qapp(argc, argv);
-
-    QString appName = "carta-" + platformString;
-    appName += "-verbose";
-
-    if (CARTA_RUNTIME_CHECKS) {
-        appName += "-runtimeChecks";
-    }
-
-    MyQApp::setApplicationName(appName);
-    qDebug() << "Starting" << qapp.applicationName() << qapp.applicationVersion();
-
-    // alias globals
-    auto & globals = * Globals::instance();
-
-    // parse command line arguments & environment variables
-    auto cmdLineInfo = CmdLine::parse(MyQApp::arguments());
-    globals.setCmdLineInfo(& cmdLineInfo);
-
-    int file_num = cmdLineInfo.fileList().size();
-    if (file_num < 1) {
-        qFatal("Usage: ./testestProtoBuff [the path and name of the image file] ...");
-    }
-
-    // load the config file
-    QString configFilePath = cmdLineInfo.configFilePath();
-    MainConfig::ParsedInfo mainConfig = MainConfig::parse(configFilePath);
-    globals.setMainConfig(& mainConfig);
-    qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - " );
-
-    // initialize plugin manager
-    globals.setPluginManager(std::make_shared<PluginManager>());
-    auto pm = globals.pluginManager();
-
-    // tell plugin manager where to find plugins
-    pm -> setPluginSearchPaths(globals.mainConfig()->pluginDirectories());
-
-    // find and load plugins
-    pm -> loadPlugins();
-
-    qDebug() << "Loading plugins...";
-    auto infoList = pm -> getInfoList();
-
-    qDebug() << "List of loaded plugins: [" << infoList.size() << "]";
-    for (const auto & entry : infoList) {
-        qDebug() << "  path:" << entry.json.name;
-    }
-    
-    // tell all plugins that the core has initialized
-    pm -> prepare<Carta::Lib::Hooks::Initialize>().executeAll();
-
-    //*****************************************************************
-    // load the image file
-    //*****************************************************************
-
-    auto imgRes = pm -> prepare<Carta::Lib::Hooks::LoadAstroImage>(cmdLineInfo.fileList()[0]).first();
-
-    if (imgRes.isNull()) {
-        throw "Could not find any plugin to load astroImage";
-    }
-
-    std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage = imgRes.val();
-
-    if (!astroImage) {
-        throw "Image read was a nullptr";
-    }
+static void test_raster_image(std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage) {
 
     //*****************************************************************
     // set parameters for protocol buffer
@@ -199,6 +133,81 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
 
     // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
+}
+
+static int coreMainCPP(QString platformString, int argc, char* argv[]) {
+    MyQApp qapp(argc, argv);
+
+    QString appName = "carta-" + platformString;
+    appName += "-verbose";
+
+    if (CARTA_RUNTIME_CHECKS) {
+        appName += "-runtimeChecks";
+    }
+
+    MyQApp::setApplicationName(appName);
+    qDebug() << "Starting" << qapp.applicationName() << qapp.applicationVersion();
+
+    // alias globals
+    auto & globals = * Globals::instance();
+
+    // parse command line arguments & environment variables
+    auto cmdLineInfo = CmdLine::parse(MyQApp::arguments());
+    globals.setCmdLineInfo(& cmdLineInfo);
+
+    int file_num = cmdLineInfo.fileList().size();
+    if (file_num < 1) {
+        qFatal("Usage: ./testestProtoBuff [the path and name of the image file] ...");
+    }
+
+    // load the config file
+    QString configFilePath = cmdLineInfo.configFilePath();
+    MainConfig::ParsedInfo mainConfig = MainConfig::parse(configFilePath);
+    globals.setMainConfig(& mainConfig);
+    qDebug() << "plugin directories:\n - " + mainConfig.pluginDirectories().join( "\n - " );
+
+    // initialize plugin manager
+    globals.setPluginManager(std::make_shared<PluginManager>());
+    auto pm = globals.pluginManager();
+
+    // tell plugin manager where to find plugins
+    pm -> setPluginSearchPaths(globals.mainConfig()->pluginDirectories());
+
+    // find and load plugins
+    pm -> loadPlugins();
+
+    qDebug() << "Loading plugins...";
+    auto infoList = pm -> getInfoList();
+
+    qDebug() << "List of loaded plugins: [" << infoList.size() << "]";
+    for (const auto & entry : infoList) {
+        qDebug() << "  path:" << entry.json.name;
+    }
+
+    // tell all plugins that the core has initialized
+    pm -> prepare<Carta::Lib::Hooks::Initialize>().executeAll();
+
+    //*****************************************************************
+    // load the image file
+    //*****************************************************************
+
+    auto imgRes = pm -> prepare<Carta::Lib::Hooks::LoadAstroImage>(cmdLineInfo.fileList()[0]).first();
+
+    if (imgRes.isNull()) {
+        throw "Could not find any plugin to load astroImage";
+    }
+
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> astroImage = imgRes.val();
+
+    if (!astroImage) {
+        throw "Image read was a nullptr";
+    }
+
+    //*****************************************************************
+    // test protocol buffer for the raster image data
+    //*****************************************************************
+
+    test_raster_image(astroImage);
 
     return 0;
 } // coreMainCPP
