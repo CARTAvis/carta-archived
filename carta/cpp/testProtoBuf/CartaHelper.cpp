@@ -124,7 +124,7 @@ std::vector<double> getHertzValues(std::shared_ptr<Carta::Lib::Image::ImageInter
 
 bool downVector(std::vector<float> &rawData, int x_size, int y_size, int mip) {
     // check if the setting value of x- or y- dim matches the raw data size and fits the down sampling requirement
-    if (rawData.size() != x_size * y_size || mip > x_size || mip > y_size || x_size <= 0 || y_size <= 0) {
+    if (rawData.size() != x_size * y_size || mip > x_size || mip > y_size || mip < 1 || x_size <= 0 || y_size <= 0) {
         qCritical() << "The input value of x- or y- dim does not match the raw data size or down sampling requirement!";
         return false;
     }
@@ -211,7 +211,8 @@ std::vector<float> downSampling(Carta::Lib::NdArray::RawViewInterface *view, int
     int nRows = (jub - jlb + 1) / mip;
     int nCols = (iub - ilb + 1) / mip;
 
-    if (nCols > view -> dims()[0] || nRows > view -> dims()[1] || nCols < 0 || nRows < 0) {
+    if (nCols > view -> dims()[0] || nRows > view -> dims()[1] || nCols < 0 || nRows < 0 ||
+        mip < 1 || iub < 0 || ilb < 0 || jub < 0 || jlb < 0) {
         qCritical() << "The input values of ilb, iub, jlb, jub or mip may be not correct!";
         return allValues;
     }
