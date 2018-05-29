@@ -37,7 +37,3 @@ message RasterImageData {
         SZ = 2;
     }
 }
-
-message DataBook {
-    RasterImageData raster_image_data = 1;
-}

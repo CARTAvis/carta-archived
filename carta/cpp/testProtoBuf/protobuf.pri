@@ -1,4 +1,4 @@
-PROTOS = raster_image.proto
+PROTOS += raster_image.proto stream.proto
 
 protobuf_decl.name = protobuf headers
 protobuf_decl.input = PROTOS

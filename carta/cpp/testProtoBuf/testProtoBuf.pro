@@ -43,8 +43,8 @@ copyToDestdir(example.sh)
 INCLUDEPATH += ../core
 
 ## make protocol buffer codes .pb.h and .pb.cc
-! include(proto_raster_image.pri) {
-  error("Could not find the proto_raster_image.pri file!")
+! include(protobuf.pri) {
+  error("Could not find the protobuf.pri file!")
 }
 
 ## link protocol buffer package headers and lib

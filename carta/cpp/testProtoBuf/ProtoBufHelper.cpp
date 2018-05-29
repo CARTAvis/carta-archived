@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include "raster_image.pb.h"
+#include "stream.pb.h"
 
 #include <QString>
 #include <sstream>

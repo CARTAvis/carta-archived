@@ -2,7 +2,7 @@
 #define ProtoBuffHelper_h
 
 #include <google/protobuf/util/time_util.h>
-#include "raster_image.pb.h"
+#include "stream.pb.h"
 
 typedef ::google::protobuf::uint32 uint32;
 

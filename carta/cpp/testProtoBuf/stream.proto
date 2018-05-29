@@ -1,0 +1,8 @@
+syntax = "proto3";
+package Stream;
+
+import "raster_image.proto";
+
+message DataBook {
+    RasterImageData raster_image_data = 1;
+}
