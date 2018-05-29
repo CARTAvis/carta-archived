@@ -1,0 +1,43 @@
+syntax = "proto3";
+package Request;
+
+// FILE_LIST_REQUEST:
+// Requests the list of available files for a given directory.
+// Backend responds with FILE_LIST_RESPONSE
+message FileListRequest {
+    // Unique request ID
+    string request_id = 1;
+    // Required directory name
+    string directory = 2;
+    //Number of sub-directory levels to include in search for files.
+    //Setting this parameter to zero will result in only files in the requested directory being shown.
+    fixed32 recursion_level = 3; //
+}
+
+// FILE_LIST_RESPONSE
+// Response for FILE_LIST_REQUEST.
+// Gives a list of available files (and their types), as well as subdirectories
+message FileListResponse {
+    // Unique request ID
+    string request_id = 1;
+    // Defines whether the FILE_LIST_REQUEST was successful
+    bool success = 2;
+    // List of available image files, with file type information and size information.
+    repeated FileInfo files = 3;
+    // List of available subdirectories
+    repeated string directories = 4;
+}
+
+// File info message structure (internal use only)
+message FileInfo {
+    string name = 1;
+    FileType type = 2;
+    fixed64 size = 3;
+
+    enum FileType {
+        FITS = 0;
+        CASA = 1;
+        HDF5 = 2;
+    }
+}
+
