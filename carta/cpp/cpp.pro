@@ -8,6 +8,7 @@ SUBDIRS = \
     core \
     desktop \
     plugins \
+    proto \
     Tests \
     testCache \
     testRegion \
@@ -18,6 +19,7 @@ isEmpty(NOSERVER) {
 }
 
 # explicit dependencies, to make sure parallel make works (i.e. make -j4...)
+CartaLib.depends = proto
 core.depends = CartaLib
 desktop.depends = core
 server.depends = core

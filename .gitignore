@@ -23,6 +23,10 @@
 # vi backup files
 *.swp
 
+# proto derived files
+carta/cpp/proto/*.pb.cc
+carta/cpp/proto/*.pb.h
+
 *createlinks.sh
 build*/
 
