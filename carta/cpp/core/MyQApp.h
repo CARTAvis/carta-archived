@@ -4,7 +4,6 @@
 
 #include <QApplication>
 #include <functional>
-#include "IConnector.h"
 
 /// The only code that should go into this class is Qt specific stuff that needs
 /// access to the internals of QApplication.

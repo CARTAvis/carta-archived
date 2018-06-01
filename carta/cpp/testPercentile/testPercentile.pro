@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  webkitwidgets network widgets xml
+QT      +=  network widgets xml
 
 HEADERS +=
 
