@@ -2,12 +2,18 @@
   error( "Could not find the common.pri file!" )
 }
 
+! include(./proto_compile.pri) {
+  error( "Could not find the proto_compile.pri file!" )
+}
+
 QT       += network xml
 
 TARGET = CartaLib
 TEMPLATE = lib
 
 DEFINES += CARTALIB_LIBRARY
+
+PROTOS = Proto/lm.helloworld.proto
 
 SOURCES += \
     CartaLib.cpp \
@@ -125,6 +131,9 @@ HEADERS += \
     IntensityUnitConverter.h \
     IPercentileCalculator.h \
     IntensityCacheHelper.h
+
+INCLUDEPATH += ../../../ThirdParty/protobuf/include
+LIBS += -L../../../ThirdParty/protobuf/lib -lprotobuf
 
 unix {
     target.path = /usr/lib
