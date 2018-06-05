@@ -135,27 +135,23 @@ static void test_raster_image(std::shared_ptr<Carta::Lib::Image::ImageInterface>
     google::protobuf::ShutdownProtobufLibrary();
 }
 
-static void test_file_list() {
-    QString dirName = "/Users/mark/CARTA/Images/testStoke";
+static void test_file_list(QString dirName, int recursionLevel) {
     std::shared_ptr<Carta::Data::DataLoader> m_dataLoader;
     std::vector<Carta::Data::DataLoader::FileInfo> fileLists;
     std::vector<QString> dirLists;
     m_dataLoader->getFileList2(dirName, fileLists, dirLists);
 
-    for (auto fileList : fileLists) {
-        qDebug() << "name:" << fileList.name << ", type:" << fileList.type << ", size:" << fileList.size;
+    if (dirLists.size() > 0 && recursionLevel > 0) {
+        for (QString dirList : dirLists) {
+            qDebug() << "sub directory:" << dirList;
+
+            QString subDirName = dirName + "/" + dirList;
+            test_file_list(subDirName, recursionLevel--);
+        }
     }
 
-    if (dirLists.size() > 0) {
-        for (QString dirList : dirLists) {
-            qDebug() << "directory:" << dirList;
-            //QString subDirName = dirName + "/" + dirList;
-            //qDebug() << "sub directory:" << subDirName;
-            //m_dataLoader->getFileList2(subDirName, fileLists, dirLists);
-            //for (auto fileList : fileLists) {
-            //    qDebug() << "name:" << fileList.name << ", type:" << fileList.type << ", size:" << fileList.size;
-            //}
-        }
+    for (auto fileList : fileLists) {
+        qDebug() << "name:" << fileList.name << ", type:" << fileList.type << ", size:" << fileList.size;
     }
 }
 
@@ -237,7 +233,7 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     // test protocol buffer for the file list
     //*****************************************************************
 
-    test_file_list();
+    test_file_list("/Users/mark/CARTA/Images/testStoke", 2);
 
     return 0;
 } // coreMainCPP
