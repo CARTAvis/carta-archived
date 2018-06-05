@@ -96,7 +96,7 @@ static void test_raster_image(std::shared_ptr<Carta::Lib::Image::ImageInterface>
     int stokeIndex = stokes;
     // set the range of pixel coordinates to extract the raw data
     int ilb = x;          // start of column index
-    int iub = width - 1; // end of column index
+    int iub = width - 1;  // end of column index
     int jlb = y;          // start of row index
     int jub = height - 1; // end of row index
 
@@ -133,6 +133,30 @@ static void test_raster_image(std::shared_ptr<Carta::Lib::Image::ImageInterface>
 
     // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
+}
+
+static void test_file_list() {
+    QString dirName = "/Users/mark/CARTA/Images/testStoke";
+    std::shared_ptr<Carta::Data::DataLoader> m_dataLoader;
+    std::vector<Carta::Data::DataLoader::FileInfo> fileLists;
+    std::vector<QString> dirLists;
+    m_dataLoader->getFileList2(dirName, fileLists, dirLists);
+
+    for (auto fileList : fileLists) {
+        qDebug() << "name:" << fileList.name << ", type:" << fileList.type << ", size:" << fileList.size;
+    }
+
+    if (dirLists.size() > 0) {
+        for (QString dirList : dirLists) {
+            qDebug() << "directory:" << dirList;
+            //QString subDirName = dirName + "/" + dirList;
+            //qDebug() << "sub directory:" << subDirName;
+            //m_dataLoader->getFileList2(subDirName, fileLists, dirLists);
+            //for (auto fileList : fileLists) {
+            //    qDebug() << "name:" << fileList.name << ", type:" << fileList.type << ", size:" << fileList.size;
+            //}
+        }
+    }
 }
 
 static int coreMainCPP(QString platformString, int argc, char* argv[]) {
@@ -208,6 +232,12 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     //*****************************************************************
 
     test_raster_image(astroImage);
+
+    //*****************************************************************
+    // test protocol buffer for the file list
+    //*****************************************************************
+
+    test_file_list();
 
     return 0;
 } // coreMainCPP

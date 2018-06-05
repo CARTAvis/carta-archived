@@ -35,6 +35,7 @@ public:
 QString DataLoader::fakeRootDirName = "RootDirectory";
 const QString DataLoader::CLASS_NAME = "DataLoader";
 const QString DataLoader::DIR = "dir";
+const QString DataLoader::SIZE = "size";
 const QString DataLoader::CRTF = ".crtf";
 const QString DataLoader::REG = ".reg";
 
@@ -81,6 +82,41 @@ QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
     QByteArray textArray = document.toJson();
     QString jsonText(textArray);
     return jsonText;
+}
+
+void DataLoader::getFileList2(const QString& dirName, std::vector<DataLoader::FileInfo>& fileLists, std::vector<QString>& dirLists) const {
+    QDir rootDir(dirName);
+    QJsonObject rootObj;
+
+    _processDirectory(rootDir, rootObj);
+
+    QJsonArray jsonArray = rootObj["dir"].toArray();
+
+    for (const QJsonValue & value : jsonArray) {
+        QJsonObject obj = value.toObject();
+        // set file name
+        QString name = obj["name"].toString();
+        // set file type
+        int type;
+        if (obj["type"].toString() == "fits") {
+            type = 0; // FITS file
+        } else if (obj["type"].toString() == "image") {
+            type = 1; // CASA file
+        } else if (obj["type"].toString() == "h5") {
+            type = 2; // HDF5 file
+        } else {
+            type = -1;
+        }
+        // set file size
+        QString size_str = obj["size"].toString();
+        uint64_t size = size_str.toULong(); // convert string to unsigned long int
+        // push back FileInfo or sub-dirs to vectors
+        if (type != -1) {
+            fileLists.push_back({name, type, size});
+        } else {
+            dirLists.push_back(name);
+        }
+    }
 }
 
 QString DataLoader::getFile( const QString& bogusPath, const QString& sessionId ) const {
@@ -195,28 +231,31 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
         if (dit.fileInfo().isDir()) {
             QString rootDirPath = rootDir.absolutePath();
             QString subDirPath = rootDirPath.append("/").append(fileName);
+            QString typeName = _checkSubDir(subDirPath);
 
-            if ( !_checkSubDir(subDirPath).isNull() ) {
-                _makeFileNode( dirArray, fileName, _checkSubDir(subDirPath));
+            if ( !typeName.isNull() ) {
+                QString fileSize = QString::number(_subDirSize(subDirPath));
+                _makeFileNode( dirArray, fileName, typeName, fileSize);
             }
             else {
-                _makeFolderNode( dirArray, fileName );
+                _makeFolderNode( dirArray, fileName, "" );
             }
         }
         else if (dit.fileInfo().isFile()) {
+            QString fileSize = QString::number(dit.fileInfo().size());
             QFile file(lastPart+QDir::separator()+fileName);
             if (file.open(QFile::ReadOnly)) {
                 QString dataInfo = file.read(160);
                 if (dataInfo.contains("Region", Qt::CaseInsensitive)) {
                     if (dataInfo.contains("DS9", Qt::CaseInsensitive)) {
-                        _makeFileNode(dirArray, fileName, "reg");
+                        _makeFileNode(dirArray, fileName, "reg", fileSize);
                     }
                     else if (dataInfo.contains("CRTF", Qt::CaseInsensitive)) {
-                        _makeFileNode(dirArray, fileName, "crtf");
+                        _makeFileNode(dirArray, fileName, "crtf", fileSize);
                     }
                 }
                 else if (dataInfo.contains(QRegExp("^SIMPLE *= *T.* BITPIX*")) && !dataInfo.contains(QRegExp("\n"))) {
-                    _makeFileNode(dirArray, fileName, "fits");
+                    _makeFileNode(dirArray, fileName, "fits", fileSize);
                 }
                 file.close();
             }
@@ -224,6 +263,25 @@ void DataLoader::_processDirectory(const QDir& rootDir, QJsonObject& rootObj) co
     }
 
     rootObj.insert( DIR, dirArray);
+}
+
+size_t DataLoader::_subDirSize(const QString &subDirPath) const {
+    size_t totalSize = 0;
+    QFileInfo str_info(subDirPath);
+
+    if (str_info.isDir()) {
+        QDir dir(subDirPath);
+        dir.setFilter(QDir::Files | QDir::Dirs |  QDir::Hidden | QDir::NoSymLinks);
+        QFileInfoList list = dir.entryInfoList();
+
+        for (int i = 0; i < list.size(); i++) {
+            QFileInfo fileInfo = list.at(i);
+            if ((fileInfo.fileName() != ".") && (fileInfo.fileName() != "..")) {
+                totalSize += (fileInfo.isDir()) ? this->_subDirSize(fileInfo.filePath()) : fileInfo.size();
+            }
+        }
+    }
+    return totalSize;
 }
 
 QString DataLoader::_checkSubDir( QString& subDirPath) const {
@@ -254,7 +312,7 @@ QString DataLoader::_checkSubDir( QString& subDirPath) const {
     return NULL;
 }
 
-void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const {
+void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType, const QString &fileSize) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
     obj.insert( Util::NAME, fileValue);
@@ -262,15 +320,17 @@ void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName,
     //the meaning of "type" may differ with other codes
     //can change the string when feeling confused
     obj.insert( Util::TYPE, QJsonValue(fileType));
+    obj.insert( SIZE, QJsonValue(fileSize));
     parentArray.append(obj);
 }
 
-void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileName ) const {
+void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileName, const QString& fileSize ) const {
     QJsonObject obj;
     QJsonValue fileValue(fileName);
     obj.insert( Util::NAME, fileValue);
     QJsonArray arry;
     obj.insert(DIR, arry);
+    obj.insert( SIZE, QJsonValue(fileSize));
     parentArray.append(obj);
 }
 
