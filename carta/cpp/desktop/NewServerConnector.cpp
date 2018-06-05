@@ -123,6 +123,14 @@ IConnector::CallbackID NewServerConnector::addCommandCallback(
     return m_callbackNextId++;
 }
 
+IConnector::CallbackID NewServerConnector::addMessageCallback(
+        const QString & cmd,
+        const IConnector::MessageCallback & cb)
+{
+    m_messageCallbackMap[cmd].push_back( cb);
+    return m_callbackNextId++;
+}
+
 IConnector::CallbackID NewServerConnector::addStateCallback(
         IConnector::CSR path,
         const IConnector::StateChangedCallback & cb)
@@ -268,6 +276,12 @@ void NewServerConnector::jsSendCommandSlot(const QString & sessionID, const QStr
         QStringList results;
         for( auto & cb : allCallbacks) {
             results += cb( cmd, parameter, "1"); // session id fixed to "1"
+        }
+        for( auto & cb : m_messageCallbackMap[cmd] ) {
+            auto test = cb( cmd, parameter, "1");
+            std::string data;
+            test->SerializeToString(&data);
+            results += QString::fromStdString(data);
         }
 
         // pass results back to javascript

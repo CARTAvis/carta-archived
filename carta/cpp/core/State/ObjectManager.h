@@ -35,6 +35,9 @@ public:
     //Snapshots of state that can be saved.
     typedef enum SnapshotType { SNAPSHOT_INFO, SNAPSHOT_DATA, SNAPSHOT_PREFERENCES, SNAPSHOT_LAYOUT } SnapshotType;
 
+    /// shared pointer type of google protocol buffer messagelite
+    typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
+
     /**
      * Returns a json representation of this object's state.
      * @param sessionId - an identifier for a user's session.
@@ -99,6 +102,8 @@ protected:
             const QString & id);
 
     void addCommandCallback (const QString & command, IConnector::CommandCallback);
+
+    void addMessageCallback (const QString & command, IConnector::MessageCallback);
 
     int64_t addStateCallback( const QString& statePath, const IConnector::StateChangedCallback &);
 

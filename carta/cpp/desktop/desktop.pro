@@ -36,6 +36,9 @@ RESOURCES = resources.qrc
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include
 INCLUDEPATH += ../core
 
+INCLUDEPATH += ../../../ThirdParty/protobuf/include
+LIBS += -L../../../ThirdParty/protobuf/lib -lprotobuf
+
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
 DEPENDPATH += $$PROJECT_ROOT/core

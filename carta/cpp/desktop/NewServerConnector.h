@@ -34,6 +34,7 @@ public:
     virtual void setState(const QString& state, const QString & newValue) override;
     virtual QString getState(const QString&) override;
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) override;
+    virtual CallbackID addMessageCallback( const QString & cmd, const MessageCallback & cb) override;
     virtual CallbackID addStateCallback(CSR path, const StateChangedCallback &cb) override;
     virtual void registerView(IView * view) override;
     void unregisterView( const QString& viewName ) override;
@@ -101,6 +102,9 @@ public:
 
     typedef std::vector<CommandCallback> CommandCallbackList;
     std::map<QString,  CommandCallbackList> m_commandCallbackMap;
+
+    typedef std::vector<MessageCallback> MessageCallbackList;
+    std::map<QString,  MessageCallbackList> m_messageCallbackMap;
 
     // list of callbacks
     typedef CallbackList<CSR, CSR> StateCBList;

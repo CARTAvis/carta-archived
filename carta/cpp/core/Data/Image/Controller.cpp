@@ -553,16 +553,24 @@ void Controller::_onInputEvent( InputEvent  ev ){
 }
 
 void Controller::_initializeCallbacks(){
-    addCommandCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::string data;
-        lm::helloworld msg1;
-        msg1.set_id(101);
-        msg1.set_str("hello");
-        msg1.SerializeToString(&data);
-        result = QString::fromStdString(data);
-        return result;
+
+    // addCommandCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
+    //         const QString & params, const QString & /*sessionId*/) -> QString {
+    //     QString result;
+    //     std::string data;
+    //     lm::helloworld msg1;
+    //     msg1.set_id(101);
+    //     msg1.set_str("hello");
+    //     msg1.SerializeToString(&data);
+    //     result = QString::fromStdString(data);
+    //     return result;
+    // });
+    addMessageCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
+        std::shared_ptr<lm::helloworld> msg1(new lm::helloworld());
+        msg1->set_id(101);
+        msg1->set_str("hello");
+        return static_cast<PBMSharedPtr>(msg1);
     });
 
     addCommandCallback( "hideImage", [=] (const QString & /*cmd*/,

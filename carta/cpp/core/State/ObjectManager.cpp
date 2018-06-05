@@ -136,6 +136,11 @@ CartaObject::addCommandCallback (const QString & rawCommand, IConnector::Command
     conn()-> addCommandCallback ( addIdToCommand( rawCommand ), callback);
 }
 
+void
+CartaObject::addMessageCallback (const QString & messageType, IConnector::MessageCallback callback)
+{
+    conn()-> addMessageCallback ( addIdToCommand(messageType), callback);
+}
 
 int64_t CartaObject::addStateCallback( const QString& statePath, const IConnector::StateChangedCallback & cb)
 {

@@ -216,6 +216,13 @@ IConnector::CallbackID SessionDispatcher::addCommandCallback(
     return 0;
 }
 
+IConnector::CallbackID SessionDispatcher::addMessageCallback(
+        const QString & cmd,
+        const IConnector::MessageCallback & cb)
+{
+    return 0;
+}
+
 IConnector::CallbackID SessionDispatcher::addStateCallback(
         IConnector::CSR path,
         const IConnector::StateChangedCallback & cb)

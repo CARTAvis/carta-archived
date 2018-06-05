@@ -9,6 +9,7 @@
 #include <QString>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <google/protobuf/message_lite.h>
 
 namespace Carta {
 namespace Lib {
@@ -28,11 +29,17 @@ public:
     /// alias for const QString &
     typedef const QString & CSR;
 
+    /// shared pointer type of google protocol buffer messagelite
+    typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
+
     /// shared pointer type for convenience
     typedef std::shared_ptr< IConnector > SharedPtr;
 
     /// signature for command callback
     typedef std::function<QString(CSR cmd, CSR params, CSR sessionId)> CommandCallback;
+
+    /// to distinguish with command callback, used to return results in protocol buffer formats
+    typedef std::function<PBMSharedPtr (CSR cmd, CSR params, CSR sessionId)> MessageCallback;
 
     /// signature for initialization callback
     typedef std::function<void(bool success)> InitializeCallback;
@@ -67,6 +74,9 @@ public:
 
     /// add a callback for a command
     virtual CallbackID addCommandCallback( const QString & cmd, const CommandCallback & cb) = 0;
+
+    /// similar to addCommandCallback, different callback function definition
+    virtual CallbackID addMessageCallback( const QString & cmd, const MessageCallback & cb) = 0;
 
     /// add a callback for a state change event
     virtual CallbackID addStateCallback( CSR path, const StateChangedCallback & cb) = 0;
