@@ -73,8 +73,8 @@ public slots:
     /// \deprecated
     void jsMouseMoveSlot( const QString & viewName, int x, int y);
 
-    /// this is the callback for stateChangedSignal
-    void stateChangedSlot( const QString & key, const QString & value);
+    // /// this is the callback for stateChangedSignal
+    // void stateChangedSlot( const QString & key, const QString & value);
 
     void startViewerSlot(const QString & sessionID);
 
@@ -87,11 +87,12 @@ signals:
     void jsSendCommandSignal(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter);
     void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
 
-    /// we emit this signal when state is changed (either by c++ or by javascript)
-    /// we listen to this signal, and so does javascript
-    /// our listener then calls callbacks registered for this value
-    /// javascript listener caches the new value and also calls registered callbacks
-    void stateChangedSignal( const QString & key, const QString & value);
+    // /// we emit this signal when state is changed (either by c++ or by javascript)
+    // /// we listen to this signal, and so does javascript
+    // /// our listener then calls callbacks registered for this value
+    // /// javascript listener caches the new value and also calls registered callbacks
+    // void stateChangedSignal( const QString & key, const QString & value);
+
     /// we emit this signal when command results are ready
     /// javascript listens to it
     void jsCommandResultsSignal(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & results, const QString & subIdentifier);

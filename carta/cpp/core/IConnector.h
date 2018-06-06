@@ -66,6 +66,7 @@ public:
     /// unregister a view with the connector
     virtual void unregisterView( const QString& viewName ) = 0;
 
+    // Deprecated, remove the func after removing Hack directory
     /// set state to a new value
     virtual void setState( const QString & path,  const QString & value) = 0;
 
