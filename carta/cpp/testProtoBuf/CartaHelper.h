@@ -22,4 +22,8 @@ std::vector<float> fullSampling(Carta::Lib::NdArray::RawViewInterface *view);
 
 void compareVectors(std::vector<float> vec1, std::vector<float> vec2);
 
+void extractFileList(QString dirName, int recursionLevel,
+                     std::vector<Carta::Data::DataLoader::FileInfo>& m_fileLists,
+                     std::vector<QString>& m_dirLists);
+
 #endif

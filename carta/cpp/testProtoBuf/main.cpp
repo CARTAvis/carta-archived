@@ -135,26 +135,19 @@ static void test_raster_image(std::shared_ptr<Carta::Lib::Image::ImageInterface>
     google::protobuf::ShutdownProtobufLibrary();
 }
 
-static void test_file_list(QString dirName, int recursionLevel,
-                           std::vector<Carta::Data::DataLoader::FileInfo>& m_fileLists,
-                           std::vector<QString>& m_dirLists) {
-    std::shared_ptr<Carta::Data::DataLoader> m_dataLoader;
-    std::vector<Carta::Data::DataLoader::FileInfo> fileLists;
-    std::vector<QString> dirLists;
-    m_dataLoader->getFileList2(dirName, fileLists, dirLists);
+static void test_file_list() {
+    std::vector<Carta::Data::DataLoader::FileInfo> m_fileLists; // list of available image files with file name, type and size information
+    std::vector<QString> m_dirLists; // list of available subdirectories
+    QString requestDir = "/Users/mark/CARTA/Images/testStoke"; // required directory name
+    int resursionLevel = 2; // setting this parameter to zero will result in only files in the requested directory being shown
 
-    if (dirLists.size() > 0 && recursionLevel > 0) {
-        for (QString dirList : dirLists) {
-            QString subDirName = dirName + "/" + dirList;
-            test_file_list(subDirName, recursionLevel--, m_fileLists, m_dirLists);
-            //qDebug() << "directory:" << subDirName;
-            m_dirLists.push_back(subDirName);
-        }
+    extractFileList(requestDir, resursionLevel, m_fileLists, m_dirLists);
+
+    for (auto m_fileList : m_fileLists) {
+        qDebug() << "m_name:" << m_fileList.name << ", m_type:" << m_fileList.type << ", m_size:" << m_fileList.size;
     }
-
-    for (auto fileList : fileLists) {
-        //qDebug() << "name:" << fileList.name << ", type:" << fileList.type << ", size:" << fileList.size;
-        m_fileLists.push_back({fileList.name, fileList.type, fileList.size});
+    for (auto m_dirList : m_dirLists) {
+        qDebug() << "m_dir:" << m_dirList;
     }
 }
 
@@ -236,19 +229,7 @@ static int coreMainCPP(QString platformString, int argc, char* argv[]) {
     // test protocol buffer for the file list
     //*****************************************************************
 
-    std::vector<Carta::Data::DataLoader::FileInfo> m_fileLists; // list of available image files with file name, type and size information
-    std::vector<QString> m_dirLists; // list of available subdirectories
-    QString requestDir = "/Users/mark/CARTA/Images/testStoke"; // required directory name
-    int resursionLevel = 2; // setting this parameter to zero will result in only files in the requested directory being shown
-
-    test_file_list(requestDir, resursionLevel, m_fileLists, m_dirLists);
-
-    for (auto m_fileList : m_fileLists) {
-        qDebug() << "m_name:" << m_fileList.name << ", m_type:" << m_fileList.type << ", m_size:" << m_fileList.size;
-    }
-    for (auto m_dirList : m_dirLists) {
-        qDebug() << "m_dir:" << m_dirList;
-    }
+    test_file_list();
 
     return 0;
 } // coreMainCPP

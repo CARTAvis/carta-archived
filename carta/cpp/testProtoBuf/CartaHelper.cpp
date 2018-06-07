@@ -7,6 +7,8 @@
 #include "CartaLib/Hooks/ConversionSpectralHook.h"
 #include "CartaLib/Hooks/ConversionIntensityHook.h"
 
+#include "core/Data/DataLoader.h"
+
 #include <QDebug>
 #include <cmath>
 
@@ -342,3 +344,25 @@ std::vector<float> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterf
 
 } // end of extractRawData()
 
+void extractFileList(QString dirName, int recursionLevel,
+                     std::vector<Carta::Data::DataLoader::FileInfo>& m_fileLists,
+                     std::vector<QString>& m_dirLists) {
+    std::shared_ptr<Carta::Data::DataLoader> m_dataLoader;
+    std::vector<Carta::Data::DataLoader::FileInfo> fileLists;
+    std::vector<QString> dirLists;
+    m_dataLoader->getFileList2(dirName, fileLists, dirLists);
+
+    if (dirLists.size() > 0 && recursionLevel > 0) {
+        for (QString dirList : dirLists) {
+            QString subDirName = dirName + "/" + dirList;
+            extractFileList(subDirName, recursionLevel--, m_fileLists, m_dirLists);
+            //qDebug() << "directory:" << subDirName;
+            m_dirLists.push_back(subDirName);
+        }
+    }
+
+    for (auto fileList : fileLists) {
+        //qDebug() << "name:" << fileList.name << ", type:" << fileList.type << ", size:" << fileList.size;
+        m_fileLists.push_back({fileList.name, fileList.type, fileList.size});
+    }
+}
