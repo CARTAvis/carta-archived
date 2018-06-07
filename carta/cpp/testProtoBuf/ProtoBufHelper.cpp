@@ -126,7 +126,7 @@ void ListRasterImageData(const Stream::DataBook& DataBook) {
     //result = QString::fromStdString(data);
 }
 
-void PromptForRasterImageData(Request::FileListResponse* FileListResponse, std::string request_id, bool success,
+void PromptForFileListRequestData(Request::FileListResponse* FileListResponse, std::string request_id, bool success,
                               std::vector<Carta::Data::DataLoader::FileInfo> fileLists, std::vector<QString> dirLists) {
     // Unique request ID
     FileListResponse->set_request_id(request_id);

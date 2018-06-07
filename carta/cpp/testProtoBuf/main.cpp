@@ -166,7 +166,7 @@ static void test_file_list() {
     Request::DataBook DataBook;
 
     // Add an databook.
-    PromptForRasterImageData(DataBook.mutable_file_list_data(), request_id, sucess, m_fileLists, m_dirLists);
+    PromptForFileListRequestData(DataBook.mutable_file_list_data(), request_id, sucess, m_fileLists, m_dirLists);
 }
 
 static int coreMainCPP(QString platformString, int argc, char* argv[]) {
