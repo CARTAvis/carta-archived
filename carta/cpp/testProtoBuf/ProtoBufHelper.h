@@ -2,6 +2,8 @@
 #define ProtoBuffHelper_h
 
 #include <google/protobuf/util/time_util.h>
+#include "core/Data/DataLoader.h"
+
 #include "stream.pb.h"
 
 typedef ::google::protobuf::uint32 uint32;
@@ -12,5 +14,8 @@ void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 f
                               const std::vector<float> data);
 
 void ListRasterImageData(const Stream::DataBook& DataBook);
+
+void PromptForRasterImageData(Request::FileListResponse* FileListResponse, std::string request_id, bool success,
+                              std::vector<Carta::Data::DataLoader::FileInfo> fileLists, std::vector<QString> dirLists);
 
 #endif

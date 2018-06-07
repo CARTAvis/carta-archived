@@ -3,15 +3,15 @@
 #include <iostream>
 #include <string>
 
+#include "core/Data/DataLoader.h"
+
 #include "stream.pb.h"
 #include "request.pb.h"
 
 #include <QString>
 #include <sstream>
 
-using namespace std;
-
-const string NAN_VALUE = "-9999";
+const std::string NAN_VALUE = "-9999";
 
 typedef ::google::protobuf::uint32 uint32;
 
@@ -75,36 +75,36 @@ void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 f
 // Iterates though all raster_image_data in the databook and prints info about them.
 void ListRasterImageData(const Stream::DataBook& DataBook) {
     const Stream::RasterImageData& RasterImageData = DataBook.raster_image_data();
-    cout << "############# Check protocol buffer information #############" << endl;
-    cout << "file_id: " << RasterImageData.file_id() << endl;
-    cout << "layer_id: " << RasterImageData.layer_id() << endl;
-    cout << "x: " << RasterImageData.x() << endl;
-    cout << "y: " << RasterImageData.y() << endl;
-    cout << "width: " << RasterImageData.width() << endl;
-    cout << "height: " << RasterImageData.height() << endl;
-    cout << "stoke: " << RasterImageData.stokes() << endl;
-    cout << "channel: " << RasterImageData.channel() << endl;
-    cout << "mip: " << RasterImageData.mip() << endl;
+    std::cout << "############# Check protocol buffer information #############" << std::endl;
+    std::cout << "file_id: " << RasterImageData.file_id() << std::endl;
+    std::cout << "layer_id: " << RasterImageData.layer_id() << std::endl;
+    std::cout << "x: " << RasterImageData.x() << std::endl;
+    std::cout << "y: " << RasterImageData.y() << std::endl;
+    std::cout << "width: " << RasterImageData.width() << std::endl;
+    std::cout << "height: " << RasterImageData.height() << std::endl;
+    std::cout << "stoke: " << RasterImageData.stokes() << std::endl;
+    std::cout << "channel: " << RasterImageData.channel() << std::endl;
+    std::cout << "mip: " << RasterImageData.mip() << std::endl;
 
-    cout << "compression_type: ";
+    std::cout << "compression_type: ";
     ::Stream::RasterImageData_CompressionType compression_type = RasterImageData.compression_type();
     switch (compression_type) {
         case (::Stream::RasterImageData_CompressionType::RasterImageData_CompressionType_NONE):
-            cout << "NONE" << endl;
+            std::cout << "NONE" << std::endl;
             break;
         case (::Stream::RasterImageData_CompressionType::RasterImageData_CompressionType_ZFP):
-            cout << "ZFP" << endl;
+            std::cout << "ZFP" << std::endl;
             break;
         case (::Stream::RasterImageData_CompressionType::RasterImageData_CompressionType_SZ):
-            cout << "SZ" << endl;
+            std::cout << "SZ" << std::endl;
             break;
     }
 
-    cout << "compression_quality: " << RasterImageData.compression_quality() << endl;
-    cout << "num_subsets: " << RasterImageData.num_subsets() << endl;
-    cout << "image_data size: " << RasterImageData.image_data_size() << endl;
-    cout << "nan_encodings size: " << RasterImageData.nan_encodings_size() << endl;
-    cout << "#############################################################" << endl;
+    std::cout << "compression_quality: " << RasterImageData.compression_quality() << std::endl;
+    std::cout << "num_subsets: " << RasterImageData.num_subsets() << std::endl;
+    std::cout << "image_data size: " << RasterImageData.image_data_size() << std::endl;
+    std::cout << "nan_encodings size: " << RasterImageData.nan_encodings_size() << std::endl;
+    std::cout << "#############################################################" << std::endl;
 
     /// print out the image_data
     //for (int i = 0; i < RasterImageData.image_data_size(); i++) {
@@ -125,3 +125,16 @@ void ListRasterImageData(const Stream::DataBook& DataBook) {
     //result = QString::fromStdString(data);
 }
 
+void PromptForRasterImageData(Request::FileListResponse* FileListResponse, std::string request_id, bool success,
+                              std::vector<Carta::Data::DataLoader::FileInfo> fileLists, std::vector<QString> dirLists) {
+    // Unique request ID
+    FileListResponse->set_request_id(request_id);
+    // Defines whether the FILE_LIST_REQUEST was successful
+    FileListResponse->set_success(success);
+
+    // List of available image files, with file type information and size information
+
+    // List of available subdirectories
+
+
+}
