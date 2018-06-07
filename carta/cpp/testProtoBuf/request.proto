@@ -1,0 +1,8 @@
+syntax = "proto3";
+package Request;
+
+import "file_list.proto";
+
+message DataBook {
+    FileListResponse file_list_data = 1;
+}

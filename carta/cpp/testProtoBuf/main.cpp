@@ -29,6 +29,7 @@
 #include <string>
 
 #include "stream.pb.h"
+#include "request.pb.h"
 
 #include "ProtoBufHelper.h"
 #include "CartaHelper.h"
@@ -129,7 +130,7 @@ static void test_raster_image(std::shared_ptr<Carta::Lib::Image::ImageInterface>
     //}
 
     // list the DataBook
-    ListData(DataBook);
+    ListRasterImageData(DataBook);
 
     // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();

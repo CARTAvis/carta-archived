@@ -4,6 +4,7 @@
 #include <string>
 
 #include "stream.pb.h"
+#include "request.pb.h"
 
 #include <QString>
 #include <sstream>
@@ -72,7 +73,7 @@ void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 f
 }
 
 // Iterates though all raster_image_data in the databook and prints info about them.
-void ListData(const Stream::DataBook& DataBook) {
+void ListRasterImageData(const Stream::DataBook& DataBook) {
     const Stream::RasterImageData& RasterImageData = DataBook.raster_image_data();
     cout << "############# Check protocol buffer information #############" << endl;
     cout << "file_id: " << RasterImageData.file_id() << endl;

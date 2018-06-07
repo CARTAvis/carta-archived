@@ -11,6 +11,6 @@ void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 f
                               Stream::RasterImageData::CompressionType type, float compression_quality, uint32 num_subsets,
                               const std::vector<float> data);
 
-void ListData(const Stream::DataBook& DataBook);
+void ListRasterImageData(const Stream::DataBook& DataBook);
 
 #endif
