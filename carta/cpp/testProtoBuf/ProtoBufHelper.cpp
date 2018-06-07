@@ -14,6 +14,7 @@
 const std::string NAN_VALUE = "-9999";
 
 typedef ::google::protobuf::uint32 uint32;
+typedef ::google::protobuf::uint64 uint64;
 
 // This function fills in a RasterImageData message based on user input.
 void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 file_id, uint32 layer_id, uint32 x, uint32 y,
@@ -133,8 +134,32 @@ void PromptForRasterImageData(Request::FileListResponse* FileListResponse, std::
     FileListResponse->set_success(success);
 
     // List of available image files, with file type information and size information
+    for (auto fileList : fileLists) {
+        // set file name
+        QString name = fileList.name;
+        std::string nameUtf8 = name.toUtf8().constData();
+        FileListResponse->add_files()->set_name(nameUtf8); // convert QString to std::string
+        // set file type
+        int type = fileList.type;
+        switch (type) {
+            case 0:
+                FileListResponse->add_files()->set_type(::Request::FileInfo_FileType::FileInfo_FileType_FITS);
+                break;
+            case 1:
+                FileListResponse->add_files()->set_type(::Request::FileInfo_FileType::FileInfo_FileType_CASA);
+                break;
+            case 2:
+                FileListResponse->add_files()->set_type(::Request::FileInfo_FileType::FileInfo_FileType_HDF5);
+        }
+        // set file size
+        uint64 size = fileList.size;
+        FileListResponse->add_files()->set_size(size);
+    }
 
     // List of available subdirectories
-
-
+    for (QString dirList : dirLists) {
+        // convert QString to std::string
+        std::string dirListUtf8 = dirList.toUtf8().constData();
+        FileListResponse->add_directories(dirListUtf8);
+    }
 }

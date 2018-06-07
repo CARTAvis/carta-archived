@@ -347,6 +347,7 @@ std::vector<float> extractRawData(std::shared_ptr<Carta::Lib::Image::ImageInterf
 void extractFileList(QString dirName, int recursionLevel,
                      std::vector<Carta::Data::DataLoader::FileInfo>& m_fileLists,
                      std::vector<QString>& m_dirLists) {
+    bool sucess = false;
     std::shared_ptr<Carta::Data::DataLoader> m_dataLoader;
     std::vector<Carta::Data::DataLoader::FileInfo> fileLists;
     std::vector<QString> dirLists;

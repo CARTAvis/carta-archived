@@ -137,12 +137,20 @@ static void test_raster_image(std::shared_ptr<Carta::Lib::Image::ImageInterface>
 }
 
 static void test_file_list() {
-    std::vector<Carta::Data::DataLoader::FileInfo> m_fileLists; // list of available image files with file name, type and size information
-    std::vector<QString> m_dirLists; // list of available subdirectories
+    std::string request_id = "0";
     QString requestDir = "/Users/mark/CARTA/Images/testStoke"; // required directory name
     int resursionLevel = 2; // setting this parameter to zero will result in only files in the requested directory being shown
 
+    std::vector<Carta::Data::DataLoader::FileInfo> m_fileLists; // list of available image files with file name, type and size information
+    std::vector<QString> m_dirLists; // list of available subdirectories
+
     extractFileList(requestDir, resursionLevel, m_fileLists, m_dirLists);
+
+    bool sucess = false;
+
+    if (m_fileLists.size() > 0 || m_dirLists.size() > 0) {
+        sucess = true;
+    }
 
     for (auto m_fileList : m_fileLists) {
         qDebug() << "m_name:" << m_fileList.name << ", m_type:" << m_fileList.type << ", m_size:" << m_fileList.size;
@@ -150,6 +158,15 @@ static void test_file_list() {
     for (auto m_dirList : m_dirLists) {
         qDebug() << "m_dir:" << m_dirList;
     }
+
+    //*****************************************************************
+    // start to load the protocol buffer !!
+    //*****************************************************************
+
+    Request::DataBook DataBook;
+
+    // Add an databook.
+    PromptForRasterImageData(DataBook.mutable_file_list_data(), request_id, sucess, m_fileLists, m_dirLists);
 }
 
 static int coreMainCPP(QString platformString, int argc, char* argv[]) {
