@@ -59,9 +59,7 @@ void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 f
     RasterImageData->set_num_subsets(num_subsets);
 
     for (int i = 0; i < rawdata.size(); i++) {
-        std::ostringstream strs;
-        strs << rawdata[i];
-        std::string str = strs.str();
+        std::string str = std::to_string(rawdata[i]);
         if (str == NAN_VALUE) {
             // Run-length encodings of NaN values removed before compression. These values are used to restore the image’s NaN values after decompression.
             std::string index = std::to_string(i);
@@ -109,14 +107,14 @@ void ListRasterImageData(const Stream::DataBook& DataBook) {
 
     /// print out the image_data
     //for (int i = 0; i < RasterImageData.image_data_size(); i++) {
-    //  string pixel = RasterImageData.image_data(i);
-    //  cout << "image_data[" << i << "] = "<< pixel << endl;
+    //  std::string pixel = RasterImageData.image_data(i);
+    //  std::cout << "image_data[" << i << "] = "<< pixel << std::endl;
     //}
 
     /// print out the nan_encodings data
     //for (int i = 0; i < RasterImageData.nan_encodings_size(); i++) {
-    //  string nan_index = RasterImageData.nan_encodings(i);
-    //  cout << "NaN index: " << nan_index << endl;
+    //  std::string nan_index = RasterImageData.nan_encodings(i);
+    //  std::cout << "NaN index: " << nan_index << std::endl;
     //}
 
     /// example of return object as a QString for the callback function
