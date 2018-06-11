@@ -5,6 +5,7 @@
 #include "core/Data/DataLoader.h"
 
 #include "stream.pb.h"
+#include "request.pb.h"
 
 typedef ::google::protobuf::uint32 uint32;
 
@@ -19,5 +20,7 @@ void ListRasterImageData(const Stream::DataBook& DataBook);
 
 void PromptForFileListRequestData(Request::FileListResponse* FileListResponse, std::string request_id, bool success,
                               std::vector<Carta::Data::DataLoader::FileInfo> fileLists, std::vector<QString> dirLists);
+
+void ListFileListRequestData(const Request::DataBook& DataBook);
 
 #endif

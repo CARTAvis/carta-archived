@@ -86,7 +86,7 @@ void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 f
 // Iterates though all raster_image_data in the databook and prints info about them.
 void ListRasterImageData(const Stream::DataBook& DataBook) {
     const Stream::RasterImageData& RasterImageData = DataBook.raster_image_data();
-    std::cout << "############# Check protocol buffer information #############" << std::endl;
+    std::cout << "\n############# Check protocol buffer for raster image #############" << std::endl;
     std::cout << "file_id: " << RasterImageData.file_id() << std::endl;
     std::cout << "layer_id: " << RasterImageData.layer_id() << std::endl;
     std::cout << "x: " << RasterImageData.x() << std::endl;
@@ -115,7 +115,7 @@ void ListRasterImageData(const Stream::DataBook& DataBook) {
     std::cout << "num_subsets: " << RasterImageData.num_subsets() << std::endl;
     std::cout << "image_data size: " << RasterImageData.image_data_size() << std::endl;
     std::cout << "nan_encodings size: " << RasterImageData.nan_encodings_size() << std::endl;
-    std::cout << "#############################################################" << std::endl;
+    std::cout << "##################################################################" << std::endl;
 
     /// print out the image_data
     //for (int i = 0; i < RasterImageData.image_data_size(); i++) {
@@ -144,26 +144,30 @@ void PromptForFileListRequestData(Request::FileListResponse* FileListResponse, s
     FileListResponse->set_success(success);
 
     // List of available image files, with file type information and size information
+    int index = 0;
     for (auto fileList : fileLists) {
         // set file name
         QString name = fileList.name;
         std::string nameUtf8 = name.toUtf8().constData();
-        FileListResponse->add_files()->set_name(nameUtf8); // convert QString to std::string
+        //FileListResponse->add_files()->set_name(nameUtf8); // convert QString to std::string
+        FileListResponse->add_files();
+        FileListResponse->mutable_files(index)->set_name(nameUtf8); // convert QString to std::string
         // set file type
         int type = fileList.type;
         switch (type) {
             case 0:
-                FileListResponse->add_files()->set_type(::Request::FileInfo_FileType::FileInfo_FileType_FITS);
+                FileListResponse->mutable_files(index)->set_type(::Request::FileInfo_FileType::FileInfo_FileType_FITS);
                 break;
             case 1:
-                FileListResponse->add_files()->set_type(::Request::FileInfo_FileType::FileInfo_FileType_CASA);
+                FileListResponse->mutable_files(index)->set_type(::Request::FileInfo_FileType::FileInfo_FileType_CASA);
                 break;
             case 2:
-                FileListResponse->add_files()->set_type(::Request::FileInfo_FileType::FileInfo_FileType_HDF5);
+                FileListResponse->mutable_files(index)->set_type(::Request::FileInfo_FileType::FileInfo_FileType_HDF5);
         }
         // set file size
         uint64 size = fileList.size;
-        FileListResponse->add_files()->set_size(size);
+        FileListResponse->mutable_files(index)->set_size(size);
+        index++;
     }
 
     // List of available subdirectories
@@ -172,4 +176,42 @@ void PromptForFileListRequestData(Request::FileListResponse* FileListResponse, s
         std::string dirListUtf8 = dirList.toUtf8().constData();
         FileListResponse->add_directories(dirListUtf8);
     }
+}
+
+void ListFileListRequestData(const Request::DataBook& DataBook) {
+    const Request::FileListResponse& FileListRequestData = DataBook.file_list_data();
+
+    std::cout << "\n############# Check protocol buffer for file lists ###############" << std::endl;
+
+    /// print out the list of image files that can be opened
+    for (int i = 0; i < FileListRequestData.files_size(); i++) {
+        // get file name
+        std::string fileName = FileListRequestData.files(i).name();
+        // get file type
+        ::Request::FileInfo_FileType fileType = FileListRequestData.files(i).type();
+        std::string fileTypeString;
+        switch (fileType) {
+            case (::Request::FileInfo_FileType::FileInfo_FileType_FITS):
+                fileTypeString = "FITS";
+                break;
+            case (::Request::FileInfo_FileType::FileInfo_FileType_CASA):
+                fileTypeString = "CASA";
+                break;
+            case (::Request::FileInfo_FileType::FileInfo_FileType_HDF5):
+                fileTypeString = "HDF5";
+        }
+        // get file size
+        uint64 fileSize = FileListRequestData.files(i).size();
+        std::cout << "fileName[" << i << "] = "<< fileName
+                  << ", fileType[" << i << "] = " << fileTypeString
+                  << ", fileSize[" << i << "] = " << fileSize << std::endl;
+    }
+
+    /// print out the list of sub dirs
+    for (int i = 0; i < FileListRequestData.directories_size(); i++) {
+        std::string subDir = FileListRequestData.directories(i);
+        std::cout << "subDir[" << i << "] = "<< subDir << std::endl;
+    }
+
+    std::cout << "##################################################################" << std::endl;
 }

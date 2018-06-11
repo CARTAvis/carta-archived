@@ -152,12 +152,12 @@ static void test_file_list() {
         sucess = true;
     }
 
-    for (auto m_fileList : m_fileLists) {
-        qDebug() << "m_name:" << m_fileList.name << ", m_type:" << m_fileList.type << ", m_size:" << m_fileList.size;
-    }
-    for (auto m_dirList : m_dirLists) {
-        qDebug() << "m_dir:" << m_dirList;
-    }
+    //for (auto m_fileList : m_fileLists) {
+    //    qDebug() << "m_name:" << m_fileList.name << ", m_type:" << m_fileList.type << ", m_size:" << m_fileList.size;
+    //}
+    //for (auto m_dirList : m_dirLists) {
+    //    qDebug() << "m_dir:" << m_dirList;
+    //}
 
     //*****************************************************************
     // start to load the protocol buffer !!
@@ -167,6 +167,8 @@ static void test_file_list() {
 
     // Add an databook.
     PromptForFileListRequestData(DataBook.mutable_file_list_data(), request_id, sucess, m_fileLists, m_dirLists);
+
+    ListFileListRequestData(DataBook);
 }
 
 static int coreMainCPP(QString platformString, int argc, char* argv[]) {
