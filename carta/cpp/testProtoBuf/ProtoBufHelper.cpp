@@ -11,18 +11,8 @@
 #include <QString>
 #include <sstream>
 
-const std::string NAN_VALUE = "-9999";
-
 typedef ::google::protobuf::uint32 uint32;
 typedef ::google::protobuf::uint64 uint64;
-
-// oncatenate a pixel value to 32 characters
-void concentrate(std::string pixel, std::vector<char>& binaryPayloadCache) {
-    size_t pixelLength = 32;
-    binaryPayloadCache.resize(pixelLength);
-    memset(binaryPayloadCache.data(), 0, pixelLength);
-    memcpy(binaryPayloadCache.data(), pixel.c_str(), std::min(pixel.length(), pixelLength));
-}
 
 // This function fills in a RasterImageData message based on user input.
 void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 file_id, uint32 layer_id, uint32 x, uint32 y,
@@ -66,21 +56,8 @@ void PromptForRasterImageData(Stream::RasterImageData* RasterImageData, uint32 f
     // The number of subsets that the data is broken into (for multithreaded compression/decompression)
     RasterImageData->set_num_subsets(num_subsets);
 
-    std::vector<char> charVectorAll;
-    for (int i = 0; i < rawdata.size(); i++) {
-        std::string str = std::to_string(rawdata[i]) + " "; // is it correct that we add a blank to separate each pixel value in a string?
-        if (str == NAN_VALUE) {
-            // Run-length encodings of NaN values removed before compression. These values are used to restore the image’s NaN values after decompression.
-            std::string index = std::to_string(i);
-            RasterImageData->add_nan_encodings(index);
-        } else {
-            // Image data. For uncompressed data, this is converted into FP32, while for compressed data, this is passed to the compression library for decompression.
-            std::vector<char> charVector;
-            concentrate(str, charVector); // converted pixel into FP32
-            charVectorAll.insert(charVectorAll.end(), charVector.begin(), charVector.end());
-        }
-    }
-    RasterImageData->add_image_data(&charVectorAll[0], charVectorAll.size());
+    // Image data. For uncompressed data, this is converted into FP32, while for compressed data, this is passed to the compression library for decompression
+    RasterImageData->add_image_data(rawdata.data(), rawdata.size() * sizeof(float));
 }
 
 // Iterates though all raster_image_data in the databook and prints info about them.
