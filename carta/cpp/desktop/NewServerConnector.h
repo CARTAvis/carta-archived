@@ -50,28 +50,27 @@ public:
 
     Viewer viewer;
     QThread *selfThread; //not really use now, may take effect later
-    void testStartViewerSlot(const QString & sessionID);
 
 public slots:
 
-    /// javascript calls this to set a state
-    void jsSetStateSlot( const QString & key, const QString & value);
+    // /// javascript calls this to set a state
+    // void jsSetStateSlot( const QString & key, const QString & value);
 
-    /// javascript calls this to send a command
-    void jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & parameter);
+    // /// javascript calls this to send a command
+    // void jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & parameter);
 
-    /// javascript calls this to let us know js connector is ready
-    void jsConnectorReadySlot();
+    // /// javascript calls this to let us know js connector is ready
+    // void jsConnectorReadySlot();
 
-    /// javascript calls this when view is resized
-    void jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height);
+    // /// javascript calls this when view is resized
+    // void jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height);
 
-    /// javascript calls this when the view is refreshed
-    void jsViewRefreshedSlot( const QString & viewName, qint64 id);
+    // /// javascript calls this when the view is refreshed
+    // void jsViewRefreshedSlot( const QString & viewName, qint64 id);
 
-    /// javascript calls this on mouse move inside a view
-    /// \deprecated
-    void jsMouseMoveSlot( const QString & viewName, int x, int y);
+    // /// javascript calls this on mouse move inside a view
+    // /// \deprecated
+    // void jsMouseMoveSlot( const QString & viewName, int x, int y);
 
     // /// this is the callback for stateChangedSignal
     // void stateChangedSlot( const QString & key, const QString & value);
@@ -84,8 +83,8 @@ signals:
 
     //new arch
     void startViewerSignal(const QString & sessionID);
-    void jsSendCommandSignal(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter);
-    void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
+    // void jsSendCommandSignal(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter);
+    // void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
@@ -93,11 +92,11 @@ signals:
     // /// javascript listener caches the new value and also calls registered callbacks
     // void stateChangedSignal( const QString & key, const QString & value);
 
-    /// we emit this signal when command results are ready
-    /// javascript listens to it
-    void jsCommandResultsSignal(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & results, const QString & subIdentifier);
-    /// emitted by c++ when we want javascript to repaint the view
-    void jsViewUpdatedSignal(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
+    // /// we emit this signal when command results are ready
+    // /// javascript listens to it
+    // void jsCommandResultsSignal(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & results, const QString & subIdentifier);
+    // /// emitted by c++ when we want javascript to repaint the view
+    // void jsViewUpdatedSignal(const QString & sessionID, const QString & viewName, const QString & img, qint64 id);
 
 public:
 
@@ -124,7 +123,7 @@ public:
 
     ViewInfo * findViewInfo(const QString &viewName);
 
-    virtual void refreshViewNow(IView *view);
+    // virtual void refreshViewNow(IView *view);
 
     IConnector* getConnectorInMap(const QString & sessionID) override;
     void setConnectorInMap(const QString & sessionID, IConnector *connector) override;
