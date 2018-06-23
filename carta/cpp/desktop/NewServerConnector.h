@@ -77,6 +77,9 @@ public slots:
 
     void startViewerSlot(const QString & sessionID);
 
+    void onTextMessage(QString message);
+    void onBinaryMessage(QByteArray message);
+
 signals:
 
     //grimmer: newArch will not use stateChange mechanism anymore
@@ -85,6 +88,11 @@ signals:
     void startViewerSignal(const QString & sessionID);
     // void jsSendCommandSignal(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter);
     // void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
+    void onTextMessageSignal(QString message);
+    void onBinaryMessageSignal(QByteArray message);
+
+    void jsTextMessageResultSignal(QString result);
+    void jsBinaryMessageResultSignal(QByteArray result);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript

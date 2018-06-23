@@ -12,6 +12,8 @@
 
 #include "core/IConnector.h"
 #include "CartaLib/IRemoteVGView.h"
+#include "QtWebSockets/qwebsocketserver.h"
+#include "QtWebSockets/qwebsocket.h"
 
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 
@@ -110,10 +112,21 @@ public:
 
 protected:
 
-    std::map<QString,  IConnector*> clientList;
+    std::map<QString, IConnector*> clientList;
 
 private:
+
     QMutex mutex;
+    std::map<QWebSocket*, NewServerConnector*> sessionList;
+
+private slots:
+
+    void onNewConnection();
+    void onTextMessage(QString);
+    void onBinaryMessage(QByteArray);
+    void forwardTextMessageResult(QString);
+    void forwardBinaryMessageResult(QByteArray);
+
 };
 
 

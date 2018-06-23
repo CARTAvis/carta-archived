@@ -19,11 +19,9 @@
 #include <QStringList>
 
 #include <thread>
-#include "QtWebSockets/qwebsocketserver.h"
-#include "QtWebSockets/qwebsocket.h"
-#include "websocketclientwrapper.h"
-#include "websockettransport.h"
-#include "qwebchannel.h"
+// #include "websocketclientwrapper.h"
+// #include "websockettransport.h"
+// #include "qwebchannel.h"
 #include <QBuffer>
 #include <QThread>
 
@@ -41,6 +39,9 @@ void SessionDispatcher::startWebSocketChannel(){
     }
 
     qDebug() << "SessionDispatcher listening on port" << port;
+
+    connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
+            this, &SessionDispatcher::onNewConnection);
 
     // // wrap WebSocket clients in QWebChannelAbstractTransport objects
     // m_clientWrapper = new WebSocketClientWrapper(m_pWebSocketServer);
@@ -78,6 +79,91 @@ SessionDispatcher::~SessionDispatcher()
     // if (m_channel != nullptr) {
     //     delete m_channel;
     // }
+}
+
+void SessionDispatcher::onNewConnection()
+{
+    qDebug() << "new Client Session !!!!";
+
+    QWebSocket* socket = m_pWebSocketServer->nextPendingConnection();
+    QString sessionID = QString::number(std::rand());
+    NewServerConnector *connector =  new NewServerConnector();
+
+    sessionList[socket] = connector;
+    setConnectorInMap(sessionID, connector);
+
+    connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
+    connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
+    connect(connector, SIGNAL(onBinaryMessageSignal(QByteArray)), connector, SLOT(onBinaryMessage(QByteArray)));
+
+    connect(socket, &QWebSocket::textMessageReceived, this, &SessionDispatcher::onTextMessage);
+    connect(socket, &QWebSocket::binaryMessageReceived, this, &SessionDispatcher::onBinaryMessage);
+
+    connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
+    connect(connector, SIGNAL(jsBinaryMessageResultSignal(QByteArray)), this, SLOT(forwardBinaryMessageResult(QByteArray)) );
+
+    // create a simple thread
+    QThread* newThread = new QThread();
+
+    // let the new thread handle its events
+    connector->moveToThread(newThread);
+    newThread->setObjectName(sessionID);
+
+    // start new thread's event loop
+    newThread->start();
+
+    //trigger signal
+    emit connector->startViewerSignal(sessionID);
+}
+
+void SessionDispatcher::onTextMessage(QString message){
+    QWebSocket* socket = qobject_cast<QWebSocket*>(sender());
+    // QString sessionID = sessionList[socket];
+    // NewServerConnector *connector = static_cast<NewServerConnector*>(getConnectorInMap(sessionID));
+    NewServerConnector* connector= sessionList[socket];
+    if (connector != nullptr){
+        emit connector->onTextMessageSignal(message);
+    }
+}
+
+void SessionDispatcher::onBinaryMessage(QByteArray message){
+
+}
+
+void SessionDispatcher::forwardTextMessageResult(QString result){
+    QWebSocket* socket = nullptr;
+    NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
+    std::map<QWebSocket*, NewServerConnector*>::iterator iter;
+    for (iter = sessionList.begin(); iter != sessionList.end(); ++iter){
+        if (iter->second == connector){
+            socket = iter->first;
+            break;
+        }
+    }
+    if (socket){
+        socket->sendTextMessage(result);
+    }
+    else {
+        qDebug() << "ERROR! Cannot find the corresponding websocket!";
+    }
+}
+
+void SessionDispatcher::forwardBinaryMessageResult(QByteArray result){
+    QWebSocket* socket = nullptr;
+    NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
+    std::map<QWebSocket*, NewServerConnector*>::iterator iter;
+    for (iter = sessionList.begin(); iter != sessionList.end(); ++iter){
+        if (iter->second == connector){
+            socket = iter->first;
+            break;
+        }
+    }
+    if (socket){
+        socket->sendBinaryMessage(result);
+    }
+    else {
+        qDebug() << "ERROR! Cannot find the corresponding websocket!";
+    }
 }
 
 // void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter)

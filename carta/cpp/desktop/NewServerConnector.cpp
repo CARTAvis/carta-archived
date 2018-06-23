@@ -431,6 +431,33 @@ void NewServerConnector::startViewerSlot(const QString & sessionID) {
     viewer.start();
 }
 
+void NewServerConnector::onTextMessage(QString message){
+    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0");
+    QString cmd = controllerID + ":" + message;
+
+    qDebug() << "Message received:" << message;
+    auto & allCallbacks = m_messageCallbackMap[ cmd];
+
+    // QString result;
+    std::string data;
+    PBMSharedPtr msg;
+
+    for( auto & cb : allCallbacks ) {
+        msg = cb( message, "", "1");
+    }
+    msg->SerializeToString(&data);
+    const QString result = QString::fromStdString(data);
+
+    if( allCallbacks.size() == 0) {
+        qWarning() << "JS command has no server listener:" << message;
+    }
+
+    emit jsTextMessageResultSignal(result);
+}
+
+void NewServerConnector::onBinaryMessage(QByteArray message){
+
+}
 
 // void NewServerConnector::jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height)
 // {
