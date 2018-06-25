@@ -48,7 +48,7 @@ public:
     virtual QString getStateLocation( const QString& saveName ) const override;
     //**
 
-    void startWebSocketChannel();
+    void startWebSocket() override;
     QWebSocketServer *m_pWebSocketServer;
     // WebSocketClientWrapper *m_clientWrapper;
     // QWebChannel *m_channel;
@@ -107,8 +107,8 @@ public:
 
 public:
 
-    IConnector* getConnectorInMap(const QString & sessionID);
-    void setConnectorInMap(const QString & sessionID, IConnector *connector);
+    IConnector* getConnectorInMap(const QString & sessionID) override;
+    void setConnectorInMap(const QString & sessionID, IConnector *connector) override;
 
 protected:
 
@@ -117,6 +117,7 @@ protected:
 private:
 
     QMutex mutex;
+    // prevent being accessed by other to avoid thread-safety problem
     std::map<QWebSocket*, NewServerConnector*> sessionList;
 
 private slots:

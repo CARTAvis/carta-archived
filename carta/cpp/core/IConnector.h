@@ -102,6 +102,8 @@ public:
 
     virtual void setConnectorInMap(const QString & sessionID, IConnector *connector) = 0;
 
+    virtual void startWebSocket() = 0;
+
     virtual ~IConnector() {}
 };
 

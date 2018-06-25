@@ -177,6 +177,7 @@ coreMainCPP( QString platformString, int argc, char * * argv )
         qInstallMessageHandler(myMessageOutput);
     }
 
+    connector->startWebSocket();
     // give QT control
     int res = qapp.exec();
 

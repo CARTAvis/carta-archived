@@ -419,6 +419,11 @@ IConnector* NewServerConnector::getConnectorInMap(const QString & sessionID){
 void NewServerConnector::setConnectorInMap(const QString & sessionID, IConnector *connector){
 }
 
+void NewServerConnector::startWebSocket(){
+    // qFatal('NewServerConnector should not start a websocket!');
+    CARTA_ASSERT_X( false, "NewServerConnector should not start a websocket!");
+}
+
 void NewServerConnector::startViewerSlot(const QString & sessionID) {
 
     QString name = QThread::currentThread()->objectName();

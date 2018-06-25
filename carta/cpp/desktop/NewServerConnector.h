@@ -136,6 +136,8 @@ public:
     IConnector* getConnectorInMap(const QString & sessionID) override;
     void setConnectorInMap(const QString & sessionID, IConnector *connector) override;
 
+    void startWebSocket() override;
+
     /// @todo move as may of these as possible to protected section
 
 protected:

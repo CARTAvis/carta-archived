@@ -27,7 +27,7 @@
 
 #include "NewServerConnector.h"
 
-void SessionDispatcher::startWebSocketChannel(){
+void SessionDispatcher::startWebSocket(){
 
     int port = 4317;
 
@@ -60,7 +60,6 @@ SessionDispatcher::SessionDispatcher()
     m_pWebSocketServer = nullptr;
     // m_clientWrapper = nullptr;
     // m_channel = nullptr;
-    startWebSocketChannel();
 
 }
 
