@@ -23,13 +23,13 @@ SOURCES += \
     # NetworkAccessManager.cpp \
     # NetworkReplyFileq.cpp
 
-SOURCES += \
-    websockettransport.cpp \
-    websocketclientwrapper.cpp
+#SOURCES += \
+#    websockettransport.cpp \
+#    websocketclientwrapper.cpp
 
-HEADERS += \
-    websockettransport.h \
-    websocketclientwrapper.h
+#HEADERS += \
+#    websockettransport.h \
+#    websocketclientwrapper.h
 
 RESOURCES = resources.qrc
 
@@ -38,6 +38,15 @@ INCLUDEPATH += ../core
 
 INCLUDEPATH += ../../../ThirdParty/protobuf/include
 LIBS += -L../../../ThirdParty/protobuf/lib -lprotobuf
+
+INCLUDEPATH += /usr/local/opt/openssl/include
+LIBS += -L/usr/local/opt/openssl/lib -lssl
+
+INCLUDEPATH += /usr/local/opt/libuv/include
+LIBS += -L/usr/local/opt/libuv/lib -luv
+
+INCLUDEPATH += ../../../ThirdParty/uWebSockets/include
+LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
