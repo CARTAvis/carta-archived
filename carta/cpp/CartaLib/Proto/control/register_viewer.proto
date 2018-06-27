@@ -1,0 +1,30 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+
+// REGISTER_VIEWER:
+// Registers the viewer with the backend.
+// Responds with REGISTER_VIEWER_ACK
+message RegisterViewer {
+    // Unique session ID parameter (can be generated using UUID libraries).
+    // Passing in an existing session ID can be used for resuming sessions
+    string session_id = 1;
+    // Optional user-specific API key to be used for basic authentication.
+    // Could be an encrypted JWT for secure authentication.
+    string api_key = 2;
+}
+
+// REGISTER_VIEWER_ACK
+// Acknowledgement response for REGISTER_VIEWER.
+// Informs the frontend whether the session was correctly.
+message RegisterViewerAck {
+    // Unique session ID
+    string session_id = 1;
+    // Defines whether the REGISTER_VIEWER command was successful
+    bool success = 2;
+    // Error message (if applicable)
+    string message = 3;
+    // Defines the type of session established
+    SessionType session_type = 4;
+}

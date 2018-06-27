@@ -1,0 +1,81 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+import "defs.proto";
+
+// SET_STATS_REQUIREMENTS:
+// Sets which stats data needs to be streamed to the frontend when the region is updated
+message SetStatsRequirements {
+    // Which file slot the requirements describe
+    sfixed32 file_id = 1;
+    // ID of the region that is having requirements defined. If a region ID of -1 is given, this corresponds to the entire 2D image.
+    sfixed32 region_id = 2;
+    // List of required stats
+    repeated StatsType stats = 3;
+}
+
+// SET_HISTOGRAM_REQUIREMENTS:
+// Sets which histogram data needs to be streamed to the frontend when the region is updated
+message SetHistogramRequirements {
+    // Which file slot the requirements describe
+    sfixed32 file_id = 1;
+    // ID of the region that is having requirements defined. If a region ID of -1 is given, this corresponds to the entire 2D image.
+    sfixed32 region_id = 2;
+    // List of required histograms, along with the number of bins. If the channel is -1, the current channel is used. If the channel is -2,
+    // the histogram is constructed over all channels. If the number of bins is less than zero, an automatic bin size is used, based on the number of values.
+    repeated HistogramConfig histograms = 3;
+
+    message HistogramConfig {
+        sfixed32 channel = 1;
+        sfixed32 num_bins = 2;
+    }
+}
+
+// SET_SPATIAL_REQUIREMENTS:
+// Sets which information needs to be streamed to the frontend when the region is updated
+message SetSpatialRequirements {
+    // Which file slot the requirements describe
+    sfixed32 file_id = 1;
+    // ID of the region that is having requirements defined. If a region ID of 0 is given, this corresponds to the point region defined by the cursor position.
+    sfixed32 region_id = 2;
+    // List of spatial profiles needed. If no Stokes parameter is specified (i.e. just “x” or “y”), the active Stokes parameter is used.
+    repeated string spatial_profiles = 3;
+}
+
+// SET_SPECTRAL_REQUIREMENTS:
+// Sets which spectral profile data needs to be streamed to the frontend when the region is updated
+message SetSpectralRequirements {
+    // Which file slot the requirements describe
+    sfixed32 file_id = 1;
+    // ID of the region that is having requirements defined. If a region ID of 0 is given, this corresponds to the point region defined by the cursor position.
+    sfixed32 region_id = 2;
+    // List of spectral profiles needed, along with which stats types are needed for each profile.
+    // If no Stokes parameter is specified (i.e. just “z”) or if the coordinate is empty, the active Stokes parameter is used.
+    // If the region is a point region, the statsTypes field is ignored.
+    repeated SpectralConfig spectral_profiles = 3;
+
+    message SpectralConfig {
+        string coordinate = 1;
+        repeated StatsType stats_types = 2;
+    }
+}
+
+
+// SET_REGION_REQUIREMENTS:
+// Sets which spatial profile data needs to be streamed to the frontend when the region is updated
+message SetRegionRequirements {
+    fixed32 file_id = 1;
+    // ID of the region that is having requirements defined. If a region ID of 0 is given,
+    // this corresponds to the point region defined by the cursor position.
+    fixed32 region_id = 2;
+    // Is the X-profile (of the current Stokes parameter) required?
+    bool x = 3;
+    // Is the Y-profile (of the current Stokes parameter) required?
+    bool y = 4;
+    // Is the Z-profile (of the current Stokes parameter) required?
+    bool z = 5;
+    // List of additional profiles needed (for example, [“Qz”, “Uz”]) will include the Z-profile of the
+    // Q and U Stokes cube, regardless of which Stokes parameter is currently in use.
+    repeated string additional_profiles = 6;
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+
+// REGION_STATS_DATA:
+//Stats data for a specific region
+message RegionStatsData {
+    // The file ID that the profile corresponds to
+    sfixed32 file_id = 1;
+    // The region_id corresponding to this profile. If the statistics data corresponds to the entire current 2D image, the region ID has a value of -1.
+    sfixed32 region_id = 2;
+    // The image channel used to generate the statistics
+    sfixed32 channel = 3;
+    // The image stokes parameter used to generate the profiles
+    sfixed32 stokes = 4;
+    // Array of statistics values, each corresponding to a particular measurement, such as max, min, mean, etc
+    repeated StatisticsValue statistics = 5;
+}

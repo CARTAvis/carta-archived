@@ -24,8 +24,17 @@
 *.swp
 
 # proto derived files
-carta/cpp/CartaLib/proto/*.pb.cc
-carta/cpp/CartaLib/proto/*.pb.h
+carta/cpp/CartaLib/Proto/*.pb.cc
+carta/cpp/CartaLib/Proto/*.pb.h
+carta/cpp/CartaLib/Proto/*.proto
+#carta/cpp/CartaLib/Proto/control/*.pb.cc
+#carta/cpp/CartaLib/Proto/control/*.pb.h
+#carta/cpp/CartaLib/Proto/request/*.pb.cc
+#carta/cpp/CartaLib/Proto/request/*.pb.h
+#carta/cpp/CartaLib/Proto/shared/*.pb.cc
+#carta/cpp/CartaLib/Proto/shared/*.pb.h
+#carta/cpp/CartaLib/Proto/stream/*.pb.cc
+#carta/cpp/CartaLib/Proto/stream/*.pb.h
 
 *createlinks.sh
 build*/

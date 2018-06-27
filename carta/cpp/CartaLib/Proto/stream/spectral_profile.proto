@@ -1,0 +1,22 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+
+// SPECTRAL_PROFILE_DATA:
+// Data for spectral profile set for a specific file
+message SpectralProfileData {
+    // The file ID that the profile corresponds to
+    sfixed32 file_id = 1;
+    // The region ID that the stats data corresponds to. If the profile corresponds to the cursor position, the region ID has a value of 0.
+    sfixed32 region_id = 2;
+    // The image stokes parameter used to generate the profiles
+    sfixed32 stokes = 3;
+    // Progress indicator, in the case of partial profile results being sent. If the profile calculations are
+    // time-consuming, regular updates should be sent to the frontend. If the data is complete, progress >= 1.
+    float progress = 4;
+    // The spectral coordinates of the stats data arrays.
+    repeated float channel_vals = 5;
+    // Spatial profiles for each required profile type
+    repeated SpectralProfile profiles = 6;
+}

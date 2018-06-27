@@ -1,0 +1,21 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+
+// ERROR_DATA:
+// Stream of error/warning/info data. This stream is used to present the frontend with additional information on
+// the state of the backend, and is not used in place of returning success=false on requests or commands.
+message ErrorData {
+    // The severity of the error. Critical errors are reserved for errors that would normally require the user
+    // to restart the program or reload the page
+    ErrorSeverity severity = 1;
+    // A list of strings describing the error type, that the frontend can interpret and react to.
+    // For example, “file_io” or “memory”.
+    repeated string tags = 2;
+    // The error message
+    string message = 3;
+    // Accompanying error data. For example, if an error has the “file_io” tag, the frontend would expect the
+    // data field to contain the file ID of the offending file.
+    string data = 4;
+}

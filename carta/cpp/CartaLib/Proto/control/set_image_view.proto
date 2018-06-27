@@ -1,0 +1,26 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+import "defs.proto";
+
+// SET_IMAGE_VIEW
+// Sets the current image view position in image space coordinates
+message SetImageView {
+    // The file ID that the view corresponds to
+    sfixed32 file_id = 1;
+    // The XY bounds corresponding to the image data in pixel coordinates
+    ImageBounds image_bounds = 2;
+    // The mip level used. The mip level defines how many image pixels correspond to the downsampled image.
+    // Only applicable for raster images
+    fixed32 mip = 3;
+    // The compression algorithm used. Additional compression types may be introduced
+    // if we allow the compression library to vary the algorithm details. For example, ZFP has modes of
+    // bounding the compression artifacts. Only applicable for raster images
+    CompressionType compression_type = 4;
+    // Compression quality switch. Only applicable for compressed raster images
+    float compression_quality = 5;
+    // The number of subsets that the data is broken into (for multithreaded compression/decompression).
+    // Only applicable for compressed raster images.
+    fixed32 num_subsets = 6;
+}

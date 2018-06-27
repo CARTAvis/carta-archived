@@ -1,0 +1,17 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+
+// REGION_HISTOGRAM_DATA:
+//Stats data for a specific region
+message RegionHistogramData {
+    // The file ID that the profile corresponds to
+    sfixed32 file_id = 1;
+    // The region_id corresponding to these histograms. If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+    sfixed32 region_id = 2;
+    // The image stokes parameter used to generate the profiles
+    sfixed32 stokes = 3;
+    // array of histograms of the current region
+    repeated Histogram histograms = 4;
+}

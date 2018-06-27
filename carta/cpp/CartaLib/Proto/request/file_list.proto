@@ -1,0 +1,30 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+
+// FILE_LIST_REQUEST:
+// Requests the list of available files for a given directory.
+// Backend responds with FILE_LIST_RESPONSE
+message FileListRequest {
+    // Required directory name
+    string directory = 1;
+}
+
+// FILE_LIST_RESPONSE
+// Response for FILE_LIST_REQUEST.
+// Gives a list of available files (and their types), as well as subdirectories
+message FileListResponse {
+    // Defines whether the FILE_LIST_REQUEST was successful
+    bool success = 1;
+    // Error message (if applicable)
+    string message = 2;
+    // Directory of listing
+    string directory = 3;
+    // Directory parent (null/empty if top-level)
+    string parent = 4;
+    // List of available image files, with file type information and size information.
+    repeated FileInfo files = 5;
+    // List of available subdirectories
+    repeated string subdirectories = 6;
+}

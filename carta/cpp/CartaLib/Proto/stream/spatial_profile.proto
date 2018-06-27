@@ -1,0 +1,26 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+
+// SPATIAL_PROFILE_DATA:
+// Data for spatial profile set for a specific file
+message SpatialProfileData {
+    // The file ID that the profile corresponds to
+    sfixed32 file_id = 1;
+    // The region_id corresponding to this profile. If the profile corresponds to the cursor position,
+    // the region ID is zero.
+    sfixed32 region_id = 2;
+    // The pixel X-coordinate of the profile set
+    sfixed32 x = 3;
+    // The pixel Y-coordinate of the profile set
+    sfixed32 y = 4;
+    // The image channel used to generate the profiles
+    sfixed32 channel = 5;
+    // The image stokes parameter used to generate the profiles
+    sfixed32 stokes = 6;
+    // The value of the image at the given coordinates
+    float value = 7;
+    // Spatial profiles for each required profile type
+    repeated SpatialProfile profiles = 8;
+}

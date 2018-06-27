@@ -1,0 +1,30 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+
+// FILE_INFO_REQUEST:
+// Requests the list of available files for a given directory.
+// Backend responds with FILE_INFO_RESPONSE
+message FileInfoRequest {
+    // Required directory name
+    string directory = 1;
+    // Required file name
+    string file = 2;
+    // Required HDU name (if applicable). If left empty, the first HDU is selected
+    string hdu = 3;
+}
+
+// FILE_INFO_RESPONSE
+// Response for FILE_INFO_REQUEST.
+// Gives information on the requested file
+message FileInfoResponse {
+    // Defines whether the FILE_INFO_REQUEST was successful
+    bool success = 1;
+    // Error message (if applicable)
+    string message = 2;
+    // Basic file info (type, size)
+    FileInfo file_info = 3;
+    // Extended file info (WCS, header info)
+    FileInfoExtended file_info_extended = 4;
+}

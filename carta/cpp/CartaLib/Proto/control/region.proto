@@ -1,0 +1,47 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+import "defs.proto";
+
+// SET_REGION:
+// Creates or updates a region. Backend responds with SET_REGION_ACK
+message SetRegion {
+    // Unique region ID. <=0 if a new region is being created.
+    sfixed32 region_id = 1;
+    // The name of the region, displayed as an annotation label.
+    string region_name = 2;
+    // The type of region described by the control points. The meaning of the control points will differ,
+    // depending on the type of region being defined. For example, an ellipse will require three control points:
+    // center, vertex and co-vertex. A rectangle requires two control points: top left and bottom right
+    RegionType region_type = 3;
+    // Minimum channel bound for the region. Set to < 0 if not required
+    sfixed32 channel_min = 4;
+    // Maximum channel bound for the region. Set to < 0 if not required
+    sfixed32 channel_max = 5;
+    // Index of selected Stokes values. If this is empty, the current Stokes value is used
+    repeated sfixed32 stokes = 6;
+    // Control points for the region
+    repeated Point control_points = 7;
+    // (Only applicable for ellipse and rectangle) Rotation of the region in the xy plane (radians).
+    float rotation = 8;
+}
+
+// SET_REGION_ACK:
+// Response for SET_REGION
+message SetRegionAck {
+    // Defines whether SET_REGION was successful
+    bool success = 1;
+    // Error message (if applicable)
+    string message = 2;
+    // The unique region ID. If the region is updated, this will be the same as the region ID specified in SET_REGION.
+    // If  a new region is being created, the ID of the new region will be passed back.
+    sfixed32 region_id = 3;
+}
+
+// REMOVE_REGION:
+// Removes a region
+message RemoveRegion {
+    // Unique region ID of the region to be removed
+    sfixed32 region_id = 1;
+}

@@ -1,0 +1,53 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+import "enums.proto";
+
+// START_ANIMATION:
+// Starts an animation, as defined by the start, stop and step definitions.
+// Backend responds with START_ANIMATION_ACK
+message StartAnimation {
+    // Which file slot the animation describes.
+    // If the animation is between files, this should be the same as the starting file.
+    sfixed32 file_id = 1;
+    // The starting point of the animation.
+    AnimationFrame start_frame = 2;
+    // The ending point of the animation
+    AnimationFrame end_frame = 3;
+    // The frame change step for the animation. For example, a delta frame of {channel=1, stokes=0, file_id=0}
+    // would step through each channel in the same file.
+    AnimationFrame delta_frame = 4;
+    // Frame interval in milliseconds
+    sfixed32 frame_interval = 5;
+    // Whether to loop the animation indefinitely.
+    bool looping = 6;
+    // Whether to reverse the animation direction when endFrame is reached.
+    bool reverse = 7;
+    // The compression algorithm used. Additional compression types may be introduced if
+    // we allow the compression library to vary the algorithm details. For example,
+    // ZFP has modes of bounding the compression artifacts.
+    CompressionType compression_type = 8;
+    // Compression quality switch. Note: A different compression type or quality can be specified in
+    // the animation message, as animations may require smaller image data sizes to playback
+    // smoothly on poor quality connections.
+    float compression_quality = 9;
+}
+
+// START_ANIMATION_ACK
+// Response for START_ANIMATION
+message StartAnimationAck {
+    // Defines whether START_ANIMATION was successful
+    bool success = 1;
+    // Error message (if applicable)
+    string message = 2;
+    // The unique animation ID
+    sfixed32 animation_id = 3;
+}
+
+// STOP_ANIMATION
+// Stops a specific animation, or all playing animations.
+message StopAnimation {
+    // ID of the animation to stop. This is included purely for logging/diagnostic purposes.
+    sfixed32 animation_id = 1;
+}

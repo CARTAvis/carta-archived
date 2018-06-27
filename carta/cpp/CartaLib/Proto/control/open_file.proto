@@ -1,0 +1,36 @@
+syntax = "proto3";
+package CARTA;
+
+import "defs.proto";
+import "enums.proto";
+
+// OPEN_FILE:
+// Requests the opening of a specific file.
+// Backend responds with  OPEN_FILE_ACK
+message OpenFile {
+    // Required directory name
+    string directory = 1;
+    // Required file name
+    string file = 2;
+    // Which HDU to load (if applicable). If left blank, the first HDU will be used
+    string hdu = 3;
+    // Which "file" slot to load the file into (when viewing multiple files)
+    sfixed32 file_id = 4;
+    // The render mode to use. Additional modes will be added in subsequent versions.
+    RenderMode render_mode = 5;
+}
+
+// OPEN_FILE_ACK
+// Response for OPEN_FILE. Also supplies file information
+message OpenFileAck {
+    // Defines whether OPEN_FILE was successful
+    bool success = 1;
+    // Which file slot the file was loaded into (when viewing multiple files)
+    sfixed32 file_id = 2;
+    // Error message (if applicable)
+    string message = 3;
+    // Basic file info (type, size)
+    FileInfo file_info = 4;
+    // Extended file info (WCS, header info)
+    FileInfoExtended file_info_extended = 5;
+}

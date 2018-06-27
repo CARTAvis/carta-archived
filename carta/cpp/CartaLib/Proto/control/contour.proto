@@ -1,0 +1,26 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+import "defs.proto";
+
+// SET_CONTOUR_PARAMETERS
+// Sets the contour parameters for a file
+message SetContourParameters {
+    // The file ID that the contour corresponds to
+    fixed32 file_id = 1;
+    // The layer ID that the contour image corresponds to
+    fixed32 layer_id = 2;
+    // The XY bounds corresponding to the image data in pixel coordinates
+    ImageBounds image_bounds = 3;
+    // The image channel (Z-coordinate)
+    fixed32 channel = 4;
+    // The image stokes parameter
+    fixed32 stokes = 5;
+    // Contour levels
+    repeated double levels = 6;
+    // Contour generation mode
+    ContourMode contour_mode = 7;
+    // Contour smoothness
+    float smoothness = 8;
+}

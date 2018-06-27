@@ -6,6 +6,11 @@
   error( "Could not find the proto_compile.pri file!" )
 }
 
+$$system(cp Proto/control/*.proto Proto/)
+$$system(cp Proto/shared/*.proto Proto/)
+$$system(cp Proto/request/*.proto Proto/)
+$$system(cp Proto/stream/*.proto Proto/)
+
 QT       += network xml
 
 TARGET = CartaLib
@@ -13,7 +18,11 @@ TEMPLATE = lib
 
 DEFINES += CARTALIB_LIBRARY
 
-PROTOS = Proto/lm.helloworld.proto
+PROTOS = Proto/lm.helloworld.proto \
+    Proto/defs.proto \
+    Proto/enums.proto \
+    Proto/open_file.proto \
+    Proto/raster_image.proto
 
 SOURCES += \
     CartaLib.cpp \

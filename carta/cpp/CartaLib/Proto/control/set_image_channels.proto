@@ -1,0 +1,16 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+import "defs.proto";
+
+// SET_IMAGE_CHANNELS
+// Sets the current image channel and Stokes parameter
+message SetImageChannels {
+    // The file ID that the view corresponds to
+    sfixed32 file_id = 1;
+    // The image channel (Z-coordinate)
+    sfixed32 channel = 2;
+    // The image stokes parameter
+    sfixed32 stokes = 3;
+}

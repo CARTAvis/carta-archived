@@ -1,0 +1,30 @@
+syntax = "proto3";
+package CARTA;
+
+import "enums.proto";
+import "defs.proto";
+
+// RASTER_IMAGE_DATA:
+// Data for an image rendered in raster mode.
+message RasterImageData {
+    // The file ID that the raster image corresponds to
+    sfixed32 file_id = 1;
+    // The bounding box in the XY plane corresponding to the image data in pixel coordinates
+    ImageBounds image_bounds = 2;
+    // The image channel (z-coordinate)
+    sfixed32 channel = 3;
+    // The image stokes coordinate
+    sfixed32 stokes = 4;
+    // The mip level used. The mip level defines how many image pixels correspond to the downsampled image
+    sfixed32 mip = 5;
+    // The compression algorithm used.
+    CompressionType compression_type = 6;
+    // Compression quality switch
+    float compression_quality = 7;
+    // The number of subsets that the data is broken into (for multithreaded compression/decompression)
+    sfixed32 num_subsets = 8;
+    // Image data. For uncompressed data, this is converted into FP32, while for compressed data, this is passed to the compression library for decompression.
+    repeated bytes image_data = 9;
+    // Run-length encodings of NaN values removed before compression. These values are used to restore the image’s NaN values after decompression.
+    repeated bytes nan_encodings = 10;
+}

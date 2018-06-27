@@ -1,0 +1,9 @@
+syntax = "proto3";
+package CARTA;
+
+// CLOSE_FILE:
+// Instructs the backend to close a file with a given file ID
+message CloseFile {
+    // Which "file" slot to close
+    sfixed32 file_id = 1;
+}
