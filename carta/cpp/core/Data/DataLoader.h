@@ -82,6 +82,18 @@ public:
     const static QString CRTF;
     const static QString REG;
 
+    // define the struct of file information
+    struct FileInfo {
+        QString name;
+        int type;
+        uint64_t size;
+    };
+
+    // FILE_LIST_RESPONSE for protocol buffer
+    void getFileList2(const QString& dirName,
+                      std::vector<DataLoader::FileInfo>& fileLists,
+                      std::vector<QString>& dirLists) const;
+
     virtual ~DataLoader();
 
 private:
@@ -93,6 +105,7 @@ private:
     class Factory;
 
     const static QString DIR;
+    const static QString SIZE;
 
     void _initCallbacks();
 
@@ -103,10 +116,13 @@ private:
     //return the format in json to set icons
     QString _checkSubDir( QString& subDirPath) const;
 
+    // calculate the total size of sub-dir
+    size_t _subDirSize(const QString& subDirPath) const;
+
     //Add a file to the list of those available in a given directory.
-    void _makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const;
+    void _makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType, const QString& fileSize) const;
     //Add a subdirectory to the list of available files.
-    void _makeFolderNode( QJsonArray& parentArray, const QString& fileName ) const;
+    void _makeFolderNode( QJsonArray& parentArray, const QString& fileName, const QString& fileSize ) const;
     DataLoader( const QString& path, const QString& id);
     DataLoader( const DataLoader& other);
     DataLoader& operator=( const DataLoader& other );
