@@ -140,6 +140,8 @@ void
 CartaObject::addMessageCallback (const QString & messageType, IConnector::MessageCallback callback)
 {
     conn()-> addMessageCallback ( addIdToCommand(messageType), callback);
+    // use for test, without assign the id of non-global objects
+    // conn() -> addMessageCallback( messageType, callback);
 }
 
 int64_t CartaObject::addStateCallback( const QString& statePath, const IConnector::StateChangedCallback & cb)

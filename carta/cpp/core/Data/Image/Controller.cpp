@@ -24,7 +24,7 @@
 #include "CartaLib/IImage.h"
 #include "Globals.h"
 
-#include "CartaLib/proto/lm.helloworld.pb.h"
+#include "CartaLib/Proto/lm.helloworld.pb.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QList>

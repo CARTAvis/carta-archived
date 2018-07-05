@@ -129,7 +129,7 @@ private slots:
     void onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length);
     void onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length);
     void forwardTextMessageResult(QString);
-    void forwardBinaryMessageResult(QByteArray);
+    void forwardBinaryMessageResult(char* message, size_t length);
 
 };
 

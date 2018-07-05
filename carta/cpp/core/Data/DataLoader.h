@@ -12,6 +12,9 @@
 
 #include <memory>
 
+#include "CartaLib/Proto/file_list.pb.h"
+#include "CartaLib/Proto/defs.pb.h"
+
 namespace Carta {
 
 namespace Data {
@@ -20,7 +23,8 @@ class DataLoader : public Carta::State::CartaObject {
 
 public:
 
-    QString getFileList(const QString & params);
+    // QString getFileList(const QString & params);
+    PBMSharedPtr getFileList( CARTA::FileListRequest fileListRequest);
 
     /**
      * Returns a QString containing a hierarchical listing of data files that can

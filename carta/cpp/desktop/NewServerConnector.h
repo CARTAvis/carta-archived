@@ -78,7 +78,7 @@ public slots:
     void startViewerSlot(const QString & sessionID);
 
     void onTextMessage(QString message);
-    void onBinaryMessage(QByteArray message);
+    void onBinaryMessage(char* message, size_t length);
 
 signals:
 
@@ -89,10 +89,10 @@ signals:
     // void jsSendCommandSignal(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter);
     // void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
     void onTextMessageSignal(QString message);
-    void onBinaryMessageSignal(QByteArray message);
+    void onBinaryMessageSignal(char* message, size_t length);
 
     void jsTextMessageResultSignal(QString result);
-    void jsBinaryMessageResultSignal(QByteArray result);
+    void jsBinaryMessageResultSignal(char* message, size_t length);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript

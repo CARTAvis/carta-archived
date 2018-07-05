@@ -14,7 +14,6 @@
 
 #include <set>
 
-
 namespace Carta {
 
 namespace Data {
@@ -134,13 +133,77 @@ QString DataLoader::getLongName( const QString& shortName, const QString& sessio
     return longName;
 }
 
-QString DataLoader::getFileList(const QString & params){
+// QString DataLoader::getFileList(const QString & params){
 
-    std::set<QString> keys = { "path" };
-    std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    QString dir = dataValues[*keys.begin()];
-    QString xml = getData( dir, "1" );
-    return xml;
+//     std::set<QString> keys = { "path" };
+//     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//     QString dir = dataValues[*keys.begin()];
+//     QString xml = getData( dir, "1" );
+//     return xml;
+// }
+
+DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileListRequest ){
+    std::string dir = fileListRequest.directory();
+    std::shared_ptr<CARTA::FileListResponse> fileListResponse(new CARTA::FileListResponse());
+
+    QString dirName = QString::fromStdString(dir);
+    QString rootDirName = dirName;
+    bool securityRestricted = isSecurityRestricted();
+    //Just get the default if the user is trying for a directory elsewhere and
+    //security is restricted.
+    if ( securityRestricted && !dirName.startsWith( DataLoader::fakeRootDirName) ){
+        rootDirName = "";
+    }
+
+    if ( rootDirName.length() == 0 || dirName == DataLoader::fakeRootDirName){
+        if ( lastAccessedDir.length() == 0 ){
+            lastAccessedDir = getRootDir("1");
+        }
+        rootDirName = lastAccessedDir;
+    }
+    else {
+        rootDirName = getFile( dirName, "1" );
+    }
+    lastAccessedDir = rootDirName;
+
+    QDir rootDir(rootDirName);
+
+    if (!rootDir.exists()) {
+        QString errorMsg = "Please check that "+rootDir.absolutePath()+" is a valid directory.";
+        Util::commandPostProcess( errorMsg );
+        return nullptr;
+    }
+
+    QString lastPart = rootDir.absolutePath();
+
+    QDirIterator dit(rootDir.absolutePath(), QDir::NoFilter);
+    while (dit.hasNext()) {
+        dit.next();
+        // skip "." and ".." entries
+        if (dit.fileName() == "." || dit.fileName() == "..") {
+            continue;
+        }
+
+        QString fileName = dit.fileInfo().fileName();
+        if (dit.fileInfo().isDir()) {
+            QString rootDirPath = rootDir.absolutePath();
+            QString subDirPath = rootDirPath.append("/").append(fileName);
+
+            if ( !_checkSubDir(subDirPath).isNull() ) {
+                CARTA::FileInfo *fileInfo = fileListResponse->add_files();
+                fileInfo->set_name(fileName.toStdString());
+            }
+            else {
+                fileListResponse->add_subdirectories(fileName.toStdString());
+            }
+        }
+        else if (dit.fileInfo().isFile()) {
+            CARTA::FileInfo *fileInfo = fileListResponse->add_files();
+            fileInfo->set_name(fileName.toStdString());
+        }
+    }
+
+    return fileListResponse;
 }
 
 void DataLoader::_initCallbacks(){

@@ -29,7 +29,7 @@
 
 void SessionDispatcher::startWebSocket(){
 
-    int port = 4317;
+    int port = 3002;
 
     // setup the QWebSocketServer
     // m_pWebSocketServer = new QWebSocketServer(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode, this);
@@ -114,7 +114,7 @@ SessionDispatcher::~SessionDispatcher()
 void SessionDispatcher::onNewConnection(uWS::WebSocket<uWS::SERVER> *socket)
 {
     qDebug() << "new Client Session !!!!";
-
+    // TODO: defer the construction of NewServerConnector and sessionID after received the REGISTER_VIEWER message
     // QWebSocket* socket = m_pWebSocketServer->nextPendingConnection();
     // TODO: replace the temporary way to generate ID
     QString sessionID = QString::number(std::rand());
@@ -123,15 +123,17 @@ void SessionDispatcher::onNewConnection(uWS::WebSocket<uWS::SERVER> *socket)
     sessionList[socket] = connector;
     setConnectorInMap(sessionID, connector);
 
+    qRegisterMetaType < size_t > ( "size_t" );
+
     connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
     connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
-    connect(connector, SIGNAL(onBinaryMessageSignal(QByteArray)), connector, SLOT(onBinaryMessage(QByteArray)));
+    connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
 
     // connect(socket, &QWebSocket::textMessageReceived, this, &SessionDispatcher::onTextMessage);
     // connect(socket, &QWebSocket::binaryMessageReceived, this, &SessionDispatcher::onBinaryMessage);
 
     connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
-    connect(connector, SIGNAL(jsBinaryMessageResultSignal(QByteArray)), this, SLOT(forwardBinaryMessageResult(QByteArray)) );
+    connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
 
     // create a simple thread
     QThread* newThread = new QThread();
@@ -156,6 +158,15 @@ void SessionDispatcher::onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* mes
 }
 
 void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length){
+    NewServerConnector* connector= sessionList[ws];
+    if (!connector){
+        qFatal("Cannot find the server connector");
+        return;
+    }
+
+    if (connector != nullptr){
+        emit connector->onBinaryMessageSignal(message, length);
+    }
 }
 
 // void SessionDispatcher::onTextMessage(QString message){
@@ -209,22 +220,22 @@ void SessionDispatcher::forwardTextMessageResult(QString result){
 //     }
 // }
 
-void SessionDispatcher::forwardBinaryMessageResult(QByteArray result){
-    // QWebSocket* socket = nullptr;
-    // NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
-    // std::map<QWebSocket*, NewServerConnector*>::iterator iter;
-    // for (iter = sessionList.begin(); iter != sessionList.end(); ++iter){
-    //     if (iter->second == connector){
-    //         socket = iter->first;
-    //         break;
-    //     }
-    // }
-    // if (socket){
-    //     socket->sendBinaryMessage(result);
-    // }
-    // else {
-    //     qDebug() << "ERROR! Cannot find the corresponding websocket!";
-    // }
+void SessionDispatcher::forwardBinaryMessageResult(char* message, size_t length){
+    uWS::WebSocket<uWS::SERVER> *ws = nullptr;
+    NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
+    std::map<uWS::WebSocket<uWS::SERVER>*, NewServerConnector*>::iterator iter;
+    for (iter = sessionList.begin(); iter != sessionList.end(); ++iter){
+        if (iter->second == connector){
+            ws = iter->first;
+            break;
+        }
+    }
+    if (ws){
+        ws->send(message, length, uWS::OpCode::BINARY);
+    }
+    else {
+        qDebug() << "ERROR! Cannot find the corresponding websocket!";
+    }
 }
 
 // void SessionDispatcher::jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter)

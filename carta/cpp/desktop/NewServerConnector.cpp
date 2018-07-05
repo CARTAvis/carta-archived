@@ -24,6 +24,7 @@
 
 #include <QThread>
 
+#include "CartaLib/Proto/file_list.pb.h"
 
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
@@ -441,7 +442,7 @@ void NewServerConnector::onTextMessage(QString message){
     QString cmd = controllerID + ":" + message;
 
     qDebug() << "Message received:" << message;
-    auto & allCallbacks = m_messageCallbackMap[ cmd];
+    auto & allCallbacks = m_messageCallbackMap[ message];
 
     // QString result;
     std::string data;
@@ -460,8 +461,71 @@ void NewServerConnector::onTextMessage(QString message){
     emit jsTextMessageResultSignal(result);
 }
 
-void NewServerConnector::onBinaryMessage(QByteArray message){
+void NewServerConnector::onBinaryMessage(char* message, size_t length){
+    if (length < 32){
+        qFatal("Illegal message.");
+        return;
+    }
 
+    int nullIndex = 0;
+    for (int i = 0; i < 32; i++) {
+        if (!message[i]) {
+            nullIndex = i;
+            break;
+        }
+    }
+    QString eventName = QString::fromStdString(std::string(message, nullIndex));
+    qDebug() << "Event received:" << eventName;
+
+    QString respName;
+    std::vector<char> result;
+    PBMSharedPtr msg;
+
+    if (eventName == "REGISTER_VIEWER") {
+        // The message should be handled in sessionDispatcher
+        return;
+    }
+    else if (eventName == "FILE_LIST_REQUEST"){
+        respName = "FILE_LIST_RESPONSE";
+
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
+
+        CARTA::FileListRequest fileListRequest;
+        fileListRequest.ParseFromArray(message + 32, length - 32);
+        msg = dataLoader->getFileList(fileListRequest);
+    }
+    else {
+        // Insert non-global object id
+        // QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0");
+        // QString cmd = controllerID + ":" + eventName;
+        auto & allCallbacks = m_messageCallbackMap[eventName];
+
+        if( allCallbacks.size() == 0) {
+            qFatal("There is no event handler.");
+            return;
+        }
+
+        for( auto & cb : allCallbacks ) {
+            msg = cb( eventName, "", "1");
+        }
+    }
+
+    size_t eventNameLength = 32;
+    int messageLength = msg->ByteSize();
+    size_t requiredSize = eventNameLength + messageLength;
+    if (result.size() < requiredSize) {
+        result.resize(requiredSize);
+    }
+    memset(result.data(), 0, eventNameLength);
+    memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), eventNameLength));
+    if (msg) {
+        msg->SerializeToArray(result.data() + eventNameLength, messageLength);
+    }
+    // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
+
+    // emit jsTextMessageResultSignal(result);
+    emit jsBinaryMessageResultSignal(result.data(), requiredSize);
 }
 
 // void NewServerConnector::jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height)
