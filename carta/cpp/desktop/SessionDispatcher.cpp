@@ -29,7 +29,7 @@
 
 void SessionDispatcher::startWebSocket(){
 
-    int port = 4317;
+    int port = 3002;
 
     // setup the QWebSocketServer
     // m_pWebSocketServer = new QWebSocketServer(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode, this);
