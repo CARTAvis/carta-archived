@@ -462,7 +462,7 @@ void NewServerConnector::onTextMessage(QString message){
 }
 
 void NewServerConnector::onBinaryMessage(char* message, size_t length){
-    if (length < 32){
+    if (length < 40){
         qFatal("Illegal message.");
         return;
     }
@@ -474,8 +474,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             break;
         }
     }
+
     QString eventName = QString::fromStdString(std::string(message, nullIndex));
-    qDebug() << "Event received:" << eventName;
+    qDebug() << "Event received: " << eventName;
 
     QString respName;
     std::vector<char> result;
@@ -492,7 +493,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
 
         CARTA::FileListRequest fileListRequest;
-        fileListRequest.ParseFromArray(message + 32, length - 32);
+        fileListRequest.ParseFromArray(message + 40, length - 40);
         msg = dataLoader->getFileList(fileListRequest);
     }
     else {
@@ -512,15 +513,17 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     }
 
     size_t eventNameLength = 32;
+    size_t eventIdLength = 8;
     int messageLength = msg->ByteSize();
-    size_t requiredSize = eventNameLength + messageLength;
+    size_t requiredSize = eventNameLength + eventIdLength + messageLength;
     if (result.size() < requiredSize) {
         result.resize(requiredSize);
     }
     memset(result.data(), 0, eventNameLength);
     memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), eventNameLength));
+    memcpy(result.data() + eventNameLength, message + eventNameLength, eventIdLength);
     if (msg) {
-        msg->SerializeToArray(result.data() + eventNameLength, messageLength);
+        msg->SerializeToArray(result.data() + eventNameLength + eventIdLength, messageLength);
     }
     // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
 
