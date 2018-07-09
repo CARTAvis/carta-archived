@@ -165,6 +165,8 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
         rootDirName = getFile( dirName, "1" );
     }
     lastAccessedDir = rootDirName;
+    fileListResponse->set_success(true);
+    fileListResponse->set_directory(rootDirName.toStdString());
 
     QDir rootDir(rootDirName);
 
@@ -189,17 +191,34 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
             QString rootDirPath = rootDir.absolutePath();
             QString subDirPath = rootDirPath.append("/").append(fileName);
 
-            if ( !_checkSubDir(subDirPath).isNull() ) {
+            if (_checkSubDir(subDirPath) == "image") {
                 CARTA::FileInfo *fileInfo = fileListResponse->add_files();
+                fileInfo->set_type(CARTA::FileType::CASA);
                 fileInfo->set_name(fileName.toStdString());
+                fileInfo->add_hdu_list();
+            }
+            else if (_checkSubDir(subDirPath) == "miriad") {
+                CARTA::FileInfo *fileInfo = fileListResponse->add_files();
+                fileInfo->set_type(CARTA::FileType::MIRIAD);
+                fileInfo->set_name(fileName.toStdString());
+                fileInfo->add_hdu_list();
             }
             else {
                 fileListResponse->add_subdirectories(fileName.toStdString());
             }
         }
         else if (dit.fileInfo().isFile()) {
-            CARTA::FileInfo *fileInfo = fileListResponse->add_files();
-            fileInfo->set_name(fileName.toStdString());
+            QFile file(lastPart+QDir::separator()+fileName);
+            if (file.open(QFile::ReadOnly)) {
+                QString dataInfo = file.read(160);
+                if (dataInfo.contains(QRegExp("^SIMPLE *= *T.* BITPIX*")) && !dataInfo.contains(QRegExp("\n"))) {
+                    CARTA::FileInfo *fileInfo = fileListResponse->add_files();
+                    fileInfo->set_name(fileName.toStdString());
+                    fileInfo->set_type(CARTA::FileType::FITS);
+                    fileInfo->add_hdu_list();
+                }
+                file.close();
+            }
         }
     }
 

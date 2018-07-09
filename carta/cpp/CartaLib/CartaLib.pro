@@ -21,6 +21,7 @@ DEFINES += CARTALIB_LIBRARY
 PROTOS = Proto/lm.helloworld.proto \
     Proto/defs.proto \
     Proto/enums.proto \
+    Proto/register_viewer.proto \
     Proto/file_list.proto \
     Proto/open_file.proto \
     Proto/raster_image.proto

@@ -26,6 +26,7 @@
 #include <QThread>
 
 #include "NewServerConnector.h"
+#include "CartaLib/Proto/register_viewer.pb.h"
 
 void SessionDispatcher::startWebSocket(){
 
@@ -113,40 +114,41 @@ SessionDispatcher::~SessionDispatcher()
 
 void SessionDispatcher::onNewConnection(uWS::WebSocket<uWS::SERVER> *socket)
 {
-    qDebug() << "new Client Session !!!!";
-    // TODO: defer the construction of NewServerConnector and sessionID after received the REGISTER_VIEWER message
-    // QWebSocket* socket = m_pWebSocketServer->nextPendingConnection();
-    // TODO: replace the temporary way to generate ID
-    QString sessionID = QString::number(std::rand());
-    NewServerConnector *connector =  new NewServerConnector();
+    qDebug() << "A new connection!!";
+    // qDebug() << "new Client Session !!!!";
+    // // TODO: defer the construction of NewServerConnector and sessionID after received the REGISTER_VIEWER message
+    // // QWebSocket* socket = m_pWebSocketServer->nextPendingConnection();
+    // // TODO: replace the temporary way to generate ID
+    // QString sessionID = QString::number(std::rand());
+    // NewServerConnector *connector =  new NewServerConnector();
 
-    sessionList[socket] = connector;
-    setConnectorInMap(sessionID, connector);
+    // sessionList[socket] = connector;
+    // setConnectorInMap(sessionID, connector);
 
-    qRegisterMetaType < size_t > ( "size_t" );
+    // qRegisterMetaType < size_t > ( "size_t" );
 
-    connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
-    connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
-    connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
+    // connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
+    // connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
+    // connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
 
-    // connect(socket, &QWebSocket::textMessageReceived, this, &SessionDispatcher::onTextMessage);
-    // connect(socket, &QWebSocket::binaryMessageReceived, this, &SessionDispatcher::onBinaryMessage);
+    // // connect(socket, &QWebSocket::textMessageReceived, this, &SessionDispatcher::onTextMessage);
+    // // connect(socket, &QWebSocket::binaryMessageReceived, this, &SessionDispatcher::onBinaryMessage);
 
-    connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
-    connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
+    // connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
+    // connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
 
-    // create a simple thread
-    QThread* newThread = new QThread();
+    // // create a simple thread
+    // QThread* newThread = new QThread();
 
-    // let the new thread handle its events
-    connector->moveToThread(newThread);
-    newThread->setObjectName(sessionID);
+    // // let the new thread handle its events
+    // connector->moveToThread(newThread);
+    // newThread->setObjectName(sessionID);
 
-    // start new thread's event loop
-    newThread->start();
+    // // start new thread's event loop
+    // newThread->start();
 
-    //trigger signal
-    emit connector->startViewerSignal(sessionID);
+    // //trigger signal
+    // emit connector->startViewerSignal(sessionID);
 }
 
 void SessionDispatcher::onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length){
@@ -158,6 +160,87 @@ void SessionDispatcher::onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* mes
 }
 
 void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length){
+
+    if (length < 40){
+        qFatal("Illegal message.");
+        return;
+    }
+
+    int nullIndex = 0;
+    for (int i = 0; i < 32; i++) {
+        if (!message[i]) {
+            nullIndex = i;
+            break;
+        }
+    }
+
+    QString eventName = QString::fromStdString(std::string(message, nullIndex));
+    if ( eventName == "REGISTER_VIEWER" ){
+
+        qDebug() << "Register viewer!!";
+        bool sessionExisting = false;
+        // TODO: replace the temporary way to generate ID
+        QString sessionID = QString::number(std::rand());
+        NewServerConnector *connector = new NewServerConnector();
+
+        CARTA::RegisterViewer registerViewer;
+        registerViewer.ParseFromArray(message + 40, length - 40);
+        if (registerViewer.session_id() != ""){
+            sessionID = QString::fromStdString(registerViewer.session_id());
+            if ( getConnectorInMap(sessionID) ) {
+                connector = static_cast<NewServerConnector*>(getConnectorInMap(sessionID));
+                sessionExisting = true;
+            }
+        }
+        else {
+            setConnectorInMap(sessionID, connector);
+        }
+
+        sessionList[ws] = connector;
+
+        if ( !sessionExisting ){
+            qRegisterMetaType < size_t > ( "size_t" );
+            connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
+            connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
+            connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
+
+            connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
+            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
+
+            // create a simple thread
+            QThread* newThread = new QThread();
+
+            // let the new thread handle its events
+            connector->moveToThread(newThread);
+            newThread->setObjectName(sessionID);
+
+            // start new thread's event loop
+            newThread->start();
+
+            //trigger signal
+            emit connector->startViewerSignal(sessionID);
+        }
+
+        QString respName = "REGISTER_VIEWER_ACK";
+        CARTA::RegisterViewerAck ack;
+        ack.set_session_id(sessionID.toStdString());
+
+        std::vector<char> result;
+        size_t eventNameLength = 32;
+        size_t eventIdLength = 8;
+        int messageLength = ack.ByteSize();
+        size_t requiredSize = eventNameLength + eventIdLength + messageLength;
+        if (result.size() < requiredSize) {
+            result.resize(requiredSize);
+        }
+        memset(result.data(), 0, eventNameLength);
+        memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), eventNameLength));
+        memcpy(result.data() + eventNameLength, message + eventNameLength, eventIdLength);
+        ack.SerializeToArray(result.data() + eventNameLength + eventIdLength, messageLength);
+        ws->send(result.data(), requiredSize, uWS::OpCode::BINARY);
+        return;
+    }
+
     NewServerConnector* connector= sessionList[ws];
     if (!connector){
         qFatal("Cannot find the server connector");

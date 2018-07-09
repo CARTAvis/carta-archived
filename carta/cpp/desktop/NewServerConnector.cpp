@@ -484,6 +484,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
     if (eventName == "REGISTER_VIEWER") {
         // The message should be handled in sessionDispatcher
+        qFatal("Illegal request in NewServerConnector. Please handle it in SessionDispatcher.");
         return;
     }
     else if (eventName == "FILE_LIST_REQUEST"){

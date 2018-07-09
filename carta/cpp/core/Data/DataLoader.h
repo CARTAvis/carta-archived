@@ -14,6 +14,7 @@
 
 #include "CartaLib/Proto/file_list.pb.h"
 #include "CartaLib/Proto/defs.pb.h"
+#include "CartaLib/Proto/enums.pb.h"
 
 namespace Carta {
 
