@@ -161,7 +161,7 @@ void SessionDispatcher::onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* mes
 
 void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length){
 
-    if (length < 40){
+    if (length < 36){
         qFatal("Illegal message.");
         return;
     }
@@ -227,7 +227,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
 
         std::vector<char> result;
         size_t eventNameLength = 32;
-        size_t eventIdLength = 8;
+        size_t eventIdLength = 4;
         int messageLength = ack.ByteSize();
         size_t requiredSize = eventNameLength + eventIdLength + messageLength;
         if (result.size() < requiredSize) {

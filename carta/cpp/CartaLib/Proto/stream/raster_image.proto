@@ -21,10 +21,8 @@ message RasterImageData {
     CompressionType compression_type = 6;
     // Compression quality switch
     float compression_quality = 7;
-    // The number of subsets that the data is broken into (for multithreaded compression/decompression)
-    sfixed32 num_subsets = 8;
     // Image data. For uncompressed data, this is converted into FP32, while for compressed data, this is passed to the compression library for decompression.
-    repeated bytes image_data = 9;
+    repeated bytes image_data = 8;
     // Run-length encodings of NaN values removed before compression. These values are used to restore the image’s NaN values after decompression.
-    repeated bytes nan_encodings = 10;
+    repeated bytes nan_encodings = 9;
 }

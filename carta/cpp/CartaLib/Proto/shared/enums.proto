@@ -11,6 +11,9 @@ enum FileType {
     CASA = 1;
     HDF5 = 2;
     MIRIAD = 3;
+    REG = 4;
+    CRTF = 5;
+    UNKNOWN = 6;
 }
 
 enum RenderMode {

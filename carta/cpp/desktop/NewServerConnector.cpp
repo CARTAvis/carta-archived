@@ -25,6 +25,7 @@
 #include <QThread>
 
 #include "CartaLib/Proto/file_list.pb.h"
+#include "CartaLib/Proto/file_info.pb.h"
 
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
@@ -462,7 +463,7 @@ void NewServerConnector::onTextMessage(QString message){
 }
 
 void NewServerConnector::onBinaryMessage(char* message, size_t length){
-    if (length < 40){
+    if (length < 36){
         qFatal("Illegal message.");
         return;
     }
@@ -494,8 +495,16 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
 
         CARTA::FileListRequest fileListRequest;
-        fileListRequest.ParseFromArray(message + 40, length - 40);
+        fileListRequest.ParseFromArray(message + 36, length - 36);
         msg = dataLoader->getFileList(fileListRequest);
+    }
+    else if (eventName == "FILE_INFO_REQUEST") {
+        respName = "FILE_INFO_RESPONSE";
+
+        // we cannot handle the request so far, return a fake response.
+        std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
+        fileInfoResponse->set_success(true);
+        msg = fileInfoResponse;
     }
     else {
         // Insert non-global object id
@@ -514,7 +523,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     }
 
     size_t eventNameLength = 32;
-    size_t eventIdLength = 8;
+    size_t eventIdLength = 4;
     int messageLength = msg->ByteSize();
     size_t requiredSize = eventNameLength + eventIdLength + messageLength;
     if (result.size() < requiredSize) {
