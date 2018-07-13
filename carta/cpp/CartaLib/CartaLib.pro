@@ -19,8 +19,8 @@ TEMPLATE = lib
 DEFINES += CARTALIB_LIBRARY
 
 PROTOS = Proto/lm.helloworld.proto \
-    Proto/defs.proto \
     Proto/enums.proto \
+    Proto/defs.proto \
     Proto/register_viewer.proto \
     Proto/file_list.proto \
     Proto/file_info.proto \
