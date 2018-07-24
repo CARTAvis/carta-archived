@@ -9,6 +9,8 @@
 #include "core/State/ObjectManager.h"
 #include "core/Data/DataLoader.h"
 #include "core/Data/ViewManager.h"
+#include "core/Data/Image/Controller.h"
+#include "core/Data/Image/DataSource.h"
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -26,6 +28,10 @@
 
 #include "CartaLib/Proto/file_list.pb.h"
 #include "CartaLib/Proto/file_info.pb.h"
+#include "CartaLib/Proto/open_file.pb.h"
+#include "CartaLib/Proto/set_image_view.pb.h"
+#include "CartaLib/Proto/raster_image.pb.h"
+#include "CartaLib/IImage.h"
 
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
@@ -505,6 +511,170 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
         fileInfoResponse->set_success(true);
         msg = fileInfoResponse;
+    }
+    else if (eventName == "OPEN_FILE") {
+        respName = "OPEN_FILE_ACK";
+
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+        bool success;
+
+        CARTA::OpenFile openFile;
+        openFile.ParseFromArray(message + 36, length - 36);
+        controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
+
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
+
+        CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
+        fileInfo->set_name(openFile.file());
+        if (image->getType() == "FITSImage") {
+            fileInfo->set_type(CARTA::FileType::FITS);
+        }
+        else {
+            fileInfo->set_type(CARTA::FileType::CASA);
+        }
+        fileInfo->add_hdu_list(openFile.hdu());
+
+        const std::vector<int> dims = image->dims();
+        CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
+        fileInfoExt->set_dimensions(dims.size());
+        fileInfoExt->set_width(dims[0]);
+        fileInfoExt->set_height(dims[1]);
+        if (dims.size() >= 3) {
+            fileInfoExt->set_depth(dims[2]);
+        }
+        if (dims.size() >= 4) {
+            fileInfoExt->set_stokes(dims[3]);
+        }
+        // CARTA::HeaderEntry* headEntry = fileInfoExt->add_header_entries();
+
+        // we cannot handle the request so far, return a fake response.
+        std::shared_ptr<CARTA::OpenFileAck> ack(new CARTA::OpenFileAck());
+        ack->set_success(true);
+        ack->set_file_id(openFile.file_id());
+        ack->set_allocated_file_info(fileInfo);
+        ack->set_allocated_file_info_extended(fileInfoExt);
+        msg = ack;
+    }
+    else if (eventName == "SET_IMAGE_VIEW") {
+        respName = "RASTER_IMAGE_DATA";
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+        bool success;
+
+        CARTA::SetImageView viewSetting;
+        viewSetting.ParseFromArray(message + 36, length - 36);
+
+        std::vector<int> frames = controller->getImageSlice();
+        Carta::Lib::NdArray::RawViewInterface* view = controller->getRawData();
+        // Carta::Lib::NdArray::Float fview( view, true );
+
+        const std::vector<int> dims = view->dims();
+        // std::vector<float> data;
+        std::vector<char> data;
+        size_t i = 0;
+        // data.resize(dims[0]*dims[1]);
+        view->forEach([&data, &i](const char * val){
+            data.push_back(*val);
+        });
+        // fview.forEach([&data, &i](const float & val){
+        //     data[i] = val;
+        // });
+
+        // Carta::Lib::NdArray::Float floatView(view, false);
+        // std::vector<float> allValues;
+        // // get all pixel elements
+        // floatView.forEach([& allValues] (const float & val) {
+        //     if (std::isfinite(val)) {
+        //         allValues.push_back(val);
+        //     } else {
+        //         allValues.push_back(0.0);
+        //     }
+        // });
+
+///////////////////////////copy from Mark////////////////////////////////////////////
+    int mip = viewSetting.mip();
+    std::vector<float> allValues;
+    int ilb = 0;
+    int iub = dims[0] - 1;
+    int jlb = 0;
+    int jub = dims[1] - 1;
+    int nRows = (jub - jlb + 1) / mip;
+    int nCols = (iub - ilb + 1) / mip;
+
+    // if (nCols > view -> dims()[0] || nRows > view -> dims()[1] || nCols < 0 || nRows < 0 ||
+    //     mip < 1 || iub < 0 || ilb < 0 || jub < 0 || jlb < 0) {
+    //     qCritical() << "The input values of ilb, iub, jlb, jub or mip may be not correct!";
+    //     return allValues;
+    // }
+
+    int prepareCols = iub - ilb + 1;
+    int prepareRows = mip;
+    int area = prepareCols * prepareRows;
+    std::vector<float> rawData(nCols), prepareArea(area);
+    int nextRowToReadIn = jlb;
+
+    Carta::Lib::NdArray::Float fview( view, true );
+
+    auto updateRows = [&]() -> void {
+
+        int update = prepareRows;
+
+        int t = 0;
+        fview.forEach( [&] ( const float & val ) {
+            // To improve the performance, the prepareArea also update only one row
+            // by computing the module
+            prepareArea[(t++) % area] = val;
+        });
+
+        // Calculate the mean of each block (mip X mip)
+        for (int i = ilb; i < nCols; i++) {
+            rawData[i] = 0;
+            int elems = mip * mip;
+            float denominator = 1.0 * elems;
+            for (int e = 0; e < elems; e++) {
+                int row = e / mip;
+                int col = e % mip;
+                int index = (row * prepareCols + col + i * mip) % area;
+                if (std::isfinite(prepareArea[index])) {
+                    rawData[i] += prepareArea[index];
+                } else {
+                    denominator -= 1;
+                }
+            }
+            rawData[i] = (denominator < 1 ? 0.0 : rawData[i] / denominator);
+            allValues.push_back(rawData[i]);
+        }
+        nextRowToReadIn += update;
+    };
+
+    for (int j = jlb; j < nRows; j++) {
+        updateRows();
+    }
+
+/////////////////////////////////////////////////////////////////////
+
+
+        CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
+        imgBounds->CopyFrom(viewSetting.image_bounds());
+
+        std::shared_ptr<CARTA::RasterImageData> raster(new CARTA::RasterImageData());
+        raster->set_file_id(viewSetting.file_id());
+        raster->set_allocated_image_bounds(imgBounds);
+        raster->set_channel(frames[2]);
+        raster->set_stokes(frames[3]);
+        raster->set_mip(viewSetting.mip());
+        // raster->set_mip(1);
+        // raster->set_compression_type(viewSetting.compression_type());
+        raster->set_compression_type(CARTA::CompressionType::NONE);
+        raster->set_compression_quality(viewSetting.compression_quality());
+        raster->add_image_data(allValues.data(), allValues.size() * sizeof(float));
+        // raster->add_image_data(data.data(), data.size());
+
+        msg = raster;
+
     }
     else {
         // Insert non-global object id

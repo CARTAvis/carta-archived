@@ -291,7 +291,7 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
     return m_stack->_getCoords( x, y, system);
 }
 
-std::shared_ptr<DataSource> Controller::getDataSource(){
+std::shared_ptr<DataSource> Controller::getDataSource() const {
     return m_stack->_getDataSource();
 }
 
@@ -428,6 +428,12 @@ QString Controller::_getPreferencesId() const {
         id = m_settings->getPath();
     }
     return id;
+}
+
+Carta::Lib::NdArray::RawViewInterface* Controller::getRawData() const {
+    std::vector<int> frames = getImageSlice();
+    std::shared_ptr<DataSource> dataSource = getDataSource();
+    return dataSource->_getRawData(frames);
 }
 
 int Controller::getRegionCount() const {

@@ -25,6 +25,7 @@ PROTOS = Proto/lm.helloworld.proto \
     Proto/file_list.proto \
     Proto/file_info.proto \
     Proto/open_file.proto \
+    Proto/set_image_view.proto \
     Proto/raster_image.proto
 
 SOURCES += \
