@@ -69,6 +69,9 @@ public:
         return m_unit;
     }
 
+    virtual const QString & getType() const override {
+        return m_type;
+    }
 
     virtual std::shared_ptr<Carta::Lib::Image::ImageInterface>
     getPermuted(const std::vector<int> & indices ) override{
@@ -200,6 +203,7 @@ public:
         img-> m_dims      = casaImage-> shape().asStdVector();
         img-> m_casaII    = casaImage;
         img-> m_unit      = Carta::Lib::Unit( casaImage-> units().getName().c_str() );
+        img-> m_type      = casaImage->imageType().c_str();
 
         // get title and escape html characters in case there are any
         QString htmlTitle = casaImage->imageInfo().objectName().c_str();
@@ -272,6 +276,8 @@ protected:
 
     /// meta data pointer
     CCMetaDataInterface::SharedPtr m_meta;
+
+    QString m_type;
 
     /// we want CCRawView to access our internals...
     /// \todo maybe we just need a public accessor, no? I don't like friends :) (Pavol)

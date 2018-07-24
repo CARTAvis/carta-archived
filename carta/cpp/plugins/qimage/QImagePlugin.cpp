@@ -443,6 +443,11 @@ public:
         return m_unit;
     }
 
+    virtual const QString & getType() const override {
+        qFatal("Not implemented");
+        return "";
+    }
+
     virtual const VI &
     dims() const override
     {
