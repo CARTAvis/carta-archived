@@ -139,6 +139,9 @@ CartaObject::addCommandCallback (const QString & rawCommand, IConnector::Command
 void
 CartaObject::addMessageCallback (const QString & messageType, IConnector::MessageCallback callback)
 {
+    // Try to use another way to register callback
+    // QString sessionID = Globals::instance()->sessionID();
+    // conn()-> addMessageCallback ( sessionID + ":" + messageType, callback);
     conn()-> addMessageCallback ( addIdToCommand(messageType), callback);
     // use for test, without assign the id of non-global objects
     // conn() -> addMessageCallback( messageType, callback);
