@@ -199,6 +199,7 @@ public:
      */
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
 
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> getImage();
 
     /**
      * Get the image dimensions.
