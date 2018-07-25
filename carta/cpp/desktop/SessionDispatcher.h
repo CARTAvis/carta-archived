@@ -8,7 +8,7 @@
 
 #include <QObject>
 #include <qmutex.h>
-#include <uWS.h>
+#include <uWS/uWS.h>
 #include "NewServerConnector.h"
 
 #include "core/IConnector.h"
