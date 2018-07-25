@@ -11,6 +11,7 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <functional>
 
 /// all carta code lives here (or will eventually)
 namespace Carta
