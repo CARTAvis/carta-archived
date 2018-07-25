@@ -344,6 +344,8 @@ public:
     virtual const Unit &
     getPixelUnit() const = 0;
 
+    virtual const QString & getType() const = 0;
+
     /// Return the image with the axes permuted in the order given by indices.
     /// Passing in [1,2,0] for an image with 3 axes would result in the axis map
     /// 0 -> 1

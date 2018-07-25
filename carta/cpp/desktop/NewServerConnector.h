@@ -53,30 +53,7 @@ public:
 
 public slots:
 
-    // /// javascript calls this to set a state
-    // void jsSetStateSlot( const QString & key, const QString & value);
-
-    // /// javascript calls this to send a command
-    // void jsSendCommandSlot(const QString & sessionID, const QString & senderSession, const QString & cmd, const QString & parameter);
-
-    // /// javascript calls this to let us know js connector is ready
-    // void jsConnectorReadySlot();
-
-    // /// javascript calls this when view is resized
-    // void jsUpdateViewSizeSlot(const QString & sessionID, const QString & viewName, int width, int height);
-
-    // /// javascript calls this when the view is refreshed
-    // void jsViewRefreshedSlot( const QString & viewName, qint64 id);
-
-    // /// javascript calls this on mouse move inside a view
-    // /// \deprecated
-    // void jsMouseMoveSlot( const QString & viewName, int x, int y);
-
-    // /// this is the callback for stateChangedSignal
-    // void stateChangedSlot( const QString & key, const QString & value);
-
     void startViewerSlot(const QString & sessionID);
-
     void onTextMessage(QString message);
     void onBinaryMessage(char* message, size_t length);
 
@@ -86,8 +63,6 @@ signals:
 
     //new arch
     void startViewerSignal(const QString & sessionID);
-    // void jsSendCommandSignal(const QString & sessionID, const QString & senderSession, const QString &cmd, const QString & parameter);
-    // void jsUpdateViewSizeSignal(const QString & sessionID, const QString & viewName, int width, int height);
     void onTextMessageSignal(QString message);
     void onBinaryMessageSignal(char* message, size_t length);
 

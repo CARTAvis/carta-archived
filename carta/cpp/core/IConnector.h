@@ -40,6 +40,9 @@ public:
 
     /// to distinguish with command callback, used to return results in protocol buffer formats
     typedef std::function<PBMSharedPtr (CSR cmd, CSR params, CSR sessionId)> MessageCallback;
+    // Two possible definition of callback functions.
+    // typedef std::function<std::vector<char> (CSR requestName, QString & responseName, const int requestID, PBMSharedPtr pb)> MessageCallback;
+    // typedef std::function<PBMSharedPtr (CSR requestName, QString & responseName, const int requestID, PBMSharedPtr pb)> MessageCallback;
 
     /// signature for initialization callback
     typedef std::function<void(bool success)> InitializeCallback;

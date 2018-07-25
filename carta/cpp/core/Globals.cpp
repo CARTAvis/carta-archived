@@ -92,6 +92,10 @@ IConnector * Globals::connector()
     return connector;
 }
 
+QString Globals::sessionID() {
+    return QThread::currentThread()->objectName();
+}
+
 void Globals::setConnector(IConnector *connector)
 {
     Q_ASSERT_X( m_connector == nullptr, "Globals", "redefining connector?!?!");

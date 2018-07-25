@@ -34,6 +34,9 @@ public:
     /// get the connector
     IConnector * connector();
 
+    /// get the sessionID of each NewServerConnector
+    QString sessionID();
+
     /// set the connector
     void setConnector(IConnector *connector);
 

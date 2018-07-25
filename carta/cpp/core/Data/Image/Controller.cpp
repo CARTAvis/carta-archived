@@ -291,7 +291,7 @@ QStringList Controller::getCoordinates( double x, double y, Carta::Lib::KnownSky
     return m_stack->_getCoords( x, y, system);
 }
 
-std::shared_ptr<DataSource> Controller::getDataSource(){
+std::shared_ptr<DataSource> Controller::getDataSource() const {
     return m_stack->_getDataSource();
 }
 
@@ -322,6 +322,9 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > Controller::ge
     return m_stack->_getImages();
 }
 
+std::shared_ptr<Carta::Lib::Image::ImageInterface> Controller::getImage() {
+    return m_stack->_getImage();
+}
 
 std::shared_ptr<ContourControls> Controller::getContourControls() {
     return m_contourControls;
@@ -425,6 +428,12 @@ QString Controller::_getPreferencesId() const {
         id = m_settings->getPath();
     }
     return id;
+}
+
+Carta::Lib::NdArray::RawViewInterface* Controller::getRawData() const {
+    std::vector<int> frames = getImageSlice();
+    std::shared_ptr<DataSource> dataSource = getDataSource();
+    return dataSource->_getRawData(frames);
 }
 
 int Controller::getRegionCount() const {
@@ -572,6 +581,18 @@ void Controller::_initializeCallbacks(){
         msg1->set_str("hello");
         return static_cast<PBMSharedPtr>(msg1);
     });
+
+    // addMessageCallback( "OPEN_FILE", [=] (const QString & /*cmd*/,
+    //         const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
+
+    //     CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
+    //     fileInfo->set_name("test");
+    //     fileInfo->set_type()
+
+    //     std::shared_ptr<CARTA::OpenFileAck> ack(new CARAT::OpenFileAck());
+    //     ack->set_success(true);
+    //     ack->set_allocated_file_info(fileInfo);
+    // });
 
     addCommandCallback( "hideImage", [=] (const QString & /*cmd*/,
                         const QString & params, const QString & /*sessionId*/) -> QString {

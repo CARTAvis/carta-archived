@@ -156,7 +156,7 @@ public:
      * Return the data source of the selected image.
      * @return - the data source of the selected image.
      */
-    std::shared_ptr<DataSource> getDataSource();
+    std::shared_ptr<DataSource> getDataSource() const;
 
 
 
@@ -199,6 +199,7 @@ public:
      */
     std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > getImages();
 
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> getImage();
 
     /**
      * Get the image dimensions.
@@ -272,6 +273,11 @@ public:
      * @return - a point containing the pixel coordinates.
      */
     QPointF getPixelCoordinates( double ra, double dec, bool* valid ) const;
+
+    // A temporary way to get the raw view of the current image and the current slice.
+    // Use for a quick rendering test.
+    // It had better remove the function.
+    Carta::Lib::NdArray::RawViewInterface* getRawData() const;
 
     /**
      * Return the region controller.
