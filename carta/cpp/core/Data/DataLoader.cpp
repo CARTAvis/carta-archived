@@ -215,7 +215,6 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
                     CARTA::FileInfo *fileInfo = fileListResponse->add_files();
                     fileInfo->set_name(fileName.toStdString());
                     fileInfo->set_type(CARTA::FileType::FITS);
-                    fileInfo->set_size(file.size());
                     fileInfo->add_hdu_list();
                 }
                 file.close();
