@@ -339,9 +339,9 @@ QString ImageHistogram<T>::getUnitsY() const {
 }
 
 template <class T>
-pair<float,float> ImageHistogram<T>::getDataRange() const {
+std::pair<float,float> ImageHistogram<T>::getDataRange() const {
     int count = m_xValues.size();
-    pair<float,float> range;
+    std::pair<float,float> range;
     if ( count >= 1 ){
         double minValue = m_xValues[0];
         double maxValue = m_xValues[0];
