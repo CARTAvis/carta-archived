@@ -503,8 +503,8 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // QString cmd = controllerID + ":" + eventName;
         auto & allCallbacks = m_messageCallbackMap[eventName];
 
-        if( allCallbacks.size() == 0) {
-            qFatal("There is no event handler.");
+        if (allCallbacks.size() == 0) {
+            qCritical() << "There is no event handler:" << eventName;
             return;
         }
 
@@ -525,11 +525,13 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     memcpy(result.data() + eventNameLength, message + eventNameLength, eventIdLength);
     if (msg) {
         msg->SerializeToArray(result.data() + eventNameLength + eventIdLength, messageLength);
+        emit jsBinaryMessageResultSignal(result.data(), requiredSize);
+        qDebug() << "Send event:" << respName << QTime::currentTime().toString();
     }
     // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
 
     // emit jsTextMessageResultSignal(result);
-    emit jsBinaryMessageResultSignal(result.data(), requiredSize);
+    //emit jsBinaryMessageResultSignal(result.data(), requiredSize);
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)
