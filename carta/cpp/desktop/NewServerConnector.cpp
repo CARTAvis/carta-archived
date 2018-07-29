@@ -304,7 +304,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     }
 
     QString eventName = QString::fromStdString(std::string(message, nullIndex));
-    qDebug() << "Event received: " << eventName;
+    qDebug() << "Event received: " << eventName << QTime::currentTime().toString();
 
     QString respName;
     std::vector<char> result;
