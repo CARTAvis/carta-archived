@@ -31,6 +31,20 @@
 #include "CartaLib/Proto/open_file.pb.h"
 #include "CartaLib/Proto/set_image_view.pb.h"
 #include "CartaLib/Proto/raster_image.pb.h"
+#include "CartaLib/Proto/spectral_profile.pb.h"
+#include "CartaLib/Proto/spatial_profile.pb.h"
+#include "CartaLib/Proto/set_image_channels.pb.h"
+#include "CartaLib/Proto/set_cursor.pb.h"
+#include "CartaLib/Proto/region_stats.pb.h"
+#include "CartaLib/Proto/region_requirements.pb.h"
+#include "CartaLib/Proto/region_histogram.pb.h"
+#include "CartaLib/Proto/region.pb.h"
+#include "CartaLib/Proto/error.pb.h"
+#include "CartaLib/Proto/contour_image.pb.h"
+#include "CartaLib/Proto/contour.pb.h"
+#include "CartaLib/Proto/close_file.pb.h"
+#include "CartaLib/Proto/animation.pb.h"
+
 #include "CartaLib/IImage.h"
 
 /// \brief internal class of NewServerConnector, containing extra information we like
