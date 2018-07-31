@@ -516,6 +516,16 @@ std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
     return results;
 }
 
+std::vector<uint32_t> LayerGroup::_getPixels2Histogram(int frameLow, int frameHigh,
+    int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    std::vector<uint32_t> results;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        results = m_children[dataIndex]->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    }
+    return results;
+}
+
 std::shared_ptr<Layer> LayerGroup::_getLayer( const QString& name ){
     std::shared_ptr<Layer> layer(nullptr);
     int dataIndex = -1;

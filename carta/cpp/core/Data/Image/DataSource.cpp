@@ -643,6 +643,56 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     return intensities;
 }
 
+std::vector<uint32_t> DataSource::_getPixels2Histogram(int frameLow, int frameHigh,
+    int numberOfBins, int stokeFrame,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
+
+    std::vector<uint32_t> result;
+
+    // get the raw data
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+    int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
+    if (rawData == nullptr) {
+        qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+        return result;
+    }
+
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+    // get the min/max intensities
+    double minIntensity = 0.0;
+    double maxIntensity = 0.0;
+    std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
+    if (minMaxIntensities.size() != 2) {
+        qCritical() << "Error: can not get the min/max intensities!!";
+        return result;
+    } else {
+        minIntensity = minMaxIntensities[0];
+        maxIntensity = minMaxIntensities[1];
+    }
+
+    if (minIntensity > maxIntensity) {
+        qCritical() << "Error: min intensity > max intensity!!";
+        return result;
+    }
+
+    // get the calculator
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
+    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+
+    // Find Hz values if they are required for the unit transformation
+    std::vector<double> hertzValues;
+    if (converter && converter->frameDependent) {
+        hertzValues = _getHertzValues(doubleView.dims(), spectralIndex);
+    }
+
+    result = calculator->pixels2histogram(doubleView, minIntensity, maxIntensity, numberOfBins, spectralIndex, converter, hertzValues);
+
+    return result;
+}
+
 QColor DataSource::_getNanColor() const {
     QColor nanColor = m_renderService->getNanColor();
     return nanColor;

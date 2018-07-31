@@ -384,6 +384,12 @@ std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const
     return intensities;
 }
 
+std::vector<uint32_t> Controller::getPixels2Histogram(int frameLow, int frameHigh, int numberOfBins, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
+    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+    std::vector<uint32_t> result = m_stack->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    return result;
+}
 
 QRectF Controller::_getInputRectangle(  ) const {
     return m_stack->_getInputRectangle( );

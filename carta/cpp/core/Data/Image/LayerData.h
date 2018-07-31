@@ -372,6 +372,9 @@ protected:
             const std::vector<double>& percentiles, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
+    virtual std::vector<uint32_t> _getPixels2Histogram(int frameLow, int frameHigh,
+            int numberOfBins, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
     /**
      * Return the units of the pixels.
      * @return the units of the pixels, or blank if units could not be obtained.

@@ -282,6 +282,10 @@ protected:
             const std::vector<double>& percentiles, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
 
+    virtual std::vector<uint32_t> _getPixels2Histogram(int frameLow, int frameHigh,
+            int numberOfBins, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
+
     /**
      * Returns whether or not the layer can be loaded with the indicated frames.
      * @param frames - list of frame indices to load.

@@ -245,6 +245,9 @@ private:
             const std::vector<double>& percentiles, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
+    std::vector<uint32_t> _getPixels2Histogram(int frameLow, int frameHigh,
+            int numberOfBins, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
     /**
      * Returns the color used to draw nan pixels.

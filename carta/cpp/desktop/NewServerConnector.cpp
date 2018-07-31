@@ -322,7 +322,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
     QString respName;
     std::vector<char> result;
+    std::vector<char> result2;
     PBMSharedPtr msg;
+    PBMSharedPtr msg2;
 
     if (eventName == "REGISTER_VIEWER") {
         // The message should be handled in sessionDispatcher
@@ -393,105 +395,128 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         msg = ack;
     }
     else if (eventName == "SET_IMAGE_VIEW") {
-        respName = "RASTER_IMAGE_DATA";
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
-        bool success;
-
         CARTA::SetImageView viewSetting;
         viewSetting.ParseFromArray(message + 36, length - 36);
 
+        // get the controller
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+        /////////////////////////////////////////////////////////////////////
+        QString respName2 = "REGION_HISTOGRAM_DATA";
+
+        // calculate pixels to histogram data
+        int numberOfBins = 1000;
+        int frameLow = 0;
+        int frameHigh = frameLow + 1;
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+        std::vector<uint32_t> pixels2histogram = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, converter);
+        //qDebug() << "pixels2histogram=" << pixels2histogram;
+        std::vector<double> intensities = controller->getIntensity(frameLow, frameHigh, {0, 1}, converter);
+        double binWidth = fabs(intensities[1] - intensities[0]) / numberOfBins;
+
+        // add RegionHistogramData message
+        std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
+        region_histogram_data->set_file_id(viewSetting.file_id());
+        region_histogram_data->set_region_id(-1);
+        region_histogram_data->set_stokes(0);
+        CARTA::Histogram* histogram = region_histogram_data->add_histograms();
+        histogram->set_channel(frameLow);
+        histogram->set_num_bins(numberOfBins + 1);
+        histogram->set_bin_width(binWidth);
+        histogram->set_first_bin_center(intensities[0]);
+        for (auto intensity : pixels2histogram) {
+            histogram->add_bins(intensity);
+        }
+        msg2 = region_histogram_data;
+
+        size_t eventNameLength = 32;
+        size_t eventIdLength = 4;
+        int messageLength = msg2->ByteSize();
+        size_t requiredSize = eventNameLength + eventIdLength + messageLength;
+        if (result2.size() < requiredSize) {
+            result2.resize(requiredSize);
+        }
+        memset(result2.data(), 0, eventNameLength);
+        memcpy(result2.data(), respName2.toStdString().c_str(), std::min<size_t>(respName2.length(), eventNameLength));
+        memcpy(result2.data() + eventNameLength, message + eventNameLength, eventIdLength);
+        if (msg2) {
+            msg2->SerializeToArray(result2.data() + eventNameLength + eventIdLength, messageLength);
+            emit jsBinaryMessageResultSignal(result2.data(), requiredSize);
+            qDebug() << "Send event2:" << respName2 << QTime::currentTime().toString();
+        }
+        /////////////////////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////////////////////
+        respName = "RASTER_IMAGE_DATA";
+
         std::vector<int> frames = controller->getImageSlice();
         Carta::Lib::NdArray::RawViewInterface* view = controller->getRawData();
-        // Carta::Lib::NdArray::Float fview( view, true );
-
         const std::vector<int> dims = view->dims();
-        // std::vector<float> data;
-        std::vector<char> data;
-        size_t i = 0;
-        // data.resize(dims[0]*dims[1]);
-        view->forEach([&data, &i](const char * val){
-            data.push_back(*val);
-        });
-        // fview.forEach([&data, &i](const float & val){
-        //     data[i] = val;
-        // });
 
-        // Carta::Lib::NdArray::Float floatView(view, false);
-        // std::vector<float> allValues;
-        // // get all pixel elements
-        // floatView.forEach([& allValues] (const float & val) {
-        //     if (std::isfinite(val)) {
-        //         allValues.push_back(val);
-        //     } else {
-        //         allValues.push_back(0.0);
-        //     }
-        // });
+        // get the down sampling raw data
+        int mip = viewSetting.mip();
+        qDebug() << "mip:" << mip;
+        std::vector<float> allValues;
+        int ilb = 0;
+        int iub = dims[0] - 1;
+        int jlb = 0;
+        int jub = dims[1] - 1;
+        int nRows = (jub - jlb + 1) / mip;
+        int nCols = (iub - ilb + 1) / mip;
 
-///////////////////////////copy from Mark////////////////////////////////////////////
-    int mip = viewSetting.mip();
-    std::vector<float> allValues;
-    int ilb = 0;
-    int iub = dims[0] - 1;
-    int jlb = 0;
-    int jub = dims[1] - 1;
-    int nRows = (jub - jlb + 1) / mip;
-    int nCols = (iub - ilb + 1) / mip;
+        int prepareCols = iub - ilb + 1;
+        int prepareRows = mip;
+        int area = prepareCols * prepareRows;
+        std::vector<float> rawData(nCols), prepareArea(area);
+        int nextRowToReadIn = jlb;
 
-    // if (nCols > view -> dims()[0] || nRows > view -> dims()[1] || nCols < 0 || nRows < 0 ||
-    //     mip < 1 || iub < 0 || ilb < 0 || jub < 0 || jlb < 0) {
-    //     qCritical() << "The input values of ilb, iub, jlb, jub or mip may be not correct!";
-    //     return allValues;
-    // }
+        auto updateRows = [&]() -> void {
+            CARTA_ASSERT(nextRowToReadIn < view->dims()[1]);
 
-    int prepareCols = iub - ilb + 1;
-    int prepareRows = mip;
-    int area = prepareCols * prepareRows;
-    std::vector<float> rawData(nCols), prepareArea(area);
-    int nextRowToReadIn = jlb;
+            SliceND rowSlice;
+            int update = prepareRows;
+            rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
+            auto rawRowView = view -> getView( rowSlice );
 
-    Carta::Lib::NdArray::Float fview( view, true );
+            // make a float view of this raw row view
+            Carta::Lib::NdArray::Float fview( rawRowView, true );
 
-    auto updateRows = [&]() -> void {
+            int t = 0;
+            fview.forEach( [&] ( const float & val ) {
+                // To improve the performance, the prepareArea also update only one row
+                // by computing the module
+                prepareArea[(t++) % area] = val;
+            });
 
-        int update = prepareRows;
-
-        int t = 0;
-        fview.forEach( [&] ( const float & val ) {
-            // To improve the performance, the prepareArea also update only one row
-            // by computing the module
-            prepareArea[(t++) % area] = val;
-        });
-
-        // Calculate the mean of each block (mip X mip)
-        for (int i = ilb; i < nCols; i++) {
-            rawData[i] = 0;
-            int elems = mip * mip;
-            float denominator = 1.0 * elems;
-            for (int e = 0; e < elems; e++) {
-                int row = e / mip;
-                int col = e % mip;
-                int index = (row * prepareCols + col + i * mip) % area;
-                if (std::isfinite(prepareArea[index])) {
-                    rawData[i] += prepareArea[index];
-                } else {
-                    denominator -= 1;
+            // Calculate the mean of each block (mip X mip)
+            for (int i = ilb; i < nCols; i++) {
+                rawData[i] = 0;
+                int elems = mip * mip;
+                float denominator = elems;
+                for (int e = 0; e < elems; e++) {
+                    int row = e / mip;
+                    int col = e % mip;
+                    int index = (row * prepareCols + col + i * mip) % area;
+                    if (std::isfinite(prepareArea[index])) {
+                        rawData[i] += prepareArea[index];
+                    } else {
+                        denominator -= 1;
+                    }
                 }
+                rawData[i] = (denominator < 1 ? intensities[0] : rawData[i] / denominator);
+                allValues.push_back(rawData[i]);
             }
-            rawData[i] = (denominator < 1 ? 0.0 : rawData[i] / denominator);
-            allValues.push_back(rawData[i]);
+            nextRowToReadIn += update;
+        };
+
+        // scan the raw data for with rows for down sampling
+        for (int j = jlb; j < nRows; j++) {
+            updateRows();
         }
-        nextRowToReadIn += update;
-    };
 
-    for (int j = jlb; j < nRows; j++) {
-        updateRows();
-    }
-
-/////////////////////////////////////////////////////////////////////
-
-
+        // add the RasterImageData message
         CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
         imgBounds->CopyFrom(viewSetting.image_bounds());
 
@@ -501,15 +526,13 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         raster->set_channel(frames[2]);
         raster->set_stokes(frames[3]);
         raster->set_mip(viewSetting.mip());
-        // raster->set_mip(1);
         // raster->set_compression_type(viewSetting.compression_type());
         raster->set_compression_type(CARTA::CompressionType::NONE);
         raster->set_compression_quality(viewSetting.compression_quality());
         raster->add_image_data(allValues.data(), allValues.size() * sizeof(float));
-        // raster->add_image_data(data.data(), data.size());
 
         msg = raster;
-
+        /////////////////////////////////////////////////////////////////////
     }
     else {
         // Insert non-global object id
@@ -542,6 +565,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         emit jsBinaryMessageResultSignal(result.data(), requiredSize);
         qDebug() << "Send event:" << respName << QTime::currentTime().toString();
     }
+
     // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
 
     // emit jsTextMessageResultSignal(result);

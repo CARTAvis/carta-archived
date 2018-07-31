@@ -61,6 +61,15 @@ public:
         const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
         const std::vector<double> hertzValues
     ) override;
+    std::vector<uint32_t> pixels2histogram(
+        Carta::Lib::NdArray::TypedView < Scalar > & view,
+        double minIntensity,
+        double maxIntensity,
+        const int numberOfBins,
+        const int spectralIndex,
+        const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        const std::vector<double> hertzValues
+    ) override;
 };
 
 template <typename Scalar>
@@ -348,6 +357,81 @@ MinMaxPercentiles<Scalar>::percentile2pixels(
     return result;
 }
 
+template <typename Scalar>
+std::vector<uint32_t> MinMaxPercentiles<Scalar>::pixels2histogram(
+    Carta::Lib::NdArray::TypedView <Scalar> & view,
+    double minIntensity,
+    double maxIntensity,
+    int numberOfBins,
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
+) {
+    // if we have a frame-dependent converter and no spectral axis,
+    // we can't do anything because we don't know the channel units
+    if (converter && converter->frameDependent && spectralIndex < 0) {
+        qCritical("Cannot find intensities in these units: the conversion is frame-dependent and there is no spectral axis.");
+    }
+
+    if (converter) {
+        minIntensity /= converter->multiplier;
+        maxIntensity /= converter->multiplier;
+    }
+    double intensityRange = fabs(maxIntensity - minIntensity); // calculate the intensity range of the raw data
+    unsigned int pixelIndex; // the index of vector bins
+
+    double hertzVal;
+    std::vector<uint32_t> bins(numberOfBins + 1, 0); // initialize the vector bins as 0
+
+    // start timer for computing approximate percentiles
+    QElapsedTimer timer;
+    timer.start();
+
+    // convert pixel values from raw data to 1-D histogram and save it in a vector
+    if (converter && converter->frameDependent) {
+        // we need to apply the frame-dependent conversion to each intensity value before using it
+        // to avoid calculating the frame index repeatedly we use slices to iterate over the image one frame at a time
+        for (size_t f = 0; f < hertzValues.size(); f++) {
+            hertzVal = hertzValues[f];
+
+            Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(view, spectralIndex, f);
+
+            // iterate over the frame
+            viewSlice.forEach([&bins, &pixelIndex, &minIntensity, &numberOfBins, &intensityRange, &converter, &hertzVal] (const Scalar &val) {
+                if (std::isfinite(val)) {
+                    pixelIndex = static_cast<unsigned int>(round(numberOfBins * (converter->_frameDependentConvert(val, hertzVal) - minIntensity) / intensityRange));
+                    bins[pixelIndex]++;
+                }
+            });
+        }
+    } else {
+        // we don't have to do any conversions in the loop
+        // and we can loop over the flat image
+        view.forEach([&bins, &pixelIndex, &minIntensity, &numberOfBins, &intensityRange] (const Scalar &val) {
+            if (std::isfinite(val)) {
+                pixelIndex = static_cast<unsigned int>(round(numberOfBins * (val - minIntensity) / intensityRange));
+                bins[pixelIndex]++;
+            }
+        });
+    }
+
+    // total number of finite values
+    size_t finiteValueCount = std::accumulate(bins.begin(), bins.end(), 0);
+    qDebug() << "finite raw data number=" << finiteValueCount;
+
+    // indicate bad clip if no finite numbers were found
+    if ( finiteValueCount == 0 ) {
+        qFatal( "The size of finite raw data is zero !!" );
+    }
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get the approximate value:" << elapsedTime << "ms";
+    }
+
+    return bins;
+}
 
 }
 }

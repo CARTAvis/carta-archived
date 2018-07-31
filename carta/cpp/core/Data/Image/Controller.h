@@ -224,6 +224,10 @@ public:
             const std::vector<double>& percentiles,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
+    std::vector<uint32_t> getPixels2Histogram(int frameLow, int frameHigh,
+            int numberOfBins,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
+
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
      * layer.

@@ -62,7 +62,17 @@ public:
         Carta::Lib::IntensityUnitConverter::SharedPtr converter,
         std::vector<double> hertzValues
     );
-    
+
+    virtual std::vector<uint32_t> pixels2histogram(
+        Carta::Lib::NdArray::TypedView <Scalar> & view,
+        double minIntensity,
+        double maxIntensity,
+        int numberOfBins,
+        int spectralIndex,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        std::vector<double> hertzValues
+    );
+
     const bool isApproximate=false;
     const bool needsMinMax=false;
     std::vector<Scalar> minMaxIntensities;
@@ -91,6 +101,26 @@ std::map<double, Scalar> IPercentilesToPixels<Scalar>::percentile2pixels(
     Q_UNUSED(converter);
     Q_UNUSED(hertzValues);
     qFatal( "Unimplemented virtual function");
+}
+
+template <typename Scalar>
+std::vector<uint32_t> IPercentilesToPixels<Scalar>::pixels2histogram(
+    Carta::Lib::NdArray::TypedView <Scalar> & view,
+    double minIntensity,
+    double maxIntensity,
+    int numberOfBins,
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
+) {
+    Q_UNUSED(view);
+    Q_UNUSED(minIntensity);
+    Q_UNUSED(maxIntensity);
+    Q_UNUSED(numberOfBins);
+    Q_UNUSED(spectralIndex);
+    Q_UNUSED(converter);
+    Q_UNUSED(hertzValues);
+    qFatal( "Unimplemented virtual function: pixels2histogram()");
 }
 
 template <typename Scalar>
