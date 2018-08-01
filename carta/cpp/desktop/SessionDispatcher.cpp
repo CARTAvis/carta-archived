@@ -153,6 +153,18 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
         CARTA::RegisterViewerAck ack;
         ack.set_session_id(sessionID.toStdString());
 
+        if (connector) {
+            ack.set_success(true);
+        } else {
+            ack.set_success(false);
+        }
+
+        if (sessionExisting) {
+            ack.set_session_type(::CARTA::SessionType::RESUMED);
+        } else {
+            ack.set_session_type(::CARTA::SessionType::NEW);
+        }
+
         std::vector<char> result;
         size_t eventNameLength = 32;
         size_t eventIdLength = 4;
@@ -165,6 +177,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
         memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), eventNameLength));
         memcpy(result.data() + eventNameLength, message + eventNameLength, eventIdLength);
         ack.SerializeToArray(result.data() + eventNameLength + eventIdLength, messageLength);
+        qDebug() << "Send event: " << respName << QTime::currentTime().toString();
         ws->send(result.data(), requiredSize, uWS::OpCode::BINARY);
         return;
     }
