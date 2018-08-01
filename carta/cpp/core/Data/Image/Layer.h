@@ -16,7 +16,9 @@
 #include <QImage>
 #include <QStack>
 #include <set>
+#include "CartaLib/IPercentileCalculator.h"
 
+typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 
 class CoordinateFormatterInterface;
 
@@ -282,7 +284,7 @@ protected:
             const std::vector<double>& percentiles, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
 
-    virtual std::vector<uint32_t> _getPixels2Histogram(int frameLow, int frameHigh,
+    virtual RegionHistogramData _getPixels2Histogram(int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
 

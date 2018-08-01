@@ -11,9 +11,11 @@
 #include "core/CallbackList.h"
 #include "core/Viewer.h"
 #include "CartaLib/IRemoteVGView.h"
-
+#include "CartaLib/IPercentileCalculator.h"
 #include <QList>
 #include <QByteArray>
+
+typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 
 class IView;
 

@@ -643,11 +643,11 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     return intensities;
 }
 
-std::vector<uint32_t> DataSource::_getPixels2Histogram(int frameLow, int frameHigh,
+RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
-    std::vector<uint32_t> result;
+    RegionHistogramData result;
 
     // get the raw data
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );

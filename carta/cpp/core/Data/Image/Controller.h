@@ -11,11 +11,13 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/InputEvents.h"
 #include "CartaLib/IntensityUnitConverter.h"
+#include "CartaLib/IPercentileCalculator.h"
 #include <QString>
 #include <QList>
 #include <QObject>
-
 #include <set>
+
+typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 
 class CoordinateFormatterInterface;
 
@@ -224,7 +226,7 @@ public:
             const std::vector<double>& percentiles,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
-    std::vector<uint32_t> getPixels2Histogram(int frameLow, int frameHigh,
+    RegionHistogramData getPixels2Histogram(int frameLow, int frameHigh,
             int numberOfBins,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 

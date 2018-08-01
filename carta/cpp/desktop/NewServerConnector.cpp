@@ -407,28 +407,30 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         QString respName2 = "REGION_HISTOGRAM_DATA";
 
         // calculate pixels to histogram data
-        int numberOfBins = 1000;
+        int numberOfBins = 10000;
         int frameLow = 0;
         int frameHigh = frameLow + 1;
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        std::vector<uint32_t> pixels2histogram = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, converter);
-        //qDebug() << "pixels2histogram=" << pixels2histogram;
-        std::vector<double> intensities = controller->getIntensity(frameLow, frameHigh, {0, 1}, converter);
-        double binWidth = fabs(intensities[1] - intensities[0]) / numberOfBins;
+        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, converter);
+        std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
+        double minIntensity = regionHisotgramData.first_bin_center;
 
         // add RegionHistogramData message
         std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
         region_histogram_data->set_file_id(viewSetting.file_id());
         region_histogram_data->set_region_id(-1);
         region_histogram_data->set_stokes(0);
+
         CARTA::Histogram* histogram = region_histogram_data->add_histograms();
         histogram->set_channel(frameLow);
-        histogram->set_num_bins(numberOfBins + 1);
-        histogram->set_bin_width(binWidth);
-        histogram->set_first_bin_center(intensities[0]);
+        histogram->set_num_bins(regionHisotgramData.num_bins);
+        histogram->set_bin_width(regionHisotgramData.bin_width);
+        histogram->set_first_bin_center(minIntensity);
+
         for (auto intensity : pixels2histogram) {
             histogram->add_bins(intensity);
         }
+
         msg2 = region_histogram_data;
 
         size_t eventNameLength = 32;
@@ -505,7 +507,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
                         denominator -= 1;
                     }
                 }
-                rawData[i] = (denominator < 1 ? intensities[0] : rawData[i] / denominator);
+                rawData[i] = (denominator < 1 ? minIntensity : rawData[i] / denominator);
                 allValues.push_back(rawData[i]);
             }
             nextRowToReadIn += update;

@@ -9,7 +9,6 @@
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
 #include "State/UtilState.h"
-
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/AxisDisplayInfo.h"
@@ -386,10 +385,10 @@ std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
     return intensities;
 }
 
-std::vector<uint32_t> LayerData::_getPixels2Histogram(int frameLow, int frameHigh,
+RegionHistogramData LayerData::_getPixels2Histogram(int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
-    std::vector<uint32_t> results;
+    RegionHistogramData results;
     if ( m_dataSource ){
         results = m_dataSource->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
     }

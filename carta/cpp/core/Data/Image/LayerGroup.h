@@ -9,6 +9,8 @@
 #include "CartaLib/IImage.h"
 #include "CartaLib/IntensityUnitConverter.h"
 
+typedef Carta::Lib::RegionHistogramData RegionHistogramData;
+
 namespace Carta {
 
 namespace Data {
@@ -237,7 +239,7 @@ protected:
             const std::vector<double>& percentiles, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const Q_DECL_OVERRIDE;
 
-    virtual std::vector<uint32_t> _getPixels2Histogram(int frameLow, int frameHigh,
+    virtual RegionHistogramData _getPixels2Histogram(int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 

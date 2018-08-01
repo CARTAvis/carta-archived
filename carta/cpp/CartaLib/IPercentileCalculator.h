@@ -14,6 +14,14 @@
 namespace Carta {
 namespace Lib {
 
+struct RegionHistogramData {
+    //int32_t channel;
+    int32_t num_bins;
+    double bin_width;
+    double first_bin_center;
+    std::vector<uint32_t> bins;
+};
+
 /// helper function for calculating a slice for a single 2D frame of the image
 static Carta::Lib::NdArray::Double viewSliceForFrame(Carta::Lib::NdArray::Double view, int spectralIndex, int frameIndex) {
     // Create a slice for retrieving a single frame
@@ -63,7 +71,7 @@ public:
         std::vector<double> hertzValues
     );
 
-    virtual std::vector<uint32_t> pixels2histogram(
+    virtual RegionHistogramData pixels2histogram(
         Carta::Lib::NdArray::TypedView <Scalar> & view,
         double minIntensity,
         double maxIntensity,
@@ -104,7 +112,7 @@ std::map<double, Scalar> IPercentilesToPixels<Scalar>::percentile2pixels(
 }
 
 template <typename Scalar>
-std::vector<uint32_t> IPercentilesToPixels<Scalar>::pixels2histogram(
+RegionHistogramData IPercentilesToPixels<Scalar>::pixels2histogram(
     Carta::Lib::NdArray::TypedView <Scalar> & view,
     double minIntensity,
     double maxIntensity,

@@ -10,8 +10,10 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/IntensityUnitConverter.h"
 #include "CartaLib/IntensityCacheHelper.h"
-
+#include "CartaLib/IPercentileCalculator.h"
 #include <memory>
+
+typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 
 class CoordinateFormatterInterface;
 class SliceND;
@@ -245,7 +247,7 @@ private:
             const std::vector<double>& percentiles, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
-    std::vector<uint32_t> _getPixels2Histogram(int frameLow, int frameHigh,
+    RegionHistogramData _getPixels2Histogram(int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 

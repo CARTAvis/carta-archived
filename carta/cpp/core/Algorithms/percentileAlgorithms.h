@@ -17,6 +17,8 @@
 #include <numeric>
 #include <QElapsedTimer>
 
+typedef Carta::Lib::RegionHistogramData RegionHistogramData;
+
 namespace Carta
 {
 namespace Core
@@ -61,7 +63,7 @@ public:
         const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
         const std::vector<double> hertzValues
     ) override;
-    std::vector<uint32_t> pixels2histogram(
+    RegionHistogramData pixels2histogram(
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         double minIntensity,
         double maxIntensity,
@@ -358,7 +360,7 @@ MinMaxPercentiles<Scalar>::percentile2pixels(
 }
 
 template <typename Scalar>
-std::vector<uint32_t> MinMaxPercentiles<Scalar>::pixels2histogram(
+RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
     Carta::Lib::NdArray::TypedView <Scalar> & view,
     double minIntensity,
     double maxIntensity,
@@ -430,7 +432,13 @@ std::vector<uint32_t> MinMaxPercentiles<Scalar>::pixels2histogram(
         qCritical() << "<> Time to get the approximate value:" << elapsedTime << "ms";
     }
 
-    return bins;
+    RegionHistogramData result;
+    result.num_bins = numberOfBins + 1;
+    result.bin_width = intensityRange / numberOfBins;
+    result.first_bin_center = minIntensity;
+    result.bins = bins;
+
+    return result;
 }
 
 }
