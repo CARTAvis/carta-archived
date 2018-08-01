@@ -47,6 +47,9 @@
 
 #include "CartaLib/IImage.h"
 
+const int EVENT_NAME_LENGTH = 32;
+const int EVENT_ID_LENGTH = 4;
+
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
 ///
@@ -304,13 +307,13 @@ void NewServerConnector::onTextMessage(QString message){
 }
 
 void NewServerConnector::onBinaryMessage(char* message, size_t length){
-    if (length < 36){
+    if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH){
         qFatal("Illegal message.");
         return;
     }
 
     int nullIndex = 0;
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < EVENT_NAME_LENGTH; i++) {
         if (!message[i]) {
             nullIndex = i;
             break;
@@ -338,7 +341,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
 
         CARTA::FileListRequest fileListRequest;
-        fileListRequest.ParseFromArray(message + 36, length - 36);
+        fileListRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         msg = dataLoader->getFileList(fileListRequest);
     }
     else if (eventName == "FILE_INFO_REQUEST") {
@@ -358,7 +361,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         bool success;
 
         CARTA::OpenFile openFile;
-        openFile.ParseFromArray(message + 36, length - 36);
+        openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
 
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
@@ -396,7 +399,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     }
     else if (eventName == "SET_IMAGE_VIEW") {
         CARTA::SetImageView viewSetting;
-        viewSetting.ParseFromArray(message + 36, length - 36);
+        viewSetting.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
 
         // get the controller
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -433,18 +436,16 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         msg2 = region_histogram_data;
 
-        size_t eventNameLength = 32;
-        size_t eventIdLength = 4;
         int messageLength = msg2->ByteSize();
-        size_t requiredSize = eventNameLength + eventIdLength + messageLength;
+        size_t requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
         if (result2.size() < requiredSize) {
             result2.resize(requiredSize);
         }
-        memset(result2.data(), 0, eventNameLength);
-        memcpy(result2.data(), respName2.toStdString().c_str(), std::min<size_t>(respName2.length(), eventNameLength));
-        memcpy(result2.data() + eventNameLength, message + eventNameLength, eventIdLength);
+        memset(result2.data(), 0, EVENT_NAME_LENGTH);
+        memcpy(result2.data(), respName2.toStdString().c_str(), std::min<size_t>(respName2.length(), EVENT_NAME_LENGTH));
+        memcpy(result2.data() + EVENT_NAME_LENGTH, message + EVENT_NAME_LENGTH, EVENT_ID_LENGTH);
         if (msg2) {
-            msg2->SerializeToArray(result2.data() + eventNameLength + eventIdLength, messageLength);
+            msg2->SerializeToArray(result2.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
             emit jsBinaryMessageResultSignal(result2.data(), requiredSize);
             qDebug() << "Send event2:" << respName2 << QTime::currentTime().toString();
         }
@@ -552,18 +553,16 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         }
     }
 
-    size_t eventNameLength = 32;
-    size_t eventIdLength = 4;
     int messageLength = msg->ByteSize();
-    size_t requiredSize = eventNameLength + eventIdLength + messageLength;
+    size_t requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
     if (result.size() < requiredSize) {
         result.resize(requiredSize);
     }
-    memset(result.data(), 0, eventNameLength);
-    memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), eventNameLength));
-    memcpy(result.data() + eventNameLength, message + eventNameLength, eventIdLength);
+    memset(result.data(), 0, EVENT_NAME_LENGTH);
+    memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), EVENT_NAME_LENGTH));
+    memcpy(result.data() + EVENT_NAME_LENGTH, message + EVENT_NAME_LENGTH, EVENT_ID_LENGTH);
     if (msg) {
-        msg->SerializeToArray(result.data() + eventNameLength + eventIdLength, messageLength);
+        msg->SerializeToArray(result.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
         emit jsBinaryMessageResultSignal(result.data(), requiredSize);
         qDebug() << "Send event:" << respName << QTime::currentTime().toString();
     }

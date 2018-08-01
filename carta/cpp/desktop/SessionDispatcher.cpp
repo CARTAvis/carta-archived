@@ -28,6 +28,9 @@
 #include "NewServerConnector.h"
 #include "CartaLib/Proto/register_viewer.pb.h"
 
+const int EVENT_NAME_LENGTH = 32;
+const int EVENT_ID_LENGTH = 4;
+
 void SessionDispatcher::startWebSocket(){
 
     int port = 3002;
@@ -87,13 +90,13 @@ void SessionDispatcher::onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* mes
 
 void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length){
 
-    if (length < 36){
+    if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH) {
         qFatal("Illegal message.");
         return;
     }
 
     int nullIndex = 0;
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < EVENT_NAME_LENGTH; i++) {
         if (!message[i]) {
             nullIndex = i;
             break;
@@ -110,7 +113,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
         NewServerConnector *connector = new NewServerConnector();
 
         CARTA::RegisterViewer registerViewer;
-        registerViewer.ParseFromArray(message + 36, length - 36);
+        registerViewer.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         if (registerViewer.session_id() != ""){
             sessionID = QString::fromStdString(registerViewer.session_id());
             qDebug() << "Session ID from frontend:" <<sessionID;
@@ -166,17 +169,15 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
         }
 
         std::vector<char> result;
-        size_t eventNameLength = 32;
-        size_t eventIdLength = 4;
         int messageLength = ack.ByteSize();
-        size_t requiredSize = eventNameLength + eventIdLength + messageLength;
+        size_t requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
         if (result.size() < requiredSize) {
             result.resize(requiredSize);
         }
-        memset(result.data(), 0, eventNameLength);
-        memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), eventNameLength));
-        memcpy(result.data() + eventNameLength, message + eventNameLength, eventIdLength);
-        ack.SerializeToArray(result.data() + eventNameLength + eventIdLength, messageLength);
+        memset(result.data(), 0, EVENT_NAME_LENGTH);
+        memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), EVENT_NAME_LENGTH));
+        memcpy(result.data() + EVENT_NAME_LENGTH, message + EVENT_NAME_LENGTH, EVENT_ID_LENGTH);
+        ack.SerializeToArray(result.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
         qDebug() << "Send event: " << respName << QTime::currentTime().toString();
         ws->send(result.data(), requiredSize, uWS::OpCode::BINARY);
         return;
