@@ -47,9 +47,6 @@
 
 #include "CartaLib/IImage.h"
 
-const int EVENT_NAME_LENGTH = 32;
-const int EVENT_ID_LENGTH = 4;
-
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
 ///
@@ -312,8 +309,8 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         return;
     }
 
-    int nullIndex = 0;
-    for (int i = 0; i < EVENT_NAME_LENGTH; i++) {
+    size_t nullIndex = 0;
+    for (size_t i = 0; i < EVENT_NAME_LENGTH; i++) {
         if (!message[i]) {
             nullIndex = i;
             break;
@@ -436,18 +433,12 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         msg2 = region_histogram_data;
 
-        int messageLength = msg2->ByteSize();
-        size_t requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
-        if (result2.size() < requiredSize) {
-            result2.resize(requiredSize);
-        }
-        memset(result2.data(), 0, EVENT_NAME_LENGTH);
-        memcpy(result2.data(), respName2.toStdString().c_str(), std::min<size_t>(respName2.length(), EVENT_NAME_LENGTH));
-        memcpy(result2.data() + EVENT_NAME_LENGTH, message + EVENT_NAME_LENGTH, EVENT_ID_LENGTH);
-        if (msg2) {
-            msg2->SerializeToArray(result2.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
+        bool success = false;
+        size_t requiredSize = 0;
+        result2 = serializeToArray(message, respName2, msg2, success, requiredSize);
+        if (success) {
             emit jsBinaryMessageResultSignal(result2.data(), requiredSize);
-            qDebug() << "Send event2:" << respName2 << QTime::currentTime().toString();
+            qDebug() << "Send event:" << respName2 << QTime::currentTime().toString();
         }
         /////////////////////////////////////////////////////////////////////
 
@@ -553,16 +544,10 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         }
     }
 
-    int messageLength = msg->ByteSize();
-    size_t requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
-    if (result.size() < requiredSize) {
-        result.resize(requiredSize);
-    }
-    memset(result.data(), 0, EVENT_NAME_LENGTH);
-    memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), EVENT_NAME_LENGTH));
-    memcpy(result.data() + EVENT_NAME_LENGTH, message + EVENT_NAME_LENGTH, EVENT_ID_LENGTH);
-    if (msg) {
-        msg->SerializeToArray(result.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
+    bool success = false;
+    size_t requiredSize = 0;
+    result = serializeToArray(message, respName, msg, success, requiredSize);
+    if (success) {
         emit jsBinaryMessageResultSignal(result.data(), requiredSize);
         qDebug() << "Send event:" << respName << QTime::currentTime().toString();
     }
@@ -570,7 +555,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
 
     // emit jsTextMessageResultSignal(result);
-    //emit jsBinaryMessageResultSignal(result.data(), requiredSize);
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)

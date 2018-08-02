@@ -107,6 +107,29 @@ public:
 
     virtual void startWebSocket() = 0;
 
+    const size_t EVENT_NAME_LENGTH = 32;
+    const size_t EVENT_ID_LENGTH = 4;
+
+    std::vector<char> serializeToArray(char* message, QString respName, PBMSharedPtr msg, bool &success, size_t &requiredSize) {
+        success = false;
+        std::vector<char> result;
+        size_t messageLength = msg->ByteSize();
+        requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
+        if (result.size() < requiredSize) {
+            result.resize(requiredSize);
+        }
+        memset(result.data(), 0, EVENT_NAME_LENGTH);
+        memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), EVENT_NAME_LENGTH));
+        memcpy(result.data() + EVENT_NAME_LENGTH, message + EVENT_NAME_LENGTH, EVENT_ID_LENGTH);
+        if (msg) {
+            msg->SerializeToArray(result.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
+            success = true;
+            //emit jsBinaryMessageResultSignal(result.data(), requiredSize);
+            //qDebug() << "Send event:" << respName << QTime::currentTime().toString();
+        }
+        return result;
+    }
+
     virtual ~IConnector() {}
 };
 

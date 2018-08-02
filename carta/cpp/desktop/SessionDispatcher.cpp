@@ -28,9 +28,6 @@
 #include "NewServerConnector.h"
 #include "CartaLib/Proto/register_viewer.pb.h"
 
-const int EVENT_NAME_LENGTH = 32;
-const int EVENT_ID_LENGTH = 4;
-
 void SessionDispatcher::startWebSocket(){
 
     int port = 3002;
@@ -95,8 +92,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
         return;
     }
 
-    int nullIndex = 0;
-    for (int i = 0; i < EVENT_NAME_LENGTH; i++) {
+    size_t nullIndex = 0;
+    for (size_t i = 0; i < EVENT_NAME_LENGTH; i++) {
         if (!message[i]) {
             nullIndex = i;
             break;
@@ -104,9 +101,10 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
     }
 
     QString eventName = QString::fromStdString(std::string(message, nullIndex));
+    qDebug() << "Event received: " << eventName << QTime::currentTime().toString();
+
     if ( eventName == "REGISTER_VIEWER" ){
 
-        qDebug() << "Register viewer!!";
         bool sessionExisting = false;
         // TODO: replace the temporary way to generate ID
         QString sessionID = QString::number(std::rand());
@@ -152,34 +150,33 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             emit connector->startViewerSignal(sessionID);
         }
 
-        QString respName = "REGISTER_VIEWER_ACK";
-        CARTA::RegisterViewerAck ack;
-        ack.set_session_id(sessionID.toStdString());
+        // add the message
+        std::shared_ptr<CARTA::RegisterViewerAck> ack(new CARTA::RegisterViewerAck());
+        ack->set_session_id(sessionID.toStdString());
 
         if (connector) {
-            ack.set_success(true);
+            ack->set_success(true);
         } else {
-            ack.set_success(false);
+            ack->set_success(false);
         }
 
         if (sessionExisting) {
-            ack.set_session_type(::CARTA::SessionType::RESUMED);
+            ack->set_session_type(::CARTA::SessionType::RESUMED);
         } else {
-            ack.set_session_type(::CARTA::SessionType::NEW);
+            ack->set_session_type(::CARTA::SessionType::NEW);
         }
 
-        std::vector<char> result;
-        int messageLength = ack.ByteSize();
-        size_t requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
-        if (result.size() < requiredSize) {
-            result.resize(requiredSize);
+        // serialize the message and send to the frontend
+        QString respName = "REGISTER_VIEWER_ACK";
+        PBMSharedPtr msg = ack;
+        bool success = false;
+        size_t requiredSize = 0;
+        std::vector<char> result = serializeToArray(message, respName, msg, success, requiredSize);
+        if (success) {
+            ws->send(result.data(), requiredSize, uWS::OpCode::BINARY);
+            qDebug() << "Send event:" << respName << QTime::currentTime().toString();
         }
-        memset(result.data(), 0, EVENT_NAME_LENGTH);
-        memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), EVENT_NAME_LENGTH));
-        memcpy(result.data() + EVENT_NAME_LENGTH, message + EVENT_NAME_LENGTH, EVENT_ID_LENGTH);
-        ack.SerializeToArray(result.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
-        qDebug() << "Send event: " << respName << QTime::currentTime().toString();
-        ws->send(result.data(), requiredSize, uWS::OpCode::BINARY);
+
         return;
     }
 
