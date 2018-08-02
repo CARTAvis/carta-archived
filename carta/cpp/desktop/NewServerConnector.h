@@ -58,6 +58,7 @@ public slots:
     void startViewerSlot(const QString & sessionID);
     void onTextMessage(QString message);
     void onBinaryMessage(char* message, size_t length);
+    void sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg);
 
 signals:
 

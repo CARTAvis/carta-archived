@@ -321,17 +321,14 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     qDebug() << "Event received: " << eventName << QTime::currentTime().toString();
 
     QString respName;
-    std::vector<char> result;
-    std::vector<char> result2;
     PBMSharedPtr msg;
-    PBMSharedPtr msg2;
 
     if (eventName == "REGISTER_VIEWER") {
         // The message should be handled in sessionDispatcher
         qFatal("Illegal request in NewServerConnector. Please handle it in SessionDispatcher.");
         return;
-    }
-    else if (eventName == "FILE_LIST_REQUEST"){
+
+    } else if (eventName == "FILE_LIST_REQUEST") {
         respName = "FILE_LIST_RESPONSE";
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -340,16 +337,24 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         CARTA::FileListRequest fileListRequest;
         fileListRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         msg = dataLoader->getFileList(fileListRequest);
-    }
-    else if (eventName == "FILE_INFO_REQUEST") {
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        return;
+
+    } else if (eventName == "FILE_INFO_REQUEST") {
         respName = "FILE_INFO_RESPONSE";
 
         // we cannot handle the request so far, return a fake response.
         std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
         fileInfoResponse->set_success(true);
         msg = fileInfoResponse;
-    }
-    else if (eventName == "OPEN_FILE") {
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        return;
+
+    } else if (eventName == "OPEN_FILE") {
         respName = "OPEN_FILE_ACK";
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
@@ -365,10 +370,10 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
         fileInfo->set_name(openFile.file());
+
         if (image->getType() == "FITSImage") {
             fileInfo->set_type(CARTA::FileType::FITS);
-        }
-        else {
+        } else {
             fileInfo->set_type(CARTA::FileType::CASA);
         }
         fileInfo->add_hdu_list(openFile.hdu());
@@ -393,8 +398,12 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         ack->set_allocated_file_info(fileInfo);
         ack->set_allocated_file_info_extended(fileInfoExt);
         msg = ack;
-    }
-    else if (eventName == "SET_IMAGE_VIEW") {
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        return;
+
+    } else if (eventName == "SET_IMAGE_VIEW") {
         CARTA::SetImageView viewSetting;
         viewSetting.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
 
@@ -404,7 +413,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
         /////////////////////////////////////////////////////////////////////
-        QString respName2 = "REGION_HISTOGRAM_DATA";
+        respName = "REGION_HISTOGRAM_DATA";
 
         // calculate pixels to histogram data
         int numberOfBins = 10000;
@@ -431,15 +440,10 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             histogram->add_bins(intensity);
         }
 
-        msg2 = region_histogram_data;
+        msg = region_histogram_data;
 
-        bool success = false;
-        size_t requiredSize = 0;
-        result2 = serializeToArray(message, respName2, msg2, success, requiredSize);
-        if (success) {
-            emit jsBinaryMessageResultSignal(result2.data(), requiredSize);
-            qDebug() << "Send event:" << respName2 << QTime::currentTime().toString();
-        }
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
         /////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////
@@ -526,9 +530,13 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         raster->add_image_data(allValues.data(), allValues.size() * sizeof(float));
 
         msg = raster;
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        return;
         /////////////////////////////////////////////////////////////////////
-    }
-    else {
+
+    } else {
         // Insert non-global object id
         // QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0");
         // QString cmd = controllerID + ":" + eventName;
@@ -542,19 +550,24 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         for( auto & cb : allCallbacks ) {
             msg = cb( eventName, "", "1");
         }
+
+        return;
     }
 
+    // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
+    // emit jsTextMessageResultSignal(result);
+    return;
+}
+
+void NewServerConnector::sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg) {
     bool success = false;
     size_t requiredSize = 0;
-    result = serializeToArray(message, respName, msg, success, requiredSize);
+    std::vector<char> result = serializeToArray(message, respName, msg, success, requiredSize);
     if (success) {
         emit jsBinaryMessageResultSignal(result.data(), requiredSize);
         qDebug() << "Send event:" << respName << QTime::currentTime().toString();
     }
 
-    // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
-
-    // emit jsTextMessageResultSignal(result);
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)
