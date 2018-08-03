@@ -412,6 +412,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
+        qDebug() << "File ID:" << viewSetting.file_id();
         /////////////////////////////////////////////////////////////////////
         respName = "REGION_HISTOGRAM_DATA";
 
