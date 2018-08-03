@@ -531,12 +531,9 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     if (foundCount < percentiles.size()) {
         qDebug() << "++++++++ Calculating intensities for percentiles";
 
-        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
 
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
-
-        qDebug() << "++++++++ Fetched raw image data for:" << "frameLow:" << frameLow << "frameHigh:" << frameHigh << "Spectral index:" << spectralIndex << "Stoke index:" << stokeIndex << "Stoke frame:" << stokeFrame;
+        qDebug() << "++++++++ Fetched raw image data for:" << "frameLow:" << frameLow << "frameHigh:" << frameHigh << "Stoke frame:" << stokeFrame;
 
         if (rawData == nullptr) {
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
@@ -597,7 +594,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         std::vector<double> hertzValues;
 
         if (converter && converter->frameDependent) {
-            hertzValues = _getHertzValues(doubleView.dims(), spectralIndex);
+            hertzValues = _getHertzValues(doubleView.dims());
         }
 
         // Calculate only the required percentiles
@@ -612,7 +609,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         }
 
         // perform the calculation on all of the percentiles
-
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
         clips_map = calculator->percentile2pixels(doubleView, percentilesToCalculate, spectralIndex, converter, hertzValues);
 
         // add all the calculated values to the cache
@@ -650,9 +647,7 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
     RegionHistogramData result;
 
     // get the raw data
-    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-    int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
-    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
     if (rawData == nullptr) {
         qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
         return result;
@@ -685,9 +680,10 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
     // Find Hz values if they are required for the unit transformation
     std::vector<double> hertzValues;
     if (converter && converter->frameDependent) {
-        hertzValues = _getHertzValues(doubleView.dims(), spectralIndex);
+        hertzValues = _getHertzValues(doubleView.dims());
     }
 
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
     result = calculator->pixels2histogram(doubleView, minIntensity, maxIntensity, numberOfBins, spectralIndex, converter, hertzValues);
 
     return result;
@@ -698,7 +694,8 @@ QColor DataSource::_getNanColor() const {
     return nanColor;
 }
 
-std::vector<double> DataSource::_getHertzValues(const std::vector<int> dims, const int spectralIndex) const {
+std::vector<double> DataSource::_getHertzValues(const std::vector<int> dims) const {
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
     std::vector<double> hertzValues;
 
     if (spectralIndex >= 0) { // multiple frames
@@ -733,7 +730,7 @@ std::vector<double> DataSource::_getPercentiles( int frameLow, int frameHigh, st
         std::vector<double> hertzValues;
 
         if (converter && converter->frameDependent) {
-            hertzValues = _getHertzValues(view.dims(), spectralIndex);
+            hertzValues = _getHertzValues(view.dims());
         }
 
         Carta::Lib::IPixelsToPercentiles<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PixelsToPercentiles<double> >();
@@ -853,10 +850,11 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
     return rawData;
 }
 
-Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int frameStart, int frameEnd, int axisIndex,
-        int axisStokeIndex, int stokeSliceIndex ) const {
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int frameStart, int frameEnd, int stokeFrame ) const {
 
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+    int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
 
     if ( m_image ){
         // get the image dimension:
@@ -878,7 +876,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                 SliceND& slice = frameSlice.next();
 
                 // If it is the target axis..
-                if ( i == axisIndex ){
+                if ( i == spectralIndex ){
                    // Use the passed in frame range
                    if ( 0 <= frameStart && frameStart < sliceSize &&
                         0 <= frameEnd && frameEnd < sliceSize ){
@@ -889,13 +887,13 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                        slice.start(0);
                        slice.end( sliceSize);
                    }
-                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3){
+                } else if ( i == stokeIndex && stokeFrame >= 0 && stokeFrame <= 3){
                     // If the stoke-axis is exist (axisStokeIndex != -1),
                     // we only consider one stoke (stokeSliceIndex) for percentile calculation
-                    qDebug() << "++++++++ we only consider the stoke" << stokeSliceIndex <<
+                    qDebug() << "++++++++ we only consider the stoke" << stokeFrame <<
                                 "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V) for percentile calculation" ;
-                    slice.start( stokeSliceIndex );
-                    slice.end( stokeSliceIndex + 1 );
+                    slice.start( stokeFrame );
+                    slice.end( stokeFrame + 1 );
                 } else {
 
                     // Or the entire range

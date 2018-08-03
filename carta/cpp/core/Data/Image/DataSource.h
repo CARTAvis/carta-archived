@@ -257,7 +257,7 @@ private:
      */
     QColor _getNanColor() const;
 
-    std::vector<double> _getHertzValues(const std::vector<int> dims, const int spectralIndex) const;
+    std::vector<double> _getHertzValues(const std::vector<int> dims) const;
 
     /**
      * Return percentiles corresponding to the given intensities.
@@ -345,8 +345,7 @@ private:
      * @param stokeSliceIndex - the index of the stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V).
      * @return the raw data or nullptr if there is none.
      */
-    Carta::Lib::NdArray::RawViewInterface *  _getRawDataForStoke( int frameLow, int frameHigh, int axisIndex,
-            int axisStokeIndex, int stokeSliceIndex ) const;
+    Carta::Lib::NdArray::RawViewInterface* _getRawDataForStoke(int frameLow, int frameHigh, int stokeFrame) const;
 
     /**
      * Returns the raw data for the current view.
