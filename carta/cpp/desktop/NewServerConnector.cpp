@@ -347,7 +347,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // we cannot handle the request so far, return a fake response.
         std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
-        fileInfoResponse->set_success(true);
+        fileInfoResponse->set_success(false);
         msg = fileInfoResponse;
 
         // send the serialized message to the frontend
