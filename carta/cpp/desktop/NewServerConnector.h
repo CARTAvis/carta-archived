@@ -123,6 +123,10 @@ protected:
     InitializeCallback m_initializeCallback;
     std::map< QString, QString > m_state;
 
+private:
+    bool m_changeImage = false;
+    double m_minIntensity;
+
 };
 
 

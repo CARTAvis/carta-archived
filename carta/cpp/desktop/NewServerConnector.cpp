@@ -366,6 +366,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
 
+        if (success) {
+            m_changeImage = true;
+            qDebug() << "Image file changed, re-calculate the pixels to histogram data!";
+        }
+
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
 
         CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
@@ -413,38 +418,45 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
         qDebug() << "File ID:" << viewSetting.file_id();
+
         /////////////////////////////////////////////////////////////////////
-        respName = "REGION_HISTOGRAM_DATA";
+        if (m_changeImage) {
+            respName = "REGION_HISTOGRAM_DATA";
 
-        // calculate pixels to histogram data
-        int numberOfBins = 10000;
-        int frameLow = 0;
-        int frameHigh = frameLow + 1;
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, converter);
-        std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
-        double minIntensity = regionHisotgramData.first_bin_center;
+            // calculate pixels to histogram data
+            int numberOfBins = 10000;
+            int frameLow = 0;
+            int frameHigh = frameLow + 1;
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+            RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, converter);
+            std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
+            // the minimum value of pixels is the first bin center
+            m_minIntensity = regionHisotgramData.first_bin_center;
 
-        // add RegionHistogramData message
-        std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
-        region_histogram_data->set_file_id(viewSetting.file_id());
-        region_histogram_data->set_region_id(-1);
-        region_histogram_data->set_stokes(0);
+            // add RegionHistogramData message
+            std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
+            region_histogram_data->set_file_id(viewSetting.file_id());
+            region_histogram_data->set_region_id(-1);
+            region_histogram_data->set_stokes(0);
 
-        CARTA::Histogram* histogram = region_histogram_data->add_histograms();
-        histogram->set_channel(frameLow);
-        histogram->set_num_bins(regionHisotgramData.num_bins);
-        histogram->set_bin_width(regionHisotgramData.bin_width);
-        histogram->set_first_bin_center(minIntensity);
+            CARTA::Histogram* histogram = region_histogram_data->add_histograms();
+            histogram->set_channel(frameLow);
+            histogram->set_num_bins(regionHisotgramData.num_bins);
+            histogram->set_bin_width(regionHisotgramData.bin_width);
+            histogram->set_first_bin_center(m_minIntensity);
 
-        for (auto intensity : pixels2histogram) {
-            histogram->add_bins(intensity);
+            for (auto intensity : pixels2histogram) {
+                histogram->add_bins(intensity);
+            }
+
+            msg = region_histogram_data;
+
+            // send the serialized message to the frontend
+            sendSerializedMessage(message, respName, msg);
+
+            // set m_changeImage = false, in order to avoid the re-calculation of pixels to histogram
+            m_changeImage = false;
         }
-
-        msg = region_histogram_data;
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
         /////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////
@@ -452,7 +464,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         std::vector<int> frames = controller->getImageSlice();
         Carta::Lib::NdArray::RawViewInterface* view = controller->getRawData();
-        const std::vector<int> dims = view->dims();
+        //const std::vector<int> dims = view->dims();
 
         // get the down sampling raw data
         int mip = viewSetting.mip();
@@ -519,7 +531,8 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
                         denominator -= 1;
                     }
                 }
-                rawData[i] = (denominator < 1 ? minIntensity : rawData[i] / denominator);
+                // set the NaN type of the pixel as the minimum of the other finite pixel values
+                rawData[i] = (denominator < 1 ? m_minIntensity : rawData[i] / denominator);
                 allValues.push_back(rawData[i]);
             }
             nextRowToReadIn += update;
