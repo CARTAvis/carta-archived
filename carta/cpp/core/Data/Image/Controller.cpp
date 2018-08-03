@@ -141,7 +141,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
         }
         // _setSkyCSName();
         // _updateDisplayAxes();
-        emit dataChanged( this );
+        //emit dataChanged( this );
     }
     return result;
 }
@@ -1720,7 +1720,7 @@ QString Controller::_setLayersSelected( QStringList names ){
         }
         // refresh the map of axes immediately after read data
         _setAxisMap();
-        emit colorChanged( this );
+        //emit colorChanged( this );
         // The signal below causes the duplicate behaviors
         // Use setLayersSelected() to replace the original callback
         // emit dataChanged( this );
