@@ -457,11 +457,26 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // get the down sampling raw data
         int mip = viewSetting.mip();
         qDebug() << "mip:" << mip;
+        int x_min = viewSetting.image_bounds().x_min();
+        int x_max = viewSetting.image_bounds().x_max();
+        int y_min = viewSetting.image_bounds().y_min();
+        int y_max = viewSetting.image_bounds().y_max();
+        qDebug() << "[x_min, x_max] = [" << x_min << "," << x_max << "]";
+        qDebug() << "[y_min, y_max] = [" << y_min << "," << y_max << "]";
+
         std::vector<float> allValues;
-        int ilb = 0;
-        int iub = dims[0] - 1;
-        int jlb = 0;
-        int jub = dims[1] - 1;
+        // get the full width and high of the 2d image
+        //int ilb = 0;
+        //int iub = dims[0] - 1;
+        //int jlb = 0;
+        //int jub = dims[1] - 1;
+
+        // get the part of width and high of the 2d image
+        int ilb = x_min;
+        int iub = x_max - 1;
+        int jlb = y_min;
+        int jub = y_max - 1;
+
         int nRows = (jub - jlb + 1) / mip;
         int nCols = (iub - ilb + 1) / mip;
 
