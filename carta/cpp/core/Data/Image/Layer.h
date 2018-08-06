@@ -288,6 +288,9 @@ protected:
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
 
+    virtual std::vector<float> _getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const = 0;
+
     /**
      * Returns whether or not the layer can be loaded with the indicated frames.
      * @param frames - list of frame indices to load.

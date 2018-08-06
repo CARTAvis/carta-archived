@@ -230,6 +230,9 @@ public:
             int numberOfBins,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
+    std::vector<float> getRasterImageData(double x_min, double x_max, double y_min, double y_max,
+            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;
+
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
      * layer.

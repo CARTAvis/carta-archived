@@ -251,6 +251,9 @@ private:
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
+    std::vector<float> _getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;
+
     /**
      * Returns the color used to draw nan pixels.
      * @return - the color used to draw nan pixels.

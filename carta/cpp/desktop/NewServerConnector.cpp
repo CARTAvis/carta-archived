@@ -418,6 +418,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
         qDebug() << "File ID:" << viewSetting.file_id();
+        int frameLow = 0;
+        int frameHigh = frameLow;
+        int stokeFrame = 0;
 
         /////////////////////////////////////////////////////////////////////
         if (m_changeImage) {
@@ -425,8 +428,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
             // calculate pixels to histogram data
             int numberOfBins = 10000;
-            int frameLow = 0;
-            int frameHigh = frameLow + 1;
             Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
             RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, converter);
             std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
@@ -462,10 +463,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         /////////////////////////////////////////////////////////////////////
         respName = "RASTER_IMAGE_DATA";
 
-        std::vector<int> frames = controller->getImageSlice();
-        Carta::Lib::NdArray::RawViewInterface* view = controller->getRawData();
-        //const std::vector<int> dims = view->dims();
-
         // get the down sampling raw data
         int mip = viewSetting.mip();
         qDebug() << "mip:" << mip;
@@ -476,72 +473,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         qDebug() << "[x_min, x_max] = [" << x_min << "," << x_max << "]";
         qDebug() << "[y_min, y_max] = [" << y_min << "," << y_max << "]";
 
-        std::vector<float> allValues;
-        // get the full width and high of the 2d image
-        //int ilb = 0;
-        //int iub = dims[0] - 1;
-        //int jlb = 0;
-        //int jub = dims[1] - 1;
-
-        // get the part of width and high of the 2d image
-        int ilb = x_min;
-        int iub = x_max - 1;
-        int jlb = y_min;
-        int jub = y_max - 1;
-
-        int nRows = (jub - jlb + 1) / mip;
-        int nCols = (iub - ilb + 1) / mip;
-
-        int prepareCols = iub - ilb + 1;
-        int prepareRows = mip;
-        int area = prepareCols * prepareRows;
-        std::vector<float> rawData(nCols), prepareArea(area);
-        int nextRowToReadIn = jlb;
-
-        auto updateRows = [&]() -> void {
-            CARTA_ASSERT(nextRowToReadIn < view->dims()[1]);
-
-            SliceND rowSlice;
-            int update = prepareRows;
-            rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
-            auto rawRowView = view -> getView( rowSlice );
-
-            // make a float view of this raw row view
-            Carta::Lib::NdArray::Float fview( rawRowView, true );
-
-            int t = 0;
-            fview.forEach( [&] ( const float & val ) {
-                // To improve the performance, the prepareArea also update only one row
-                // by computing the module
-                prepareArea[(t++) % area] = val;
-            });
-
-            // Calculate the mean of each block (mip X mip)
-            for (int i = ilb; i < nCols; i++) {
-                rawData[i] = 0;
-                int elems = mip * mip;
-                float denominator = elems;
-                for (int e = 0; e < elems; e++) {
-                    int row = e / mip;
-                    int col = e % mip;
-                    int index = (row * prepareCols + col + i * mip) % area;
-                    if (std::isfinite(prepareArea[index])) {
-                        rawData[i] += prepareArea[index];
-                    } else {
-                        denominator -= 1;
-                    }
-                }
-                // set the NaN type of the pixel as the minimum of the other finite pixel values
-                rawData[i] = (denominator < 1 ? m_minIntensity : rawData[i] / denominator);
-                allValues.push_back(rawData[i]);
-            }
-            nextRowToReadIn += update;
-        };
-
-        // scan the raw data for with rows for down sampling
-        for (int j = jlb; j < nRows; j++) {
-            updateRows();
-        }
+        // get the raster image raw data
+        std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
+            m_minIntensity, frameLow, frameHigh, stokeFrame);
 
         // add the RasterImageData message
         CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
@@ -550,13 +484,13 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         std::shared_ptr<CARTA::RasterImageData> raster(new CARTA::RasterImageData());
         raster->set_file_id(viewSetting.file_id());
         raster->set_allocated_image_bounds(imgBounds);
-        raster->set_channel(frames[2]);
-        raster->set_stokes(frames[3]);
+        raster->set_channel(frameLow);
+        raster->set_stokes(stokeFrame);
         raster->set_mip(viewSetting.mip());
         // raster->set_compression_type(viewSetting.compression_type());
         raster->set_compression_type(CARTA::CompressionType::NONE);
         raster->set_compression_quality(viewSetting.compression_quality());
-        raster->add_image_data(allValues.data(), allValues.size() * sizeof(float));
+        raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
 
         msg = raster;
 

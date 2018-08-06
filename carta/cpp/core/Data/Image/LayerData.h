@@ -376,6 +376,10 @@ protected:
     virtual RegionHistogramData _getPixels2Histogram(int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
+
+    virtual std::vector<float> _getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const Q_DECL_OVERRIDE;
+
     /**
      * Return the units of the pixels.
      * @return the units of the pixels, or blank if units could not be obtained.

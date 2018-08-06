@@ -243,6 +243,9 @@ protected:
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
+    virtual std::vector<float> _getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const Q_DECL_OVERRIDE;
+
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
      * layer.

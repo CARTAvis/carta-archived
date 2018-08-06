@@ -689,6 +689,75 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
     return result;
 }
 
+std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+
+    // get the raw data
+    Carta::Lib::NdArray::RawViewInterface* view = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+
+    std::vector<float> results;
+    int ilb = xMin;
+    int iub = xMax - 1;
+    int jlb = yMin;
+    int jub = yMax - 1;
+
+    int nRows = (jub - jlb + 1) / mip;
+    int nCols = (iub - ilb + 1) / mip;
+
+    int prepareCols = iub - ilb + 1;
+    int prepareRows = mip;
+    int area = prepareCols * prepareRows;
+    std::vector<float> rawData(nCols), prepareArea(area);
+    int nextRowToReadIn = jlb;
+
+    auto updateRows = [&]() -> void {
+        CARTA_ASSERT(nextRowToReadIn < view->dims()[1]);
+
+        SliceND rowSlice;
+        int update = prepareRows;
+        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
+        auto rawRowView = view -> getView( rowSlice );
+
+        // make a float view of this raw row view
+        Carta::Lib::NdArray::Float fview( rawRowView, true );
+
+        int t = 0;
+        fview.forEach( [&] ( const float & val ) {
+            // To improve the performance, the prepareArea also update only one row
+            // by computing the module
+            prepareArea[(t++) % area] = val;
+        });
+
+        // Calculate the mean of each block (mip X mip)
+        for (int i = ilb; i < nCols; i++) {
+            rawData[i] = 0;
+            int elems = mip * mip;
+            float denominator = elems;
+            for (int e = 0; e < elems; e++) {
+                int row = e / mip;
+                int col = e % mip;
+                int index = (row * prepareCols + col + i * mip) % area;
+                if (std::isfinite(prepareArea[index])) {
+                    rawData[i] += prepareArea[index];
+                } else {
+                    denominator -= 1;
+                }
+            }
+            // set the NaN type of the pixel as the minimum of the other finite pixel values
+            rawData[i] = (denominator < 1 ? minIntensity : rawData[i] / denominator);
+            results.push_back(rawData[i]);
+        }
+        nextRowToReadIn += update;
+    };
+
+    // scan the raw data for with rows for down sampling
+    for (int j = jlb; j < nRows; j++) {
+        updateRows();
+    }
+
+    return results;
+}
+
 QColor DataSource::_getNanColor() const {
     QColor nanColor = m_renderService->getNanColor();
     return nanColor;

@@ -395,6 +395,15 @@ RegionHistogramData LayerData::_getPixels2Histogram(int frameLow, int frameHigh,
     return results;
 }
 
+std::vector<float> LayerData::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+    std::vector<float> results;
+    if (m_dataSource) {
+        results = m_dataSource->_getRasterImageData(xMin, xMax, yMin, yMax, mip, minIntensity, frameLow, frameHigh, stokeFrame);
+    }
+    return results;
+}
+
 float LayerData::_getMaskAlpha() const {
     QString key = Carta::State::UtilState::getLookup( MASK, Util::ALPHA );
     float maskInt = m_state.getValue<int>( key );
