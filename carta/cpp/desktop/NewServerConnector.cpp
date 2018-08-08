@@ -417,13 +417,15 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
-        qDebug() << "File ID:" << viewSetting.file_id();
+        qDebug() << "File ID requested by frontend:" << viewSetting.file_id();
         int frameLow = 0;
         int frameHigh = frameLow;
         int stokeFrame = 0;
 
         /////////////////////////////////////////////////////////////////////
         if (m_changeImage) {
+            qDebug() << "Calculating the regional histogram data....................................";
+
             respName = "REGION_HISTOGRAM_DATA";
 
             // calculate pixels to histogram data
@@ -452,6 +454,8 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
             msg = region_histogram_data;
 
+            qDebug() << ".......................................................................Done";
+
             // send the serialized message to the frontend
             sendSerializedMessage(message, respName, msg);
 
@@ -461,17 +465,19 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         /////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////
+        qDebug() << "Down sampling the raster image data........................................";
+
         respName = "RASTER_IMAGE_DATA";
 
         // get the down sampling raw data
         int mip = viewSetting.mip();
-        qDebug() << "mip:" << mip;
+        qDebug() << "Dawn sampling factor mip:" << mip;
         int x_min = viewSetting.image_bounds().x_min();
         int x_max = viewSetting.image_bounds().x_max();
         int y_min = viewSetting.image_bounds().y_min();
         int y_max = viewSetting.image_bounds().y_max();
-        qDebug() << "[x_min, x_max] = [" << x_min << "," << x_max << "]";
-        qDebug() << "[y_min, y_max] = [" << y_min << "," << y_max << "]";
+        qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << x_min << "," << x_max << "]";
+        qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << y_min << "," << y_max << "]";
 
         // get the raster image raw data
         std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
@@ -493,6 +499,8 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
 
         msg = raster;
+
+        qDebug() << ".......................................................................Done";
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);

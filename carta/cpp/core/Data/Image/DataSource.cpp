@@ -963,7 +963,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                     if (stokeFrame >= 0 && stokeFrame <= 3) {
                         // we only consider one stoke (stokeSliceIndex) for percentile calculation
                         qDebug() << "++++++++ Stoke axis index=" << i << ", get the channel" << stokeFrame <<
-                                    "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V) for percentile calculation" ;
+                                    "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)" ;
                         slice.start(stokeFrame);
                         slice.end(stokeFrame + 1);
                     } else {
