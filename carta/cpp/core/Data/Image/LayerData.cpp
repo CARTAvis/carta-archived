@@ -9,7 +9,6 @@
 #include "Data/Image/Grid/AxisMapper.h"
 #include "Data/Image/Grid/LabelFormats.h"
 #include "State/UtilState.h"
-
 #include "CartaLib/PixelPipeline/CustomizablePixelPipeline.h"
 #include "CartaLib/IWcsGridRenderService.h"
 #include "CartaLib/AxisDisplayInfo.h"
@@ -384,6 +383,25 @@ std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
         intensities = m_dataSource->_getIntensity( frameLow, frameHigh, percentiles, stokeFrame, converter );
     }
     return intensities;
+}
+
+RegionHistogramData LayerData::_getPixels2Histogram(int frameLow, int frameHigh,
+    int numberOfBins, int stokeFrame,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    RegionHistogramData results;
+    if ( m_dataSource ){
+        results = m_dataSource->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    }
+    return results;
+}
+
+std::vector<float> LayerData::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+    std::vector<float> results;
+    if (m_dataSource) {
+        results = m_dataSource->_getRasterImageData(xMin, xMax, yMin, yMax, mip, minIntensity, frameLow, frameHigh, stokeFrame);
+    }
+    return results;
 }
 
 float LayerData::_getMaskAlpha() const {

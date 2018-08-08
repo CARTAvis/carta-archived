@@ -130,7 +130,7 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     qDebug() << "CasaImageLoader plugin trying to load image 5 ";
 
     lat->reopen();
-    qDebug() << "lat=" << lat;
+    //qDebug() << "lat=" << lat;
     auto shape = lat->shape();
     auto shapes = shape.asStdVector();
     qDebug() << "lat.shape = " << std::string( lat->shape().toString()).c_str();

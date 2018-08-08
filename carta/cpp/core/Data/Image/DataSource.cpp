@@ -531,12 +531,9 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     if (foundCount < percentiles.size()) {
         qDebug() << "++++++++ Calculating intensities for percentiles";
 
-        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-        int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
 
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, spectralIndex, stokeIndex, stokeFrame);
-
-        qDebug() << "++++++++ Fetched raw image data for:" << "frameLow:" << frameLow << "frameHigh:" << frameHigh << "Spectral index:" << spectralIndex << "Stoke index:" << stokeIndex << "Stoke frame:" << stokeFrame;
+        qDebug() << "++++++++ Fetched raw image data for:" << "frameLow:" << frameLow << "frameHigh:" << frameHigh << "Stoke frame:" << stokeFrame;
 
         if (rawData == nullptr) {
             qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
@@ -597,7 +594,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         std::vector<double> hertzValues;
 
         if (converter && converter->frameDependent) {
-            hertzValues = _getHertzValues(doubleView.dims(), spectralIndex);
+            hertzValues = _getHertzValues(doubleView.dims());
         }
 
         // Calculate only the required percentiles
@@ -612,7 +609,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         }
 
         // perform the calculation on all of the percentiles
-
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
         clips_map = calculator->percentile2pixels(doubleView, percentilesToCalculate, spectralIndex, converter, hertzValues);
 
         // add all the calculated values to the cache
@@ -643,12 +640,131 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     return intensities;
 }
 
+RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh,
+    int numberOfBins, int stokeFrame,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
+
+    RegionHistogramData result;
+
+    // get the raw data
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+    if (rawData == nullptr) {
+        qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+        return result;
+    }
+
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+    // get the min/max intensities
+    double minIntensity = 0.0;
+    double maxIntensity = 0.0;
+    std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
+    if (minMaxIntensities.size() != 2) {
+        qCritical() << "Error: can not get the min/max intensities!!";
+        return result;
+    } else {
+        minIntensity = minMaxIntensities[0];
+        maxIntensity = minMaxIntensities[1];
+    }
+
+    if (minIntensity > maxIntensity) {
+        qCritical() << "Error: min intensity > max intensity!!";
+        return result;
+    }
+
+    // get the calculator
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
+    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+
+    // Find Hz values if they are required for the unit transformation
+    std::vector<double> hertzValues;
+    if (converter && converter->frameDependent) {
+        hertzValues = _getHertzValues(doubleView.dims());
+    }
+
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+    result = calculator->pixels2histogram(doubleView, minIntensity, maxIntensity, numberOfBins, spectralIndex, converter, hertzValues);
+
+    return result;
+}
+
+std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+
+    // get the raw data
+    Carta::Lib::NdArray::RawViewInterface* view = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+
+    std::vector<float> results;
+    int ilb = xMin;
+    int iub = xMax - 1;
+    int jlb = yMin;
+    int jub = yMax - 1;
+
+    int nRows = (jub - jlb + 1) / mip;
+    int nCols = (iub - ilb + 1) / mip;
+
+    int prepareCols = iub - ilb + 1;
+    int prepareRows = mip;
+    int area = prepareCols * prepareRows;
+    std::vector<float> rawData(nCols), prepareArea(area);
+    int nextRowToReadIn = jlb;
+
+    auto updateRows = [&]() -> void {
+        CARTA_ASSERT(nextRowToReadIn < view->dims()[1]);
+
+        SliceND rowSlice;
+        int update = prepareRows;
+        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
+        auto rawRowView = view -> getView( rowSlice );
+
+        // make a float view of this raw row view
+        Carta::Lib::NdArray::Float fview( rawRowView, true );
+
+        int t = 0;
+        fview.forEach( [&] ( const float & val ) {
+            // To improve the performance, the prepareArea also update only one row
+            // by computing the module
+            prepareArea[(t++) % area] = val;
+        });
+
+        // Calculate the mean of each block (mip X mip)
+        for (int i = ilb; i < nCols; i++) {
+            rawData[i] = 0;
+            int elems = mip * mip;
+            float denominator = elems;
+            for (int e = 0; e < elems; e++) {
+                int row = e / mip;
+                int col = e % mip;
+                int index = (row * prepareCols + col + i * mip) % area;
+                if (std::isfinite(prepareArea[index])) {
+                    rawData[i] += prepareArea[index];
+                } else {
+                    denominator -= 1;
+                }
+            }
+            // set the NaN type of the pixel as the minimum of the other finite pixel values
+            rawData[i] = (denominator < 1 ? minIntensity : rawData[i] / denominator);
+            results.push_back(rawData[i]);
+        }
+        nextRowToReadIn += update;
+    };
+
+    // scan the raw data for with rows for down sampling
+    for (int j = jlb; j < nRows; j++) {
+        updateRows();
+    }
+
+    return results;
+}
+
 QColor DataSource::_getNanColor() const {
     QColor nanColor = m_renderService->getNanColor();
     return nanColor;
 }
 
-std::vector<double> DataSource::_getHertzValues(const std::vector<int> dims, const int spectralIndex) const {
+std::vector<double> DataSource::_getHertzValues(const std::vector<int> dims) const {
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
     std::vector<double> hertzValues;
 
     if (spectralIndex >= 0) { // multiple frames
@@ -683,7 +799,7 @@ std::vector<double> DataSource::_getPercentiles( int frameLow, int frameHigh, st
         std::vector<double> hertzValues;
 
         if (converter && converter->frameDependent) {
-            hertzValues = _getHertzValues(view.dims(), spectralIndex);
+            hertzValues = _getHertzValues(view.dims());
         }
 
         Carta::Lib::IPixelsToPercentiles<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PixelsToPercentiles<double> >();
@@ -803,10 +919,11 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
     return rawData;
 }
 
-Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int frameStart, int frameEnd, int axisIndex,
-        int axisStokeIndex, int stokeSliceIndex ) const {
+Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int frameStart, int frameEnd, int stokeFrame ) const {
 
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+    int stokeIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::STOKES );
 
     if ( m_image ){
         // get the image dimension:
@@ -814,7 +931,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
         // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
         //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
         int imageDim =m_image->dims().size();
-        qDebug() << "++++++++ the dimension of image raw data for percentile calculation=" << imageDim;
+        qDebug() << "++++++++ Dimension of image raw data=" << imageDim;
 
         SliceND frameSlice = SliceND().next();
 
@@ -828,30 +945,40 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                 SliceND& slice = frameSlice.next();
 
                 // If it is the target axis..
-                if ( i == axisIndex ){
+                if (i == spectralIndex) {
                    // Use the passed in frame range
-                   if ( 0 <= frameStart && frameStart < sliceSize &&
-                        0 <= frameEnd && frameEnd < sliceSize ){
-                       slice.start( frameStart );
-                       slice.end( frameEnd + 1);
+                   if (0 <= frameStart && frameStart < sliceSize &&
+                       0 <= frameEnd && frameEnd < sliceSize) {
+                       slice.start(frameStart);
+                       slice.end(frameEnd + 1);
+                       qDebug() << "++++++++ Spectral axis index=" << i
+                                << ", get the channel range= [" << frameStart << "," << frameEnd << "]";
                    } else {
-                       qDebug() << "++++++++ for spectral axis index=" << i << ", the total slice size is" << sliceSize;
+                       qDebug() << "++++++++ Spectral axis index=" << i
+                                << ", get the channel range= [0 ," << sliceSize << "]";
                        slice.start(0);
-                       slice.end( sliceSize);
+                       slice.end(sliceSize);
                    }
-                } else if ( i == axisStokeIndex && stokeSliceIndex >= 0 && stokeSliceIndex <= 3){
-                    // If the stoke-axis is exist (axisStokeIndex != -1),
-                    // we only consider one stoke (stokeSliceIndex) for percentile calculation
-                    qDebug() << "++++++++ we only consider the stoke" << stokeSliceIndex <<
-                                "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V) for percentile calculation" ;
-                    slice.start( stokeSliceIndex );
-                    slice.end( stokeSliceIndex + 1 );
+                } else if (i == stokeIndex) {
+                    if (stokeFrame >= 0 && stokeFrame <= 3) {
+                        // we only consider one stoke (stokeSliceIndex) for percentile calculation
+                        qDebug() << "++++++++ Stoke axis index=" << i << ", get the channel" << stokeFrame <<
+                                    "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)" ;
+                        slice.start(stokeFrame);
+                        slice.end(stokeFrame + 1);
+                    } else {
+                        // if the stoke-axis is exist (axisStokeIndex != -1),
+                        qDebug() << "++++++++ Stoke axis index=" << i
+                                 << ", get the channel range= [0 ," << sliceSize << "]";
+                        slice.start(0);
+                        slice.end(sliceSize);
+                    }
                 } else {
-
-                    // Or the entire range
-                    qDebug() << "++++++++ the total number of channel is" << sliceSize;
-                    slice.start( 0 );
-                    slice.end( sliceSize );
+                    // for the other axis, get the entire range
+                    qDebug() << "++++++++ find the other axis index"<< i
+                             << ", get the channel range= [0 ," << sliceSize << "]";
+                    slice.start(0);
+                    slice.end(sliceSize);
                 }
 
                 slice.step( 1 );

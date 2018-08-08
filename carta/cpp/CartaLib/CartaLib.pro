@@ -26,7 +26,20 @@ PROTOS = Proto/lm.helloworld.proto \
     Proto/file_info.proto \
     Proto/open_file.proto \
     Proto/set_image_view.proto \
-    Proto/raster_image.proto
+    Proto/raster_image.proto \
+    Proto/spectral_profile.proto \
+    Proto/spatial_profile.proto \
+    Proto/set_image_channels.proto \
+    Proto/set_cursor.proto \
+    Proto/region_stats.proto \
+    Proto/region_requirements.proto \
+    Proto/region_histogram.proto \
+    Proto/region.proto \
+    Proto/error.proto \
+    Proto/contour_image.proto \
+    Proto/contour.proto \
+    Proto/close_file.proto \
+    Proto/animation.proto
 
 SOURCES += \
     CartaLib.cpp \

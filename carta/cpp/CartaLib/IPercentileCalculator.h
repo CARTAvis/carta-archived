@@ -14,6 +14,14 @@
 namespace Carta {
 namespace Lib {
 
+struct RegionHistogramData {
+    //int32_t channel;
+    int32_t num_bins;
+    double bin_width;
+    double first_bin_center;
+    std::vector<uint32_t> bins;
+};
+
 /// helper function for calculating a slice for a single 2D frame of the image
 static Carta::Lib::NdArray::Double viewSliceForFrame(Carta::Lib::NdArray::Double view, int spectralIndex, int frameIndex) {
     // Create a slice for retrieving a single frame
@@ -62,7 +70,17 @@ public:
         Carta::Lib::IntensityUnitConverter::SharedPtr converter,
         std::vector<double> hertzValues
     );
-    
+
+    virtual RegionHistogramData pixels2histogram(
+        Carta::Lib::NdArray::TypedView <Scalar> & view,
+        double minIntensity,
+        double maxIntensity,
+        int numberOfBins,
+        int spectralIndex,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+        std::vector<double> hertzValues
+    );
+
     const bool isApproximate=false;
     const bool needsMinMax=false;
     std::vector<Scalar> minMaxIntensities;
@@ -91,6 +109,26 @@ std::map<double, Scalar> IPercentilesToPixels<Scalar>::percentile2pixels(
     Q_UNUSED(converter);
     Q_UNUSED(hertzValues);
     qFatal( "Unimplemented virtual function");
+}
+
+template <typename Scalar>
+RegionHistogramData IPercentilesToPixels<Scalar>::pixels2histogram(
+    Carta::Lib::NdArray::TypedView <Scalar> & view,
+    double minIntensity,
+    double maxIntensity,
+    int numberOfBins,
+    int spectralIndex,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter,
+    std::vector<double> hertzValues
+) {
+    Q_UNUSED(view);
+    Q_UNUSED(minIntensity);
+    Q_UNUSED(maxIntensity);
+    Q_UNUSED(numberOfBins);
+    Q_UNUSED(spectralIndex);
+    Q_UNUSED(converter);
+    Q_UNUSED(hertzValues);
+    qFatal( "Unimplemented virtual function: pixels2histogram()");
 }
 
 template <typename Scalar>

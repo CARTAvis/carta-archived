@@ -11,9 +11,11 @@
 #include "core/CallbackList.h"
 #include "core/Viewer.h"
 #include "CartaLib/IRemoteVGView.h"
-
+#include "CartaLib/IPercentileCalculator.h"
 #include <QList>
 #include <QByteArray>
+
+typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 
 class IView;
 
@@ -56,6 +58,7 @@ public slots:
     void startViewerSlot(const QString & sessionID);
     void onTextMessage(QString message);
     void onBinaryMessage(char* message, size_t length);
+    void sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg);
 
 signals:
 
@@ -119,6 +122,10 @@ protected:
 
     InitializeCallback m_initializeCallback;
     std::map< QString, QString > m_state;
+
+private:
+    bool m_changeImage = false;
+    double m_minIntensity;
 
 };
 

@@ -15,7 +15,6 @@
 
 using Carta::Lib::AxisInfo;
 
-
 namespace Carta {
 
 namespace Data {
@@ -512,6 +511,26 @@ std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
     if ( dataIndex >= 0 ){
         results = m_children[dataIndex]->_getIntensity( frameLow, frameHigh,
                 percentiles, stokeFrame, converter );
+    }
+    return results;
+}
+
+RegionHistogramData LayerGroup::_getPixels2Histogram(int frameLow, int frameHigh,
+    int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    RegionHistogramData results;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        results = m_children[dataIndex]->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    }
+    return results;
+}
+
+std::vector<float> LayerGroup::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+    std::vector<float> results;
+    int dataIndex = _getIndexCurrent();
+    if (dataIndex >= 0) {
+        results = m_children[dataIndex]->_getRasterImageData(xMin, xMax, yMin, yMax, mip, minIntensity, frameLow, frameHigh, stokeFrame);
     }
     return results;
 }

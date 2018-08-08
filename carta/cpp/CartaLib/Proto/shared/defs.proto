@@ -59,7 +59,6 @@ message ImageBounds {
 message AnimationFrame {
     sfixed32 channel = 1;
     sfixed32 stokes = 2;
-    sfixed32 file_id = 3;
 }
 
 message SpatialProfile {

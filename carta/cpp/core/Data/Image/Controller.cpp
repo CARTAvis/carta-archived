@@ -32,7 +32,6 @@
 #include <memory>
 #include <set>
 
-
 using namespace std;
 
 namespace Carta {
@@ -142,7 +141,7 @@ QString Controller::_addDataImage(const QString& fileName, bool* success ) {
         }
         // _setSkyCSName();
         // _updateDisplayAxes();
-        emit dataChanged( this );
+        //emit dataChanged( this );
     }
     return result;
 }
@@ -384,6 +383,16 @@ std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const
     return intensities;
 }
 
+RegionHistogramData Controller::getPixels2Histogram(int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    RegionHistogramData result = m_stack->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    return result;
+}
+
+std::vector<float> Controller::getRasterImageData(double x_min, double x_max, double y_min, double y_max,
+    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+    std::vector<float> result = m_stack->_getRasterImageData(x_min, x_max, y_min, y_max, mip, minIntensity, frameLow, frameHigh, stokeFrame);
+    return result;
+}
 
 QRectF Controller::_getInputRectangle(  ) const {
     return m_stack->_getInputRectangle( );
@@ -1715,7 +1724,7 @@ QString Controller::_setLayersSelected( QStringList names ){
         }
         // refresh the map of axes immediately after read data
         _setAxisMap();
-        emit colorChanged( this );
+        //emit colorChanged( this );
         // The signal below causes the duplicate behaviors
         // Use setLayersSelected() to replace the original callback
         // emit dataChanged( this );
