@@ -931,7 +931,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
         // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
         //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
         int imageDim =m_image->dims().size();
-        qDebug() << "++++++++ the dimension of image raw data for percentile calculation=" << imageDim;
+        qDebug() << "++++++++ Dimension of image raw data=" << imageDim;
 
         SliceND frameSlice = SliceND().next();
 
@@ -945,30 +945,40 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                 SliceND& slice = frameSlice.next();
 
                 // If it is the target axis..
-                if ( i == spectralIndex ){
+                if (i == spectralIndex) {
                    // Use the passed in frame range
-                   if ( 0 <= frameStart && frameStart < sliceSize &&
-                        0 <= frameEnd && frameEnd < sliceSize ){
-                       slice.start( frameStart );
-                       slice.end( frameEnd + 1);
+                   if (0 <= frameStart && frameStart < sliceSize &&
+                       0 <= frameEnd && frameEnd < sliceSize) {
+                       slice.start(frameStart);
+                       slice.end(frameEnd + 1);
+                       qDebug() << "++++++++ Spectral axis index=" << i
+                                << ", get the channel range= [" << frameStart << "," << frameEnd << "]";
                    } else {
-                       qDebug() << "++++++++ for spectral axis index=" << i << ", the total slice size is" << sliceSize;
+                       qDebug() << "++++++++ Spectral axis index=" << i
+                                << ", get the channel range= [0 ," << sliceSize << "]";
                        slice.start(0);
-                       slice.end( sliceSize);
+                       slice.end(sliceSize);
                    }
-                } else if ( i == stokeIndex && stokeFrame >= 0 && stokeFrame <= 3){
-                    // If the stoke-axis is exist (axisStokeIndex != -1),
-                    // we only consider one stoke (stokeSliceIndex) for percentile calculation
-                    qDebug() << "++++++++ we only consider the stoke" << stokeFrame <<
-                                "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V) for percentile calculation" ;
-                    slice.start( stokeFrame );
-                    slice.end( stokeFrame + 1 );
+                } else if (i == stokeIndex) {
+                    if (stokeFrame >= 0 && stokeFrame <= 3) {
+                        // we only consider one stoke (stokeSliceIndex) for percentile calculation
+                        qDebug() << "++++++++ Stoke axis index=" << i << ", get the channel" << stokeFrame <<
+                                    "(-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V) for percentile calculation" ;
+                        slice.start(stokeFrame);
+                        slice.end(stokeFrame + 1);
+                    } else {
+                        // if the stoke-axis is exist (axisStokeIndex != -1),
+                        qDebug() << "++++++++ Stoke axis index=" << i
+                                 << ", get the channel range= [0 ," << sliceSize << "]";
+                        slice.start(0);
+                        slice.end(sliceSize);
+                    }
                 } else {
-
-                    // Or the entire range
-                    qDebug() << "++++++++ the total number of channel is" << sliceSize;
-                    slice.start( 0 );
-                    slice.end( sliceSize );
+                    // for the other axis, get the entire range
+                    qDebug() << "++++++++ find the other axis index"<< i
+                             << ", get the channel range= [0 ," << sliceSize << "]";
+                    slice.start(0);
+                    slice.end(sliceSize);
                 }
 
                 slice.step( 1 );

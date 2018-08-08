@@ -227,8 +227,8 @@ public:
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
     RegionHistogramData getPixels2Histogram(int frameLow, int frameHigh,
-            int numberOfBins,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
+            int numberOfBins, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
 
     std::vector<float> getRasterImageData(double x_min, double x_max, double y_min, double y_max,
             int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;

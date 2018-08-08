@@ -429,7 +429,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             // calculate pixels to histogram data
             int numberOfBins = 10000;
             Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-            RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, converter);
+            RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
             std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
             // the minimum value of pixels is the first bin center
             m_minIntensity = regionHisotgramData.first_bin_center;
