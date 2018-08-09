@@ -476,12 +476,18 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int x_max = viewSetting.image_bounds().x_max();
         int y_min = viewSetting.image_bounds().y_min();
         int y_max = viewSetting.image_bounds().y_max();
-        qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << x_min << "," << x_max << "]";
-        qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << y_min << "," << y_max << "]";
+        int W = (x_max - x_min) / mip;
+        int H = (y_max - y_min) / mip;
+        qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << x_min << "," << x_max << "]"
+                 << "--> W=" << W;
+        qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << y_min << "," << y_max << "]"
+                 << "--> H=" << H;
 
         // get the raster image raw data
         std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
             m_minIntensity, frameLow, frameHigh, stokeFrame);
+        qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << W * H
+                 << ", Difference:" << (W * H - imageData.size());
 
         // add the RasterImageData message
         CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();

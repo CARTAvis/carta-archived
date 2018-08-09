@@ -697,14 +697,14 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
 
     std::vector<float> results;
     int ilb = xMin;
-    int iub = xMax - 1;
+    int iub = xMax;
     int jlb = yMin;
-    int jub = yMax - 1;
+    int jub = yMax;
 
-    int nRows = (jub - jlb + 1) / mip;
-    int nCols = (iub - ilb + 1) / mip;
+    int nRows = (jub - jlb) / mip;
+    int nCols = (iub - ilb) / mip;
 
-    int prepareCols = iub - ilb + 1;
+    int prepareCols = iub - ilb;
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
     std::vector<float> rawData(nCols), prepareArea(area);
@@ -729,7 +729,7 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
         });
 
         // Calculate the mean of each block (mip X mip)
-        for (int i = ilb; i < nCols; i++) {
+        for (int i = ilb; i < ilb + nCols; i++) {
             rawData[i] = 0;
             int elems = mip * mip;
             float denominator = elems;
@@ -751,7 +751,7 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
     };
 
     // scan the raw data for with rows for down sampling
-    for (int j = jlb; j < nRows; j++) {
+    for (int j = jlb; j < jlb + nRows; j++) {
         updateRows();
     }
 
