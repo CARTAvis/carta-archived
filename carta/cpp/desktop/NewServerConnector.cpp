@@ -364,7 +364,15 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         CARTA::OpenFile openFile;
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
+
+        QString fileDir = QString::fromStdString(openFile.directory());
+        QString fileName = QString::fromStdString(openFile.file());
+        if (!QDir(fileDir).exists()) {
+            qWarning() << "File directory doesn't exist! (" << fileDir << ")";
+            return;
+        }
+
+        controller->addData(fileDir + "/" + fileName, &success);
 
         if (success) {
             m_changeImage = true;
