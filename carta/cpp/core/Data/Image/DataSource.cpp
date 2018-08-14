@@ -707,7 +707,8 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
     int prepareCols = iub - ilb;
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
-    std::vector<float> rawData(nCols), prepareArea(area);
+    float rawData;
+    std::vector<float> prepareArea(area);
     int nextRowToReadIn = jlb;
 
     auto updateRows = [&]() -> void {
@@ -730,7 +731,7 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
 
         // Calculate the mean of each block (mip X mip)
         for (int i = ilb; i < ilb + nCols; i++) {
-            rawData[i] = 0;
+            rawData = 0;
             int elems = mip * mip;
             float denominator = elems;
             for (int e = 0; e < elems; e++) {
@@ -738,14 +739,14 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
                 int col = e % mip;
                 int index = (row * prepareCols + col + i * mip) % area;
                 if (std::isfinite(prepareArea[index])) {
-                    rawData[i] += prepareArea[index];
+                    rawData += prepareArea[index];
                 } else {
                     denominator -= 1;
                 }
             }
             // set the NaN type of the pixel as the minimum of the other finite pixel values
-            rawData[i] = (denominator < 1 ? minIntensity : rawData[i] / denominator);
-            results.push_back(rawData[i]);
+            rawData = (denominator < 1 ? minIntensity : rawData / denominator);
+            results.push_back(rawData);
         }
         nextRowToReadIn += update;
     };
