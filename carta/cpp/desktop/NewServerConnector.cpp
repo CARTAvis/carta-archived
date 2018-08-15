@@ -47,6 +47,8 @@
 
 #include "CartaLib/IImage.h"
 
+#include "FitsHeaderExtractor.h"
+
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
 ///
@@ -345,10 +347,80 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     } else if (eventName == "FILE_INFO_REQUEST") {
         respName = "FILE_INFO_RESPONSE";
 
-        // we cannot handle the request so far, return a fake response.
-        std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
-        fileInfoResponse->set_success(false);
-        msg = fileInfoResponse;
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+        bool success;
+
+
+        // fileInfoResponse->set_message("File info not available yet!");
+        CARTA::FileInfoRequest openFile;
+        openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+        controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
+
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
+        std::cout << sizeof(image) << std::endl;
+        if (image == NULL)
+        {
+          qWarning() << "No image found!";
+          std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
+          fileInfoResponse->set_success(false);
+          fileInfoResponse->set_message("Something goes wrong! The file is in the list, but the image is not found!");
+        }
+        else
+        {
+          CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
+
+          // FileInfo: name
+          fileInfo->set_name(openFile.file());
+
+          // FileInfo: type
+          if (image->getType() == "FITSImage") {
+              fileInfo->set_type(CARTA::FileType::FITS);
+          } else {
+              fileInfo->set_type(CARTA::FileType::CASA);
+          }
+
+          // FileInfo: size
+          
+          // FileInfo: hdu_list
+          FitsHeaderExtractor fhExtractor;
+          fhExtractor.setInput( image );
+          QStringList header = fhExtractor.getHeader();
+          for (int i = 0; i < header.size(); i++)
+          {
+            // std::cout << i << std::endl;
+            // std::cout << header.size() << std::endl;
+            // std::cout << header.at(i).toLocal8Bit().constData() << std::endl;
+            // list = fileInfo->add_hdu_list();
+            // list->
+            fileInfo->add_hdu_list(header.at(i).toLocal8Bit().constData());
+            // fileInfo->set_hdu_list(list);
+            // fileInfo->set_hdu_list(i, header.at(i).toLocal8Bit().constData());
+          }
+
+          // FileInfoExtended
+
+          const std::vector<int> dims = image->dims();
+          CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
+          fileInfoExt->set_dimensions(dims.size());
+          fileInfoExt->set_width(dims[0]);
+          fileInfoExt->set_height(dims[1]);
+          if (dims.size() >= 3) {
+              fileInfoExt->set_depth(dims[2]);
+          }
+          if (dims.size() >= 4) {
+              fileInfoExt->set_stokes(dims[3]);
+          }
+
+          // FileInfoResponse
+          std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
+          fileInfoResponse->set_success(true);
+          fileInfoResponse->set_allocated_file_info(fileInfo);
+          fileInfoResponse->set_allocated_file_info_extended(fileInfoExt);
+          msg = fileInfoResponse;
+        }
+
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
@@ -363,6 +435,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         bool success;
 
         CARTA::OpenFile openFile;
+        // openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length);
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
 
@@ -376,7 +449,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         } else {
             fileInfo->set_type(CARTA::FileType::CASA);
         }
-        fileInfo->add_hdu_list(openFile.hdu());
+        // fileInfo->add_hdu_list(openFile.hdu());
 
         const std::vector<int> dims = image->dims();
         CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
