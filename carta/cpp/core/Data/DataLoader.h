@@ -108,6 +108,9 @@ private:
     //return the format in json to set icons
     QString _checkSubDir( QString& subDirPath) const;
 
+    // calculate the total size of sub-dir
+    uint64_t _subDirSize(const QString& subDirPath) const;
+
     //Add a file to the list of those available in a given directory.
     void _makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const;
     //Add a subdirectory to the list of available files.

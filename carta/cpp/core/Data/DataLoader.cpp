@@ -192,15 +192,19 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
             QString subDirPath = rootDirPath.append("/").append(fileName);
 
             if (_checkSubDir(subDirPath) == "image") {
+                uint64_t fileSize = _subDirSize(subDirPath);
                 CARTA::FileInfo *fileInfo = fileListResponse->add_files();
                 fileInfo->set_type(CARTA::FileType::CASA);
                 fileInfo->set_name(fileName.toStdString());
+                fileInfo->set_size(fileSize);
                 fileInfo->add_hdu_list();
             }
             else if (_checkSubDir(subDirPath) == "miriad") {
+                uint64_t fileSize = _subDirSize(subDirPath);
                 CARTA::FileInfo *fileInfo = fileListResponse->add_files();
                 fileInfo->set_type(CARTA::FileType::MIRIAD);
                 fileInfo->set_name(fileName.toStdString());
+                fileInfo->set_size(fileSize);
                 fileInfo->add_hdu_list();
             }
             else {
@@ -212,9 +216,11 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
             if (file.open(QFile::ReadOnly)) {
                 QString dataInfo = file.read(160);
                 if (dataInfo.contains(QRegExp("^SIMPLE *= *T.* BITPIX*")) && !dataInfo.contains(QRegExp("\n"))) {
+                    uint64_t fileSize = file.size();
                     CARTA::FileInfo *fileInfo = fileListResponse->add_files();
                     fileInfo->set_name(fileName.toStdString());
                     fileInfo->set_type(CARTA::FileType::FITS);
+                    fileInfo->set_size(fileSize);
                     fileInfo->add_hdu_list();
                 }
                 file.close();
@@ -334,6 +340,23 @@ QString DataLoader::_checkSubDir( QString& subDirPath) const {
         }
     }
     return NULL;
+}
+
+uint64_t DataLoader::_subDirSize(const QString &subDirPath) const {
+    uint64_t totalSize = 0;
+    QFileInfo str_info(subDirPath);
+     if (str_info.isDir()) {
+        QDir dir(subDirPath);
+        dir.setFilter(QDir::Files | QDir::Dirs |  QDir::Hidden | QDir::NoSymLinks);
+        QFileInfoList list = dir.entryInfoList();
+         for (int i = 0; i < list.size(); i++) {
+            QFileInfo fileInfo = list.at(i);
+            if ((fileInfo.fileName() != ".") && (fileInfo.fileName() != "..")) {
+                totalSize += (fileInfo.isDir()) ? this->_subDirSize(fileInfo.filePath()) : fileInfo.size();
+            }
+        }
+    }
+    return totalSize;
 }
 
 void DataLoader::_makeFileNode(QJsonArray& parentArray, const QString& fileName, const QString& fileType) const {
