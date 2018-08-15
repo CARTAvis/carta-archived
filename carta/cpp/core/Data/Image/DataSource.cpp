@@ -697,17 +697,18 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
 
     std::vector<float> results;
     int ilb = xMin;
-    int iub = xMax - 1;
+    int iub = xMax;
     int jlb = yMin;
-    int jub = yMax - 1;
+    int jub = yMax;
 
-    int nRows = (jub - jlb + 1) / mip;
-    int nCols = (iub - ilb + 1) / mip;
+    int nRows = (jub - jlb) / mip;
+    int nCols = (iub - ilb) / mip;
 
-    int prepareCols = iub - ilb + 1;
+    int prepareCols = iub - ilb;
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
-    std::vector<float> rawData(nCols), prepareArea(area);
+    float rawData;
+    std::vector<float> prepareArea(area);
     int nextRowToReadIn = jlb;
 
     auto updateRows = [&]() -> void {
@@ -729,8 +730,8 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
         });
 
         // Calculate the mean of each block (mip X mip)
-        for (int i = ilb; i < nCols; i++) {
-            rawData[i] = 0;
+        for (int i = ilb; i < ilb + nCols; i++) {
+            rawData = 0;
             int elems = mip * mip;
             float denominator = elems;
             for (int e = 0; e < elems; e++) {
@@ -738,20 +739,20 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
                 int col = e % mip;
                 int index = (row * prepareCols + col + i * mip) % area;
                 if (std::isfinite(prepareArea[index])) {
-                    rawData[i] += prepareArea[index];
+                    rawData += prepareArea[index];
                 } else {
                     denominator -= 1;
                 }
             }
             // set the NaN type of the pixel as the minimum of the other finite pixel values
-            rawData[i] = (denominator < 1 ? minIntensity : rawData[i] / denominator);
-            results.push_back(rawData[i]);
+            rawData = (denominator < 1 ? minIntensity : rawData / denominator);
+            results.push_back(rawData);
         }
         nextRowToReadIn += update;
     };
 
     // scan the raw data for with rows for down sampling
-    for (int j = jlb; j < nRows; j++) {
+    for (int j = jlb; j < jlb + nRows; j++) {
         updateRows();
     }
 

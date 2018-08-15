@@ -364,11 +364,19 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         CARTA::OpenFile openFile;
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
+
+        QString fileDir = QString::fromStdString(openFile.directory());
+        QString fileName = QString::fromStdString(openFile.file());
+        if (!QDir(fileDir).exists()) {
+            qWarning() << "File directory doesn't exist! (" << fileDir << ")";
+            return;
+        }
+
+        controller->addData(fileDir + "/" + fileName, &success);
 
         if (success) {
             m_changeImage = true;
-            qDebug() << "Image file changed, re-calculate the pixels to histogram data!";
+            qDebug() << "Image file (or channel) changed, re-calculate the pixels to histogram data!";
         }
 
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
@@ -417,7 +425,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
-        qDebug() << "File ID requested by frontend:" << viewSetting.file_id();
+        //qDebug() << "File ID requested by frontend:" << viewSetting.file_id();
         int frameLow = 0;
         int frameHigh = frameLow;
         int stokeFrame = 0;
@@ -439,8 +447,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             // add RegionHistogramData message
             std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
             region_histogram_data->set_file_id(viewSetting.file_id());
+
+            // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
             region_histogram_data->set_region_id(-1);
-            region_histogram_data->set_stokes(0);
+
+            region_histogram_data->set_stokes(stokeFrame);
 
             CARTA::Histogram* histogram = region_histogram_data->add_histograms();
             histogram->set_channel(frameLow);
@@ -460,28 +471,51 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             sendSerializedMessage(message, respName, msg);
 
             // set m_changeImage = false, in order to avoid the re-calculation of pixels to histogram
-            m_changeImage = false;
+            //m_changeImage = false;
         }
         /////////////////////////////////////////////////////////////////////
+
+        int mip = viewSetting.mip();
+        int x_min = viewSetting.image_bounds().x_min();
+        int x_max = viewSetting.image_bounds().x_max();
+        int y_min = viewSetting.image_bounds().y_min();
+        int y_max = viewSetting.image_bounds().y_max();
+
+        if (m_changeImage) {
+            // set m_changeImage = false, in order to avoid the re-calculation of pixels to histogram
+            m_changeImage = false;
+        } else if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax) {
+            // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
+            qDebug() << "Image boundary settings are repeated.";
+            return;
+        } else {
+            qDebug() << "Cache the new image boundary settings.";
+            m_mip = mip;
+            m_xMin = x_min;
+            m_xMax = x_max;
+            m_yMin = y_min;
+            m_yMax = y_max;
+        }
 
         /////////////////////////////////////////////////////////////////////
         qDebug() << "Down sampling the raster image data........................................";
 
         respName = "RASTER_IMAGE_DATA";
 
-        // get the down sampling raw data
-        int mip = viewSetting.mip();
         qDebug() << "Dawn sampling factor mip:" << mip;
-        int x_min = viewSetting.image_bounds().x_min();
-        int x_max = viewSetting.image_bounds().x_max();
-        int y_min = viewSetting.image_bounds().y_min();
-        int y_max = viewSetting.image_bounds().y_max();
-        qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << x_min << "," << x_max << "]";
-        qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << y_min << "," << y_max << "]";
 
-        // get the raster image raw data
+        int W = (x_max - x_min) / mip;
+        int H = (y_max - y_min) / mip;
+        qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << x_min << "," << x_max << "]"
+                 << "--> W=" << W;
+        qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << y_min << "," << y_max << "]"
+                 << "--> H=" << H;
+
+        // get the down sampling raster image raw data
         std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
             m_minIntensity, frameLow, frameHigh, stokeFrame);
+        qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << W * H
+                 << ", Difference:" << (W * H - imageData.size());
 
         // add the RasterImageData message
         CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
