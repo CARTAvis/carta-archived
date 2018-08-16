@@ -226,9 +226,34 @@ public:
             const std::vector<double>& percentiles,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
 
+    /**
+     * Returns the histogram of pixels.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param numberOfBins - the number of histogram bins between minimum and maximum of pixel values.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @param converter - used to convert the pixel values for different unit
+     * @return - a struct RegionHistogramData
+     */
     RegionHistogramData getPixels2Histogram(int frameLow, int frameHigh,
-            int numberOfBins,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr ) const;
+            int numberOfBins, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
+
+    /**
+     * Returns a vector of pixels.
+     * @param xMin - lower bound of the x-pixel-coordinate.
+     * @param xMax - upper bound 0f the x-pixel-coordinate.
+     * @param yMin - lower bound of the y-pixel-coordinate.
+     * @param yMax - upper bound 0f the y-pixel-coordinate.
+     * @param mip - down sampling factor.
+     * @param minIntensity - use the minimum of intensity value to replace the NaN type of pixel value.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @return - vector of pixels.
+     */
+    std::vector<float> getRasterImageData(double x_min, double x_max, double y_min, double y_max,
+            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current

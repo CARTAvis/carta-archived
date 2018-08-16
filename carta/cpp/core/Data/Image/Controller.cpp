@@ -383,10 +383,14 @@ std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const
     return intensities;
 }
 
-RegionHistogramData Controller::getPixels2Histogram(int frameLow, int frameHigh, int numberOfBins, Lib::IntensityUnitConverter::SharedPtr converter) const {
-    int stokeFrame = getFrame(AxisInfo::KnownType::STOKES);
-    qDebug() << "++++++++ get the stoke frame=" << stokeFrame << "( -1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)";
+RegionHistogramData Controller::getPixels2Histogram(int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
     RegionHistogramData result = m_stack->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    return result;
+}
+
+std::vector<float> Controller::getRasterImageData(double x_min, double x_max, double y_min, double y_max,
+    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+    std::vector<float> result = m_stack->_getRasterImageData(x_min, x_max, y_min, y_max, mip, minIntensity, frameLow, frameHigh, stokeFrame);
     return result;
 }
 

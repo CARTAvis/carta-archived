@@ -247,9 +247,34 @@ private:
             const std::vector<double>& percentiles, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
+    /**
+     * Returns the histogram of pixels.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param numberOfBins - the number of histogram bins between minimum and maximum of pixel values.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @param converter - used to convert the pixel values for different unit.
+     * @return - a struct RegionHistogramData.
+     */
     RegionHistogramData _getPixels2Histogram(int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+
+    /**
+     * Returns a vector of pixels.
+     * @param xMin - lower bound of the x-pixel-coordinate.
+     * @param xMax - upper bound 0f the x-pixel-coordinate.
+     * @param yMin - lower bound of the y-pixel-coordinate.
+     * @param yMax - upper bound 0f the y-pixel-coordinate.
+     * @param mip - down sampling factor.
+     * @param minIntensity - use the minimum of intensity value to replace the NaN type of pixel value.
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @return - vector of pixels.
+     */
+    std::vector<float> _getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;
 
     /**
      * Returns the color used to draw nan pixels.
@@ -257,7 +282,7 @@ private:
      */
     QColor _getNanColor() const;
 
-    std::vector<double> _getHertzValues(const std::vector<int> dims, const int spectralIndex) const;
+    std::vector<double> _getHertzValues(const std::vector<int> dims) const;
 
     /**
      * Return percentiles corresponding to the given intensities.
@@ -345,8 +370,7 @@ private:
      * @param stokeSliceIndex - the index of the stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V).
      * @return the raw data or nullptr if there is none.
      */
-    Carta::Lib::NdArray::RawViewInterface *  _getRawDataForStoke( int frameLow, int frameHigh, int axisIndex,
-            int axisStokeIndex, int stokeSliceIndex ) const;
+    Carta::Lib::NdArray::RawViewInterface* _getRawDataForStoke(int frameLow, int frameHigh, int stokeFrame) const;
 
     /**
      * Returns the raw data for the current view.
