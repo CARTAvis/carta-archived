@@ -47,7 +47,10 @@
 
 #include "CartaLib/IImage.h"
 
-#include "FitsHeaderExtractor.h"
+// File_Info implementation test
+// #include "FitsHeaderExtractor.h"
+#include "CartaLib/Hooks/ImageStatisticsHook.h"
+#include "Globals.h"
 
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
@@ -349,78 +352,99 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
         bool success;
-
-
-        // fileInfoResponse->set_message("File info not available yet!");
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
         CARTA::FileInfoRequest openFile;
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
 
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
-        std::cout << sizeof(image) << std::endl;
-        if (image == NULL)
-        {
-          qWarning() << "No image found!";
-          std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
-          fileInfoResponse->set_success(false);
-          fileInfoResponse->set_message("Something goes wrong! The file is in the list, but the image is not found!");
-        }
-        else
-        {
-          CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
+        std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
+        images.push_back(image);
 
-          // FileInfo: name
-          fileInfo->set_name(openFile.file());
+        CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
 
-          // FileInfo: type
-          if (image->getType() == "FITSImage") {
-              fileInfo->set_type(CARTA::FileType::FITS);
-          } else {
-              fileInfo->set_type(CARTA::FileType::CASA);
-          }
+        // FileInfo: name
+        fileInfo->set_name(openFile.file());
 
-          // FileInfo: size
-          
-          // FileInfo: hdu_list
-          FitsHeaderExtractor fhExtractor;
-          fhExtractor.setInput( image );
-          QStringList header = fhExtractor.getHeader();
-          for (int i = 0; i < header.size(); i++)
-          {
-            // std::cout << i << std::endl;
-            // std::cout << header.size() << std::endl;
-            // std::cout << header.at(i).toLocal8Bit().constData() << std::endl;
-            // list = fileInfo->add_hdu_list();
-            // list->
-            fileInfo->add_hdu_list(header.at(i).toLocal8Bit().constData());
-            // fileInfo->set_hdu_list(list);
-            // fileInfo->set_hdu_list(i, header.at(i).toLocal8Bit().constData());
-          }
-
-          // FileInfoExtended
-
-          const std::vector<int> dims = image->dims();
-          CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
-          fileInfoExt->set_dimensions(dims.size());
-          fileInfoExt->set_width(dims[0]);
-          fileInfoExt->set_height(dims[1]);
-          if (dims.size() >= 3) {
-              fileInfoExt->set_depth(dims[2]);
-          }
-          if (dims.size() >= 4) {
-              fileInfoExt->set_stokes(dims[3]);
-          }
-
-          // FileInfoResponse
-          std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
-          fileInfoResponse->set_success(true);
-          fileInfoResponse->set_allocated_file_info(fileInfo);
-          fileInfoResponse->set_allocated_file_info_extended(fileInfoExt);
-          msg = fileInfoResponse;
+        // FileInfo: type
+        if (image->getType() == "FITSImage") {
+            fileInfo->set_type(CARTA::FileType::FITS);
+        } else {
+            fileInfo->set_type(CARTA::FileType::CASA);
         }
 
+        // FileInfo: size
+
+        // FileInfoExtended
+
+        const std::vector<int> dims = image->dims();
+        CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
+        fileInfoExt->set_dimensions(dims.size());
+        fileInfoExt->set_width(dims[0]);
+        fileInfoExt->set_height(dims[1]);
+        if (dims.size() >= 3) {
+            fileInfoExt->set_depth(dims[2]);
+        }
+        if (dims.size() >= 4) {
+            fileInfoExt->set_stokes(dims[3]);
+        }
+
+        // Prepare to use the ImageStats plugin.
+        std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions;
+        std::vector<int> frameIndices = controller->getImageSlice();
+
+        int sourceCount = images.size();
+        if ( sourceCount > 0 ){
+            auto result = Globals::instance()-> pluginManager()
+                         -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
+            auto lam = [=] ( const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data ) {
+              //An array for each image
+              int dataCount = data.size();
+              // m_stateData.resizeArray( STATS, dataCount );
+              for ( int i = 0; i < dataCount; i++ ){
+                  //Each element of the image array contains an array of statistics.
+                  // QString arrayLookup = Carta::State::UtilState::getLookup( "stats", i );
+                  int statCount = data[i].size();
+                  // m_stateData.setArray( arrayLookup, statCount );
+
+                  //Go through each set of statistics for the image.
+                  for ( int k = 0; k < statCount; k++ ){
+                      // QString objLookup = Carta::State::UtilState::getLookup( arrayLookup, k );
+
+                      // QList<QString> existingKeys = m_stateData.getMemberNames( objLookup );
+                      int keyCount = data[i][k].size();
+                      for ( int j = 0; j < keyCount; j++ ){
+                          QString label = data[i][k][j].getLabel();
+                          QString value = data[i][k][j].getValue();
+                          // QString lookup = Carta::State::UtilState::getLookup( objLookup, label );
+                          CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+                          headerEntry->set_name(label.toLocal8Bit().constData());
+                          headerEntry->set_value(value.toLocal8Bit().constData());
+                          // qDebug() << "label:" << label << "lookup" << lookup << "Value: " << data[i][k][j].getValue();
+                          // m_stateData.insertValue<QString>( lookup, data[i][k][j].getValue() );
+                      }
+                  }
+              }
+              // m_stateData.flushState();
+            };
+            try {
+                result.forEach( lam );
+            }
+            catch( char*& error ){
+                QString errorStr( error );
+                qDebug() << "There is an error message: " << error;
+                // Carta::Data::ErrorManager* hr = Carta::State::Util::findSingletonObject<Carta::Data::ErrorManager>();
+                // hr->registerError( errorStr );
+            }
+        }
+
+        // FileInfoResponse
+        std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
+        fileInfoResponse->set_success(true);
+        fileInfoResponse->set_allocated_file_info(fileInfo);
+        fileInfoResponse->set_allocated_file_info_extended(fileInfoExt);
+        msg = fileInfoResponse;
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
